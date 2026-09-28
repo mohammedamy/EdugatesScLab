@@ -14,6 +14,7 @@ import { ProgressStore } from "./progress-tracker.js";
 import { renderLatex, renderMathInElement } from "../utils/math-renderer.js";
 import { mountLessonInteractive, cleanupLessonInteractive, getLessonInteractiveSpec } from "./lesson-interactives.js";
 import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
+import { openLessonPlanModal } from "./lesson-plan-generator.js";
 
 export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   ProgressStore.recordModuleExplored(moduleData.code);
@@ -59,7 +60,12 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
             </div>
             <div class="modal-title">${moduleData.title}</div>
           </div>
-          <button class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">✕</button>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn btn-secondary btn-header-lesson-plan" id="btn-header-lesson-plan" title="Open 2-Page A4 Teacher Lesson Plan &amp; Export PDF" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
+              <span>📄 Lesson Plan (A4)</span>
+            </button>
+            <button class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">✕</button>
+          </div>
         </div>
 
         <div class="modal-tabs-header">
@@ -87,6 +93,14 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     // Modal Close Button
     const btnClose = document.getElementById("btn-close-modal");
     if (btnClose) btnClose.addEventListener("click", closeModal);
+
+    // Header Lesson Plan Button
+    const btnHeaderPlan = document.getElementById("btn-header-lesson-plan");
+    if (btnHeaderPlan) {
+      btnHeaderPlan.addEventListener("click", () => {
+        openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+      });
+    }
 
     // Backdrop click to close modal
     overlay.addEventListener("click", (e) => {
@@ -116,6 +130,12 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
       mountLabTab();
     } else {
       renderMathInElement(document.getElementById("modal-tab-content"));
+      const btnConceptsPlan = document.getElementById("btn-concepts-lesson-plan");
+      if (btnConceptsPlan) {
+        btnConceptsPlan.addEventListener("click", () => {
+          openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+        });
+      }
     }
   }
 
@@ -154,10 +174,15 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
                   Select any lesson below to immediately load its tailored interactive laboratory simulator:
                 </p>
               </div>
-              <button id="btn-jump-to-interactive-tab" class="btn-sim-action" style="padding: 8px 16px; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
-                <span>Full Interactive View</span>
-                <span>→</span>
-              </button>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <button id="btn-overview-lesson-plan" class="btn-sim-action" style="padding: 8px 14px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #0284c7, #2563eb); color: #ffffff; border: none; font-weight: 700; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 8px rgba(37,99,235,0.3);">
+                  <span>📄 Teacher Plan (A4)</span>
+                </button>
+                <button id="btn-jump-to-interactive-tab" class="btn-sim-action" style="padding: 8px 16px; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                  <span>Full Interactive View</span>
+                  <span>→</span>
+                </button>
+              </div>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -181,10 +206,16 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
                           ${les.objectives.map(obj => `<li>${obj}</li>`).join("")}
                         </ul>
                       </div>
-                      <button class="btn-select-lesson-interactive" data-lesson-id="${les.id}"
-                              style="white-space: nowrap; border: 1px solid ${isSelected ? subjectColor : 'var(--border-color)'}; background: ${isSelected ? subjectColor : 'var(--bg-card)'}; color: ${isSelected ? '#ffffff' : 'var(--text-main)'}; font-weight: 700; font-size: 0.82rem; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
-                        ${isSelected ? '✓ Active Simulator' : '🔬 Load Simulator'}
-                      </button>
+                      <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+                        <button class="btn-select-lesson-interactive" data-lesson-id="${les.id}"
+                                style="white-space: nowrap; border: 1px solid ${isSelected ? subjectColor : 'var(--border-color)'}; background: ${isSelected ? subjectColor : 'var(--bg-card)'}; color: ${isSelected ? '#ffffff' : 'var(--text-main)'}; font-weight: 700; font-size: 0.82rem; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                          ${isSelected ? '✓ Active Simulator' : '🔬 Load Simulator'}
+                        </button>
+                        <button class="btn-item-lesson-plan" data-lesson-id="${les.id}" title="Open 2-Page Lesson Plan for Lesson ${les.id}"
+                                style="white-space: nowrap; padding: 4px 10px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-surface-elevated); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                          <span>📄 A4 Plan</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 `;
@@ -236,6 +267,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
               <button class="btn btn-secondary lesson-flashcard-btn" id="btn-modal-open-flashcard" style="padding: 6px 14px; font-size: 0.82rem; white-space: nowrap;" title="Review Flashcard for this Lesson">
                 🃏 Lesson Flashcard
               </button>
+              <button class="btn btn-primary lesson-plan-btn" id="btn-modal-open-lesson-plan" style="padding: 6px 14px; font-size: 0.82rem; white-space: nowrap; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; color: #fff; font-weight: 700; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 8px rgba(37,99,235,0.35);" title="Open 2-Page A4 Teacher Lesson Plan &amp; PDF Export">
+                📄 2-Page Lesson Plan
+              </button>
             </div>
           </div>
 
@@ -256,9 +290,14 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
                   Comprehensive Scientific Theory: ${theory.topic}
                 </h3>
               </div>
-              <span class="curriculum-standard-badge" style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 3px 10px; border-radius: 9999px; border: 1px solid rgba(56, 189, 248, 0.25);">
-                Rigorous Curriculum Standard
-              </span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="curriculum-standard-badge" style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 3px 10px; border-radius: 9999px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                  Rigorous Curriculum Standard
+                </span>
+                <button id="btn-concepts-lesson-plan" class="btn btn-secondary" style="padding: 4px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 6px; border: 1px solid rgba(56, 189, 248, 0.3); background: rgba(56, 189, 248, 0.1); color: #38bdf8; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;" title="Print/Export 2-Page Lesson Plan">
+                  <span>📄 Lesson Plan</span>
+                </button>
+              </div>
             </div>
             <div class="modal-theory-core-body">
               ${theory.coreTheory.split('\n\n').map(p => `<p style="margin: 0;">${p}</p>`).join("")}
@@ -438,6 +477,23 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
         renderContent();
       });
     }
+
+    // Overview Lesson Plan Button
+    const btnOverviewPlan = document.getElementById("btn-overview-lesson-plan");
+    if (btnOverviewPlan) {
+      btnOverviewPlan.addEventListener("click", () => {
+        openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+      });
+    }
+
+    // Per-lesson Plan buttons in list
+    overlay.querySelectorAll(".btn-item-lesson-plan").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const lid = parseInt(btn.dataset.lessonId, 10);
+        openLessonPlanModal(moduleData.code, moduleData.id, lid);
+      });
+    });
   }
 
   function mountDedicatedInteractiveTab() {
@@ -513,6 +569,14 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
           const subCode = (moduleData.code || "").split("-")[0] || "CHEM";
           window.switchToFlashcard(subCode, moduleData.id, currentLessonId);
         }
+      });
+    }
+
+    // Bind Open Lesson Plan Modal
+    const btnLp = overlay.querySelector("#btn-modal-open-lesson-plan");
+    if (btnLp) {
+      btnLp.addEventListener("click", () => {
+        openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
       });
     }
   }

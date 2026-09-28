@@ -12,6 +12,7 @@ import { renderFlashcards } from "./components/flashcards.js";
 import { openProgressModal, ProgressStore } from "./components/progress-tracker.js";
 import { renderMathInElement, renderLatex } from "./utils/math-renderer.js";
 import { getLessonInteractiveSpec } from "./components/lesson-interactives.js";
+import { openLessonPlanModal } from "./components/lesson-plan-generator.js";
 
 import { initProjectileLab } from "./labs/phys-projectile.js";
 import { initTitrationLab } from "./labs/chem-titration.js";
@@ -564,10 +565,13 @@ function renderSubjectView(container, curData, themeColor) {
                   <strong>Inquiry Challenge:</strong> ${spec.inquiry}
                 </div>
 
-                <div class="lesson-card-footer">
-                  <button class="btn-launch-lesson-sim" data-mid="${m.id}" data-lid="${l.id}">
+                <div class="lesson-card-footer" style="display: flex; gap: 8px;">
+                  <button class="btn-launch-lesson-sim" data-mid="${m.id}" data-lid="${l.id}" style="flex: 1;">
                     <span>Launch Interactive</span>
                     <span class="play-icon">▶</span>
+                  </button>
+                  <button class="btn-launch-lesson-plan" data-mid="${m.id}" data-lid="${l.id}" title="Open 2-Page A4 Teacher Lesson Plan &amp; PDF Export" style="padding: 0 12px; height: 38px; font-size: 0.82rem; font-weight: 700; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface-elevated); color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; transition: all 0.2s ease;">
+                    <span>📄 Plan</span>
                   </button>
                 </div>
               </div>
@@ -630,6 +634,16 @@ function renderSubjectView(container, curData, themeColor) {
       if (mod) {
         openModuleModal(mod, themeColor, lid);
       }
+    });
+  });
+
+  // Bind Lesson Plan Button Clicks on Standalone Cards
+  document.querySelectorAll(".btn-launch-lesson-plan").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const mid = parseInt(btn.dataset.mid, 10);
+      const lid = parseInt(btn.dataset.lid, 10);
+      openLessonPlanModal(curData.code, mid, lid);
     });
   });
 
