@@ -226,7 +226,7 @@ function generate5ECycle(code, moduleData, lessonData, spec, theory) {
     {
       phase: "Explain",
       time: "12 Min",
-      teacherAction: `Synthesize data from student trials onto the Smartboard. Formally introduce the governing scientific law and mathematical formulation: ${spec.formula}.`,
+      teacherAction: `Synthesize data from student trials onto the Smartboard. Formally introduce the governing scientific law and mathematical formulation: $${spec.formula}$.`,
       studentAction: "Construct formal Claim-Evidence-Reasoning (CER) arguments justifying how simulator data proves the theoretical law.",
       misconception: "Assuming correlation proves causation without articulating the underlying particulate/physical mechanism."
     },
@@ -263,7 +263,7 @@ function generateDifferentiation(code, lessonData, spec) {
 function generateExitTicket(code, moduleData, lessonData, spec, theory) {
   return {
     q1: `Conceptual Check: Explain how an increase in the primary independent variable in "${lessonData.title}" directly alters system equilibrium or kinetic output at the microscopic scale.`,
-    q2: `Quantitative Application: Given experimental conditions where variables double, calculate the resulting factor change using governing equation [ ${spec.formula} ].`,
+    q2: `Quantitative Application: Given experimental conditions where variables double, calculate the resulting factor change using governing equation [ $${spec.formula}$ ].`,
     answerKey: `1. Direct causal link: increasing parameter intensifies particle collisions or field interaction, shifting dynamic rate. 2. Proportional computation: applying the governing law yields the exact calculated multiplier according to standard conservation laws. Full credit requires correct units and a 1-sentence mechanistic justification.`
   };
 }
@@ -278,6 +278,21 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
   };
 
   const accentColor = p.meta.subjectColor || "#0284c7";
+
+  // Adaptive formula sizing & wrapping calculation
+  const formulaRaw = (p.formula || "").trim();
+  const formulaLen = formulaRaw.length;
+  let formulaSizeClass = "lp-formula-standard";
+  if (formulaLen > 100) {
+    formulaSizeClass = "lp-formula-xl";
+  } else if (formulaLen > 65) {
+    formulaSizeClass = "lp-formula-lg";
+  } else if (formulaLen > 35) {
+    formulaSizeClass = "lp-formula-md";
+  } else {
+    formulaSizeClass = "lp-formula-sm";
+  }
+  const displayFormula = formulaRaw.includes("\\displaystyle") ? formulaRaw : `\\displaystyle ${formulaRaw}`;
 
   return `
     <div class="lp-document-wrapper" id="lesson-plan-print-root">
@@ -373,7 +388,7 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
         <div class="lp-card">
           <div class="lp-sec-title">Measurable Student Learning Targets (SWBAT)</div>
           <ul class="lp-objectives-list">
-            ${p.objectives.map(obj => `<li>${obj}</li>`).join("")}
+            ${p.objectives.map(obj => `<li>${formatMathText(obj)}</li>`).join("")}
           </ul>
         </div>
 
@@ -384,15 +399,15 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
             <div class="lp-vocab-grid">
               ${p.vocabulary.map(v => `
                 <div class="lp-vocab-item">
-                  <strong>${v.term}:</strong> <span>${v.def}</span>
+                  <strong>${v.term}:</strong> <span>${formatMathText(v.def)}</span>
                 </div>
               `).join("")}
             </div>
           </div>
           <div class="lp-card">
             <div class="lp-sec-title">Governing Mathematical Law / Equation</div>
-            <div class="lp-formula-display">
-              ${renderLatex(p.formula, true)}
+            <div class="lp-formula-display ${formulaSizeClass}">
+              ${renderLatex(displayFormula, false)}
             </div>
             <div class="lp-formula-meta">
               <span>Standard Metric / SI Notation</span>
@@ -407,16 +422,16 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
           <div class="lp-prep-grid">
             <div>
               <strong>Digital Laboratory Simulation:</strong>
-              <p>${p.materials.digital}</p>
+              <p>${formatMathText(p.materials.digital)}</p>
               <strong>Apparatus &amp; Physical Reagents:</strong>
-              <p>${p.materials.wetLabSupplies}</p>
+              <p>${formatMathText(p.materials.wetLabSupplies)}</p>
             </div>
             <div class="lp-safety-warning-box">
               <div class="lp-safety-header">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b91c1c" stroke-width="2.5"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                 <span>OSHA / NSTA Laboratory Safety Compliance</span>
               </div>
-              <p class="lp-safety-text">${p.safety}</p>
+              <p class="lp-safety-text">${formatMathText(p.safety)}</p>
             </div>
           </div>
         </div>
@@ -464,13 +479,13 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
                     <span class="lp-phase-time">${step.time}</span>
                   </td>
                   <td>
-                    <div class="lp-phase-action">${step.teacherAction}</div>
+                    <div class="lp-phase-action">${formatMathText(step.teacherAction)}</div>
                     <div class="lp-misconception-callout">
-                      <strong>Misconception:</strong> ${step.misconception}
+                      <strong>Misconception:</strong> ${formatMathText(step.misconception)}
                     </div>
                   </td>
                   <td>
-                    <div class="lp-phase-action">${step.studentAction}</div>
+                    <div class="lp-phase-action">${formatMathText(step.studentAction)}</div>
                   </td>
                 </tr>
               `).join("")}
@@ -482,11 +497,11 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
         <div class="lp-grid-2col">
           <div class="lp-card lp-diff-card">
             <div class="lp-sec-title" style="color: #0369a1;">Tier 1 &amp; 2 Support (ELL / IEP / Scaffolded)</div>
-            <p class="lp-diff-text">${p.differentiation.support}</p>
+            <p class="lp-diff-text">${formatMathText(p.differentiation.support)}</p>
           </div>
           <div class="lp-card lp-diff-card">
             <div class="lp-sec-title" style="color: #7c3aed;">Tier 3 Extension (Advanced / Gifted / AP STEM)</div>
-            <p class="lp-diff-text">${p.differentiation.extension}</p>
+            <p class="lp-diff-text">${formatMathText(p.differentiation.extension)}</p>
           </div>
         </div>
 
@@ -495,10 +510,10 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
           <div class="lp-sec-title">Formative Assessment &amp; Independent Exit Ticket</div>
           <div class="lp-exit-ticket-box">
             <div class="lp-exit-q">
-              <strong>Task 1 (Qualitative / Mechanism):</strong> ${p.assessment.q1}
+              <strong>Task 1 (Qualitative / Mechanism):</strong> ${formatMathText(p.assessment.q1)}
             </div>
             <div class="lp-exit-q" style="margin-top: 6px;">
-              <strong>Task 2 (Quantitative / Modeling):</strong> ${p.assessment.q2}
+              <strong>Task 2 (Quantitative / Modeling):</strong> ${formatMathText(p.assessment.q2)}
             </div>
           </div>
 
@@ -508,7 +523,7 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
               <span>Teacher Answer Key &amp; Scoring Rubric Criteria</span>
             </div>
-            <p class="lp-key-text">${p.assessment.answerKey}</p>
+            <p class="lp-key-text">${formatMathText(p.assessment.answerKey)}</p>
           </div>
         </div>
 

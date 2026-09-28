@@ -152,6 +152,10 @@ function classifyPlainTokens(html) {
 function formatInner(s, isRoot = true) {
   if (!s) return "";
 
+  // 0. Clean formatting switches like \displaystyle, \textstyle, \limits, \nolimits
+  s = s.replace(/\\displaystyle\b\s*/g, "").replace(/\\textstyle\b\s*/g, "");
+  s = s.replace(/\\limits\b\s*/g, "").replace(/\\nolimits\b\s*/g, "");
+
   // 1. Clean delimiters
   s = s.replace(/\\left\(/g, "(").replace(/\\right\)/g, ")");
   s = s.replace(/\\left\[/g, "[").replace(/\\right\]/g, "]");

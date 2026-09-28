@@ -1926,7 +1926,7 @@ html, body {
     color: #000000 !important;
   }
 
-  /* Mathematical Typesetting & KaTeX in Print: 100% Solid Pure Black */
+  /* Mathematical Typesetting & KaTeX in Print: 100% Solid Pure Black & Proportional Sizing */
   .katex,
   .katex *,
   .math-rendered,
@@ -1954,6 +1954,21 @@ html, body {
     -webkit-text-fill-color: #000000 !important;
   }
 
+  .math-rendered,
+  .math-katex-wrapper,
+  .katex,
+  .katex-display,
+  .math-block-wrapper,
+  .math-display {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .katex-display,
+  .math-display {
+    margin: 6px 0 !important;
+  }
+
   .math-num {
     border-bottom: 1.5px solid #000000 !important;
   }
@@ -1970,6 +1985,55 @@ html, body {
 
   .math-accent-bar {
     text-decoration-color: #000000 !important;
+  }
+
+  /* Printable STEM Examination Math Rules */
+  .print-test-container .print-q-card > div:first-child .katex,
+  .print-test-container .print-q-card > div:first-child .math-rendered,
+  .print-test-container .print-q-card > div:first-child .math-katex-wrapper {
+    font-size: 1.02em !important;
+    font-weight: 600 !important;
+  }
+
+  .print-test-container .print-q-card .math-block-wrapper,
+  .print-test-container .print-q-card .math-display,
+  .print-test-container .print-q-card .katex-display {
+    margin: 6px 0 !important;
+    padding: 2px 0 !important;
+    font-size: 1.05rem !important;
+    color: #000000 !important;
+    text-align: center !important;
+  }
+
+  .print-test-container .print-q-card div[style*="grid-template-columns"] span .katex,
+  .print-test-container .print-q-card div[style*="grid-template-columns"] span .math-rendered,
+  .print-test-container .print-q-card div[style*="grid-template-columns"] span .math-katex-wrapper {
+    font-size: 0.95rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .print-test-container .print-q-card div[style*="grid-template-columns"] .math-display,
+  .print-test-container .print-q-card div[style*="grid-template-columns"] .katex-display {
+    display: inline-flex !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0.95rem !important;
+  }
+
+  .print-test-container .teacher-solution-card .katex,
+  .print-test-container .teacher-solution-card .math-rendered,
+  .print-test-container .teacher-solution-card .math-katex-wrapper {
+    font-size: 0.92rem !important;
+    color: #000000 !important;
+  }
+
+  .print-test-container .teacher-solution-card .math-block-wrapper,
+  .print-test-container .teacher-solution-card .math-display,
+  .print-test-container .teacher-solution-card .katex-display {
+    margin: 4px 0 !important;
+    padding: 2px 0 !important;
+    font-size: 0.95rem !important;
+    color: #000000 !important;
   }
 }
 
@@ -2428,6 +2492,94 @@ html, body {
   justify-content: center;
   overflow-x: auto;
   padding: 6px;
+}
+
+/* Printable STEM Examination Math Rules (Screen Preview & Print Pre-flight) */
+.print-test-container .math-rendered,
+.print-test-container .math-katex-wrapper,
+.print-test-container .katex {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+  font-size: 1em !important;
+  line-height: 1.3 !important;
+}
+
+.print-test-container .math-num-lit,
+.print-test-container .math-text,
+.print-test-container .math-delim,
+.print-test-container .math-op,
+.print-test-container .math-func,
+.print-test-container .math-sup,
+.print-test-container .math-sub,
+.print-test-container .math-italic,
+.print-test-container .math-num,
+.print-test-container .math-denom {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+.print-test-container .math-num {
+  border-bottom: 1.5px solid #000000 !important;
+}
+
+.print-test-container .math-sqrt-stem {
+  border-top: 1.5px solid #000000 !important;
+}
+
+.print-test-container .math-radical-svg,
+.print-test-container .math-radical-svg path {
+  stroke: #000000 !important;
+  color: #000000 !important;
+}
+
+.print-test-container .print-q-card > div:first-child .katex,
+.print-test-container .print-q-card > div:first-child .math-rendered,
+.print-test-container .print-q-card > div:first-child .math-katex-wrapper {
+  font-size: 1.02em !important;
+  font-weight: 600 !important;
+}
+
+.print-test-container .print-q-card .math-block-wrapper,
+.print-test-container .print-q-card .math-display,
+.print-test-container .print-q-card .katex-display {
+  margin: 6px 0 !important;
+  padding: 2px 0 !important;
+  font-size: 1.05rem !important;
+  color: #000000 !important;
+  text-align: center !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+
+.print-test-container .print-q-card div[style*="grid-template-columns"] span .katex,
+.print-test-container .print-q-card div[style*="grid-template-columns"] span .math-rendered,
+.print-test-container .print-q-card div[style*="grid-template-columns"] span .math-katex-wrapper {
+  font-size: 0.95rem !important;
+  line-height: 1.25 !important;
+}
+
+.print-test-container .print-q-card div[style*="grid-template-columns"] .math-display,
+.print-test-container .print-q-card div[style*="grid-template-columns"] .katex-display {
+  display: inline-flex !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 0.95rem !important;
+}
+
+.print-test-container .teacher-solution-card .katex,
+.print-test-container .teacher-solution-card .math-rendered,
+.print-test-container .teacher-solution-card .math-katex-wrapper {
+  font-size: 0.92rem !important;
+  color: #000000 !important;
+}
+
+.print-test-container .teacher-solution-card .math-block-wrapper,
+.print-test-container .teacher-solution-card .math-display,
+.print-test-container .teacher-solution-card .katex-display {
+  margin: 4px 0 !important;
+  padding: 2px 0 !important;
+  font-size: 0.95rem !important;
+  color: #000000 !important;
 }
 
 /* Upright tabular numbers */
@@ -6524,17 +6676,107 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   background: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 4px;
-  padding: 6px;
+  padding: 4px 8px;
   text-align: center;
   min-height: 32px;
+  max-width: 100%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  line-height: 1.25;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Dynamic sizing tiers based on formula complexity and length */
+.lp-formula-display.lp-formula-standard,
+.lp-formula-display.lp-formula-sm {
+  font-size: 8.8pt;
+}
+
+.lp-formula-display.lp-formula-md {
+  font-size: 8.0pt;
+}
+
+.lp-formula-display.lp-formula-lg {
+  font-size: 7.2pt;
+}
+
+.lp-formula-display.lp-formula-xl {
+  font-size: 6.6pt;
+  padding: 3px 6px;
+}
+
+/* Constrain all math wrappers within the formula display */
+.lp-formula-display .math-rendered,
+.lp-formula-display .math-katex-wrapper {
+  font-size: 1em !important;
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  max-width: 100% !important;
+  line-height: 1.25 !important;
+  color: #0f172a !important;
+}
+
+.lp-formula-display .math-display,
+.lp-formula-display .katex-display {
+  font-size: 1em !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  align-items: center !important;
+  max-width: 100% !important;
+  color: #0f172a !important;
 }
 
 .lp-formula-display .katex {
-  font-size: 1.05em;
+  font-size: 1em !important;
   color: #0f172a !important;
+  white-space: normal !important;
+  text-align: center !important;
+  max-width: 100% !important;
+  line-height: 1.25 !important;
+}
+
+.lp-formula-display .katex-html {
+  white-space: normal !important;
+  text-align: center !important;
+  max-width: 100% !important;
+  display: inline !important;
+}
+
+.lp-formula-display .katex .base {
+  white-space: normal !important;
+  display: inline !important;
+}
+
+.lp-formula-display .math-text {
+  white-space: normal !important;
+  word-break: normal !important;
+}
+
+/* Universal math sizing inside Lesson Plan A4 Pages */
+.lp-a4-page .katex,
+.lp-a4-page .math-rendered,
+.lp-a4-page .math-katex-wrapper {
+  font-size: 1em !important;
+  line-height: 1.25 !important;
+  color: #000000 !important;
+}
+
+.lp-a4-page .katex-display,
+.lp-a4-page .math-display {
+  margin: 2px 0 !important;
+  padding: 0 !important;
+  font-size: 1em !important;
+  color: #000000 !important;
 }
 
 .lp-formula-meta {
@@ -6855,6 +7097,36 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   body.printing-lesson-plan .lp-formula-display,
   body.printing-lesson-plan .lp-exit-ticket-box {
     border-color: #94a3b8 !important;
+  }
+
+  body.printing-lesson-plan .lp-formula-display {
+    background: #ffffff !important;
+  }
+
+  body.printing-lesson-plan .lp-formula-display.lp-formula-standard,
+  body.printing-lesson-plan .lp-formula-display.lp-formula-sm {
+    font-size: 8.5pt !important;
+  }
+
+  body.printing-lesson-plan .lp-formula-display.lp-formula-md {
+    font-size: 7.8pt !important;
+  }
+
+  body.printing-lesson-plan .lp-formula-display.lp-formula-lg {
+    font-size: 7.0pt !important;
+  }
+
+  body.printing-lesson-plan .lp-formula-display.lp-formula-xl {
+    font-size: 6.4pt !important;
+    padding: 2px 4px !important;
+  }
+
+  body.printing-lesson-plan .lp-formula-display .katex,
+  body.printing-lesson-plan .lp-formula-display .katex *,
+  body.printing-lesson-plan .lp-formula-display .math-rendered,
+  body.printing-lesson-plan .lp-formula-display .math-rendered * {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
   }
 
   body.printing-lesson-plan .lp-main-title,
