@@ -6097,10 +6097,14 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 [data-theme="day"] .sim-telemetry-box [style*="color:#34d399"],
 [data-theme="day"] .sim-telemetry-box [style*="color: #10b981"],
 [data-theme="day"] .sim-telemetry-box [style*="color:#10b981"],
+[data-theme="day"] .sim-telemetry-box [style*="color: #047857"],
+[data-theme="day"] .sim-telemetry-box [style*="color:#047857"],
 [data-theme="day"] .sim-controls-panel [style*="color: #34d399"],
 [data-theme="day"] .sim-controls-panel [style*="color:#34d399"],
 [data-theme="day"] .sim-controls-panel [style*="color: #10b981"],
-[data-theme="day"] .sim-controls-panel [style*="color:#10b981"] {
+[data-theme="day"] .sim-controls-panel [style*="color:#10b981"],
+[data-theme="day"] .sim-controls-panel [style*="color: #047857"],
+[data-theme="day"] .sim-controls-panel [style*="color:#047857"] {
   color: #047857 !important;
 }
 
@@ -6119,10 +6123,14 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 [data-theme="day"] .sim-telemetry-box [style*="color:#fbbf24"],
 [data-theme="day"] .sim-telemetry-box [style*="color: #f59e0b"],
 [data-theme="day"] .sim-telemetry-box [style*="color:#f59e0b"],
+[data-theme="day"] .sim-telemetry-box [style*="color: #b45309"],
+[data-theme="day"] .sim-telemetry-box [style*="color:#b45309"],
 [data-theme="day"] .sim-controls-panel [style*="color: #fbbf24"],
 [data-theme="day"] .sim-controls-panel [style*="color:#fbbf24"],
 [data-theme="day"] .sim-controls-panel [style*="color: #f59e0b"],
-[data-theme="day"] .sim-controls-panel [style*="color:#f59e0b"] {
+[data-theme="day"] .sim-controls-panel [style*="color:#f59e0b"],
+[data-theme="day"] .sim-controls-panel [style*="color: #b45309"],
+[data-theme="day"] .sim-controls-panel [style*="color:#b45309"] {
   color: #b45309 !important;
 }
 

@@ -1,7 +1,8 @@
 // Edugates-ClipSAT Science Labs - Offline Service Worker Engine
-// Cache-First strategy for local scripts & styles, Stale-While-Revalidate for CDNs (KaTeX, Google Fonts).
+// Network-First with Cache Fallback for dynamic local scripts & styles,
+// Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts).
 
-const CACHE_NAME = "amscilab-pwa-v2";
+const CACHE_NAME = "amscilab-pwa-v3";
 
 const CORE_ASSETS = [
   "./",
@@ -90,34 +91,23 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Local App Shell & Assets (Cache-First, fallback to network)
+  // Local App Shell & Assets (Network-First with Cache Fallback for instant updates)
   event.respondWith(
-    caches.match(req).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch update in background for next reload
-        fetch(req).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, networkResponse));
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-
-      return fetch(req).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== "basic") {
-          return networkResponse;
+    fetch(req)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && (networkResponse.type === "basic" || networkResponse.type === "default")) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, responseToCache));
         }
-        const responseToCache = networkResponse.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(req, responseToCache);
-        });
         return networkResponse;
-      }).catch(() => {
-        // Fallback for HTML documents when offline
-        if (req.headers.get("accept") && req.headers.get("accept").includes("text/html")) {
-          return caches.match("./index.html");
-        }
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(req).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          if (req.headers.get("accept") && req.headers.get("accept").includes("text/html")) {
+            return caches.match("./index.html");
+          }
+        });
+      })
   );
 });
