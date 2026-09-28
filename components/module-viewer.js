@@ -1,0 +1,588 @@
+// Edugates-ClipSAT Science Labs - Interactive Module Deep-Dive Viewer
+// Detailed lesson reader, formulas, CER inquiry, and bespoke lesson-specific virtual lab launcher
+
+import { initProjectileLab } from "../labs/phys-projectile.js";
+import { initTitrationLab } from "../labs/chem-titration.js";
+import { initMicroscopeLab } from "../labs/bio-microscope.js";
+import { initPeriodicTableLab } from "../labs/chem-periodic-table.js";
+import { initCircuitsLab } from "../labs/phys-circuits.js";
+import { initGasLawsLab } from "../labs/chem-gas-laws.js";
+import { initDnaProteinLab } from "../labs/bio-dna-protein.js";
+import { initPunnettLab } from "../labs/bio-punnett-square.js";
+import { initOpticsLab } from "../labs/phys-optics.js";
+import { ProgressStore } from "./progress-tracker.js";
+import { renderLatex, renderMathInElement } from "../utils/math-renderer.js";
+import { mountLessonInteractive, cleanupLessonInteractive, getLessonInteractiveSpec } from "./lesson-interactives.js";
+import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
+
+export function openModuleModal(moduleData, subjectColor, initialLessonId) {
+  ProgressStore.recordModuleExplored(moduleData.code);
+  let overlay = document.getElementById("module-modal-overlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "module-modal-overlay";
+    overlay.className = "modal-overlay";
+    document.body.appendChild(overlay);
+  }
+  overlay.style.display = "flex";
+
+  // Active state
+  let currentLessonId = initialLessonId || (moduleData.lessons && moduleData.lessons.length > 0 ? moduleData.lessons[0].id : 1);
+  let activeTab = initialLessonId ? "interactive" : "overview"; // 'overview', 'interactive', 'concepts', 'lab'
+  let labMode = "module"; // 'module' or 'lesson'
+
+  function closeModal() {
+    cleanupLessonInteractive("overview-lesson-sim-container");
+    cleanupLessonInteractive("tab-lesson-sim-container");
+    cleanupLessonInteractive("lab-lesson-sim-container");
+    cleanupLessonInteractive("embedded-module-lab-mount");
+    document.removeEventListener("keydown", handleKeydown);
+    if (overlay && overlay.parentNode) {
+      overlay.parentNode.removeChild(overlay);
+    }
+  }
+
+  function handleKeydown(e) {
+    if (e.key === "Escape") {
+      closeModal();
+    }
+  }
+  document.addEventListener("keydown", handleKeydown);
+
+  function renderContent() {
+    overlay.innerHTML = `
+      <div class="modal-content-shell">
+        <div class="modal-header">
+          <div class="modal-header-titles">
+            <div class="modal-category-badge" style="color: ${subjectColor}; border-color: ${subjectColor}44; background: ${subjectColor}15;">
+              ${moduleData.code} • ${moduleData.unit || 'Core Module'}
+            </div>
+            <div class="modal-title">${moduleData.title}</div>
+          </div>
+          <button class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">✕</button>
+        </div>
+
+        <div class="modal-tabs-header">
+          <button class="modal-tab-btn ${activeTab === 'overview' ? 'active' : ''}" data-tab="overview">
+            Overview & Lessons
+          </button>
+          <button class="modal-tab-btn ${activeTab === 'interactive' ? 'active' : ''}" data-tab="interactive" style="position: relative;">
+            🔬 Lesson Interactive
+            <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #38bdf8; margin-left: 4px; box-shadow: 0 0 8px #38bdf8;"></span>
+          </button>
+          <button class="modal-tab-btn ${activeTab === 'concepts' ? 'active' : ''}" data-tab="concepts">
+            Key Concepts & Formulas
+          </button>
+          <button class="modal-tab-btn ${activeTab === 'lab' ? 'active' : ''}" data-tab="lab">
+            Virtual Lab Sandbox
+          </button>
+        </div>
+
+        <div class="modal-body" id="modal-tab-content">
+          ${getTabBody()}
+        </div>
+      </div>
+    `;
+
+    // Modal Close Button
+    const btnClose = document.getElementById("btn-close-modal");
+    if (btnClose) btnClose.addEventListener("click", closeModal);
+
+    // Backdrop click to close modal
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        closeModal();
+      }
+    });
+
+    // Tab Switchers
+    overlay.querySelectorAll(".modal-tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        cleanupLessonInteractive("overview-lesson-sim-container");
+        cleanupLessonInteractive("tab-lesson-sim-container");
+        cleanupLessonInteractive("lab-lesson-sim-container");
+        cleanupLessonInteractive("embedded-module-lab-mount");
+        activeTab = btn.dataset.tab;
+        renderContent();
+      });
+    });
+
+    // Post-render mounting
+    if (activeTab === "overview") {
+      mountOverviewInteractions();
+    } else if (activeTab === "interactive") {
+      mountDedicatedInteractiveTab();
+    } else if (activeTab === "lab") {
+      mountLabTab();
+    } else {
+      renderMathInElement(document.getElementById("modal-tab-content"));
+    }
+  }
+
+  function getTabBody() {
+    if (activeTab === "overview") {
+      return `
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <!-- Phenomenon Inquiry Box -->
+          <div class="modal-inquiry-box" style="border-left: 4px solid ${subjectColor};">
+            <div style="font-size: 0.8rem; font-weight: 700; color: ${subjectColor}; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+              <span>Encounter The Phenomenon (Inquiry Prompt)</span>
+            </div>
+            <div class="modal-inquiry-prompt">
+              "${moduleData.phenomenon}"
+            </div>
+          </div>
+
+          <!-- Big Idea -->
+          <div>
+            <h3 class="modal-section-title" style="margin-bottom: 8px;">
+              Module Big Idea
+            </h3>
+            <p class="modal-big-idea-text">
+              ${moduleData.bigIdea}
+            </p>
+          </div>
+
+          <!-- Interactive Lessons Selector -->
+          <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <h3 class="modal-section-title">
+                  Lessons in this Module
+                </h3>
+                <p class="modal-section-subtitle">
+                  Select any lesson below to immediately load its tailored interactive laboratory simulator:
+                </p>
+              </div>
+              <button id="btn-jump-to-interactive-tab" class="btn-sim-action" style="padding: 8px 16px; font-size: 0.88rem; display: flex; align-items: center; gap: 6px;">
+                <span>Full Interactive View</span>
+                <span>→</span>
+              </button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              ${moduleData.lessons.map(les => {
+                const isSelected = les.id === currentLessonId;
+                const lesSpec = getLessonInteractiveSpec(moduleData, les.id);
+                return `
+                  <div class="lesson-card-item ${isSelected ? 'active' : ''}" data-lesson-id="${les.id}"
+                       style="cursor: pointer; transition: all 0.2s ease; background: ${isSelected ? 'rgba(56,189,248,0.1)' : 'var(--bg-surface-elevated)'}; border: 1.5px solid ${isSelected ? subjectColor : 'var(--border-color)'}; border-radius: var(--radius-md); padding: 16px; box-shadow: ${isSelected ? `0 0 16px ${subjectColor}33` : 'none'};">
+                    <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                      <div>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                          <span style="font-size: 0.75rem; font-weight: 700; color: ${isSelected ? subjectColor : 'var(--text-dim)'}; text-transform: uppercase; background: rgba(0,0,0,0.06); padding: 2px 8px; border-radius: 4px;">
+                            Lesson ${les.id}
+                          </span>
+                          <span style="font-weight: 700; font-size: 1.05rem; color: var(--text-main);">
+                            ${les.title}
+                          </span>
+                        </div>
+                        <ul class="modal-objectives-list">
+                          ${les.objectives.map(obj => `<li>${obj}</li>`).join("")}
+                        </ul>
+                      </div>
+                      <button class="btn-select-lesson-interactive" data-lesson-id="${les.id}"
+                              style="white-space: nowrap; border: 1px solid ${isSelected ? subjectColor : 'var(--border-color)'}; background: ${isSelected ? subjectColor : 'var(--bg-card)'}; color: ${isSelected ? '#ffffff' : 'var(--text-main)'}; font-weight: 700; font-size: 0.82rem; padding: 6px 12px; border-radius: 6px; cursor: pointer;">
+                        ${isSelected ? '✓ Active Simulator' : '🔬 Load Simulator'}
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+
+          <!-- Embedded Live Lesson Interactive Workbench -->
+          <div style="margin-top: 10px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <div class="modal-section-title" style="display: flex; align-items: center; gap: 8px;">
+                <span>🔬</span>
+                <span>Active Lesson Simulation Workbench</span>
+              </div>
+            </div>
+            <div id="overview-lesson-sim-container" style="min-height: 380px;"></div>
+          </div>
+        </div>
+      `;
+    } else if (activeTab === "interactive") {
+      return `
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- Top Lesson Selector Bar with Dropdown Menu (Eliminates horizontal scrolling) -->
+          <div class="interactive-lesson-pills-bar" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 260px;">
+              <label for="sel-modal-lesson" class="pills-bar-label" style="display: flex; align-items: center; gap: 6px; margin: 0; white-space: nowrap;">
+                <span>📖</span>
+                <span>Current Lesson:</span>
+              </label>
+              <div style="flex: 1; max-width: 480px;">
+                <select id="sel-modal-lesson" class="fc-custom-select modal-lesson-select" aria-label="Select Lesson Interactive">
+                  ${moduleData.lessons.map(les => `
+                    <option value="${les.id}" ${les.id === currentLessonId ? 'selected' : ''}>
+                      Lesson ${les.id}: ${les.title}
+                    </option>
+                  `).join("")}
+                </select>
+              </div>
+            </div>
+
+            <!-- Quick Prev/Next + Flashcard Action -->
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-lesson-step" id="btn-modal-prev-lesson" style="padding: 6px 12px; font-size: 0.82rem;" title="Previous Lesson">
+                ← Prev
+              </button>
+              <button class="btn btn-secondary btn-lesson-step" id="btn-modal-next-lesson" style="padding: 6px 12px; font-size: 0.82rem;" title="Next Lesson">
+                Next →
+              </button>
+              <button class="btn btn-secondary lesson-flashcard-btn" id="btn-modal-open-flashcard" style="padding: 6px 14px; font-size: 0.82rem; white-space: nowrap;" title="Review Flashcard for this Lesson">
+                🃏 Lesson Flashcard
+              </button>
+            </div>
+          </div>
+
+          <!-- Mount point for dedicated interactive simulation -->
+          <div id="tab-lesson-sim-container" style="min-height: 480px;"></div>
+        </div>
+      `;
+    } else if (activeTab === "concepts") {
+      const theory = getLessonComprehensiveTheory(moduleData.code.split('-')[0], moduleData.id, currentLessonId, null, moduleData);
+      return `
+        <div style="display: flex; flex-direction: column; gap: 24px;">
+          <!-- Core Scientific Theory & Governing Principles -->
+          <div class="modal-theory-core">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.3rem;">📘</span>
+                <h3 class="modal-section-title" style="font-size: 1.25rem; font-weight: 800; margin: 0;">
+                  Comprehensive Scientific Theory: ${theory.topic}
+                </h3>
+              </div>
+              <span class="curriculum-standard-badge" style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); padding: 3px 10px; border-radius: 9999px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                Rigorous Curriculum Standard
+              </span>
+            </div>
+            <div class="modal-theory-core-body">
+              ${theory.coreTheory.split('\n\n').map(p => `<p style="margin: 0;">${p}</p>`).join("")}
+            </div>
+          </div>
+
+          <!-- Mathematical & Scientific Formulas -->
+          <div>
+            <h3 class="modal-section-title" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <span>📐</span> Mathematical Formulations &amp; Governing Laws
+            </h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+              ${(moduleData.formulas || []).map(f => `
+                <div class="formula-card">
+                  ${renderLatex(f, true)}
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <!-- 3-Column Mechanism, Math & Real-World Grid -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Column 1: Submicroscopic Mechanism -->
+            <div class="modal-theory-card">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #10b981; font-weight: 700; font-size: 0.92rem;">
+                <span>🔬</span> Particulate / Molecular Mechanism
+              </div>
+              <ul style="margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 10px; line-height: 1.5;">
+                ${theory.mechanism.map(m => `<li>${m}</li>`).join("")}
+              </ul>
+            </div>
+
+            <!-- Column 2: Parameters & SI Table -->
+            <div class="modal-theory-card">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #0284c7; font-weight: 700; font-size: 0.92rem;">
+                <span>📊</span> Physical Parameters &amp; SI Units
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.84rem;">
+                ${(theory.parameters || []).map(p => `
+                  <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 6px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                      <span style="color: #0284c7; font-weight: 700;">${renderLatex(p.sym, false)}: ${p.name}</span>
+                      <span style="color: var(--text-main); font-family: var(--font-mono); font-weight: 600;">${renderLatex(p.unit, false)}</span>
+                    </div>
+                    <div class="param-desc" style="color: var(--text-dim); font-size: 0.78rem;">${p.desc}</div>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+
+            <!-- Column 3: Real-World Applications -->
+            <div class="modal-theory-card">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #f59e0b; font-weight: 700; font-size: 0.92rem;">
+                <span>🚀</span> Modern STEM Applications
+              </div>
+              <ul style="margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 10px; line-height: 1.5;">
+                ${theory.applications.map(app => `<li>${app}</li>`).join("")}
+              </ul>
+            </div>
+          </div>
+
+          <!-- Step-by-Step Quantitative Worked Example -->
+          ${theory.workedExample ? `
+            <div class="modal-worked-example">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                <span style="color: #0284c7; font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                  <span>🧮</span> Step-by-Step Quantitative Worked Example
+                </span>
+                <span style="font-size: 0.75rem; color: #10b981; font-family: var(--font-mono); font-weight: 700; background: rgba(16,185,129,0.12); padding: 3px 10px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.3);">
+                  Verified Solution
+                </span>
+              </div>
+              <div class="worked-example-prob">
+                <strong>Problem:</strong> ${theory.workedExample.problem}
+              </div>
+              <div class="worked-example-given">
+                <strong>Given Data:</strong> ${renderLatex(theory.workedExample.given, false)}
+              </div>
+              <div class="worked-example-steps">
+                ${theory.workedExample.steps.map(s => `<div>${s}</div>`).join("")}
+              </div>
+              <div class="worked-example-result">
+                <span class="worked-example-result-label">Final Calculated Result:</span>
+                <span class="worked-example-result-val">${renderLatex(theory.workedExample.answer, false)}</span>
+              </div>
+            </div>
+          ` : ''}
+
+          <!-- NGSS Standards Alignment -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 4px;">
+            <div class="modal-ngss-card">
+              <div style="font-weight: 700; color: #0284c7; margin-bottom: 6px; font-size: 0.85rem; text-transform: uppercase;">
+                Science &amp; Engineering Practices (SEP)
+              </div>
+              <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                Developing and using quantitative models, planning and carrying out scientific investigations, constructing evidence-based explanations.
+              </p>
+            </div>
+
+            <div class="modal-ngss-card">
+              <div style="font-weight: 700; color: #f59e0b; margin-bottom: 6px; font-size: 0.85rem; text-transform: uppercase;">
+                Disciplinary Core Ideas (DCI)
+              </div>
+              <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                Structure and properties of matter, fundamental forces and motion, energy transfer, cellular processes, and systems dynamics.
+              </p>
+            </div>
+
+            <div class="modal-ngss-card">
+              <div style="font-weight: 700; color: #10b981; margin-bottom: 6px; font-size: 0.85rem; text-transform: uppercase;">
+                Crosscutting Concepts (CCC)
+              </div>
+              <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">
+                Cause and effect, scale, proportion and quantity, systems and system models, energy and matter conservation.
+              </p>
+            </div>
+          </div>
+        </div>
+      `;
+    } else {
+      // Virtual Lab Sandbox Tab
+      return `
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- Top Sandbox Switcher -->
+          <div class="modal-sandbox-bar">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-muted);">Investigation Mode:</span>
+              <button class="btn-sim-action ${labMode === 'module' ? 'active' : ''}" id="btn-labmode-module" style="padding: 6px 14px; font-size: 0.85rem;">
+                Full Module Virtual Lab
+              </button>
+              <button class="btn-sim-action ${labMode === 'lesson' ? 'active' : ''}" id="btn-labmode-lesson" style="padding: 6px 14px; font-size: 0.85rem;">
+                Lesson Interactive Mode
+              </button>
+            </div>
+
+            ${labMode === 'lesson' ? `
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.85rem; color: var(--text-dim);">Lesson:</span>
+                <select id="sel-lab-lesson" style="background: var(--bg-surface-elevated); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 4px 10px; font-size: 0.85rem;">
+                  ${moduleData.lessons.map(l => `
+                    <option value="${l.id}" ${l.id === currentLessonId ? 'selected' : ''}>Lesson ${l.id}: ${l.title}</option>
+                  `).join("")}
+                </select>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Main Lab Viewport -->
+          <div id="embedded-module-lab-mount" style="min-height: 520px;"></div>
+        </div>
+      `;
+    }
+  }
+
+  function mountOverviewInteractions() {
+    renderMathInElement(document.getElementById("modal-tab-content"));
+
+    // Mount initial lesson interactive
+    mountLessonInteractive("overview-lesson-sim-container", moduleData, currentLessonId);
+
+    // Bind card clicks
+    overlay.querySelectorAll(".lesson-card-item").forEach(card => {
+      card.addEventListener("click", () => {
+        const lid = parseInt(card.dataset.lessonId, 10);
+        if (lid !== currentLessonId) {
+          currentLessonId = lid;
+          renderContent();
+        }
+      });
+    });
+
+    // Jump to interactive tab
+    const jumpBtn = document.getElementById("btn-jump-to-interactive-tab");
+    if (jumpBtn) {
+      jumpBtn.addEventListener("click", () => {
+        activeTab = "interactive";
+        renderContent();
+      });
+    }
+  }
+
+  function mountDedicatedInteractiveTab() {
+    renderMathInElement(document.getElementById("modal-tab-content"));
+
+    // Dynamic Flashcard button, dropdown selector, and Prev/Next controls
+    const btnFc = overlay.querySelector("#btn-modal-open-flashcard");
+    const selLesson = overlay.querySelector("#sel-modal-lesson");
+    const btnPrev = overlay.querySelector("#btn-modal-prev-lesson");
+    const btnNext = overlay.querySelector("#btn-modal-next-lesson");
+
+    function updateNavControls() {
+      if (btnFc) {
+        const curLesson = moduleData.lessons?.find(l => l.id === currentLessonId);
+        btnFc.innerHTML = `🃏 Lesson ${currentLessonId} Flashcard`;
+        btnFc.title = `Review Flashcard for Lesson ${currentLessonId}${curLesson ? ': ' + curLesson.title : ''}`;
+      }
+      if (selLesson && selLesson.value !== String(currentLessonId)) {
+        selLesson.value = String(currentLessonId);
+      }
+      if (moduleData.lessons && moduleData.lessons.length > 0) {
+        const idx = moduleData.lessons.findIndex(l => l.id === currentLessonId);
+        if (btnPrev) btnPrev.disabled = idx <= 0;
+        if (btnNext) btnNext.disabled = idx >= moduleData.lessons.length - 1;
+      }
+    }
+    updateNavControls();
+
+    // Mount current lesson simulation
+    mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);
+
+    // Dropdown change listener
+    if (selLesson) {
+      selLesson.addEventListener("change", (e) => {
+        const lid = parseInt(e.target.value, 10);
+        if (lid !== currentLessonId) {
+          currentLessonId = lid;
+          updateNavControls();
+          mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);
+        }
+      });
+    }
+
+    // Step Previous button
+    if (btnPrev) {
+      btnPrev.addEventListener("click", () => {
+        const idx = moduleData.lessons.findIndex(l => l.id === currentLessonId);
+        if (idx > 0) {
+          currentLessonId = moduleData.lessons[idx - 1].id;
+          updateNavControls();
+          mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);
+        }
+      });
+    }
+
+    // Step Next button
+    if (btnNext) {
+      btnNext.addEventListener("click", () => {
+        const idx = moduleData.lessons.findIndex(l => l.id === currentLessonId);
+        if (idx >= 0 && idx < moduleData.lessons.length - 1) {
+          currentLessonId = moduleData.lessons[idx + 1].id;
+          updateNavControls();
+          mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);
+        }
+      });
+    }
+
+    // Bind Jump to Lesson Flashcard
+    if (btnFc) {
+      btnFc.addEventListener("click", () => {
+        closeModal();
+        if (typeof window.switchToFlashcard === "function") {
+          const subCode = (moduleData.code || "").split("-")[0] || "CHEM";
+          window.switchToFlashcard(subCode, moduleData.id, currentLessonId);
+        }
+      });
+    }
+  }
+
+  function mountLabTab() {
+    const mount = document.getElementById("embedded-module-lab-mount");
+    if (!mount) return;
+
+    // Mode toggles
+    const btnModule = document.getElementById("btn-labmode-module");
+    const btnLesson = document.getElementById("btn-labmode-lesson");
+    const selLesson = document.getElementById("sel-lab-lesson");
+
+    if (btnModule) {
+      btnModule.addEventListener("click", () => {
+        if (labMode !== "module") {
+          labMode = "module";
+          renderContent();
+        }
+      });
+    }
+
+    if (btnLesson) {
+      btnLesson.addEventListener("click", () => {
+        if (labMode !== "lesson") {
+          labMode = "lesson";
+          renderContent();
+        }
+      });
+    }
+
+    if (selLesson) {
+      selLesson.addEventListener("change", (e) => {
+        currentLessonId = parseInt(e.target.value, 10);
+        mountLessonInteractive("embedded-module-lab-mount", moduleData, currentLessonId);
+      });
+    }
+
+    if (labMode === "lesson") {
+      mountLessonInteractive("embedded-module-lab-mount", moduleData, currentLessonId);
+      return;
+    }
+
+    // Module Lab Mode
+    const labKey = moduleData.lab || "lab-projectile";
+    ProgressStore.recordLabLaunched(labKey);
+
+    if (labKey === "lab-projectile") {
+      initProjectileLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-titration") {
+      initTitrationLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-microscope") {
+      initMicroscopeLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-periodic-table") {
+      initPeriodicTableLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-circuits") {
+      initCircuitsLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-gas-laws") {
+      initGasLawsLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-dna-protein") {
+      initDnaProteinLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-punnett") {
+      initPunnettLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-optics") {
+      initOpticsLab("embedded-module-lab-mount");
+    } else {
+      initProjectileLab("embedded-module-lab-mount");
+    }
+  }
+
+  overlay.style.display = "flex";
+  renderContent();
+}
