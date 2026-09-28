@@ -2948,9 +2948,9 @@ function buildDensityInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-vol" min="10" max="100" step="1" value="${vol}">
         </div>
 
-        <div class="sim-telemetry-box" style="padding: 7px 12px; font-size: 0.78rem; display: flex; justify-content: space-between; font-weight: 700;">
-          <span id="${mountId}-fg-txt" style="color: var(--text-main);">F_gravity = 0.59 N</span>
-          <span id="${mountId}-fb-txt" style="color: var(--chem-primary);">F_buoyant = 0.00 N</span>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="padding: 7px 12px; font-size: 0.78rem; display: flex; justify-content: space-between; font-weight: 700;">
+          <span id="${mountId}-fg-txt">F_gravity = 0.59 N</span>
+          <span id="${mountId}-fb-txt">F_buoyant = 0.00 N</span>
         </div>
       </div>
     </div>
@@ -3127,21 +3127,39 @@ function buildDensityInteractive(mountId, params) {
       }
     }
 
-    // Update readouts
-    if (dVal) dVal.innerText = `${density.toFixed(2)} g/cm³`;
-    if (fgTxt) fgTxt.innerText = `F_gravity = ${fGravity.toFixed(2)} N`;
-    if (fbTxt) fbTxt.innerText = `F_buoyant = ${fBuoyant.toFixed(2)} N`;
+    // Update readouts with WCAG AAA Contrast
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (dVal) {
+      dVal.innerText = `${density.toFixed(2)} g/cm³`;
+      dVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (fgTxt) {
+      fgTxt.innerText = `F_gravity = ${fGravity.toFixed(2)} N`;
+      fgTxt.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (fbTxt) {
+      fbTxt.innerText = `F_buoyant = ${fBuoyant.toFixed(2)} N`;
+      fbTxt.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
 
     if (tag) {
       if (sinks) {
         tag.innerText = `Status: Sinks to Bottom (ρ = ${density.toFixed(2)} > 1.00 g/cm³)`;
-        tag.style.background = "rgba(239, 68, 68, 0.15)";
-        tag.style.color = "#f87171";
+        tag.style.background = isDay ? "#fff1f2" : "rgba(239, 68, 68, 0.15)";
+        tag.style.border = isDay ? "1.5px solid #fecdd3" : "1px solid rgba(239, 68, 68, 0.35)";
+        tag.style.color = isDay ? "#b91c1c" : "#f87171";
       } else {
         const pctSub = (Math.min(1.0, density) * 100).toFixed(0);
         tag.innerText = `Status: Floats Equilibrium (${pctSub}% submerged, ρ < 1.00)`;
-        tag.style.background = "rgba(16, 185, 129, 0.15)";
-        tag.style.color = "#34d399";
+        tag.style.background = isDay ? "#ecfdf5" : "rgba(16, 185, 129, 0.15)";
+        tag.style.border = isDay ? "1.5px solid #a7f3d0" : "1px solid rgba(16, 185, 129, 0.35)";
+        tag.style.color = isDay ? "#047857" : "#34d399";
       }
     }
 
@@ -3471,12 +3489,12 @@ function buildHeatingCurveInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-heat" min="0" max="100" step="1" value="0">
         </div>
 
-        <div class="sim-telemetry-box" style="padding: 8px 12px; font-size: 0.76rem; line-height: 1.45;">
-          <div style="color: #38bdf8;"><strong>0–20 kJ:</strong> Solid Warming • q = mc_sΔT</div>
-          <div style="color: #06b6d4;"><strong>20–40 kJ:</strong> Fusion Plateau • ΔH_fus = 6.01 kJ/mol (0°C)</div>
-          <div style="color: #10b981;"><strong>40–70 kJ:</strong> Liquid Warming • q = mc_lΔT</div>
-          <div style="color: #f59e0b;"><strong>70–95 kJ:</strong> Vaporization • ΔH_vap = 40.7 kJ/mol (100°C)</div>
-          <div style="color: #ef4444;"><strong>95–100 kJ:</strong> Superheated Steam • q = mc_gΔT</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="padding: 8px 12px; font-size: 0.76rem; line-height: 1.45;">
+          <div id="${mountId}-p1"><strong>0–20 kJ:</strong> Solid Warming • q = mc_sΔT</div>
+          <div id="${mountId}-p2"><strong>20–40 kJ:</strong> Fusion Plateau • ΔH_fus = 6.01 kJ/mol (0°C)</div>
+          <div id="${mountId}-p3"><strong>40–70 kJ:</strong> Liquid Warming • q = mc_lΔT</div>
+          <div id="${mountId}-p4"><strong>70–95 kJ:</strong> Vaporization • ΔH_vap = 40.7 kJ/mol (100°C)</div>
+          <div id="${mountId}-p5"><strong>95–100 kJ:</strong> Superheated Steam • q = mc_gΔT</div>
         </div>
       </div>
     </div>
@@ -3518,11 +3536,43 @@ function buildHeatingCurveInteractive(mountId, params) {
 
   function loop() {
     phaseTick += 0.05;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
     const data = getTempAndState(heatAdded);
-    document.getElementById(`${mountId}-temp-val`).innerText = `${data.temp.toFixed(1)} °C`;
+    const tempValEl = document.getElementById(`${mountId}-temp-val`);
+    if (tempValEl) {
+      tempValEl.innerText = `${data.temp.toFixed(1)} °C`;
+      tempValEl.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+      const p1 = document.getElementById(`${mountId}-p1`);
+      const p2 = document.getElementById(`${mountId}-p2`);
+      const p3 = document.getElementById(`${mountId}-p3`);
+      const p4 = document.getElementById(`${mountId}-p4`);
+      const p5 = document.getElementById(`${mountId}-p5`);
+      if (p1) p1.style.color = isDay ? "#0284c7" : "#38bdf8";
+      if (p2) p2.style.color = isDay ? "#0891b2" : "#06b6d4";
+      if (p3) p3.style.color = isDay ? "#047857" : "#10b981";
+      if (p4) p4.style.color = isDay ? "#b45309" : "#f59e0b";
+      if (p5) p5.style.color = isDay ? "#b91c1c" : "#ef4444";
+    }
+
     const tag = document.getElementById(`${mountId}-state-tag`);
-    tag.innerText = `State: ${data.state}`;
-    tag.style.color = data.color;
+    if (tag) {
+      tag.innerText = `State: ${data.state}`;
+      const dayColorMap = {
+        solid: "#0284c7",
+        melting: "#0891b2",
+        liquid: "#047857",
+        boiling: "#b45309",
+        steam: "#b91c1c"
+      };
+      tag.style.color = isDay ? (dayColorMap[data.regime] || "#0f172a") : data.color;
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -3869,9 +3919,9 @@ function buildBohrPhotonInteractive(mountId, params) {
           <button class="btn-sim-action" id="${mountId}-p-lyman" style="font-size: 0.7rem; padding: 5px 2px;">Ly-α (2→1)</button>
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
-          <div id="${mountId}-freq-disp" style="font-weight: 700; color: var(--text-main);">ν = 4.57 × 10¹⁴ Hz (456.8 THz)</div>
-          <div style="margin-top: 2px; color: var(--chem-primary); font-weight: 600;">Rydberg: 1/λ = R_H (1/n_f² - 1/n_i²)</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-freq-disp" style="font-weight: 700;">ν = 4.57 × 10¹⁴ Hz (456.8 THz)</div>
+          <div id="${mountId}-rydberg-disp" style="margin-top: 2px; font-weight: 600;">Rydberg: 1/λ = R_H (1/n_f² - 1/n_i²)</div>
         </div>
       </div>
     </div>
@@ -3931,16 +3981,37 @@ function buildBohrPhotonInteractive(mountId, params) {
   }
 
   function render() {
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
     const data = getTransitionData(ni, nf);
-    document.getElementById(`${mountId}-trans-val`).innerText = `n = ${ni} → n = ${nf}`;
+    const transVal = document.getElementById(`${mountId}-trans-val`);
+    if (transVal) {
+      transVal.innerText = `n = ${ni} → n = ${nf}`;
+      transVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const freqDisp = document.getElementById(`${mountId}-freq-disp`);
+    const rydDisp = document.getElementById(`${mountId}-rydberg-disp`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (freqDisp) freqDisp.style.color = isDay ? "#0f172a" : "#f8fafc";
+    if (rydDisp) rydDisp.style.color = isDay ? "#0284c7" : "#38bdf8";
+
     const pill = document.getElementById(`${mountId}-photon-pill`);
-    if (data.wlNm > 0) {
-      pill.innerText = `${data.series} • λ = ${data.wlNm} nm • E = ${data.energyEv} eV`;
-      pill.style.color = data.color;
-      document.getElementById(`${mountId}-freq-disp`).innerText = `ν = ${(data.freqThz / 1e3).toFixed(2)} × 10¹⁴ Hz (${data.freqThz} THz)`;
-    } else {
-      pill.innerText = "Endothermic Absorption Required (ΔE > 0)";
-      pill.style.color = "#94a3b8";
+    if (pill) {
+      pill.style.background = isDay ? "#f8fafc" : "rgba(15,23,42,0.85)";
+      pill.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(255,255,255,0.06)";
+      if (data.wlNm > 0) {
+        pill.innerText = `${data.series} • λ = ${data.wlNm} nm • E = ${data.energyEv} eV`;
+        pill.style.color = isDay ? "#0284c7" : data.color;
+        if (freqDisp) freqDisp.innerText = `ν = ${(data.freqThz / 1e3).toFixed(2)} × 10¹⁴ Hz (${data.freqThz} THz)`;
+      } else {
+        pill.innerText = "Endothermic Absorption Required (ΔE > 0)";
+        pill.style.color = isDay ? "#64748b" : "#94a3b8";
+      }
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -5191,9 +5262,9 @@ function buildGasPistonInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-t-slider" min="150" max="650" step="10" value="${temp}">
         </div>
 
-        <div class="sim-telemetry-box" style="padding: 7px 12px; font-size: 0.78rem; display: flex; justify-content: space-between; font-weight: 700;">
-          <span id="${mountId}-ke-txt" style="color: var(--text-main);">Mean KE: 3.74 kJ/mol</span>
-          <span id="${mountId}-vrms-txt" style="color: var(--chem-primary);">v_rms: 480 m/s</span>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="padding: 7px 12px; font-size: 0.78rem; display: flex; justify-content: space-between; font-weight: 700;">
+          <span id="${mountId}-ke-txt">Mean KE: 3.74 kJ/mol</span>
+          <span id="${mountId}-vrms-txt">v_rms: 480 m/s</span>
         </div>
       </div>
     </div>
@@ -5220,11 +5291,33 @@ function buildGasPistonInteractive(mountId, params) {
     const meanKE = (3 / 2) * 8.314 * temp / 1000; // kJ/mol
     const vRms = Math.sqrt((3 * 8.314 * temp) / 0.028); // assuming N2 gas, ~28 g/mol
 
-    document.getElementById(`${mountId}-p-val`).innerText = `${P_atm.toFixed(2)} atm (${P_kPa.toFixed(0)} kPa)`;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const pValEl = document.getElementById(`${mountId}-p-val`);
+    if (pValEl) pValEl.innerText = `${P_atm.toFixed(2)} atm (${P_kPa.toFixed(0)} kPa)`;
+
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const thermoPill = document.getElementById(`${mountId}-thermo-pill`);
     const vrmsEl = document.getElementById(`${mountId}-vrms-txt`);
-    if (vrmsEl) vrmsEl.innerText = `v_rms: ${Math.round(vRms)} m/s`;
     const keEl = document.getElementById(`${mountId}-ke-txt`);
-    if (keEl) keEl.innerText = `Mean KE: ${meanKE.toFixed(2)} kJ/mol`;
+
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (keEl) {
+      keEl.style.color = isDay ? "#0f172a" : "#f8fafc";
+      keEl.innerText = `Mean KE: ${meanKE.toFixed(2)} kJ/mol`;
+    }
+    if (vrmsEl) {
+      vrmsEl.style.color = isDay ? "#0284c7" : "#38bdf8";
+      vrmsEl.innerText = `v_rms: ${Math.round(vRms)} m/s`;
+    }
+    if (thermoPill) {
+      thermoPill.style.background = isDay ? "#f0f9ff" : "rgba(56, 189, 248, 0.15)";
+      thermoPill.style.border = isDay ? "1.5px solid #bae6fd" : "1px solid rgba(56, 189, 248, 0.3)";
+      thermoPill.style.color = isDay ? "#0369a1" : "#38bdf8";
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -5507,9 +5600,9 @@ function buildCalorimeterInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-mtemp-slider" min="40" max="150" step="5" value="${metalTemp}">
         </div>
 
-        <div class="sim-telemetry-box" style="line-height: 1.45;">
-          <div style="font-weight: 700; color: var(--text-main);">m_w·c_w·(T_f - T_w) = m_m·c_m·(T_m - T_f)</div>
-          <span style="color: var(--chem-primary); font-weight: 600;">100.0 g water (c = 4.184 J/g°C)</span>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="line-height: 1.45;">
+          <div id="${mountId}-cal-eq" style="font-weight: 700;">m_w·c_w·(T_f - T_w) = m_m·c_m·(T_m - T_f)</div>
+          <span id="${mountId}-cal-sub" style="font-weight: 600;">100.0 g water (c = 4.184 J/g°C)</span>
         </div>
       </div>
     </div>
@@ -5530,9 +5623,31 @@ function buildCalorimeterInteractive(mountId, params) {
 
     currTemp += (Tf - currTemp) * 0.08;
 
-    document.getElementById(`${mountId}-tf-val`).innerText = `${Tf.toFixed(2)} °C`;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const tfVal = document.getElementById(`${mountId}-tf-val`);
+    if (tfVal) {
+      tfVal.innerText = `${Tf.toFixed(2)} °C`;
+      tfVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const calEq = document.getElementById(`${mountId}-cal-eq`);
+    const calSub = document.getElementById(`${mountId}-cal-sub`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (calEq) calEq.style.color = isDay ? "#0f172a" : "#f8fafc";
+    if (calSub) calSub.style.color = isDay ? "#0284c7" : "#38bdf8";
+
     const qPill = document.getElementById(`${mountId}-q-pill`);
-    if (qPill) qPill.innerText = `Heat Exchange: q_gain = +${Math.round(qExchange)} J`;
+    if (qPill) {
+      qPill.innerText = `Heat Exchange: q_gain = +${Math.round(qExchange)} J`;
+      qPill.style.background = isDay ? "#ecfdf5" : "rgba(16,185,129,0.15)";
+      qPill.style.border = isDay ? "1.5px solid #a7f3d0" : "1px solid rgba(16,185,129,0.3)";
+      qPill.style.color = isDay ? "#047857" : "#34d399";
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -5983,6 +6098,41 @@ function buildOsmosisInteractive(mountId, params) {
   animId = requestAnimationFrame(loop);
   activeSimulations.set(mountId, () => cancelAnimationFrame(animId));
 
+  function updateOsmosisTheme() {
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const desc = document.getElementById(`${mountId}-osmosis-desc`);
+    const pill = document.getElementById(`${mountId}-status-pill`);
+
+    if (desc) {
+      desc.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      desc.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      desc.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+      desc.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+
+    if (pill) {
+      if (tonicity === "hypotonic") {
+        pill.innerText = "Cytology: Hypotonic (0.0% Pure H₂O • Spherocyte Swelling & Lysis)";
+        pill.style.background = isDay ? "#f0f9ff" : "rgba(56, 189, 248, 0.15)";
+        pill.style.border = isDay ? "1.5px solid #bae6fd" : "1px solid rgba(56, 189, 248, 0.3)";
+        pill.style.color = isDay ? "#0284c7" : "#38bdf8";
+        if (desc) desc.innerHTML = "Water rushes inward down osmotic gradient. Cell turgor pressure exceeds membrane tensile limit (hemolysis rupture).";
+      } else if (tonicity === "hypertonic") {
+        pill.innerText = "Cytology: Hypertonic (5.0% Saline • Crenated Echinocyte)";
+        pill.style.background = isDay ? "#fffbeb" : "rgba(245, 158, 11, 0.15)";
+        pill.style.border = isDay ? "1.5px solid #fde68a" : "1px solid rgba(245, 158, 11, 0.3)";
+        pill.style.color = isDay ? "#b45309" : "#fbbf24";
+        if (desc) desc.innerHTML = "Water diffuses rapidly outward. Cytoplasmic dehydration causes lipid bilayer collapse into rigid spiky projections.";
+      } else {
+        pill.innerText = "Cytology: Isotonic (0.9% Saline • Normal Erythrocyte)";
+        pill.style.background = isDay ? "#ecfdf5" : "rgba(16, 185, 129, 0.15)";
+        pill.style.border = isDay ? "1.5px solid #a7f3d0" : "1px solid rgba(16, 185, 129, 0.3)";
+        pill.style.color = isDay ? "#047857" : "#34d399";
+        if (desc) desc.innerHTML = "Dynamic equilibrium: Net water flux is zero. Human erythrocyte maintains normal 7.5 µm biconcave disc geometry with central pallor.";
+      }
+    }
+  }
+
   // Toggle listeners
   ["isotonic", "hypotonic", "hypertonic"].forEach(tKey => {
     const btn = document.getElementById(`${mountId}-btn-${tKey === "isotonic" ? "iso" : (tKey === "hypotonic" ? "hypo" : "hyper")}`);
@@ -5993,29 +6143,12 @@ function buildOsmosisInteractive(mountId, params) {
         document.querySelectorAll(`[data-t]`).forEach(b => {
           if (b.id.startsWith(mountId)) b.classList.toggle("active", b.getAttribute("data-t") === tKey);
         });
-
-        const desc = document.getElementById(`${mountId}-osmosis-desc`);
-        const pill = document.getElementById(`${mountId}-status-pill`);
-
-        if (tonicity === "hypotonic") {
-          pill.innerText = "Cytology: Hypotonic (0.0% Pure H₂O • Spherocyte Swelling & Lysis)";
-          pill.style.background = "rgba(56, 189, 248, 0.15)";
-          pill.style.color = "#38bdf8";
-          desc.innerHTML = "Water rushes inward down osmotic gradient. Cell turgor pressure exceeds membrane tensile limit (hemolysis rupture).";
-        } else if (tonicity === "hypertonic") {
-          pill.innerText = "Cytology: Hypertonic (5.0% Saline • Crenated Echinocyte)";
-          pill.style.background = "rgba(245, 158, 11, 0.15)";
-          pill.style.color = "#fbbf24";
-          desc.innerHTML = "Water diffuses rapidly outward. Cytoplasmic dehydration causes lipid bilayer collapse into rigid spiky projections.";
-        } else {
-          pill.innerText = "Cytology: Isotonic (0.9% Saline • Normal Erythrocyte)";
-          pill.style.background = "rgba(16, 185, 129, 0.15)";
-          pill.style.color = "#34d399";
-          desc.innerHTML = "Dynamic equilibrium: Net water flux is zero. Human erythrocyte maintains normal 7.5 µm biconcave disc geometry with central pallor.";
-        }
+        updateOsmosisTheme();
       });
     }
   });
+
+  updateOsmosisTheme();
 }
 
 /**
@@ -6081,17 +6214,32 @@ function buildEnzymeInteractive(mountId, params) {
 
   function loop() {
     catTick += 0.05;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
     const rate = getRate(temp);
     const pct = Math.round(rate * 100);
-    document.getElementById(`${mountId}-rate-val`).innerText = `${pct}% (${rate > 0.8 ? 'Optimal' : (temp > 50 ? 'Denatured' : 'Thermally Sluggish')})`;
+    const rateVal = document.getElementById(`${mountId}-rate-val`);
+    if (rateVal) {
+      rateVal.innerText = `${pct}% (${rate > 0.8 ? 'Optimal' : (temp > 50 ? 'Denatured' : 'Thermally Sluggish')})`;
+      rateVal.style.color = isDay ? (rate > 0.8 ? "#047857" : (temp > 50 ? "#b91c1c" : "#0284c7")) : (rate > 0.8 ? "#34d399" : (temp > 50 ? "#f87171" : "#38bdf8"));
+    }
 
     const dBox = document.getElementById(`${mountId}-denature-box`);
-    if (temp > 50) {
-      dBox.innerHTML = "<strong style='color:#ef4444;'>Thermal Denaturation Alert:</strong> High kinetic agitation has broken intramolecular hydrogen and hydrophobic bonds. Tertiary folding has uncoiled into a random coil, irreversibly destroying active site geometry.";
-    } else if (temp < 20) {
-      dBox.innerHTML = "<strong style='color:#38bdf8;'>Low Kinetic Energy:</strong> Substrate velocity is low. Collision frequency between substrate and enzyme active site is drastically reduced according to Arrhenius kinetics.";
-    } else {
-      dBox.innerHTML = "<strong style='color:#10b981;'>Optimal Catalytic Activity:</strong> Active site pocket cleft exhibits flexible induced-fit geometry with complementary hydrogen bonding and minimal transition state free energy (ΔG‡).";
+    if (dBox) {
+      dBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      dBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      dBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+      dBox.style.color = isDay ? "#0f172a" : "#f8fafc";
+
+      if (temp > 50) {
+        const strongColor = isDay ? "#b91c1c" : "#ef4444";
+        dBox.innerHTML = `<strong style="color:${strongColor};">Thermal Denaturation Alert:</strong> High kinetic agitation has broken intramolecular hydrogen and hydrophobic bonds. Tertiary folding has uncoiled into a random coil, irreversibly destroying active site geometry.`;
+      } else if (temp < 20) {
+        const strongColor = isDay ? "#0284c7" : "#38bdf8";
+        dBox.innerHTML = `<strong style="color:${strongColor};">Low Kinetic Energy:</strong> Substrate velocity is low. Collision frequency between substrate and enzyme active site is drastically reduced according to Arrhenius kinetics.`;
+      } else {
+        const strongColor = isDay ? "#047857" : "#10b981";
+        dBox.innerHTML = `<strong style="color:${strongColor};">Optimal Catalytic Activity:</strong> Active site pocket cleft exhibits flexible induced-fit geometry with complementary hydrogen bonding and minimal transition state free energy (ΔG‡).`;
+      }
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -6344,9 +6492,9 @@ function buildActionPotentialInteractive(mountId, params) {
           </button>
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
-          <div id="${mountId}-hh-disp" style="font-weight: 700; color: var(--text-main);">Hodgkin-Huxley: g_Na = 0.0 mS • g_K = 0.5 mS</div>
-          <div style="margin-top: 2px; color: var(--bio-primary); font-weight: 600;">All-or-None Law: Depolarization past -55mV opens voltage-gated Na⁺</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-hh-disp" style="font-weight: 700;">Hodgkin-Huxley: g_Na = 0.0 mS • g_K = 0.5 mS</div>
+          <div id="${mountId}-hh-sub" style="margin-top: 2px; font-weight: 600;">All-or-None Law: Depolarization past -55mV opens voltage-gated Na⁺</div>
         </div>
       </div>
     </div>
@@ -6436,6 +6584,24 @@ function buildActionPotentialInteractive(mountId, params) {
       chanBadge.innerText = "Resting State (Na⁺/K⁺ ATPase Active)";
       chanBadge.style.color = "#34d399";
       hhDisp.innerText = "Hodgkin-Huxley: g_Na = 0.0 mS • g_K = 0.5 mS";
+    }
+
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const vmVal = document.getElementById(`${mountId}-vm-val`);
+    if (vmVal) vmVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const hhSub = document.getElementById(`${mountId}-hh-sub`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (hhDisp) hhDisp.style.color = isDay ? "#0f172a" : "#f8fafc";
+    if (hhSub) hhSub.style.color = isDay ? "#047857" : "#34d399";
+    if (pill) {
+      pill.style.background = isDay ? "#f8fafc" : "rgba(15,23,42,0.85)";
+      pill.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(255,255,255,0.06)";
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -6717,11 +6883,11 @@ function buildKinematics1DInteractive(mountId, params) {
           </button>
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px; font-size: 0.72rem; line-height: 1.35;">
-          <div id="${mountId}-status-text" style="font-weight: 700; color: var(--text-main);">
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px; font-size: 0.72rem; line-height: 1.35;">
+          <div id="${mountId}-status-text" style="font-weight: 700;">
             Ready: Set parameters, observe theoretical hypothesis, then click Launch.
           </div>
-          <div style="margin-top: 3px; font-family: monospace; color: var(--text-muted, #94a3b8);">
+          <div id="${mountId}-kin-eq" style="margin-top: 3px; font-family: monospace;">
             v(t) = v₀ + at • x(t) = v₀t + ½at²
           </div>
         </div>
@@ -7122,14 +7288,36 @@ function buildKinematics1DInteractive(mountId, params) {
 
     const kin = getKinematics(simTime);
 
-    // Update live readouts
-    tstopVal.innerText = `${kin.tStop.toFixed(2)} s`;
-    distVal.innerText = `${kin.dTotal.toFixed(1)} m`;
-    liveTVal.innerText = `${kin.curT.toFixed(2)} s`;
-    liveVVal.innerText = `${kin.curV.toFixed(1)} m/s`;
+    // Update live readouts with WCAG AAA contrast
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const kinEq = document.getElementById(`${mountId}-kin-eq`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (statusText) statusText.style.color = isDay ? "#0f172a" : "#f8fafc";
+    if (kinEq) kinEq.style.color = isDay ? "#0284c7" : "#94a3b8";
+    if (tstopVal) {
+      tstopVal.innerText = `${kin.tStop.toFixed(2)} s`;
+      tstopVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (distVal) {
+      distVal.innerText = `${kin.dTotal.toFixed(1)} m`;
+      distVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (liveTVal) {
+      liveTVal.innerText = `${kin.curT.toFixed(2)} s`;
+      liveTVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (liveVVal) {
+      liveVVal.innerText = `${kin.curV.toFixed(1)} m/s`;
+      liveVVal.style.color = isDay ? "#047857" : "#34d399";
+    }
 
     if (isRunning) {
-      statusText.innerHTML = `<span style="color: #38bdf8; font-weight: 700;">Testing in Progress:</span> ${a < 0 ? "Braking force decreasing velocity..." : (a > 0 ? "Forward acceleration increasing velocity..." : "Constant velocity cruise...")}`;
+      statusText.innerHTML = `<span style="color: ${isDay ? '#0284c7' : '#38bdf8'}; font-weight: 700;">Testing in Progress:</span> ${a < 0 ? "Braking force decreasing velocity..." : (a > 0 ? "Forward acceleration increasing velocity..." : "Constant velocity cruise...")}`;
     }
 
     render(kin);
@@ -7273,11 +7461,11 @@ function buildInclinedPlaneInteractive(mountId, params) {
           </button>
         </div>
 
-        <div class="sim-telemetry-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.78rem; font-weight: 700; margin-top: 6px;">
-          <span id="${mountId}-fn-txt" style="color: #06b6d4;">F_N: 16.98 N</span>
-          <span id="${mountId}-fpar-txt" style="color: #3b82f6;">F_∥: 9.80 N</span>
-          <span id="${mountId}-fk-txt" style="color: #ef4444;">f_k: 4.25 N</span>
-          <span id="${mountId}-fnet-txt" style="color: #10b981;">F_net: 5.55 N</span>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.78rem; font-weight: 700; margin-top: 6px;">
+          <span id="${mountId}-fn-txt">F_N: 16.98 N</span>
+          <span id="${mountId}-fpar-txt">F_∥: 9.80 N</span>
+          <span id="${mountId}-fk-txt">f_k: 4.25 N</span>
+          <span id="${mountId}-fnet-txt">F_net: 5.55 N</span>
         </div>
       </div>
     </div>
@@ -7347,31 +7535,41 @@ function buildInclinedPlaneInteractive(mountId, params) {
   function render(phys) {
     const { rad, fWeight, fNormal, fParallel, fFrictionMax, fNet, slides, acc } = phys;
 
-    accVal.innerText = `${acc.toFixed(2)} m/s²`;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (accVal) accVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+
     if (slides) {
       if (curCartDist <= 42) {
         tag.innerText = `At Bottom: Traveled Incline (a = ${acc.toFixed(2)} m/s²)`;
-        tag.style.background = "rgba(16, 185, 129, 0.15)";
-        tag.style.color = "#34d399";
       } else if (isSliding) {
         tag.innerText = `State: Rolling Downhill (v = ${cartSpeed.toFixed(1)} m/s)`;
-        tag.style.background = "rgba(16, 185, 129, 0.15)";
-        tag.style.color = "#34d399";
       } else {
         tag.innerText = `State: Accelerating Downhill (F_∥ > f_k • a = ${acc.toFixed(2)} m/s²)`;
-        tag.style.background = "rgba(16, 185, 129, 0.15)";
-        tag.style.color = "#34d399";
       }
+      tag.style.background = isDay ? "#ecfdf5" : "rgba(16, 185, 129, 0.15)";
+      tag.style.border = isDay ? "1.5px solid #a7f3d0" : "1px solid rgba(16, 185, 129, 0.35)";
+      tag.style.color = isDay ? "#047857" : "#34d399";
     } else {
       tag.innerText = "State: Static Equilibrium (Friction Holds Cart at Rest)";
-      tag.style.background = "rgba(245, 158, 11, 0.15)";
-      tag.style.color = "#fbbf24";
+      tag.style.background = isDay ? "#fffbeb" : "rgba(245, 158, 11, 0.15)";
+      tag.style.border = isDay ? "1.5px solid #fde68a" : "1px solid rgba(245, 158, 11, 0.35)";
+      tag.style.color = isDay ? "#b45309" : "#fbbf24";
     }
 
     fnTxt.innerText = `F_N: ${fNormal.toFixed(2)} N`;
+    fnTxt.style.color = isDay ? "#0891b2" : "#06b6d4";
     fparTxt.innerText = `F_∥: ${fParallel.toFixed(2)} N`;
+    fparTxt.style.color = isDay ? "#0284c7" : "#3b82f6";
     fkTxt.innerText = `f_k: ${fFrictionMax.toFixed(2)} N`;
+    fkTxt.style.color = isDay ? "#b91c1c" : "#ef4444";
     fnetTxt.innerText = `F_net: ${fNet.toFixed(2)} N`;
+    fnetTxt.style.color = isDay ? "#047857" : "#10b981";
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -7683,9 +7881,9 @@ function buildMiniProjectileInteractive(mountId, params) {
           </button>
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
-          <div id="${mountId}-time-disp" style="font-weight: 700; color: var(--text-main);">Flight Time: t_total = 2.88 s • Photogate Δt = 5.00 ms</div>
-          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">R = (v₀² · sin 2θ) / g • H = (v₀ · sin θ)² / (2g)</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-time-disp" style="font-weight: 700;">Flight Time: t_total = 2.88 s • Photogate Δt = 5.00 ms</div>
+          <div id="${mountId}-proj-eq" style="margin-top: 2px; font-weight: 600;">R = (v₀² · sin 2θ) / g • H = (v₀ · sin θ)² / (2g)</div>
         </div>
       </div>
     </div>
@@ -7702,9 +7900,33 @@ function buildMiniProjectileInteractive(mountId, params) {
     const totalT = (2 * speed * Math.sin(rad)) / g;
     const photogateDtMs = (0.100 / speed) * 1000; // 10cm photogate spacing in ms
 
-    document.getElementById(`${mountId}-range-val`).innerText = `${R.toFixed(1)} m`;
-    document.getElementById(`${mountId}-hmax-val`).innerText = `${H.toFixed(1)} m`;
-    document.getElementById(`${mountId}-time-disp`).innerText = `Flight Time: t_total = ${totalT.toFixed(2)} s • Photogate Δt = ${photogateDtMs.toFixed(2)} ms`;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const rangeVal = document.getElementById(`${mountId}-range-val`);
+    const hmaxVal = document.getElementById(`${mountId}-hmax-val`);
+    const timeDisp = document.getElementById(`${mountId}-time-disp`);
+    const projEq = document.getElementById(`${mountId}-proj-eq`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+
+    if (rangeVal) {
+      rangeVal.innerText = `${R.toFixed(1)} m`;
+      rangeVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (hmaxVal) {
+      hmaxVal.innerText = `${H.toFixed(1)} m`;
+      hmaxVal.style.color = isDay ? "#047857" : "#34d399";
+    }
+    if (timeDisp) {
+      timeDisp.innerText = `Flight Time: t_total = ${totalT.toFixed(2)} s • Photogate Δt = ${photogateDtMs.toFixed(2)} ms`;
+      timeDisp.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (projEq) {
+      projEq.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -7980,11 +8202,11 @@ function buildDopplerInteractive(mountId, params) {
           </button>
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px; font-size: 0.72rem; line-height: 1.35;">
-          <div id="${mountId}-doppler-status" style="font-weight: 700; color: var(--text-main);">
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px; font-size: 0.72rem; line-height: 1.35;">
+          <div id="${mountId}-doppler-status" style="font-weight: 700;">
             Compression ahead: λ' = (v - v_s) / f₀ • Dilation behind: λ' = (v + v_s) / f₀
           </div>
-          <div style="margin-top: 3px; font-family: monospace; color: var(--text-muted, #94a3b8);">
+          <div id="${mountId}-doppler-eq" style="margin-top: 3px; font-family: monospace;">
             f' = f₀ · [v_sound / (v_sound ∓ v_source)]
           </div>
         </div>
@@ -8008,34 +8230,51 @@ function buildDopplerInteractive(mountId, params) {
   const statusTxt = document.getElementById(`${mountId}-doppler-status`);
 
   function updateReadouts() {
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
     const mach = vs / vWave;
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const dopEq = document.getElementById(`${mountId}-doppler-eq`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (statusTxt) statusTxt.style.color = isDay ? "#0f172a" : "#f8fafc";
+    if (dopEq) dopEq.style.color = isDay ? "#0284c7" : "#94a3b8";
+
     vsLbl.innerText = `${vs} m/s`;
 
     if (vs < vWave) {
       const fApproach = fSource * (vWave / (vWave - vs));
       const fRecede = fSource * (vWave / (vWave + vs));
       fappVal.innerText = `${Math.round(fApproach)} Hz (+${Math.round(fApproach - fSource)}Hz)`;
+      fappVal.style.color = isDay ? "#0284c7" : "#38bdf8";
       frecVal.innerText = `${Math.round(fRecede)} Hz (${Math.round(fRecede - fSource)}Hz)`;
+      frecVal.style.color = isDay ? "#b45309" : "#fbbf24";
       machBadge.innerText = `Subsonic Motion (M = ${mach.toFixed(2)})`;
-      machBadge.style.color = "#38bdf8";
-      machBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
-      statusTxt.innerHTML = `<span style="color: #38bdf8; font-weight: 700;">Subsonic Regime:</span> Pitch rises as ambulance approaches, drops as it recedes.`;
+      machBadge.style.color = isDay ? "#0284c7" : "#38bdf8";
+      machBadge.style.borderColor = isDay ? "#bae6fd" : "rgba(56, 189, 248, 0.4)";
+      statusTxt.innerHTML = `<span style="color: ${isDay ? '#0284c7' : '#38bdf8'}; font-weight: 700;">Subsonic Regime:</span> Pitch rises as ambulance approaches, drops as it recedes.`;
     } else if (Math.abs(vs - vWave) < 5) {
       fappVal.innerText = "∞ (Sound Barrier)";
+      fappVal.style.color = isDay ? "#b45309" : "#fbbf24";
       const fRecede = fSource * (vWave / (vWave + vs));
       frecVal.innerText = `${Math.round(fRecede)} Hz`;
+      frecVal.style.color = isDay ? "#b45309" : "#fbbf24";
       machBadge.innerText = "Mach 1.00: SOUND BARRIER!";
-      machBadge.style.color = "#fbbf24";
-      machBadge.style.borderColor = "rgba(251, 191, 36, 0.5)";
-      statusTxt.innerHTML = `<span style="color: #fbbf24; font-weight: 700;">Sonic Barrier:</span> Wavefronts coalesce into infinite acoustic pressure barrier.`;
+      machBadge.style.color = isDay ? "#b45309" : "#fbbf24";
+      machBadge.style.borderColor = isDay ? "#fde68a" : "rgba(251, 191, 36, 0.5)";
+      statusTxt.innerHTML = `<span style="color: ${isDay ? '#b45309' : '#fbbf24'}; font-weight: 700;">Sonic Barrier:</span> Wavefronts coalesce into infinite acoustic pressure barrier.`;
     } else {
       fappVal.innerText = "Shock Front (Mach Cone)";
+      fappVal.style.color = isDay ? "#b91c1c" : "#f43f5e";
       const fRecede = fSource * (vWave / (vWave + vs));
       frecVal.innerText = `${Math.round(fRecede)} Hz`;
+      frecVal.style.color = isDay ? "#b45309" : "#fbbf24";
       machBadge.innerText = `⚡ SUPERSONIC (M = ${mach.toFixed(2)})`;
-      machBadge.style.color = "#f43f5e";
-      machBadge.style.borderColor = "rgba(244, 63, 94, 0.5)";
-      statusTxt.innerHTML = `<span style="color: #f43f5e; font-weight: 700;">Supersonic Shock Cone:</span> Constructive interference creates sonic boom cone.`;
+      machBadge.style.color = isDay ? "#b91c1c" : "#f43f5e";
+      machBadge.style.borderColor = isDay ? "#fecdd3" : "rgba(244, 63, 94, 0.5)";
+      statusTxt.innerHTML = `<span style="color: ${isDay ? '#b91c1c' : '#f43f5e'}; font-weight: 700;">Supersonic Shock Cone:</span> Constructive interference creates sonic boom cone.`;
     }
   }
 
@@ -8304,13 +8543,13 @@ function buildSnellOpticsInteractive(mountId, params) {
           </div>
         </div>
 
-        <div class="sim-telemetry-box" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 6px 10px; font-size: 0.76rem;">
-          <span style="color: var(--text-main); font-weight: 700;">Source:</span>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 6px 10px; font-size: 0.76rem;">
+          <span id="${mountId}-source-lbl" style="font-weight: 700;">Source:</span>
           <div style="display: flex; gap: 4px;">
             <button class="btn-sim-action active" id="${mountId}-btn-lred" style="padding: 2px 7px; font-size: 0.70rem; color: #f87171;">633nm He-Ne</button>
             <button class="btn-sim-action" id="${mountId}-btn-lgrn" style="padding: 2px 7px; font-size: 0.70rem; color: #34d399;">532nm Diode</button>
           </div>
-          <span id="${mountId}-vphase-lbl" style="font-family: monospace; font-size: 0.72rem; color: #38bdf8;">v = 2.25×10⁸ m/s</span>
+          <span id="${mountId}-vphase-lbl" style="font-family: monospace; font-size: 0.72rem;">v = 2.25×10⁸ m/s</span>
         </div>
       </div>
     </div>
@@ -8370,29 +8609,44 @@ function buildSnellOpticsInteractive(mountId, params) {
     const critDeg = (Math.asin(n2 / n1) * 180) / Math.PI;
 
     // Phase velocity v = c / n1
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const srcLbl = document.getElementById(`${mountId}-source-lbl`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (srcLbl) srcLbl.style.color = isDay ? "#0f172a" : "#f8fafc";
+
     const vPhase = (2.998 / n1).toFixed(2);
-    if (vPhaseLbl) vPhaseLbl.innerText = `v = ${vPhase}×10⁸ m/s`;
+    if (vPhaseLbl) {
+      vPhaseLbl.innerText = `v = ${vPhase}×10⁸ m/s`;
+      vPhaseLbl.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
 
     if (tir) {
       t2Val.innerText = "TOTAL INTERNAL REFLECTION!";
-      t2Val.style.color = "#ef4444";
+      t2Val.style.color = isDay ? "#b91c1c" : "#ef4444";
       tirPill.innerText = `TIR Engaged: θ₁ (${theta1Deg.toFixed(1)}°) > θ_c (${critDeg.toFixed(1)}°)`;
-      tirPill.style.background = "rgba(239, 68, 68, 0.15)";
-      tirPill.style.color = "#f87171";
+      tirPill.style.background = isDay ? "#fff1f2" : "rgba(239, 68, 68, 0.15)";
+      tirPill.style.border = isDay ? "1.5px solid #fecdd3" : "1px solid rgba(239, 68, 68, 0.4)";
+      tirPill.style.color = isDay ? "#b91c1c" : "#f87171";
 
       tirBadge.innerText = "⚡ Total Internal Reflection (TIR)";
-      tirBadge.style.color = "#ef4444";
-      tirBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
+      tirBadge.style.color = isDay ? "#b91c1c" : "#ef4444";
+      tirBadge.style.borderColor = isDay ? "#fecdd3" : "rgba(239, 68, 68, 0.4)";
     } else {
       t2Val.innerText = `${deg2.toFixed(1)}° (Refracted into Air)`;
-      t2Val.style.color = "#10b981";
+      t2Val.style.color = isDay ? "#047857" : "#10b981";
       tirPill.innerText = `Critical Angle: θ_c = ${critDeg.toFixed(1)}°`;
-      tirPill.style.background = "rgba(56, 189, 248, 0.15)";
-      tirPill.style.color = "#38bdf8";
+      tirPill.style.background = isDay ? "#f0f9ff" : "rgba(56, 189, 248, 0.15)";
+      tirPill.style.border = isDay ? "1.5px solid #bae6fd" : "1px solid rgba(56, 189, 248, 0.4)";
+      tirPill.style.color = isDay ? "#0284c7" : "#38bdf8";
 
       tirBadge.innerText = `Refraction into Air (θ₂ = ${deg2.toFixed(1)}°)`;
-      tirBadge.style.color = "#34d399";
-      tirBadge.style.borderColor = "rgba(16, 185, 129, 0.4)";
+      tirBadge.style.color = isDay ? "#047857" : "#34d399";
+      tirBadge.style.borderColor = isDay ? "#a7f3d0" : "rgba(16, 185, 129, 0.4)";
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -12556,10 +12810,10 @@ function buildGalvanicCellInteractive(mountId, params) {
           </div>
           <input type="range" class="range-slider" id="${mountId}-cu-slider" min="0.01" max="2.0" step="0.05" value="${cuConc}">
         </div>
-        <div class="sim-telemetry-box" style="line-height: 1.45;">
-          <div><strong style="color: var(--text-main);">Anode (-) Oxidation:</strong> Zn(s) → Zn²⁺(aq) + 2e⁻</div>
-          <div><strong style="color: var(--accent-amber);">Cathode (+) Reduction:</strong> Cu²⁺(aq) + 2e⁻ → Cu(s)</div>
-          <div style="color: var(--chem-primary); font-size: 0.75rem; margin-top: 2px; font-weight: 600;">E = E° - (0.0592/2)·log([Zn²⁺]/[Cu²⁺])</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="line-height: 1.45;">
+          <div id="${mountId}-anode-disp"><strong>Anode (-) Oxidation:</strong> Zn(s) → Zn²⁺(aq) + 2e⁻</div>
+          <div id="${mountId}-cathode-disp"><strong>Cathode (+) Reduction:</strong> Cu²⁺(aq) + 2e⁻ → Cu(s)</div>
+          <div id="${mountId}-nernst-disp" style="font-size: 0.75rem; margin-top: 2px; font-weight: 600;">E = E° - (0.0592/2)·log([Zn²⁺]/[Cu²⁺])</div>
         </div>
       </div>
     </div>
@@ -12571,9 +12825,27 @@ function buildGalvanicCellInteractive(mountId, params) {
   function loop() {
     ionPhase += 0.04;
     // Nernst Equation: Ecell = E0 - (0.0592 / 2) * log10([Zn2+] / [Cu2+])
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
     const E0 = 1.10;
     const Ecell = E0 - (0.0592 / 2) * Math.log10(znConc / cuConc);
-    document.getElementById(`${mountId}-e-val`).innerText = `${Ecell >= 0 ? '+' : ''}${Ecell.toFixed(3)} V`;
+    const eVal = document.getElementById(`${mountId}-e-val`);
+    if (eVal) {
+      eVal.innerText = `${Ecell >= 0 ? '+' : ''}${Ecell.toFixed(3)} V`;
+      eVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const anodeDisp = document.getElementById(`${mountId}-anode-disp`);
+    const cathodeDisp = document.getElementById(`${mountId}-cathode-disp`);
+    const nernstDisp = document.getElementById(`${mountId}-nernst-disp`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (anodeDisp) anodeDisp.style.color = isDay ? "#0f172a" : "#f8fafc";
+    if (cathodeDisp) cathodeDisp.style.color = isDay ? "#b45309" : "#fbbf24";
+    if (nernstDisp) nernstDisp.style.color = isDay ? "#0284c7" : "#38bdf8";
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -13725,9 +13997,9 @@ function buildPeriodicTrendsInteractive(mountId, params) {
             <button class="btn-sim-action ${i === 0 ? 'active' : ''}" data-idx="${i}" style="padding: 6px 2px; font-size: 0.8rem; text-align: center;">${el.sym}</button>
           `).join("")}
         </div>
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
-          <div id="${mountId}-ie-val" style="font-weight: 700; color: var(--text-main);"><strong>1st Ionization Energy:</strong> 520 kJ/mol</div>
-          <div id="${mountId}-en-val" style="margin-top: 2px; color: var(--chem-primary); font-weight: 700;"><strong>Electronegativity:</strong> 0.98 (Pauling)</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-ie-val" style="font-weight: 700;"><strong>1st Ionization Energy:</strong> 520 kJ/mol</div>
+          <div id="${mountId}-en-val" style="margin-top: 2px; font-weight: 700;"><strong>Electronegativity:</strong> 0.98 (Pauling)</div>
         </div>
       </div>
     </div>
@@ -13744,9 +14016,29 @@ function buildPeriodicTrendsInteractive(mountId, params) {
     const el = elements[selectedIdx];
     const Zeff = (el.z - 2).toFixed(1); // approximate shielding for Period 2
 
-    document.getElementById(`${mountId}-r-val`).innerText = `${el.r} pm | Zeff ≈ +${Zeff}`;
-    document.getElementById(`${mountId}-ie-val`).innerHTML = `<strong>1st Ionization Energy:</strong> ${el.ie} kJ/mol`;
-    document.getElementById(`${mountId}-en-val`).innerHTML = `<strong>Electronegativity:</strong> ${el.en > 0 ? el.en + ' (Pauling)' : 'Noble Gas (0)'}`;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const rVal = document.getElementById(`${mountId}-r-val`);
+    const ieVal = document.getElementById(`${mountId}-ie-val`);
+    const enVal = document.getElementById(`${mountId}-en-val`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+
+    if (rVal) {
+      rVal.innerText = `${el.r} pm | Zeff ≈ +${Zeff}`;
+      rVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (ieVal) {
+      ieVal.innerHTML = `<strong>1st Ionization Energy:</strong> ${el.ie} kJ/mol`;
+      ieVal.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (enVal) {
+      enVal.innerHTML = `<strong>Electronegativity:</strong> ${el.en > 0 ? el.en + ' (Pauling)' : 'Noble Gas (0)'}`;
+      enVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -14236,6 +14528,15 @@ function buildMitosisCellCycleInteractive(mountId, params) {
     const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
     lastTimestamp = timestamp;
 
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    if (stageDesc) {
+      stageDesc.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      stageDesc.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      stageDesc.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+      stageDesc.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (phaseVal) phaseVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+
     t += 0.03;
 
     if (isAutoAdvancing) {
@@ -14447,8 +14748,8 @@ function buildHardyWeinbergInteractive(mountId, params) {
           </div>
           <input type="range" class="range-slider" id="${mountId}-s-slider" min="0" max="0.8" step="0.05" value="${s}">
         </div>
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
-          <div id="${mountId}-geno-val" style="font-weight: 700; color: var(--text-main);">p² (AA) = 0.36 | 2pq (Aa) = 0.48 | q² (aa) = 0.16</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-geno-val" style="font-weight: 700;">p² (AA) = 0.36 | 2pq (Aa) = 0.48 | q² (aa) = 0.16</div>
         </div>
       </div>
     </div>
@@ -14464,8 +14765,23 @@ function buildHardyWeinbergInteractive(mountId, params) {
     const twoPq = 2 * p * q;
     const q2 = q * q;
 
-    document.getElementById(`${mountId}-hw-val`).innerText = `p = ${p.toFixed(2)} | q = ${q.toFixed(2)}`;
-    document.getElementById(`${mountId}-geno-val`).innerText = `p² (AA) = ${p2.toFixed(2)} | 2pq (Aa) = ${twoPq.toFixed(2)} | q² (aa) = ${q2.toFixed(2)}`;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const hwVal = document.getElementById(`${mountId}-hw-val`);
+    const genoVal = document.getElementById(`${mountId}-geno-val`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    if (hwVal) {
+      hwVal.innerText = `p = ${p.toFixed(2)} | q = ${q.toFixed(2)}`;
+      hwVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (genoVal) {
+      genoVal.innerText = `p² (AA) = ${p2.toFixed(2)} | 2pq (Aa) = ${twoPq.toFixed(2)} | q² (aa) = ${q2.toFixed(2)}`;
+      genoVal.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -14728,9 +15044,9 @@ function buildGravityOrbitsInteractive(mountId, params) {
           </div>
           <input type="range" class="range-slider" id="${mountId}-vscale-slider" min="0.80" max="1.30" step="0.05" value="${vScale}">
         </div>
-        <div class="sim-telemetry-box" style="margin-top: 4px;">
-          <div id="${mountId}-period-val" style="font-weight: 700; color: var(--text-main);"><strong>Period (T):</strong> 127 minutes</div>
-          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;"><strong>Newton's Law:</strong> Fg = G·M·m / r²</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 4px;">
+          <div id="${mountId}-period-val" style="font-weight: 700;"><strong>Period (T):</strong> 127 minutes</div>
+          <div id="${mountId}-newton-eq" style="margin-top: 2px; font-weight: 600;"><strong>Newton's Law:</strong> Fg = G·M·m / r²</div>
         </div>
       </div>
     </div>
@@ -14749,8 +15065,28 @@ function buildGravityOrbitsInteractive(mountId, params) {
     const vActual = vCirc * vScale;
     const periodSec = (2 * Math.PI * rTotalMeters) / vCirc;
 
-    document.getElementById(`${mountId}-v-val`).innerText = `${(vActual / 1000).toFixed(2)} km/s`;
-    document.getElementById(`${mountId}-period-val`).innerHTML = `<strong>Period (T):</strong> ${(periodSec / 60).toFixed(0)} min (${(periodSec / 3600).toFixed(2)} hrs)`;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const vVal = document.getElementById(`${mountId}-v-val`);
+    const periodVal = document.getElementById(`${mountId}-period-val`);
+    const newtonEq = document.getElementById(`${mountId}-newton-eq`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+
+    if (vVal) {
+      vVal.innerText = `${(vActual / 1000).toFixed(2)} km/s`;
+      vVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (periodVal) {
+      periodVal.innerHTML = `<strong>Period (T):</strong> ${(periodSec / 60).toFixed(0)} min (${(periodSec / 3600).toFixed(2)} hrs)`;
+      periodVal.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (newtonEq) {
+      newtonEq.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
 
     orbitAngle += 0.02 * vScale * (4000 / (altKm + 2000));
 
@@ -14872,7 +15208,7 @@ function buildCircularMotionInteractive(mountId, params) {
           </div>
           <input type="range" class="range-slider" id="${mountId}-w-slider" min="1.0" max="8.0" step="0.5" value="${omega}">
         </div>
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
           <div id="${mountId}-v-val" style="font-weight: 700;"><strong>Tangential Speed (v = ωr):</strong> 4.5 m/s</div>
           <div id="${mountId}-fc-val" style="margin-top: 3px; font-weight: 600;"><strong>Tether Tension (Fc = m·ac):</strong> 27.0 N</div>
         </div>
@@ -14893,9 +15229,29 @@ function buildCircularMotionInteractive(mountId, params) {
     const ac = (v * v) / r;
     const Fc = mass * ac;
 
-    document.getElementById(`${mountId}-ac-val`).innerText = `${ac.toFixed(1)} m/s² (${(ac / 9.8).toFixed(1)}g)`;
-    document.getElementById(`${mountId}-v-val`).innerHTML = `<strong>Tangential Speed (v = ωr):</strong> ${v.toFixed(2)} m/s`;
-    document.getElementById(`${mountId}-fc-val`).innerHTML = `<strong>Tether Tension (Fc):</strong> ${Fc.toFixed(1)} N`;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const acVal = document.getElementById(`${mountId}-ac-val`);
+    const vVal = document.getElementById(`${mountId}-v-val`);
+    const fcVal = document.getElementById(`${mountId}-fc-val`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+
+    if (acVal) {
+      acVal.innerText = `${ac.toFixed(1)} m/s² (${(ac / 9.8).toFixed(1)}g)`;
+      acVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (vVal) {
+      vVal.innerHTML = `<strong>Tangential Speed (v = ωr):</strong> ${v.toFixed(2)} m/s`;
+      vVal.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (fcVal) {
+      fcVal.innerHTML = `<strong>Tether Tension (Fc):</strong> ${Fc.toFixed(1)} N`;
+      fcVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -15003,9 +15359,9 @@ function buildWorkEnergyInteractive(mountId, params) {
           <button class="btn-sim-action active" id="${mountId}-btn-nofric" style="flex: 1; padding: 6px;">Ideal (No Friction)</button>
           <button class="btn-sim-action" id="${mountId}-btn-fric" style="flex: 1; padding: 6px;">With Friction (Thermal)</button>
         </div>
-        <div class="sim-telemetry-box" style="margin-top: 4px;">
-          <div id="${mountId}-v-val" style="font-weight: 700; color: var(--text-main);"><strong>Cart Speed:</strong> 0.0 m/s</div>
-          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;"><strong>Conservation:</strong> E_total = KE + PE = const</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 4px;">
+          <div id="${mountId}-cart-v-val" style="font-weight: 700;"><strong>Cart Speed:</strong> 0.0 m/s</div>
+          <div id="${mountId}-cons-eq" style="margin-top: 2px; font-weight: 600;"><strong>Conservation:</strong> E_total = KE + PE = const</div>
         </div>
       </div>
     </div>
@@ -15031,7 +15387,29 @@ function buildWorkEnergyInteractive(mountId, params) {
 
     const pe = mass * g * curH;
     const totalE = mass * g * h0;
-    const ke = Math.max(0, totalE - pe);
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const eVal = document.getElementById(`${mountId}-e-val`);
+    const cartVVal = document.getElementById(`${mountId}-cart-v-val`);
+    const consEq = document.getElementById(`${mountId}-cons-eq`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+
+    if (eVal) {
+      eVal.innerText = `KE: ${(ke / 1000).toFixed(1)} kJ | PE: ${(pe / 1000).toFixed(1)} kJ`;
+      eVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (cartVVal) {
+      const v = Math.sqrt((2 * ke) / mass);
+      cartVVal.innerHTML = `<strong>Cart Speed:</strong> ${v.toFixed(1)} m/s (${(v * 3.6).toFixed(1)} km/h)`;
+      cartVVal.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (consEq) {
+      consEq.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
     const speed = Math.sqrt((2 * ke) / mass);
 
     document.getElementById(`${mountId}-e-val`).innerText = `KE: ${(ke / 1000).toFixed(0)} kJ | PE: ${(pe / 1000).toFixed(0)} kJ`;
@@ -15371,9 +15749,9 @@ function buildCoulombFieldInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-r-slider" min="0.5" max="2.5" step="0.1" value="${rDist}">
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
-          <div id="${mountId}-field-disp" style="font-weight: 700; color: var(--text-main);">Electric Field at q₁: E = 2.70 × 10⁷ N/C</div>
-          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">Coulomb's Law: F_e = k · |q₁ · q₂| / r² • Restoring Torque: τ = -κ · θ</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-field-disp" style="font-weight: 700;">Electric Field at q₁: E = 2.70 × 10⁷ N/C</div>
+          <div id="${mountId}-coulomb-eq" style="margin-top: 2px; font-weight: 600;">Coulomb's Law: F_e = k · |q₁ · q₂| / r² • Restoring Torque: τ = -κ · θ</div>
         </div>
       </div>
     </div>
@@ -15398,9 +15776,21 @@ function buildCoulombFieldInteractive(mountId, params) {
     // E-field at q1 due to q2
     const eField = (kCoulomb * Math.abs(q2 * 1e-6)) / (rDist * rDist);
 
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const fieldDisp = document.getElementById(`${mountId}-field-disp`);
+    const coulombEq = document.getElementById(`${mountId}-coulomb-eq`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    if (fieldDisp) fieldDisp.style.color = isDay ? "#0f172a" : "#f8fafc";
+    if (coulombEq) coulombEq.style.color = isDay ? "#0284c7" : "#38bdf8";
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+
     // Update Telemetry
     document.getElementById(`${mountId}-f-val`).innerText = `${forceN.toFixed(1)} N (${isAttraction ? 'Attraction' : 'Repulsion'})`;
-    document.getElementById(`${mountId}-f-val`).style.color = isAttraction ? "#38bdf8" : "#ef4444";
+    document.getElementById(`${mountId}-f-val`).style.color = isAttraction ? (isDay ? "#0284c7" : "#38bdf8") : (isDay ? "#b91c1c" : "#ef4444");
     document.getElementById(`${mountId}-torq-val`).innerText = `θ = ${thetaDeg}° • τ = ${(torqueNm * 1000).toFixed(2)} mN·m`;
     document.getElementById(`${mountId}-field-disp`).innerText = `E-Field at q₁: E = ${(eField / 1e6).toFixed(2)} × 10⁶ N/C`;
 
@@ -15682,8 +16072,8 @@ function buildLorentzForceInteractive(mountId, params) {
           </button>
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px; font-size: 0.78rem; font-weight: 700;">
-          <strong style="color: var(--phys-primary);">Specific Charge Law:</strong> e/m = 2·UA / (B²·r²) = 1.7588 × 10¹¹ C/kg
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px; font-size: 0.78rem; font-weight: 700;">
+          <div id="${mountId}-lorentz-eq"><strong>Specific Charge Law:</strong> e/m = 2·UA / (B²·r²) = 1.7588 × 10¹¹ C/kg</div>
         </div>
       </div>
     </div>
@@ -15718,6 +16108,16 @@ function buildLorentzForceInteractive(mountId, params) {
     const em_calc = (2 * anodeV) / (bField * bField * r_meters * r_meters);
 
     // Update Digital Readouts
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const lorentzEq = document.getElementById(`${mountId}-lorentz-eq`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (lorentzEq) lorentzEq.style.color = isDay ? "#0284c7" : "#38bdf8";
+
     const rValEl = document.getElementById(`${mountId}-r-val`);
     if (rValEl) rValEl.innerText = `${r_cm.toFixed(2)} cm (v = ${(v_elec / 1e6).toFixed(2)} Mm/s)`;
 
@@ -16016,9 +16416,9 @@ function buildFaradayInductionInteractive(mountId, params) {
           </button>
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
-          <div id="${mountId}-law-disp" style="font-weight: 700; color: var(--text-main);">Faraday's Law: ℰ = -N · (dΦ_B / dt)</div>
-          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">Lenz's Law: Induced current opposes change in flux</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-law-disp" style="font-weight: 700;">Faraday's Law: ℰ = -N · (dΦ_B / dt)</div>
+          <div id="${mountId}-lenz-disp" style="margin-top: 2px; font-weight: 600;">Lenz's Law: Induced current opposes change in flux</div>
         </div>
       </div>
     </div>
@@ -16028,6 +16428,18 @@ function buildFaradayInductionInteractive(mountId, params) {
   const ctx = canvas.getContext("2d");
 
   function loop() {
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const lawDisp = document.getElementById(`${mountId}-law-disp`);
+    const lenzDisp = document.getElementById(`${mountId}-lenz-disp`);
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
+    if (lawDisp) lawDisp.style.color = isDay ? "#0f172a" : "#f8fafc";
+    if (lenzDisp) lenzDisp.style.color = isDay ? "#0284c7" : "#38bdf8";
+
     if (isAuto) {
       autoT += 0.05;
       magnetX = 175 + Math.sin(autoT) * 95;
@@ -16359,9 +16771,9 @@ function buildWaveOpticsInteractive(mountId, params) {
           <button class="btn-sim-action" id="${mountId}-laser-violet" style="font-size: 0.72rem; padding: 6px 2px;">Violet (405nm)</button>
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
-          <div id="${mountId}-screen-disp" style="font-weight: 700; color: var(--text-main);">Screen Distance: L = 2.00 m • Central Max Width = 8.52 mm</div>
-          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">Double-Slit Maxima: d · sin θ = m · λ (m = 0, ±1, ±2...)</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-screen-disp" style="font-weight: 700;">Screen Distance: L = 2.00 m • Central Max Width = 8.52 mm</div>
+          <div id="${mountId}-diffract-eq" style="margin-top: 2px; font-weight: 600;">Double-Slit Maxima: d · sin θ = m · λ (m = 0, ±1, ±2...)</div>
         </div>
       </div>
     </div>
@@ -16380,9 +16792,33 @@ function buildWaveOpticsInteractive(mountId, params) {
     const thetaRad = lamM / dM;
     const thetaDeg = (thetaRad * 180) / Math.PI;
 
-    document.getElementById(`${mountId}-dy-val`).innerText = `${(deltaY * 1000).toFixed(2)} mm`;
-    document.getElementById(`${mountId}-theta-val`).innerText = `${thetaDeg.toFixed(3)}° (${(thetaRad * 1000).toFixed(2)} mrad)`;
-    document.getElementById(`${mountId}-screen-disp`).innerText = `Screen Distance: L = 2.00 m • Central Fringe Width = ${(deltaY * 2000).toFixed(2)} mm`;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const dyVal = document.getElementById(`${mountId}-dy-val`);
+    const thetaVal = document.getElementById(`${mountId}-theta-val`);
+    const screenDisp = document.getElementById(`${mountId}-screen-disp`);
+    const diffractEq = document.getElementById(`${mountId}-diffract-eq`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+
+    if (dyVal) {
+      dyVal.innerText = `${(deltaY * 1000).toFixed(2)} mm`;
+      dyVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (thetaVal) {
+      thetaVal.innerText = `${thetaDeg.toFixed(3)}° (${(thetaRad * 1000).toFixed(2)} mrad)`;
+      thetaVal.style.color = isDay ? "#047857" : "#10b981";
+    }
+    if (screenDisp) {
+      screenDisp.innerText = `Screen Distance: L = 2.00 m • Central Fringe Width = ${(deltaY * 2000).toFixed(2)} mm`;
+      screenDisp.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (diffractEq) {
+      diffractEq.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
 
     // RGB Laser Color Calculation
     let r = 34, g = 197, b = 94; // 532 green default
@@ -16664,9 +17100,9 @@ function buildPhotoelectricInteractive(mountId, params) {
           <button class="btn-sim-action" id="${mountId}-m-zn" style="flex: 1; padding: 5px 2px; font-size: 0.7rem;">Zn (4.30eV)</button>
         </div>
 
-        <div class="sim-telemetry-box" style="margin-top: 6px;">
-          <div id="${mountId}-e-phot" style="font-weight: 700; color: var(--text-main);">E_photon = hf = 4.43 eV • Photocurrent I = 14.2 μA</div>
-          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">Einstein (1905): KE_max = hf - Φ = e · V_stop</div>
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-e-phot" style="font-weight: 700;">E_photon = hf = 4.43 eV • Photocurrent I = 14.2 μA</div>
+          <div id="${mountId}-einstein-eq" style="margin-top: 2px; font-weight: 600;">Einstein (1905): KE_max = hf - Φ = e · V_stop</div>
         </div>
       </div>
     </div>
@@ -16704,10 +17140,29 @@ function buildPhotoelectricInteractive(mountId, params) {
     }
 
     // Update Telemetry
-    document.getElementById(`${mountId}-ke-val`).innerText = hasPhotoelectric ? `+${keMax.toFixed(2)} eV (${(keMax * 1.602e-19 * 1e18).toFixed(1)} aJ)` : "0.00 eV (hf < Φ)";
-    document.getElementById(`${mountId}-ke-val`).style.color = hasPhotoelectric ? "#34d399" : "#ef4444";
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const keValEl = document.getElementById(`${mountId}-ke-val`);
+    const ePhotEl = document.getElementById(`${mountId}-e-phot`);
+    const einsteinEq = document.getElementById(`${mountId}-einstein-eq`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+
+    if (keValEl) {
+      keValEl.innerText = hasPhotoelectric ? `+${keMax.toFixed(2)} eV (${(keMax * 1.602e-19 * 1e18).toFixed(1)} aJ)` : "0.00 eV (hf < Φ)";
+      keValEl.style.color = hasPhotoelectric ? (isDay ? "#047857" : "#34d399") : (isDay ? "#b91c1c" : "#ef4444");
+    }
     document.getElementById(`${mountId}-vstop-val`).innerText = hasPhotoelectric ? `-${vStop.toFixed(2)} V` : "0.00 V";
-    document.getElementById(`${mountId}-e-phot`).innerText = `E_photon = ${ePhoton.toFixed(2)} eV • Photocurrent I = ${photocurrentUa.toFixed(1)} μA`;
+    if (ePhotEl) {
+      ePhotEl.innerText = `E_photon = ${ePhoton.toFixed(2)} eV • Photocurrent I = ${photocurrentUa.toFixed(1)} μA`;
+      ePhotEl.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+    if (einsteinEq) {
+      einsteinEq.style.color = isDay ? "#0284c7" : "#38bdf8";
+    }
+    if (teleBox) {
+      teleBox.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      teleBox.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      teleBox.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+    }
 
     const badge = document.getElementById(`${mountId}-emission-badge`);
     if (canReachAnode) {
