@@ -2873,18 +2873,19 @@ function buildDensityInteractive(mountId, params) {
   if (!mount) return;
 
   const materials = {
-    wood: { name: "Oak Wood", rho: 0.72, color: "#b45309", tex: "wood", stroke: "#78350f" },
-    ice: { name: "Pure Ice", rho: 0.92, color: "#38bdf8", tex: "ice", stroke: "#0284c7" },
-    al: { name: "Aluminum", rho: 2.70, color: "#94a3b8", tex: "al", stroke: "#cbd5e1" },
-    fe: { name: "Cast Iron", rho: 7.87, color: "#475569", tex: "fe", stroke: "#1e293b" },
-    au: { name: "24K Gold", rho: 19.32, color: "#f59e0b", tex: "au", stroke: "#d97706" },
-    custom: { name: "Custom Specimen", rho: 1.50, color: "#8b5cf6", tex: "custom", stroke: "#6d28d9" }
+    wood: { name: "Oak Wood", rho: 0.72, color: "#b45309", stroke: "#78350f" },
+    ice: { name: "Pure Ice", rho: 0.92, color: "#38bdf8", stroke: "#0284c7" },
+    al: { name: "Aluminum", rho: 2.70, color: "#94a3b8", stroke: "#cbd5e1" },
+    fe: { name: "Cast Iron", rho: 7.87, color: "#475569", stroke: "#1e293b" },
+    au: { name: "24K Gold", rho: 19.32, color: "#f59e0b", stroke: "#d97706" },
+    custom: { name: "Custom Specimen", rho: 1.50, color: "#8b5cf6", stroke: "#6d28d9" }
   };
 
   let chosenMatKey = "custom";
   let mass = params.mass || 60; // grams
   let vol = params.volume || 40; // cm3
   let showForces = true;
+  let isDropped = false;
 
   mount.innerHTML = `
     <div class="interactive-split-grid">
@@ -2893,6 +2894,9 @@ function buildDensityInteractive(mountId, params) {
         <div class="badge" style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 6px; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.75rem;">
           <input type="checkbox" id="${mountId}-chk-fbd" checked style="accent-color: #10b981; cursor: pointer;">
           <label for="${mountId}-chk-fbd" style="color: var(--text-main); cursor: pointer; user-select: none; font-weight: 600;">Force Vectors (F_g, F_b)</label>
+        </div>
+        <div id="${mountId}-status-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; pointer-events: none; backdrop-filter: blur(4px);">
+          Suspended Above Beaker
         </div>
       </div>
 
@@ -2906,7 +2910,14 @@ function buildDensityInteractive(mountId, params) {
           Status: Sinks to Bottom (ρ > 1.00 g/cm³)
         </div>
 
-        <div style="margin-bottom: 8px;">
+        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+          <button class="btn btn-primary" id="${mountId}-btn-drop" style="flex: 1.2; padding: 7px 6px; font-weight: 700; font-size: 0.76rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span id="${mountId}-drop-icon">💧</span> <span id="${mountId}-drop-lbl">Drop in Water</span>
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-lift" style="flex: 0.8; padding: 7px 8px; font-size: 0.76rem;">↺ Retract</button>
+        </div>
+
+        <div style="margin-bottom: 6px;">
           <div style="font-size: 0.76rem; color: var(--text-dim); margin-bottom: 4px; font-weight: 600;">Material Specimen:</div>
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
             <button class="btn-sim-action" data-mat="wood" id="${mountId}-m-wood" style="padding: 4px; font-size: 0.74rem;">🪵 Oak Wood</button>
@@ -2936,61 +2947,216 @@ function buildDensityInteractive(mountId, params) {
 
         <div class="sim-telemetry-box" style="padding: 7px 12px; font-size: 0.78rem; display: flex; justify-content: space-between; font-weight: 700;">
           <span id="${mountId}-fg-txt" style="color: var(--text-main);">F_gravity = 0.59 N</span>
-          <span id="${mountId}-fb-txt" style="color: var(--chem-primary);">F_buoyant = 0.39 N</span>
+          <span id="${mountId}-fb-txt" style="color: var(--chem-primary);">F_buoyant = 0.00 N</span>
         </div>
       </div>
     </div>
   `;
 
   const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
 
-  function render() {
+  const btnDrop = document.getElementById(`${mountId}-btn-drop`);
+  const btnLift = document.getElementById(`${mountId}-btn-lift`);
+  const dropIcon = document.getElementById(`${mountId}-drop-icon`);
+  const dropLbl = document.getElementById(`${mountId}-drop-lbl`);
+  const statusBadge = document.getElementById(`${mountId}-status-badge`);
+  const dVal = document.getElementById(`${mountId}-density-val`);
+  const tag = document.getElementById(`${mountId}-buoyancy-tag`);
+  const fgTxt = document.getElementById(`${mountId}-fg-txt`);
+  const fbTxt = document.getElementById(`${mountId}-fb-txt`);
+
+  // Physics state
+  const bx = 110, by = 45, bw = 160, bh = 185;
+  const baseWaterMl = 130;
+  const pxPerMl = (bh - 25) / 250;
+  const restingSurfaceY = (by + bh) - (baseWaterMl * pxPerMl);
+  const bottomY = by + bh - 6;
+
+  let blockY = 12; // Start suspended in air above beaker
+  let blockVy = 0; // px/s
+  let ripples = [];
+  let bubbles = [];
+  let splashes = [];
+  let rippleTime = 0;
+  let animId = null;
+  let lastTimestamp = null;
+
+  function resetToAir() {
+    isDropped = false;
+    blockY = 12;
+    blockVy = 0;
+    dropIcon.innerText = "💧";
+    dropLbl.innerText = "Drop in Water";
+    statusBadge.innerText = "Suspended Above Beaker";
+    statusBadge.style.color = "#38bdf8";
+    statusBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
+  }
+
+  function triggerDrop() {
+    isDropped = true;
+    blockVy = 30; // initial nudge
+    dropIcon.innerText = "↺";
+    dropLbl.innerText = "Lift Specimen";
+  }
+
+  function loop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.04);
+    lastTimestamp = timestamp;
+    rippleTime += dt;
+
     const density = mass / vol;
     const sinks = density > 1.0;
     const g = 9.806;
     const fGravity = (mass / 1000) * g;
-    // Water density is 1.0 g/cm3
-    const submergeRatio = Math.min(1.0, density);
-    const vSubmerged = vol * submergeRatio; // cm3 = mL
-    const fBuoyant = (vSubmerged / 1000) * g; // N (since 1 cm3 of water = 1 g)
+    const blockSize = Math.max(28, Math.min(65, Math.cbrt(vol) * 16));
+    const objX = bx + bw / 2 - blockSize / 2;
 
-    // Update labels
-    const dVal = document.getElementById(`${mountId}-density-val`);
+    // Current submerged calculation based on current blockY
+    // Top of water surface moves slightly with current submerged volume
+    const blockBottomY = blockY + blockSize;
+    let submergedDepth = 0;
+    let waterSurfaceY = restingSurfaceY;
+
+    if (blockBottomY > restingSurfaceY) {
+      // Approximate submerged fraction for water rise
+      const roughSub = Math.min(1.0, Math.max(0, (blockBottomY - restingSurfaceY) / blockSize));
+      const roughVSub = vol * roughSub;
+      waterSurfaceY = (by + bh) - ((baseWaterMl + roughVSub) * pxPerMl);
+      submergedDepth = Math.max(0, Math.min(blockSize, blockBottomY - waterSurfaceY));
+    }
+
+    const currentSubmergeRatio = Math.max(0, Math.min(1.0, submergedDepth / blockSize));
+    const vSubmerged = vol * currentSubmergeRatio; // cm3
+    const fBuoyant = (vSubmerged / 1000) * g; // N
+
+    // Physics integration
+    if (isDropped) {
+      if (blockBottomY < waterSurfaceY) {
+        // In freefall through air
+        const aAir = 480; // px/s^2 visual gravity
+        blockVy += aAir * dt;
+        blockY += blockVy * dt;
+        statusBadge.innerText = "In Freefall (g = 9.8 m/s²)";
+        statusBadge.style.color = "#fbbf24";
+        statusBadge.style.borderColor = "rgba(251, 191, 36, 0.4)";
+      } else {
+        // Intersecting fluid
+        // Splash trigger when first penetrating surface
+        if (blockVy > 70 && submergedDepth < 6) {
+          for (let p = 0; p < 8; p++) {
+            splashes.push({
+              x: objX + (p / 8) * blockSize + (Math.random() - 0.5) * 10,
+              y: waterSurfaceY,
+              vx: (Math.random() - 0.5) * 90,
+              vy: -Math.random() * 80 - 40,
+              life: 0.45
+            });
+          }
+          ripples.push({ r: 5, maxR: bw / 2 - 10, alpha: 0.9 });
+        }
+
+        // Net physical acceleration in fluid
+        // F_net = F_gravity - F_buoyancy
+        // mass (kg) = mass / 1000
+        const massKg = Math.max(0.005, mass / 1000);
+        const fNet = fGravity - fBuoyant; // Positive downwards
+        const aPhys = (fNet / massKg); // m/s^2
+
+        // Visual scaling: map m/s^2 to px/s^2
+        const aVisual = aPhys * 65;
+        // Hydrodynamic viscous drag: opposes velocity
+        const dragCoeff = 3.6;
+        blockVy += (aVisual - dragCoeff * blockVy) * dt;
+        blockY += blockVy * dt;
+
+        // Bottom collision with beaker
+        if (blockBottomY >= bottomY) {
+          blockY = bottomY - blockSize;
+          if (blockVy > 15) {
+            blockVy = -blockVy * 0.18; // soft damp bounce
+            // Release micro bubbles
+            for (let b = 0; b < 3; b++) {
+              bubbles.push({
+                x: objX + Math.random() * blockSize,
+                y: bottomY - 5,
+                vy: -30 - Math.random() * 25,
+                radius: 1.5 + Math.random() * 2
+              });
+            }
+          } else {
+            blockVy = 0;
+          }
+        }
+
+        // Status badge updates
+        if (sinks) {
+          if (blockBottomY >= bottomY - 1) {
+            statusBadge.innerText = `Sunk to Beaker Bottom (ρ = ${density.toFixed(2)} g/cm³)`;
+            statusBadge.style.color = "#f87171";
+            statusBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
+          } else {
+            statusBadge.innerText = "Sinking in Fluid (F_g > F_b)";
+            statusBadge.style.color = "#f87171";
+            statusBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
+          }
+        } else {
+          if (Math.abs(blockVy) > 4) {
+            statusBadge.innerText = "Damped Bobbing Oscillation";
+            statusBadge.style.color = "#38bdf8";
+            statusBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
+          } else {
+            const pct = (currentSubmergeRatio * 100).toFixed(0);
+            statusBadge.innerText = `Floats Equilibrium (${pct}% Submerged)`;
+            statusBadge.style.color = "#34d399";
+            statusBadge.style.borderColor = "rgba(16, 185, 129, 0.4)";
+          }
+        }
+      }
+    } else {
+      // Smoothly float back to air rack if user retracted
+      if (blockY > 14) {
+        blockY += (12 - blockY) * 0.12;
+      } else {
+        blockY = 12;
+      }
+    }
+
+    // Update readouts
     if (dVal) dVal.innerText = `${density.toFixed(2)} g/cm³`;
-
-    const fgTxt = document.getElementById(`${mountId}-fg-txt`);
     if (fgTxt) fgTxt.innerText = `F_gravity = ${fGravity.toFixed(2)} N`;
-    const fbTxt = document.getElementById(`${mountId}-fb-txt`);
     if (fbTxt) fbTxt.innerText = `F_buoyant = ${fBuoyant.toFixed(2)} N`;
 
-    const tag = document.getElementById(`${mountId}-buoyancy-tag`);
     if (tag) {
       if (sinks) {
         tag.innerText = `Status: Sinks to Bottom (ρ = ${density.toFixed(2)} > 1.00 g/cm³)`;
         tag.style.background = "rgba(239, 68, 68, 0.15)";
         tag.style.color = "#f87171";
       } else {
-        const pctSub = (submergeRatio * 100).toFixed(0);
+        const pctSub = (Math.min(1.0, density) * 100).toFixed(0);
         tag.innerText = `Status: Floats Equilibrium (${pctSub}% submerged, ρ < 1.00)`;
         tag.style.background = "rgba(16, 185, 129, 0.15)";
         tag.style.color = "#34d399";
       }
     }
 
+    // Clear Canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Beaker Geometry (Borosilicate Griffin Beaker 250 mL)
-    const bx = 110, by = 45, bw = 160, bh = 185;
-    const baseWaterMl = 130;
-    const totalWaterMl = baseWaterMl + vSubmerged;
+    // Lab bench surface
+    ctx.fillStyle = "#070b14";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Beaker height represents ~250 mL (from by+bh down to by)
-    // 0 mL is at by+bh, 250 mL is at by+15
-    const pxPerMl = (bh - 25) / 250;
-    const waterSurfaceY = (by + bh) - (totalWaterMl * pxPerMl);
+    // Beaker support stand table
+    ctx.fillStyle = "rgba(30, 41, 59, 0.7)";
+    ctx.fillRect(bx - 30, by + bh + 1, bw + 60, 8);
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.3)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx - 30, by + bh + 1, bw + 60, 8);
 
-    // 1. Draw Liquid in Beaker with subtle depth gradient
+    // 1. Draw Liquid in Beaker with depth gradient
     const waterGrad = ctx.createLinearGradient(bx, waterSurfaceY, bx + bw, by + bh);
     waterGrad.addColorStop(0, "rgba(56, 189, 248, 0.40)");
     waterGrad.addColorStop(0.5, "rgba(14, 165, 233, 0.48)");
@@ -2998,19 +3164,115 @@ function buildDensityInteractive(mountId, params) {
     ctx.fillStyle = waterGrad;
     ctx.fillRect(bx + 4, waterSurfaceY, bw - 8, (by + bh) - waterSurfaceY - 4);
 
-    // 2. Liquid Meniscus curvature at walls
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.9)";
+    // Liquid surface wave & ripples
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.95)";
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(bx + 4, waterSurfaceY - 2);
-    ctx.quadraticCurveTo(bx + bw / 2, waterSurfaceY + 2, bx + bw - 4, waterSurfaceY - 2);
+    ctx.moveTo(bx + 4, waterSurfaceY);
+    for (let rx = bx + 4; rx <= bx + bw - 4; rx += 4) {
+      const waveOffset = Math.sin((rx - bx) * 0.15 + rippleTime * 4) * (submergedDepth > 0 && Math.abs(blockVy) > 5 ? 1.8 : 0.6);
+      ctx.lineTo(rx, waterSurfaceY + waveOffset);
+    }
     ctx.stroke();
 
-    // 3. Draw Borosilicate Beaker Walls & Pour Spout
+    // Draw active expanding ripples
+    for (let r = ripples.length - 1; r >= 0; r--) {
+      const rip = ripples[r];
+      rip.r += 35 * dt;
+      rip.alpha -= 0.9 * dt;
+      if (rip.alpha <= 0) {
+        ripples.splice(r, 1);
+        continue;
+      }
+      ctx.strokeStyle = `rgba(56, 189, 248, ${Math.max(0, rip.alpha)})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.ellipse(bx + bw / 2, waterSurfaceY, rip.r, rip.r * 0.25, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Draw rising micro bubbles
+    for (let b = bubbles.length - 1; b >= 0; b--) {
+      const bub = bubbles[b];
+      bub.y += bub.vy * dt;
+      bub.x += Math.sin(bub.y * 0.2) * 0.5;
+      if (bub.y <= waterSurfaceY) {
+        bubbles.splice(b, 1);
+        continue;
+      }
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.beginPath();
+      ctx.arc(bub.x, bub.y, bub.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Draw Splash Particles
+    for (let s = splashes.length - 1; s >= 0; s--) {
+      const sp = splashes[s];
+      sp.x += sp.vx * dt;
+      sp.y += sp.vy * dt;
+      sp.vy += 320 * dt; // gravity on droplets
+      sp.life -= dt;
+      if (sp.life <= 0) {
+        splashes.splice(s, 1);
+        continue;
+      }
+      ctx.fillStyle = `rgba(56, 189, 248, ${sp.life * 2})`;
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 2. Draw Block Specimen
+    const mat = materials[chosenMatKey] || materials.custom;
+    ctx.save();
+    ctx.fillStyle = mat.color;
+    ctx.fillRect(objX, blockY, blockSize, blockSize);
+
+    // Realistic Specimen Gradients & Surface highlights
+    if (chosenMatKey === "wood") {
+      ctx.strokeStyle = "rgba(0,0,0,0.22)";
+      ctx.lineWidth = 1.5;
+      for (let wy = blockY + 6; wy < blockY + blockSize; wy += 8) {
+        ctx.beginPath();
+        ctx.moveTo(objX, wy);
+        ctx.lineTo(objX + blockSize, wy);
+        ctx.stroke();
+      }
+    } else if (chosenMatKey === "ice") {
+      ctx.strokeStyle = "rgba(255,255,255,0.7)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(objX + 4, blockY + 4);
+      ctx.lineTo(objX + blockSize - 8, blockY + blockSize - 6);
+      ctx.stroke();
+    } else if (chosenMatKey === "au" || chosenMatKey === "al" || chosenMatKey === "fe") {
+      const sheenGrad = ctx.createLinearGradient(objX, blockY, objX + blockSize, blockY + blockSize);
+      sheenGrad.addColorStop(0, "rgba(255,255,255,0.4)");
+      sheenGrad.addColorStop(0.3, "rgba(255,255,255,0.0)");
+      sheenGrad.addColorStop(0.7, "rgba(0,0,0,0.2)");
+      sheenGrad.addColorStop(1, "rgba(255,255,255,0.2)");
+      ctx.fillStyle = sheenGrad;
+      ctx.fillRect(objX, blockY, blockSize, blockSize);
+    }
+
+    ctx.strokeStyle = mat.stroke;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(objX, blockY, blockSize, blockSize);
+
+    // Label inside block
+    ctx.fillStyle = chosenMatKey === "ice" ? "#0f172a" : "#ffffff";
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${mass}g`, objX + blockSize / 2, blockY + blockSize / 2 - 2);
+    ctx.font = "9px Inter, sans-serif";
+    ctx.fillText(`${vol}cm³`, objX + blockSize / 2, blockY + blockSize / 2 + 10);
+    ctx.restore();
+
+    // 3. Draw Borosilicate Beaker Walls (over liquid and block)
     ctx.strokeStyle = "rgba(226, 232, 240, 0.75)";
     ctx.lineWidth = 3.5;
     ctx.beginPath();
-    // Spout lip on left
     ctx.moveTo(bx - 12, by);
     ctx.lineTo(bx, by + 12);
     ctx.lineTo(bx, by + bh - 6);
@@ -3020,7 +3282,7 @@ function buildDensityInteractive(mountId, params) {
     ctx.lineTo(bx + bw, by);
     ctx.stroke();
 
-    // Glass wall specular highlights (refraction streaks)
+    // Glass wall specular highlights
     ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
@@ -3030,7 +3292,7 @@ function buildDensityInteractive(mountId, params) {
     ctx.lineTo(bx + bw - 8, by + bh - 15);
     ctx.stroke();
 
-    // 4. Calibrated Graduation Tick Marks & Enamel Text (50, 100, 150, 200, 250 mL)
+    // Graduation Tick Marks & Enamel Text (50, 100, 150, 200, 250 mL)
     ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
     ctx.font = "bold 9px 'JetBrains Mono', monospace";
     ctx.textAlign = "left";
@@ -3045,76 +3307,17 @@ function buildDensityInteractive(mountId, params) {
       ctx.fillText(`${ml}`, bx + 23, ty + 3);
     });
 
-    // Brand enamel logo
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.font = "8px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("BOROSILICATE 3.3 • 250 mL", bx + bw / 2, by + bh - 12);
+    // Meniscus liquid level line label
+    const totalMl = baseWaterMl + vSubmerged;
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 9px 'JetBrains Mono', monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(`V: ${totalMl.toFixed(0)} mL (ΔV = +${vSubmerged.toFixed(1)})`, bx + bw - 12, waterSurfaceY - 6);
 
-    // 5. Draw Block Specimen
-    const blockSize = Math.max(28, Math.min(65, Math.cbrt(vol) * 16));
-    const objX = bx + bw / 2 - blockSize / 2;
-    let objY;
-
-    if (sinks) {
-      objY = by + bh - blockSize - 6; // sitting on bottom
-    } else {
-      // Floating with exact proportion submerged
-      const submergeDepth = blockSize * submergeRatio;
-      objY = waterSurfaceY - (blockSize - submergeDepth);
-    }
-
-    // Material Styling & Textures
-    const mat = materials[chosenMatKey] || materials.custom;
-    ctx.save();
-    ctx.fillStyle = mat.color;
-    ctx.fillRect(objX, objY, blockSize, blockSize);
-
-    // Realistic Specimen Gradients & Surface highlights
-    if (chosenMatKey === "wood") {
-      ctx.strokeStyle = "rgba(0,0,0,0.2)";
-      ctx.lineWidth = 1.5;
-      for (let wy = objY + 6; wy < objY + blockSize; wy += 8) {
-        ctx.beginPath();
-        ctx.moveTo(objX, wy);
-        ctx.lineTo(objX + blockSize, wy);
-        ctx.stroke();
-      }
-    } else if (chosenMatKey === "ice") {
-      ctx.strokeStyle = "rgba(255,255,255,0.6)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(objX + 4, objY + 4);
-      ctx.lineTo(objX + blockSize - 8, objY + blockSize - 6);
-      ctx.stroke();
-    } else if (chosenMatKey === "au" || chosenMatKey === "al" || chosenMatKey === "fe") {
-      // Specular sheen
-      const sheenGrad = ctx.createLinearGradient(objX, objY, objX + blockSize, objY + blockSize);
-      sheenGrad.addColorStop(0, "rgba(255,255,255,0.4)");
-      sheenGrad.addColorStop(0.3, "rgba(255,255,255,0.0)");
-      sheenGrad.addColorStop(0.7, "rgba(0,0,0,0.2)");
-      sheenGrad.addColorStop(1, "rgba(255,255,255,0.2)");
-      ctx.fillStyle = sheenGrad;
-      ctx.fillRect(objX, objY, blockSize, blockSize);
-    }
-
-    ctx.strokeStyle = mat.stroke;
-    ctx.lineWidth = 2;
-    ctx.strokeRect(objX, objY, blockSize, blockSize);
-
-    // Label inside block
-    ctx.fillStyle = chosenMatKey === "ice" ? "#0f172a" : "#ffffff";
-    ctx.font = "bold 11px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`${mass}g`, objX + blockSize / 2, objY + blockSize / 2 - 2);
-    ctx.font = "9px sans-serif";
-    ctx.fillText(`${vol}cm³`, objX + blockSize / 2, objY + blockSize / 2 + 10);
-    ctx.restore();
-
-    // 6. Draw Free-Body Force Diagram (FBD) Vectors
+    // 4. Draw Free-Body Force Diagram (FBD) Vectors
     if (showForces) {
       const cxBlock = objX + blockSize / 2;
-      const cyBlock = objY + blockSize / 2;
+      const cyBlock = blockY + blockSize / 2;
       const scaleN = 45; // px per Newton
 
       // Gravity Arrow (Downward Red)
@@ -3122,9 +3325,13 @@ function buildDensityInteractive(mountId, params) {
       drawVector(ctx, cxBlock, cyBlock, cxBlock, cyBlock + arrowLenG, "#ef4444", `F_g: ${fGravity.toFixed(2)}N`);
 
       // Buoyant Arrow (Upward Emerald Green)
-      const arrowLenB = Math.min(75, fBuoyant * scaleN);
-      drawVector(ctx, cxBlock, cyBlock, cxBlock, cyBlock - arrowLenB, "#10b981", `F_b: ${fBuoyant.toFixed(2)}N`);
+      if (fBuoyant > 0.01) {
+        const arrowLenB = Math.min(75, fBuoyant * scaleN);
+        drawVector(ctx, cxBlock, cyBlock, cxBlock, cyBlock - arrowLenB, "#10b981", `F_b: ${fBuoyant.toFixed(2)}N`);
+      }
     }
+
+    animId = requestAnimationFrame(loop);
   }
 
   function drawVector(c, x1, y1, x2, y2, color, label) {
@@ -3153,9 +3360,25 @@ function buildDensityInteractive(mountId, params) {
     c.fillText(label, x2 + 6, y2 + (y2 > y1 ? 4 : -2));
   }
 
-  render();
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isDropped = false;
+  });
 
-  // Listeners
+  // Controls Event Listeners
+  btnDrop.addEventListener("click", () => {
+    if (!isDropped) {
+      triggerDrop();
+    } else {
+      resetToAir();
+    }
+  });
+
+  btnLift.addEventListener("click", () => {
+    resetToAir();
+  });
+
   const massSlider = document.getElementById(`${mountId}-mass`);
   const volSlider = document.getElementById(`${mountId}-vol`);
 
@@ -3164,7 +3387,6 @@ function buildDensityInteractive(mountId, params) {
     document.getElementById(`${mountId}-m-lbl`).innerText = `${mass} g`;
     chosenMatKey = "custom";
     updateMatButtons("custom");
-    render();
   });
 
   volSlider.addEventListener("input", (e) => {
@@ -3172,14 +3394,12 @@ function buildDensityInteractive(mountId, params) {
     document.getElementById(`${mountId}-v-lbl`).innerText = `${vol} cm³`;
     chosenMatKey = "custom";
     updateMatButtons("custom");
-    render();
   });
 
   const chkFbd = document.getElementById(`${mountId}-chk-fbd`);
   if (chkFbd) {
     chkFbd.addEventListener("change", (e) => {
       showForces = e.target.checked;
-      render();
     });
   }
 
@@ -3206,7 +3426,8 @@ function buildDensityInteractive(mountId, params) {
           document.getElementById(`${mountId}-m-lbl`).innerText = `${mass} g`;
           document.getElementById(`${mountId}-v-lbl`).innerText = `${vol} cm³`;
         }
-        render();
+        // Auto-drop when choosing material so student sees the physical reaction
+        triggerDrop();
       });
     }
   });
