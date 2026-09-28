@@ -18,7 +18,20 @@ export function initSmartboardToolbar() {
   bar.id = "smartboard-pen-bar";
   bar.className = "smartboard-pen-bar";
   bar.innerHTML = `
-    <div style="display: flex; align-items: center; gap: 8px; position: relative;">
+    <!-- Expanded Toolbar Content -->
+    <div class="sb-full-content" id="sb-full-content" style="display: flex; align-items: center; gap: 8px; position: relative;">
+      <!-- Drag Grip Handle -->
+      <div class="sb-drag-handle" id="sb-drag-handle" title="Drag to Reposition Toolbar" style="cursor: grab; display: flex; align-items: center; justify-content: center; padding: 4px 6px 4px 2px; color: var(--text-muted); touch-action: none;">
+        <svg width="12" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <circle cx="8" cy="6" r="1.5" fill="currentColor"/>
+          <circle cx="16" cy="6" r="1.5" fill="currentColor"/>
+          <circle cx="8" cy="12" r="1.5" fill="currentColor"/>
+          <circle cx="16" cy="12" r="1.5" fill="currentColor"/>
+          <circle cx="8" cy="18" r="1.5" fill="currentColor"/>
+          <circle cx="16" cy="18" r="1.5" fill="currentColor"/>
+        </svg>
+      </div>
+
       <!-- Mouse Pointer -->
       <button class="icon-action-btn" id="sb-tool-pointer" title="Mouse Pointer Mode" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 8-3L3 3Z"/></svg>
@@ -95,6 +108,33 @@ export function initSmartboardToolbar() {
       <button class="icon-action-btn" id="sb-tool-fullscreen" title="Full Screen Presentation" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
       </button>
+
+      <!-- Minimize Button -->
+      <button class="icon-action-btn sb-btn-minimize" id="sb-tool-minimize" title="Minimize / Float Compact Bubble" style="border-radius: 9999px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+
+    <!-- Minimized Compact Floating Bubble -->
+    <div class="sb-mini-content" id="sb-mini-content" style="display: none;" title="Smartboard Annotation Toolbar (Click to Expand, Drag to Reposition)">
+      <div class="sb-mini-drag-grip" id="sb-mini-drag-grip" style="cursor: grab; display: flex; align-items: center; touch-action: none;">
+        <svg width="10" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="8" cy="6" r="1.5" fill="currentColor"/>
+          <circle cx="16" cy="6" r="1.5" fill="currentColor"/>
+          <circle cx="8" cy="12" r="1.5" fill="currentColor"/>
+          <circle cx="16" cy="12" r="1.5" fill="currentColor"/>
+          <circle cx="8" cy="18" r="1.5" fill="currentColor"/>
+          <circle cx="16" cy="18" r="1.5" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="sb-mini-icon-wrapper" id="sb-mini-icon-wrapper">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+        <span class="sb-mini-color-dot" id="sb-mini-color-dot" style="background: #facc15;"></span>
+      </div>
+      <span class="sb-mini-label">Draw</span>
+      <button class="sb-mini-expand-btn" id="sb-mini-expand-btn" title="Expand Toolbar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
     </div>
   `;
   document.body.appendChild(bar);
@@ -139,6 +179,25 @@ export function initSmartboardToolbar() {
   const sizeBtnDot = document.getElementById("sb-size-btn-dot");
   const presetBtns = document.querySelectorAll(".sb-preset-btn");
 
+  const fullContent = document.getElementById("sb-full-content");
+  const miniContent = document.getElementById("sb-mini-content");
+  const toolMinimize = document.getElementById("sb-tool-minimize");
+  const miniExpandBtn = document.getElementById("sb-mini-expand-btn");
+  const miniIconWrapper = document.getElementById("sb-mini-icon-wrapper");
+  const miniColorDot = document.getElementById("sb-mini-color-dot");
+  const miniLabel = bar.querySelector(".sb-mini-label");
+
+  // Floating Position & Minimize State
+  let isMinimized = false;
+  let isDragging = false;
+  let hasMovedFar = false;
+  let wasRecentlyDragged = false;
+  let activePointerId = null;
+  let startPointerX = 0;
+  let startPointerY = 0;
+  let startBarLeft = 0;
+  let startBarTop = 0;
+
   function getActiveStrokeWidth() {
     return currentTool === "highlighter" ? highlighterStrokeWidth : penStrokeWidth;
   }
@@ -174,6 +233,37 @@ export function initSmartboardToolbar() {
         btn.classList.remove("active");
       }
     });
+  }
+
+  function updateMiniBadge() {
+    if (!miniIconWrapper) return;
+    let iconSvg = "";
+    let label = "Pen";
+    let showDot = true;
+
+    if (currentTool === "pointer") {
+      iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 8-3L3 3Z"/></svg>';
+      label = "Pointer";
+      showDot = false;
+    } else if (currentTool === "highlighter") {
+      iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/><path d="m18 8-4-4"/></svg>';
+      label = "Highlight";
+      showDot = true;
+    } else if (currentTool === "eraser") {
+      iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>';
+      label = "Eraser";
+      showDot = false;
+    } else {
+      iconSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
+      label = "Draw";
+      showDot = true;
+    }
+
+    miniIconWrapper.innerHTML = `
+      ${iconSvg}
+      <span class="sb-mini-color-dot" id="sb-mini-color-dot" style="background: ${strokeColor}; display: ${showDot ? "block" : "none"};"></span>
+    `;
+    if (miniLabel) miniLabel.textContent = label;
   }
 
   function setStrokeWidth(newWidth) {
@@ -223,6 +313,183 @@ export function initSmartboardToolbar() {
       canvas.classList.add("drawing-active");
     }
     syncSizeUI();
+    updateMiniBadge();
+  }
+
+  // Clamping and Coordinate Application
+  function clampAndApply(targetX, targetY) {
+    const barWidth = bar.offsetWidth || 300;
+    const barHeight = bar.offsetHeight || 50;
+    const padding = 8;
+
+    const minX = padding;
+    const maxX = Math.max(padding, window.innerWidth - barWidth - padding);
+    const minY = padding;
+    const maxY = Math.max(padding, window.innerHeight - barHeight - padding);
+
+    const clampedX = Math.min(Math.max(minX, targetX), maxX);
+    const clampedY = Math.min(Math.max(minY, targetY), maxY);
+
+    bar.style.left = `${clampedX}px`;
+    bar.style.top = `${clampedY}px`;
+    bar.style.right = "auto";
+    bar.style.bottom = "auto";
+
+    if (sizePopover) {
+      if (clampedY < 230) {
+        sizePopover.classList.add("popover-below");
+      } else {
+        sizePopover.classList.remove("popover-below");
+      }
+    }
+
+    return { x: clampedX, y: clampedY };
+  }
+
+  function saveToolbarState() {
+    try {
+      const rect = bar.getBoundingClientRect();
+      const state = {
+        x: Math.round(rect.left),
+        y: Math.round(rect.top),
+        minimized: isMinimized
+      };
+      localStorage.setItem("sb_toolbar_pos", JSON.stringify(state));
+    } catch (e) {}
+  }
+
+  function setMinimizedState(minimized, save = true) {
+    isMinimized = !!minimized;
+    closeSizePopover();
+    if (isMinimized) {
+      if (fullContent) fullContent.style.display = "none";
+      if (miniContent) miniContent.style.display = "flex";
+      bar.classList.add("sb-minimized");
+      updateMiniBadge();
+    } else {
+      if (fullContent) fullContent.style.display = "flex";
+      if (miniContent) miniContent.style.display = "none";
+      bar.classList.remove("sb-minimized");
+    }
+
+    requestAnimationFrame(() => {
+      const rect = bar.getBoundingClientRect();
+      clampAndApply(rect.left, rect.top);
+      if (save) saveToolbarState();
+    });
+  }
+
+  function loadToolbarState() {
+    try {
+      const saved = localStorage.getItem("sb_toolbar_pos");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+          clampAndApply(parsed.x, parsed.y);
+        }
+        if (parsed.minimized) {
+          setMinimizedState(true, false);
+          return;
+        }
+      }
+    } catch (e) {}
+
+    // Default positioning when no state saved
+    requestAnimationFrame(() => {
+      const rect = bar.getBoundingClientRect();
+      clampAndApply(rect.left, rect.top);
+    });
+  }
+
+  // Pointer drag handling for floating movement
+  bar.addEventListener("pointerdown", (e) => {
+    // Prevent dragging if interacting inside popover
+    if (e.target.closest("#sb-size-popover")) return;
+
+    // Check if clicking regular control buttons
+    const isControl = e.target.closest("button:not(#sb-mini-content), input, .sb-color-btn, .sb-preset-btn");
+    const isHandle = e.target.closest("#sb-drag-handle, #sb-mini-drag-grip");
+
+    if (isControl && !isHandle) {
+      return;
+    }
+
+    activePointerId = e.pointerId;
+    try {
+      bar.setPointerCapture(e.pointerId);
+    } catch (err) {}
+
+    const rect = bar.getBoundingClientRect();
+    startBarLeft = rect.left;
+    startBarTop = rect.top;
+    startPointerX = e.clientX;
+    startPointerY = e.clientY;
+    hasMovedFar = false;
+    isDragging = true;
+  });
+
+  bar.addEventListener("pointermove", (e) => {
+    if (!isDragging || e.pointerId !== activePointerId) return;
+
+    const dx = e.clientX - startPointerX;
+    const dy = e.clientY - startPointerY;
+
+    if (!hasMovedFar && Math.hypot(dx, dy) > 4) {
+      hasMovedFar = true;
+      bar.classList.add("is-dragging");
+      closeSizePopover();
+    }
+
+    if (hasMovedFar) {
+      clampAndApply(startBarLeft + dx, startBarTop + dy);
+    }
+  });
+
+  function endPointerDrag(e) {
+    if (!isDragging || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+
+    if (activePointerId !== null) {
+      try {
+        bar.releasePointerCapture(activePointerId);
+      } catch (err) {}
+      activePointerId = null;
+    }
+
+    const dragged = hasMovedFar;
+    isDragging = false;
+    hasMovedFar = false;
+    bar.classList.remove("is-dragging");
+
+    if (dragged) {
+      wasRecentlyDragged = true;
+      setTimeout(() => { wasRecentlyDragged = false; }, 100);
+      saveToolbarState();
+    }
+  }
+
+  bar.addEventListener("pointerup", endPointerDrag);
+  bar.addEventListener("pointercancel", endPointerDrag);
+
+  // Minimize / Expand button interactions
+  if (toolMinimize) {
+    toolMinimize.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setMinimizedState(true);
+    });
+  }
+
+  if (miniExpandBtn) {
+    miniExpandBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setMinimizedState(false);
+    });
+  }
+
+  if (miniContent) {
+    miniContent.addEventListener("click", () => {
+      if (wasRecentlyDragged) return;
+      setMinimizedState(false);
+    });
   }
 
   // Tool Selectors
@@ -275,6 +542,7 @@ export function initSmartboardToolbar() {
         updateMode("pen");
       } else {
         syncSizeUI();
+        updateMiniBadge();
       }
     });
   });
@@ -419,4 +687,6 @@ export function initSmartboardToolbar() {
   // Initialize
   updateMode("pointer");
   syncSizeUI();
+  updateMiniBadge();
+  loadToolbarState();
 }
