@@ -7569,20 +7569,39 @@ function buildSnellOpticsInteractive(mountId, params) {
   let theta1Deg = params.incidentAngle || 35;
   let laserWl = "red"; // 'red' (633nm) or 'green' (532nm)
 
+  let isContinuous = true;
+  let isAutoSweeping = false;
+  let sweepDirection = 1;
+  let pulses = []; // Discrete photon wave packets
+  let wavePhase = 0;
+  let animId = null;
+  let lastTimestamp = null;
+
   mount.innerHTML = `
     <div class="interactive-split-grid">
       <div class="sim-canvas-box" style="position: relative;">
         <canvas id="${mountId}-canvas" width="380" height="260" style="width: 100%; height: 260px;"></canvas>
+        <div id="${mountId}-tir-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; pointer-events: none; backdrop-filter: blur(4px);">
+          Refraction into Air (θ₁ < θ_c)
+        </div>
       </div>
 
       <div class="sim-controls-panel">
         <div class="sim-readout-pill">
           <span class="readout-label">Refracted Angle (θ₂):</span>
-          <span class="readout-val" id="${mountId}-t2-val">49.7°</span>
+          <span class="readout-val" id="${mountId}-t2-val" style="color: #10b981; font-weight: 800;">49.7°</span>
         </div>
 
         <div class="sim-readout-pill" id="${mountId}-tir-pill" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
           Critical Angle: θ_c = 48.6°
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+          <button class="btn btn-primary" id="${mountId}-btn-continuous" style="flex: 1.1; padding: 6px 4px; font-weight: 700; font-size: 0.74rem; display: flex; align-items: center; justify-content: center; gap: 5px;">
+            <span id="${mountId}-beam-icon">⏸</span> <span id="${mountId}-beam-lbl">Pause Laser</span>
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-pulse" style="flex: 1; padding: 6px 4px; font-size: 0.74rem;">⚡ Fire Pulse</button>
+          <button class="btn-sim-action" id="${mountId}-btn-sweep" style="flex: 1; padding: 6px 4px; font-size: 0.74rem;">🔄 Auto-Sweep</button>
         </div>
 
         <div class="control-slider-group">
@@ -7603,45 +7622,95 @@ function buildSnellOpticsInteractive(mountId, params) {
           </div>
         </div>
 
-        <div class="sim-telemetry-box" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 6px 12px; font-size: 0.78rem;">
-          <span style="color: var(--text-main); font-weight: 700;">Laser Source:</span>
-          <div style="display: flex; gap: 6px;">
-            <button class="btn-sim-action active" id="${mountId}-btn-lred" style="padding: 2px 8px; font-size: 0.72rem; color: #f87171;">633nm He-Ne Red</button>
-            <button class="btn-sim-action" id="${mountId}-btn-lgrn" style="padding: 2px 8px; font-size: 0.72rem; color: #34d399;">532nm Diode Green</button>
+        <div class="sim-telemetry-box" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 6px 10px; font-size: 0.76rem;">
+          <span style="color: var(--text-main); font-weight: 700;">Source:</span>
+          <div style="display: flex; gap: 4px;">
+            <button class="btn-sim-action active" id="${mountId}-btn-lred" style="padding: 2px 7px; font-size: 0.70rem; color: #f87171;">633nm He-Ne</button>
+            <button class="btn-sim-action" id="${mountId}-btn-lgrn" style="padding: 2px 7px; font-size: 0.70rem; color: #34d399;">532nm Diode</button>
           </div>
+          <span id="${mountId}-vphase-lbl" style="font-family: monospace; font-size: 0.72rem; color: #38bdf8;">v = 2.25×10⁸ m/s</span>
         </div>
       </div>
     </div>
   `;
 
   const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
 
-  function render() {
+  const t1Slider = document.getElementById(`${mountId}-t1-slider`);
+  const t1Lbl = document.getElementById(`${mountId}-t1-lbl`);
+  const t2Val = document.getElementById(`${mountId}-t2-val`);
+  const tirPill = document.getElementById(`${mountId}-tir-pill`);
+  const tirBadge = document.getElementById(`${mountId}-tir-badge`);
+  const btnContinuous = document.getElementById(`${mountId}-btn-continuous`);
+  const beamIcon = document.getElementById(`${mountId}-beam-icon`);
+  const beamLbl = document.getElementById(`${mountId}-beam-lbl`);
+  const btnPulse = document.getElementById(`${mountId}-btn-pulse`);
+  const btnSweep = document.getElementById(`${mountId}-btn-sweep`);
+  const vPhaseLbl = document.getElementById(`${mountId}-vphase-lbl`);
+
+  function spawnPulse() {
+    pulses.push({
+      progress: 0, // 0 = at nozzle, 1 = at interface, >1 = refracted/reflected
+      speed: 1.2
+    });
+  }
+
+  function loop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.04);
+    lastTimestamp = timestamp;
+
+    if (isAutoSweeping) {
+      theta1Deg += sweepDirection * 15 * dt;
+      if (theta1Deg >= 78) {
+        theta1Deg = 78;
+        sweepDirection = -1;
+      } else if (theta1Deg <= 12) {
+        theta1Deg = 12;
+        sweepDirection = 1;
+      }
+      t1Slider.value = Math.round(theta1Deg);
+      t1Lbl.innerText = `${Math.round(theta1Deg)}°`;
+    }
+
+    if (isContinuous) {
+      wavePhase += 12 * dt;
+    }
+
     n1 = mediaList[chosenMediaKey].n;
     const rad1 = (theta1Deg * Math.PI) / 180;
     const sin2 = (n1 * Math.sin(rad1)) / n2;
     const tir = sin2 > 1.0;
-    let rad2 = tir ? 0 : Math.asin(sin2);
-
+    const rad2 = tir ? 0 : Math.asin(sin2);
     const deg2 = tir ? 0 : (rad2 * 180) / Math.PI;
     const critDeg = (Math.asin(n2 / n1) * 180) / Math.PI;
 
-    const t2Val = document.getElementById(`${mountId}-t2-val`);
-    const tirPill = document.getElementById(`${mountId}-tir-pill`);
+    // Phase velocity v = c / n1
+    const vPhase = (2.998 / n1).toFixed(2);
+    if (vPhaseLbl) vPhaseLbl.innerText = `v = ${vPhase}×10⁸ m/s`;
 
     if (tir) {
       t2Val.innerText = "TOTAL INTERNAL REFLECTION!";
       t2Val.style.color = "#ef4444";
-      tirPill.innerText = `TIR Engaged: θ₁ (${theta1Deg}°) > θ_c (${critDeg.toFixed(1)}°)`;
+      tirPill.innerText = `TIR Engaged: θ₁ (${theta1Deg.toFixed(1)}°) > θ_c (${critDeg.toFixed(1)}°)`;
       tirPill.style.background = "rgba(239, 68, 68, 0.15)";
       tirPill.style.color = "#f87171";
+
+      tirBadge.innerText = "⚡ Total Internal Reflection (TIR)";
+      tirBadge.style.color = "#ef4444";
+      tirBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
     } else {
       t2Val.innerText = `${deg2.toFixed(1)}° (Refracted into Air)`;
       t2Val.style.color = "#10b981";
       tirPill.innerText = `Critical Angle: θ_c = ${critDeg.toFixed(1)}°`;
       tirPill.style.background = "rgba(56, 189, 248, 0.15)";
       tirPill.style.color = "#38bdf8";
+
+      tirBadge.innerText = `Refraction into Air (θ₂ = ${deg2.toFixed(1)}°)`;
+      tirBadge.style.color = "#34d399";
+      tirBadge.style.borderColor = "rgba(16, 185, 129, 0.4)";
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -7744,39 +7813,161 @@ function buildSnellOpticsInteractive(mountId, params) {
     ctx.fillRect(16, -3, 5, 6);
     ctx.restore();
 
-    // 4. Incident Collimated Laser Beam (Entering curved surface normally without deviation)
-    drawLaserBeam(ctx, lX, lY, cx, cy, beamColor, coreColor, glowColor);
+    // Target coordinates
+    const refDist = laserDist;
+    const refX = cx + refDist * Math.sin(rad1);
+    const refY = cy - refDist * Math.cos(rad1);
+
+    const outDist = optR + 22;
+    const outX = cx + outDist * Math.sin(rad2);
+    const outY = cy + outDist * Math.cos(rad2);
+
+    // 4. Incident Collimated Laser Beam
+    if (isContinuous) {
+      drawLaserBeam(ctx, lX, lY, cx, cy, beamColor, coreColor, glowColor);
+
+      // Traveling wave crests along incident beam in medium 1
+      const totalLen1 = Math.hypot(cx - lX, cy - lY);
+      const lambda1 = 18; // px wavelength in medium
+      ctx.fillStyle = "#ffffff";
+      for (let d = (wavePhase * 5) % lambda1; d < totalLen1; d += lambda1) {
+        const frac = d / totalLen1;
+        const px = lX + (cx - lX) * frac;
+        const py = lY + (cy - lY) * frac;
+        ctx.beginPath();
+        ctx.arc(px, py, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
 
     // 5. Interface Point Interaction (Refraction & Fresnel Reflection)
     if (tir) {
       // 100% Total Internal Reflection back into medium
-      const refX = cx + laserDist * Math.sin(rad1);
-      const refY = cy - laserDist * Math.cos(rad1);
-      drawLaserBeam(ctx, cx, cy, refX, refY, beamColor, coreColor, glowColor);
+      if (isContinuous) {
+        drawLaserBeam(ctx, cx, cy, refX, refY, beamColor, coreColor, glowColor);
 
-      // Evanescent wave flash along interface
-      ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+        // Traveling wave crests along reflected beam in medium
+        const totalLenR = Math.hypot(refX - cx, refY - cy);
+        const lambda1 = 18;
+        ctx.fillStyle = "#ffffff";
+        for (let d = (wavePhase * 5) % lambda1; d < totalLenR; d += lambda1) {
+          const frac = d / totalLenR;
+          const px = cx + (refX - cx) * frac;
+          const py = cy + (refY - cy) * frac;
+          ctx.beginPath();
+          ctx.arc(px, py, 1.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Evanescent wave flash along interface decaying exponentially
+      const pulseGlow = 0.5 + 0.5 * Math.sin(wavePhase * 3);
+      ctx.fillStyle = laserWl === "red" ? `rgba(239, 68, 68, ${0.4 + pulseGlow * 0.4})` : `rgba(16, 185, 129, ${0.4 + pulseGlow * 0.4})`;
       ctx.beginPath();
-      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.arc(cx, cy, 7 + pulseGlow * 3, 0, Math.PI * 2);
       ctx.fill();
 
-    } else {
-      // Refracted Beam in Air (Medium 2)
-      const outDist = optR + 20;
-      const outX = cx + outDist * Math.sin(rad2);
-      const outY = cy + outDist * Math.cos(rad2);
-      drawLaserBeam(ctx, cx, cy, outX, outY, beamColor, coreColor, glowColor);
-
-      // Faint Partial Fresnel Reflection inside medium
-      const refX = cx + optR * Math.sin(rad1);
-      const refY = cy - optR * Math.cos(rad1);
-      ctx.strokeStyle = glowColor;
+      // Evanescent penetration wave in air
+      ctx.strokeStyle = laserWl === "red" ? `rgba(252, 165, 165, ${0.5 * pulseGlow})` : `rgba(110, 231, 183, ${0.5 * pulseGlow})`;
       ctx.lineWidth = 1.5;
+      ctx.setLineDash([2, 3]);
       ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.lineTo(refX, refY);
+      ctx.moveTo(cx - 20, cy + 4);
+      ctx.lineTo(cx + 20, cy + 4);
       ctx.stroke();
+      ctx.setLineDash([]);
+    } else {
+      if (isContinuous) {
+        // Refracted Beam in Air (Medium 2: speed c is faster, wavelength longer = lambda1 * n1)
+        drawLaserBeam(ctx, cx, cy, outX, outY, beamColor, coreColor, glowColor);
+
+        // Traveling wave crests along refracted beam in air (faster speed, expanded wavelength)
+        const totalLen2 = Math.hypot(outX - cx, outY - cy);
+        const lambda2 = 18 * n1; // expanded wavelength in air!
+        ctx.fillStyle = "#ffffff";
+        for (let d = (wavePhase * 5 * n1) % lambda2; d < totalLen2; d += lambda2) {
+          const frac = d / totalLen2;
+          const px = cx + (outX - cx) * frac;
+          const py = cy + (outY - cy) * frac;
+          ctx.beginPath();
+          ctx.arc(px, py, 2.0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Faint Partial Fresnel Reflection inside medium
+        const rCoeff = Math.pow((n1 * Math.cos(rad1) - n2 * Math.cos(rad2)) / (n1 * Math.cos(rad1) + n2 * Math.cos(rad2)), 2);
+        ctx.strokeStyle = laserWl === "red" ? `rgba(239, 68, 68, ${Math.max(0.15, rCoeff * 0.8)})` : `rgba(16, 185, 129, ${Math.max(0.15, rCoeff * 0.8)})`;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(refX, refY);
+        ctx.stroke();
+      }
     }
+
+    // 6. Discrete Photon Pulse Propagation (When "Fire Pulse" clicked)
+    for (let i = pulses.length - 1; i >= 0; i--) {
+      const p = pulses[i];
+      p.progress += p.speed * dt;
+
+      if (p.progress <= 1.0) {
+        // Traveling along incident beam (lX, lY) -> (cx, cy)
+        const px = lX + (cx - lX) * p.progress;
+        const py = lY + (cy - lY) * p.progress;
+        drawWavePacket(ctx, px, py, rad1, beamColor, coreColor);
+      } else {
+        // Exceeded interface: splits into reflected & refracted pulses
+        const outProg = (p.progress - 1.0) * n1; // travels faster in air!
+        const refProg = (p.progress - 1.0); // same speed in medium
+
+        if (tir) {
+          // Reflected only
+          if (refProg <= 1.0) {
+            const px = cx + (refX - cx) * refProg;
+            const py = cy + (refY - cy) * refProg;
+            drawWavePacket(ctx, px, py, -rad1, beamColor, coreColor);
+          }
+        } else {
+          // Both refracted and partial reflected
+          if (outProg <= 1.0) {
+            const px = cx + (outX - cx) * outProg;
+            const py = cy + (outY - cy) * outProg;
+            drawWavePacket(ctx, px, py, rad2, beamColor, coreColor);
+          }
+          if (refProg <= 1.0) {
+            const px = cx + (refX - cx) * refProg;
+            const py = cy + (refY - cy) * refProg;
+            drawWavePacket(ctx, px, py, -rad1, beamColor, coreColor, 0.45);
+          }
+        }
+
+        if (refProg > 1.2 && outProg > 1.2) {
+          pulses.splice(i, 1);
+        }
+      }
+    }
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  function drawWavePacket(c, x, y, angle, col, coreCol, alpha = 1.0) {
+    c.save();
+    c.translate(x, y);
+    c.rotate(angle);
+    c.globalAlpha = alpha;
+
+    // Glowing envelope
+    c.fillStyle = col;
+    c.beginPath();
+    c.ellipse(0, 0, 8, 4, 0, 0, Math.PI * 2);
+    c.fill();
+
+    // Core
+    c.fillStyle = coreCol;
+    c.beginPath();
+    c.ellipse(0, 0, 4, 2, 0, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
   }
 
   function drawLaserBeam(c, x1, y1, x2, y2, beamCol, coreCol, glowCol) {
@@ -7805,13 +7996,35 @@ function buildSnellOpticsInteractive(mountId, params) {
     c.stroke();
   }
 
-  render();
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isContinuous = false;
+    isAutoSweeping = false;
+  });
 
-  // Listeners
-  document.getElementById(`${mountId}-t1-slider`).addEventListener("input", (e) => {
+  // Controls Event Listeners
+  btnContinuous.addEventListener("click", () => {
+    isContinuous = !isContinuous;
+    beamIcon.innerText = isContinuous ? "⏸" : "▶";
+    beamLbl.innerText = isContinuous ? "Pause Laser" : "Continuous Laser";
+    btnContinuous.classList.toggle("active", isContinuous);
+  });
+
+  btnPulse.addEventListener("click", () => {
+    spawnPulse();
+  });
+
+  btnSweep.addEventListener("click", () => {
+    isAutoSweeping = !isAutoSweeping;
+    btnSweep.classList.toggle("active", isAutoSweeping);
+  });
+
+  t1Slider.addEventListener("input", (e) => {
+    isAutoSweeping = false;
+    btnSweep.classList.remove("active");
     theta1Deg = parseFloat(e.target.value);
-    document.getElementById(`${mountId}-t1-lbl`).innerText = `${theta1Deg}°`;
-    render();
+    t1Lbl.innerText = `${theta1Deg}°`;
   });
 
   ["water", "glass", "flint", "diamond"].forEach(mKey => {
@@ -7822,7 +8035,7 @@ function buildSnellOpticsInteractive(mountId, params) {
         document.querySelectorAll(`[data-med]`).forEach(b => {
           if (b.id.startsWith(mountId)) b.classList.toggle("active", b.getAttribute("data-med") === mKey);
         });
-        render();
+        spawnPulse();
       });
     }
   });
@@ -7834,13 +8047,11 @@ function buildSnellOpticsInteractive(mountId, params) {
       laserWl = "red";
       btnRed.classList.add("active");
       btnGrn.classList.remove("active");
-      render();
     });
     btnGrn.addEventListener("click", () => {
       laserWl = "green";
       btnGrn.classList.add("active");
       btnRed.classList.remove("active");
-      render();
     });
   }
 }
