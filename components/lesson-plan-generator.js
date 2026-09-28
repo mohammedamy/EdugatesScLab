@@ -127,7 +127,7 @@ export function buildLessonPlanData(subjectCode, moduleId, lessonId, overrides =
       gradeLevel: overrides.gradeLevel || "High School (Grades 9–12 / AP / Honors)",
       duration: overrides.duration || "50 Minutes (Standard Period) / 90 Min (Block)",
       teacherName: overrides.teacherName || "Lead Science Instructor",
-      schoolName: overrides.schoolName || "Edugates-ClipSAT STEM Academy",
+      schoolName: overrides.schoolName || "Edugates International School",
       date: overrides.date || new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       roomPeriod: overrides.roomPeriod || "Period 3 • Science Laboratory"
     },
@@ -296,7 +296,7 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
               </svg>
             </div>
             <div>
-              <div class="lp-super-title">Edugates-ClipSAT Science Labs • Master Instructional Dossier</div>
+              <div class="lp-super-title">Edugates International School • Master Instructional Dossier</div>
               <h1 class="lp-main-title">${p.meta.curriculumName}</h1>
             </div>
           </div>
@@ -423,7 +423,7 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
 
         <!-- Page 1 Footer -->
         <footer class="lp-page-footer">
-          <span>Edugates-ClipSAT Science Labs • Instructional Framework Dossier</span>
+          <span>Edugates International School • Instructional Framework Dossier</span>
           <span>Confidential Teacher Document</span>
           <span class="lp-page-num">Page 1 of 2</span>
         </footer>
@@ -523,7 +523,7 @@ export function renderLessonPlanA4Html(plan, customMeta = {}) {
 
         <!-- Page 2 Footer -->
         <footer class="lp-page-footer">
-          <span>Edugates-ClipSAT Science Labs • Comprehensive 2-Page A4 Teacher Plan</span>
+          <span>Edugates International School • Comprehensive 2-Page A4 Teacher Plan</span>
           <span>Aligned with Inspire STEM &amp; Next Generation Science Standards</span>
           <span class="lp-page-num">Page 2 of 2</span>
         </footer>
@@ -565,7 +565,7 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
           </div>
           <div class="lp-input-group">
             <label for="lp-inp-school">Institution:</label>
-            <input type="text" id="lp-inp-school" value="${planData.meta.schoolName}" class="lp-mini-input" placeholder="School/District">
+            <input type="text" id="lp-inp-school" value="${planData.meta.schoolName}" class="lp-mini-input" placeholder="Edugates International School">
           </div>
           <div class="lp-input-group">
             <label for="lp-inp-period">Period:</label>
