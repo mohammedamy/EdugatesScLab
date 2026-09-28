@@ -6313,14 +6313,26 @@ function buildInclinedPlaneInteractive(mountId, params) {
   const mount = document.getElementById(mountId);
   if (!mount) return;
 
-  let angleDeg = params.angle || 30;
-  let mu_k = params.mu_k || 0.25;
+  params = params || {};
+  let angleDeg = params.angle !== undefined ? Number(params.angle) : 30;
+  let mu_k = params.mu_k !== undefined ? Number(params.mu_k) : 0.25;
   let massKg = 2.0; // 2.0 kg dynamics cart
+
+  const rampLen = 295;
+  let curCartDist = rampLen * 0.72;
+  let cartSpeed = 0;
+  let isSliding = false;
+  let animId = null;
+  let lastTimestamp = null;
+  let wheelAngle = 0;
 
   mount.innerHTML = `
     <div class="interactive-split-grid">
       <div class="sim-canvas-box" style="position: relative;">
         <canvas id="${mountId}-canvas" width="380" height="260" style="width: 100%; height: 260px;"></canvas>
+        <div id="${mountId}-incline-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; pointer-events: none; backdrop-filter: blur(4px);">
+          Free-Body Diagram & Dynamics
+        </div>
       </div>
 
       <div class="sim-controls-panel">
@@ -6349,7 +6361,16 @@ function buildInclinedPlaneInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-mu-slider" min="0.0" max="0.8" step="0.05" value="${mu_k}">
         </div>
 
-        <div class="sim-telemetry-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.78rem; font-weight: 700;">
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <button class="btn btn-primary" id="${mountId}-btn-release" style="flex: 1; padding: 7px 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span id="${mountId}-rel-icon">▶</span> <span id="${mountId}-rel-lbl">Release Dynamics Cart</span>
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-reset" style="padding: 7px 14px; font-weight: 600;">
+            ↺ Reset to Top
+          </button>
+        </div>
+
+        <div class="sim-telemetry-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.78rem; font-weight: 700; margin-top: 6px;">
           <span id="${mountId}-fn-txt" style="color: #06b6d4;">F_N: 16.98 N</span>
           <span id="${mountId}-fpar-txt" style="color: #3b82f6;">F_∥: 9.80 N</span>
           <span id="${mountId}-fk-txt" style="color: #ef4444;">f_k: 4.25 N</span>
@@ -6360,9 +6381,25 @@ function buildInclinedPlaneInteractive(mountId, params) {
   `;
 
   const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
 
-  function render() {
+  const btnRelease = document.getElementById(`${mountId}-btn-release`);
+  const btnReset = document.getElementById(`${mountId}-btn-reset`);
+  const relIcon = document.getElementById(`${mountId}-rel-icon`);
+  const relLbl = document.getElementById(`${mountId}-rel-lbl`);
+  const accVal = document.getElementById(`${mountId}-acc-val`);
+  const tag = document.getElementById(`${mountId}-motion-tag`);
+  const fnTxt = document.getElementById(`${mountId}-fn-txt`);
+  const fparTxt = document.getElementById(`${mountId}-fpar-txt`);
+  const fkTxt = document.getElementById(`${mountId}-fk-txt`);
+  const fnetTxt = document.getElementById(`${mountId}-fnet-txt`);
+  const angSlider = document.getElementById(`${mountId}-ang-slider`);
+  const angLbl = document.getElementById(`${mountId}-ang-lbl`);
+  const muSlider = document.getElementById(`${mountId}-mu-slider`);
+  const muLbl = document.getElementById(`${mountId}-mu-lbl`);
+
+  function calcPhysics() {
     const rad = (angleDeg * Math.PI) / 180;
     const g = 9.806;
     const sinT = Math.sin(rad);
@@ -6378,22 +6415,60 @@ function buildInclinedPlaneInteractive(mountId, params) {
     if (!slides) fNet = 0;
     const acc = fNet / massKg;
 
-    document.getElementById(`${mountId}-acc-val`).innerText = `${acc.toFixed(2)} m/s²`;
-    const tag = document.getElementById(`${mountId}-motion-tag`);
+    return { rad, g, fWeight, fNormal, fParallel, fFrictionMax, fNet, slides, acc };
+  }
+
+  function drawFbdArrow(c, x1, y1, x2, y2, color, label) {
+    const headLen = 7;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    c.strokeStyle = color;
+    c.fillStyle = color;
+    c.lineWidth = 2.2;
+
+    c.beginPath();
+    c.moveTo(x1, y1);
+    c.lineTo(x2, y2);
+    c.stroke();
+
+    c.beginPath();
+    c.moveTo(x2, y2);
+    c.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+    c.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+    c.closePath();
+    c.fill();
+
+    c.font = "bold 8px 'JetBrains Mono', monospace";
+    c.fillText(label, x2 + (Math.cos(angle) >= 0 ? 6 : -6 - c.measureText(label).width), y2 + 3);
+  }
+
+  function render(phys) {
+    const { rad, fWeight, fNormal, fParallel, fFrictionMax, fNet, slides, acc } = phys;
+
+    accVal.innerText = `${acc.toFixed(2)} m/s²`;
     if (slides) {
-      tag.innerText = `State: Accelerating Downhill (F_∥ > f_k • a = ${acc.toFixed(2)} m/s²)`;
-      tag.style.background = "rgba(16, 185, 129, 0.15)";
-      tag.style.color = "#34d399";
+      if (curCartDist <= 42) {
+        tag.innerText = `At Bottom: Traveled Incline (a = ${acc.toFixed(2)} m/s²)`;
+        tag.style.background = "rgba(16, 185, 129, 0.15)";
+        tag.style.color = "#34d399";
+      } else if (isSliding) {
+        tag.innerText = `State: Rolling Downhill (v = ${cartSpeed.toFixed(1)} m/s)`;
+        tag.style.background = "rgba(16, 185, 129, 0.15)";
+        tag.style.color = "#34d399";
+      } else {
+        tag.innerText = `State: Accelerating Downhill (F_∥ > f_k • a = ${acc.toFixed(2)} m/s²)`;
+        tag.style.background = "rgba(16, 185, 129, 0.15)";
+        tag.style.color = "#34d399";
+      }
     } else {
       tag.innerText = "State: Static Equilibrium (Friction Holds Cart at Rest)";
       tag.style.background = "rgba(245, 158, 11, 0.15)";
       tag.style.color = "#fbbf24";
     }
 
-    document.getElementById(`${mountId}-fn-txt`).innerText = `F_N: ${fNormal.toFixed(2)} N`;
-    document.getElementById(`${mountId}-fpar-txt`).innerText = `F_∥: ${fParallel.toFixed(2)} N`;
-    document.getElementById(`${mountId}-fk-txt`).innerText = `f_k: ${fFrictionMax.toFixed(2)} N`;
-    document.getElementById(`${mountId}-fnet-txt`).innerText = `F_net: ${fNet.toFixed(2)} N`;
+    fnTxt.innerText = `F_N: ${fNormal.toFixed(2)} N`;
+    fparTxt.innerText = `F_∥: ${fParallel.toFixed(2)} N`;
+    fkTxt.innerText = `f_k: ${fFrictionMax.toFixed(2)} N`;
+    fnetTxt.innerText = `F_net: ${fNet.toFixed(2)} N`;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -6403,7 +6478,6 @@ function buildInclinedPlaneInteractive(mountId, params) {
 
     // Ramp Coordinates
     const rx = 40, ry = 225;
-    const rampLen = 295;
     const topX = rx + rampLen * Math.cos(rad);
     const topY = ry - rampLen * Math.sin(rad);
 
@@ -6423,7 +6497,7 @@ function buildInclinedPlaneInteractive(mountId, params) {
     ctx.lineWidth = 1.5;
     ctx.strokeRect(topX - 6, topY, 12, ry - topY);
 
-    // Heavy Anodized Aluminum Dynamics Track (Pasco-style)
+    // Heavy Anodized Aluminum Dynamics Track
     const trackGrad = ctx.createLinearGradient(rx, ry, topX, topY);
     trackGrad.addColorStop(0, "#475569");
     trackGrad.addColorStop(0.5, "#94a3b8");
@@ -6435,6 +6509,10 @@ function buildInclinedPlaneInteractive(mountId, params) {
     ctx.moveTo(rx - 8, ry + 2);
     ctx.lineTo(topX + 8, topY - 2);
     ctx.stroke();
+
+    // Bottom bumper stop
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(rx - 6, ry - 14, 6, 16);
 
     // Track millimeter graduation markings
     ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
@@ -6470,22 +6548,24 @@ function buildInclinedPlaneInteractive(mountId, params) {
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // 3. Low-Friction Dynamics Cart on Wheels
-    const cartDist = rampLen * 0.55;
-    const cartCenterDist = cartDist;
-    const cartX = rx + cartCenterDist * Math.cos(rad);
-    const cartY = ry - cartCenterDist * Math.sin(rad);
+    // 3. Dynamics Cart on Track
+    const cartX = rx + curCartDist * Math.cos(rad);
+    const cartY = ry - curCartDist * Math.sin(rad);
 
     ctx.save();
     ctx.translate(cartX, cartY);
     ctx.rotate(-rad);
 
-    // Cart Body (Aluminum extrusion with blue enamel)
+    // Cart Body
     const cW = 56, cH = 20;
     ctx.fillStyle = "#0284c7";
-    ctx.beginPath();
-    ctx.roundRect(-cW / 2, -cH - 6, cW, cH, 3);
-    ctx.fill();
+    if (typeof ctx.roundRect === "function") {
+      ctx.beginPath();
+      ctx.roundRect(-cW / 2, -cH - 6, cW, cH, 3);
+      ctx.fill();
+    } else {
+      ctx.fillRect(-cW / 2, -cH - 6, cW, cH);
+    }
     ctx.strokeStyle = "#e0f2fe";
     ctx.lineWidth = 1.5;
     ctx.stroke();
@@ -6497,17 +6577,34 @@ function buildInclinedPlaneInteractive(mountId, params) {
     ctx.lineWidth = 1;
     ctx.strokeRect(-16, -cH - 16, 32, 10);
 
-    // Ball-bearing low-friction wheels
-    ctx.fillStyle = "#0f172a";
-    ctx.beginPath();
-    ctx.arc(-cW / 2 + 10, -5, 5, 0, Math.PI * 2);
-    ctx.arc(cW / 2 - 10, -5, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#94a3b8";
-    ctx.beginPath();
-    ctx.arc(-cW / 2 + 10, -5, 2, 0, Math.PI * 2);
-    ctx.arc(cW / 2 - 10, -5, 2, 0, Math.PI * 2);
-    ctx.fill();
+    // Ball-bearing wheels with spokes
+    function drawCartWheel(wx, wy) {
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.arc(wx, wy, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 0.8;
+      for (let k = 0; k < 4; k++) {
+        const aSpoke = wheelAngle + (k * Math.PI) / 2;
+        ctx.beginPath();
+        ctx.moveTo(wx, wy);
+        ctx.lineTo(wx + Math.cos(aSpoke) * 4, wy + Math.sin(aSpoke) * 4);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(wx, wy, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    drawCartWheel(-cW / 2 + 10, -5);
+    drawCartWheel(cW / 2 - 10, -5);
 
     // Center of mass origin for FBD
     const cmX = 0, cmY = -cH / 2 - 6;
@@ -6534,41 +6631,86 @@ function buildInclinedPlaneInteractive(mountId, params) {
     drawFbdArrow(ctx, cartX, cartY - 16, cartX, cartY - 16 + (fWeight * 3.2), "#a855f7", `W = mg (${fWeight.toFixed(1)}N)`);
   }
 
-  function drawFbdArrow(c, x1, y1, x2, y2, color, label) {
-    const headLen = 7;
-    const angle = Math.atan2(y2 - y1, x2 - x1);
-    c.strokeStyle = color;
-    c.fillStyle = color;
-    c.lineWidth = 2.2;
+  function loop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+    lastTimestamp = timestamp;
 
-    c.beginPath();
-    c.moveTo(x1, y1);
-    c.lineTo(x2, y2);
-    c.stroke();
+    const phys = calcPhysics();
 
-    c.beginPath();
-    c.moveTo(x2, y2);
-    c.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
-    c.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
-    c.closePath();
-    c.fill();
+    if (isSliding) {
+      if (phys.slides) {
+        cartSpeed += phys.acc * dt;
+        curCartDist -= (cartSpeed * 24) * dt;
+        wheelAngle += (cartSpeed * 12) * dt;
+        if (curCartDist <= 42) {
+          curCartDist = 42;
+          cartSpeed = 0;
+          isSliding = false;
+          relIcon.innerText = "↺";
+          relLbl.innerText = "Rerun Incline Trial";
+        }
+      } else {
+        isSliding = false;
+        cartSpeed = 0;
+        relIcon.innerText = "▶";
+        relLbl.innerText = "Release Dynamics Cart";
+      }
+    }
 
-    c.font = "bold 8px 'JetBrains Mono', monospace";
-    c.fillText(label, x2 + (Math.cos(angle) >= 0 ? 6 : -6 - c.measureText(label).width), y2 + 3);
+    render(phys);
+    animId = requestAnimationFrame(loop);
   }
 
-  render();
-
-  document.getElementById(`${mountId}-ang-slider`).addEventListener("input", (e) => {
-    angleDeg = parseFloat(e.target.value);
-    document.getElementById(`${mountId}-ang-lbl`).innerText = `${angleDeg}°`;
-    render();
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isSliding = false;
   });
 
-  document.getElementById(`${mountId}-mu-slider`).addEventListener("input", (e) => {
+  btnRelease.addEventListener("click", () => {
+    const phys = calcPhysics();
+    if (!phys.slides) {
+      tag.innerText = "State: Static Friction Holds Cart (F_∥ ≤ f_s)";
+      tag.style.background = "rgba(245, 158, 11, 0.15)";
+      tag.style.color = "#fbbf24";
+      return;
+    }
+
+    if (curCartDist <= 44) {
+      curCartDist = rampLen * 0.72;
+      cartSpeed = 0;
+    }
+
+    isSliding = !isSliding;
+    relIcon.innerText = isSliding ? "⏸" : "▶";
+    relLbl.innerText = isSliding ? "Pause Motion" : "Release Dynamics Cart";
+  });
+
+  btnReset.addEventListener("click", () => {
+    isSliding = false;
+    curCartDist = rampLen * 0.72;
+    cartSpeed = 0;
+    relIcon.innerText = "▶";
+    relLbl.innerText = "Release Dynamics Cart";
+  });
+
+  angSlider.addEventListener("input", (e) => {
+    angleDeg = parseFloat(e.target.value);
+    angLbl.innerText = `${angleDeg}°`;
+    if (!isSliding) {
+      curCartDist = rampLen * 0.72;
+      cartSpeed = 0;
+    }
+  });
+
+  muSlider.addEventListener("input", (e) => {
     mu_k = parseFloat(e.target.value);
-    document.getElementById(`${mountId}-mu-lbl`).innerText = mu_k.toFixed(2);
-    render();
+    muLbl.innerText = mu_k.toFixed(2);
+    if (!isSliding) {
+      curCartDist = rampLen * 0.72;
+      cartSpeed = 0;
+    }
   });
 }
 
@@ -6886,92 +7028,303 @@ function buildDopplerInteractive(mountId, params) {
   const mount = document.getElementById(mountId);
   if (!mount) return;
 
-  let vs = params.sourceSpeed || 120; // km/h -> m/s is vs / 3.6
+  params = params || {};
+  let vs = params.sourceSpeed !== undefined ? Number(params.sourceSpeed) : 120; // m/s
   const vWave = 343; // m/s
   const fSource = 440; // Hz
+  let isRunning = true;
+  let animId = null;
+  let lastTimestamp = null;
+  let sourceX = 60;
+  let waves = [];
+  let emitTimer = 0;
 
   mount.innerHTML = `
     <div class="interactive-split-grid">
-      <div class="sim-canvas-box">
+      <div class="sim-canvas-box" style="position: relative;">
         <canvas id="${mountId}-canvas" width="380" height="260" style="width: 100%; height: 260px;"></canvas>
+        <div id="${mountId}-mach-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; pointer-events: none; backdrop-filter: blur(4px);">
+          Subsonic Motion (M = 0.35)
+        </div>
       </div>
 
       <div class="sim-controls-panel">
-        <div class="sim-readout-pill">
-          <span class="readout-label">Observed Ahead (Approaching):</span>
-          <span class="readout-val" id="${mountId}-fapp-val">487 Hz (Higher Pitch)</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+          <div class="sim-readout-pill">
+            <span class="readout-label">Observed Ahead (Approaching):</span>
+            <span class="readout-val" id="${mountId}-fapp-val" style="color: #38bdf8;">487 Hz (Higher)</span>
+          </div>
+          <div class="sim-readout-pill">
+            <span class="readout-label">Observed Behind (Receding):</span>
+            <span class="readout-val" id="${mountId}-frec-val" style="color: #f87171;">401 Hz (Lower)</span>
+          </div>
         </div>
 
-        <div class="sim-readout-pill">
-          <span class="readout-label">Observed Behind (Receding):</span>
-          <span class="readout-val" id="${mountId}-frec-val">401 Hz (Lower Pitch)</span>
-        </div>
-
-        <div class="control-slider-group">
+        <div class="control-slider-group" style="margin-top: 4px;">
           <div class="slider-header">
             <span>Source Velocity (v_s):</span>
             <strong id="${mountId}-vs-lbl">${vs} m/s</strong>
           </div>
-          <input type="range" class="range-slider" id="${mountId}-vs-slider" min="0" max="250" step="5" value="${vs}">
+          <input type="range" class="range-slider" id="${mountId}-vs-slider" min="0" max="380" step="5" value="${vs}">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <button class="btn btn-primary" id="${mountId}-btn-play" style="flex: 1; padding: 7px 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span id="${mountId}-play-icon">⏸</span> <span id="${mountId}-play-lbl">Pause Simulation</span>
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-reset" style="padding: 7px 14px; font-weight: 600;">
+            ↺ Reset
+          </button>
+        </div>
+
+        <div class="sim-telemetry-box" style="margin-top: 6px; font-size: 0.72rem; line-height: 1.35;">
+          <div id="${mountId}-doppler-status" style="font-weight: 700; color: var(--text-main);">
+            Compression ahead: λ' = (v - v_s) / f₀ • Dilation behind: λ' = (v + v_s) / f₀
+          </div>
+          <div style="margin-top: 3px; font-family: monospace; color: var(--text-muted, #94a3b8);">
+            f' = f₀ · [v_sound / (v_sound ∓ v_source)]
+          </div>
         </div>
       </div>
     </div>
   `;
 
   const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
 
-  function render() {
-    const fApproach = fSource * (vWave / (vWave - vs));
-    const fRecede = fSource * (vWave / (vWave + vs));
+  const btnPlay = document.getElementById(`${mountId}-btn-play`);
+  const btnReset = document.getElementById(`${mountId}-btn-reset`);
+  const playIcon = document.getElementById(`${mountId}-play-icon`);
+  const playLbl = document.getElementById(`${mountId}-play-lbl`);
+  const machBadge = document.getElementById(`${mountId}-mach-badge`);
+  const fappVal = document.getElementById(`${mountId}-fapp-val`);
+  const frecVal = document.getElementById(`${mountId}-frec-val`);
+  const vsSlider = document.getElementById(`${mountId}-vs-slider`);
+  const vsLbl = document.getElementById(`${mountId}-vs-lbl`);
+  const statusTxt = document.getElementById(`${mountId}-doppler-status`);
 
-    document.getElementById(`${mountId}-fapp-val`).innerText = `${Math.round(fApproach)} Hz (Higher Pitch)`;
-    document.getElementById(`${mountId}-frec-val`).innerText = `${Math.round(fRecede)} Hz (Lower Pitch)`;
+  function updateReadouts() {
+    const mach = vs / vWave;
+    vsLbl.innerText = `${vs} m/s`;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (vs < vWave) {
+      const fApproach = fSource * (vWave / (vWave - vs));
+      const fRecede = fSource * (vWave / (vWave + vs));
+      fappVal.innerText = `${Math.round(fApproach)} Hz (+${Math.round(fApproach - fSource)}Hz)`;
+      frecVal.innerText = `${Math.round(fRecede)} Hz (${Math.round(fRecede - fSource)}Hz)`;
+      machBadge.innerText = `Subsonic Motion (M = ${mach.toFixed(2)})`;
+      machBadge.style.color = "#38bdf8";
+      machBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
+      statusTxt.innerHTML = `<span style="color: #38bdf8; font-weight: 700;">Subsonic Regime:</span> Pitch rises as ambulance approaches, drops as it recedes.`;
+    } else if (Math.abs(vs - vWave) < 5) {
+      fappVal.innerText = "∞ (Sound Barrier)";
+      const fRecede = fSource * (vWave / (vWave + vs));
+      frecVal.innerText = `${Math.round(fRecede)} Hz`;
+      machBadge.innerText = "Mach 1.00: SOUND BARRIER!";
+      machBadge.style.color = "#fbbf24";
+      machBadge.style.borderColor = "rgba(251, 191, 36, 0.5)";
+      statusTxt.innerHTML = `<span style="color: #fbbf24; font-weight: 700;">Sonic Barrier:</span> Wavefronts coalesce into infinite acoustic pressure barrier.`;
+    } else {
+      fappVal.innerText = "Shock Front (Mach Cone)";
+      const fRecede = fSource * (vWave / (vWave + vs));
+      frecVal.innerText = `${Math.round(fRecede)} Hz`;
+      machBadge.innerText = `⚡ SUPERSONIC (M = ${mach.toFixed(2)})`;
+      machBadge.style.color = "#f43f5e";
+      machBadge.style.borderColor = "rgba(244, 63, 94, 0.5)";
+      statusTxt.innerHTML = `<span style="color: #f43f5e; font-weight: 700;">Supersonic Shock Cone:</span> Constructive interference creates sonic boom cone.`;
+    }
+  }
+
+  function loop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+    lastTimestamp = timestamp;
+
     const cy = canvas.height / 2;
+    const wavePixelSpeed = 130; // px/s on canvas for vWave (343 m/s)
+    const sourcePixelSpeed = (vs / vWave) * wavePixelSpeed;
 
-    // Center of source
-    const sx = 220;
+    if (isRunning) {
+      sourceX += sourcePixelSpeed * dt;
+      if (sourceX > canvas.width + 50) {
+        sourceX = -30;
+        waves = [];
+      }
 
-    // Draw compressed wavefronts ahead, expanded behind
-    const numRings = 7;
-    for (let i = 1; i <= numRings; i++) {
-      const ringRadius = i * 22;
-      const ringCenterShift = (vs / vWave) * ringRadius;
-      const ringX = sx - ringCenterShift;
+      emitTimer += dt;
+      if (emitTimer >= 0.16) {
+        emitTimer = 0;
+        waves.push({ x: sourceX, y: cy, r: 2 });
+      }
 
-      ctx.strokeStyle = `rgba(56, 189, 248, ${1 - i * 0.12})`;
-      ctx.lineWidth = 1.5;
+      // Grow wavefront circles
+      for (let i = 0; i < waves.length; i++) {
+        waves[i].r += wavePixelSpeed * dt;
+      }
+      waves = waves.filter(w => w.r < 320);
+    }
+
+    // Render Canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Deep dark background
+    ctx.fillStyle = "#070b14";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Grid coordinates
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.06)";
+    ctx.lineWidth = 1;
+    for (let gx = 0; gx < canvas.width; gx += 30) {
       ctx.beginPath();
-      ctx.arc(ringX, cy, ringRadius, 0, Math.PI * 2);
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, canvas.height);
       ctx.stroke();
     }
 
-    // Moving sound source (Ambulance / jet)
-    ctx.fillStyle = "#ef4444";
+    // Central sound axis guideline
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.18)";
+    ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.arc(sx, cy, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Direction arrow
-    ctx.strokeStyle = "#ef4444";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(sx, cy);
-    ctx.lineTo(sx + 25, cy);
-    ctx.lineTo(sx + 20, cy - 4);
-    ctx.moveTo(sx + 25, cy);
-    ctx.lineTo(sx + 20, cy + 4);
+    ctx.moveTo(0, cy);
+    ctx.lineTo(canvas.width, cy);
     ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Stationary Observers
+    // Left Observer (Behind / Receding)
+    ctx.fillStyle = "#f87171";
+    ctx.beginPath();
+    ctx.arc(28, cy, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fca5a5";
+    ctx.font = "bold 8px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Ear A (Receding)", 32, cy + 18);
+
+    // Right Observer (Ahead / Approaching)
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.arc(canvas.width - 28, cy, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#7dd3fc";
+    ctx.fillText("Ear B (Approaching)", canvas.width - 32, cy + 18);
+
+    // Draw Acoustic Wavefronts
+    for (let i = 0; i < waves.length; i++) {
+      const w = waves[i];
+      const alpha = Math.max(0.08, 1 - w.r / 300);
+
+      ctx.strokeStyle = `rgba(56, 189, 248, ${alpha * 0.85})`;
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(w.x, w.y, w.r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // If Supersonic: Draw Mach Shock Wave Tangents
+    if (vs >= vWave && sourceX > 20) {
+      const machAngle = Math.asin(Math.min(1.0, vWave / vs));
+      const coneLen = 260;
+      const topConeX = sourceX - Math.cos(machAngle) * coneLen;
+      const topConeY = cy - Math.sin(machAngle) * coneLen;
+      const botConeX = sourceX - Math.cos(machAngle) * coneLen;
+      const botConeY = cy + Math.sin(machAngle) * coneLen;
+
+      ctx.strokeStyle = "#f43f5e";
+      ctx.fillStyle = "rgba(244, 63, 94, 0.08)";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(sourceX, cy);
+      ctx.lineTo(topConeX, topConeY);
+      ctx.lineTo(botConeX, botConeY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#f43f5e";
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(`Mach Angle μ = ${(machAngle * 180 / Math.PI).toFixed(1)}°`, sourceX - 15, cy - 20);
+    }
+
+    // Sound Source: Vehicle Body & Siren
+    const vW = 32, vH = 16;
+    const vx = sourceX - vW / 2;
+    const vy = cy - vH / 2;
+
+    // Vehicle Chassis
+    ctx.fillStyle = "#0284c7";
+    if (typeof ctx.roundRect === "function") {
+      ctx.beginPath();
+      ctx.roundRect(vx, vy, vW, vH, 4);
+      ctx.fill();
+    } else {
+      ctx.fillRect(vx, vy, vW, vH);
+    }
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Flashing Emergency Beacon / Acoustic Siren
+    const flash = Math.sin(timestamp / 100) > 0;
+    ctx.fillStyle = flash ? "#f43f5e" : "#fbbf24";
+    ctx.beginPath();
+    ctx.arc(sourceX, vy - 3, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // Source Velocity Vector Arrow
+    if (vs > 0) {
+      const arrowLen = Math.min(45, (vs / vWave) * 35);
+      ctx.strokeStyle = "#10b981";
+      ctx.fillStyle = "#10b981";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sourceX + vW / 2, cy);
+      ctx.lineTo(sourceX + vW / 2 + arrowLen, cy);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(sourceX + vW / 2 + arrowLen, cy);
+      ctx.lineTo(sourceX + vW / 2 + arrowLen - 5, cy - 3);
+      ctx.lineTo(sourceX + vW / 2 + arrowLen - 5, cy + 3);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    animId = requestAnimationFrame(loop);
   }
 
-  render();
+  updateReadouts();
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isRunning = false;
+  });
 
-  document.getElementById(`${mountId}-vs-slider`).addEventListener("input", (e) => {
+  btnPlay.addEventListener("click", () => {
+    isRunning = !isRunning;
+    playIcon.innerText = isRunning ? "⏸" : "▶";
+    playLbl.innerText = isRunning ? "Pause Simulation" : "Run Simulation";
+    btnPlay.classList.toggle("active", isRunning);
+  });
+
+  btnReset.addEventListener("click", () => {
+    sourceX = 40;
+    waves = [];
+    emitTimer = 0;
+    lastTimestamp = null;
+    isRunning = true;
+    playIcon.innerText = "⏸";
+    playLbl.innerText = "Pause Simulation";
+  });
+
+  vsSlider.addEventListener("input", (e) => {
     vs = parseFloat(e.target.value);
-    document.getElementById(`${mountId}-vs-lbl`).innerText = `${vs} m/s`;
-    render();
+    updateReadouts();
   });
 }
 
