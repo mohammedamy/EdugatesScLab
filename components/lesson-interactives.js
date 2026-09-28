@@ -10973,11 +10973,16 @@ function buildMitosisCellCycleInteractive(mountId, params) {
   ];
 
   let currentStageIdx = 2; // Metaphase default
+  let isAutoAdvancing = false;
+  let autoTimer = 0;
 
   mount.innerHTML = `
     <div class="interactive-split-grid">
       <div class="sim-canvas-box" style="position: relative;">
         <canvas id="${mountId}-canvas" width="380" height="260" style="width: 100%; height: 260px;"></canvas>
+        <div id="${mountId}-cycle-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(236, 72, 153, 0.4); color: #ec4899; pointer-events: none; backdrop-filter: blur(4px);">
+          Eukaryotic Mitosis (2n → 2n)
+        </div>
       </div>
       <div class="sim-controls-panel">
         <div class="sim-readout-pill">
@@ -10985,11 +10990,20 @@ function buildMitosisCellCycleInteractive(mountId, params) {
           <span class="readout-val" id="${mountId}-phase-val" style="color: #ec4899; font-weight: 800;">Metaphase</span>
         </div>
         <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim); margin-bottom: 4px;">Select Mitosis Stage:</div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;" id="${mountId}-stage-btns">
           ${stages.map((s, i) => `
-            <button class="btn-sim-action ${i === currentStageIdx ? 'active' : ''}" data-idx="${i}" style="padding: 6px 4px; font-size: 0.75rem;">${s.name.split(" ")[0]}</button>
+            <button class="btn-sim-action ${i === currentStageIdx ? 'active' : ''}" data-idx="${i}" id="${mountId}-stage-${i}" style="padding: 6px 4px; font-size: 0.75rem;">${s.name.split(" ")[0]}</button>
           `).join("")}
         </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 6px;">
+          <button class="btn btn-primary" id="${mountId}-btn-auto" style="flex: 1.2; padding: 7px 6px; font-weight: 700; font-size: 0.76rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span id="${mountId}-auto-icon">▶</span> <span id="${mountId}-auto-lbl">Auto-Advance Cycle</span>
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-prev" style="padding: 7px 10px; font-size: 0.76rem;">◀ Prev</button>
+          <button class="btn-sim-action" id="${mountId}-btn-next" style="padding: 7px 10px; font-size: 0.76rem;">Next ▶</button>
+        </div>
+
         <div id="${mountId}-stage-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.82rem; line-height: 1.45;">
           ${stages[currentStageIdx].desc}
         </div>
@@ -10998,16 +11012,48 @@ function buildMitosisCellCycleInteractive(mountId, params) {
   `;
 
   const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
+
+  const btnAuto = document.getElementById(`${mountId}-btn-auto`);
+  const btnPrev = document.getElementById(`${mountId}-btn-prev`);
+  const btnNext = document.getElementById(`${mountId}-btn-next`);
+  const autoIcon = document.getElementById(`${mountId}-auto-icon`);
+  const autoLbl = document.getElementById(`${mountId}-auto-lbl`);
+  const phaseVal = document.getElementById(`${mountId}-phase-val`);
+  const stageDesc = document.getElementById(`${mountId}-stage-desc`);
+
+  function setStage(idx) {
+    currentStageIdx = (idx + stages.length) % stages.length;
+    for (let i = 0; i < stages.length; i++) {
+      const b = document.getElementById(`${mountId}-stage-${i}`);
+      if (b) b.classList.toggle("active", i === currentStageIdx);
+    }
+    const stage = stages[currentStageIdx];
+    phaseVal.innerText = stage.name;
+    stageDesc.innerText = stage.desc;
+  }
 
   let t = 0;
   let animId;
+  let lastTimestamp = null;
 
-  function render() {
+  function render(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+    lastTimestamp = timestamp;
+
     t += 0.03;
+
+    if (isAutoAdvancing) {
+      autoTimer += dt;
+      if (autoTimer >= 2.4) {
+        autoTimer = 0;
+        setStage(currentStageIdx + 1);
+      }
+    }
+
     const stage = stages[currentStageIdx];
-    document.getElementById(`${mountId}-phase-val`).innerText = stage.name;
-    document.getElementById(`${mountId}-stage-desc`).innerText = stage.desc;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -11129,14 +11175,43 @@ function buildMitosisCellCycleInteractive(mountId, params) {
   }
 
   animId = requestAnimationFrame(render);
-  activeSimulations.set(mountId, () => cancelAnimationFrame(animId));
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isAutoAdvancing = false;
+  });
 
-  mount.querySelectorAll(".btn-sim-action").forEach(btn => {
-    btn.addEventListener("click", () => {
-      mount.querySelectorAll(".btn-sim-action").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentStageIdx = parseInt(btn.dataset.idx, 10);
-    });
+  stages.forEach((s, idx) => {
+    const btn = document.getElementById(`${mountId}-stage-${idx}`);
+    if (btn) {
+      btn.addEventListener("click", () => {
+        isAutoAdvancing = false;
+        autoIcon.innerText = "▶";
+        autoLbl.innerText = "Auto-Advance Cycle";
+        setStage(idx);
+      });
+    }
+  });
+
+  btnAuto.addEventListener("click", () => {
+    isAutoAdvancing = !isAutoAdvancing;
+    autoIcon.innerText = isAutoAdvancing ? "⏸" : "▶";
+    autoLbl.innerText = isAutoAdvancing ? "Pause Auto-Advance" : "Auto-Advance Cycle";
+    btnAuto.classList.toggle("active", isAutoAdvancing);
+    autoTimer = 0;
+  });
+
+  btnPrev.addEventListener("click", () => {
+    isAutoAdvancing = false;
+    autoIcon.innerText = "▶";
+    autoLbl.innerText = "Auto-Advance Cycle";
+    setStage(currentStageIdx - 1);
+  });
+
+  btnNext.addEventListener("click", () => {
+    isAutoAdvancing = false;
+    autoIcon.innerText = "▶";
+    autoLbl.innerText = "Auto-Advance Cycle";
+    setStage(currentStageIdx + 1);
   });
 }
 
