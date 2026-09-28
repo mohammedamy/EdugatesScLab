@@ -48,65 +48,468 @@ export const icons = {
     <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-45 12 12)"/>
   </svg>`,
 
-  microscope: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M6 18h8"/>
-    <path d="M3 22h18"/>
-    <path d="M14 22a7 7 0 1 0 0-14h-1"/>
-    <path d="M9 14h2"/>
-    <path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/>
-    <path d="M12 6V3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v3"/>
+  microscope: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-mic-arm" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="30%" stop-color="#0284c7"/>
+        <stop offset="70%" stop-color="#1e293b"/>
+        <stop offset="100%" stop-color="#0f172a"/>
+      </linearGradient>
+      <linearGradient id="ico-mic-tube" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#94a3b8"/>
+        <stop offset="50%" stop-color="#475569"/>
+        <stop offset="100%" stop-color="#1e293b"/>
+      </linearGradient>
+      <linearGradient id="ico-mic-knob" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fbbf24"/>
+        <stop offset="100%" stop-color="#d97706"/>
+      </linearGradient>
+      <linearGradient id="ico-mic-beam" x1="0%" y1="100%" x2="0%" y2="0%">
+        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8"/>
+        <stop offset="60%" stop-color="#00f0ff" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0.9"/>
+      </linearGradient>
+    </defs>
+    <!-- Sub-Stage Illuminator Light Beam -->
+    <polygon points="17,39 21,29 15,29" fill="url(#ico-mic-beam)"/>
+    <!-- Heavy Solid Base -->
+    <path d="M10 44 L38 44 C39.5 44 40 43 39 42 L35 39 C34.5 38.5 33.5 38.5 32.5 38.5 H13.5 C12.5 38.5 11.5 38.5 11 39 L7 42 C6 43 6.5 44 8 44 Z" fill="#1e293b" stroke="#475569" stroke-width="1.2"/>
+    <rect x="14" y="39" width="8" height="3" rx="1" fill="#38bdf8" fill-opacity="0.3"/>
+    <circle cx="18" cy="40.5" r="2" fill="#00f0ff"/>
+    <!-- Curved Heavy Metal Spine Arm -->
+    <path d="M33 39 C37 36 38 27 37 21 C36 15 31 11 25 11 H23" fill="none" stroke="url(#ico-mic-arm)" stroke-width="4.5" stroke-linecap="round"/>
+    <!-- Dual Focus Knobs -->
+    <circle cx="34" cy="27" r="4" fill="url(#ico-mic-knob)" stroke="#78350f" stroke-width="0.8"/>
+    <circle cx="34" cy="27" r="2.2" fill="#1e293b"/>
+    <circle cx="34" cy="27" r="1" fill="#fbbf24"/>
+    <!-- Mechanical Specimen Stage -->
+    <rect x="11" y="28" width="16" height="3" rx="1.5" fill="#334155" stroke="#94a3b8" stroke-width="1"/>
+    <!-- Specimen Slide & Biological Sample -->
+    <rect x="13" y="27" width="12" height="1.5" rx="0.5" fill="#bae6fd" fill-opacity="0.9"/>
+    <circle cx="18" cy="27.7" r="1.2" fill="#ec4899"/>
+    <circle cx="18" cy="27.7" r="2" stroke="#f43f5e" stroke-width="0.6" stroke-dasharray="1 1"/>
+    <!-- Revolving Turret (Nosepiece) -->
+    <path d="M14 18 H22 L20 21 H16 Z" fill="#475569" stroke="#64748b" stroke-width="0.8"/>
+    <!-- High-Power Objective Lens (40x Active Cyan) -->
+    <rect x="16.5" y="21" width="3" height="5" rx="0.8" fill="#1e293b" stroke="#38bdf8" stroke-width="0.8"/>
+    <rect x="16.5" y="24" width="3" height="1" fill="#00f0ff"/>
+    <!-- Secondary Angled Objective Lens (10x Yellow) -->
+    <path d="M19.5 20.5 L23 23 L22 24.5 L18.5 22 Z" fill="#334155" stroke="#fbbf24" stroke-width="0.8"/>
+    <!-- Main Optical Barrel Tube -->
+    <path d="M16 8 L22 17" stroke="url(#ico-mic-tube)" stroke-width="5" stroke-linecap="round"/>
+    <path d="M16 8 L22 17" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- Binocular Eyepiece Head & Ocular Lenses -->
+    <rect x="12" y="6" width="6" height="3" rx="1" transform="rotate(-34 15 7.5)" fill="#1e293b" stroke="#64748b" stroke-width="0.8"/>
+    <rect x="10" y="3" width="4.5" height="3.5" rx="1" transform="rotate(-34 12 4.5)" fill="#0284c7" stroke="#38bdf8" stroke-width="1"/>
+    <ellipse cx="10.8" cy="3.5" rx="2" ry="0.9" transform="rotate(-34 10.8 3.5)" fill="#00f0ff"/>
   </svg>`,
 
-  periodicTable: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect width="18" height="18" x="3" y="3" rx="2"/>
-    <path d="M3 9h18"/>
-    <path d="M3 15h18"/>
-    <path d="M9 3v18"/>
-    <path d="M15 3v18"/>
+  periodicTable: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-pt-tile-c" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#0284c7"/>
+        <stop offset="50%" stop-color="#0f172a"/>
+        <stop offset="100%" stop-color="#0369a1"/>
+      </linearGradient>
+      <linearGradient id="ico-pt-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00f0ff"/>
+        <stop offset="100%" stop-color="#3b82f6"/>
+      </linearGradient>
+    </defs>
+    <!-- Periodic Grid Background Matrix (Color-Coded Chemical Groups) -->
+    <!-- Row 1: H & He -->
+    <rect x="4" y="6" width="4.5" height="4" rx="1" fill="#f43f5e"/>
+    <rect x="39.5" y="6" width="4.5" height="4" rx="1" fill="#a855f7"/>
+    <!-- Row 2 -->
+    <rect x="4" y="11.5" width="4.5" height="4" rx="1" fill="#fb7185"/>
+    <rect x="9.5" y="11.5" width="4.5" height="4" rx="1" fill="#f97316"/>
+    <rect x="28.5" y="11.5" width="4.5" height="4" rx="1" fill="#34d399"/>
+    <rect x="34" y="11.5" width="4.5" height="4" rx="1" fill="#22d3ee"/>
+    <rect x="39.5" y="11.5" width="4.5" height="4" rx="1" fill="#a855f7"/>
+    <!-- Row 3 -->
+    <rect x="4" y="17" width="4.5" height="4" rx="1" fill="#fb7185"/>
+    <rect x="9.5" y="17" width="4.5" height="4" rx="1" fill="#f97316"/>
+    <rect x="28.5" y="17" width="4.5" height="4" rx="1" fill="#34d399"/>
+    <rect x="34" y="17" width="4.5" height="4" rx="1" fill="#22d3ee"/>
+    <rect x="39.5" y="17" width="4.5" height="4" rx="1" fill="#a855f7"/>
+    <!-- Row 4 (Transition Metals Cyan Span) -->
+    <rect x="4" y="22.5" width="4" height="4" rx="1" fill="#fb7185"/>
+    <rect x="8.5" y="22.5" width="4" height="4" rx="1" fill="#f97316"/>
+    <rect x="13" y="22.5" width="4" height="4" rx="1" fill="#0284c7"/>
+    <rect x="17.5" y="22.5" width="4" height="4" rx="1" fill="#0284c7"/>
+    <rect x="22" y="22.5" width="4" height="4" rx="1" fill="#0284c7"/>
+    <rect x="26.5" y="22.5" width="4" height="4" rx="1" fill="#0284c7"/>
+    <rect x="31" y="22.5" width="4" height="4" rx="1" fill="#0284c7"/>
+    <rect x="35.5" y="22.5" width="4" height="4" rx="1" fill="#22d3ee"/>
+    <rect x="40" y="22.5" width="4" height="4" rx="1" fill="#a855f7"/>
+    <!-- Bottom Actinides / Lanthanides strip -->
+    <rect x="13" y="28" width="22" height="3" rx="1" fill="#eab308" fill-opacity="0.8"/>
+    <!-- Elevated 3D Atomic Element Card (Carbon - 6 C) -->
+    <g filter="drop-shadow(0 4px 6px rgba(0,0,0,0.5))">
+      <rect x="11" y="14" width="22" height="25" rx="3.5" fill="url(#ico-pt-tile-c)" stroke="url(#ico-pt-glow)" stroke-width="1.8"/>
+      <rect x="12" y="15" width="20" height="23" rx="2.5" fill="none" stroke="#38bdf8" stroke-width="0.6" stroke-opacity="0.5"/>
+      <text x="14" y="20.5" fill="#38bdf8" font-size="5" font-family="system-ui, sans-serif" font-weight="900">6</text>
+      <text x="26.5" y="20.5" fill="#94a3b8" font-size="3.5" font-family="system-ui, sans-serif" font-weight="700">12.0</text>
+      <text x="17" y="31" fill="#ffffff" font-size="12" font-family="system-ui, sans-serif" font-weight="900">C</text>
+      <text x="14.5" y="36.5" fill="#7dd3fc" font-size="3.2" font-family="system-ui, sans-serif" font-weight="700" letter-spacing="0.5">CARBON</text>
+      <ellipse cx="22" cy="26" rx="9" ry="3.5" transform="rotate(-25 22 26)" fill="none" stroke="#00f0ff" stroke-width="0.8" stroke-dasharray="2 2" stroke-opacity="0.8"/>
+      <circle cx="29.5" cy="22.5" r="1.2" fill="#00f0ff"/>
+    </g>
   </svg>`,
 
-  projectile: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="m4 20 4-4"/>
-    <path d="M3 21h18"/>
-    <path d="M4 16c4-8 12-8 16 4"/>
-    <circle cx="20" cy="20" r="1.5" fill="currentColor"/>
+  projectile: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-proj-cannon" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="40%" stop-color="#1e293b"/>
+        <stop offset="100%" stop-color="#0f172a"/>
+      </linearGradient>
+      <linearGradient id="ico-proj-arc" x1="0%" y1="100%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="50%" stop-color="#fbbf24"/>
+        <stop offset="100%" stop-color="#f43f5e"/>
+      </linearGradient>
+      <radialGradient id="ico-proj-ball" cx="35%" cy="35%" r="65%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="25%" stop-color="#38bdf8"/>
+        <stop offset="70%" stop-color="#0284c7"/>
+        <stop offset="100%" stop-color="#0c4a6e"/>
+      </radialGradient>
+      <radialGradient id="ico-proj-glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="ico-proj-ground" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.2"/>
+        <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.2"/>
+      </linearGradient>
+    </defs>
+    <!-- Ground Datum -->
+    <path d="M4 42h40" stroke="url(#ico-proj-ground)" stroke-width="2" stroke-linecap="round"/>
+    <path d="M7 45h6M21 45h6M35 45h6" stroke="#475569" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Parabolic Trajectory Arc -->
+    <path d="M15 31 Q27 4 41 40" fill="none" stroke="url(#ico-proj-arc)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="3.5 2.5"/>
+    <!-- Trajectory Apex Indicator -->
+    <circle cx="27" cy="17.5" r="2" fill="#fbbf24"/>
+    <path d="M27 12v3M27 20v3" stroke="#fbbf24" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- Target Impact Marker -->
+    <ellipse cx="41" cy="41" rx="4" ry="1.5" fill="#f43f5e" fill-opacity="0.4"/>
+    <circle cx="41" cy="41" r="1.5" fill="#f43f5e"/>
+    <!-- Launch Cannon Mount -->
+    <path d="M6 42 L14 42 L13 36 L7 36 Z" fill="#334155" stroke="#64748b" stroke-width="1.2"/>
+    <circle cx="10" cy="36" r="4.5" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <circle cx="10" cy="36" r="2" fill="#38bdf8"/>
+    <!-- Cannon Barrel (angled at ~45 deg) -->
+    <path d="M9 38 L18 29 L21.5 32.5 L12.5 41.5 Z" fill="url(#ico-proj-cannon)" stroke="#38bdf8" stroke-width="1.2"/>
+    <ellipse cx="19.7" cy="30.7" rx="2.5" ry="1.3" transform="rotate(-45 19.7 30.7)" fill="#38bdf8"/>
+    <!-- In-Flight Glowing Projectile with Velocity Vector -->
+    <circle cx="29" cy="18" r="7" fill="url(#ico-proj-glow)"/>
+    <circle cx="29" cy="18" r="4" fill="url(#ico-proj-ball)"/>
+    <circle cx="27.8" cy="16.8" r="1.2" fill="#ffffff" fill-opacity="0.8"/>
+    <!-- Velocity Arrow Vector (Tangent) -->
+    <path d="M31.5 19.5 L37 23" stroke="#00f0ff" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M36 21 L37.5 23.5 L34.5 23.5" fill="#00f0ff"/>
+    <!-- Speed Wake Streaks -->
+    <path d="M23 14 L20 12M24 16 L19.5 15" stroke="#38bdf8" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.6"/>
   </svg>`,
 
-  circuit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect width="18" height="18" x="3" y="3" rx="2"/>
-    <path d="M7 8h3v8H7"/>
-    <path d="M14 8h3v8h-3"/>
-    <circle cx="8.5" cy="12" r="1" fill="currentColor"/>
-    <circle cx="15.5" cy="12" r="1" fill="currentColor"/>
+  circuit: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-circ-pcb" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#0f172a"/>
+        <stop offset="50%" stop-color="#064e3b"/>
+        <stop offset="100%" stop-color="#022c22"/>
+      </linearGradient>
+      <linearGradient id="ico-circ-trace" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#fbbf24"/>
+        <stop offset="50%" stop-color="#f59e0b"/>
+        <stop offset="100%" stop-color="#fbbf24"/>
+      </linearGradient>
+      <radialGradient id="ico-circ-bulb-glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fef08a"/>
+        <stop offset="40%" stop-color="#f59e0b" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="ico-circ-batt-body" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ef4444"/>
+        <stop offset="50%" stop-color="#1e293b"/>
+        <stop offset="100%" stop-color="#0f172a"/>
+      </linearGradient>
+    </defs>
+    <!-- PCB Substrate Plate -->
+    <rect x="4" y="4" width="40" height="40" rx="6" fill="url(#ico-circ-pcb)" stroke="#10b981" stroke-width="1.2"/>
+    <path d="M4 14h40M4 34h40M14 4v40M34 4v40" stroke="#047857" stroke-width="0.5" stroke-opacity="0.4"/>
+    <!-- Conductive Copper / Gold Traces -->
+    <path d="M12 28 V12 H21 M27 12 H36 V21 M36 29 V36 H29 M19 36 H12 V28" fill="none" stroke="url(#ico-circ-trace)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Solder Joint Pads -->
+    <circle cx="12" cy="12" r="2.2" fill="#fbbf24" stroke="#78350f" stroke-width="0.8"/>
+    <circle cx="36" cy="12" r="2.2" fill="#fbbf24" stroke="#78350f" stroke-width="0.8"/>
+    <circle cx="36" cy="36" r="2.2" fill="#fbbf24" stroke="#78350f" stroke-width="0.8"/>
+    <circle cx="12" cy="36" r="2.2" fill="#fbbf24" stroke="#78350f" stroke-width="0.8"/>
+    <!-- Top Component: Color-Banded Precision Resistor -->
+    <rect x="21" y="9.5" width="8" height="5" rx="1.5" fill="#fde68a" stroke="#d97706" stroke-width="0.8"/>
+    <rect x="22.5" y="9.5" width="1" height="5" fill="#b45309"/>
+    <rect x="24.5" y="9.5" width="1" height="5" fill="#0f172a"/>
+    <rect x="26.5" y="9.5" width="1" height="5" fill="#ef4444"/>
+    <!-- Left Component: DC Battery Cell with Potential Symbols -->
+    <rect x="9.5" y="19" width="5" height="10" rx="1" fill="url(#ico-circ-batt-body)" stroke="#94a3b8" stroke-width="0.8"/>
+    <rect x="11" y="17.5" width="2" height="1.5" fill="#f87171"/>
+    <text x="5.5" y="21" fill="#f87171" font-size="5" font-family="sans-serif" font-weight="900">+</text>
+    <text x="6" y="29.5" fill="#38bdf8" font-size="6" font-family="sans-serif" font-weight="900">−</text>
+    <!-- Right Component: Glowing Incandescent Light Bulb -->
+    <circle cx="36" cy="25" r="7" fill="url(#ico-circ-bulb-glow)"/>
+    <circle cx="36" cy="25" r="4" fill="#ffffff" fill-opacity="0.9" stroke="#fbbf24" stroke-width="1.2"/>
+    <path d="M34 26 L35.5 23.5 L36.5 25 L37.5 23.5 L38 26" fill="none" stroke="#ea580c" stroke-width="1" stroke-linecap="round"/>
+    <!-- Bottom Component: Knife Switch -->
+    <circle cx="21" cy="36" r="1.5" fill="#f59e0b"/>
+    <circle cx="27" cy="36" r="1.5" fill="#f59e0b"/>
+    <path d="M21 36 L27.5 31.5" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="27.5" cy="31.5" r="1" fill="#ffffff"/>
   </svg>`,
 
-  titration: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="12" y1="2" x2="12" y2="14"/>
-    <circle cx="12" cy="17" r="1" fill="currentColor"/>
-    <path d="M8 22h8"/>
-    <path d="M10 20h4"/>
+  titration: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-titr-glass" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.8"/>
+        <stop offset="25%" stop-color="#bae6fd" stop-opacity="0.25"/>
+        <stop offset="75%" stop-color="#38bdf8" stop-opacity="0.2"/>
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0.9"/>
+      </linearGradient>
+      <linearGradient id="ico-titr-burette-fluid" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="100%" stop-color="#0284c7"/>
+      </linearGradient>
+      <linearGradient id="ico-titr-stopcock" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fbbf24"/>
+        <stop offset="50%" stop-color="#f59e0b"/>
+        <stop offset="100%" stop-color="#b45309"/>
+      </linearGradient>
+      <linearGradient id="ico-titr-solution" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f472b6"/>
+        <stop offset="45%" stop-color="#ec4899"/>
+        <stop offset="85%" stop-color="#d946ef"/>
+        <stop offset="100%" stop-color="#9333ea"/>
+      </linearGradient>
+      <radialGradient id="ico-titr-drop" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="30%" stop-color="#f472b6"/>
+        <stop offset="80%" stop-color="#db2777"/>
+        <stop offset="100%" stop-color="#9d174d"/>
+      </radialGradient>
+      <linearGradient id="ico-titr-stand" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#64748b"/>
+        <stop offset="100%" stop-color="#334155"/>
+      </linearGradient>
+    </defs>
+    <!-- Retort Stand Rod & Base Clamp -->
+    <path d="M12 4v40" stroke="url(#ico-titr-stand)" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M8 44h10" stroke="url(#ico-titr-stand)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M12 12h9M12 21h9" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Precision Burette Tube -->
+    <rect x="21" y="4" width="6" height="17" rx="1.5" fill="url(#ico-titr-glass)" stroke="#38bdf8" stroke-width="1.2"/>
+    <!-- Liquid in Burette -->
+    <rect x="22" y="8" width="4" height="13" fill="url(#ico-titr-burette-fluid)" fill-opacity="0.85"/>
+    <ellipse cx="24" cy="8" rx="2" ry="0.6" fill="#7dd3fc"/>
+    <!-- Burette Volume Graduations -->
+    <path d="M25.5 7h1.5M24.5 9h2.5M25.5 11h1.5M24.5 13h2.5M25.5 15h1.5M24.5 17h2.5M25.5 19h1.5" stroke="#ffffff" stroke-width="0.8"/>
+    <!-- Stopcock Valve -->
+    <rect x="22" y="21" width="4" height="3" fill="#64748b"/>
+    <circle cx="24" cy="22.5" r="2.2" fill="url(#ico-titr-stopcock)" stroke="#78350f" stroke-width="0.6"/>
+    <path d="M20 22.5h8" stroke="url(#ico-titr-stopcock)" stroke-width="2" stroke-linecap="round"/>
+    <!-- Burette Dispensing Nozzle Tip -->
+    <path d="M23 24 L23.5 27 L24.5 27 L25 24 Z" fill="url(#ico-titr-glass)" stroke="#38bdf8" stroke-width="0.8"/>
+    <!-- Suspended Falling Titrant Droplet -->
+    <path d="M24 29 C24 29 22.5 31.5 22.5 32.5 C22.5 33.3 23.2 34 24 34 C24.8 34 25.5 33.3 25.5 32.5 C25.5 31.5 24 29 24 29 Z" fill="url(#ico-titr-drop)"/>
+    <!-- Erlenmeyer Flask Body -->
+    <path d="M21 34h6 L29 38 L37 43.5 C37.8 44.2 37.3 45 36.2 45 H11.8 C10.7 45 10.2 44.2 11 43.5 L19 38 L21 34 Z" fill="url(#ico-titr-glass)" stroke="#93c5fd" stroke-width="1.3"/>
+    <!-- Titration Solution in Flask (Pink Phenolphthalein Endpoint) -->
+    <path d="M14.5 40 Q24 38.5 33.5 40 L36 44.2 H12 Z" fill="url(#ico-titr-solution)"/>
+    <ellipse cx="24" cy="39.8" rx="9" ry="1.2" fill="#fbcfe8" fill-opacity="0.8"/>
+    <circle cx="21" cy="42" r="1" fill="#ffffff" fill-opacity="0.8"/>
+    <circle cx="26" cy="41" r="0.8" fill="#ffffff" fill-opacity="0.9"/>
+    <circle cx="29" cy="42.5" r="0.7" fill="#ffffff" fill-opacity="0.7"/>
+    <path d="M13 43.5 L19.5 39" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" stroke-opacity="0.8"/>
   </svg>`,
 
-  optics: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="9"/>
-    <line x1="3" y1="12" x2="21" y2="12"/>
-    <line x1="12" y1="3" x2="12" y2="21"/>
-    <path d="m7 7 10 10"/>
-    <path d="m17 7-10 10"/>
+  optics: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-opt-lens" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
+        <stop offset="25%" stop-color="#7dd3fc" stop-opacity="0.45"/>
+        <stop offset="75%" stop-color="#0284c7" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0.9"/>
+      </linearGradient>
+      <linearGradient id="ico-opt-ray-par" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00f0ff"/>
+        <stop offset="50%" stop-color="#38bdf8"/>
+        <stop offset="100%" stop-color="#0284c7"/>
+      </linearGradient>
+      <linearGradient id="ico-opt-ray-cen" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fde047"/>
+        <stop offset="50%" stop-color="#f59e0b"/>
+        <stop offset="100%" stop-color="#ea580c"/>
+      </linearGradient>
+      <linearGradient id="ico-opt-ray-foc" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f472b6"/>
+        <stop offset="50%" stop-color="#ec4899"/>
+        <stop offset="100%" stop-color="#d946ef"/>
+      </linearGradient>
+      <radialGradient id="ico-opt-focus-glow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="50%" stop-color="#00f0ff" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#00f0ff" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <!-- Horizontal Principal Optical Axis with Focal Ticks -->
+    <path d="M3 24 H45" stroke="#475569" stroke-width="1.4" stroke-dasharray="3 2"/>
+    <path d="M14 22.5 v3 M34 22.5 v3" stroke="#94a3b8" stroke-width="1.2"/>
+    <text x="12.5" y="29" fill="#94a3b8" font-size="4" font-family="system-ui, sans-serif" font-weight="700">F</text>
+    <text x="32.5" y="29" fill="#94a3b8" font-size="4" font-family="system-ui, sans-serif" font-weight="700">F'</text>
+    <!-- Ray 1: Incident Parallel Ray (Cyan) -> Refracts through Focal Point F' -->
+    <path d="M8 13 H24 L40 33" stroke="url(#ico-opt-ray-par)" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M16 13 L14 11.5 M16 13 L14 14.5" stroke="#00f0ff" stroke-width="1.4"/>
+    <!-- Ray 2: Chief Ray (Gold) passing undeflected through Optical Center O -->
+    <path d="M8 13 L40 33" stroke="url(#ico-opt-ray-cen)" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Ray 3: Front Focal Ray (Magenta) through F -> emerges parallel -->
+    <path d="M8 13 L24 33 H40" stroke="url(#ico-opt-ray-foc)" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Symmetrical Biconvex Glass Lens Body -->
+    <path d="M24 5 C29 14 29 34 24 43 C19 34 19 14 24 5 Z" fill="url(#ico-opt-lens)" stroke="#38bdf8" stroke-width="1.5"/>
+    <ellipse cx="24" cy="24" rx="1.5" ry="17" fill="#ffffff" fill-opacity="0.2"/>
+    <path d="M22 10 C24 16 24 32 22 38" stroke="#ffffff" stroke-width="1" stroke-linecap="round" stroke-opacity="0.75"/>
+    <!-- Upright Real Object Arrow (Left, h_o) -->
+    <path d="M8 24 V13" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M5.5 15.5 L8 12 L10.5 15.5 Z" fill="#fbbf24"/>
+    <!-- Inverted Real Image Arrow (Right, h_i) where rays converge -->
+    <path d="M40 24 V33" stroke="#f43f5e" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M37.5 30.5 L40 34 L42.5 30.5 Z" fill="#f43f5e"/>
+    <!-- Focal Point Convergence Plasma Glow -->
+    <circle cx="40" cy="33" r="3.5" fill="url(#ico-opt-focus-glow)"/>
+    <circle cx="24" cy="24" r="1.5" fill="#ffffff"/>
   </svg>`,
 
-  gasLaws: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="4" y="4" width="16" height="16" rx="2"/>
-    <line x1="4" y1="9" x2="20" y2="9"/>
-    <line x1="12" y1="4" x2="12" y2="9"/>
-    <circle cx="8" cy="14" r="1" fill="currentColor"/>
-    <circle cx="12" cy="16" r="1" fill="currentColor"/>
-    <circle cx="16" cy="13" r="1" fill="currentColor"/>
+  gasLaws: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-gas-chamber" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+        <stop offset="15%" stop-color="#38bdf8" stop-opacity="0.15"/>
+        <stop offset="85%" stop-color="#0284c7" stop-opacity="0.1"/>
+        <stop offset="100%" stop-color="#ffffff" stop-opacity="0.7"/>
+      </linearGradient>
+      <linearGradient id="ico-gas-piston-rod" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#94a3b8"/>
+        <stop offset="50%" stop-color="#f8fafc"/>
+        <stop offset="100%" stop-color="#64748b"/>
+      </linearGradient>
+      <radialGradient id="ico-gas-gauge" cx="40%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="70%" stop-color="#e2e8f0"/>
+        <stop offset="100%" stop-color="#94a3b8"/>
+      </radialGradient>
+      <radialGradient id="ico-gas-hot" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="30%" stop-color="#f87171"/>
+        <stop offset="80%" stop-color="#dc2626"/>
+        <stop offset="100%" stop-color="#991b1b"/>
+      </radialGradient>
+      <radialGradient id="ico-gas-cold" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="30%" stop-color="#38bdf8"/>
+        <stop offset="80%" stop-color="#0284c7"/>
+        <stop offset="100%" stop-color="#0c4a6e"/>
+      </radialGradient>
+    </defs>
+    <!-- Pressure Chamber Cylinder -->
+    <path d="M10 12 V40 C10 42.5 12 44.5 14.5 44.5 H31.5 C34 44.5 36 42.5 36 40 V12" fill="url(#ico-gas-chamber)" stroke="#38bdf8" stroke-width="1.8"/>
+    <!-- Cylinder Base Plate -->
+    <path d="M8 44.5 H38" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Volume Graduations along Left Wall -->
+    <path d="M10 24h3M10 30h4M10 36h3M10 40h4" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round"/>
+    <!-- Movable Piston Head Plate with O-Ring Gasket -->
+    <rect x="11.5" y="19" width="23" height="4.5" rx="1.5" fill="url(#ico-gas-piston-rod)" stroke="#334155" stroke-width="1"/>
+    <rect x="11.5" y="20.5" width="23" height="1.5" fill="#f43f5e"/>
+    <!-- Piston Push Rod & Force Indicator Arrow -->
+    <rect x="21.5" y="6" width="3" height="13" fill="url(#ico-gas-piston-rod)" stroke="#475569" stroke-width="0.8"/>
+    <path d="M23 4 L23 11 M21 9 L23 11 L25 9" stroke="#ef4444" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Manometer Pressure Gauge on Right Manifold -->
+    <path d="M36 17 H39 V13" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="39" cy="10" r="5.5" fill="url(#ico-gas-gauge)" stroke="#334155" stroke-width="1.2"/>
+    <path d="M36.5 8h1M38 6.5v1M41 7.5l-0.8 0.8M41.5 10h-1" stroke="#334155" stroke-width="0.8"/>
+    <path d="M39 10 L41.5 8" stroke="#ef4444" stroke-width="1.2" stroke-linecap="round"/>
+    <circle cx="39" cy="10" r="1" fill="#1e293b"/>
+    <!-- Kinetic Gas Molecule Particles in Thermal Motion -->
+    <path d="M15 31 L18 28" stroke="#fca5a5" stroke-width="1" stroke-dasharray="1 1"/>
+    <circle cx="18" cy="28" r="2.2" fill="url(#ico-gas-hot)"/>
+    <path d="M30 35 L26 31" stroke="#7dd3fc" stroke-width="1" stroke-dasharray="1 1"/>
+    <circle cx="26" cy="31" r="2" fill="url(#ico-gas-cold)"/>
+    <circle cx="32" cy="39" r="2.2" fill="url(#ico-gas-hot)"/>
+    <path d="M34 38 Q35 39 34 40" stroke="#fca5a5" stroke-width="1"/>
+    <circle cx="16" cy="38" r="1.8" fill="url(#ico-gas-cold)"/>
+    <path d="M23 37 L21 34" stroke="#fbbf24" stroke-width="1"/>
+    <circle cx="21" cy="34" r="2.4" fill="#fbbf24"/>
   </svg>`,
 
-  dna: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M2 15c6.667-6 13.333 0 20-6"/>
-    <path d="M2 9c6.667 6 13.333 0 20 6"/>
+  dna: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-dna-strand-a" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00f0ff"/>
+        <stop offset="50%" stop-color="#0284c7"/>
+        <stop offset="100%" stop-color="#0369a1"/>
+      </linearGradient>
+      <linearGradient id="ico-dna-strand-b" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f43f5e"/>
+        <stop offset="50%" stop-color="#d946ef"/>
+        <stop offset="100%" stop-color="#8b5cf6"/>
+      </linearGradient>
+      <radialGradient id="ico-dna-node-a" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="40%" stop-color="#00f0ff"/>
+        <stop offset="100%" stop-color="#0284c7"/>
+      </radialGradient>
+      <radialGradient id="ico-dna-node-b" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="40%" stop-color="#fb7185"/>
+        <stop offset="100%" stop-color="#e11d48"/>
+      </radialGradient>
+      <radialGradient id="ico-dna-prot" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#fef08a"/>
+        <stop offset="40%" stop-color="#fbbf24"/>
+        <stop offset="100%" stop-color="#d97706"/>
+      </radialGradient>
+    </defs>
+    <!-- Background Complementary Hydrogen Bond Rungs -->
+    <path d="M15 10 H33" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+    <path d="M19 16 H29" stroke="#fbbf24" stroke-width="2" stroke-linecap="round"/>
+    <path d="M21 24 H27" stroke="#34d399" stroke-width="2" stroke-linecap="round"/>
+    <path d="M19 32 H29" stroke="#f43f5e" stroke-width="2" stroke-linecap="round"/>
+    <path d="M15 38 H33" stroke="#a855f7" stroke-width="2" stroke-linecap="round"/>
+    <!-- Hydrogen Bond Center Cleavage Nodes (A-T, G-C) -->
+    <circle cx="24" cy="10" r="1.2" fill="#ffffff"/>
+    <circle cx="24" cy="16" r="1.2" fill="#ffffff"/>
+    <circle cx="24" cy="24" r="1.2" fill="#ffffff"/>
+    <circle cx="24" cy="32" r="1.2" fill="#ffffff"/>
+    <circle cx="24" cy="38" r="1.2" fill="#ffffff"/>
+    <!-- Double Helix Strand 1 (Sinusoidal Spline Front) -->
+    <path d="M14 6 C14 16 34 16 34 24 C34 32 14 32 14 42" fill="none" stroke="url(#ico-dna-strand-a)" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- Double Helix Strand 2 (Sinusoidal Spline Phase Inverted) -->
+    <path d="M34 6 C34 16 14 16 14 24 C14 32 34 32 34 42" fill="none" stroke="url(#ico-dna-strand-b)" stroke-width="3.5" stroke-linecap="round"/>
+    <!-- Major & Minor Groove Globular Backbone Phosphates -->
+    <circle cx="14" cy="6" r="2.8" fill="url(#ico-dna-node-a)"/>
+    <circle cx="34" cy="6" r="2.8" fill="url(#ico-dna-node-b)"/>
+    <circle cx="24" cy="15" r="2.2" fill="url(#ico-dna-node-a)"/>
+    <circle cx="34" cy="24" r="2.8" fill="url(#ico-dna-node-a)"/>
+    <circle cx="14" cy="24" r="2.8" fill="url(#ico-dna-node-b)"/>
+    <circle cx="24" cy="33" r="2.2" fill="url(#ico-dna-node-b)"/>
+    <circle cx="14" cy="42" r="2.8" fill="url(#ico-dna-node-a)"/>
+    <circle cx="34" cy="42" r="2.8" fill="url(#ico-dna-node-b)"/>
+    <!-- Protein Synthesis: Emerging Ribosomal Peptide Chain -->
+    <g transform="translate(6, 0)">
+      <path d="M32 20 Q38 18 40 12" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
+      <circle cx="36" cy="18" r="2" fill="url(#ico-dna-prot)"/>
+      <circle cx="40" cy="13" r="2.4" fill="#34d399"/>
+      <circle cx="42" cy="7" r="2" fill="#ec4899"/>
+    </g>
   </svg>`,
 
   quiz: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -180,12 +583,59 @@ export const icons = {
     <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
   </svg>`,
 
-  punnett: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="3" width="18" height="18" rx="2"/>
-    <line x1="12" y1="3" x2="12" y2="21"/>
-    <line x1="3" y1="12" x2="21" y2="12"/>
-    <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/>
-    <circle cx="16.5" cy="16.5" r="1.5" fill="currentColor"/>
+  punnett: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-pun-frame" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#1e293b"/>
+        <stop offset="100%" stop-color="#0f172a"/>
+      </linearGradient>
+      <linearGradient id="ico-pun-gridline" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="100%" stop-color="#818cf8"/>
+      </linearGradient>
+      <!-- 3D Golden-Yellow Smooth Round Pea (Dominant R phenotype) -->
+      <radialGradient id="ico-pun-round-pea" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="25%" stop-color="#fef08a"/>
+        <stop offset="65%" stop-color="#eab308"/>
+        <stop offset="100%" stop-color="#a16207"/>
+      </radialGradient>
+      <!-- 3D Emerald-Green Textured Wrinkled Pea (Recessive r phenotype) -->
+      <radialGradient id="ico-pun-wrinkled-pea" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#a7f3d0"/>
+        <stop offset="40%" stop-color="#10b981"/>
+        <stop offset="85%" stop-color="#047857"/>
+        <stop offset="100%" stop-color="#064e3b"/>
+      </radialGradient>
+    </defs>
+    <!-- 2x2 Mendelian Genetics Matrix Frame -->
+    <rect x="13" y="13" width="31" height="31" rx="4" fill="url(#ico-pun-frame)" stroke="#334155" stroke-width="1.5"/>
+    <!-- Matrix Dividers -->
+    <path d="M28.5 13 V44" stroke="url(#ico-pun-gridline)" stroke-width="2"/>
+    <path d="M13 28.5 H44" stroke="url(#ico-pun-gridline)" stroke-width="2"/>
+    <!-- Parental Allele Badges -->
+    <circle cx="21" cy="7.5" r="4.5" fill="#0284c7"/>
+    <text x="18.5" y="10" fill="#ffffff" font-size="7" font-family="system-ui, sans-serif" font-weight="900">R</text>
+    <circle cx="36" cy="7.5" r="4.5" fill="#7c3aed"/>
+    <text x="34.2" y="10" fill="#ffffff" font-size="7" font-family="system-ui, sans-serif" font-weight="900">r</text>
+    <circle cx="7.5" cy="21" r="4.5" fill="#0284c7"/>
+    <text x="5" y="23.5" fill="#ffffff" font-size="7" font-family="system-ui, sans-serif" font-weight="900">R</text>
+    <circle cx="7.5" cy="36" r="4.5" fill="#7c3aed"/>
+    <text x="5.7" y="38.5" fill="#ffffff" font-size="7" font-family="system-ui, sans-serif" font-weight="900">r</text>
+    <!-- Quadrant 1 (Top-Left RR: Round Yellow Pea) -->
+    <circle cx="21" cy="21" r="5.2" fill="url(#ico-pun-round-pea)"/>
+    <circle cx="19.5" cy="19.2" r="1.4" fill="#ffffff" fill-opacity="0.8"/>
+    <!-- Quadrant 2 (Top-Right Rr: Round Yellow Pea) -->
+    <circle cx="36.5" cy="21" r="5.2" fill="url(#ico-pun-round-pea)"/>
+    <circle cx="35" cy="19.2" r="1.4" fill="#ffffff" fill-opacity="0.8"/>
+    <!-- Quadrant 3 (Bottom-Left Rr: Round Yellow Pea) -->
+    <circle cx="21" cy="36.5" r="5.2" fill="url(#ico-pun-round-pea)"/>
+    <circle cx="19.5" cy="34.7" r="1.4" fill="#ffffff" fill-opacity="0.8"/>
+    <!-- Quadrant 4 (Bottom-Right rr: Wrinkled Green Pea with Dimpled Lobes) -->
+    <path d="M36.5 31.5 C38.5 31.5 40 33 40.5 34.5 C41.5 36 41 38 39.5 39.5 C38 41 36 41.5 34 40.5 C32.5 39.5 32 37.5 33 35.5 C34 33.5 35 31.5 36.5 31.5 Z" fill="url(#ico-pun-wrinkled-pea)"/>
+    <path d="M35 34.5 Q36.5 36 38.5 35" stroke="#047857" stroke-width="0.8" fill="none"/>
+    <path d="M36 37 Q37.5 38.5 39 37.5" stroke="#047857" stroke-width="0.8" fill="none"/>
+    <circle cx="35" cy="33.5" r="0.9" fill="#a7f3d0" fill-opacity="0.9"/>
   </svg>`,
 
   cards: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

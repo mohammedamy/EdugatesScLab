@@ -884,33 +884,42 @@ function renderVirtualLabsHub(container) {
         </p>
 
         <!-- 9 Lab Selector Tabs -->
-        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px;">
+        <div class="lab-nav-pills-container">
           <button class="btn ${AppState.activeLabId === 'projectile' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="projectile">
-            ${icons.projectile} Kinematics & Projectiles
+            <span class="lab-btn-icon-wrapper">${icons.projectile}</span>
+            <span class="lab-btn-title">Kinematics &amp; Projectiles</span>
           </button>
           <button class="btn ${AppState.activeLabId === 'titration' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="titration">
-            ${icons.titration} Acid-Base Titration
+            <span class="lab-btn-icon-wrapper">${icons.titration}</span>
+            <span class="lab-btn-title">Acid-Base Titration</span>
           </button>
           <button class="btn ${AppState.activeLabId === 'microscope' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="microscope">
-            ${icons.microscope} Ultra-HD Microscope
+            <span class="lab-btn-icon-wrapper">${icons.microscope}</span>
+            <span class="lab-btn-title">Ultra-HD Microscope</span>
           </button>
           <button class="btn ${AppState.activeLabId === 'ptable' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="ptable">
-            ${icons.periodicTable} Interactive Periodic Table
+            <span class="lab-btn-icon-wrapper">${icons.periodicTable}</span>
+            <span class="lab-btn-title">Interactive Periodic Table</span>
           </button>
           <button class="btn ${AppState.activeLabId === 'circuits' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="circuits">
-            ${icons.circuit} DC Circuits & Ohm's Law
+            <span class="lab-btn-icon-wrapper">${icons.circuit}</span>
+            <span class="lab-btn-title">DC Circuits &amp; Ohm's Law</span>
           </button>
           <button class="btn ${AppState.activeLabId === 'gaslaws' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="gaslaws">
-            ${icons.gasLaws} Gas Laws & Kinetic Theory
+            <span class="lab-btn-icon-wrapper">${icons.gasLaws}</span>
+            <span class="lab-btn-title">Gas Laws &amp; Kinetic Theory</span>
           </button>
           <button class="btn ${AppState.activeLabId === 'dnaprotein' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="dnaprotein">
-            ${icons.dna} DNA & Protein Synthesis
+            <span class="lab-btn-icon-wrapper">${icons.dna}</span>
+            <span class="lab-btn-title">DNA &amp; Protein Synthesis</span>
           </button>
           <button class="btn ${AppState.activeLabId === 'punnett' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="punnett">
-            ${icons.punnett} Punnett Genetics Cross
+            <span class="lab-btn-icon-wrapper">${icons.punnett}</span>
+            <span class="lab-btn-title">Punnett Genetics Cross</span>
           </button>
           <button class="btn ${AppState.activeLabId === 'optics' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="optics">
-            ${icons.optics} Geometric Optics Ray Tracing
+            <span class="lab-btn-icon-wrapper">${icons.optics}</span>
+            <span class="lab-btn-title">Geometric Optics Ray Tracing</span>
           </button>
         </div>
       </div>
