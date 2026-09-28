@@ -1788,8 +1788,8 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "formula": "\\text{Hypothesis} \\longrightarrow \\text{Experimental Test} \\longrightarrow \\text{Theory}",
     "inquiry": "Construct mathematical models to predict physical observations and test hypotheses.",
     "defaultParams": {
-      "v0": 5,
-      "a": 0,
+      "v0": 18,
+      "a": -3,
       "x0": 0
     }
   },
@@ -5741,33 +5741,55 @@ function buildActionPotentialInteractive(mountId, params) {
 
 
 /**
- * 10. Physics: 1D Kinematics
+ * 10. Physics: 1D Kinematics Laboratory (Dynamic Motion & Hypothesis Testing)
  */
 function buildKinematics1DInteractive(mountId, params) {
   const mount = document.getElementById(mountId);
   if (!mount) return;
 
-  let v0 = params.v0 || 10;
-  let a = params.a || -2.0;
+  params = params || {};
+  let v0 = params.v0 !== undefined ? Number(params.v0) : 18;
+  let a = params.a !== undefined ? Number(params.a) : -3.0;
+
+  let isRunning = false;
+  let simTime = 0.0;
+  let animId = null;
+  let lastTimestamp = null;
+  let completed = false;
 
   mount.innerHTML = `
     <div class="interactive-split-grid">
-      <div class="sim-canvas-box">
+      <div class="sim-canvas-box" style="position: relative;">
         <canvas id="${mountId}-canvas" width="380" height="260" style="width: 100%; height: 260px;"></canvas>
+        <div id="${mountId}-status-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; pointer-events: none; backdrop-filter: blur(4px);">
+          Hypothesis: Mathematical Prediction
+        </div>
       </div>
 
       <div class="sim-controls-panel">
-        <div class="sim-readout-pill">
-          <span class="readout-label">Stopping Time (v = 0):</span>
-          <span class="readout-val" id="${mountId}-tstop-val">5.0 s</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+          <div class="sim-readout-pill">
+            <span class="readout-label">Stopping Time (v = 0):</span>
+            <span class="readout-val" id="${mountId}-tstop-val">6.00 s</span>
+          </div>
+          <div class="sim-readout-pill">
+            <span class="readout-label">Total Distance:</span>
+            <span class="readout-val" id="${mountId}-dist-val">54.0 m</span>
+          </div>
         </div>
 
-        <div class="sim-readout-pill">
-          <span class="readout-label">Total Distance:</span>
-          <span class="readout-val" id="${mountId}-dist-val">25.0 m</span>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 4px;">
+          <div class="sim-readout-pill">
+            <span class="readout-label">Live Elapsed (t):</span>
+            <span class="readout-val" id="${mountId}-live-t" style="color: #38bdf8;">0.00 s</span>
+          </div>
+          <div class="sim-readout-pill">
+            <span class="readout-label">Live Velocity v(t):</span>
+            <span class="readout-val" id="${mountId}-live-v" style="color: #34d399;">${v0.toFixed(1)} m/s</span>
+          </div>
         </div>
 
-        <div class="control-slider-group">
+        <div class="control-slider-group" style="margin-top: 4px;">
           <div class="slider-header">
             <span>Initial Velocity (v₀):</span>
             <strong id="${mountId}-v0-lbl">${v0} m/s</strong>
@@ -5775,88 +5797,512 @@ function buildKinematics1DInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-v0-slider" min="0" max="30" step="1" value="${v0}">
         </div>
 
-        <div class="control-slider-group">
+        <div class="control-slider-group" style="margin-top: 4px;">
           <div class="slider-header">
             <span>Acceleration (a):</span>
             <strong id="${mountId}-a-lbl">${a} m/s²</strong>
           </div>
           <input type="range" class="range-slider" id="${mountId}-a-slider" min="-5.0" max="2.0" step="0.5" value="${a}">
         </div>
+
+        <div style="display: flex; gap: 8px; margin-top: 6px;">
+          <button class="btn btn-primary" id="${mountId}-btn-launch" style="flex: 1; padding: 7px 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span id="${mountId}-launch-icon">▶</span> <span id="${mountId}-launch-lbl">Launch Cart</span>
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-reset" style="padding: 7px 14px; font-weight: 600;">
+            ↺ Reset
+          </button>
+        </div>
+
+        <div class="sim-telemetry-box" style="margin-top: 6px; font-size: 0.72rem; line-height: 1.35;">
+          <div id="${mountId}-status-text" style="font-weight: 700; color: var(--text-main);">
+            Ready: Set parameters, observe theoretical hypothesis, then click Launch.
+          </div>
+          <div style="margin-top: 3px; font-family: monospace; color: var(--text-muted, #94a3b8);">
+            v(t) = v₀ + at • x(t) = v₀t + ½at²
+          </div>
+        </div>
       </div>
     </div>
   `;
 
   const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
 
-  function render() {
-    let tStop = a < 0 ? -v0 / a : 10;
-    let dist = v0 * tStop + 0.5 * a * tStop * tStop;
-    if (a >= 0) {
-      tStop = 10;
-      dist = v0 * 10 + 0.5 * a * 100;
-    }
+  const btnLaunch = document.getElementById(`${mountId}-btn-launch`);
+  const btnReset = document.getElementById(`${mountId}-btn-reset`);
+  const launchIcon = document.getElementById(`${mountId}-launch-icon`);
+  const launchLbl = document.getElementById(`${mountId}-launch-lbl`);
+  const statusBadge = document.getElementById(`${mountId}-status-badge`);
+  const statusText = document.getElementById(`${mountId}-status-text`);
 
-    document.getElementById(`${mountId}-tstop-val`).innerText = `${tStop.toFixed(2)} s`;
-    document.getElementById(`${mountId}-dist-val`).innerText = `${dist.toFixed(1)} m`;
+  const tstopVal = document.getElementById(`${mountId}-tstop-val`);
+  const distVal = document.getElementById(`${mountId}-dist-val`);
+  const liveTVal = document.getElementById(`${mountId}-live-t`);
+  const liveVVal = document.getElementById(`${mountId}-live-v`);
+  const v0Slider = document.getElementById(`${mountId}-v0-slider`);
+  const v0Lbl = document.getElementById(`${mountId}-v0-lbl`);
+  const aSlider = document.getElementById(`${mountId}-a-slider`);
+  const aLbl = document.getElementById(`${mountId}-a-lbl`);
+
+  function calcPredictions() {
+    let tStop = 10.0;
+    let dTotal = 0;
+    if (a < 0) {
+      tStop = v0 > 0 ? -v0 / a : 0;
+      dTotal = v0 * tStop + 0.5 * a * tStop * tStop;
+    } else if (a === 0) {
+      tStop = 10.0;
+      dTotal = v0 * 10;
+    } else {
+      tStop = 10.0;
+      dTotal = v0 * 10 + 0.5 * a * 100;
+    }
+    return { tStop, dTotal: Math.max(0, dTotal) };
+  }
+
+  function getKinematics(t) {
+    const { tStop, dTotal } = calcPredictions();
+    let curT = t;
+    let curV = 0;
+    let curX = 0;
+
+    if (a < 0) {
+      if (curT >= tStop) {
+        curT = tStop;
+        curV = 0;
+        curX = dTotal;
+      } else {
+        curV = Math.max(0, v0 + a * curT);
+        curX = Math.max(0, v0 * curT + 0.5 * a * curT * curT);
+      }
+    } else {
+      if (curT >= 10.0) {
+        curT = 10.0;
+      }
+      curV = v0 + a * curT;
+      curX = Math.max(0, v0 * curT + 0.5 * a * curT * curT);
+    }
+    return { curT, curV, curX, tStop, dTotal };
+  }
+
+  function render(kin) {
+    const { curT, curV, curX, tStop, dTotal } = kin;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Track
-    const ty = 180;
-    ctx.strokeStyle = "rgba(148, 163, 184, 0.5)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(30, ty);
-    ctx.lineTo(350, ty);
-    ctx.stroke();
+    // Deep dark background
+    ctx.fillStyle = "#070b14";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Distance markers
-    for (let x = 30; x <= 350; x += 40) {
+    // Subtle measurement backdrop grid
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.08)";
+    ctx.lineWidth = 1;
+    for (let gy = 25; gy < canvas.height; gy += 35) {
       ctx.beginPath();
-      ctx.moveTo(x, ty);
-      ctx.lineTo(x, ty + 6);
+      ctx.moveTo(0, gy);
+      ctx.lineTo(canvas.width, gy);
       ctx.stroke();
     }
 
-    // Vehicle
-    const carX = Math.min(310, 30 + (dist / Math.max(1, dist)) * 260);
-    ctx.fillStyle = "#38bdf8";
-    ctx.fillRect(carX, ty - 24, 40, 20);
+    // Dynamic Track Scale
+    const trackY = 175;
+    const trackStartX = 32;
+    const trackEndX = 348;
+    const trackW = trackEndX - trackStartX;
 
-    // Wheels
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(carX + 8, ty - 4, 5, 0, Math.PI * 2);
-    ctx.arc(carX + 32, ty - 4, 5, 0, Math.PI * 2);
-    ctx.fill();
+    let maxTrackDist = 60;
+    if (dTotal > 55) {
+      maxTrackDist = Math.max(60, Math.ceil(dTotal / 20) * 20);
+    }
+    if (maxTrackDist < 30) maxTrackDist = 30;
 
-    // Velocity vector arrow
-    ctx.strokeStyle = "#10b981";
+    const tickStep = maxTrackDist <= 60 ? 10 : (maxTrackDist <= 120 ? 20 : 50);
+
+    // Track Rail Extrusion
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(trackStartX - 6, trackY - 1, trackW + 12, 10);
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(trackStartX - 6, trackY - 1, trackW + 12, 10);
+
+    // Polished Chrome Rail Surface
+    ctx.strokeStyle = "rgba(226, 232, 240, 0.85)";
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(carX + 20, ty - 35);
-    ctx.lineTo(carX + 20 + v0 * 2, ty - 35);
+    ctx.moveTo(trackStartX - 4, trackY);
+    ctx.lineTo(trackEndX + 4, trackY);
     ctx.stroke();
 
-    ctx.fillStyle = "#10b981";
-    ctx.font = "bold 11px sans-serif";
+    // End Stop Bumpers
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(trackStartX - 8, trackY - 16, 5, 22);
+    ctx.fillRect(trackEndX + 3, trackY - 16, 5, 22);
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(trackStartX - 3, trackY - 10, 3, 10);
+    ctx.fillRect(trackEndX, trackY - 10, 3, 10);
+
+    // Distance metric ticks & labels
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "9px monospace";
+    ctx.textAlign = "center";
+    for (let m = 0; m <= maxTrackDist; m += tickStep) {
+      const frac = m / maxTrackDist;
+      const tx = trackStartX + frac * trackW;
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.7)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(tx, trackY);
+      ctx.lineTo(tx, trackY + 7);
+      ctx.stroke();
+
+      ctx.fillText(`${m}m`, tx, trackY + 18);
+    }
+
+    // Hypothesis Target Line (Stopping Point Prediction)
+    if (a < 0 && dTotal > 0 && dTotal <= maxTrackDist) {
+      const targetX = trackStartX + (dTotal / maxTrackDist) * trackW;
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.75)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(targetX, trackY - 44);
+      ctx.lineTo(targetX, trackY + 1);
+      ctx.stroke();
+      ctx.restore();
+
+      // Flag / Badge
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 9px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`Target: ${dTotal.toFixed(1)}m`, targetX, trackY - 48);
+      ctx.beginPath();
+      ctx.arc(targetX, trackY - 44, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Cart Placement
+    const carW = 42;
+    const carH = 18;
+    const carFrac = Math.min(1.0, Math.max(0, curX / maxTrackDist));
+    const carCenterX = (trackStartX + 21) + carFrac * (trackW - 42);
+    const carLeft = carCenterX - 21;
+    const carTop = trackY - carH - 7;
+
+    // Motion streaks when actively traveling
+    if (curV > 0.5) {
+      for (let i = 1; i <= 3; i++) {
+        const trailX = carLeft - i * (curV * 0.4);
+        if (trailX > trackStartX) {
+          ctx.fillStyle = `rgba(56, 189, 248, ${0.25 / i})`;
+          ctx.fillRect(trailX, carTop + 4, 12, 10);
+        }
+      }
+    }
+
+    // Cart Chassis
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(carLeft, carTop + carH - 2, carW, 3);
+
+    // Dynamics Cart Main Body
+    const carGrad = ctx.createLinearGradient(carLeft, carTop, carLeft, carTop + carH);
+    carGrad.addColorStop(0, "#38bdf8");
+    carGrad.addColorStop(1, "#0284c7");
+    ctx.fillStyle = carGrad;
+    if (typeof ctx.roundRect === "function") {
+      ctx.beginPath();
+      ctx.roundRect(carLeft, carTop, carW, carH, 4);
+      ctx.fill();
+    } else {
+      ctx.fillRect(carLeft, carTop, carW, carH);
+    }
+    ctx.strokeStyle = "#7dd3fc";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Standard Lab Mass Payload (1.0 kg)
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(carCenterX - 10, carTop - 7, 20, 7);
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(carCenterX - 10, carTop - 7, 20, 7);
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = "bold 7px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("1.0 kg", carCenterX, carTop - 2);
+
+    // Photogate Interrupt Flag
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(carLeft + 8, carTop);
+    ctx.lineTo(carLeft + 8, carTop - 12);
+    ctx.stroke();
+    ctx.fillStyle = "#f43f5e";
+    ctx.fillRect(carLeft + 8, carTop - 12, 8, 5);
+
+    // Rotating Wheels with Spokes
+    const wheelR = 5.5;
+    const wheelY = trackY - wheelR;
+    const wheel1X = carLeft + 9;
+    const wheel2X = carLeft + 33;
+    const wheelAngle = (curX * 12) % (Math.PI * 2);
+
+    function drawWheel(wx, wy) {
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.arc(wx, wy, wheelR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1;
+      for (let k = 0; k < 4; k++) {
+        const spAng = wheelAngle + (k * Math.PI) / 2;
+        ctx.beginPath();
+        ctx.moveTo(wx, wy);
+        ctx.lineTo(wx + Math.cos(spAng) * (wheelR - 1), wy + Math.sin(spAng) * (wheelR - 1));
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(wx, wy, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    drawWheel(wheel1X, wheelY);
+    drawWheel(wheel2X, wheelY);
+
+    // 1. Velocity Vector (Green Arrow)
+    const vArrowY = carTop - 18;
+    const vScale = 2.4;
+    const vLen = Math.max(0, curV * vScale);
+
+    if (vLen > 2) {
+      ctx.strokeStyle = "#10b981";
+      ctx.fillStyle = "#10b981";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(carCenterX, vArrowY);
+      ctx.lineTo(carCenterX + vLen, vArrowY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(carCenterX + vLen, vArrowY);
+      ctx.lineTo(carCenterX + vLen - 6, vArrowY - 3.5);
+      ctx.lineTo(carCenterX + vLen - 6, vArrowY + 3.5);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = "bold 10px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(`v = ${curV.toFixed(1)} m/s`, carCenterX + 4, vArrowY - 5);
+    } else if (curV === 0 && completed) {
+      ctx.fillStyle = "#34d399";
+      ctx.font = "bold 10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`v = 0.0 m/s (Rest)`, carCenterX, vArrowY - 2);
+    }
+
+    // 2. Acceleration Vector (Amber Arrow)
+    if (Math.abs(a) > 0.01) {
+      const aArrowY = vArrowY - 14;
+      const aLen = a * 12;
+      const aStartX = carCenterX;
+      const aEndX = carCenterX + aLen;
+
+      ctx.strokeStyle = "#f59e0b";
+      ctx.fillStyle = "#f59e0b";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(aStartX, aArrowY);
+      ctx.lineTo(aEndX, aArrowY);
+      ctx.stroke();
+
+      const dir = a > 0 ? 1 : -1;
+      ctx.beginPath();
+      ctx.moveTo(aEndX, aArrowY);
+      ctx.lineTo(aEndX - dir * 5, aArrowY - 3);
+      ctx.lineTo(aEndX - dir * 5, aArrowY + 3);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = "bold 9px sans-serif";
+      ctx.textAlign = a > 0 ? "left" : "right";
+      ctx.fillText(`a = ${a > 0 ? "+" : ""}${a.toFixed(1)} m/s²`, aStartX + (a > 0 ? 4 : -4), aArrowY - 4);
+    }
+
+    // Telemetry HUD overlay
+    ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.lineWidth = 1;
+    const hudW = 140, hudH = 54, hudX = canvas.width - hudW - 10, hudY = 10;
+    if (typeof ctx.roundRect === "function") {
+      ctx.beginPath();
+      ctx.roundRect(hudX, hudY, hudW, hudH, 6);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(hudX, hudY, hudW, hudH);
+      ctx.strokeRect(hudX, hudY, hudW, hudH);
+    }
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "8px monospace";
     ctx.textAlign = "left";
-    ctx.fillText(`v = ${v0} m/s`, carX + 20, ty - 42);
+    ctx.fillText("EXPERIMENTAL TELEMETRY", hudX + 8, hudY + 12);
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 9px monospace";
+    ctx.fillText(`t  = ${curT.toFixed(2)} s`, hudX + 8, hudY + 25);
+    ctx.fillStyle = "#34d399";
+    ctx.fillText(`v  = ${curV.toFixed(1)} m/s`, hudX + 8, hudY + 37);
+    ctx.fillStyle = "#fbbf24";
+    ctx.fillText(`x  = ${curX.toFixed(1)} m`, hudX + 8, hudY + 49);
+
+    // Completed Banner
+    if (completed) {
+      ctx.fillStyle = "rgba(16, 185, 129, 0.15)";
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 1.5;
+      const bW = 320, bH = 26, bX = (canvas.width - bW) / 2, bY = 218;
+      if (typeof ctx.roundRect === "function") {
+        ctx.beginPath();
+        ctx.roundRect(bX, bY, bW, bH, 6);
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        ctx.fillRect(bX, bY, bW, bH);
+        ctx.strokeRect(bX, bY, bW, bH);
+      }
+
+      ctx.fillStyle = "#34d399";
+      ctx.font = "bold 10px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`✓ HYPOTHESIS CONFIRMED: Stopped at ${curX.toFixed(1)} m in ${curT.toFixed(2)} s`, canvas.width / 2, bY + 17);
+    }
   }
 
-  render();
+  function loop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+    lastTimestamp = timestamp;
 
-  document.getElementById(`${mountId}-v0-slider`).addEventListener("input", (e) => {
-    v0 = parseFloat(e.target.value);
-    document.getElementById(`${mountId}-v0-lbl`).innerText = `${v0} m/s`;
-    render();
+    const { tStop, dTotal } = calcPredictions();
+
+    if (isRunning) {
+      simTime += dt;
+      if (a < 0 && simTime >= tStop) {
+        simTime = tStop;
+        isRunning = false;
+        completed = true;
+        launchIcon.innerText = "↺";
+        launchLbl.innerText = "Rerun Trial";
+        statusBadge.innerText = "Test Complete • Hypothesis Verified";
+        statusBadge.style.color = "#34d399";
+        statusBadge.style.borderColor = "rgba(52, 211, 153, 0.5)";
+        statusText.innerHTML = `<span style="color: #34d399; font-weight: 700;">✓ Hypothesis Verified:</span> Cart came to a full stop exactly at x = ${dTotal.toFixed(1)} m at t = ${tStop.toFixed(2)} s as modeled!`;
+      } else if (a >= 0 && simTime >= 10.0) {
+        simTime = 10.0;
+        isRunning = false;
+        completed = true;
+        launchIcon.innerText = "↺";
+        launchLbl.innerText = "Rerun Trial";
+        statusBadge.innerText = "10.0s Limit Reached";
+        statusText.innerHTML = `<span style="color: #38bdf8; font-weight: 700;">10s Window Complete:</span> Cart traveled ${dTotal.toFixed(1)} m under continuous acceleration.`;
+      }
+    }
+
+    const kin = getKinematics(simTime);
+
+    // Update live readouts
+    tstopVal.innerText = `${kin.tStop.toFixed(2)} s`;
+    distVal.innerText = `${kin.dTotal.toFixed(1)} m`;
+    liveTVal.innerText = `${kin.curT.toFixed(2)} s`;
+    liveVVal.innerText = `${kin.curV.toFixed(1)} m/s`;
+
+    if (isRunning) {
+      statusText.innerHTML = `<span style="color: #38bdf8; font-weight: 700;">Testing in Progress:</span> ${a < 0 ? "Braking force decreasing velocity..." : (a > 0 ? "Forward acceleration increasing velocity..." : "Constant velocity cruise...")}`;
+    }
+
+    render(kin);
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isRunning = false;
   });
 
-  document.getElementById(`${mountId}-a-slider`).addEventListener("input", (e) => {
+  btnLaunch.addEventListener("click", () => {
+    if (isRunning) {
+      isRunning = false;
+      launchIcon.innerText = "▶";
+      launchLbl.innerText = "Resume Cart";
+      statusBadge.innerText = "Experiment Paused";
+      statusBadge.style.color = "#fbbf24";
+      statusBadge.style.borderColor = "rgba(251, 191, 36, 0.4)";
+    } else {
+      const { tStop } = calcPredictions();
+      if (completed || (a < 0 && simTime >= tStop) || (a >= 0 && simTime >= 10.0)) {
+        simTime = 0.0;
+        completed = false;
+      }
+      isRunning = true;
+      lastTimestamp = null;
+      launchIcon.innerText = "⏸";
+      launchLbl.innerText = "Pause Cart";
+      statusBadge.innerText = "Experiment in Progress...";
+      statusBadge.style.color = "#38bdf8";
+      statusBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
+    }
+  });
+
+  btnReset.addEventListener("click", () => {
+    isRunning = false;
+    simTime = 0.0;
+    completed = false;
+    lastTimestamp = null;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Launch Cart";
+    statusBadge.innerText = "Hypothesis: Mathematical Prediction";
+    statusBadge.style.color = "#38bdf8";
+    statusBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
+    statusText.innerText = "Ready: Set parameters, observe theoretical hypothesis, then click Launch.";
+  });
+
+  v0Slider.addEventListener("input", (e) => {
+    v0 = parseFloat(e.target.value);
+    v0Lbl.innerText = `${v0} m/s`;
+    simTime = 0.0;
+    isRunning = false;
+    completed = false;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Launch Cart";
+    statusBadge.innerText = "Hypothesis: Mathematical Prediction";
+    statusBadge.style.color = "#38bdf8";
+    statusBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
+    statusText.innerText = "Parameters updated. Theoretical stopping time and distance recalculated.";
+  });
+
+  aSlider.addEventListener("input", (e) => {
     a = parseFloat(e.target.value);
-    document.getElementById(`${mountId}-a-lbl`).innerText = `${a} m/s²`;
-    render();
+    aLbl.innerText = `${a} m/s²`;
+    simTime = 0.0;
+    isRunning = false;
+    completed = false;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Launch Cart";
+    statusBadge.innerText = "Hypothesis: Mathematical Prediction";
+    statusBadge.style.color = "#38bdf8";
+    statusBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
+    statusText.innerText = "Parameters updated. Theoretical stopping time and distance recalculated.";
   });
 }
 
