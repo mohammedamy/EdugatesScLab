@@ -39,34 +39,57 @@ const AppState = {
   activeLabId: "projectile"
 };
 
-// Initialize App
-document.addEventListener("DOMContentLoaded", () => {
+// Initialize App with fast boot execution for slow smartboards
+function bootApp() {
   setupDeviceDetection();
-  initSmartboardToolbar();
   renderAppShell();
   initCustomLogoDetector();
   bindGlobalEvents();
   renderCurrentView();
-});
+
+  // Defer floating smartboard pen bar canvas initialization slightly so first paint is instantaneous
+  if ("requestIdleCallback" in window) {
+    window.requestIdleCallback(() => initSmartboardToolbar(), { timeout: 250 });
+  } else {
+    setTimeout(initSmartboardToolbar, 60);
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", bootApp, { once: true });
+} else {
+  bootApp();
+}
 
 function initCustomLogoDetector() {
   // Official brand asset is assets/logo.png
 }
 
-
 function setupDeviceDetection() {
-  const w = window.innerWidth;
-  if (w >= 1800) {
-    document.body.classList.add("mode-smartboard");
+  const w = window.innerWidth || (window.screen ? window.screen.width : 1920);
+  const isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
+  const isLowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+  const savedMode = localStorage.getItem("edugates_device_mode");
+
+  if (savedMode) {
+    setDeviceMode(savedMode);
+  } else if (w >= 1800 || (isTouch && w >= 1150) || isLowCpu) {
+    setDeviceMode("smartboard");
   }
 }
 
 function setDeviceMode(mode) {
   AppState.deviceMode = mode;
-  document.body.classList.remove("mode-smartboard", "mode-tablet", "mode-mobile");
+  try {
+    localStorage.setItem("edugates_device_mode", mode);
+  } catch (e) {}
+
+  document.body.classList.remove("mode-smartboard", "mode-tablet", "mode-mobile", "fast-smartboard-mode");
+  document.documentElement.classList.remove("mode-smartboard", "fast-smartboard-mode");
 
   if (mode === "smartboard") {
-    document.body.classList.add("mode-smartboard");
+    document.body.classList.add("mode-smartboard", "fast-smartboard-mode");
+    document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
     document.documentElement.setAttribute("data-mode", "smartboard");
   } else if (mode === "tablet") {
     document.body.classList.add("mode-tablet");
@@ -76,7 +99,14 @@ function setDeviceMode(mode) {
     document.documentElement.setAttribute("data-mode", "mobile");
   } else {
     document.documentElement.removeAttribute("data-mode");
-    setupDeviceDetection();
+    const w = window.innerWidth || 1920;
+    const isTouch = navigator.maxTouchPoints > 0;
+    const isLowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+    if (w >= 1800 || (isTouch && w >= 1150) || isLowCpu) {
+      document.body.classList.add("mode-smartboard", "fast-smartboard-mode");
+      document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
+      document.documentElement.setAttribute("data-mode", "smartboard");
+    }
   }
 
   // Update active state in device toggle buttons
@@ -157,11 +187,11 @@ function renderAppShell() {
           <span>Mastery</span>
         </button>
 
-        <div class="device-mode-toggle" title="Screen Optimization Mode">
-          <button class="device-btn active" data-mode="auto">Auto</button>
-          <button class="device-btn" data-mode="smartboard" title="Smartboard Mode">Smartboard</button>
-          <button class="device-btn" data-mode="tablet" title="Tablet Mode">Tablet</button>
-          <button class="device-btn" data-mode="mobile" title="Mobile Mode">Mobile</button>
+        <div class="device-mode-toggle" title="Screen Optimization &amp; Hardware Profile">
+          <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto">Auto</button>
+          <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" title="Smartboard Fast Mode (Hardware Accelerated)">⚡ Smartboard</button>
+          <button class="device-btn ${AppState.deviceMode === 'tablet' ? 'active' : ''}" data-mode="tablet" title="Tablet Mode">Tablet</button>
+          <button class="device-btn ${AppState.deviceMode === 'mobile' ? 'active' : ''}" data-mode="mobile" title="Mobile Mode">Mobile</button>
         </div>
       </div>
     </header>
@@ -464,13 +494,14 @@ function renderSubjectView(container, curData, themeColor) {
     ${!isLessonsView ? `
       <!-- Chapters / Modules Grid with Textbook Opener Banners & Lesson Miniatures -->
       <div class="modules-grid" id="modules-cards-container">
-        ${filtered.map(m => {
+        ${filtered.map((m, mIdx) => {
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
+          const isTopPriority = mIdx < 3;
           return `
             <div class="module-card" data-mid="${m.id}" style="--card-accent: ${themeColor};">
               <!-- Textbook Chapter Opener Photo Banner -->
               <div class="module-card-banner">
-                <img src="${imgPath}" alt="${m.title}" class="module-banner-img" loading="lazy" onerror="this.onerror=null; this.src='assets/labs/circuits_bench.jpg';">
+                <img src="${imgPath}" alt="${m.title}" class="module-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.onerror=null; this.src='assets/labs/circuits_bench.jpg';">
                 <div class="module-banner-overlay"></div>
                 <div class="module-banner-badges">
                   <span class="module-code-badge">${m.code}</span>
@@ -500,7 +531,7 @@ function renderSubjectView(container, curData, themeColor) {
                       return `
                         <div class="lesson-row-card" data-mid="${m.id}" data-lid="${l.id}" title="Click to launch Lesson ${l.id} Interactive: ${l.title}">
                           <div class="lesson-row-pic">
-                            <img src="${imgPath}" alt="${l.title}" class="lesson-row-thumb-img" loading="lazy" onerror="this.onerror=null; this.src='assets/labs/circuits_bench.jpg';">
+                            <img src="${imgPath}" alt="${l.title}" class="lesson-row-thumb-img" loading="lazy" decoding="async" fetchpriority="low" onerror="this.onerror=null; this.src='assets/labs/circuits_bench.jpg';">
                           </div>
                           <div class="lesson-row-text">
                             <div class="lesson-row-num">Lesson ${l.id}</div>
@@ -533,14 +564,15 @@ function renderSubjectView(container, curData, themeColor) {
     ` : `
       <!-- Standalone Lesson Cards Grid: Each Lesson has its Dedicated Picture, Formula & Launcher -->
       <div class="lessons-full-grid" id="lessons-cards-container">
-        ${filtered.flatMap(m => m.lessons.map(l => ({ m, l }))).map(({ m, l }) => {
+        ${filtered.flatMap(m => m.lessons.map(l => ({ m, l }))).map(({ m, l }, idx) => {
           const spec = getLessonInteractiveSpec(curData.code, m.id, l.id);
           const iconEmoji = getLessonIconEmoji(spec.type);
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
+          const isTopPriority = idx < 4;
           return `
             <div class="lesson-card-full" data-mid="${m.id}" data-lid="${l.id}" style="--card-accent: ${themeColor};">
               <div class="lesson-card-banner">
-                <img src="${imgPath}" alt="${l.title}" class="lesson-banner-img" loading="lazy" onerror="this.onerror=null; this.src='assets/labs/circuits_bench.jpg';">
+                <img src="${imgPath}" alt="${l.title}" class="lesson-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.onerror=null; this.src='assets/labs/circuits_bench.jpg';">
                 <div class="lesson-banner-overlay"></div>
                 <div class="lesson-banner-badge-group">
                   <span class="lesson-card-mcode">${m.code}</span>

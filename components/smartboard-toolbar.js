@@ -100,13 +100,20 @@ export function initSmartboardToolbar() {
   document.body.appendChild(bar);
 
   const canvas = existingCanvas;
-  const ctx = canvas.getContext("2d");
+  // Use desynchronized 2d context for low-latency hardware-accelerated smartboard inking
+  const ctx = canvas.getContext("2d", { desynchronized: true, alpha: true }) || canvas.getContext("2d");
 
+  let resizeTimeout;
   function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    if (canvas.width !== window.innerWidth || canvas.height !== window.innerHeight) {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
   }
-  window.addEventListener("resize", resize);
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(resize, 100);
+  });
   resize();
 
   // State
@@ -397,8 +404,16 @@ export function initSmartboardToolbar() {
   canvas.addEventListener("mousemove", moveDraw);
   window.addEventListener("mouseup", stopDraw);
 
-  canvas.addEventListener("touchstart", startDraw, { passive: true });
-  canvas.addEventListener("touchmove", moveDraw, { passive: true });
+  canvas.addEventListener("touchstart", (e) => {
+    if (currentTool !== "pointer") e.preventDefault();
+    startDraw(e);
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", (e) => {
+    if (currentTool !== "pointer") e.preventDefault();
+    moveDraw(e);
+  }, { passive: false });
+
   window.addEventListener("touchend", stopDraw);
 
   // Initialize

@@ -320,8 +320,11 @@ export function standaloneLatexToHtml(latex, displayMode = false) {
   return `<span class="math-rendered ${modeClass}" data-latex="${rawEsc}" data-display="${displayMode}">${parsed}</span>`;
 }
 
+// In-memory memoization cache for LaTeX rendering to prevent repetitive KaTeX computations on low-end CPUs
+const mathCache = new Map();
+
 /**
- * Master rendering function.
+ * Master rendering function with LRU-style cache.
  * Uses window.katex if available for full vector typesetting, otherwise uses our enhanced standalone parser.
  * Always includes data-latex attribute for reactive upgrades.
  */
@@ -336,7 +339,13 @@ export function renderLatex(latex, displayMode = false) {
     cleaned = cleaned.slice(1, -1).trim();
   }
 
+  const cacheKey = `${cleaned}___${displayMode}`;
+  if (mathCache.has(cacheKey)) {
+    return mathCache.get(cacheKey);
+  }
+
   const rawEsc = escapeHtmlAttr(cleaned);
+  let rendered = "";
 
   if (typeof window !== "undefined" && window.katex && typeof window.katex.renderToString === "function") {
     try {
@@ -345,13 +354,19 @@ export function renderLatex(latex, displayMode = false) {
         throwOnError: false,
         output: "html"
       });
-      return `<span class="math-katex-wrapper ${displayMode ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${displayMode}">${katexHtml}</span>`;
+      rendered = `<span class="math-katex-wrapper ${displayMode ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${displayMode}">${katexHtml}</span>`;
+      mathCache.set(cacheKey, rendered);
+      return rendered;
     } catch {
-      return standaloneLatexToHtml(cleaned, displayMode);
+      rendered = standaloneLatexToHtml(cleaned, displayMode);
+      mathCache.set(cacheKey, rendered);
+      return rendered;
     }
   }
 
-  return standaloneLatexToHtml(cleaned, displayMode);
+  rendered = standaloneLatexToHtml(cleaned, displayMode);
+  mathCache.set(cacheKey, rendered);
+  return rendered;
 }
 
 /**
@@ -379,6 +394,7 @@ export function formatMathText(text) {
 
 /**
  * Scans the entire document or a specific container and upgrades all [data-latex] elements using KaTeX
+ * Uses batched execution and cache to avoid locking the UI thread on slow smartboard processors.
  */
 export function upgradeAllMath(root = (typeof document !== "undefined" ? document : null)) {
   if (!root || typeof window === "undefined" || !window.katex || typeof window.katex.renderToString !== "function") {
@@ -386,22 +402,65 @@ export function upgradeAllMath(root = (typeof document !== "undefined" ? documen
   }
 
   const elements = root.querySelectorAll("[data-latex]:not(.katex-upgraded)");
-  for (const el of elements) {
+  if (!elements || elements.length === 0) return;
+
+  const processElement = (el) => {
     const raw = el.getAttribute("data-latex");
     const isDisplay = el.getAttribute("data-display") === "true";
-    if (!raw) continue;
+    if (!raw) return;
+
+    const cacheKey = `${raw}___${isDisplay}`;
+    if (mathCache.has(cacheKey)) {
+      const cached = mathCache.get(cacheKey);
+      el.outerHTML = cached;
+      return;
+    }
 
     try {
-      el.innerHTML = window.katex.renderToString(raw, {
+      const html = window.katex.renderToString(raw, {
         displayMode: isDisplay,
         throwOnError: false,
         output: "html"
       });
-      el.classList.add("katex-upgraded");
-      el.classList.remove("math-rendered");
-      el.classList.add("math-katex-wrapper");
+      const rawEsc = escapeHtmlAttr(raw);
+      const fullSpan = `<span class="math-katex-wrapper ${isDisplay ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${isDisplay}">${html}</span>`;
+      mathCache.set(cacheKey, fullSpan);
+      el.outerHTML = fullSpan;
     } catch {
-      // Keep existing standalone render if KaTeX throws an error on edge cases
+      el.classList.add("katex-upgraded");
+    }
+  };
+
+  // For small batches (< 20 elements), process synchronously
+  if (elements.length < 20) {
+    for (let i = 0; i < elements.length; i++) {
+      processElement(elements[i]);
+    }
+  } else {
+    // For large batches on slow processors, chunk with requestIdleCallback or requestAnimationFrame
+    const elArray = Array.from(elements);
+    let index = 0;
+    const chunkSize = 15;
+
+    const runChunk = () => {
+      const end = Math.min(index + chunkSize, elArray.length);
+      for (let i = index; i < end; i++) {
+        processElement(elArray[i]);
+      }
+      index = end;
+      if (index < elArray.length) {
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(runChunk, { timeout: 100 });
+        } else {
+          requestAnimationFrame(runChunk);
+        }
+      }
+    };
+
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(runChunk, { timeout: 100 });
+    } else {
+      requestAnimationFrame(runChunk);
     }
   }
 }
@@ -444,20 +503,10 @@ export function renderMathInElement(container) {
 if (typeof window !== "undefined") {
   window.upgradeAllMath = upgradeAllMath;
 
-  // Background watcher: checks if KaTeX library loads asynchronously via defer
-  let attempts = 0;
-  const watcher = setInterval(() => {
-    attempts++;
+  // Single safe check on window load or when KaTeX script finishes
+  window.addEventListener("load", () => {
     if (window.katex) {
-      clearInterval(watcher);
       upgradeAllMath();
     }
-    if (attempts > 35) {
-      clearInterval(watcher);
-    }
-  }, 120);
-
-  window.addEventListener("load", () => {
-    if (window.katex) upgradeAllMath();
-  });
+  }, { once: true });
 }

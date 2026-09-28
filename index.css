@@ -44,12 +44,73 @@
   --touch-target: 44px;
 }
 
-/* SMARTBOARD CLASSROOM MODE OVERRIDES */
+/* SMARTBOARD CLASSROOM & LOW-POWER PROCESSOR PERFORMANCE OPTIMIZATION */
 [data-mode="smartboard"],
-body.mode-smartboard {
+body.mode-smartboard,
+html.mode-smartboard,
+.fast-smartboard-mode {
   --nav-height: 96px;
   --touch-target: 64px;
   font-size: 19px;
+  scroll-behavior: smooth;
+}
+
+/* 1. Eliminate 4K Blurred Glow Blobs to free 100% GPU fill-rate */
+[data-mode="smartboard"] .bg-glow-container,
+body.mode-smartboard .bg-glow-container,
+html.mode-smartboard .bg-glow-container,
+.fast-smartboard-mode .bg-glow-container {
+  display: none !important;
+}
+
+/* 2. Eliminate expensive backdrop-filter Gaussian blurs across all smartboard UI elements */
+[data-mode="smartboard"] .app-navbar,
+body.mode-smartboard .app-navbar,
+.fast-smartboard-mode .app-navbar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #070a12 !important;
+}
+
+[data-mode="smartboard"] .hero-banner,
+body.mode-smartboard .hero-banner,
+.fast-smartboard-mode .hero-banner {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #0f172a !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-mode="smartboard"] .smartboard-pen-bar,
+body.mode-smartboard .smartboard-pen-bar,
+.fast-smartboard-mode .smartboard-pen-bar {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #0f172a !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
+}
+
+[data-mode="smartboard"] .module-card,
+body.mode-smartboard .module-card,
+.fast-smartboard-mode .module-card,
+[data-mode="smartboard"] .lesson-card-full,
+body.mode-smartboard .lesson-card-full,
+.fast-smartboard-mode .lesson-card-full,
+[data-mode="smartboard"] .modal-content-shell,
+body.mode-smartboard .modal-content-shell,
+.fast-smartboard-mode .modal-content-shell {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 3. Hardware rasterization promotion without style recalculation */
+[data-mode="smartboard"] .module-card,
+body.mode-smartboard .module-card,
+.fast-smartboard-mode .module-card,
+[data-mode="smartboard"] .lesson-card-full,
+body.mode-smartboard .lesson-card-full,
+.fast-smartboard-mode .lesson-card-full {
+  transform: translateZ(0);
 }
 
 [data-mode="smartboard"] .brand-logo-box,
@@ -573,8 +634,6 @@ html, body {
 .module-card {
   position: relative;
   background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 24px;
@@ -583,8 +642,10 @@ html, body {
   justify-content: space-between;
   gap: 16px;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 420px;
 }
 .module-card::before {
   content: '';
@@ -3136,8 +3197,10 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   border-radius: 8px;
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-color);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
   cursor: pointer;
+  content-visibility: auto;
+  contain-intrinsic-size: auto 65px;
 }
 
 [data-theme="day"] .lesson-row-card {
@@ -3339,8 +3402,10 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: all 0.25s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.2);
+  content-visibility: auto;
+  contain-intrinsic-size: auto 380px;
 }
 
 [data-theme="day"] .lesson-card-full {

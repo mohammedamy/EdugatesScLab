@@ -19,17 +19,39 @@
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="apple-touch-icon" href="assets/logo.png">
 
-  <!-- Preconnect to Google Fonts for instant typography loading -->
+  <!-- Preconnect & DNS-Prefetch for Fast CDN and Font Loading on Slow Smartboard Networks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;600;700&display=swap">
 
   <!-- KaTeX High-Precision Mathematical Typesetting -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" onload="if (window.upgradeAllMath) window.upgradeAllMath();"></script>
 
-  <!-- Stylesheet -->
+  <!-- Preload Core Stylesheet -->
+  <link rel="preload" href="index.css" as="style">
   <link rel="stylesheet" href="index.css">
+
+  <!-- Instant Hardware & Smartboard Processor Optimizer (Executes before first paint) -->
+  <script>
+    (function() {
+      try {
+        var w = window.innerWidth || (window.screen ? window.screen.width : 1920);
+        var isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
+        var isLowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+        var savedMode = localStorage.getItem("edugates_device_mode");
+        // Automatically activate smartboard high-performance profile on large touchscreens or low-core processors
+        if (savedMode === "smartboard" || (!savedMode && (w >= 1800 || (isTouch && w >= 1150) || isLowCpu))) {
+          document.documentElement.setAttribute("data-mode", "smartboard");
+          document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 
 <body>
