@@ -17474,6 +17474,10 @@ function buildGeneralMotionInteractive(mountId, spec) {
 
   function render() {
     t += 0.035;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    const tVal = document.getElementById(`${mountId}-t-val`);
+    if (tVal) tVal.style.color = isDay ? "#0284c7" : "#38bdf8";
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const cy = canvas.height / 2;
