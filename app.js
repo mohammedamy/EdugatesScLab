@@ -39,6 +39,64 @@ const AppState = {
   activeLabId: "projectile"
 };
 
+// Available Curricula and Laboratory Modules for Main Navigation Dropdown
+export const NAV_SUBJECTS = [
+  {
+    id: "chem",
+    name: "Chemistry",
+    badge: "23",
+    tagline: "23 Modules • Inspire Chemistry",
+    icon: icons.chemistry,
+    themeClass: "tab-chem",
+    color: "#06b6d4"
+  },
+  {
+    id: "bio",
+    name: "Biology",
+    badge: "27",
+    tagline: "27 Modules • Inspire Biology",
+    icon: icons.biology,
+    themeClass: "tab-bio",
+    color: "#10b981"
+  },
+  {
+    id: "phys",
+    name: "Physics",
+    badge: "24",
+    tagline: "24 Modules • Inspire Physics",
+    icon: icons.physics,
+    themeClass: "tab-phys",
+    color: "#6366f1"
+  },
+  {
+    id: "labs",
+    name: "Virtual Labs",
+    badge: "9 Labs",
+    tagline: "9 Interactive STEM Workbenches",
+    icon: icons.microscope,
+    themeClass: "tab-labs",
+    color: "#38bdf8"
+  },
+  {
+    id: "quiz",
+    name: "Quiz & Exams",
+    badge: "Test Gen",
+    tagline: "Auto Exam & Assessment Generator",
+    icon: icons.quiz,
+    themeClass: "tab-quiz",
+    color: "#f59e0b"
+  },
+  {
+    id: "flashcards",
+    name: "Flashcards",
+    badge: "STEM",
+    tagline: "Interactive Terminology Cards",
+    icon: icons.cards,
+    themeClass: "tab-flashcards",
+    color: "#ec4899"
+  }
+];
+
 // Initialize App with fast boot execution for slow smartboards
 function bootApp() {
   setupDeviceDetection();
@@ -117,6 +175,8 @@ function setDeviceMode(mode) {
 
 function renderAppShell() {
   const root = document.getElementById("app-root");
+  const curSub = NAV_SUBJECTS.find(s => s.id === AppState.currentTab) || NAV_SUBJECTS[0];
+
   root.innerHTML = `
     <!-- Ambient Lighting Glows -->
     <div class="bg-glow-container">
@@ -141,33 +201,54 @@ function renderAppShell() {
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="nav-center-tabs">
-        <button class="nav-tab-btn tab-chem active" data-tab="chem">
-          ${icons.chemistry}
-          <span>Chemistry (23)</span>
+      <!-- Navigation Subject Dropdown Menu -->
+      <div class="nav-dropdown-wrapper" id="nav-dropdown-wrapper">
+        <button class="nav-dropdown-trigger ${curSub.themeClass}" id="nav-dropdown-trigger" 
+                aria-haspopup="true" aria-expanded="false" 
+                title="Select Subject or Area (Chemistry, Biology, Physics, Labs, Quiz, Flashcards)">
+          <div class="nav-dropdown-trigger-icon" id="nav-dropdown-current-icon">
+            ${curSub.icon}
+          </div>
+          <div class="nav-dropdown-trigger-info">
+            <span class="nav-dropdown-current-label">Curriculum / Area</span>
+            <div class="nav-dropdown-current-row">
+              <span class="nav-dropdown-current-title" id="nav-dropdown-current-title">${curSub.name}</span>
+              <span class="nav-dropdown-current-badge" id="nav-dropdown-current-badge">${curSub.badge}</span>
+            </div>
+          </div>
+          <div class="nav-dropdown-chevron" id="nav-dropdown-chevron">
+            ${icons.chevronDown}
+          </div>
         </button>
-        <button class="nav-tab-btn tab-bio" data-tab="bio">
-          ${icons.biology}
-          <span>Biology (27)</span>
-        </button>
-        <button class="nav-tab-btn tab-phys" data-tab="phys">
-          ${icons.physics}
-          <span>Physics (24)</span>
-        </button>
-        <button class="nav-tab-btn" data-tab="labs">
-          ${icons.microscope}
-          <span>Virtual Labs (9)</span>
-        </button>
-        <button class="nav-tab-btn tab-quiz" data-tab="quiz">
-          ${icons.quiz}
-          <span>Quiz & Exams</span>
-        </button>
-        <button class="nav-tab-btn" data-tab="flashcards">
-          ${icons.cards}
-          <span>Flashcards</span>
-        </button>
-      </nav>
+
+        <!-- Dropdown Menu Panel -->
+        <div class="nav-dropdown-menu" id="nav-dropdown-menu" role="menu" aria-label="Curriculum and Laboratories Menu">
+          <div class="nav-dropdown-header">
+            <span class="nav-dropdown-header-title">Select Curriculum or Lab</span>
+            <span class="nav-dropdown-header-count">6 Available</span>
+          </div>
+          <div class="nav-dropdown-list">
+            ${NAV_SUBJECTS.map(sub => `
+              <button class="nav-dropdown-item ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
+                      data-tab="${sub.id}" role="menuitem" tabindex="-1">
+                <div class="nav-item-icon-box">
+                  ${sub.icon}
+                </div>
+                <div class="nav-item-content">
+                  <div class="nav-item-top">
+                    <span class="nav-item-title">${sub.name}</span>
+                    <span class="nav-item-badge">${sub.badge}</span>
+                  </div>
+                  <span class="nav-item-tagline">${sub.tagline}</span>
+                </div>
+                <div class="nav-item-check" aria-hidden="true">
+                  ${icons.check}
+                </div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
 
       <!-- Right Controls & Device Mode -->
       <div class="nav-right-controls">
@@ -201,6 +282,32 @@ function renderAppShell() {
   `;
 }
 
+export function toggleSubjectDropdown(forceState) {
+  const wrapper = document.getElementById("nav-dropdown-wrapper");
+  const trigger = document.getElementById("nav-dropdown-trigger");
+  if (!wrapper || !trigger) return;
+
+  const isOpen = forceState !== undefined ? forceState : !wrapper.classList.contains("open");
+  wrapper.classList.toggle("open", isOpen);
+  trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
+  if (isOpen) {
+    const activeItem = wrapper.querySelector(".nav-dropdown-item.active") || wrapper.querySelector(".nav-dropdown-item");
+    if (activeItem) {
+      setTimeout(() => activeItem.focus(), 50);
+    }
+  }
+}
+
+export function closeSubjectDropdown() {
+  const wrapper = document.getElementById("nav-dropdown-wrapper");
+  const trigger = document.getElementById("nav-dropdown-trigger");
+  if (wrapper && wrapper.classList.contains("open")) {
+    wrapper.classList.remove("open");
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
+  }
+}
+
 function toggleDayNightTheme() {
   const nextTheme = AppState.theme === "day" ? "night" : "day";
   setTheme(nextTheme);
@@ -230,11 +337,53 @@ function bindGlobalEvents() {
     switchTab("chem");
   });
 
-  // Tab Switchers
-  document.querySelectorAll(".nav-tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      switchTab(btn.dataset.tab);
+  // Dropdown Trigger Toggle
+  const dropdownTrigger = document.getElementById("nav-dropdown-trigger");
+  if (dropdownTrigger) {
+    dropdownTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleSubjectDropdown();
     });
+  }
+
+  // Dropdown Menu Item Switchers
+  document.querySelectorAll(".nav-dropdown-item").forEach(item => {
+    item.addEventListener("click", (e) => {
+      e.stopPropagation();
+      switchTab(item.dataset.tab);
+    });
+  });
+
+  // Light Dismiss on outside pointerdown
+  document.addEventListener("pointerdown", (e) => {
+    const wrapper = document.getElementById("nav-dropdown-wrapper");
+    if (wrapper && wrapper.classList.contains("open")) {
+      if (!wrapper.contains(e.target)) {
+        closeSubjectDropdown();
+      }
+    }
+  });
+
+  // Keyboard navigation & Escape dismiss
+  document.addEventListener("keydown", (e) => {
+    const wrapper = document.getElementById("nav-dropdown-wrapper");
+    if (!wrapper || !wrapper.classList.contains("open")) return;
+
+    if (e.key === "Escape") {
+      closeSubjectDropdown();
+      dropdownTrigger?.focus();
+    } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      const items = Array.from(wrapper.querySelectorAll(".nav-dropdown-item"));
+      const currentIndex = items.indexOf(document.activeElement);
+      let nextIndex = 0;
+      if (e.key === "ArrowDown") {
+        nextIndex = currentIndex >= 0 ? (currentIndex + 1) % items.length : 0;
+      } else {
+        nextIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+      }
+      items[nextIndex]?.focus();
+    }
   });
 
   // Device Mode Switchers
@@ -258,18 +407,40 @@ function switchTab(tabId) {
   AppState.selectedUnit = "ALL";
   AppState.searchQuery = "";
 
+  const sub = NAV_SUBJECTS.find(s => s.id === tabId) || NAV_SUBJECTS[0];
+
+  // Update dropdown trigger button appearance
+  const trigger = document.getElementById("nav-dropdown-trigger");
+  if (trigger) {
+    trigger.classList.remove("tab-chem", "tab-bio", "tab-phys", "tab-labs", "tab-quiz", "tab-flashcards");
+    trigger.classList.add(sub.themeClass);
+  }
+  const curIcon = document.getElementById("nav-dropdown-current-icon");
+  if (curIcon) curIcon.innerHTML = sub.icon;
+  const curTitle = document.getElementById("nav-dropdown-current-title");
+  if (curTitle) curTitle.textContent = sub.name;
+  const curBadge = document.getElementById("nav-dropdown-current-badge");
+  if (curBadge) curBadge.textContent = sub.badge;
+
+  // Update active state in dropdown items
+  document.querySelectorAll(".nav-dropdown-item").forEach(item => {
+    const isActive = item.dataset.tab === tabId;
+    item.classList.toggle("active", isActive);
+    item.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
+  // Backward compatibility with any legacy nav tabs
   document.querySelectorAll(".nav-tab-btn").forEach(b => {
     b.classList.toggle("active", b.dataset.tab === tabId);
   });
 
+  // Close dropdown menu
+  closeSubjectDropdown();
+
   // Shift atmospheric glow color
   const blob1 = document.querySelector(".blob-1");
   if (blob1) {
-    if (tabId === "chem") blob1.style.background = "#06b6d4";
-    else if (tabId === "bio") blob1.style.background = "#10b981";
-    else if (tabId === "phys") blob1.style.background = "#6366f1";
-    else if (tabId === "quiz") blob1.style.background = "#f59e0b";
-    else if (tabId === "flashcards") blob1.style.background = "#ec4899";
+    blob1.style.background = sub.color;
   }
 
   renderCurrentView();
