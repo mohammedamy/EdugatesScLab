@@ -3576,20 +3576,50 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 }
 
 /* Textbook Chapter Opener Photo Banner */
-.module-card-banner {
+.module-card-banner,
+.lesson-card-banner {
   position: relative;
   width: 100%;
   height: 145px;
   overflow: hidden;
-  background: var(--bg-surface-elevated);
+  background: radial-gradient(circle at top right, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+}
+
+.module-banner-fallback-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 68px;
+  height: 68px;
+  color: var(--card-accent, #38bdf8);
+  opacity: 0.15;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 1;
+}
+
+.module-banner-fallback-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.has-fallback-pattern .module-banner-fallback-icon {
+  opacity: 0.45;
+  transform: translate(-50%, -50%) scale(1.1);
 }
 
 .module-banner-img {
+  position: relative;
+  z-index: 2;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: center 25%;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
   display: block;
 }
 
@@ -3781,10 +3811,10 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 }
 
 .lesson-row-pic {
-  width: 46px;
-  height: 34px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   overflow: hidden;
   display: flex;
@@ -3800,11 +3830,13 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.lesson-row-thumb-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.lesson-row-icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
 }
 
 .lesson-row-card:hover .lesson-row-pic {

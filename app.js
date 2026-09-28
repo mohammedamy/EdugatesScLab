@@ -672,7 +672,10 @@ function renderSubjectView(container, curData, themeColor) {
             <div class="module-card" data-mid="${m.id}" style="--card-accent: ${themeColor};">
               <!-- Textbook Chapter Opener Photo Banner -->
               <div class="module-card-banner">
-                <img src="${imgPath}" alt="${m.title}" class="module-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.onerror=null; this.src='assets/labs/circuits_bench.jpg';">
+                <div class="module-banner-fallback-icon" aria-hidden="true">
+                  ${curData.code === 'CHEM' ? icons.chemistry : (curData.code === 'BIO' ? icons.biology : icons.physics)}
+                </div>
+                <img src="${imgPath}" alt="${m.title}" class="module-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.style.opacity='0'; this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="module-banner-overlay"></div>
                 <div class="module-banner-badges">
                   <span class="module-code-badge">${m.code}</span>
@@ -689,7 +692,7 @@ function renderSubjectView(container, curData, themeColor) {
                   </div>
                 </div>
 
-                <!-- Lessons in this Chapter with Small Pictures -->
+                <!-- Lessons in this Chapter with Topic Simulation Emblems -->
                 <div class="module-lessons-container">
                   <div class="module-lessons-header">
                     <span>Lessons in this Chapter</span>
@@ -701,8 +704,8 @@ function renderSubjectView(container, curData, themeColor) {
                       const iconEmoji = getLessonIconEmoji(spec.type);
                       return `
                         <div class="lesson-row-card" data-mid="${m.id}" data-lid="${l.id}" title="Click to launch Lesson ${l.id} Interactive: ${l.title}">
-                          <div class="lesson-row-pic">
-                            <img src="${imgPath}" alt="${l.title}" class="lesson-row-thumb-img" loading="lazy" decoding="async" fetchpriority="low" onerror="this.onerror=null; this.src='assets/labs/circuits_bench.jpg';">
+                          <div class="lesson-row-pic" title="${spec.title}">
+                            <span class="lesson-row-icon">${iconEmoji}</span>
                           </div>
                           <div class="lesson-row-text">
                             <div class="lesson-row-num">Lesson ${l.id}</div>
@@ -743,7 +746,10 @@ function renderSubjectView(container, curData, themeColor) {
           return `
             <div class="lesson-card-full" data-mid="${m.id}" data-lid="${l.id}" style="--card-accent: ${themeColor};">
               <div class="lesson-card-banner">
-                <img src="${imgPath}" alt="${l.title}" class="lesson-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.onerror=null; this.src='assets/labs/circuits_bench.jpg';">
+                <div class="module-banner-fallback-icon" aria-hidden="true">
+                  ${curData.code === 'CHEM' ? icons.chemistry : (curData.code === 'BIO' ? icons.biology : icons.physics)}
+                </div>
+                <img src="${imgPath}" alt="${l.title}" class="lesson-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.style.opacity='0'; this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="lesson-banner-overlay"></div>
                 <div class="lesson-banner-badge-group">
                   <span class="lesson-card-mcode">${m.code}</span>
