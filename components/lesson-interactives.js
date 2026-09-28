@@ -9462,20 +9462,29 @@ function buildPunnettInteractive(mountId, params) {
 
   let p1 = params.p1 || "Aa";
   let p2 = params.p2 || "Aa";
+  let traitMode = "seed"; // 'seed' (Yellow vs Green) or 'flower' (Purple vs White)
+  let viewMode = "grid"; // 'grid' (2x2 square) or 'population' (100 trials)
+  let fertilizeProgress = 1.0; // 0 to 1 during fertilization
+  let animId = null;
+  let sparkles = [];
+  let trialSeeds = [];
+  let trialCounts = { dom: 0, rec: 0 };
+  let lastTimestamp = null;
 
   mount.innerHTML = `
     <div class="interactive-split-grid">
-      <div class="sim-canvas-box" style="padding: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-        <div style="font-weight: 700; color: #10b981; font-size: 0.95rem; margin-bottom: 8px;">
-          Monohybrid Punnett Grid (2 × 2)
+      <div class="sim-canvas-box" style="position: relative;">
+        <canvas id="${mountId}-canvas" width="380" height="260" style="width: 100%; height: 260px; display: block;"></canvas>
+        <div id="${mountId}-punnett-grid-box" style="display: none;"></div>
+        <div id="${mountId}-gene-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; pointer-events: none; backdrop-filter: blur(4px);">
+          Mendelian Monohybrid Cross (F₁)
         </div>
-        <div id="${mountId}-punnett-grid-box" class="sim-telemetry-box" style="width: 260px; height: 190px; padding: 10px;"></div>
       </div>
 
       <div class="sim-controls-panel">
         <div class="sim-readout-pill">
           <span class="readout-label">Phenotypic Ratio:</span>
-          <span class="readout-val" id="${mountId}-ratio-val">3 Dominant : 1 Recessive</span>
+          <span class="readout-val" id="${mountId}-ratio-val" style="color: #38bdf8; font-weight: 800;">3 Dominant : 1 Recessive</span>
         </div>
 
         <div class="sim-readout-pill" style="background: rgba(16,185,129,0.15); color: #34d399;">
@@ -9483,10 +9492,17 @@ function buildPunnettInteractive(mountId, params) {
           <span class="readout-val" id="${mountId}-prob-val">75.0% (3/4)</span>
         </div>
 
+        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+          <button class="btn btn-primary" id="${mountId}-btn-fertilize" style="flex: 1.2; padding: 6px 4px; font-weight: 700; font-size: 0.74rem; display: flex; align-items: center; justify-content: center; gap: 5px;">
+            <span>🎲</span> <span>Fertilize Gametes</span>
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-trials" style="flex: 1; padding: 6px 4px; font-size: 0.74rem;">🌱 100-Trial Sim</button>
+        </div>
+
         <div class="control-slider-group">
           <div class="slider-header">
-            <span>Parent 1 Genotype:</span>
-            <select id="${mountId}-sel-p1" style="background: var(--bg-surface-elevated); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px;">
+            <span>Parent 1 Genotype (Pollen):</span>
+            <select id="${mountId}-sel-p1" style="background: var(--bg-surface-elevated); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 8px; font-size: 0.78rem;">
               <option value="AA" ${p1 === 'AA' ? 'selected' : ''}>AA (Homozygous Dominant)</option>
               <option value="Aa" ${p1 === 'Aa' ? 'selected' : ''}>Aa (Heterozygous)</option>
               <option value="aa" ${p1 === 'aa' ? 'selected' : ''}>aa (Homozygous Recessive)</option>
@@ -9496,8 +9512,8 @@ function buildPunnettInteractive(mountId, params) {
 
         <div class="control-slider-group">
           <div class="slider-header">
-            <span>Parent 2 Genotype:</span>
-            <select id="${mountId}-sel-p2" style="background: var(--bg-surface-elevated); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px 8px;">
+            <span>Parent 2 Genotype (Ovule):</span>
+            <select id="${mountId}-sel-p2" style="background: var(--bg-surface-elevated); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 8px; font-size: 0.78rem;">
               <option value="AA" ${p2 === 'AA' ? 'selected' : ''}>AA (Homozygous Dominant)</option>
               <option value="Aa" ${p2 === 'Aa' ? 'selected' : ''}>Aa (Heterozygous)</option>
               <option value="aa" ${p2 === 'aa' ? 'selected' : ''}>aa (Homozygous Recessive)</option>
@@ -9505,84 +9521,351 @@ function buildPunnettInteractive(mountId, params) {
           </div>
         </div>
 
-        <div class="sim-sub-card" style="border-radius: 6px; padding: 10px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">
+        <div class="sim-sub-card" style="border-radius: 6px; padding: 8px 10px; font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">
           <strong>Genotype Breakdown:</strong>
-          <div id="${mountId}-geno-breakdown" class="mini-punnett-breakdown" style="color: var(--text-main); font-weight: 700; margin-top: 4px;">25% AA • 50% Aa • 25% aa</div>
+          <div id="${mountId}-geno-breakdown" class="mini-punnett-breakdown" style="color: var(--text-main); font-weight: 700; margin-top: 2px;">25% AA • 50% Aa • 25% aa</div>
         </div>
       </div>
     </div>
   `;
 
-  function renderGrid() {
-    const box = document.getElementById(`${mountId}-punnett-grid-box`);
-    if (!box) return;
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
 
-    const g1 = [p1[0], p1[1]];
-    const g2 = [p2[0], p2[1]];
+  const btnFertilize = document.getElementById(`${mountId}-btn-fertilize`);
+  const btnTrials = document.getElementById(`${mountId}-btn-trials`);
+  const selP1 = document.getElementById(`${mountId}-sel-p1`);
+  const selP2 = document.getElementById(`${mountId}-sel-p2`);
+  const ratioVal = document.getElementById(`${mountId}-ratio-val`);
+  const probVal = document.getElementById(`${mountId}-prob-val`);
+  const genoBreakdown = document.getElementById(`${mountId}-geno-breakdown`);
 
-    const c00 = g1[0] + g2[0];
-    const c01 = g1[1] + g2[0];
-    const c10 = g1[0] + g2[1];
-    const c11 = g1[1] + g2[1];
-
-    function normG(g) {
-      if (g === "aA") return "Aa";
-      return g;
-    }
-
-    const offspring = [normG(c00), normG(c01), normG(c10), normG(c11)];
-    const dominantCount = offspring.filter(g => g.includes("A")).length;
-    const recessiveCount = 4 - dominantCount;
-
-    box.innerHTML = `
-      <div style="display: grid; grid-template-columns: 36px 1fr 1fr; grid-template-rows: 32px 1fr 1fr; gap: 4px; height: 100%; text-align: center; font-weight: 700;">
-        <div></div>
-        <div class="mini-punnett-allele-p1" style="color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${g1[0]}</div>
-        <div class="mini-punnett-allele-p1" style="color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${g1[1]}</div>
-
-        <div class="mini-punnett-allele-p2" style="color: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${g2[0]}</div>
-        <div class="mini-punnett-cell" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--text-main); font-size: 1.1rem;">
-          ${offspring[0]}
-        </div>
-        <div class="mini-punnett-cell" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--text-main); font-size: 1.1rem;">
-          ${offspring[1]}
-        </div>
-
-        <div class="mini-punnett-allele-p2" style="color: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">${g2[1]}</div>
-        <div class="mini-punnett-cell" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--text-main); font-size: 1.1rem;">
-          ${offspring[2]}
-        </div>
-        <div class="mini-punnett-cell" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-radius: 4px; display: flex; align-items: center; justify-content: center; color: var(--text-main); font-size: 1.1rem;">
-          ${offspring[3]}
-        </div>
-      </div>
-    `;
-
-    // Counts
-    const aaCount = offspring.filter(g => g === "AA").length;
-    const aLowerCount = offspring.filter(g => g === "Aa").length;
-    const recCount = offspring.filter(g => g === "aa").length;
-
-    const ratioVal = document.getElementById(`${mountId}-ratio-val`);
-    if (ratioVal) ratioVal.innerText = `${dominantCount} Dominant : ${recessiveCount} Recessive`;
-
-    const probVal = document.getElementById(`${mountId}-prob-val`);
-    if (probVal) probVal.innerText = `${((dominantCount / 4) * 100).toFixed(1)}% (${dominantCount}/4)`;
-
-    const bk = document.getElementById(`${mountId}-geno-breakdown`);
-    if (bk) bk.innerText = `${aaCount * 25}% AA • ${aLowerCount * 25}% Aa • ${recCount * 25}% aa`;
+  function normG(g) {
+    if (g === "aA") return "Aa";
+    return g;
   }
 
-  renderGrid();
+  function getOffspringData() {
+    const g1 = [p1[0], p1[1]];
+    const g2 = [p2[0], p2[1]];
+    const grid = [
+      normG(g1[0] + g2[0]),
+      normG(g1[1] + g2[0]),
+      normG(g1[0] + g2[1]),
+      normG(g1[1] + g2[1])
+    ];
+    const domCount = grid.filter(g => g.includes("A")).length;
+    const recCount = 4 - domCount;
+    const aaCount = grid.filter(g => g === "AA").length;
+    const aLowerCount = grid.filter(g => g === "Aa").length;
+    const recGenCount = grid.filter(g => g === "aa").length;
 
-  document.getElementById(`${mountId}-sel-p1`).addEventListener("change", (e) => {
-    p1 = e.target.value;
-    renderGrid();
+    return { g1, g2, grid, domCount, recCount, aaCount, aLowerCount, recGenCount };
+  }
+
+  function triggerFertilization() {
+    fertilizeProgress = 0;
+    viewMode = "grid";
+    btnTrials.innerText = "🌱 100-Trial Sim";
+
+    // Spawn fertilization sparkles
+    sparkles = [];
+    for (let i = 0; i < 24; i++) {
+      sparkles.push({
+        x: 190 + (Math.random() - 0.5) * 140,
+        y: 135 + (Math.random() - 0.5) * 140,
+        vx: (Math.random() - 0.5) * 90,
+        vy: (Math.random() - 0.5) * 90,
+        life: 0.7,
+        color: Math.random() > 0.5 ? "#fbbf24" : "#38bdf8"
+      });
+    }
+  }
+
+  function run100Trials() {
+    viewMode = "population";
+    btnTrials.innerText = "↺ Show Punnett Grid";
+    const data = getOffspringData();
+    trialSeeds = [];
+    trialCounts = { dom: 0, rec: 0 };
+
+    for (let i = 0; i < 100; i++) {
+      const chosenG = data.grid[Math.floor(Math.random() * 4)];
+      const isDom = chosenG.includes("A");
+      if (isDom) trialCounts.dom++;
+      else trialCounts.rec++;
+
+      trialSeeds.push({
+        idx: i,
+        genotype: chosenG,
+        isDom,
+        x: 60 + (i % 10) * 26 + 13,
+        y: 45 + Math.floor(i / 10) * 20 + 10,
+        scale: 0.1
+      });
+    }
+  }
+
+  function updateTexts() {
+    const data = getOffspringData();
+    if (ratioVal) ratioVal.innerText = `${data.domCount} Dominant : ${data.recCount} Recessive`;
+    if (probVal) probVal.innerText = `${((data.domCount / 4) * 100).toFixed(1)}% (${data.domCount}/4)`;
+    if (genoBreakdown) genoBreakdown.innerText = `${data.aaCount * 25}% AA • ${data.aLowerCount * 25}% Aa • ${data.recGenCount * 25}% aa`;
+  }
+
+  function drawPeaSeed(c, x, y, radius, isDom) {
+    c.save();
+    if (isDom) {
+      // Dominant Yellow Round Pea (golden sphere with 3D gradient)
+      const grad = c.createRadialGradient(x - radius * 0.35, y - radius * 0.35, radius * 0.1, x, y, radius);
+      grad.addColorStop(0, "#fef08a");
+      grad.addColorStop(0.4, "#facc15");
+      grad.addColorStop(0.9, "#ca8a04");
+      grad.addColorStop(1, "#854d0e");
+      c.fillStyle = grad;
+      c.beginPath();
+      c.arc(x, y, radius, 0, Math.PI * 2);
+      c.fill();
+      c.strokeStyle = "#a16207";
+      c.lineWidth = 1;
+      c.stroke();
+    } else {
+      // Recessive Green Wrinkled Pea
+      const grad = c.createRadialGradient(x - radius * 0.3, y - radius * 0.3, radius * 0.1, x, y, radius);
+      grad.addColorStop(0, "#86efac");
+      grad.addColorStop(0.5, "#22c55e");
+      grad.addColorStop(1, "#15803d");
+      c.fillStyle = grad;
+      c.beginPath();
+      c.arc(x, y, radius, 0, Math.PI * 2);
+      c.fill();
+
+      // Wrinkle indentation lines
+      c.strokeStyle = "rgba(20, 83, 45, 0.6)";
+      c.lineWidth = 1.2;
+      c.beginPath();
+      c.moveTo(x - radius * 0.5, y - radius * 0.2);
+      c.quadraticCurveTo(x, y + radius * 0.1, x + radius * 0.4, y - radius * 0.3);
+      c.moveTo(x - radius * 0.3, y + radius * 0.3);
+      c.quadraticCurveTo(x + radius * 0.1, y + radius * 0.4, x + radius * 0.5, y + radius * 0.1);
+      c.stroke();
+    }
+    c.restore();
+  }
+
+  function loop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.04);
+    lastTimestamp = timestamp;
+
+    fertilizeProgress = Math.min(1.0, fertilizeProgress + 1.8 * dt);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Workbench background
+    ctx.fillStyle = "#070b14";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const data = getOffspringData();
+
+    if (viewMode === "grid") {
+      // 2x2 Punnett Square on canvas
+      const startX = 115, startY = 65;
+      const cellSize = 95;
+
+      // Paternal Gametes (Top row header)
+      const p1Alleles = data.g1;
+      p1Alleles.forEach((al, idx) => {
+        const x = startX + idx * cellSize + cellSize / 2;
+        const y = startY - 26;
+
+        ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(x, y, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.font = "bold 15px 'JetBrains Mono', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(al, x, y + 5);
+
+        // Header label
+        if (idx === 0) {
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "bold 9px Inter, sans-serif";
+          ctx.fillText("PATERNAL (♂)", startX + cellSize, y - 22);
+        }
+      });
+
+      // Maternal Gametes (Left column header)
+      const p2Alleles = data.g2;
+      p2Alleles.forEach((al, idx) => {
+        const x = startX - 32;
+        const y = startY + idx * cellSize + cellSize / 2;
+
+        ctx.fillStyle = "rgba(236, 72, 153, 0.15)";
+        ctx.strokeStyle = "#ec4899";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(x, y, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#ec4899";
+        ctx.font = "bold 15px 'JetBrains Mono', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(al, x, y + 5);
+
+        if (idx === 0) {
+          ctx.save();
+          ctx.translate(x - 22, startY + cellSize);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "bold 9px Inter, sans-serif";
+          ctx.fillText("MATERNAL (♀)", 0, 0);
+          ctx.restore();
+        }
+      });
+
+      // 4 Offspring Grid Cells
+      for (let r = 0; r < 2; r++) {
+        for (let c = 0; c < 2; c++) {
+          const cellIdx = r * 2 + c;
+          const cx = startX + c * cellSize;
+          const cy = startY + r * cellSize;
+          const geno = data.grid[cellIdx];
+          const isDom = geno.includes("A");
+
+          // Cell Box Background
+          ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+          ctx.fillRect(cx, cy, cellSize, cellSize);
+          ctx.strokeStyle = fertilizeProgress < 1.0 ? "rgba(251, 191, 36, 0.6)" : "rgba(148, 163, 184, 0.35)";
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(cx, cy, cellSize, cellSize);
+
+          // Moving gametes into cell during animation
+          const p1FromX = startX + c * cellSize + cellSize / 2;
+          const p1FromY = startY - 26;
+          const p2FromX = startX - 32;
+          const p2FromY = startY + r * cellSize + cellSize / 2;
+
+          const targetX = cx + cellSize / 2;
+          const targetY = cy + 24;
+
+          const curP1X = p1FromX + (targetX - 12 - p1FromX) * fertilizeProgress;
+          const curP1Y = p1FromY + (targetY - p1FromY) * fertilizeProgress;
+
+          const curP2X = p2FromX + (targetX + 12 - p2FromX) * fertilizeProgress;
+          const curP2Y = p2FromY + (targetY - p2FromY) * fertilizeProgress;
+
+          // Draw migrating alleles
+          ctx.font = "bold 16px 'JetBrains Mono', monospace";
+          ctx.textAlign = "center";
+          ctx.fillStyle = "#38bdf8";
+          ctx.fillText(data.g1[c], curP1X, curP1Y);
+          ctx.fillStyle = "#ec4899";
+          ctx.fillText(data.g2[r], curP2X, curP2Y);
+
+          // Once fertilized, render phenotype pea and badge
+          if (fertilizeProgress > 0.4) {
+            const phenoScale = Math.min(1.0, (fertilizeProgress - 0.4) / 0.6);
+            const peaY = cy + 56;
+            drawPeaSeed(ctx, cx + cellSize / 2, peaY, 13 * phenoScale, isDom);
+
+            ctx.fillStyle = isDom ? "#facc15" : "#4ade80";
+            ctx.font = "bold 9px Inter, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(isDom ? "Yellow Round" : "Green Wrinkled", cx + cellSize / 2, cy + 84);
+          }
+        }
+      }
+
+      // Sparkles animation
+      for (let s = sparkles.length - 1; s >= 0; s--) {
+        const sp = sparkles[s];
+        sp.x += sp.vx * dt;
+        sp.y += sp.vy * dt;
+        sp.life -= dt;
+        if (sp.life <= 0) {
+          sparkles.splice(s, 1);
+          continue;
+        }
+        ctx.fillStyle = sp.color;
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, 2.5 * sp.life, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+    } else {
+      // 100-Trial Population View
+      ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+      ctx.fillRect(40, 25, 300, 220);
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(40, 25, 300, 220);
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "bold 10px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`MENDELIAN POPULATION SAMPLING (N = 100 SEEDS)`, 190, 40);
+
+      // Render 100 pea seeds in a 10x10 grid
+      trialSeeds.forEach(seed => {
+        if (seed.scale < 1.0) seed.scale = Math.min(1.0, seed.scale + 6.0 * dt);
+        drawPeaSeed(ctx, seed.x, seed.y + 16, 7 * seed.scale, seed.isDom);
+      });
+
+      // Bottom bar tally
+      const domPct = trialCounts.dom;
+      const recPct = trialCounts.rec;
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 10px Inter, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText(`🟡 Dominant (Y_): ${trialCounts.dom} (${domPct}%)`, 50, 232);
+
+      ctx.fillStyle = "#4ade80";
+      ctx.textAlign = "right";
+      ctx.fillText(`🟢 Recessive (yy): ${trialCounts.rec} (${recPct}%)`, 330, 232);
+    }
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  updateTexts();
+  triggerFertilization();
+
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
   });
 
-  document.getElementById(`${mountId}-sel-p2`).addEventListener("change", (e) => {
+  // Event Listeners
+  btnFertilize.addEventListener("click", () => {
+    triggerFertilization();
+  });
+
+  btnTrials.addEventListener("click", () => {
+    if (viewMode === "grid") {
+      run100Trials();
+    } else {
+      triggerFertilization();
+    }
+  });
+
+  selP1.addEventListener("change", (e) => {
+    p1 = e.target.value;
+    updateTexts();
+    triggerFertilization();
+  });
+
+  selP2.addEventListener("change", (e) => {
     p2 = e.target.value;
-    renderGrid();
+    updateTexts();
+    triggerFertilization();
   });
 }
 
