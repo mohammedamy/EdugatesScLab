@@ -2503,29 +2503,28 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "PHYS-M23-L1": {
-    "type": "phys-dc-circuit",
+    "type": "phys-energy-bands",
     "lessonBadge": "Lesson 1",
     "title": "Energy Bands in Solids: Conductors, Semiconductors, Insulators",
     "formula": "E_g \\text{ (Band Gap: Conductor } 0\\text{ eV}, \\text{Si } 1.1\\text{ eV}, \\text{Insulator } >5\\text{ eV})",
     "inquiry": "Examine valence and conduction energy bands and thermal electron excitation across band gaps.",
     "defaultParams": {
-      "voltage": 5,
-      "r1": 10,
-      "r2": 10,
-      "mode": "series"
+      "material": "silicon",
+      "temperature": 300,
+      "bias": 5
     }
   },
   "PHYS-M23-L2": {
-    "type": "phys-dc-circuit",
+    "type": "phys-semiconductor-diode",
     "lessonBadge": "Lesson 2",
     "title": "Semiconductor p-n Diodes and Transistors",
     "formula": "I = I_s \\left(e^{e V / k_B T} - 1\\right) \\quad (\\text{Diode Shockley Equation})",
     "inquiry": "Apply forward and reverse bias to a p-n junction diode to observe unilateral current rectification.",
     "defaultParams": {
-      "voltage": 8,
-      "r1": 8,
-      "r2": 12,
-      "mode": "series"
+      "voltage": 2.5,
+      "diodeType": "silicon",
+      "mode": "forward",
+      "rLoad": 220
     }
   },
   "PHYS-M24-L1": {
@@ -2833,6 +2832,10 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
     buildCoulombFieldInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("phys-dc-circuit")) {
     buildCircuitsInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("phys-semiconductor") || spec.type.startsWith("phys-diode")) {
+    buildSemiconductorDiodeInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("phys-energy-bands")) {
+    buildEnergyBandsInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("phys-lorentz-force")) {
     buildLorentzForceInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("phys-faraday-induction")) {
@@ -10292,6 +10295,1417 @@ function buildCircuitsInteractive(mountId, params) {
     }
   });
 }
+
+
+// Full implementations of buildSemiconductorDiodeInteractive and buildEnergyBandsInteractive
+// to test compilation and syntax before adding to lesson-interactives.js
+
+
+
+function buildSemiconductorDiodeInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  let voltage = (params && params.voltage !== undefined) ? params.voltage : 2.5; // Volts
+  let diodeType = (params && params.diodeType) ? params.diodeType : "silicon"; // silicon, germanium, redLed, greenLed
+  let mode = (params && params.mode) ? params.mode : "forward"; // forward, reverse, ac
+  let rLoad = (params && params.rLoad) ? params.rLoad : 220; // Ohms
+  let animId = null;
+
+  let wireFlowOffset = 0;
+  let acPhase = 0;
+
+  const diodeModels = {
+    silicon: {
+      name: "Silicon 1N4007",
+      shortName: "Silicon (0.7V)",
+      vKnee: 0.70,
+      Is: 2e-14,
+      eta: 1.05,
+      color: "#38bdf8",
+      pkgType: "silicon",
+      desc: "Standard planar Silicon p-n junction with 0.70V forward barrier"
+    },
+    germanium: {
+      name: "Germanium 1N34A",
+      shortName: "Germanium (0.3V)",
+      vKnee: 0.28,
+      Is: 2e-7,
+      eta: 1.05,
+      color: "#c084fc",
+      pkgType: "germanium",
+      desc: "Point-contact Germanium diode with low 0.28V knee threshold"
+    },
+    redLed: {
+      name: "Red LED (GaAsP)",
+      shortName: "Red LED (1.8V)",
+      vKnee: 1.85,
+      Is: 1e-18,
+      eta: 1.8,
+      color: "#ef4444",
+      pkgType: "led",
+      ledColor: "#ef4444",
+      wavelength: "650 nm",
+      desc: "Gallium Arsenide Phosphide LED emitting 650nm red photons"
+    },
+    greenLed: {
+      name: "Green LED (GaP)",
+      shortName: "Green LED (2.2V)",
+      vKnee: 2.20,
+      Is: 1e-20,
+      eta: 1.9,
+      color: "#22c55e",
+      pkgType: "led",
+      ledColor: "#22c55e",
+      wavelength: "530 nm",
+      desc: "Gallium Phosphide LED emitting 530nm green photons"
+    }
+  };
+
+  const Vt = 0.02585; // Thermal voltage at 300K
+
+  function solveOperatingPoint(Vs, m, R) {
+    if (Vs <= 0) {
+      return { Vd: Vs, Id: 0, Vr: 0 };
+    }
+    let Vd = Math.min(Vs, m.vKnee * 0.9);
+    for (let iter = 0; iter < 30; iter++) {
+      const expTerm = Math.exp(Math.min(Vd / (m.eta * Vt), 45));
+      const Id = m.Is * (expTerm - 1);
+      const f = Vd + Id * R - Vs;
+      const fPrime = 1 + (m.Is * R / (m.eta * Vt)) * expTerm;
+      const nextVd = Vd - f / fPrime;
+      if (Math.abs(nextVd - Vd) < 1e-5) {
+        Vd = nextVd;
+        break;
+      }
+      Vd = nextVd;
+    }
+    const Id = Math.max(0, (Vs - Vd) / R);
+    return { Vd, Id, Vr: Id * R };
+  }
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #070a14; border-radius: 8px; overflow: hidden;">
+        <canvas id="${mountId}-canvas" width="800" height="540" style="width: 100%; height: 270px; display: block;"></canvas>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div style="display: flex; gap: 5px; margin-bottom: 6px;">
+          <button class="btn-sim-action ${mode === 'forward' ? 'active' : ''}" id="${mountId}-btn-fwd" style="flex: 1; padding: 6px; font-weight: 700; font-size: 0.74rem;">
+            Forward Bias (+)
+          </button>
+          <button class="btn-sim-action ${mode === 'reverse' ? 'active' : ''}" id="${mountId}-btn-rev" style="flex: 1; padding: 6px; font-weight: 700; font-size: 0.74rem;">
+            Reverse Bias (-)
+          </button>
+          <button class="btn-sim-action ${mode === 'ac' ? 'active' : ''}" id="${mountId}-btn-ac" style="flex: 1; padding: 6px; font-weight: 700; font-size: 0.74rem;">
+            AC Rectifier (50Hz)
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+          <button class="btn-sim-action ${diodeType === 'silicon' ? 'active' : ''}" id="${mountId}-d-si" style="flex: 1; padding: 5px; font-size: 0.70rem; font-weight: 600;">Silicon (0.7V)</button>
+          <button class="btn-sim-action ${diodeType === 'germanium' ? 'active' : ''}" id="${mountId}-d-ge" style="flex: 1; padding: 5px; font-size: 0.70rem; font-weight: 600;">Ge (0.3V)</button>
+          <button class="btn-sim-action ${diodeType === 'redLed' ? 'active' : ''}" id="${mountId}-d-rled" style="flex: 1; padding: 5px; font-size: 0.70rem; font-weight: 600;">Red LED</button>
+          <button class="btn-sim-action ${diodeType === 'greenLed' ? 'active' : ''}" id="${mountId}-d-gled" style="flex: 1; padding: 5px; font-size: 0.70rem; font-weight: 600;">Green LED</button>
+        </div>
+
+        <div class="sim-readout-pill" id="${mountId}-vd-pill" style="font-weight: 700; transition: all 0.2s ease;">
+          <span class="readout-label" style="font-weight: 600;">Diode Drop (V_D):</span>
+          <span class="readout-val" id="${mountId}-vd-val" style="font-weight: 800;">0.73 V</span>
+        </div>
+
+        <div class="sim-readout-pill" id="${mountId}-id-pill" style="font-weight: 700; transition: all 0.2s ease;">
+          <span class="readout-label" style="font-weight: 600;">Diode Current (I_D):</span>
+          <span class="readout-val" id="${mountId}-id-val" style="font-weight: 800;">8.07 mA (5.9 mW)</span>
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span id="${mountId}-v-title">${mode === 'ac' ? 'AC Peak Voltage (V_pk):' : 'DC Supply Voltage (V_in):'}</span>
+            <strong id="${mountId}-v-lbl">${voltage.toFixed(1)} V</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-v-slider" min="0.0" max="6.0" step="0.1" value="${voltage}">
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Load Resistor (R_L):</span>
+            <strong id="${mountId}-r-lbl">${rLoad} Ω</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-r-slider" min="50" max="1000" step="10" value="${rLoad}">
+        </div>
+
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px; padding: 8px 12px; font-size: 0.76rem; border-radius: 8px;">
+          <div id="${mountId}-shockley-disp" style="font-weight: 700; font-family: var(--font-mono); line-height: 1.4;">Shockley: I_D = I_s · (e^{qV_D/ηkT} - 1)</div>
+          <div id="${mountId}-barrier-disp" style="font-weight: 700; font-family: var(--font-mono); margin-top: 2px; line-height: 1.4;">Barrier: V_knee = 0.70V • Depletion Width = 0.12 μm</div>
+          <div id="${mountId}-rect-disp" style="font-weight: 800; font-family: var(--font-mono); margin-top: 4px; line-height: 1.4;">State: FORWARD BIAS CONDUCTION ACTIVE</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  const ctx = canvas.getContext("2d");
+
+  function loop() {
+    acPhase += 0.08;
+    const curModel = diodeModels[diodeType] || diodeModels.silicon;
+
+    let effVs = voltage;
+    if (mode === "reverse") effVs = -voltage;
+    else if (mode === "ac") effVs = voltage * Math.sin(acPhase);
+
+    const sol = solveOperatingPoint(effVs, curModel, rLoad);
+    const vD = sol.Vd;
+    const iD = sol.Id;
+    const vR = sol.Vr;
+    const pD = Math.max(0, vD * iD);
+    const iDMa = iD * 1000;
+
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+
+    // Update Telemetry Elements with WCAG AAA Contrast
+    const vValEl = document.getElementById(`${mountId}-vd-val`);
+    const iValEl = document.getElementById(`${mountId}-id-val`);
+    const vPill = document.getElementById(`${mountId}-vd-pill`);
+    const iPill = document.getElementById(`${mountId}-id-pill`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const shockleyEl = document.getElementById(`${mountId}-shockley-disp`);
+    const barrierEl = document.getElementById(`${mountId}-barrier-disp`);
+    const rectEl = document.getElementById(`${mountId}-rect-disp`);
+
+    if (vValEl) vValEl.innerText = `${vD >= 0 ? '+' : ''}${vD.toFixed(2)} V`;
+    if (iValEl) iValEl.innerText = `${iDMa.toFixed(2)} mA (${(pD * 1000).toFixed(1)} mW)`;
+
+    const isConducting = iDMa > 0.05;
+    if (barrierEl) {
+      const depWidth = mode === "reverse" ? (0.8 + Math.min(1.2, Math.abs(effVs) * 0.25)) : (isConducting ? 0.08 : 0.45);
+      barrierEl.innerText = `Barrier: V_knee = ${curModel.vKnee.toFixed(2)}V • Depletion Width ≈ ${depWidth.toFixed(2)} μm`;
+    }
+
+    if (rectEl) {
+      if (mode === "ac") {
+        rectEl.innerText = isConducting
+          ? `AC Rectifier: POSITIVE HALF-CYCLE (Conduction: ${iDMa.toFixed(1)} mA)`
+          : `AC Rectifier: NEGATIVE HALF-CYCLE (Unilateral Blocking: 0 mA)`;
+      } else if (mode === "reverse") {
+        rectEl.innerText = `REVERSE BIAS: Carrier diffusion blocked (Leakage I_s = ${(curModel.Is * 1e9).toExponential(1)} nA)`;
+      } else {
+        rectEl.innerText = isConducting
+          ? `FORWARD BIAS ACTIVE: V_D exceeds ${curModel.vKnee.toFixed(2)}V threshold`
+          : `BELOW KNEE THRESHOLD: V_in (${voltage.toFixed(1)}V) < V_knee (${curModel.vKnee.toFixed(2)}V)`;
+      }
+    }
+
+    if (shockleyEl) {
+      shockleyEl.innerText = `${curModel.name}: η = ${curModel.eta} • I_s = ${curModel.Is.toExponential(1)} A • V_T = 25.8 mV`;
+    }
+
+    // Contrast theme styling
+    if (isDay) {
+      if (vPill) {
+        vPill.style.background = "#f8fafc";
+        vPill.style.borderColor = "#cbd5e1";
+        vPill.style.color = "#0f172a";
+        vValEl.style.color = "#0284c7";
+      }
+      if (iPill) {
+        iPill.style.background = isConducting ? "#ecfdf5" : "#fff1f2";
+        iPill.style.borderColor = isConducting ? "#a7f3d0" : "#fecdd3";
+        iPill.style.color = isConducting ? "#047857" : "#be123c";
+        iValEl.style.color = isConducting ? "#047857" : "#be123c";
+      }
+      if (teleBox) {
+        teleBox.style.background = "#ffffff";
+        teleBox.style.border = "1.5px solid #cbd5e1";
+        teleBox.style.boxShadow = "0 2px 8px rgba(15, 23, 42, 0.06)";
+        shockleyEl.style.color = "#0284c7";
+        barrierEl.style.color = "#b45309";
+        rectEl.style.color = isConducting ? "#047857" : "#be123c";
+      }
+    } else {
+      if (vPill) {
+        vPill.style.background = "rgba(15, 23, 42, 0.88)";
+        vPill.style.borderColor = "rgba(56, 189, 248, 0.28)";
+        vPill.style.color = "#e2e8f0";
+        vValEl.style.color = "#38bdf8";
+      }
+      if (iPill) {
+        iPill.style.background = isConducting ? "rgba(6, 78, 59, 0.4)" : "rgba(136, 19, 55, 0.35)";
+        iPill.style.borderColor = isConducting ? "rgba(16, 185, 129, 0.45)" : "rgba(244, 63, 94, 0.4)";
+        iPill.style.color = isConducting ? "#34d399" : "#fb7185";
+        iValEl.style.color = isConducting ? "#34d399" : "#fb7185";
+      }
+      if (teleBox) {
+        teleBox.style.background = "rgba(15, 23, 42, 0.95)";
+        teleBox.style.border = "1px solid rgba(56, 189, 248, 0.32)";
+        teleBox.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.35)";
+        shockleyEl.style.color = "#38bdf8";
+        barrierEl.style.color = "#fbbf24";
+        rectEl.style.color = isConducting ? "#34d399" : "#fb7185";
+      }
+    }
+
+    // ----------------------------------------------------
+    // RETINA 2X CANVAS RENDERING (800x540 buffer, 400x270 logic)
+    // ----------------------------------------------------
+    ctx.save();
+    ctx.scale(2, 2);
+    ctx.clearRect(0, 0, 400, 270);
+
+    // 1. Anti-static Workbench Background
+    ctx.fillStyle = "#070a14";
+    ctx.fillRect(0, 0, 400, 270);
+
+    // 2. Electronics Breadboard Chassis (Left Side: X=12..195, Y=14..256)
+    const bbX = 12, bbY = 14, bbW = 186, bbH = 242;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+    ctx.beginPath();
+    ctx.roundRect(bbX, bbY, bbW, bbH, 7);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(51, 65, 85, 0.85)";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    // Silkscreen PCB grid dots
+    ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+    for (let gx = bbX + 16; gx < bbX + bbW - 8; gx += 16) {
+      for (let gy = bbY + 16; gy < bbY + bbH - 8; gy += 16) {
+        ctx.beginPath();
+        ctx.arc(gx, gy, 1.1, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // 3. Benchtop Power Source (DC Supply or AC Function Generator)
+    const psX = 20, psY = 46, psW = 48, psH = 138;
+    const psGrad = ctx.createLinearGradient(psX, psY, psX + psW, psY + psH);
+    psGrad.addColorStop(0, "#334155");
+    psGrad.addColorStop(0.3, "#1e293b");
+    psGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = psGrad;
+    ctx.beginPath();
+    ctx.roundRect(psX, psY, psW, psH, 5);
+    ctx.fill();
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Header label
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 5.5px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(mode === "ac" ? "AC GENERATOR" : "DC BENCH SUPPLY", psX + psW / 2, psY + 12);
+
+    // VFD Display Window
+    ctx.fillStyle = "#020617";
+    ctx.beginPath();
+    ctx.roundRect(psX + 5, psY + 16, psW - 10, 26, 3);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // VFD Readout
+    ctx.fillStyle = mode === "ac" ? "#38bdf8" : "#f59e0b";
+    ctx.font = "bold 9.5px 'JetBrains Mono', monospace";
+    ctx.fillText(mode === "ac" ? `${voltage.toFixed(1)}Vpk` : `${voltage.toFixed(1)}V`, psX + psW / 2, psY + 29);
+    ctx.fillStyle = "#10b981";
+    ctx.font = "bold 6.5px 'JetBrains Mono', monospace";
+    ctx.fillText(mode === "ac" ? "50 Hz ~" : (mode === "reverse" ? "REV POL" : "FWD POL"), psX + psW / 2, psY + 38);
+
+    // Binding Posts
+    const postTopX = psX + psW / 2, postTopY = psY + 76;
+    const postBotX = psX + psW / 2, postBotY = psY + 116;
+
+    const isTopPositive = mode !== "reverse";
+    const topPostColor = isTopPositive ? "#ef4444" : "#1e293b";
+    const botPostColor = isTopPositive ? "#1e293b" : "#ef4444";
+
+    // Top Terminal
+    ctx.fillStyle = topPostColor;
+    ctx.beginPath();
+    ctx.arc(postTopX, postTopY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 8px monospace";
+    ctx.fillText(isTopPositive ? "+" : "-", postTopX - 10, postTopY + 3);
+
+    // Bottom Terminal
+    ctx.fillStyle = botPostColor;
+    ctx.beginPath();
+    ctx.arc(postBotX, postBotY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(isTopPositive ? "-" : "+", postBotX - 10, postBotY + 3);
+
+    // 4. In-Line Digital Milliammeter (Top Rail)
+    const ammX = 76, ammY = 24, ammW = 52, ammH = 22;
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath();
+    ctx.roundRect(ammX, ammY, ammW, ammH, 3);
+    ctx.fill();
+    ctx.strokeStyle = "#eab308";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    ctx.fillStyle = "#022c22";
+    ctx.beginPath();
+    ctx.roundRect(ammX + 3, ammY + 5, ammW - 6, ammH - 8, 2);
+    ctx.fill();
+
+    ctx.fillStyle = isConducting ? "#34d399" : "#64748b";
+    ctx.font = "bold 8px 'JetBrains Mono', monospace";
+    ctx.fillText(`${iDMa.toFixed(2)}mA`, ammX + ammW / 2, ammY + 15);
+
+    // 5. Circuit Wiring
+    const yTop = 35;
+    const yDiode = 85;
+    const yRes = 145;
+    const yBot = 220;
+    const colRight = 168;
+
+    ctx.lineWidth = 3;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    // Top rail: Supply -> Ammeter In
+    ctx.strokeStyle = isTopPositive ? "#ef4444" : "#475569";
+    ctx.beginPath();
+    ctx.moveTo(postTopX, postTopY);
+    ctx.lineTo(postTopX, yTop);
+    ctx.lineTo(ammX, yTop);
+    ctx.stroke();
+
+    // Ammeter Out -> Diode Anode
+    ctx.strokeStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.moveTo(ammX + ammW, yTop);
+    ctx.lineTo(colRight, yTop);
+    ctx.lineTo(colRight, yDiode);
+    ctx.lineTo(142, yDiode);
+    ctx.stroke();
+
+    // Diode Cathode -> Ballast Resistor
+    ctx.strokeStyle = "#fbbf24";
+    ctx.beginPath();
+    ctx.moveTo(108, yDiode);
+    ctx.lineTo(90, yDiode);
+    ctx.lineTo(90, yRes);
+    ctx.lineTo(108, yRes);
+    ctx.stroke();
+
+    // Resistor out -> Ground return rail -> Supply bottom terminal
+    ctx.strokeStyle = isTopPositive ? "#475569" : "#ef4444";
+    ctx.beginPath();
+    ctx.moveTo(148, yRes);
+    ctx.lineTo(colRight, yRes);
+    ctx.lineTo(colRight, yBot);
+    ctx.lineTo(postBotX, yBot);
+    ctx.lineTo(postBotX, postBotY);
+    ctx.stroke();
+
+    // 6. Draw Semiconductor Diode Component (at X=125, Y=yDiode)
+    const dX = 125, dY = yDiode;
+    drawRealisticDiode(ctx, dX, dY, curModel, isConducting, iDMa, vD);
+
+    // 7. Draw Ballast Resistor (at X=128, Y=yRes)
+    drawMiniResistor(ctx, 128, yRes, rLoad, vR);
+
+    // 8. Animate Flowing Charge Carriers along Wires
+    if (isConducting) {
+      wireFlowOffset = (wireFlowOffset + Math.min(6, iDMa * 0.45)) % 18;
+      const wirePath = [
+        { x: postTopX, y: postTopY },
+        { x: postTopX, y: yTop },
+        { x: colRight, y: yTop },
+        { x: colRight, y: yDiode },
+        { x: 90, y: yDiode },
+        { x: 90, y: yRes },
+        { x: colRight, y: yRes },
+        { x: colRight, y: yBot },
+        { x: postBotX, y: yBot },
+        { x: postBotX, postBotY }
+      ];
+      drawFlowAlongPath(ctx, wirePath, wireFlowOffset, "#38bdf8", 2.0);
+    }
+
+    // ----------------------------------------------------
+    // RIGHT PANEL: SHOCKLEY I-V CURVE OR AC OSCILLOSCOPE (X=206..388)
+    // ----------------------------------------------------
+    const scX = 206, scY = 14, scW = 182, scH = 242;
+    ctx.fillStyle = "#020617";
+    ctx.beginPath();
+    ctx.roundRect(scX, scY, scW, scH, 7);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+
+    if (mode === "ac") {
+      // DUAL TRACE OSCILLOSCOPE
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 6.5px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("AC RECTIFICATION OSCILLOSCOPE", scX + scW / 2, scY + 12);
+
+      // CRT Graticule Grid
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.12)";
+      ctx.lineWidth = 1;
+      for (let gx = scX + 16; gx < scX + scW; gx += 20) {
+        ctx.beginPath();
+        ctx.moveTo(gx, scY + 18);
+        ctx.lineTo(gx, scY + scH - 18);
+        ctx.stroke();
+      }
+      for (let gy = scY + 25; gy < scY + scH - 15; gy += 20) {
+        ctx.beginPath();
+        ctx.moveTo(scX + 8, gy);
+        ctx.lineTo(scX + scW - 8, gy);
+        ctx.stroke();
+      }
+
+      const centerY = scY + scH / 2;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+      ctx.beginPath();
+      ctx.moveTo(scX + 8, centerY);
+      ctx.lineTo(scX + scW - 8, centerY);
+      ctx.stroke();
+
+      // Channel 1: AC Input (Yellow)
+      ctx.strokeStyle = "#eab308";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      const waveW = scW - 20;
+      for (let i = 0; i <= waveW; i++) {
+        const t = (i / waveW) * Math.PI * 4 + acPhase;
+        const waveV = (voltage / 6.0) * 45 * Math.sin(t);
+        const px = scX + 10 + i;
+        const py = centerY - waveV;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Channel 2: Rectified Output across Load (Cyan)
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      for (let i = 0; i <= waveW; i++) {
+        const t = (i / waveW) * Math.PI * 4 + acPhase;
+        const rawV = voltage * Math.sin(t);
+        const rectV = Math.max(0, rawV - curModel.vKnee);
+        const waveV = (rectV / 6.0) * 45;
+        const px = scX + 10 + i;
+        const py = centerY - waveV;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Oscilloscope Legend
+      ctx.font = "bold 6.5px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#eab308";
+      ctx.textAlign = "left";
+      ctx.fillText("CH1: AC Input V_in(t)", scX + 12, scY + scH - 8);
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillText("CH2: Rectified DC V_out", scX + scW / 2 + 2, scY + scH - 8);
+
+    } else {
+      // SHOCKLEY I-V CHARACTERISTIC CURVE
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 6.5px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("SHOCKLEY I-V CHARACTERISTIC CURVE", scX + scW / 2, scY + 12);
+
+      // Graph Coordinates
+      const originX = scX + 54;
+      const originY = scY + scH - 42;
+      const scaleV = 36; // px per Volt
+      const scaleI = 5.8; // px per mA
+
+      // Grid Lines
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.12)";
+      ctx.lineWidth = 1;
+      for (let v = -1.5; v <= 3.0; v += 0.5) {
+        const gx = originX + v * scaleV;
+        if (gx > scX + 6 && gx < scX + scW - 6) {
+          ctx.beginPath();
+          ctx.moveTo(gx, scY + 20);
+          ctx.lineTo(gx, originY + 15);
+          ctx.stroke();
+        }
+      }
+      for (let i = 5; i <= 30; i += 5) {
+        const gy = originY - i * scaleI;
+        if (gy > scY + 20) {
+          ctx.beginPath();
+          ctx.moveTo(scX + 10, gy);
+          ctx.lineTo(scX + scW - 10, gy);
+          ctx.stroke();
+        }
+      }
+
+      // Axes
+      ctx.strokeStyle = "#64748b";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      // X-Axis (Voltage)
+      ctx.moveTo(scX + 10, originY);
+      ctx.lineTo(scX + scW - 10, originY);
+      // Y-Axis (Current)
+      ctx.moveTo(originX, scY + 20);
+      ctx.lineTo(originX, originY + 15);
+      ctx.stroke();
+
+      // Axis Labels
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "bold 6.5px 'JetBrains Mono', monospace";
+      ctx.textAlign = "right";
+      ctx.fillText("I_D (mA)", originX - 4, scY + 24);
+      ctx.textAlign = "center";
+      ctx.fillText("V_D (V)", scX + scW - 18, originY - 4);
+
+      // Knee Voltage Threshold Marker
+      const kneeX = originX + curModel.vKnee * scaleV;
+      ctx.strokeStyle = "rgba(245, 158, 11, 0.6)";
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(kneeX, scY + 24);
+      ctx.lineTo(kneeX, originY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#f59e0b";
+      ctx.font = "bold 6px sans-serif";
+      ctx.fillText(`V_knee=${curModel.vKnee.toFixed(2)}V`, kneeX, scY + 30);
+
+      // Plot Theoretical Shockley Curve
+      ctx.strokeStyle = curModel.color;
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      let firstPt = true;
+      for (let vx = -1.2; vx <= 3.2; vx += 0.04) {
+        let curveId = 0;
+        if (vx > 0) {
+          const expTerm = Math.exp(Math.min(vx / (curModel.eta * Vt), 45));
+          curveId = curModel.Is * (expTerm - 1) * 1000;
+        }
+        const px = originX + vx * scaleV;
+        const py = originY - curveId * scaleI;
+        if (px >= scX + 8 && px <= scX + scW - 8 && py >= scY + 20 && py <= originY + 15) {
+          if (firstPt) { ctx.moveTo(px, py); firstPt = false; }
+          else ctx.lineTo(px, py);
+        }
+      }
+      ctx.stroke();
+
+      // Active Operating Point Tracer
+      const opX = originX + vD * scaleV;
+      const opY = originY - iDMa * scaleI;
+
+      if (opX >= scX + 8 && opX <= scX + scW - 8 && opY >= scY + 18 && opY <= originY + 10) {
+        // Dashed lines to axes
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+        ctx.setLineDash([2, 2]);
+        ctx.beginPath();
+        ctx.moveTo(opX, originY);
+        ctx.lineTo(opX, opY);
+        ctx.lineTo(originX, opY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Glowing Tracer Dot
+        ctx.fillStyle = isConducting ? "#38bdf8" : "#f43f5e";
+        ctx.shadowColor = isConducting ? "#38bdf8" : "#f43f5e";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(opX, opY, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Coordinate Tag
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "bold 6.5px 'JetBrains Mono', monospace";
+        ctx.textAlign = opX > scX + scW - 50 ? "right" : "left";
+        ctx.fillText(`(${vD.toFixed(2)}V, ${iDMa.toFixed(1)}mA)`, opX + (opX > scX + scW - 50 ? -6 : 6), opY - 6);
+      }
+    }
+
+    ctx.restore(); // Exit 2x scale
+    animId = requestAnimationFrame(loop);
+  }
+
+  // Draw Realistic Diode (Silicon Cylinder, Germanium Glass, or LED)
+  function drawRealisticDiode(c, x, y, model, isConducting, iDMa, vD) {
+    c.save();
+    if (model.pkgType === "led") {
+      // 5mm LED Dome Lens
+      const w = 26, h = 18;
+      // Anvil & Post metallic lead frame inside
+      c.fillStyle = "#94a3b8";
+      c.fillRect(x - 6, y - 4, 4, 8);
+      c.fillRect(x + 2, y - 2, 4, 6);
+
+      // Translucent tinted epoxy lens dome
+      const ledGrad = c.createRadialGradient(x + 2, y, 2, x + 2, y, 14);
+      ledGrad.addColorStop(0, model.ledColor);
+      ledGrad.addColorStop(1, "rgba(15, 23, 42, 0.85)");
+      c.fillStyle = ledGrad;
+      c.beginPath();
+      c.arc(x + 2, y, 9, -Math.PI * 0.5, Math.PI * 0.5);
+      c.lineTo(x - 8, y + 9);
+      c.lineTo(x - 8, y - 9);
+      c.closePath();
+      c.fill();
+      c.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      c.lineWidth = 1.2;
+      c.stroke();
+
+      // Photonic emission radial bloom if conducting
+      if (isConducting && iDMa > 0.2) {
+        const intensity = Math.min(1.0, iDMa / 12);
+        const glowGrad = c.createRadialGradient(x + 2, y, 3, x + 2, y, 14 + intensity * 26);
+        glowGrad.addColorStop(0, `rgba(255, 255, 255, ${0.6 + intensity * 0.4})`);
+        glowGrad.addColorStop(0.3, model.ledColor);
+        glowGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        c.fillStyle = glowGrad;
+        c.beginPath();
+        c.arc(x + 2, y, 14 + intensity * 26, 0, Math.PI * 2);
+        c.fill();
+      }
+    } else if (model.pkgType === "germanium") {
+      // Clear Glass Envelope with internal whisker
+      const w = 30, h = 14;
+      c.fillStyle = "rgba(226, 232, 240, 0.15)";
+      c.beginPath();
+      c.roundRect(x - w / 2, y - h / 2, w, h, 3);
+      c.fill();
+      c.strokeStyle = "rgba(226, 232, 240, 0.7)";
+      c.lineWidth = 1.2;
+      c.stroke();
+
+      // Inner S-whisker wire
+      c.strokeStyle = "#d97706";
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(x - w / 2 + 3, y);
+      c.quadraticCurveTo(x, y - 4, x + 2, y);
+      c.lineTo(x + w / 2 - 5, y);
+      c.stroke();
+
+      // Red cathode band
+      c.fillStyle = "#ef4444";
+      c.fillRect(x - w / 2 + 5, y - h / 2, 3, h);
+    } else {
+      // Standard Black Silicon 1N4007
+      const w = 32, h = 15;
+      c.fillStyle = "#0f172a";
+      c.beginPath();
+      c.roundRect(x - w / 2, y - h / 2, w, h, 4);
+      c.fill();
+      c.strokeStyle = "#334155";
+      c.lineWidth = 1.2;
+      c.stroke();
+
+      // Specular highlight
+      c.fillStyle = "rgba(255, 255, 255, 0.25)";
+      c.fillRect(x - w / 2 + 3, y - h / 2 + 2, w - 6, 2.5);
+
+      // Silver Cathode Stripe (on left/right depending on orientation)
+      c.fillStyle = "#cbd5e1";
+      c.fillRect(x - w / 2 + 5, y - h / 2, 4, h);
+    }
+
+    // Schematic symbol silkscreen below component
+    c.fillStyle = "#94a3b8";
+    c.font = "bold 6.5px monospace";
+    c.textAlign = "center";
+    c.fillText("▶|", x, y + 15);
+    c.fillText(`${model.shortName}`, x, y - 12);
+    c.restore();
+  }
+
+  // Draw Ballast Resistor
+  function drawMiniResistor(c, x, y, ohms, vDrop) {
+    const w = 36, h = 14;
+    c.fillStyle = "#fde68a";
+    c.beginPath();
+    c.roundRect(x - w / 2, y - h / 2, w, h, 4);
+    c.fill();
+    c.strokeStyle = "#d97706";
+    c.lineWidth = 1.2;
+    c.stroke();
+
+    // 4 EIA color bands for 220 ohms (Red, Red, Brown, Gold)
+    const bandColors = ["#dc2626", "#dc2626", "#78350f", "#d97706"];
+    [-8, -2, 4, 10].forEach((pos, idx) => {
+      c.fillStyle = bandColors[idx];
+      c.fillRect(x + pos - 1.5, y - h / 2, 3, h);
+    });
+
+    c.fillStyle = "#cbd5e1";
+    c.font = "bold 6.5px 'JetBrains Mono', monospace";
+    c.textAlign = "center";
+    c.fillText(`R_L: ${ohms}Ω`, x, y - 11);
+    c.fillStyle = "#38bdf8";
+    c.fillText(`${vDrop.toFixed(2)}V`, x, y + 17);
+  }
+
+  // Draw continuous flowing charge carriers along segmented polylines
+  function drawFlowAlongPath(c, points, offset, color, radius) {
+    if (!points || points.length < 2) return;
+    let totalDist = 0;
+    const segments = [];
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      segments.push({ p1, p2, dist, cumDist: totalDist });
+      totalDist += dist;
+    }
+
+    c.fillStyle = color;
+    const spacing = 16;
+    for (let d = (offset % spacing); d < totalDist; d += spacing) {
+      for (let s = 0; s < segments.length; s++) {
+        const seg = segments[s];
+        if (d >= seg.cumDist && d <= seg.cumDist + seg.dist) {
+          const t = (d - seg.cumDist) / (seg.dist || 1);
+          const px = seg.p1.x + (seg.p2.x - seg.p1.x) * t;
+          const py = seg.p1.y + (seg.p2.y - seg.p1.y) * t;
+          c.beginPath();
+          c.arc(px, py, radius, 0, Math.PI * 2);
+          c.fill();
+          break;
+        }
+      }
+    }
+  }
+
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => cancelAnimationFrame(animId));
+
+  // Controls & Listeners
+  const vSlider = document.getElementById(`${mountId}-v-slider`);
+  if (vSlider) {
+    vSlider.addEventListener("input", (e) => {
+      voltage = parseFloat(e.target.value);
+      const vLbl = document.getElementById(`${mountId}-v-lbl`);
+      if (vLbl) vLbl.innerText = `${voltage.toFixed(1)} V`;
+    });
+  }
+
+  const rSlider = document.getElementById(`${mountId}-r-slider`);
+  if (rSlider) {
+    rSlider.addEventListener("input", (e) => {
+      rLoad = parseFloat(e.target.value);
+      const rLbl = document.getElementById(`${mountId}-r-lbl`);
+      if (rLbl) rLbl.innerText = `${rLoad} Ω`;
+    });
+  }
+
+  const btnFwd = document.getElementById(`${mountId}-btn-fwd`);
+  const btnRev = document.getElementById(`${mountId}-btn-rev`);
+  const btnAc = document.getElementById(`${mountId}-btn-ac`);
+
+  function updateModeButtons() {
+    [btnFwd, btnRev, btnAc].forEach(b => b && b.classList.remove("active"));
+    if (mode === "forward" && btnFwd) btnFwd.classList.add("active");
+    if (mode === "reverse" && btnRev) btnRev.classList.add("active");
+    if (mode === "ac" && btnAc) btnAc.classList.add("active");
+
+    const vTitle = document.getElementById(`${mountId}-v-title`);
+    if (vTitle) {
+      vTitle.innerText = mode === "ac" ? "AC Peak Voltage (V_pk):" : "DC Supply Voltage (V_in):";
+    }
+  }
+
+  if (btnFwd) {
+    btnFwd.addEventListener("click", () => {
+      if (mode === "forward") return;
+      mode = "forward";
+      updateModeButtons();
+      if (typeof window !== "undefined" && window.AudioSynth && typeof window.AudioSynth.playSwitchSnap === "function") {
+        window.AudioSynth.playSwitchSnap();
+      }
+    });
+  }
+
+  if (btnRev) {
+    btnRev.addEventListener("click", () => {
+      if (mode === "reverse") return;
+      mode = "reverse";
+      updateModeButtons();
+      if (typeof window !== "undefined" && window.AudioSynth && typeof window.AudioSynth.playSwitchSnap === "function") {
+        window.AudioSynth.playSwitchSnap();
+      }
+    });
+  }
+
+  if (btnAc) {
+    btnAc.addEventListener("click", () => {
+      if (mode === "ac") return;
+      mode = "ac";
+      updateModeButtons();
+      if (typeof window !== "undefined" && window.AudioSynth && typeof window.AudioSynth.playSwitchSnap === "function") {
+        window.AudioSynth.playSwitchSnap();
+      }
+    });
+  }
+
+  const dButtons = [
+    { id: `${mountId}-d-si`, type: "silicon" },
+    { id: `${mountId}-d-ge`, type: "germanium" },
+    { id: `${mountId}-d-rled`, type: "redLed" },
+    { id: `${mountId}-d-gled`, type: "greenLed" }
+  ];
+
+  dButtons.forEach(btnInfo => {
+    const el = document.getElementById(btnInfo.id);
+    if (el) {
+      el.addEventListener("click", () => {
+        diodeType = btnInfo.type;
+        dButtons.forEach(b => {
+          const bEl = document.getElementById(b.id);
+          if (bEl) bEl.classList.remove("active");
+        });
+        el.classList.add("active");
+        if (typeof window !== "undefined" && window.AudioSynth && typeof window.AudioSynth.playClick === "function") {
+          window.AudioSynth.playClick();
+        }
+      });
+    }
+  });
+}
+
+// Complete implementation of buildEnergyBandsInteractive
+function buildEnergyBandsInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  let material = (params && params.material) ? params.material : "silicon";
+  let tempK = (params && params.temperature !== undefined) ? params.temperature : 300;
+  let biasV = (params && params.bias !== undefined) ? params.bias : 5.0;
+  let animId = null;
+  let driftOffset = 0;
+
+  const matModels = {
+    copper: {
+      name: "Copper (Cu)",
+      shortName: "Copper (0 eV)",
+      eg: 0.0,
+      type: "Metallic Conductor",
+      color: "#f59e0b",
+      desc: "Overlapping valence and conduction bands (Eg = 0 eV); vast sea of free electrons."
+    },
+    germanium: {
+      name: "Germanium (Ge)",
+      shortName: "Ge (0.7 eV)",
+      eg: 0.67,
+      type: "Semiconductor",
+      color: "#c084fc",
+      desc: "Narrow bandgap (Eg = 0.67 eV); substantial thermal excitation at room temperature."
+    },
+    silicon: {
+      name: "Silicon (Si)",
+      shortName: "Silicon (1.1 eV)",
+      eg: 1.12,
+      type: "Semiconductor",
+      color: "#38bdf8",
+      desc: "Optimal bandgap (Eg = 1.12 eV); standard substrate for modern microelectronics."
+    },
+    diamond: {
+      name: "Diamond (C)",
+      shortName: "Diamond (5.5 eV)",
+      eg: 5.47,
+      type: "Insulator",
+      color: "#94a3b8",
+      desc: "Wide bandgap (Eg = 5.47 eV); completely negligible thermal excitation across forbidden band."
+    }
+  };
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #070a14; border-radius: 8px; overflow: hidden;">
+        <canvas id="${mountId}-canvas" width="800" height="540" style="width: 100%; height: 270px; display: block;"></canvas>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+          <button class="btn-sim-action ${material === 'copper' ? 'active' : ''}" id="${mountId}-m-cu" style="flex: 1; padding: 6px 3px; font-size: 0.70rem; font-weight: 700;">Copper (0 eV)</button>
+          <button class="btn-sim-action ${material === 'germanium' ? 'active' : ''}" id="${mountId}-m-ge" style="flex: 1; padding: 6px 3px; font-size: 0.70rem; font-weight: 700;">Ge (0.7 eV)</button>
+          <button class="btn-sim-action ${material === 'silicon' ? 'active' : ''}" id="${mountId}-m-si" style="flex: 1; padding: 6px 3px; font-size: 0.70rem; font-weight: 700;">Silicon (1.1 eV)</button>
+          <button class="btn-sim-action ${material === 'diamond' ? 'active' : ''}" id="${mountId}-m-dia" style="flex: 1; padding: 6px 3px; font-size: 0.70rem; font-weight: 700;">Diamond (5.5 eV)</button>
+        </div>
+
+        <div class="sim-readout-pill" id="${mountId}-eg-pill" style="font-weight: 700; transition: all 0.2s ease;">
+          <span class="readout-label" style="font-weight: 600;">Band Gap (E_g):</span>
+          <span class="readout-val" id="${mountId}-eg-val" style="font-weight: 800;">1.12 eV (Silicon)</span>
+        </div>
+
+        <div class="sim-readout-pill" id="${mountId}-kbt-pill" style="font-weight: 700; transition: all 0.2s ease;">
+          <span class="readout-label" style="font-weight: 600;">Thermal Energy (k_B T):</span>
+          <span class="readout-val" id="${mountId}-kbt-val" style="font-weight: 800;">0.026 eV (300 K)</span>
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Temperature (T):</span>
+            <strong id="${mountId}-t-lbl">${tempK} K (${(tempK - 273).toFixed(0)}°C)</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-t-slider" min="0" max="800" step="10" value="${tempK}">
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Applied Voltage (V_ext):</span>
+            <strong id="${mountId}-v-lbl">${biasV.toFixed(1)} V</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-v-slider" min="0" max="15" step="1" value="${biasV}">
+        </div>
+
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 6px; padding: 8px 12px; font-size: 0.76rem; border-radius: 8px;">
+          <div id="${mountId}-fermi-disp" style="font-weight: 700; font-family: var(--font-mono); line-height: 1.4;">Excitation: n_i ∝ T^(3/2) · e^{-E_g / (2 k_B T)}</div>
+          <div id="${mountId}-sigma-disp" style="font-weight: 700; font-family: var(--font-mono); margin-top: 2px; line-height: 1.4;">Conductivity: σ = q · (n·μ_e + p·μ_h)</div>
+          <div id="${mountId}-class-disp" style="font-weight: 800; font-family: var(--font-mono); margin-top: 4px; line-height: 1.4;">Classification: SEMICONDUCTOR (Thermally Active)</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  const ctx = canvas.getContext("2d");
+
+  function loop() {
+    const curModel = matModels[material] || matModels.silicon;
+    const kb = 8.617e-5; // eV / K
+    const kbT = kb * Math.max(1, tempK);
+
+    let nDensity = 0;
+    let sigmaStr = "";
+    let isConductor = curModel.eg === 0;
+    let isInsulator = curModel.eg > 4.0;
+    let excitedFrac = 0;
+
+    if (isConductor) {
+      nDensity = 1e22;
+      sigmaStr = "5.96 × 10⁷ S/m (Metallic)";
+      excitedFrac = 1.0;
+    } else {
+      const factor = Math.exp(-curModel.eg / (2 * kbT));
+      nDensity = 1e19 * Math.pow(Math.max(1, tempK) / 300, 1.5) * factor;
+      const sigma = nDensity * 1.6e-19 * 0.15;
+      if (tempK === 0 || nDensity < 1e-10) {
+        sigmaStr = "0.00 S/m (Insulating at 0K)";
+      } else if (sigma > 1) {
+        sigmaStr = `${sigma.toFixed(2)} S/m`;
+      } else {
+        sigmaStr = `${sigma.toExponential(2)} S/m`;
+      }
+      excitedFrac = isInsulator ? 0.0 : Math.min(1.0, factor * 800);
+    }
+
+    const currentMa = isConductor ? biasV * 4.2 : (isInsulator ? 0.0 : (biasV * excitedFrac * 8.5));
+    driftOffset = (driftOffset + currentMa * 0.6) % 24;
+
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+
+    const egPill = document.getElementById(`${mountId}-eg-pill`);
+    const kbtPill = document.getElementById(`${mountId}-kbt-pill`);
+    const egVal = document.getElementById(`${mountId}-eg-val`);
+    const kbtVal = document.getElementById(`${mountId}-kbt-val`);
+    const teleBox = document.getElementById(`${mountId}-telemetry-box`);
+    const fermiEl = document.getElementById(`${mountId}-fermi-disp`);
+    const sigmaEl = document.getElementById(`${mountId}-sigma-disp`);
+    const classEl = document.getElementById(`${mountId}-class-disp`);
+
+    if (egVal) egVal.innerText = `${curModel.eg.toFixed(2)} eV (${curModel.name})`;
+    if (kbtVal) kbtVal.innerText = `${kbT.toFixed(3)} eV (${tempK} K)`;
+
+    if (fermiEl) {
+      fermiEl.innerText = isConductor
+        ? `Overlapping Bands: Continuous conduction band occupancy at all temperatures`
+        : `Thermal Factor: e^{-E_g / 2kT} = ${Math.exp(-curModel.eg / (2 * kbT)).toExponential(2)} (k_B T = ${kbT.toFixed(3)} eV)`;
+    }
+
+    if (sigmaEl) {
+      sigmaEl.innerText = `Conductivity σ = ${sigmaStr} • Current I = ${currentMa.toFixed(2)} mA`;
+    }
+
+    if (classEl) {
+      if (isConductor) {
+        classEl.innerText = `CLASSIFICATION: METALLIC CONDUCTOR (Zero Bandgap Eg=0 eV)`;
+      } else if (isInsulator) {
+        classEl.innerText = `CLASSIFICATION: ELECTRICAL INSULATOR (Wide Forbidden Gap Eg=5.5 eV)`;
+      } else {
+        classEl.innerText = tempK === 0
+          ? `CLASSIFICATION: SEMICONDUCTOR AT ABSOLUTE ZERO (Perfect Insulator)`
+          : `CLASSIFICATION: INTRINSIC SEMICONDUCTOR (Thermally Activated Conduction)`;
+      }
+    }
+
+    if (isDay) {
+      if (egPill) {
+        egPill.style.background = "#f8fafc";
+        egPill.style.borderColor = "#cbd5e1";
+        egPill.style.color = "#0f172a";
+        egVal.style.color = "#0284c7";
+      }
+      if (kbtPill) {
+        kbtPill.style.background = "#fffbeb";
+        kbtPill.style.borderColor = "#fde68a";
+        kbtPill.style.color = "#b45309";
+        kbtVal.style.color = "#b45309";
+      }
+      if (teleBox) {
+        teleBox.style.background = "#ffffff";
+        teleBox.style.border = "1.5px solid #cbd5e1";
+        teleBox.style.boxShadow = "0 2px 8px rgba(15, 23, 42, 0.06)";
+        fermiEl.style.color = "#0284c7";
+        sigmaEl.style.color = "#b45309";
+        classEl.style.color = "#0f172a";
+      }
+    } else {
+      if (egPill) {
+        egPill.style.background = "rgba(15, 23, 42, 0.88)";
+        egPill.style.borderColor = "rgba(56, 189, 248, 0.28)";
+        egPill.style.color = "#e2e8f0";
+        egVal.style.color = "#38bdf8";
+      }
+      if (kbtPill) {
+        kbtPill.style.background = "rgba(120, 53, 15, 0.35)";
+        kbtPill.style.borderColor = "rgba(245, 158, 11, 0.45)";
+        kbtPill.style.color = "#fbbf24";
+        kbtVal.style.color = "#fbbf24";
+      }
+      if (teleBox) {
+        teleBox.style.background = "rgba(15, 23, 42, 0.95)";
+        teleBox.style.border = "1px solid rgba(56, 189, 248, 0.32)";
+        teleBox.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.35)";
+        fermiEl.style.color = "#38bdf8";
+        sigmaEl.style.color = "#fbbf24";
+        classEl.style.color = isConductor ? "#38bdf8" : (isInsulator ? "#f43f5e" : "#34d399");
+      }
+    }
+
+    // ----------------------------------------------------
+    // RETINA 2X CANVAS RENDERING (800x540 buffer, 400x270 logic)
+    // ----------------------------------------------------
+    ctx.save();
+    ctx.scale(2, 2);
+    ctx.clearRect(0, 0, 400, 270);
+
+    // 1. Dark Workbench Mat Background
+    ctx.fillStyle = "#070a14";
+    ctx.fillRect(0, 0, 400, 270);
+
+    // 2. Quantum Energy Band Diagram (Left Box: X=12..196, Y=14..256)
+    const bX = 12, bY = 14, bW = 184, bH = 242;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+    ctx.beginPath();
+    ctx.roundRect(bX, bY, bW, bH, 7);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(51, 65, 85, 0.85)";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 6.5px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("QUANTUM ENERGY BANDS (E vs k)", bX + bW / 2, bY + 12);
+
+    // Energy Axis E (eV)
+    const eAxisX = bX + 22;
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(eAxisX, bY + 20);
+    ctx.lineTo(eAxisX, bY + bH - 16);
+    ctx.stroke();
+
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "bold 6px 'JetBrains Mono', monospace";
+    ctx.textAlign = "right";
+    ctx.fillText("+E", eAxisX - 4, bY + 24);
+    ctx.fillText("0", eAxisX - 4, bY + bH / 2);
+    ctx.fillText("-E", eAxisX - 4, bY + bH - 18);
+
+    // Band Geometry Calculations
+    // Conduction Band Top, Forbidden Gap, Valence Band Bottom
+    const gapPx = Math.min(80, curModel.eg * 14.5);
+    const cbH = 48;
+    const vbH = 54;
+    const midY = bY + bH / 2 + 2;
+
+    const cbY = isConductor ? midY - 35 : (midY - gapPx / 2 - cbH);
+    const vbY = isConductor ? midY - 15 : (midY + gapPx / 2);
+
+    const bandW = 126;
+    const bandX = eAxisX + 16;
+
+    // 1. Conduction Band
+    const cbGrad = ctx.createLinearGradient(bandX, cbY, bandX, cbY + cbH);
+    cbGrad.addColorStop(0, "rgba(56, 189, 248, 0.35)");
+    cbGrad.addColorStop(1, "rgba(56, 189, 248, 0.15)");
+    ctx.fillStyle = cbGrad;
+    ctx.beginPath();
+    ctx.roundRect(bandX, cbY, bandW, cbH, 4);
+    ctx.fill();
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 7px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("CONDUCTION BAND (E_c)", bandX + 6, cbY + 12);
+
+    // 2. Forbidden Band Gap (if Eg > 0)
+    if (!isConductor) {
+      ctx.fillStyle = "rgba(239, 68, 68, 0.08)";
+      ctx.fillRect(bandX, cbY + cbH, bandW, gapPx);
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.3)";
+      ctx.setLineDash([2, 2]);
+      ctx.strokeRect(bandX, cbY + cbH, bandW, gapPx);
+      ctx.setLineDash([]);
+
+      // Gap Label & Double-headed Arrow
+      ctx.fillStyle = "#f59e0b";
+      ctx.font = "bold 6.5px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`Forbidden Gap Eg = ${curModel.eg.toFixed(2)} eV`, bandX + bandW / 2, cbY + cbH + gapPx / 2 + 2);
+    }
+
+    // 3. Valence Band
+    const vbGrad = ctx.createLinearGradient(bandX, vbY, bandX, vbY + vbH);
+    vbGrad.addColorStop(0, "rgba(37, 99, 235, 0.35)");
+    vbGrad.addColorStop(1, "rgba(30, 58, 138, 0.55)");
+    ctx.fillStyle = vbGrad;
+    ctx.beginPath();
+    ctx.roundRect(bandX, vbY, bandW, vbH, 4);
+    ctx.fill();
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    ctx.fillStyle = "#60a5fa";
+    ctx.font = "bold 7px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("VALENCE BAND (E_v)", bandX + 6, vbY + vbH - 6);
+
+    // Fermi Level Line (E_F)
+    const efY = isConductor ? midY - 5 : midY;
+    ctx.strokeStyle = "rgba(245, 158, 11, 0.8)";
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(bandX - 4, efY);
+    ctx.lineTo(bandX + bandW + 4, efY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "bold 5.5px monospace";
+    ctx.textAlign = "right";
+    ctx.fillText("Fermi Level (E_F)", bandX + bandW, efY - 3);
+
+    // Draw Quantum Electrons & Holes inside Bands
+    // Valence band dense electrons
+    ctx.fillStyle = "#60a5fa";
+    for (let ex = bandX + 12; ex < bandX + bandW - 8; ex += 16) {
+      for (let ey = vbY + 14; ey < vbY + vbH - 10; ey += 14) {
+        ctx.beginPath();
+        ctx.arc(ex, ey, 2.0, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Thermally excited electrons in conduction band
+    const numExcited = isConductor ? 18 : Math.round(excitedFrac * 16);
+    ctx.fillStyle = "#fde047";
+    ctx.shadowColor = "#fde047";
+    ctx.shadowBlur = 4;
+    for (let k = 0; k < numExcited; k++) {
+      const eX = bandX + 14 + (k * 17) % (bandW - 28);
+      const eY = cbY + cbH - 8 - (Math.floor(k / 6) * 12);
+      ctx.beginPath();
+      ctx.arc(eX, eY, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+
+    // Thermally generated holes in valence band (if semiconductor)
+    if (!isConductor && numExcited > 0) {
+      ctx.strokeStyle = "#f87171";
+      ctx.lineWidth = 1.5;
+      for (let h = 0; h < Math.min(10, numExcited); h++) {
+        const hX = bandX + 14 + (h * 17) % (bandW - 28);
+        const hY = vbY + 14;
+        ctx.beginPath();
+        ctx.arc(hX, hY, 2.6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // ----------------------------------------------------
+    // RIGHT PANEL: CRYSTAL LATTICE & DRIFT CURRENT (X=206..388)
+    // ----------------------------------------------------
+    const latX = 206, latY = 14, latW = 182, latH = 242;
+    ctx.fillStyle = "#020617";
+    ctx.beginPath();
+    ctx.roundRect(latX, latY, latW, latH, 7);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 6.5px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("ELECTRIC FIELD & CARRIER DRIFT", latX + latW / 2, latY + 12);
+
+    // Multimeter Display at top of Right Box
+    const dmmY = latY + 22;
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath();
+    ctx.roundRect(latX + 10, dmmY, latW - 20, 36, 4);
+    ctx.fill();
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = currentMa > 0.05 ? "#34d399" : "#64748b";
+    ctx.font = "bold 13px 'JetBrains Mono', monospace";
+    ctx.fillText(`${currentMa.toFixed(2)} mA`, latX + latW / 2, dmmY + 19);
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 6.5px 'JetBrains Mono', monospace";
+    ctx.fillText(`Applied: ${biasV.toFixed(1)}V • Drift v_d ∝ μE`, latX + latW / 2, dmmY + 30);
+
+    // Crystal Specimen Chamber (Lattice under bias)
+    const specX = latX + 16, specY = dmmY + 48, specW = latW - 32, specH = 105;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
+    ctx.beginPath();
+    ctx.roundRect(specX, specY, specW, specH, 5);
+    ctx.fill();
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Electrodes (+ Anode on Left, - Cathode on Right)
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(specX, specY, 8, specH);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("+", specX + 4, specY + specH / 2 + 3);
+
+    ctx.fillStyle = "#3b82f6";
+    ctx.fillRect(specX + specW - 8, specY, 8, specH);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText("-", specX + specW - 4, specY + specH / 2 + 3);
+
+    // Electric field direction arrow E ->
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(specX + 16, specY + 12);
+    ctx.lineTo(specX + specW - 16, specY + 12);
+    ctx.stroke();
+    ctx.fillText("Electric Field E →", specX + specW / 2, specY + 9);
+
+    // Lattice Atoms (Silicon / Copper / Carbon atoms)
+    const atomColor = isConductor ? "#b45309" : (isInsulator ? "#94a3b8" : "#0284c7");
+    for (let ax = specX + 22; ax < specX + specW - 14; ax += 24) {
+      for (let ay = specY + 30; ay < specY + specH - 12; ay += 24) {
+        ctx.fillStyle = atomColor;
+        ctx.beginPath();
+        ctx.arc(ax, ay, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    }
+
+    // Drifting Free Electrons (drifting toward Anode + on the left)
+    if (numExcited > 0 && biasV > 0) {
+      ctx.fillStyle = "#fde047";
+      ctx.shadowColor = "#fde047";
+      ctx.shadowBlur = 4;
+      const count = Math.min(22, isConductor ? 20 : numExcited * 2);
+      for (let i = 0; i < count; i++) {
+        const row = i % 3;
+        const speedFactor = 1.2;
+        const eOffset = (driftOffset * speedFactor + i * 22) % (specW - 32);
+        const ex = (specX + specW - 14) - eOffset;
+        const ey = specY + 32 + row * 24;
+        ctx.beginPath();
+        ctx.arc(ex, ey, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+    }
+
+    // Bottom Specimen Spec Tag
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "bold 6.5px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`${curModel.name} Crystal • ${curModel.type}`, latX + latW / 2, latY + latH - 10);
+
+    ctx.restore(); // Exit 2x scale
+    animId = requestAnimationFrame(loop);
+  }
+
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => cancelAnimationFrame(animId));
+
+  // Controls & Listeners
+  const tSlider = document.getElementById(`${mountId}-t-slider`);
+  if (tSlider) {
+    tSlider.addEventListener("input", (e) => {
+      tempK = parseInt(e.target.value, 10);
+      const tLbl = document.getElementById(`${mountId}-t-lbl`);
+      if (tLbl) tLbl.innerText = `${tempK} K (${(tempK - 273).toFixed(0)}°C)`;
+    });
+  }
+
+  const vSlider = document.getElementById(`${mountId}-v-slider`);
+  if (vSlider) {
+    vSlider.addEventListener("input", (e) => {
+      biasV = parseFloat(e.target.value);
+      const vLbl = document.getElementById(`${mountId}-v-lbl`);
+      if (vLbl) vLbl.innerText = `${biasV.toFixed(1)} V`;
+    });
+  }
+
+  const matButtons = [
+    { id: `${mountId}-m-cu`, key: "copper" },
+    { id: `${mountId}-m-ge`, key: "germanium" },
+    { id: `${mountId}-m-si`, key: "silicon" },
+    { id: `${mountId}-m-dia`, key: "diamond" }
+  ];
+
+  matButtons.forEach(btnInfo => {
+    const el = document.getElementById(btnInfo.id);
+    if (el) {
+      el.addEventListener("click", () => {
+        material = btnInfo.key;
+        matButtons.forEach(b => {
+          const bEl = document.getElementById(b.id);
+          if (bEl) bEl.classList.remove("active");
+        });
+        el.classList.add("active");
+        if (typeof window !== "undefined" && window.AudioSynth && typeof window.AudioSynth.playClick === "function") {
+          window.AudioSynth.playClick();
+        }
+      });
+    }
+  });
+}
+
 
 /**
  * 18. Physics: 1D Glider Momentum & Collisions (Elastic vs Inelastic)
