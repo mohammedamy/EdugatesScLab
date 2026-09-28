@@ -15,6 +15,8 @@ import { renderLatex, renderMathInElement } from "../utils/math-renderer.js";
 import { mountLessonInteractive, cleanupLessonInteractive, getLessonInteractiveSpec } from "./lesson-interactives.js";
 import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
 import { openLessonPlanModal } from "./lesson-plan-generator.js";
+import { SoundFX } from "../utils/audio-synth.js";
+import { copyShareLink } from "../utils/toast.js";
 
 export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   ProgressStore.recordModuleExplored(moduleData.code);
@@ -41,7 +43,20 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     if (overlay && overlay.parentNode) {
       overlay.parentNode.removeChild(overlay);
     }
+    if (window.closeActiveModuleModal === closeModal) {
+      window.closeActiveModuleModal = null;
+    }
+    // Sync hash back to parent subject tab if closing a deep-linked module or lesson
+    if (window.location.hash.startsWith("#module/") || window.location.hash.startsWith("#lesson/")) {
+      const curTab = moduleData.code.startsWith("CHEM") ? "chem" : (moduleData.code.startsWith("BIO") ? "bio" : "phys");
+      if (window.location.hash !== "#" + curTab) {
+        history.replaceState(null, "", "#" + curTab);
+      }
+    }
   }
+
+  // Register on window for back-button / external hash navigation dismiss
+  window.closeActiveModuleModal = closeModal;
 
   function handleKeydown(e) {
     if (e.key === "Escape") {
@@ -61,6 +76,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
             <div class="modal-title">${moduleData.title}</div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn btn-secondary btn-header-share" id="btn-header-share-modal" title="Copy shareable deep-link to this chapter" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); cursor: pointer;">
+              <span>🔗 Share</span>
+            </button>
             <button class="btn btn-secondary btn-header-lesson-plan" id="btn-header-lesson-plan" title="Open 2-Page A4 Teacher Lesson Plan &amp; Export PDF" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
               <span>📄 Lesson Plan (A4)</span>
             </button>
@@ -94,6 +112,17 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     const btnClose = document.getElementById("btn-close-modal");
     if (btnClose) btnClose.addEventListener("click", closeModal);
 
+    // Share Button
+    const btnShare = document.getElementById("btn-header-share-modal");
+    if (btnShare) {
+      btnShare.addEventListener("click", () => {
+        const linkRoute = activeTab === "interactive" 
+          ? `#lesson/${moduleData.code}-L${currentLessonId}` 
+          : `#module/${moduleData.code}`;
+        copyShareLink(linkRoute, `${moduleData.code}: ${moduleData.title}`);
+      });
+    }
+
     // Header Lesson Plan Button
     const btnHeaderPlan = document.getElementById("btn-header-lesson-plan");
     if (btnHeaderPlan) {
@@ -112,6 +141,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     // Tab Switchers
     overlay.querySelectorAll(".modal-tab-btn").forEach(btn => {
       btn.addEventListener("click", () => {
+        try { SoundFX.playClick(); } catch (e) {}
         cleanupLessonInteractive("overview-lesson-sim-container");
         cleanupLessonInteractive("tab-lesson-sim-container");
         cleanupLessonInteractive("lab-lesson-sim-container");
@@ -530,6 +560,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
       selLesson.addEventListener("change", (e) => {
         const lid = parseInt(e.target.value, 10);
         if (lid !== currentLessonId) {
+          try { SoundFX.playClick(); } catch (e) {}
           currentLessonId = lid;
           updateNavControls();
           mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);
@@ -542,6 +573,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
       btnPrev.addEventListener("click", () => {
         const idx = moduleData.lessons.findIndex(l => l.id === currentLessonId);
         if (idx > 0) {
+          try { SoundFX.playClick(); } catch (e) {}
           currentLessonId = moduleData.lessons[idx - 1].id;
           updateNavControls();
           mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);
@@ -554,6 +586,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
       btnNext.addEventListener("click", () => {
         const idx = moduleData.lessons.findIndex(l => l.id === currentLessonId);
         if (idx >= 0 && idx < moduleData.lessons.length - 1) {
+          try { SoundFX.playClick(); } catch (e) {}
           currentLessonId = moduleData.lessons[idx + 1].id;
           updateNavControls();
           mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);

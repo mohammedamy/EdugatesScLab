@@ -3,6 +3,7 @@
 // Bunsen Flame & Cryo-Cooling, 3D Kinetic Particles, Analog Bourdon Gauge, and Maxwell-Boltzmann Speed Metrology.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
 export function initGasLawsLab(containerId) {
   const container = document.getElementById(containerId);
@@ -197,6 +198,31 @@ export function initGasLawsLab(containerId) {
           </button>
         </div>
       </div>
+
+      <!-- Telemetry Suite & Multi-Trial Bar -->
+      <div class="lab-telemetry-suite-bar">
+        <div class="lab-trials-badge-group" id="gas-trials-badge-group">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Multi-Trial Gas State Logging:</span>
+          <span class="lab-trial-pill trial-1" id="gas-pill-trial-1" style="opacity: 0.5;">Trial 1 (Cyan)</span>
+          <span class="lab-trial-pill trial-2" id="gas-pill-trial-2" style="opacity: 0.5;">Trial 2 (Amber)</span>
+          <span class="lab-trial-pill trial-3" id="gas-pill-trial-3" style="opacity: 0.5;">Trial 3 (Emerald)</span>
+        </div>
+
+        <div class="lab-export-buttons-group">
+          <button class="btn btn-secondary" id="btn-record-gas-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(6,182,212,0.4); color: #06b6d4;">
+            <span>📸 Log Current State</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-gas-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
+            <span>📥 Export CSV Data</span>
+          </button>
+          <button class="btn btn-primary" id="btn-open-gas-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
+            <span>📑 Generate Lab Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Lab Checkpoint Assessment Mount -->
+      <div id="gas-checkpoint-container"></div>
     </div>
   `;
 
@@ -688,6 +714,92 @@ export function initGasLawsLab(containerId) {
     btnSim.style.background = "transparent";
     btnSim.style.color = "#94a3b8";
   });
+
+  // Telemetry Suite: Record Current State as Trial
+  document.getElementById("btn-record-gas-trial")?.addEventListener("click", () => {
+    const R_atm = 0.08206;
+    const P_atm = (moles * R_atm * temperature) / volume;
+    const vRMS = Math.sqrt((3 * 8.314 * temperature) / 0.028);
+
+    LabTrialStore.addTrial("gaslaws", {
+      measurements: {
+        "Pressure (atm)": parseFloat(P_atm.toFixed(2)),
+        "Volume (L)": parseFloat(volume.toFixed(1)),
+        "Temperature (K)": parseFloat(temperature.toFixed(1)),
+        "Amount (mol)": parseFloat(moles.toFixed(2)),
+        "v_rms (m/s)": Math.round(vRMS)
+      }
+    });
+
+    const trials = LabTrialStore.getTrials("gaslaws");
+    trials.forEach((tr, i) => {
+      const pill = document.getElementById(`gas-pill-trial-${i + 1}`);
+      if (pill) {
+        pill.style.opacity = "1";
+        pill.innerText = `Trial ${tr.trialNumber}: P=${tr.measurements["Pressure (atm)"]} atm, V=${tr.measurements["Volume (L)"]} L, T=${tr.measurements["Temperature (K)"]} K`;
+      }
+    });
+  });
+
+  // Telemetry Suite: Export CSV
+  document.getElementById("btn-export-gas-csv")?.addEventListener("click", () => {
+    const R_atm = 0.08206;
+    const P_atm = (moles * R_atm * temperature) / volume;
+    const vRMS = Math.sqrt((3 * 8.314 * temperature) / 0.028);
+
+    exportLabDataCsv({
+      title: "Kinetic Molecular Theory & Ideal Gas Metrology",
+      labId: "gaslaws",
+      parameters: {
+        "Enclosed Volume (V)": `${volume.toFixed(1)} L`,
+        "Thermal Energy (T)": `${temperature.toFixed(1)} K`,
+        "Gas Substance (n)": `${moles.toFixed(2)} mol`,
+        "Gas Constant (R)": "0.08206 L·atm/(mol·K)"
+      },
+      headers: ["Pressure (atm)", "Volume (L)", "Temperature (K)", "Moles (mol)", "v_rms (m/s)", "Kinetic Energy (J)"],
+      dataRows: [
+        [
+          parseFloat(P_atm.toFixed(3)),
+          volume,
+          temperature,
+          moles,
+          Math.round(vRMS),
+          parseFloat((1.5 * 1.3806e-23 * temperature).toExponential(3))
+        ]
+      ]
+    });
+  });
+
+  // Telemetry Suite: Generate Lab Report
+  document.getElementById("btn-open-gas-report")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("gaslaws");
+    const R_atm = 0.08206;
+    const P_atm = (moles * R_atm * temperature) / volume;
+    const vRMS = Math.sqrt((3 * 8.314 * temperature) / 0.028);
+
+    openLabReportModal({
+      title: "Gas Laws, Pressure-Volume Thermodynamics & Molecular Velocities",
+      subject: "Chemistry",
+      inquiryQuestion: "How do temperature, volume, and molar quantity quantitatively govern macroscopic gas pressure and Maxwell-Boltzmann molecular velocity?",
+      parameters: {
+        "Chamber Volume (V)": `${volume.toFixed(1)} L`,
+        "Absolute Temperature (T)": `${temperature.toFixed(1)} K`,
+        "Molar Quantity (n)": `${moles.toFixed(2)} mol`,
+        "Instantaneous Pressure (P)": `${P_atm.toFixed(2)} atm`,
+        "RMS Molecular Velocity": `${Math.round(vRMS)} m/s (N₂)`
+      },
+      trials,
+      formulas: [
+        "P \\cdot V = n R T",
+        "P_1 V_1 = P_2 V_2 \\quad (\\text{Boyle's Law, const. } T, n)",
+        "\\frac{V_1}{T_1} = \\frac{V_2}{T_2} \\quad (\\text{Charles's Law, const. } P, n)",
+        "v_{\\text{rms}} = \\sqrt{\\frac{3RT}{M}}"
+      ]
+    });
+  });
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("gas-checkpoint-container", "gaslaws");
 
   function handleResize() {
     const rect1 = chamberCanvas.getBoundingClientRect();

@@ -3,6 +3,7 @@
 // Photorealistic 3D Specimen Rendering (Pea Shapes, Colors, Flower Petals), and Monte-Carlo Chi-Square Engine.
 
 import { renderLatex, formatMathText, upgradeAllMath } from "../utils/math-renderer.js";
+import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
 export function initPunnettLab(containerId) {
   const container = document.getElementById(containerId);
@@ -199,6 +200,31 @@ export function initPunnettLab(containerId) {
           </select>
         </div>
       </div>
+
+      <!-- Telemetry Suite & Multi-Trial Bar -->
+      <div class="lab-telemetry-suite-bar">
+        <div class="lab-trials-badge-group" id="punnett-trials-badge-group">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Mendelian Pedigree Cross Log:</span>
+          <span class="lab-trial-pill trial-1" id="punnett-pill-trial-1" style="opacity: 0.5;">Cross 1 (Cyan)</span>
+          <span class="lab-trial-pill trial-2" id="punnett-pill-trial-2" style="opacity: 0.5;">Cross 2 (Amber)</span>
+          <span class="lab-trial-pill trial-3" id="punnett-pill-trial-3" style="opacity: 0.5;">Cross 3 (Emerald)</span>
+        </div>
+
+        <div class="lab-export-buttons-group">
+          <button class="btn btn-secondary" id="btn-record-punnett-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(16,185,129,0.4); color: #10b981;">
+            <span>📸 Log Cross Results</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-punnett-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
+            <span>📥 Export CSV Data</span>
+          </button>
+          <button class="btn btn-primary" id="btn-open-punnett-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #059669, #047857); border: none;">
+            <span>📑 Generate Lab Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Lab Checkpoint Assessment Mount -->
+      <div id="punnett-checkpoint-container"></div>
     </div>
   `;
 
@@ -1426,5 +1452,98 @@ export function initPunnettLab(containerId) {
   // Initial Setup
   populateGenotypeSelects();
   applyPreset("f1-mono");
+
+  // Telemetry Suite: Record Current State as Trial
+  document.getElementById("btn-record-punnett-trial")?.addEventListener("click", () => {
+    const traitObj = traits[currentTrait] || {};
+    const traitLabel = crossMode === "monohybrid" ? (traitObj.name || "Monohybrid") : "Dihybrid (Shape & Color)";
+
+    LabTrialStore.addTrial("punnett", {
+      measurements: {
+        "Cross Mode": crossMode.toUpperCase(),
+        "Investigated Trait": traitLabel,
+        "Parent 1 (Maternal)": p1Geno,
+        "Parent 2 (Paternal)": p2Geno,
+        "Offspring Sample (N)": simulatedResults ? trialsCount : "Theoretical",
+        "Chi-Square (χ²)": simulatedResults ? parseFloat(simulatedResults.chiSq) : "Theoretical Match",
+        "Null Hypothesis": simulatedResults ? (simulatedResults.passesMendel ? "Accepted (p > 0.05)" : "Rejected (p < 0.05)") : "Expected 1:1 / 3:1"
+      }
+    });
+
+    const trials = LabTrialStore.getTrials("punnett");
+    trials.forEach((tr, i) => {
+      const pill = document.getElementById(`punnett-pill-trial-${i + 1}`);
+      if (pill) {
+        pill.style.opacity = "1";
+        pill.innerText = `Cross ${tr.trialNumber}: ${tr.measurements["Parent 1 (Maternal)"]} × ${tr.measurements["Parent 2 (Paternal)"]} (${tr.measurements["Cross Mode"]}, N=${tr.measurements["Offspring Sample (N)"]})`;
+      }
+    });
+  });
+
+  // Telemetry Suite: Export CSV
+  document.getElementById("btn-export-punnett-csv")?.addEventListener("click", () => {
+    const traitObj = traits[currentTrait] || {};
+    const traitLabel = crossMode === "monohybrid" ? (traitObj.name || "Monohybrid") : "Dihybrid (Shape & Color)";
+    const headers = ["Phenotypic Class", "Theoretical Expected (E)", "Monte Carlo Observed (O)", "Deviation (O - E)", "(O - E)^2 / E"];
+    const rows = [];
+
+    if (simulatedResults && simulatedResults.theoretical) {
+      Object.keys(simulatedResults.theoretical).forEach(pheno => {
+        const E = simulatedResults.theoretical[pheno];
+        const O = simulatedResults.empirical[pheno] || 0;
+        const dev = O - E;
+        const term = E > 0 ? (Math.pow(dev, 2) / E) : 0;
+        rows.push([pheno, parseFloat(E.toFixed(1)), O, parseFloat(dev.toFixed(1)), parseFloat(term.toFixed(3))]);
+      });
+    } else {
+      rows.push(["Theoretical Cross", "Awaiting Simulation", "Run Monte-Carlo", "0", "0"]);
+    }
+
+    exportLabDataCsv({
+      title: "Mendelian Genetics & Stochastic Chi-Square Goodness-of-Fit",
+      labId: "punnett",
+      parameters: {
+        "Cross Architecture": crossMode.toUpperCase(),
+        "Inherited Trait": traitLabel,
+        "Parent 1 (♀)": p1Geno,
+        "Parent 2 (♂)": p2Geno,
+        "Monte Carlo Sample Size": simulatedResults ? `${trialsCount} Offspring` : "Theoretical Only"
+      },
+      headers,
+      dataRows: rows
+    });
+  });
+
+  // Telemetry Suite: Generate Lab Report
+  document.getElementById("btn-open-punnett-report")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("punnett");
+    const traitObj = traits[currentTrait] || {};
+    const traitLabel = crossMode === "monohybrid" ? (traitObj.name || "Monohybrid") : "Dihybrid (Shape & Color)";
+
+    openLabReportModal({
+      title: "Mendelian Genetics, Meiotic Allelic Segregation & Chi-Square Analysis",
+      subject: "Biology",
+      inquiryQuestion: "How do Mendel's Laws of Segregation and Independent Assortment govern phenotypic ratios in monohybrid and dihybrid crosses?",
+      parameters: {
+        "Cross Mode": crossMode.toUpperCase(),
+        "Investigated Trait": traitLabel,
+        "Maternal Genotype (♀)": p1Geno,
+        "Paternal Genotype (♂)": p2Geno,
+        "Fertilization Sample Size": simulatedResults ? `${trialsCount} Seedlings` : "Theoretical Ratio Model",
+        "Chi-Square Goodness-of-Fit": simulatedResults ? `${simulatedResults.chiSq} (df=${simulatedResults.df})` : "Exact Mendelian Ratios"
+      },
+      trials,
+      formulas: [
+        "\\chi^2 = \\sum \\frac{(O - E)^2}{E} \\quad (\\text{Chi-Square Goodness of Fit})",
+        "P(A \\cap B) = P(A) \\times P(B) \\quad (\\text{Multiplication Rule})",
+        "\\text{Monohybrid F2} \\to 3:1 \\text{ (Phenotypic)}, \\quad 1:2:1 \\text{ (Genotypic)}",
+        "\\text{Dihybrid F2} \\to 9:3:3:1 \\quad (\\text{Independent Assortment})"
+      ]
+    });
+  });
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("punnett-checkpoint-container", "punnett");
+
   setTimeout(handleResize, 50);
 }

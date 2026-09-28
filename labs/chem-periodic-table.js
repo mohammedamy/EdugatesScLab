@@ -3,6 +3,7 @@
 // 4K Museum Mineral Specimen Gallery, and Analytical Flame Emission Spectroscopy.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
 export function initPeriodicTableLab(containerId) {
   const container = document.getElementById(containerId);
@@ -197,6 +198,31 @@ export function initPeriodicTableLab(containerId) {
           </div>
         </div>
       </div>
+
+      <!-- Telemetry Suite & Multi-Trial Bar -->
+      <div class="lab-telemetry-suite-bar" style="margin-top: 16px;">
+        <div class="lab-trials-badge-group" id="ptable-trials-badge-group">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Element Quantum Analysis Log:</span>
+          <span class="lab-trial-pill trial-1" id="ptable-pill-trial-1" style="opacity: 0.5;">Element 1 (Cyan)</span>
+          <span class="lab-trial-pill trial-2" id="ptable-pill-trial-2" style="opacity: 0.5;">Element 2 (Amber)</span>
+          <span class="lab-trial-pill trial-3" id="ptable-pill-trial-3" style="opacity: 0.5;">Element 3 (Emerald)</span>
+        </div>
+
+        <div class="lab-export-buttons-group">
+          <button class="btn btn-secondary" id="btn-record-ptable-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(56,189,248,0.4); color: #38bdf8;">
+            <span>📸 Log Element Data</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-ptable-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
+            <span>📥 Export CSV Data</span>
+          </button>
+          <button class="btn btn-primary" id="btn-open-ptable-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
+            <span>📑 Generate Lab Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Lab Checkpoint Assessment Mount -->
+      <div id="ptable-checkpoint-container"></div>
     </div>
   `;
 
@@ -409,4 +435,85 @@ export function initPeriodicTableLab(containerId) {
       }
     });
   });
+
+  // Telemetry Suite: Record Element as Trial
+  document.getElementById("btn-record-ptable-trial")?.addEventListener("click", () => {
+    LabTrialStore.addTrial("ptable", {
+      measurements: {
+        "Element": `${selectedElem.n} (${selectedElem.s})`,
+        "Z": selectedElem.z,
+        "Period": selectedElem.period,
+        "Group": selectedElem.group,
+        "Config": selectedElem.ec,
+        "EN (Pauling)": selectedElem.en || "N/A",
+        "IE (kJ/mol)": selectedElem.ie,
+        "Radius (pm)": selectedElem.r
+      }
+    });
+
+    const trials = LabTrialStore.getTrials("ptable");
+    trials.forEach((tr, i) => {
+      const pill = document.getElementById(`ptable-pill-trial-${i + 1}`);
+      if (pill) {
+        pill.style.opacity = "1";
+        pill.innerText = `Obs ${tr.trialNumber}: ${tr.measurements["Element"]} (Z=${tr.measurements["Z"]}, IE=${tr.measurements["IE (kJ/mol)"]} kJ, r=${tr.measurements["Radius (pm)"]}pm)`;
+      }
+    });
+  });
+
+  // Telemetry Suite: Export CSV
+  document.getElementById("btn-export-ptable-csv")?.addEventListener("click", () => {
+    exportLabDataCsv({
+      title: "Interactive Periodic Table & Quantum Orbitals Database",
+      labId: "ptable",
+      parameters: {
+        "Inspected Element": `${selectedElem.n} (${selectedElem.s})`,
+        "Selected Trend View": trendOverlay.toUpperCase(),
+        "Catalog Size": `${elementsData.length} Elements`
+      },
+      headers: ["Atomic Number (Z)", "Symbol", "Element Name", "Category", "Period", "Group", "Atomic Mass (amu)", "Electronegativity (Pauling)", "Ionization Energy (kJ/mol)", "Atomic Radius (pm)", "Electron Configuration"],
+      dataRows: elementsData.map(e => [
+        e.z,
+        e.s,
+        e.n,
+        e.cat,
+        e.period,
+        e.group,
+        e.m,
+        e.en || "",
+        e.ie,
+        e.r,
+        e.ec
+      ])
+    });
+  });
+
+  // Telemetry Suite: Generate Lab Report
+  document.getElementById("btn-open-ptable-report")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("ptable");
+
+    openLabReportModal({
+      title: "Periodic Trends, Electron Configuration & Quantum Shell Architecture",
+      subject: "Chemistry",
+      inquiryQuestion: "How do nuclear charge and electron shielding quantitatively govern periodic trends in atomic radius, ionization energy, and electronegativity?",
+      parameters: {
+        "Target Element": `${selectedElem.n} (${selectedElem.s})`,
+        "Atomic Number (Z)": `${selectedElem.z}`,
+        "Group & Period": `Group ${selectedElem.group}, Period ${selectedElem.period}`,
+        "Ground-State Electron Config": `${selectedElem.ec}`,
+        "Electronegativity (Pauling)": `${selectedElem.en || "N/A"}`,
+        "First Ionization Energy": `${selectedElem.ie} kJ/mol`,
+        "Covalent Atomic Radius": `${selectedElem.r} pm`
+      },
+      trials,
+      formulas: [
+        "Z_{\\text{eff}} = Z - S \\quad (\\text{Effective Nuclear Charge})",
+        "E_n = -\\frac{13.6 \\text{ eV}}{n^2} \\cdot Z^2 \\quad (\\text{Bohr Quantized Energy})",
+        "\\Delta E = h\\nu = \\frac{hc}{\\lambda} \\quad (\\text{Photon Spectral Emission})"
+      ]
+    });
+  });
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("ptable-checkpoint-container", "ptable");
 }

@@ -8,6 +8,7 @@ import { physicsCurriculum } from "../data/physics-curriculum.js";
 import { getLessonInteractiveSpec } from "./lesson-interactives.js";
 import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
 import { renderLatex, formatMathText, upgradeAllMath } from "../utils/math-renderer.js";
+import { copyShareLink } from "../utils/toast.js";
 
 /**
  * High School NGSS Standards Reference Matrix
@@ -587,6 +588,10 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
             <input type="text" id="lp-inp-period" value="${planData.meta.roomPeriod}" class="lp-mini-input" placeholder="Period/Room" style="width: 140px;">
           </div>
 
+          <button id="btn-lp-share" class="btn btn-secondary lp-btn-share" title="Copy shareable link to this Lesson Plan" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2); color: #f8fafc; cursor: pointer;">
+            <span>🔗 Share</span>
+          </button>
+
           <button id="btn-lp-print" class="btn btn-primary lp-btn-print" title="Print or Save as PDF (Strict 2 A4 Pages)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span>Print / Save PDF (2 Pages)</span>
@@ -632,6 +637,12 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
   document.getElementById("lp-inp-school")?.addEventListener("input", updateLiveFields);
   document.getElementById("lp-inp-period")?.addEventListener("input", updateLiveFields);
 
+  // Share Action
+  document.getElementById("btn-lp-share")?.addEventListener("click", () => {
+    const planRoute = `#plan/${planData.meta.subjectCode}-M${planData.meta.moduleId}-L${planData.meta.lessonId}`;
+    copyShareLink(planRoute, `${planData.meta.subject} ${planData.meta.moduleCode}: Lesson ${planData.meta.lessonId} Plan`);
+  });
+
   // Print Action
   document.getElementById("btn-lp-print")?.addEventListener("click", () => {
     document.body.classList.add("printing-lesson-plan");
@@ -646,7 +657,18 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
     overlay.style.display = "none";
     document.body.style.overflow = "";
     document.body.classList.remove("printing-lesson-plan");
+    if (window.closeActiveLessonPlanModal === closeModal) {
+      window.closeActiveLessonPlanModal = null;
+    }
+    if (window.location.hash.startsWith("#plan/")) {
+      const curTab = planData.meta.subjectCode.startsWith("CHEM") ? "chem" : (planData.meta.subjectCode.startsWith("BIO") ? "bio" : "phys");
+      if (window.location.hash !== "#" + curTab) {
+        history.replaceState(null, "", "#" + curTab);
+      }
+    }
   }
+
+  window.closeActiveLessonPlanModal = closeModal;
 
   document.getElementById("btn-lp-close")?.addEventListener("click", closeModal);
   overlay.addEventListener("click", (e) => {

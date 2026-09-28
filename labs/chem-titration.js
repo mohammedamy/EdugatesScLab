@@ -3,6 +3,7 @@
 // Dynamic Surface-Tension Drops, Vortex Physics, Real-Time Derivative Metrology, and Dual Indicators.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
 export function initTitrationLab(containerId) {
   const container = document.getElementById(containerId);
@@ -206,6 +207,31 @@ export function initTitrationLab(containerId) {
           </button>
         </div>
       </div>
+
+      <!-- Telemetry Suite & Multi-Trial Bar -->
+      <div class="lab-telemetry-suite-bar">
+        <div class="lab-trials-badge-group" id="titr-trials-badge-group">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Multi-Trial Titrations:</span>
+          <span class="lab-trial-pill trial-1" id="titr-pill-trial-1" style="opacity: 0.5;">Trial 1 (Cyan)</span>
+          <span class="lab-trial-pill trial-2" id="titr-pill-trial-2" style="opacity: 0.5;">Trial 2 (Amber)</span>
+          <span class="lab-trial-pill trial-3" id="titr-pill-trial-3" style="opacity: 0.5;">Trial 3 (Emerald)</span>
+        </div>
+
+        <div class="lab-export-buttons-group">
+          <button class="btn btn-secondary" id="btn-record-titr-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(6,182,212,0.4); color: #06b6d4;">
+            <span>📸 Log Current Trial</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-titr-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
+            <span>📥 Export CSV Data</span>
+          </button>
+          <button class="btn btn-primary" id="btn-open-titr-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #0891b2, #0284c7); border: none;">
+            <span>📑 Generate Lab Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mount for Post-Lab Checkpoint Assessment -->
+      <div id="titr-checkpoint-container"></div>
     </div>
   `;
 
@@ -1009,4 +1035,82 @@ export function initTitrationLab(containerId) {
     legendDeriv.style.display = showDerivative ? "flex" : "none";
     drawCurve();
   });
+
+  // Telemetry Suite: Record Current Trial
+  document.getElementById("btn-record-titr-trial")?.addEventListener("click", () => {
+    const curPH = calculatePH(vTitrant);
+    const trialEntry = LabTrialStore.addTrial("titration", {
+      measurements: {
+        "Volume Added (mL)": parseFloat(vTitrant.toFixed(2)),
+        "Final pH": parseFloat(curPH.toFixed(2)),
+        "Analyte": acidType,
+        "Indicator": indicator
+      }
+    });
+
+    const trials = LabTrialStore.getTrials("titration");
+    trials.forEach((tr, i) => {
+      const pill = document.getElementById(`titr-pill-trial-${i + 1}`);
+      if (pill) {
+        pill.style.opacity = "1";
+        pill.innerText = `Trial ${tr.trialNumber}: ${tr.measurements["Volume Added (mL)"]}mL → pH ${tr.measurements["Final pH"]}`;
+      }
+    });
+  });
+
+  // Telemetry Suite: Export CSV
+  document.getElementById("btn-export-titr-csv")?.addEventListener("click", () => {
+    const headers = ["Volume Dispensed (mL)", "Measured pH", "dpH/dV Derivative", "Analyte Type", "Indicator"];
+    const rows = dataPoints.map(dp => [
+      dp.v,
+      dp.ph,
+      dp.deriv || 0,
+      acidType,
+      indicator
+    ]);
+
+    exportLabDataCsv({
+      title: "Analytical Acid-Base Titration & pH Metrology",
+      labId: "titration",
+      parameters: {
+        "Analyte Acid": `${acidType} (25.0 mL, 0.100 M)`,
+        "Titrant Base": "NaOH (0.100 M Standardized)",
+        "Selected Indicator": indicator,
+        "Stirrer Speed": `${stirrerRpm} RPM`,
+        "Equivalence Volume": "25.00 mL"
+      },
+      headers,
+      dataRows: rows.length > 0 ? rows : [[vTitrant, calculatePH(vTitrant), 0, acidType, indicator]]
+    });
+  });
+
+  // Telemetry Suite: Generate Lab Report
+  document.getElementById("btn-open-titr-report")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("titration");
+    const curPH = calculatePH(vTitrant);
+    openLabReportModal({
+      title: "Analytical Acid-Base Titration & pH Metrology",
+      subject: "Chemistry",
+      inquiryQuestion: "How does the volumetric titration curve characterize stoichiometric equivalence and analyte dissociation equilibrium?",
+      parameters: {
+        "Analyte Solution": `${acidType} (25.0 mL, 0.100 M)`,
+        "Standard Titrant": "NaOH (0.100 M)",
+        "Colorimetric Indicator": indicator,
+        "Stirrer Speed": `${stirrerRpm} RPM`,
+        "Current Dispensed Volume": `${vTitrant.toFixed(2)} mL`,
+        "Current Measured pH": curPH.toFixed(2)
+      },
+      trials,
+      formulas: [
+        "M_A \\cdot V_A = M_B \\cdot V_B",
+        "\\text{pH} = -\\log_{10}[\\text{H}_3\\text{O}^+]",
+        "\\text{pH} = \\text{p}K_a + \\log\\left(\\frac{[\\text{A}^-]}{[\\text{HA}]}\\right)",
+        "\\text{dpH/dV} = \\lim_{\\Delta V \\to 0} \\frac{\\Delta \\text{pH}}{\\Delta V}"
+      ]
+    });
+  });
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("titr-checkpoint-container", "titration");
 }
+

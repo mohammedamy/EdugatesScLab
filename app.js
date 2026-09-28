@@ -13,6 +13,8 @@ import { openProgressModal, ProgressStore } from "./components/progress-tracker.
 import { renderMathInElement, renderLatex } from "./utils/math-renderer.js";
 import { getLessonInteractiveSpec } from "./components/lesson-interactives.js";
 import { openLessonPlanModal } from "./components/lesson-plan-generator.js";
+import { SoundFX } from "./utils/audio-synth.js";
+import { showToast, copyShareLink } from "./utils/toast.js";
 
 import { initProjectileLab } from "./labs/phys-projectile.js";
 import { initTitrationLab } from "./labs/chem-titration.js";
@@ -36,7 +38,8 @@ const AppState = {
   homeViewMode: "chapters", // 'chapters', 'lessons'
   searchQuery: "",
   selectedUnit: "ALL",
-  activeLabId: "projectile"
+  activeLabId: "projectile",
+  quizFilter: null
 };
 
 // Available Curricula and Laboratory Modules for Main Navigation Dropdown
@@ -103,7 +106,25 @@ function bootApp() {
   renderAppShell();
   initCustomLogoDetector();
   bindGlobalEvents();
-  renderCurrentView();
+
+  // Register PWA Offline Service Worker
+  if ("serviceWorker" in navigator && (window.location.protocol === "http:" || window.location.protocol === "https:")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").then(reg => {
+        console.log("[AmScLab PWA] Service Worker registered with scope:", reg.scope);
+      }).catch(err => {
+        console.warn("[AmScLab PWA] Service Worker notice:", err);
+      });
+    });
+  }
+
+  // Bind URL Hash Routing and process initial URL
+  window.addEventListener("hashchange", handleHashRoute);
+  if (window.location.hash) {
+    handleHashRoute();
+  } else {
+    renderCurrentView();
+  }
 
   // Defer floating smartboard pen bar canvas initialization slightly so first paint is instantaneous
   if ("requestIdleCallback" in window) {
@@ -142,6 +163,7 @@ function setDeviceMode(mode) {
   AppState.deviceMode = mode;
   try {
     localStorage.setItem("edugates_device_mode", mode);
+    SoundFX.playClick();
   } catch (e) {}
 
   document.body.classList.remove("mode-smartboard", "mode-tablet", "mode-mobile", "fast-smartboard-mode");
@@ -323,6 +345,9 @@ function setTheme(theme) {
   AppState.theme = theme;
   document.documentElement.setAttribute("data-theme", theme);
   localStorage.setItem("edugates_theme", theme);
+  try {
+    SoundFX.playClick();
+  } catch (e) {}
   const label = document.querySelector(".theme-toggle-text");
   if (label) {
     label.textContent = theme === "day" ? "Day" : "Night";
@@ -340,7 +365,8 @@ function bindGlobalEvents() {
 
   // Brand Home
   document.getElementById("nav-brand-home").addEventListener("click", () => {
-    switchTab("chem");
+    try { SoundFX.playClick(); } catch (e) {}
+    window.location.hash = "chem";
   });
 
   // Dropdown Trigger Toggle
@@ -348,6 +374,7 @@ function bindGlobalEvents() {
   if (dropdownTrigger) {
     dropdownTrigger.addEventListener("click", (e) => {
       e.stopPropagation();
+      try { SoundFX.playClick(); } catch (e) {}
       toggleSubjectDropdown();
     });
   }
@@ -356,7 +383,8 @@ function bindGlobalEvents() {
   document.querySelectorAll(".nav-dropdown-item").forEach(item => {
     item.addEventListener("click", (e) => {
       e.stopPropagation();
-      switchTab(item.dataset.tab);
+      try { SoundFX.playClick(); } catch (e) {}
+      switchTab(item.dataset.tab, true);
     });
   });
 
@@ -403,15 +431,149 @@ function bindGlobalEvents() {
   const progressBtn = document.getElementById("btn-open-progress");
   if (progressBtn) {
     progressBtn.addEventListener("click", () => {
-      openProgressModal();
+      window.location.hash = "mastery";
     });
   }
 }
 
-function switchTab(tabId) {
+export function findModuleByCode(rawCode) {
+  if (!rawCode) return null;
+  const clean = rawCode.trim().toUpperCase();
+  for (const curr of [chemistryCurriculum, biologyCurriculum, physicsCurriculum]) {
+    const mod = curr.modules.find(m => m.code.toUpperCase() === clean);
+    if (mod) return { mod, curr };
+  }
+  const match = clean.match(/^(CHEM|BIO|PHYS)?[-_]?M?(\d+)$/i);
+  if (match) {
+    const prefix = (match[1] || "").toUpperCase();
+    const id = parseInt(match[2], 10);
+    let curr = chemistryCurriculum;
+    if (prefix.startsWith("BIO")) curr = biologyCurriculum;
+    else if (prefix.startsWith("PHYS")) curr = physicsCurriculum;
+    const mod = curr.modules.find(m => m.id === id);
+    if (mod) return { mod, curr };
+  }
+  return null;
+}
+
+export function handleHashRoute() {
+  const hash = window.location.hash.slice(1);
+  if (!hash) {
+    switchTab("chem", false);
+    return;
+  }
+
+  const [pathPart, queryPart] = hash.split("?");
+  const params = {};
+  if (queryPart) {
+    queryPart.split("&").forEach(pair => {
+      const [k, v] = pair.split("=");
+      if (k) params[decodeURIComponent(k)] = decodeURIComponent(v || "");
+    });
+  }
+
+  const segments = pathPart.split("/").filter(Boolean);
+  const route = (segments[0] || "chem").toLowerCase();
+
+  // Route 1: Main Curriculum Tabs & Hubs
+  if (["chem", "bio", "phys", "labs", "quiz", "flashcards"].includes(route)) {
+    if (window.closeActiveModuleModal) window.closeActiveModuleModal();
+    if (window.closeActiveLessonPlanModal) window.closeActiveLessonPlanModal();
+    if (window.closeActiveProgressModal) window.closeActiveProgressModal();
+
+    if (route === "labs" && segments[1]) {
+      AppState.activeLabId = segments[1];
+    }
+    if (route === "quiz") {
+      AppState.quizFilter = params;
+    }
+    if (params.unit) AppState.selectedUnit = params.unit;
+    if (params.view) AppState.homeViewMode = params.view;
+    if (params.q) AppState.searchQuery = params.q;
+
+    switchTab(route, false);
+    return;
+  }
+
+  // Route 2: Specific Module Modal (#module/CHEM-M05 or #module/chem-5)
+  if (route === "module") {
+    const modCode = segments[1];
+    const lid = segments[2] ? parseInt(segments[2], 10) : undefined;
+    const res = findModuleByCode(modCode);
+    if (res) {
+      const tabId = res.curr.code.toLowerCase();
+      switchTab(tabId, false);
+      const themeColor = `var(--${tabId}-primary)`;
+      openModuleModal(res.mod, themeColor, lid);
+    } else {
+      switchTab("chem", false);
+    }
+    return;
+  }
+
+  // Route 3: Specific Lesson Interactive (#lesson/CHEM-M05-L2 or #lesson/chem-5/2)
+  if (route === "lesson") {
+    let modCode = segments[1] || "";
+    let lid = segments[2] ? parseInt(segments[2], 10) : undefined;
+    if (modCode.toUpperCase().includes("-L")) {
+      const parts = modCode.toUpperCase().split("-L");
+      modCode = parts[0];
+      lid = parseInt(parts[1], 10);
+    }
+    const res = findModuleByCode(modCode);
+    if (res) {
+      const tabId = res.curr.code.toLowerCase();
+      switchTab(tabId, false);
+      const themeColor = `var(--${tabId}-primary)`;
+      openModuleModal(res.mod, themeColor, lid || 1);
+    } else {
+      switchTab("chem", false);
+    }
+    return;
+  }
+
+  // Route 4: Teacher Lesson Plan Modal (#plan/CHEM-M05-L2 or #plan/chem-5/2)
+  if (route === "plan") {
+    let modCode = segments[1] || "";
+    let lid = segments[2] ? parseInt(segments[2], 10) : 1;
+    if (modCode.toUpperCase().includes("-L")) {
+      const parts = modCode.toUpperCase().split("-L");
+      modCode = parts[0];
+      lid = parseInt(parts[1], 10);
+    }
+    const res = findModuleByCode(modCode);
+    if (res) {
+      const tabId = res.curr.code.toLowerCase();
+      switchTab(tabId, false);
+      openLessonPlanModal(res.curr.code, res.mod.id, lid);
+    } else {
+      switchTab("chem", false);
+    }
+    return;
+  }
+
+  // Route 5: Student STEM Mastery Dashboard (#mastery)
+  if (route === "mastery") {
+    openProgressModal();
+    return;
+  }
+
+  // Fallback default
+  switchTab("chem", false);
+}
+
+function switchTab(tabId, updateHash = true) {
   AppState.currentTab = tabId;
   AppState.selectedUnit = "ALL";
   AppState.searchQuery = "";
+  window.lastActiveTab = tabId;
+
+  if (updateHash) {
+    const targetHash = tabId === "labs" ? `#labs/${AppState.activeLabId}` : `#${tabId}`;
+    if (window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
+    }
+  }
 
   const sub = NAV_SUBJECTS.find(s => s.id === tabId) || NAV_SUBJECTS[0];
 
@@ -497,7 +659,9 @@ function renderCurrentView() {
 
   if (AppState.currentTab === "quiz") {
     container.innerHTML = `<div id="quiz-engine-mount"></div>`;
-    renderQuizEngine("quiz-engine-mount");
+    const initialConfig = AppState.quizFilter || null;
+    AppState.quizFilter = null;
+    renderQuizEngine("quiz-engine-mount", initialConfig);
     return;
   }
 
@@ -683,14 +847,14 @@ function renderSubjectView(container, curData, themeColor) {
                 </div>
                 <img src="${imgPath}" alt="${m.title}" class="module-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.style.opacity='0'; this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="module-banner-overlay"></div>
-                <div class="module-banner-badges">
-                  <span class="module-code-badge">${m.code}</span>
-                  <span class="module-unit-tag">${m.unit || 'Core Module'}</span>
-                </div>
               </div>
 
               <div class="module-card-content">
                 <div>
+                  <div class="module-card-header-meta">
+                    <span class="module-code-badge">${m.code}</span>
+                    <span class="module-unit-tag">${m.unit || 'Core Module'}</span>
+                  </div>
                   <h3 class="module-title">${m.title}</h3>
                   <div class="module-phenomenon">
                     <span class="phenomenon-label">Encounter Phenomenon</span>
@@ -757,10 +921,6 @@ function renderSubjectView(container, curData, themeColor) {
                 </div>
                 <img src="${imgPath}" alt="${l.title}" class="lesson-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.style.opacity='0'; this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="lesson-banner-overlay"></div>
-                <div class="lesson-banner-badge-group">
-                  <span class="lesson-card-mcode">${m.code}</span>
-                  <span class="lesson-card-lbadge">Lesson ${l.id}</span>
-                </div>
                 <div class="lesson-card-pic-circle" title="${spec.title}">
                   ${iconEmoji}
                 </div>
@@ -768,6 +928,10 @@ function renderSubjectView(container, curData, themeColor) {
 
               <div class="lesson-card-body">
                 <div>
+                  <div class="lesson-card-header-meta">
+                    <span class="lesson-card-mcode">${m.code}</span>
+                    <span class="lesson-card-lbadge">Lesson ${l.id}</span>
+                  </div>
                   <div class="lesson-card-chapter">${m.title}</div>
                   <h4 class="lesson-card-title">${l.title}</h4>
                 </div>
@@ -835,7 +999,7 @@ function renderSubjectView(container, curData, themeColor) {
       const lid = parseInt(pill.dataset.lid, 10);
       const mod = curData.modules.find(m => m.id === mid);
       if (mod) {
-        openModuleModal(mod, themeColor, lid);
+        window.location.hash = `#lesson/${mod.code}-L${lid}`;
       }
     });
   });
@@ -847,7 +1011,7 @@ function renderSubjectView(container, curData, themeColor) {
       const lid = parseInt(card.dataset.lid, 10);
       const mod = curData.modules.find(m => m.id === mid);
       if (mod) {
-        openModuleModal(mod, themeColor, lid);
+        window.location.hash = `#lesson/${mod.code}-L${lid}`;
       }
     });
   });
@@ -858,7 +1022,7 @@ function renderSubjectView(container, curData, themeColor) {
       e.stopPropagation();
       const mid = parseInt(btn.dataset.mid, 10);
       const lid = parseInt(btn.dataset.lid, 10);
-      openLessonPlanModal(curData.code, mid, lid);
+      window.location.hash = `#plan/${curData.code}-M${mid}-L${lid}`;
     });
   });
 
@@ -868,7 +1032,7 @@ function renderSubjectView(container, curData, themeColor) {
       const mid = parseInt(card.dataset.mid, 10);
       const mod = curData.modules.find(m => m.id === mid);
       if (mod) {
-        openModuleModal(mod, themeColor);
+        window.location.hash = `#module/${mod.code}`;
       }
     });
   });
@@ -881,8 +1045,13 @@ function renderVirtualLabsHub(container) {
     <div style="display: flex; flex-direction: column; gap: 28px;">
       <!-- Labs Header -->
       <div class="hero-banner labs-suite-hero">
-        <div class="hero-badge labs-suite-badge">
-          Interactive Simulation Workbenches (60 FPS)
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div class="hero-badge labs-suite-badge">
+            Interactive Simulation Workbenches (60 FPS)
+          </div>
+          <button class="btn btn-secondary btn-share-link" id="btn-share-active-lab" title="Share deep-link to this laboratory workbench">
+            <span>🔗 Share Workbench</span>
+          </button>
         </div>
         <h2 class="hero-title">Virtual Laboratories Suite</h2>
         <p class="hero-desc">
@@ -935,11 +1104,17 @@ function renderVirtualLabsHub(container) {
     </div>
   `;
 
+  // Bind Share Button
+  document.getElementById("btn-share-active-lab")?.addEventListener("click", () => {
+    copyShareLink(`#labs/${AppState.activeLabId}`, `Virtual Lab: ${formatLabName("lab-" + AppState.activeLabId)}`);
+  });
+
   // Bind Lab Selector Buttons
   document.querySelectorAll(".lab-nav-btn").forEach(btn => {
     btn.addEventListener("click", () => {
+      try { SoundFX.playClick(); } catch (e) {}
       AppState.activeLabId = btn.dataset.lab;
-      renderVirtualLabsHub(container);
+      window.location.hash = `#labs/${btn.dataset.lab}`;
     });
   });
 

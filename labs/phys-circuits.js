@@ -3,6 +3,7 @@
 // Dynamic Incandescent Tungsten Bulb, Brass Knife Switch with Spark, and 4K Workbench Photography.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
 export function initCircuitsLab(containerId) {
   const container = document.getElementById(containerId);
@@ -188,6 +189,31 @@ export function initCircuitsLab(containerId) {
           </label>
         </div>
       </div>
+
+      <!-- Telemetry Suite & Multi-Trial Bar -->
+      <div class="lab-telemetry-suite-bar">
+        <div class="lab-trials-badge-group" id="circuits-trials-badge-group">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Multi-Trial Circuit Logging:</span>
+          <span class="lab-trial-pill trial-1" id="circ-pill-trial-1" style="opacity: 0.5;">Trial 1 (Cyan)</span>
+          <span class="lab-trial-pill trial-2" id="circ-pill-trial-2" style="opacity: 0.5;">Trial 2 (Amber)</span>
+          <span class="lab-trial-pill trial-3" id="circ-pill-trial-3" style="opacity: 0.5;">Trial 3 (Emerald)</span>
+        </div>
+
+        <div class="lab-export-buttons-group">
+          <button class="btn btn-secondary" id="btn-record-circ-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(245,158,11,0.4); color: #fbbf24;">
+            <span>📸 Log Current State</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-circ-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
+            <span>📥 Export CSV Data</span>
+          </button>
+          <button class="btn btn-primary" id="btn-open-circ-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #d97706, #b45309); border: none;">
+            <span>📑 Generate Lab Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Lab Checkpoint Assessment Mount -->
+      <div id="circuits-checkpoint-container"></div>
     </div>
   `;
 
@@ -695,6 +721,95 @@ export function initCircuitsLab(containerId) {
     btnSim.style.color = "#94a3b8";
   });
 
+  // Telemetry Suite: Record Current Trial
+  document.getElementById("btn-record-circ-trial")?.addEventListener("click", () => {
+    let rEq = topology === "series" ? (r1 + r2) : ((r1 * r2) / (r1 + r2));
+    let iTotal = switchClosed ? (voltage / rEq) : 0;
+    let pTotal = voltage * iTotal;
+
+    const trialEntry = LabTrialStore.addTrial("circuits", {
+      measurements: {
+        "Voltage (V)": parseFloat(voltage.toFixed(1)),
+        "R1 (Ω)": parseFloat(r1.toFixed(1)),
+        "R2 (Ω)": parseFloat(r2.toFixed(1)),
+        "Req (Ω)": parseFloat(rEq.toFixed(2)),
+        "Current (A)": parseFloat(iTotal.toFixed(3)),
+        "Power (W)": parseFloat(pTotal.toFixed(2))
+      }
+    });
+
+    const trials = LabTrialStore.getTrials("circuits");
+    trials.forEach((tr, i) => {
+      const pill = document.getElementById(`circ-pill-trial-${i + 1}`);
+      if (pill) {
+        pill.style.opacity = "1";
+        pill.innerText = `Trial ${tr.trialNumber}: V=${tr.measurements["Voltage (V)"]}V, I=${tr.measurements["Current (A)"]}A (Req=${tr.measurements["Req (Ω)"]}Ω)`;
+      }
+    });
+  });
+
+  // Telemetry Suite: Export CSV
+  document.getElementById("btn-export-circ-csv")?.addEventListener("click", () => {
+    let rEq = topology === "series" ? (r1 + r2) : ((r1 * r2) / (r1 + r2));
+    let iTotal = switchClosed ? (voltage / rEq) : 0;
+    let pTotal = voltage * iTotal;
+
+    exportLabDataCsv({
+      title: "DC Circuits & Ohm's Law Laboratory",
+      labId: "circuits",
+      parameters: {
+        "Source Voltage": `${voltage} V`,
+        "Resistor R1": `${r1} Ω`,
+        "Resistor R2 (Bulb)": `${r2} Ω`,
+        "Topology": topology.toUpperCase(),
+        "Switch State": switchClosed ? "CLOSED (Active)" : "OPEN (Halted)"
+      },
+      headers: ["Voltage (V)", "Topology", "Req (Ω)", "Current (A)", "Total Power (W)", "R1 Voltage (V)", "R2 Voltage (V)"],
+      dataRows: [
+        [
+          voltage,
+          topology,
+          rEq,
+          iTotal,
+          pTotal,
+          topology === "series" ? (iTotal * r1) : voltage,
+          topology === "series" ? (iTotal * r2) : voltage
+        ]
+      ]
+    });
+  });
+
+  // Telemetry Suite: Generate Lab Report
+  document.getElementById("btn-open-circ-report")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("circuits");
+    let rEq = topology === "series" ? (r1 + r2) : ((r1 * r2) / (r1 + r2));
+    let iTotal = switchClosed ? (voltage / rEq) : 0;
+
+    openLabReportModal({
+      title: "DC Circuits, Ohm's Law & Kirchhoff's Circuit Rules",
+      subject: "Physics",
+      inquiryQuestion: "How do series vs parallel circuit topologies govern equivalent resistance, voltage distribution, and total branch current?",
+      parameters: {
+        "DC Supply Voltage": `${voltage.toFixed(1)} V`,
+        "Resistor R1": `${r1.toFixed(1)} Ω`,
+        "Load Resistor R2 (Bulb)": `${r2.toFixed(1)} Ω`,
+        "Branch Architecture": topology.toUpperCase(),
+        "Equivalent Resistance": `${rEq.toFixed(2)} Ω`,
+        "Loop Current": `${iTotal.toFixed(3)} A`
+      },
+      trials,
+      formulas: [
+        "V = I \\cdot R",
+        "R_{\\text{series}} = R_1 + R_2",
+        "\\frac{1}{R_{\\text{parallel}}} = \\frac{1}{R_1} + \\frac{1}{R_2}",
+        "P = V \\cdot I = I^2 R = \\frac{V^2}{R}"
+      ]
+    });
+  });
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("circuits-checkpoint-container", "circuits");
+
   function handleResize() {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
@@ -704,3 +819,4 @@ export function initCircuitsLab(containerId) {
   window.addEventListener("resize", handleResize);
   handleResize();
 }
+

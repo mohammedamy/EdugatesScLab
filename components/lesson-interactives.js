@@ -2890,9 +2890,9 @@ function buildDensityInteractive(mountId, params) {
     <div class="interactive-split-grid">
       <div class="sim-canvas-box" style="position: relative;">
         <canvas id="${mountId}-canvas" width="380" height="260" style="width: 100%; height: 260px;"></canvas>
-        <div style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 6px; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.75rem;">
+        <div class="badge" style="position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 6px; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.75rem;">
           <input type="checkbox" id="${mountId}-chk-fbd" checked style="accent-color: #10b981; cursor: pointer;">
-          <label for="${mountId}-chk-fbd" style="color: #cbd5e1; cursor: pointer; user-select: none;">Force Vectors (F_g, F_b)</label>
+          <label for="${mountId}-chk-fbd" style="color: var(--text-main); cursor: pointer; user-select: none; font-weight: 600;">Force Vectors (F_g, F_b)</label>
         </div>
       </div>
 
@@ -2934,9 +2934,9 @@ function buildDensityInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-vol" min="10" max="100" step="1" value="${vol}">
         </div>
 
-        <div style="background: rgba(15,23,42,0.6); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.76rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span id="${mountId}-fg-txt">F_gravity: 0.59 N</span>
-          <span id="${mountId}-fb-txt">F_buoyant: 0.39 N</span>
+        <div class="sim-telemetry-box" style="padding: 7px 12px; font-size: 0.78rem; display: flex; justify-content: space-between; font-weight: 700;">
+          <span id="${mountId}-fg-txt" style="color: var(--text-main);">F_gravity = 0.59 N</span>
+          <span id="${mountId}-fb-txt" style="color: var(--chem-primary);">F_buoyant = 0.39 N</span>
         </div>
       </div>
     </div>
@@ -3247,7 +3247,7 @@ function buildHeatingCurveInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-heat" min="0" max="100" step="1" value="0">
         </div>
 
-        <div style="background: rgba(15,23,42,0.7); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.74rem; color: var(--text-dim); line-height: 1.45;">
+        <div class="sim-telemetry-box" style="padding: 8px 12px; font-size: 0.76rem; line-height: 1.45;">
           <div style="color: #38bdf8;"><strong>0–20 kJ:</strong> Solid Warming • q = mc_sΔT</div>
           <div style="color: #06b6d4;"><strong>20–40 kJ:</strong> Fusion Plateau • ΔH_fus = 6.01 kJ/mol (0°C)</div>
           <div style="color: #10b981;"><strong>40–70 kJ:</strong> Liquid Warming • q = mc_lΔT</div>
@@ -3645,9 +3645,9 @@ function buildBohrPhotonInteractive(mountId, params) {
           <button class="btn-sim-action" id="${mountId}-p-lyman" style="font-size: 0.7rem; padding: 5px 2px;">Ly-α (2→1)</button>
         </div>
 
-        <div style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-freq-disp">ν = 4.57 × 10¹⁴ Hz (456.8 THz)</div>
-          <div style="margin-top: 2px;">Rydberg: 1/λ = R_H (1/n_f² - 1/n_i²)</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-freq-disp" style="font-weight: 700; color: var(--text-main);">ν = 4.57 × 10¹⁴ Hz (456.8 THz)</div>
+          <div style="margin-top: 2px; color: var(--chem-primary); font-weight: 600;">Rydberg: 1/λ = R_H (1/n_f² - 1/n_i²)</div>
         </div>
       </div>
     </div>
@@ -4011,9 +4011,9 @@ function buildStoichiometryInteractive(mountId, params) {
           </button>
         </div>
 
-        <div style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-mass-bal">Law of Conservation: m_total = 231.2 g (Invariant)</div>
-          <div id="${mountId}-excess-disp" style="color: #fbbf24; margin-top: 2px;">Excess Al: 0.33 mol (8.9 g unreacted)</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-mass-bal" style="font-weight: 700; color: var(--text-main);">Law of Conservation: m_total = 231.2 g (Invariant)</div>
+          <div id="${mountId}-excess-disp" style="color: #fbbf24; margin-top: 2px; font-weight: 600;">Excess Al: 0.33 mol (8.9 g unreacted)</div>
         </div>
       </div>
     </div>
@@ -4288,9 +4288,9 @@ function buildGasPistonInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-t-slider" min="150" max="650" step="10" value="${temp}">
         </div>
 
-        <div style="background: rgba(15,23,42,0.6); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.74rem; color: var(--text-muted); display: flex; justify-content: space-between;">
-          <span id="${mountId}-ke-txt">Mean KE: 3.74 kJ/mol</span>
-          <span id="${mountId}-vrms-txt">v_rms: 480 m/s</span>
+        <div class="sim-telemetry-box" style="padding: 7px 12px; font-size: 0.78rem; display: flex; justify-content: space-between; font-weight: 700;">
+          <span id="${mountId}-ke-txt" style="color: var(--text-main);">Mean KE: 3.74 kJ/mol</span>
+          <span id="${mountId}-vrms-txt" style="color: var(--chem-primary);">v_rms: 480 m/s</span>
         </div>
       </div>
     </div>
@@ -4604,9 +4604,9 @@ function buildCalorimeterInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-mtemp-slider" min="40" max="150" step="5" value="${metalTemp}">
         </div>
 
-        <div style="background: rgba(15,23,42,0.6); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.74rem; color: var(--text-muted); line-height: 1.4;">
-          m_w·c_w·(T_f - T_w) = m_m·c_m·(T_m - T_f)<br>
-          <span style="color: #38bdf8;">100.0 g water (c = 4.184 J/g°C)</span>
+        <div class="sim-telemetry-box" style="line-height: 1.45;">
+          <div style="font-weight: 700; color: var(--text-main);">m_w·c_w·(T_f - T_w) = m_m·c_m·(T_m - T_f)</div>
+          <span style="color: var(--chem-primary); font-weight: 600;">100.0 g water (c = 4.184 J/g°C)</span>
         </div>
       </div>
     </div>
@@ -4846,7 +4846,7 @@ function buildOsmosisInteractive(mountId, params) {
           <button class="btn-sim-action" data-t="hypertonic" id="${mountId}-btn-hyper" style="padding: 5px 2px; font-size: 0.72rem;">🧂 Hypertonic (5.0%)</button>
         </div>
 
-        <div id="${mountId}-osmosis-desc" style="background: rgba(15,23,42,0.6); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.74rem; color: var(--text-muted); line-height: 1.45;">
+        <div id="${mountId}-osmosis-desc" class="sim-telemetry-box" style="line-height: 1.45; font-family: var(--font-body); font-size: 0.8rem;">
           Dynamic equilibrium: Net water flux is zero. Human erythrocyte maintains normal 7.5 µm biconcave disc geometry with central pallor.
         </div>
       </div>
@@ -5146,7 +5146,7 @@ function buildEnzymeInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-t-slider" min="0" max="80" step="1" value="${temp}">
         </div>
 
-        <div id="${mountId}-denature-box" style="background: rgba(15,23,42,0.6); padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.74rem; color: #10b981; line-height: 1.45;">
+        <div id="${mountId}-denature-box" class="sim-telemetry-box" style="line-height: 1.45; font-family: var(--font-body); font-size: 0.8rem; color: var(--bio-primary); font-weight: 600;">
           Optimal Catalytic Activity (37°C): Active site pocket cleft exhibits flexible induced-fit geometry with complementary hydrogen/ionic stabilization.
         </div>
       </div>
@@ -5441,9 +5441,9 @@ function buildActionPotentialInteractive(mountId, params) {
           </button>
         </div>
 
-        <div style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-hh-disp">Hodgkin-Huxley: g_Na = 0.0 mS • g_K = 0.5 mS</div>
-          <div style="margin-top: 2px;">All-or-None Law: Depolarization past -55mV opens voltage-gated Na⁺</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-hh-disp" style="font-weight: 700; color: var(--text-main);">Hodgkin-Huxley: g_Na = 0.0 mS • g_K = 0.5 mS</div>
+          <div style="margin-top: 2px; color: var(--bio-primary); font-weight: 600;">All-or-None Law: Depolarization past -55mV opens voltage-gated Na⁺</div>
         </div>
       </div>
     </div>
@@ -5903,11 +5903,11 @@ function buildInclinedPlaneInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-mu-slider" min="0.0" max="0.8" step="0.05" value="${mu_k}">
         </div>
 
-        <div style="background: rgba(15,23,42,0.6); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.74rem; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+        <div class="sim-telemetry-box" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.78rem; font-weight: 700;">
           <span id="${mountId}-fn-txt" style="color: #06b6d4;">F_N: 16.98 N</span>
           <span id="${mountId}-fpar-txt" style="color: #3b82f6;">F_∥: 9.80 N</span>
           <span id="${mountId}-fk-txt" style="color: #ef4444;">f_k: 4.25 N</span>
-          <span id="${mountId}-fnet-txt" style="color: #10b981; font-weight: 700;">F_net: 5.55 N</span>
+          <span id="${mountId}-fnet-txt" style="color: #10b981;">F_net: 5.55 N</span>
         </div>
       </div>
     </div>
@@ -6192,9 +6192,9 @@ function buildMiniProjectileInteractive(mountId, params) {
           </button>
         </div>
 
-        <div style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-time-disp">Flight Time: t_total = 2.88 s • Photogate Δt = 5.00 ms</div>
-          <div style="margin-top: 2px;">R = (v₀² · sin 2θ) / g • H = (v₀ · sin θ)² / (2g)</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-time-disp" style="font-weight: 700; color: var(--text-main);">Flight Time: t_total = 2.88 s • Photogate Δt = 5.00 ms</div>
+          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">R = (v₀² · sin 2θ) / g • H = (v₀ · sin θ)² / (2g)</div>
         </div>
       </div>
     </div>
@@ -6583,8 +6583,8 @@ function buildSnellOpticsInteractive(mountId, params) {
           </div>
         </div>
 
-        <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between; background: rgba(15,23,42,0.6); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.74rem;">
-          <span style="color: var(--text-muted);">Laser Source:</span>
+        <div class="sim-telemetry-box" style="display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 6px 12px; font-size: 0.78rem;">
+          <span style="color: var(--text-main); font-weight: 700;">Laser Source:</span>
           <div style="display: flex; gap: 6px;">
             <button class="btn-sim-action active" id="${mountId}-btn-lred" style="padding: 2px 8px; font-size: 0.72rem; color: #f87171;">633nm He-Ne Red</button>
             <button class="btn-sim-action" id="${mountId}-btn-lgrn" style="padding: 2px 8px; font-size: 0.72rem; color: #34d399;">532nm Diode Green</button>
@@ -8238,7 +8238,7 @@ function buildPunnettInteractive(mountId, params) {
         <div style="font-weight: 700; color: #10b981; font-size: 0.95rem; margin-bottom: 8px;">
           Monohybrid Punnett Grid (2 × 2)
         </div>
-        <div id="${mountId}-punnett-grid-box" style="width: 260px; height: 190px; background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;"></div>
+        <div id="${mountId}-punnett-grid-box" class="sim-telemetry-box" style="width: 260px; height: 190px; padding: 10px;"></div>
       </div>
 
       <div class="sim-controls-panel">
@@ -8564,10 +8564,10 @@ function buildGalvanicCellInteractive(mountId, params) {
           </div>
           <input type="range" class="range-slider" id="${mountId}-cu-slider" min="0.01" max="2.0" step="0.05" value="${cuConc}">
         </div>
-        <div style="background: rgba(15,23,42,0.6); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.74rem; color: var(--text-muted); line-height: 1.4;">
-          <div><strong style="color: #cbd5e1;">Anode (-) Oxidation:</strong> Zn(s) → Zn²⁺(aq) + 2e⁻</div>
-          <div><strong style="color: #f59e0b;">Cathode (+) Reduction:</strong> Cu²⁺(aq) + 2e⁻ → Cu(s)</div>
-          <div style="color: #38bdf8; font-size: 0.7rem; margin-top: 2px;">E = E° - (0.0592/2)·log([Zn²⁺]/[Cu²⁺])</div>
+        <div class="sim-telemetry-box" style="line-height: 1.45;">
+          <div><strong style="color: var(--text-main);">Anode (-) Oxidation:</strong> Zn(s) → Zn²⁺(aq) + 2e⁻</div>
+          <div><strong style="color: var(--accent-amber);">Cathode (+) Reduction:</strong> Cu²⁺(aq) + 2e⁻ → Cu(s)</div>
+          <div style="color: var(--chem-primary); font-size: 0.75rem; margin-top: 2px; font-weight: 600;">E = E° - (0.0592/2)·log([Zn²⁺]/[Cu²⁺])</div>
         </div>
       </div>
     </div>
@@ -9733,9 +9733,9 @@ function buildPeriodicTrendsInteractive(mountId, params) {
             <button class="btn-sim-action ${i === 0 ? 'active' : ''}" data-idx="${i}" style="padding: 6px 2px; font-size: 0.8rem; text-align: center;">${el.sym}</button>
           `).join("")}
         </div>
-        <div style="background: rgba(15,23,42,0.6); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-ie-val"><strong>1st Ionization Energy:</strong> 520 kJ/mol</div>
-          <div id="${mountId}-en-val" style="margin-top: 2px;"><strong>Electronegativity:</strong> 0.98 (Pauling)</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-ie-val" style="font-weight: 700; color: var(--text-main);"><strong>1st Ionization Energy:</strong> 520 kJ/mol</div>
+          <div id="${mountId}-en-val" style="margin-top: 2px; color: var(--chem-primary); font-weight: 700;"><strong>Electronegativity:</strong> 0.98 (Pauling)</div>
         </div>
       </div>
     </div>
@@ -10191,7 +10191,7 @@ function buildMitosisCellCycleInteractive(mountId, params) {
             <button class="btn-sim-action ${i === currentStageIdx ? 'active' : ''}" data-idx="${i}" style="padding: 6px 4px; font-size: 0.75rem;">${s.name.split(" ")[0]}</button>
           `).join("")}
         </div>
-        <div style="background: rgba(15,23,42,0.6); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.82rem; color: var(--text-muted); margin-top: 6px; line-height: 1.4;" id="${mountId}-stage-desc">
+        <div id="${mountId}-stage-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.82rem; line-height: 1.45;">
           ${stages[currentStageIdx].desc}
         </div>
       </div>
@@ -10380,8 +10380,8 @@ function buildHardyWeinbergInteractive(mountId, params) {
           </div>
           <input type="range" class="range-slider" id="${mountId}-s-slider" min="0" max="0.8" step="0.05" value="${s}">
         </div>
-        <div style="background: rgba(15,23,42,0.6); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-geno-val">p² (AA) = 0.36 | 2pq (Aa) = 0.48 | q² (aa) = 0.16</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-geno-val" style="font-weight: 700; color: var(--text-main);">p² (AA) = 0.36 | 2pq (Aa) = 0.48 | q² (aa) = 0.16</div>
         </div>
       </div>
     </div>
@@ -10661,9 +10661,9 @@ function buildGravityOrbitsInteractive(mountId, params) {
           </div>
           <input type="range" class="range-slider" id="${mountId}-vscale-slider" min="0.80" max="1.30" step="0.05" value="${vScale}">
         </div>
-        <div style="background: rgba(15,23,42,0.6); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-          <div id="${mountId}-period-val"><strong>Period (T):</strong> 127 minutes</div>
-          <div style="margin-top: 2px;"><strong>Newton's Law:</strong> Fg = G·M·m / r²</div>
+        <div class="sim-telemetry-box" style="margin-top: 4px;">
+          <div id="${mountId}-period-val" style="font-weight: 700; color: var(--text-main);"><strong>Period (T):</strong> 127 minutes</div>
+          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;"><strong>Newton's Law:</strong> Fg = G·M·m / r²</div>
         </div>
       </div>
     </div>
@@ -10805,9 +10805,9 @@ function buildCircularMotionInteractive(mountId, params) {
           </div>
           <input type="range" class="range-slider" id="${mountId}-w-slider" min="1.0" max="8.0" step="0.5" value="${omega}">
         </div>
-        <div style="background: rgba(15,23,42,0.6); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-          <div id="${mountId}-v-val"><strong>Tangential Speed (v = ωr):</strong> 4.5 m/s</div>
-          <div id="${mountId}-fc-val" style="margin-top: 2px;"><strong>Tether Tension (Fc = m·ac):</strong> 27.0 N</div>
+        <div class="sim-telemetry-box" style="margin-top: 4px;">
+          <div id="${mountId}-v-val" style="font-weight: 700; color: var(--text-main);"><strong>Tangential Speed (v = ωr):</strong> 4.5 m/s</div>
+          <div id="${mountId}-fc-val" style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;"><strong>Tether Tension (Fc = m·ac):</strong> 27.0 N</div>
         </div>
       </div>
     </div>
@@ -10936,9 +10936,9 @@ function buildWorkEnergyInteractive(mountId, params) {
           <button class="btn-sim-action active" id="${mountId}-btn-nofric" style="flex: 1; padding: 6px;">Ideal (No Friction)</button>
           <button class="btn-sim-action" id="${mountId}-btn-fric" style="flex: 1; padding: 6px;">With Friction (Thermal)</button>
         </div>
-        <div style="background: rgba(15,23,42,0.6); padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-          <div id="${mountId}-v-val"><strong>Cart Speed:</strong> 0.0 m/s</div>
-          <div style="margin-top: 2px;"><strong>Conservation:</strong> E_total = KE + PE = const</div>
+        <div class="sim-telemetry-box" style="margin-top: 4px;">
+          <div id="${mountId}-v-val" style="font-weight: 700; color: var(--text-main);"><strong>Cart Speed:</strong> 0.0 m/s</div>
+          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;"><strong>Conservation:</strong> E_total = KE + PE = const</div>
         </div>
       </div>
     </div>
@@ -11304,9 +11304,9 @@ function buildCoulombFieldInteractive(mountId, params) {
           <input type="range" class="range-slider" id="${mountId}-r-slider" min="0.5" max="2.5" step="0.1" value="${rDist}">
         </div>
 
-        <div style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-field-disp">Electric Field at q₁: E = 2.70 × 10⁷ N/C</div>
-          <div style="margin-top: 2px;">Coulomb's Law: F_e = k · |q₁ · q₂| / r² • Restoring Torque: τ = -κ · θ</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-field-disp" style="font-weight: 700; color: var(--text-main);">Electric Field at q₁: E = 2.70 × 10⁷ N/C</div>
+          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">Coulomb's Law: F_e = k · |q₁ · q₂| / r² • Restoring Torque: τ = -κ · θ</div>
         </div>
       </div>
     </div>
@@ -11615,8 +11615,8 @@ function buildLorentzForceInteractive(mountId, params) {
           </button>
         </div>
 
-        <div style="background: rgba(15,23,42,0.6); padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.75rem; color: var(--text-muted); margin-top: 6px;">
-          <strong>Specific Charge Law:</strong> e/m = 2·UA / (B²·r²) = 1.7588 × 10¹¹ C/kg
+        <div class="sim-telemetry-box" style="margin-top: 6px; font-size: 0.78rem; font-weight: 700;">
+          <strong style="color: var(--phys-primary);">Specific Charge Law:</strong> e/m = 2·UA / (B²·r²) = 1.7588 × 10¹¹ C/kg
         </div>
       </div>
     </div>
@@ -11949,9 +11949,9 @@ function buildFaradayInductionInteractive(mountId, params) {
           </button>
         </div>
 
-        <div style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-law-disp">Faraday's Law: ℰ = -N · (dΦ_B / dt)</div>
-          <div style="margin-top: 2px;">Lenz's Law: Induced current opposes change in flux</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-law-disp" style="font-weight: 700; color: var(--text-main);">Faraday's Law: ℰ = -N · (dΦ_B / dt)</div>
+          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">Lenz's Law: Induced current opposes change in flux</div>
         </div>
       </div>
     </div>
@@ -12292,9 +12292,9 @@ function buildWaveOpticsInteractive(mountId, params) {
           <button class="btn-sim-action" id="${mountId}-laser-violet" style="font-size: 0.72rem; padding: 6px 2px;">Violet (405nm)</button>
         </div>
 
-        <div style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-screen-disp">Screen Distance: L = 2.00 m • Central Max Width = 8.52 mm</div>
-          <div style="margin-top: 2px;">Double-Slit Maxima: d · sin θ = m · λ (m = 0, ±1, ±2...)</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-screen-disp" style="font-weight: 700; color: var(--text-main);">Screen Distance: L = 2.00 m • Central Max Width = 8.52 mm</div>
+          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">Double-Slit Maxima: d · sin θ = m · λ (m = 0, ±1, ±2...)</div>
         </div>
       </div>
     </div>
@@ -12597,9 +12597,9 @@ function buildPhotoelectricInteractive(mountId, params) {
           <button class="btn-sim-action" id="${mountId}-m-zn" style="flex: 1; padding: 5px 2px; font-size: 0.7rem;">Zn (4.30eV)</button>
         </div>
 
-        <div style="background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-top: 6px;">
-          <div id="${mountId}-e-phot">E_photon = hf = 4.43 eV • Photocurrent I = 14.2 μA</div>
-          <div style="margin-top: 2px;">Einstein (1905): KE_max = hf - Φ = e · V_stop</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-e-phot" style="font-weight: 700; color: var(--text-main);">E_photon = hf = 4.43 eV • Photocurrent I = 14.2 μA</div>
+          <div style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;">Einstein (1905): KE_max = hf - Φ = e · V_stop</div>
         </div>
       </div>
     </div>

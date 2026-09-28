@@ -3,6 +3,7 @@
 // RNA Polymerase Transcription Bubble, Ribosome A/P/E Translation Cycle, and Genetic Mutation Pathology.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
 export function initDnaProteinLab(containerId) {
   const container = document.getElementById(containerId);
@@ -194,6 +195,31 @@ export function initDnaProteinLab(containerId) {
           </div>
         </div>
       </div>
+
+      <!-- Telemetry Suite & Multi-Trial Bar -->
+      <div class="lab-telemetry-suite-bar">
+        <div class="lab-trials-badge-group" id="dna-trials-badge-group">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Genetic Synthesis Log:</span>
+          <span class="lab-trial-pill trial-1" id="dna-pill-trial-1" style="opacity: 0.5;">Seq 1 (Cyan)</span>
+          <span class="lab-trial-pill trial-2" id="dna-pill-trial-2" style="opacity: 0.5;">Seq 2 (Amber)</span>
+          <span class="lab-trial-pill trial-3" id="dna-pill-trial-3" style="opacity: 0.5;">Seq 3 (Emerald)</span>
+        </div>
+
+        <div class="lab-export-buttons-group">
+          <button class="btn btn-secondary" id="btn-record-dna-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(16,185,129,0.4); color: #10b981;">
+            <span>📸 Log Genetic Variant</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-dna-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
+            <span>📥 Export CSV Data</span>
+          </button>
+          <button class="btn btn-primary" id="btn-open-dna-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #059669, #047857); border: none;">
+            <span>📑 Generate Lab Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Lab Checkpoint Assessment Mount -->
+      <div id="dna-checkpoint-container"></div>
     </div>
   `;
 
@@ -518,6 +544,95 @@ export function initDnaProteinLab(containerId) {
     btnSim.style.background = "transparent";
     btnSim.style.color = "#94a3b8";
   });
+
+  // Telemetry Suite: Record Current State as Trial
+  document.getElementById("btn-record-dna-trial")?.addEventListener("click", () => {
+    const cleanDna = dnaSeq.replace(/[^ATCG]/gi, "").toUpperCase();
+    const { mrna, peptide: pep } = processSequence(cleanDna);
+    const polyString = pep.map(p => p.code).join("-") || "None";
+    const mutLabel = selMut.options[selMut.selectedIndex].text.split("(")[0].trim();
+
+    LabTrialStore.addTrial("dnaprotein", {
+      measurements: {
+        "Allele State": mutLabel,
+        "DNA Template (3'→5')": cleanDna,
+        "mRNA Transcript (5'→3')": mrna,
+        "Polypeptide": polyString,
+        "Residue Count": pep.length
+      }
+    });
+
+    const trials = LabTrialStore.getTrials("dnaprotein");
+    trials.forEach((tr, i) => {
+      const pill = document.getElementById(`dna-pill-trial-${i + 1}`);
+      if (pill) {
+        pill.style.opacity = "1";
+        pill.innerText = `Var ${tr.trialNumber}: ${tr.measurements["Allele State"]} (${tr.measurements["Polypeptide"]})`;
+      }
+    });
+  });
+
+  // Telemetry Suite: Export CSV
+  document.getElementById("btn-export-dna-csv")?.addEventListener("click", () => {
+    const cleanDna = dnaSeq.replace(/[^ATCG]/gi, "").toUpperCase();
+    const { mrna, peptide: pep } = processSequence(cleanDna);
+    const mutLabel = selMut.options[selMut.selectedIndex].text.split("(")[0].trim();
+
+    const headers = ["Codon #", "DNA Triplet", "mRNA Codon", "Residue Code", "Amino Acid Name"];
+    const rows = [];
+    const codonCount = Math.floor(cleanDna.length / 3);
+
+    for (let c = 0; c < codonCount; c++) {
+      const dTrip = cleanDna.slice(c * 3, c * 3 + 3);
+      const mTrip = mrna.slice(c * 3, c * 3 + 3);
+      const amino = pep[c] || { code: "N/A", aa: "Non-translated / Post-STOP" };
+      rows.push([c + 1, dTrip, mTrip, amino.code, amino.aa]);
+    }
+
+    exportLabDataCsv({
+      title: "Molecular Genetics & Protein Translation Engine",
+      labId: "dnaprotein",
+      parameters: {
+        "Template DNA (3'→5')": cleanDna,
+        "mRNA Transcript (5'→3')": mrna,
+        "Mutation Model": mutLabel,
+        "Peptide Length": `${pep.length} Amino Acids`
+      },
+      headers,
+      dataRows: rows.length > 0 ? rows : [[1, cleanDna, mrna, "None", "No translation"]]
+    });
+  });
+
+  // Telemetry Suite: Generate Lab Report
+  document.getElementById("btn-open-dna-report")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("dnaprotein");
+    const cleanDna = dnaSeq.replace(/[^ATCG]/gi, "").toUpperCase();
+    const { mrna, peptide: pep } = processSequence(cleanDna);
+    const polyString = pep.map(p => p.code).join("-") || "None";
+    const mutLabel = selMut.options[selMut.selectedIndex].text.split("(")[0].trim();
+
+    openLabReportModal({
+      title: "Central Dogma of Molecular Biology: Transcription & Translation Fidelity",
+      subject: "Biology",
+      inquiryQuestion: "How do point mutations and indel frame disruptions quantitatively alter mRNA transcription and primary polypeptide elongation?",
+      parameters: {
+        "DNA Template Sequence": cleanDna,
+        "Synthesized mRNA Transcript": mrna,
+        "Translated Polypeptide": polyString,
+        "Residue Chain Length": `${pep.length} Amino Acids`,
+        "Allele Mutation Status": mutLabel
+      },
+      trials,
+      formulas: [
+        "3'-\\text{DNA Template}-5' \\xrightarrow{\\text{RNA Pol II}} 5'-\\text{mRNA Transcript}-3'",
+        "\\text{Codon Number} = \\left\\lfloor \\frac{\\text{Nucleotides}}{3} \\right\\rfloor",
+        "\\text{Peptide Bonds} = n_{\\text{amino acids}} - 1"
+      ]
+    });
+  });
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("dna-checkpoint-container", "dnaprotein");
 
   function handleResize() {
     const rect = canvas.getBoundingClientRect();

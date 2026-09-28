@@ -3,6 +3,7 @@
 // Substage Iris Diaphragm, Micrometer Scale Reticle, Cytoplasmic Streaming, and 4-Objective Turret.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
 export function initMicroscopeLab(containerId) {
   const container = document.getElementById(containerId);
@@ -155,6 +156,31 @@ export function initMicroscopeLab(containerId) {
           </label>
         </div>
       </div>
+
+      <!-- Telemetry Suite & Multi-Trial Bar -->
+      <div class="lab-telemetry-suite-bar">
+        <div class="lab-trials-badge-group" id="micro-trials-badge-group">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Microscopy Field Observation Log:</span>
+          <span class="lab-trial-pill trial-1" id="micro-pill-trial-1" style="opacity: 0.5;">Field 1 (Cyan)</span>
+          <span class="lab-trial-pill trial-2" id="micro-pill-trial-2" style="opacity: 0.5;">Field 2 (Amber)</span>
+          <span class="lab-trial-pill trial-3" id="micro-pill-trial-3" style="opacity: 0.5;">Field 3 (Emerald)</span>
+        </div>
+
+        <div class="lab-export-buttons-group">
+          <button class="btn btn-secondary" id="btn-record-micro-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(16,185,129,0.4); color: #10b981;">
+            <span>📸 Log Specimen Field</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-micro-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
+            <span>📥 Export CSV Data</span>
+          </button>
+          <button class="btn btn-primary" id="btn-open-micro-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #059669, #047857); border: none;">
+            <span>📑 Generate Lab Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Lab Checkpoint Assessment Mount -->
+      <div id="micro-checkpoint-container"></div>
     </div>
   `;
 
@@ -849,6 +875,106 @@ export function initMicroscopeLab(containerId) {
   document.getElementById("chk-reticle").addEventListener("change", (e) => {
     showReticle = e.target.checked;
   });
+
+  // Telemetry Suite: Record Current Observation Trial
+  document.getElementById("btn-record-micro-trial")?.addEventListener("click", () => {
+    const naMap = { 4: 0.10, 10: 0.25, 40: 0.65, 100: 1.25 };
+    const na = naMap[objectivePower] || 0.25;
+    const res = (0.61 * 0.55) / na;
+    const totalMag = objectivePower * 10;
+    const currentData = slideData[currentSlide] || {};
+
+    LabTrialStore.addTrial("microscope", {
+      measurements: {
+        "Specimen": currentData.title || currentSlide,
+        "Total Magnification": `${totalMag}×`,
+        "Numerical Aperture (NA)": na,
+        "Resolution (µm)": parseFloat(res.toFixed(2)),
+        "Coarse Focus (%)": Math.round(coarseFocus),
+        "Fine Focus (%)": Math.round(fineFocus),
+        "Stage (X, Y)": `(${stageX}, ${stageY}) µm`
+      }
+    });
+
+    const trials = LabTrialStore.getTrials("microscope");
+    trials.forEach((tr, i) => {
+      const pill = document.getElementById(`micro-pill-trial-${i + 1}`);
+      if (pill) {
+        pill.style.opacity = "1";
+        pill.innerText = `Obs ${tr.trialNumber}: ${tr.measurements["Total Magnification"]} (NA=${tr.measurements["Numerical Aperture (NA)"]}, res=${tr.measurements["Resolution (µm)"]}µm)`;
+      }
+    });
+  });
+
+  // Telemetry Suite: Export CSV
+  document.getElementById("btn-export-micro-csv")?.addEventListener("click", () => {
+    const naMap = { 4: 0.10, 10: 0.25, 40: 0.65, 100: 1.25 };
+    const na = naMap[objectivePower] || 0.25;
+    const res = (0.61 * 0.55) / na;
+    const totalMag = objectivePower * 10;
+    const currentData = slideData[currentSlide] || {};
+
+    exportLabDataCsv({
+      title: "Research-Grade Optical Microscopy & Histology",
+      labId: "microscope",
+      parameters: {
+        "Slide Specimen": currentData.title || currentSlide,
+        "Histological Stain": currentData.stain || "Unstained",
+        "Total Magnification": `${totalMag}×`,
+        "Numerical Aperture": `${na}`,
+        "Substage Aperture": `${Math.round(irisAperture * 100)}%`
+      },
+      headers: ["Specimen", "Objective (x)", "Ocular (x)", "Total Mag (x)", "NA", "Resolution (µm)", "Coarse Focus (%)", "Fine Focus (%)", "Stage X (µm)", "Stage Y (µm)"],
+      dataRows: [
+        [
+          currentData.title || currentSlide,
+          objectivePower,
+          10,
+          totalMag,
+          na,
+          parseFloat(res.toFixed(2)),
+          Math.round(coarseFocus),
+          Math.round(fineFocus),
+          stageX,
+          stageY
+        ]
+      ]
+    });
+  });
+
+  // Telemetry Suite: Generate Lab Report
+  document.getElementById("btn-open-micro-report")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("microscope");
+    const naMap = { 4: 0.10, 10: 0.25, 40: 0.65, 100: 1.25 };
+    const na = naMap[objectivePower] || 0.25;
+    const res = (0.61 * 0.55) / na;
+    const totalMag = objectivePower * 10;
+    const currentData = slideData[currentSlide] || {};
+
+    openLabReportModal({
+      title: "High-Resolution Optical Microscopy & Histological Analysis",
+      subject: "Biology",
+      inquiryQuestion: "How do numerical aperture, refractive index, and lens magnification govern resolving power and cytological specimen fidelity?",
+      parameters: {
+        "Histological Specimen": currentData.title || currentSlide,
+        "Preparation / Stain": currentData.stain || "Direct Mount",
+        "Total Magnification": `${totalMag}×`,
+        "Numerical Aperture (NA)": `${na}`,
+        "Theoretical Resolution Limit (d)": `${res.toFixed(2)} µm`,
+        "Stage Coordinates": `(${stageX} µm, ${stageY} µm)`
+      },
+      trials,
+      formulas: [
+        "d = \\frac{0.61 \\lambda}{\\text{NA}} \\quad (\\text{Abbe Limit of Resolution})",
+        "\\text{Total Magnification} = M_{\\text{ocular}} \\times M_{\\text{objective}}",
+        "\\text{NA} = n \\sin\\alpha",
+        "M_1 \\cdot D_1 = M_2 \\cdot D_2 \\quad (\\text{Field of View Diameter})"
+      ]
+    });
+  });
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("micro-checkpoint-container", "microscope");
 
   // Resize Handling
   function handleResize() {

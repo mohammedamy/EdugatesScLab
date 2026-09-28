@@ -8,6 +8,8 @@ import { chemistryCurriculum } from "../data/chemistry-curriculum.js";
 import { biologyCurriculum } from "../data/biology-curriculum.js";
 import { physicsCurriculum } from "../data/physics-curriculum.js";
 import { getLessonInteractiveSpec } from "./lesson-interactives.js";
+import { SoundFX } from "../utils/audio-synth.js";
+import { showToast } from "../utils/toast.js";
 
 // Core high-yield scientific laws and mathematical principles
 const CORE_HIGH_YIELD_CARDS = [
@@ -577,6 +579,176 @@ function escapeHtml(str) {
 }
 
 /**
+ * Audio Pronunciation & Text-to-Speech Helper for Scientific Vocabulary
+ */
+let activeSpeechUtterance = null;
+let isSpeakingAudio = false;
+
+function cleanMathForSpeech(text) {
+  if (!text) return "";
+  let s = String(text);
+  // Markdown bold/italic
+  s = s.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1");
+  // Chemical compounds & formulas
+  s = s.replace(/\\text\{H\}_2\\text\{O\}/g, "water H 2 O");
+  s = s.replace(/\\text\{CO\}_2/g, "carbon dioxide C O 2");
+  s = s.replace(/\\text\{O\}_2/g, "oxygen O 2");
+  s = s.replace(/\\text\{N\}_2/g, "nitrogen N 2");
+  s = s.replace(/\\text\{C\}_6\\text\{H\}_\{12\}\\text\{O\}_6/g, "glucose C 6 H 12 O 6");
+  s = s.replace(/\\rightleftharpoons/g, " is in dynamic reversible equilibrium with ");
+  s = s.replace(/\\longrightarrow/g, " yields ");
+  s = s.replace(/\\xrightarrow\{[^}]+\}/g, " yields ");
+  // Common Greek letters
+  s = s.replace(/\\Delta/g, "delta ");
+  s = s.replace(/\\theta/g, "theta ");
+  s = s.replace(/\\lambda/g, "lambda ");
+  s = s.replace(/\\Phi/g, "work function phi ");
+  s = s.replace(/\\nu/g, "frequency nu ");
+  s = s.replace(/\\pi/g, "pi ");
+  s = s.replace(/\\mu/g, "mu ");
+  s = s.replace(/\\alpha/g, "alpha ");
+  s = s.replace(/\\beta/g, "beta ");
+  s = s.replace(/\\gamma/g, "gamma ");
+  // Operators
+  s = s.replace(/\\cdot/g, " times ");
+  s = s.replace(/\\times\s*10\^\{([^}]+)\}/g, " times 10 to the power of $1");
+  s = s.replace(/\\times/g, " times ");
+  s = s.replace(/\\le/g, " less than or equal to ");
+  s = s.replace(/\\ge/g, " greater than or equal to ");
+  s = s.replace(/\\approx/g, " approximately ");
+  s = s.replace(/\\pm/g, " plus or minus ");
+  // Fractions & Roots
+  s = s.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "$1 over $2");
+  s = s.replace(/\\sqrt\{([^}]+)\}/g, "square root of $1");
+  s = s.replace(/\^\{([^}]+)\}/g, " to the power of $1");
+  s = s.replace(/\^2/g, " squared");
+  s = s.replace(/\^3/g, " cubed");
+  s = s.replace(/\^([0-9a-zA-Z]+)/g, " to the power of $1");
+  s = s.replace(/_\{([^}]+)\}/g, " sub $1");
+  s = s.replace(/_([0-9a-zA-Z]+)/g, " sub $1");
+  s = s.replace(/\\text\{([^}]+)\}/g, " $1 ");
+  s = s.replace(/\\mathrm\{([^}]+)\}/g, " $1 ");
+  s = s.replace(/\\mathbf\{([^}]+)\}/g, " $1 ");
+  s = s.replace(/\\circ/g, " degrees");
+  s = s.replace(/\\quad/g, ", ");
+  s = s.replace(/\\,/g, " ");
+  s = s.replace(/\\;/g, " ");
+  // Strip brackets, backslashes, dollar signs
+  s = s.replace(/[\$\{\}\\]/g, " ");
+  s = s.replace(/\s+/g, " ").trim();
+  return s;
+}
+
+function cancelCardSpeech() {
+  if (typeof window !== "undefined" && window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+    isSpeakingAudio = false;
+    activeSpeechUtterance = null;
+    document.querySelectorAll(".fc-speech-btn").forEach(b => {
+      b.classList.remove("is-speaking");
+      const label = b.querySelector(".fc-speech-text");
+      if (label) label.textContent = "Pronounce";
+    });
+  }
+}
+
+function speakCard(card, isFlipped, isReverseMode) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+    showToast("Web Speech API is not supported in this browser.", "info");
+    return;
+  }
+
+  if (isSpeakingAudio) {
+    cancelCardSpeech();
+    return;
+  }
+
+  let textToSpeak = "";
+  if (!isReverseMode) {
+    if (!isFlipped) {
+      textToSpeak = `${card.front}. ${card.conceptFocus ? "Focus: " + card.conceptFocus : ""}`;
+    } else {
+      textToSpeak = `${card.backTitle || card.front}. `;
+      if (card.formula) {
+        textToSpeak += `Key formula: ${cleanMathForSpeech(card.formula)}. `;
+      }
+      if (card.coreExplanation) {
+        textToSpeak += `${cleanMathForSpeech(card.coreExplanation)}. `;
+      } else if (card.bigIdea) {
+        textToSpeak += `Big idea: ${cleanMathForSpeech(card.bigIdea)}. `;
+      }
+    }
+  } else {
+    // Reverse Challenge Mode
+    if (!isFlipped) {
+      textToSpeak = `Reverse challenge: Can you identify this STEM principle? Category: ${card.category}. `;
+      if (card.formula) {
+        textToSpeak += `Key formula: ${cleanMathForSpeech(card.formula)}. `;
+      }
+      if (card.coreExplanation) {
+        textToSpeak += `Behavior: ${cleanMathForSpeech(card.coreExplanation)}. `;
+      } else if (card.inquiry) {
+        textToSpeak += `Inquiry: ${cleanMathForSpeech(card.inquiry)}. `;
+      }
+    } else {
+      textToSpeak = `Answer: ${card.front}. ${card.backTitle && card.backTitle !== card.front ? card.backTitle : ""}. `;
+      if (card.formula) {
+        textToSpeak += `Formula: ${cleanMathForSpeech(card.formula)}. `;
+      }
+    }
+  }
+
+  textToSpeak = cleanMathForSpeech(textToSpeak);
+  if (!textToSpeak) return;
+
+  SoundFX.playClick();
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(textToSpeak);
+  utterance.rate = 0.92;
+  utterance.pitch = 1.0;
+  utterance.lang = "en-US";
+
+  try {
+    const voices = window.speechSynthesis.getVoices();
+    const engVoice = voices.find(v => v.lang.startsWith("en") && !v.localService) || voices.find(v => v.lang.startsWith("en"));
+    if (engVoice) utterance.voice = engVoice;
+  } catch (e) {}
+
+  utterance.onstart = () => {
+    isSpeakingAudio = true;
+    activeSpeechUtterance = utterance;
+    document.querySelectorAll(".fc-speech-btn").forEach(b => {
+      b.classList.add("is-speaking");
+      const label = b.querySelector(".fc-speech-text");
+      if (label) label.textContent = "Stop";
+    });
+  };
+
+  utterance.onend = () => {
+    isSpeakingAudio = false;
+    activeSpeechUtterance = null;
+    document.querySelectorAll(".fc-speech-btn").forEach(b => {
+      b.classList.remove("is-speaking");
+      const label = b.querySelector(".fc-speech-text");
+      if (label) label.textContent = "Pronounce";
+    });
+  };
+
+  utterance.onerror = () => {
+    isSpeakingAudio = false;
+    activeSpeechUtterance = null;
+    document.querySelectorAll(".fc-speech-btn").forEach(b => {
+      b.classList.remove("is-speaking");
+      const label = b.querySelector(".fc-speech-text");
+      if (label) label.textContent = "Pronounce";
+    });
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+/**
  * Main View Renderer for the Flashcards Hub
  * @param {string} containerId - Mount element ID
  * @param {object} initialFilter - Optional initial filter { subject, moduleId, lessonId }
@@ -607,12 +779,64 @@ export function renderFlashcards(containerId, initialFilter = {}) {
   }
 
   let searchQuery = "";
-  let masteryFilter = "ALL"; // 'ALL', 'MASTERED', 'UNMASTERED'
+  let masteryFilter = "ALL"; // 'ALL', 'BOX1', 'BOX2', 'BOX3', 'MASTERED', 'UNMASTERED'
   let currentIndex = 0;
   let isFlipped = false;
+  let isReverseMode = false;
 
-  // Load mastered state from localStorage
+  // Load Leitner boxes and mastered state from localStorage
+  let leitnerBoxes = {};
+  try {
+    leitnerBoxes = JSON.parse(localStorage.getItem("clipsat_leitner_boxes") || "{}");
+  } catch (e) {
+    leitnerBoxes = {};
+  }
   let masteredCards = new Set(JSON.parse(localStorage.getItem("clipsat_mastered_cards") || "[]"));
+
+  // Synchronize initial legacy mastered state with Box 3
+  masteredCards.forEach(cid => {
+    if (!leitnerBoxes[cid]) {
+      leitnerBoxes[cid] = 3;
+    }
+  });
+
+  function getCardBox(cardId) {
+    if (leitnerBoxes[cardId] === 1 || leitnerBoxes[cardId] === 2 || leitnerBoxes[cardId] === 3) {
+      return leitnerBoxes[cardId];
+    }
+    if (masteredCards.has(cardId)) return 3;
+    return 1; // Default is Box 1: Needs Practice
+  }
+
+  function setCardBox(cardId, boxNum, advanceNext = true) {
+    leitnerBoxes[cardId] = boxNum;
+    localStorage.setItem("clipsat_leitner_boxes", JSON.stringify(leitnerBoxes));
+
+    if (boxNum === 3) {
+      masteredCards.add(cardId);
+      SoundFX.playChime();
+      showToast("Card Promoted to Box 3: Mastered! 🌟", "success");
+    } else if (boxNum === 2) {
+      masteredCards.delete(cardId);
+      SoundFX.playClick();
+      showToast("Card Moved to Box 2: Reviewing 🟡", "info");
+    } else {
+      masteredCards.delete(cardId);
+      SoundFX.playSwitchSnap();
+      showToast("Card Moved to Box 1: Needs Practice 🔴", "warning");
+    }
+    localStorage.setItem("clipsat_mastered_cards", JSON.stringify([...masteredCards]));
+
+    cancelCardSpeech();
+    if (advanceNext) {
+      const curDeck = getFilteredDeck();
+      if (curDeck.length > 1) {
+        currentIndex = (currentIndex + 1) % curDeck.length;
+        isFlipped = false;
+      }
+    }
+    renderView();
+  }
 
   // Track map for curriculum access
   const trackMap = {
@@ -667,7 +891,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
   }
 
   /**
-   * Returns deck filtered by track, module, lesson, mastery, and search query
+   * Returns deck filtered by track, module, lesson, Leitner box, and search query
    */
   function getFilteredDeck() {
     return flashcardDeck.filter(card => {
@@ -692,12 +916,14 @@ export function renderFlashcards(containerId, initialFilter = {}) {
         }
       }
 
-      // 4. Mastery Filter
-      if (masteryFilter === "MASTERED" && !masteredCards.has(card.id)) {
-        return false;
-      }
-      if (masteryFilter === "UNMASTERED" && masteredCards.has(card.id)) {
-        return false;
+      // 4. Mastery & Leitner Filter
+      const cardBox = getCardBox(card.id);
+      if (masteryFilter === "BOX1" || masteryFilter === "UNMASTERED") {
+        if (cardBox !== 1) return false;
+      } else if (masteryFilter === "BOX2") {
+        if (cardBox !== 2) return false;
+      } else if (masteryFilter === "BOX3" || masteryFilter === "MASTERED") {
+        if (cardBox !== 3) return false;
       }
 
       // 5. Search Query Filter
@@ -722,14 +948,6 @@ export function renderFlashcards(containerId, initialFilter = {}) {
 
       return true;
     });
-
-    // Fallback: If lesson filter resulted in 0 cards, fallback to all cards for this module
-    if (filtered.length === 0 && currentLessonId !== "ALL") {
-      currentLessonId = "ALL";
-      return getFilteredDeck();
-    }
-
-    return filtered;
   }
 
   /**
@@ -764,8 +982,9 @@ export function renderFlashcards(containerId, initialFilter = {}) {
       parts.push(`Keyword "${searchQuery.trim()}"`);
     }
 
-    if (masteryFilter === "MASTERED") parts.push("Mastered Only");
-    else if (masteryFilter === "UNMASTERED") parts.push("Needs Practice");
+    if (masteryFilter === "BOX1" || masteryFilter === "UNMASTERED") parts.push("Box 1: Needs Practice");
+    else if (masteryFilter === "BOX2") parts.push("Box 2: Reviewing");
+    else if (masteryFilter === "BOX3" || masteryFilter === "MASTERED") parts.push("Box 3: Mastered");
 
     return parts.join(" › ");
   }
@@ -777,7 +996,8 @@ export function renderFlashcards(containerId, initialFilter = {}) {
     const deck = getFilteredDeck();
     if (currentIndex >= deck.length) currentIndex = 0;
     const card = deck.length > 0 ? deck[currentIndex] : null;
-    const isMastered = card ? masteredCards.has(card.id) : false;
+    const currentCardBox = card ? getCardBox(card.id) : 1;
+    const isMastered = currentCardBox === 3;
 
     // Counts for track badges
     const allCardsCount = flashcardDeck.length;
@@ -785,8 +1005,22 @@ export function renderFlashcards(containerId, initialFilter = {}) {
     const bioCount = flashcardDeck.filter(c => c.subject === "BIO").length;
     const physCount = flashcardDeck.filter(c => c.subject === "PHYS").length;
 
-    // Filter status counts
-    const masteredInDeckCount = deck.filter(c => masteredCards.has(c.id)).length;
+    // Leitner statistics for the current deck
+    let box1Count = 0;
+    let box2Count = 0;
+    let box3Count = 0;
+    deck.forEach(c => {
+      const b = getCardBox(c.id);
+      if (b === 3) box3Count++;
+      else if (b === 2) box2Count++;
+      else box1Count++;
+    });
+
+    const totalDeckCount = deck.length;
+    const box1Pct = totalDeckCount > 0 ? Math.round((box1Count / totalDeckCount) * 100) : 0;
+    const box2Pct = totalDeckCount > 0 ? Math.round((box2Count / totalDeckCount) * 100) : 0;
+    const box3Pct = totalDeckCount > 0 ? Math.round((box3Count / totalDeckCount) * 100) : 0;
+
     const isAnyFilterActive = currentSubject !== "ALL" || currentModuleId !== "ALL" || currentLessonId !== "ALL" || searchQuery.trim() !== "" || masteryFilter !== "ALL";
 
     // Build Module Options HTML
@@ -826,7 +1060,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
           </div>
           <h2 class="hero-title" style="font-size: 1.8rem;">Interactive STEM Flashcards</h2>
           <p class="hero-desc" style="font-size: 0.95rem;">
-            Master core scientific laws, lesson objectives, and mathematical formulations across all 3 tracks with LaTeX precision. Tap card or press Spacebar to flip.
+            Master core scientific laws, lesson objectives, and mathematical formulations across all 3 tracks with Leitner Spaced Repetition and Text-to-Speech audio pronunciation.
           </p>
 
           <!-- Subject / Track Filter Pills -->
@@ -842,6 +1076,43 @@ export function renderFlashcards(containerId, initialFilter = {}) {
             </button>
             <button class="unit-filter-chip ${currentSubject === 'PHYS' ? 'active' : ''}" data-fsub="PHYS" style="${currentSubject === 'PHYS' ? 'border-color: #6366f1; background: rgba(99,102,241,0.2); color: #818cf8;' : ''}">
               Inspire Physics (${physCount})
+            </button>
+          </div>
+        </div>
+
+        <!-- Leitner Spaced Repetition Progress Ribbon -->
+        <div class="leitner-ribbon-card">
+          <div class="leitner-ribbon-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.05rem;">🧠</span>
+              <span style="font-weight: 700; font-size: 0.92rem; color: var(--text-main);">Leitner Spaced Repetition Mastery</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">
+              ${box3Count} of ${totalDeckCount} fully mastered (${box3Pct}%)
+            </div>
+          </div>
+
+          <div class="leitner-progress-track" title="Click any section to filter by that mastery box">
+            <div class="leitner-track-segment seg-box1" style="width: ${box1Pct}%;" data-filter-box="BOX1" title="Box 1: Needs Practice (${box1Count} cards, ${box1Pct}%)"></div>
+            <div class="leitner-track-segment seg-box2" style="width: ${box2Pct}%;" data-filter-box="BOX2" title="Box 2: Reviewing (${box2Count} cards, ${box2Pct}%)"></div>
+            <div class="leitner-track-segment seg-box3" style="width: ${box3Pct}%;" data-filter-box="BOX3" title="Box 3: Mastered (${box3Count} cards, ${box3Pct}%)"></div>
+          </div>
+
+          <div class="leitner-legend-row">
+            <button class="leitner-legend-pill ${masteryFilter === 'BOX1' ? 'active' : ''}" data-filter-box="BOX1">
+              <span class="leitner-dot dot-red"></span>
+              <span>Box 1: Needs Practice</span>
+              <strong>(${box1Count})</strong>
+            </button>
+            <button class="leitner-legend-pill ${masteryFilter === 'BOX2' ? 'active' : ''}" data-filter-box="BOX2">
+              <span class="leitner-dot dot-amber"></span>
+              <span>Box 2: Reviewing</span>
+              <strong>(${box2Count})</strong>
+            </button>
+            <button class="leitner-legend-pill ${masteryFilter === 'BOX3' ? 'active' : ''}" data-filter-box="BOX3">
+              <span class="leitner-dot dot-green"></span>
+              <span>Box 3: Mastered</span>
+              <strong>(${box3Count})</strong>
             </button>
           </div>
         </div>
@@ -882,11 +1153,12 @@ export function renderFlashcards(containerId, initialFilter = {}) {
 
             <!-- Mastery Filter -->
             <div class="fc-select-group">
-              <label class="fc-select-label" for="fc-mastery-select">⭐ Mastery Status</label>
+              <label class="fc-select-label" for="fc-mastery-select">⭐ Spaced Repetition Box</label>
               <select id="fc-mastery-select" class="fc-custom-select">
                 <option value="ALL" ${masteryFilter === 'ALL' ? 'selected' : ''}>All Cards (${deck.length})</option>
-                <option value="UNMASTERED" ${masteryFilter === 'UNMASTERED' ? 'selected' : ''}>⏳ Needs Practice (${deck.length - masteredInDeckCount})</option>
-                <option value="MASTERED" ${masteryFilter === 'MASTERED' ? 'selected' : ''}>★ Mastered Only (${masteredInDeckCount})</option>
+                <option value="BOX1" ${masteryFilter === 'BOX1' || masteryFilter === 'UNMASTERED' ? 'selected' : ''}>🔴 Box 1: Needs Practice (${box1Count})</option>
+                <option value="BOX2" ${masteryFilter === 'BOX2' ? 'selected' : ''}>🟡 Box 2: Reviewing (${box2Count})</option>
+                <option value="BOX3" ${masteryFilter === 'BOX3' || masteryFilter === 'MASTERED' ? 'selected' : ''}>🟢 Box 3: Mastered (${box3Count})</option>
               </select>
             </div>
 
@@ -912,7 +1184,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
               </span>
             </div>
             <div style="display: flex; align-items: center; gap: 14px;">
-              <span class="fc-mastered-indicator" style="color: #10b981; font-weight: 600;">✓ ${masteredInDeckCount} of ${deck.length} Mastered</span>
+              <span class="fc-mastered-indicator" style="color: #10b981; font-weight: 600;">✓ ${box3Count} of ${deck.length} Mastered</span>
             </div>
           </div>
         </div>
@@ -925,11 +1197,14 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                 Card ${currentIndex + 1} of ${deck.length}
               </div>
               <div class="fc-nav-hint" style="font-size: 0.8rem; color: var(--text-dim); background: rgba(255,255,255,0.05); padding: 3px 10px; border-radius: 999px;">
-                ⌨ Space = Flip • ← → = Navigate
+                ⌨ Space = Flip • 1, 2, 3 = Box • P = Audio • R = Reverse
               </div>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <button class="btn btn-secondary ${isReverseMode ? 'active-reverse' : ''}" id="btn-toggle-reverse" style="padding: 6px 14px; font-size: 0.85rem;" title="Reverse Mode: Guess concept from formulation and clues (Hotkey: R)">
+                🔄 ${isReverseMode ? 'Reverse Mode: ON' : 'Reverse Mode: OFF'}
+              </button>
               <button class="btn btn-secondary" id="btn-shuffle-deck" style="padding: 6px 14px; font-size: 0.85rem;" title="Randomize card order">
                 🔀 Shuffle Deck
               </button>
@@ -941,6 +1216,12 @@ export function renderFlashcards(containerId, initialFilter = {}) {
             <div class="flashcard-inner ${isFlipped ? 'is-flipped' : ''}">
               <!-- Front Face -->
               <div class="flashcard-face flashcard-front">
+                <!-- Reticle Decorative Accents -->
+                <div class="fc-reticle fc-reticle-tl">+</div>
+                <div class="fc-reticle fc-reticle-tr">+</div>
+                <div class="fc-reticle fc-reticle-bl">+</div>
+                <div class="fc-reticle fc-reticle-br">+</div>
+
                 <!-- Header -->
                 <div class="flashcard-header">
                   <div style="display: flex; align-items: center; gap: 8px;">
@@ -953,35 +1234,80 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                       </span>
                     ` : ''}
                   </div>
-                  ${isMastered ? `
-                    <div style="display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 10px; border-radius: 999px;">
-                      <span>★</span> Mastered
-                    </div>
-                  ` : `
-                    <div style="font-size: 0.75rem; color: var(--text-dim); background: rgba(255, 255, 255, 0.05); padding: 3px 10px; border-radius: 999px;">
-                      Question & Prompt
-                    </div>
-                  `}
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn-speech-trigger fc-speech-btn" id="btn-speech-front" title="Listen to scientific pronunciation (Hotkey: P or V)">
+                      <span class="speech-icon">🔊</span>
+                      <span class="fc-speech-text">Pronounce</span>
+                    </button>
+                    ${currentCardBox === 3 ? `
+                      <div class="leitner-status-badge box3">
+                        <span>★</span> Box 3: Mastered
+                      </div>
+                    ` : currentCardBox === 2 ? `
+                      <div class="leitner-status-badge box2">
+                        <span>🟡</span> Box 2: Reviewing
+                      </div>
+                    ` : `
+                      <div class="leitner-status-badge box1">
+                        <span>🔴</span> Box 1: Needs Practice
+                      </div>
+                    `}
+                  </div>
                 </div>
 
                 <!-- Center Content -->
                 <div class="flashcard-front-body">
-                  <div class="flashcard-category-tag" style="font-size: 0.85rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">
-                    ${card.category}
-                  </div>
-                  <div style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 800; color: var(--text-main); line-height: 1.35; max-width: 680px; margin-bottom: 14px;">
-                    ${formatMathText(card.front)}
-                  </div>
-                  ${card.conceptFocus && card.conceptFocus !== card.front ? `
-                    <div style="font-size: 0.95rem; color: var(--text-muted); max-width: 600px; line-height: 1.5; margin-bottom: 10px;">
-                      Focus: ${card.conceptFocus}
+                  ${!isReverseMode ? `
+                    <!-- Standard Mode Front -->
+                    <div class="flashcard-category-tag" style="font-size: 0.85rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px;">
+                      ${card.category}
                     </div>
-                  ` : ''}
-                  ${card.hint ? `
-                    <div class="flashcard-topic-pill">
-                      <span>💡 Topic: ${card.hint}</span>
+                    <div style="font-family: var(--font-heading); font-size: 1.75rem; font-weight: 800; color: var(--text-main); line-height: 1.35; max-width: 680px; margin-bottom: 14px;">
+                      ${formatMathText(card.front)}
                     </div>
-                  ` : ''}
+                    ${card.conceptFocus && card.conceptFocus !== card.front ? `
+                      <div style="font-size: 0.95rem; color: var(--text-muted); max-width: 600px; line-height: 1.5; margin-bottom: 10px;">
+                        Focus: ${card.conceptFocus}
+                      </div>
+                    ` : ''}
+                    ${card.hint ? `
+                      <div class="flashcard-topic-pill">
+                        <span>💡 Topic: ${card.hint}</span>
+                      </div>
+                    ` : ''}
+                  ` : `
+                    <!-- Reverse Challenge Mode Front -->
+                    <div class="flashcard-category-tag" style="font-size: 0.82rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">
+                      ⚡ REVERSE CHALLENGE • ${card.category}
+                    </div>
+                    <div style="font-family: var(--font-heading); font-size: 1.45rem; font-weight: 800; color: #f8fafc; line-height: 1.3; max-width: 680px; margin-bottom: 12px;">
+                      What STEM Law, Principle, or Term is described below?
+                    </div>
+                    ${card.formula ? `
+                      <div class="flashcard-formula-box" style="margin: 8px auto; max-width: 580px;">
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 4px;">
+                          Key Mathematical & Scientific Formulation
+                        </div>
+                        <div style="font-size: 1.2rem; color: #38bdf8;">
+                          ${card.formula.startsWith("$$") ? card.formula : `$$${card.formula}$$`}
+                        </div>
+                      </div>
+                    ` : ''}
+                    ${card.coreExplanation ? `
+                      <div style="font-size: 0.95rem; color: var(--text-main); max-width: 640px; line-height: 1.5; margin: 8px 0;">
+                        ${formatMathText(card.coreExplanation)}
+                      </div>
+                    ` : card.inquiry ? `
+                      <div style="font-size: 0.92rem; color: var(--text-muted); max-width: 640px; line-height: 1.5; margin: 8px 0;">
+                        ${formatMathText(card.inquiry)}
+                      </div>
+                    ` : ''}
+                    ${card.hint ? `
+                      <div class="flashcard-topic-pill" style="border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); color: #fbbf24;">
+                        <span>💡 Clue: ${card.hint}</span>
+                      </div>
+                    ` : ''}
+                  `}
                 </div>
 
                 <!-- Footer -->
@@ -995,8 +1321,14 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                 </div>
               </div>
 
-              <!-- Back Face (Cleanly Enclosed with Scrollable Internal Body) -->
+              <!-- Back Face -->
               <div class="flashcard-face flashcard-back">
+                <!-- Reticle Decorative Accents -->
+                <div class="fc-reticle fc-reticle-tl">+</div>
+                <div class="fc-reticle fc-reticle-tr">+</div>
+                <div class="fc-reticle fc-reticle-bl">+</div>
+                <div class="fc-reticle fc-reticle-br">+</div>
+
                 <!-- Header -->
                 <div class="flashcard-header">
                   <div style="display: flex; align-items: center; gap: 8px;">
@@ -1009,18 +1341,24 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                       </span>
                     ` : ''}
                   </div>
-                  <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 10px; border-radius: 999px;">
-                    <span>⟲</span> Answer & Breakdown
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn-speech-trigger fc-speech-btn" id="btn-speech-back" title="Listen to scientific pronunciation (Hotkey: P or V)">
+                      <span class="speech-icon">🔊</span>
+                      <span class="fc-speech-text">Pronounce</span>
+                    </button>
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 10px; border-radius: 999px;">
+                      <span>⟲</span> ${isReverseMode ? 'Concept Revealed' : 'Answer & Breakdown'}
+                    </div>
                   </div>
                 </div>
 
-                <!-- Scrollable Body (Guarantees content remains neatly enclosed inside the card) -->
+                <!-- Scrollable Body -->
                 <div class="flashcard-back-body">
-                  <div style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 800; color: var(--text-main); line-height: 1.3; margin-bottom: 6px;">
-                    ${card.backTitle || card.front}
+                  <div style="font-family: var(--font-heading); font-size: ${isReverseMode ? '1.5rem' : '1.25rem'}; font-weight: 800; color: var(--text-main); line-height: 1.3; margin-bottom: 6px; background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                    ${card.front}
                   </div>
 
-                  ${card.conceptFocus && card.conceptFocus !== card.backTitle ? `
+                  ${card.conceptFocus && card.conceptFocus !== card.front ? `
                     <div style="font-size: 0.9rem; color: #38bdf8; font-weight: 600; margin-bottom: 10px;">
                       🔬 Focus: ${card.conceptFocus}
                     </div>
@@ -1100,7 +1438,31 @@ export function renderFlashcards(containerId, initialFilter = {}) {
             </div>
           </div>
 
-          <!-- Bottom Controls Row -->
+          <!-- Leitner Spaced Repetition Action Bar -->
+          <div class="leitner-action-card">
+            <div class="leitner-action-title">
+              <span>Mark Mastery Stage (Leitner 3-Box System):</span>
+            </div>
+            <div class="leitner-action-buttons">
+              <button class="leitner-box-btn btn-box1 ${currentCardBox === 1 ? 'is-active' : ''}" id="btn-leitner-box1" title="Mark for frequent practice (Hotkey: 1)">
+                <span class="leitner-dot dot-red"></span>
+                <span>Box 1: Needs Practice</span>
+                <kbd class="leitner-kbd">1</kbd>
+              </button>
+              <button class="leitner-box-btn btn-box2 ${currentCardBox === 2 ? 'is-active' : ''}" id="btn-leitner-box2" title="Mark for intermediate review (Hotkey: 2)">
+                <span class="leitner-dot dot-amber"></span>
+                <span>Box 2: Reviewing</span>
+                <kbd class="leitner-kbd">2</kbd>
+              </button>
+              <button class="leitner-box-btn btn-box3 ${currentCardBox === 3 ? 'is-active' : ''}" id="btn-leitner-box3" title="Mark as fully mastered (Hotkey: 3)">
+                <span class="leitner-dot dot-green"></span>
+                <span>Box 3: Mastered</span>
+                <kbd class="leitner-kbd">3</kbd>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Navigation & Controls Row -->
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 14px; flex-wrap: wrap;">
             <div style="display: flex; gap: 10px;">
               <button class="btn btn-secondary" id="btn-prev-card" style="padding: 10px 20px;">
@@ -1120,8 +1482,8 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                   🔬 Open Lesson Lab
                 </button>
               ` : ''}
-              <button class="btn ${isMastered ? 'btn-primary' : 'btn-secondary'}" id="btn-toggle-mastered" style="padding: 10px 20px;">
-                ${isMastered ? '★ Mastered' : 'Mark as Mastered'}
+              <button class="btn btn-secondary fc-speech-btn" id="btn-speech-bottom" style="padding: 10px 18px;" title="Listen to scientific pronunciation (Hotkey: P or V)">
+                🔊 <span class="fc-speech-text">Pronounce</span>
               </button>
             </div>
           </div>
@@ -1150,8 +1512,12 @@ export function renderFlashcards(containerId, initialFilter = {}) {
     // Flip Card Action
     const toggleArea = document.getElementById("flashcard-toggle-area");
     if (toggleArea) {
-      toggleArea.addEventListener("click", () => {
+      toggleArea.addEventListener("click", (e) => {
+        // Prevent flipping if speech button was clicked
+        if (e.target.closest(".fc-speech-btn")) return;
         isFlipped = !isFlipped;
+        SoundFX.playClick();
+        cancelCardSpeech();
         const inner = container.querySelector(".flashcard-inner");
         if (inner) {
           inner.classList.toggle("is-flipped", isFlipped);
@@ -1163,6 +1529,8 @@ export function renderFlashcards(containerId, initialFilter = {}) {
     if (btnFlip) {
       btnFlip.addEventListener("click", () => {
         isFlipped = !isFlipped;
+        SoundFX.playClick();
+        cancelCardSpeech();
         const inner = container.querySelector(".flashcard-inner");
         if (inner) {
           inner.classList.toggle("is-flipped", isFlipped);
@@ -1175,6 +1543,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
     if (btnPrev && deck.length > 0) {
       btnPrev.addEventListener("click", () => {
         isFlipped = false;
+        cancelCardSpeech();
         currentIndex = (currentIndex - 1 + deck.length) % deck.length;
         renderView();
       });
@@ -1184,33 +1553,84 @@ export function renderFlashcards(containerId, initialFilter = {}) {
     if (btnNext && deck.length > 0) {
       btnNext.addEventListener("click", () => {
         isFlipped = false;
+        cancelCardSpeech();
         currentIndex = (currentIndex + 1) % deck.length;
         renderView();
       });
     }
 
-    // Mastery Toggle
-    const btnMastered = document.getElementById("btn-toggle-mastered");
-    if (btnMastered && card) {
-      btnMastered.addEventListener("click", () => {
-        if (masteredCards.has(card.id)) {
-          masteredCards.delete(card.id);
-        } else {
-          masteredCards.add(card.id);
-        }
-        localStorage.setItem("clipsat_mastered_cards", JSON.stringify([...masteredCards]));
+    // Reverse Challenge Mode Toggle
+    const btnRev = document.getElementById("btn-toggle-reverse");
+    if (btnRev) {
+      btnRev.addEventListener("click", () => {
+        isReverseMode = !isReverseMode;
+        isFlipped = false;
+        cancelCardSpeech();
+        SoundFX.playClick();
+        showToast(isReverseMode ? "Reverse Challenge Mode: ON 🔄" : "Standard Mode: ON", "info");
         renderView();
       });
     }
+
+    // Leitner Box Actions
+    const btnBox1 = document.getElementById("btn-leitner-box1");
+    if (btnBox1 && card) {
+      btnBox1.addEventListener("click", () => {
+        setCardBox(card.id, 1, true);
+      });
+    }
+
+    const btnBox2 = document.getElementById("btn-leitner-box2");
+    if (btnBox2 && card) {
+      btnBox2.addEventListener("click", () => {
+        setCardBox(card.id, 2, true);
+      });
+    }
+
+    const btnBox3 = document.getElementById("btn-leitner-box3");
+    if (btnBox3 && card) {
+      btnBox3.addEventListener("click", () => {
+        setCardBox(card.id, 3, true);
+      });
+    }
+
+    // Leitner Ribbon Filter Clicks
+    container.querySelectorAll("[data-filter-box]").forEach(el => {
+      el.addEventListener("click", () => {
+        const box = el.dataset.filterBox;
+        if (masteryFilter === box) {
+          masteryFilter = "ALL";
+        } else {
+          masteryFilter = box;
+        }
+        currentIndex = 0;
+        isFlipped = false;
+        cancelCardSpeech();
+        SoundFX.playClick();
+        renderView();
+      });
+    });
+
+    // Audio Speech Pronunciation Buttons
+    container.querySelectorAll(".fc-speech-btn").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (card) {
+          speakCard(card, isFlipped, isReverseMode);
+        }
+      });
+    });
 
     // Shuffle Deck
     const btnShuffle = document.getElementById("btn-shuffle-deck");
     if (btnShuffle && deck.length > 0) {
       btnShuffle.addEventListener("click", () => {
-        // Shuffle the global deck array in-place
+        cancelCardSpeech();
+        SoundFX.playWhoosh();
         flashcardDeck.sort(() => Math.random() - 0.5);
         currentIndex = 0;
         isFlipped = false;
+        showToast("Deck Shuffled! 🔀", "info");
         renderView();
       });
     }
@@ -1219,6 +1639,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
     const btnLab = document.getElementById("btn-open-lesson-lab");
     if (btnLab && card && card.moduleId) {
       btnLab.addEventListener("click", () => {
+        cancelCardSpeech();
         if (typeof window.openModuleById === "function") {
           window.openModuleById(card.subject, card.moduleId, card.lessonId);
         }
@@ -1233,6 +1654,8 @@ export function renderFlashcards(containerId, initialFilter = {}) {
         currentLessonId = "ALL";
         currentIndex = 0;
         isFlipped = false;
+        cancelCardSpeech();
+        SoundFX.playClick();
         renderView();
       });
     });
@@ -1245,6 +1668,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
         currentLessonId = "ALL";
         currentIndex = 0;
         isFlipped = false;
+        cancelCardSpeech();
         renderView();
       });
     }
@@ -1259,17 +1683,19 @@ export function renderFlashcards(containerId, initialFilter = {}) {
         else currentLessonId = parseInt(val, 10);
         currentIndex = 0;
         isFlipped = false;
+        cancelCardSpeech();
         renderView();
       });
     }
 
-    // Mastery Dropdown
+    // Mastery / Box Dropdown
     const masterySelect = document.getElementById("fc-mastery-select");
     if (masterySelect) {
       masterySelect.addEventListener("change", (e) => {
         masteryFilter = e.target.value;
         currentIndex = 0;
         isFlipped = false;
+        cancelCardSpeech();
         renderView();
       });
     }
@@ -1284,6 +1710,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
           searchQuery = e.target.value;
           currentIndex = 0;
           isFlipped = false;
+          cancelCardSpeech();
           renderView();
         }, 180);
       });
@@ -1296,6 +1723,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
         searchQuery = "";
         currentIndex = 0;
         isFlipped = false;
+        cancelCardSpeech();
         renderView();
       });
     }
@@ -1311,6 +1739,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
         masteryFilter = "ALL";
         currentIndex = 0;
         isFlipped = false;
+        cancelCardSpeech();
         renderView();
       });
     }
@@ -1325,6 +1754,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
         masteryFilter = "ALL";
         currentIndex = 0;
         isFlipped = false;
+        cancelCardSpeech();
         renderView();
       });
     }
@@ -1336,6 +1766,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
     const activeMount = document.getElementById(containerId);
     if (!activeMount) {
       window.removeEventListener("keydown", onKeyDown);
+      cancelCardSpeech();
       return;
     }
 
@@ -1346,10 +1777,13 @@ export function renderFlashcards(containerId, initialFilter = {}) {
 
     const deck = getFilteredDeck();
     if (deck.length === 0) return;
+    const card = deck[currentIndex];
 
     if (e.code === "Space") {
       e.preventDefault();
       isFlipped = !isFlipped;
+      SoundFX.playClick();
+      cancelCardSpeech();
       const inner = container.querySelector(".flashcard-inner");
       if (inner) {
         inner.classList.toggle("is-flipped", isFlipped);
@@ -1357,20 +1791,59 @@ export function renderFlashcards(containerId, initialFilter = {}) {
     } else if (e.code === "ArrowLeft") {
       e.preventDefault();
       isFlipped = false;
+      cancelCardSpeech();
       currentIndex = (currentIndex - 1 + deck.length) % deck.length;
       renderView();
     } else if (e.code === "ArrowRight") {
       e.preventDefault();
       isFlipped = false;
+      cancelCardSpeech();
       currentIndex = (currentIndex + 1) % deck.length;
       renderView();
-    } else if (e.code === "KeyM") {
-      const card = deck[currentIndex];
+    } else if (e.code === "Digit1" || e.code === "Numpad1" || e.key === "1") {
       if (card) {
-        if (masteredCards.has(card.id)) masteredCards.delete(card.id);
-        else masteredCards.add(card.id);
-        localStorage.setItem("clipsat_mastered_cards", JSON.stringify([...masteredCards]));
-        renderView();
+        e.preventDefault();
+        setCardBox(card.id, 1, true);
+      }
+    } else if (e.code === "Digit2" || e.code === "Numpad2" || e.key === "2") {
+      if (card) {
+        e.preventDefault();
+        setCardBox(card.id, 2, true);
+      }
+    } else if (e.code === "Digit3" || e.code === "Numpad3" || e.key === "3") {
+      if (card) {
+        e.preventDefault();
+        setCardBox(card.id, 3, true);
+      }
+    } else if (e.code === "KeyR") {
+      e.preventDefault();
+      isReverseMode = !isReverseMode;
+      isFlipped = false;
+      cancelCardSpeech();
+      SoundFX.playClick();
+      showToast(isReverseMode ? "Reverse Challenge Mode: ON 🔄" : "Standard Mode: ON", "info");
+      renderView();
+    } else if (e.code === "KeyP" || e.code === "KeyV") {
+      e.preventDefault();
+      if (card) {
+        speakCard(card, isFlipped, isReverseMode);
+      }
+    } else if (e.code === "KeyS") {
+      e.preventDefault();
+      cancelCardSpeech();
+      SoundFX.playWhoosh();
+      flashcardDeck.sort(() => Math.random() - 0.5);
+      currentIndex = 0;
+      isFlipped = false;
+      showToast("Deck Shuffled! 🔀", "info");
+      renderView();
+    } else if (e.code === "KeyL") {
+      if (card && card.moduleId) {
+        e.preventDefault();
+        cancelCardSpeech();
+        if (typeof window.openModuleById === "function") {
+          window.openModuleById(card.subject, card.moduleId, card.lessonId);
+        }
       }
     }
   };

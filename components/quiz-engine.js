@@ -8,8 +8,10 @@ import { biologyCurriculum } from "../data/biology-curriculum.js";
 import { physicsCurriculum } from "../data/physics-curriculum.js";
 import { ProgressStore } from "./progress-tracker.js";
 import { formatMathText, renderMathInElement, renderLatex } from "../utils/math-renderer.js";
+import { SoundFX } from "../utils/audio-synth.js";
+import { showToast, copyShareLink } from "../utils/toast.js";
 
-export function renderQuizEngine(containerId) {
+export function renderQuizEngine(containerId, initialConfig = null) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -17,15 +19,21 @@ export function renderQuizEngine(containerId) {
   let viewState = "config";
   let activeQuestions = [];
   let userAnswers = {}; // { questionId: selectedIndex }
-  let examMode = "practice"; // 'practice', 'timed', 'presenter', 'print'
+  let examMode = (initialConfig && initialConfig.mode) ? initialConfig.mode : "practice"; // 'practice', 'timed', 'presenter', 'print'
+  let initialDifficulty = (initialConfig && initialConfig.diff) ? initialConfig.diff : "ALL";
+  let initialCount = (initialConfig && initialConfig.count) ? initialConfig.count : "10";
+  let initialQType = (initialConfig && initialConfig.qtype) ? initialConfig.qtype : "ALL";
   let timeRemaining = 0;
   let timerInterval = null;
   let presenterIndex = 0;
   let presenterRevealed = false;
   let presenterPolls = {}; // { qId: [countA, countB, countC, countD] }
+  let presenterKeyHandler = null;
 
   // Curriculum Scope State
-  let selectedSubject = "CHEM"; // 'CHEM', 'BIO', 'PHYS', 'ALL'
+  let selectedSubject = (initialConfig && initialConfig.subj) ? initialConfig.subj.toUpperCase() : "CHEM"; // 'CHEM', 'BIO', 'PHYS', 'ALL'
+  if (!["CHEM", "BIO", "PHYS", "ALL"].includes(selectedSubject)) selectedSubject = "CHEM";
+
   let selectedLessons = new Set(); // Set of "SUBJECT-M{id}-L{id}"
   let lessonSearchQuery = "";
   let collapsedModules = new Set(); // Modules explicitly collapsed by user
@@ -37,9 +45,25 @@ export function renderQuizEngine(containerId) {
     PHYS: physicsCurriculum
   };
 
-  // Initialize default scope: Select all lessons in default subject
+  function removePresenterKeyHandler() {
+    if (presenterKeyHandler) {
+      window.removeEventListener("keydown", presenterKeyHandler);
+      presenterKeyHandler = null;
+    }
+  }
+
+  // Initialize default scope: Select all lessons in default subject or from initialConfig
   function initDefaultScope() {
     selectedLessons.clear();
+    if (initialConfig && initialConfig.scope) {
+      const scopeItems = initialConfig.scope.split(",");
+      scopeItems.forEach(s => {
+        const item = s.trim();
+        if (item) selectedLessons.add(item);
+      });
+      if (selectedLessons.size > 0) return;
+    }
+
     const activeSubjs = selectedSubject === "ALL" ? ["CHEM", "BIO", "PHYS"] : [selectedSubject];
     activeSubjs.forEach(s => {
       const cur = curricula[s];
@@ -56,19 +80,24 @@ export function renderQuizEngine(containerId) {
 
   function showConfig() {
     viewState = "config";
+    removePresenterKeyHandler();
     if (timerInterval) clearInterval(timerInterval);
 
     container.innerHTML = `
       <div class="quiz-generator-view">
         <div class="quiz-config-card" style="background: rgba(15, 23, 42, 0.95); border: 1.5px solid var(--border-color); border-radius: var(--radius-lg); padding: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.6);">
           <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 5px 14px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.05em; text-transform: uppercase;">
                 Interactive Assessment Studio
               </span>
               <span id="scope-status-pill" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 14px; border-radius: 9999px; font-weight: 700; font-size: 0.82rem; font-family: var(--font-mono);">
                 Selected Scope: ${selectedLessons.size} Lessons
               </span>
+              <button class="btn btn-secondary" id="btn-share-quiz-setup" style="padding: 5px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; border-radius: 9999px;" title="Copy shareable deep-link for this assessment setup">
+                <span>🔗</span>
+                <span>Share Preset Link</span>
+              </button>
             </div>
             <div style="font-size: 0.85rem; color: var(--text-dim); font-family: var(--font-mono);">
               Curriculum-Aligned • SAT Subject &amp; AP Standards
@@ -185,41 +214,41 @@ export function renderQuizEngine(containerId) {
               <div class="control-group">
                 <label class="control-label"><span>Difficulty Level</span></label>
                 <select id="cfg-difficulty" class="select-input">
-                  <option value="ALL" selected>All Levels (Adaptive Standard)</option>
-                  <option value="foundational">Foundational (Standard High School)</option>
-                  <option value="honors">Honors / Advanced STEM</option>
-                  <option value="ap_olympiad">AP / SAT Subject / Olympiad</option>
+                  <option value="ALL" ${initialDifficulty === 'ALL' ? 'selected' : ''}>All Levels (Adaptive Standard)</option>
+                  <option value="foundational" ${initialDifficulty === 'foundational' ? 'selected' : ''}>Foundational (Standard High School)</option>
+                  <option value="honors" ${initialDifficulty === 'honors' ? 'selected' : ''}>Honors / Advanced STEM</option>
+                  <option value="ap_olympiad" ${initialDifficulty === 'ap_olympiad' ? 'selected' : ''}>AP / SAT Subject / Olympiad</option>
                 </select>
               </div>
 
               <div class="control-group">
                 <label class="control-label"><span>Question Count</span></label>
                 <select id="cfg-count" class="select-input">
-                  <option value="5">5 Questions (Quick Check)</option>
-                  <option value="10" selected>10 Questions (Standard Quiz)</option>
-                  <option value="15">15 Questions (Module Test)</option>
-                  <option value="20">20 Questions (Quarterly Exam)</option>
-                  <option value="ALL">All Available in Selected Scope</option>
+                  <option value="5" ${initialCount === '5' ? 'selected' : ''}>5 Questions (Quick Check)</option>
+                  <option value="10" ${initialCount === '10' ? 'selected' : ''}>10 Questions (Standard Quiz)</option>
+                  <option value="15" ${initialCount === '15' ? 'selected' : ''}>15 Questions (Module Test)</option>
+                  <option value="20" ${initialCount === '20' ? 'selected' : ''}>20 Questions (Quarterly Exam)</option>
+                  <option value="ALL" ${initialCount === 'ALL' ? 'selected' : ''}>All Available in Selected Scope</option>
                 </select>
               </div>
 
               <div class="control-group">
                 <label class="control-label"><span>Question Type Filter</span></label>
                 <select id="cfg-qtype" class="select-input">
-                  <option value="ALL" selected>All Question Types (Mixed)</option>
-                  <option value="mcq">Multiple Choice Concepts</option>
-                  <option value="numerical">Numerical / Formula Calculations</option>
-                  <option value="cer">Scientific Inquiry &amp; CER Analysis</option>
+                  <option value="ALL" ${initialQType === 'ALL' ? 'selected' : ''}>All Question Types (Mixed)</option>
+                  <option value="mcq" ${initialQType === 'mcq' ? 'selected' : ''}>Multiple Choice Concepts</option>
+                  <option value="numerical" ${initialQType === 'numerical' ? 'selected' : ''}>Numerical / Formula Calculations</option>
+                  <option value="cer" ${initialQType === 'cer' ? 'selected' : ''}>Scientific Inquiry &amp; CER Analysis</option>
                 </select>
               </div>
 
               <div class="control-group">
                 <label class="control-label"><span>Assessment Mode</span></label>
                 <select id="cfg-mode" class="select-input">
-                  <option value="practice" selected>Interactive Practice (Instant Feedback &amp; Hints)</option>
-                  <option value="timed">Timed Examination (Countdown Timer &amp; Scorecard)</option>
-                  <option value="presenter">Smartboard Presenter (Full-Display Slide &amp; Class Poll)</option>
-                  <option value="print">Printable Test Paper &amp; Answer Key (PDF / Paper)</option>
+                  <option value="practice" ${examMode === 'practice' ? 'selected' : ''}>Interactive Practice (Instant Feedback &amp; Hints)</option>
+                  <option value="timed" ${examMode === 'timed' ? 'selected' : ''}>Timed Examination (Countdown Timer &amp; Scorecard)</option>
+                  <option value="presenter" ${examMode === 'presenter' ? 'selected' : ''}>Smartboard Presenter (Full-Display Slide &amp; Class Poll)</option>
+                  <option value="print" ${examMode === 'print' ? 'selected' : ''}>Printable Test Paper &amp; Answer Key (PDF / Paper)</option>
                 </select>
               </div>
             </div>
@@ -228,7 +257,7 @@ export function renderQuizEngine(containerId) {
           <!-- Generate Action Button -->
           <div style="display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 20px;">
             <div style="font-size: 0.88rem; color: #94a3b8;">
-              Ready to generate: <strong id="summary-ready-count" style="color: #38bdf8;">10 questions</strong> from <strong id="summary-scope-count" style="color: #10b981;">${selectedLessons.size} selected lessons</strong>.
+              Ready to generate: <strong id="summary-ready-count" style="color: #38bdf8;">${initialCount === 'ALL' ? 'all matching' : `${initialCount} questions`}</strong> from <strong id="summary-scope-count" style="color: #10b981;">${selectedLessons.size} selected lessons</strong>.
             </div>
             <button class="btn btn-accent" id="btn-generate-exam" style="padding: 12px 32px; font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);">
               <span>⚡ Generate Assessment Now</span>
@@ -335,7 +364,7 @@ export function renderQuizEngine(containerId) {
     });
 
     if (totalVisibleLessons === 0) {
-      html = `<div style="text-align: center; color: var(--text-muted); padding: 32px 16px; font-size: 0.95rem; background: rgba(15,23,42,0.5); border-radius: 8px; border: 1px dashed rgba(255,255,255,0.1);">
+      html = `<div style="text-align: center; color: var(--text-muted); padding: 32px 16px; font-size: 0.95rem; background: var(--bg-surface-elevated); border-radius: 8px; border: 1px dashed var(--border-color);">
         <div style="font-size: 1.6rem; margin-bottom: 8px;">🔍</div>
         <div>No lesson names matched "<strong>${lessonSearchQuery}</strong>".</div>
         <div style="color: var(--text-dim); font-size: 0.82rem; margin-top: 4px;">Try searching by scientific concept (e.g. "density", "kinetics", "mitosis", "circuits") or clear the search.</div>
@@ -484,10 +513,37 @@ export function renderQuizEngine(containerId) {
     const countSelect = document.getElementById("cfg-count");
     if (countSelect) {
       countSelect.addEventListener("change", (e) => {
+        initialCount = e.target.value;
         const readyEl = document.getElementById("summary-ready-count");
         if (readyEl) {
           readyEl.innerText = e.target.value === "ALL" ? "all matching questions" : `${e.target.value} questions`;
         }
+      });
+    }
+
+    const diffSelect = document.getElementById("cfg-difficulty");
+    if (diffSelect) {
+      diffSelect.addEventListener("change", (e) => { initialDifficulty = e.target.value; });
+    }
+    const qtypeSelect = document.getElementById("cfg-qtype");
+    if (qtypeSelect) {
+      qtypeSelect.addEventListener("change", (e) => { initialQType = e.target.value; });
+    }
+    const modeSelect = document.getElementById("cfg-mode");
+    if (modeSelect) {
+      modeSelect.addEventListener("change", (e) => { examMode = e.target.value; });
+    }
+
+    const btnShare = document.getElementById("btn-share-quiz-setup");
+    if (btnShare) {
+      btnShare.addEventListener("click", () => {
+        const diffVal = document.getElementById("cfg-difficulty")?.value || initialDifficulty;
+        const countVal = document.getElementById("cfg-count")?.value || initialCount;
+        const qtypeVal = document.getElementById("cfg-qtype")?.value || initialQType;
+        const modeVal = document.getElementById("cfg-mode")?.value || examMode;
+        const scopeStr = [...selectedLessons].join(",");
+        const hash = `quiz?subj=${selectedSubject}&mode=${modeVal}&count=${countVal}&diff=${diffVal}&qtype=${qtypeVal}&scope=${encodeURIComponent(scopeStr)}`;
+        copyShareLink(hash, `${selectedSubject} Quiz Preset (${selectedLessons.size} Lessons)`);
       });
     }
 
@@ -507,10 +563,10 @@ export function renderQuizEngine(containerId) {
         // Prevent toggle if clicking checkbox directly
         if (e.target.classList.contains("mod-checkbox")) return;
         const modKey = header.dataset.modkey;
-        if (expandedModules.has(modKey)) {
-          expandedModules.delete(modKey);
+        if (collapsedModules.has(modKey)) {
+          collapsedModules.delete(modKey);
         } else {
-          expandedModules.add(modKey);
+          collapsedModules.add(modKey);
         }
         renderCurriculumChecklist();
         bindChecklistEvents();
@@ -561,7 +617,7 @@ export function renderQuizEngine(containerId) {
   // --- DYNAMIC QUESTION GENERATION & POOL RESOLUTION ---
   function generateExam() {
     if (selectedLessons.size === 0) {
-      alert("Please select at least one lesson to establish the assessment scope.");
+      showToast("Scope Required", "Please select at least one lesson to establish the assessment scope.", "warning");
       return;
     }
 
@@ -697,6 +753,7 @@ export function renderQuizEngine(containerId) {
   // --- INTERACTIVE TEST VIEW ---
   function renderTestView() {
     viewState = "test";
+    removePresenterKeyHandler();
 
     if (examMode === "timed") {
       timeRemaining = activeQuestions.length * 90; // 90 seconds per question
@@ -708,8 +765,12 @@ export function renderQuizEngine(containerId) {
           const secs = timeRemaining % 60;
           timerElem.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         }
+        if (timeRemaining <= 5 && timeRemaining > 0) {
+          SoundFX.playCountdownBeep(timeRemaining === 1);
+        }
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
+          SoundFX.playChime();
           finishExam();
         }
       }, 1000);
@@ -829,8 +890,16 @@ export function renderQuizEngine(containerId) {
         userAnswers[qid] = oidx;
 
         if (examMode === "practice") {
-          const card = document.getElementById(`q-card-${qid}`);
           const qIdx = activeQuestions.findIndex(q => q.id === qid);
+          if (qIdx !== -1) {
+            const isCorrect = oidx === activeQuestions[qIdx].correctIndex;
+            if (isCorrect) {
+              SoundFX.playSuccess();
+            } else {
+              SoundFX.playIncorrect();
+            }
+          }
+          const card = document.getElementById(`q-card-${qid}`);
           if (card && qIdx !== -1) {
             card.outerHTML = renderQuestionCard(activeQuestions[qIdx], qIdx);
             bindQuestionEvents();
@@ -838,6 +907,7 @@ export function renderQuizEngine(containerId) {
             if (updatedCard) renderMathInElement(updatedCard);
           }
         } else {
+          SoundFX.playClick();
           document.querySelectorAll(`button[data-qid="${qid}"]`).forEach(b => b.classList.remove("selected"));
           btn.classList.add("selected");
         }
@@ -848,6 +918,8 @@ export function renderQuizEngine(containerId) {
   // --- SMARTBOARD CLASSROOM PRESENTER MODE ---
   function renderPresenterSlide() {
     viewState = "presenter";
+    removePresenterKeyHandler();
+
     const q = activeQuestions[presenterIndex];
     if (!presenterPolls[q.id]) {
       presenterPolls[q.id] = [0, 0, 0, 0];
@@ -1002,7 +1074,7 @@ export function renderQuizEngine(containerId) {
             </button>
           </div>
 
-          <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
             <button class="btn btn-secondary" id="btn-simulate-poll" style="padding: 12px 20px; font-size: 0.95rem;">
               Simulate Class Poll
             </button>
@@ -1011,15 +1083,94 @@ export function renderQuizEngine(containerId) {
             </button>
           </div>
         </div>
+
+        <!-- Smartboard HUD Hotkeys Bar -->
+        <div class="presenter-hotkeys-bar" style="display: flex; justify-content: center; gap: 14px; font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-dim); background: rgba(0, 0, 0, 0.4); padding: 8px 18px; border-radius: 9999px; border: 1px solid rgba(255, 255, 255, 0.08); margin: 0 auto; flex-wrap: wrap;">
+          <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; color: var(--text-main);">← / →</kbd> Slide</span>
+          <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; color: var(--text-main);">Space</kbd> Reveal</span>
+          <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; color: var(--text-main);">1-4 / A-D</kbd> Student Vote</span>
+          <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; color: var(--text-main);">S</kbd> Simulate Poll</span>
+          <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; color: var(--text-main);">F</kbd> Fullscreen</span>
+          <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; color: var(--text-main);">Esc</kbd> Exit</span>
+        </div>
       </div>
     `;
 
+    function castPresenterVote(vidx) {
+      if (q.options && vidx < q.options.length) {
+        presenterPolls[q.id][vidx]++;
+        SoundFX.playClick();
+        renderPresenterSlide();
+      }
+    }
+
+    // Keyboard Shortcuts for Presenter Mode
+    presenterKeyHandler = (e) => {
+      if (viewState !== "presenter") return;
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+
+      if (e.code === "ArrowRight" || e.code === "PageDown" || e.code === "KeyN") {
+        if (presenterIndex < activeQuestions.length - 1) {
+          presenterIndex++;
+          presenterRevealed = false;
+          SoundFX.playClick();
+          renderPresenterSlide();
+        }
+      } else if (e.code === "ArrowLeft" || e.code === "PageUp" || e.code === "KeyP") {
+        if (presenterIndex > 0) {
+          presenterIndex--;
+          presenterRevealed = false;
+          SoundFX.playClick();
+          renderPresenterSlide();
+        }
+      } else if (e.code === "Space" || e.code === "Enter") {
+        e.preventDefault();
+        presenterRevealed = !presenterRevealed;
+        SoundFX.playSwitchSnap();
+        renderPresenterSlide();
+      } else if (e.code === "KeyS") {
+        e.preventDefault();
+        const curQ = activeQuestions[presenterIndex];
+        const correctIdx = curQ.correctIndex;
+        presenterPolls[curQ.id] = [0, 0, 0, 0].map((_, idx) => {
+          return idx === correctIdx ? Math.floor(Math.random() * 10) + 15 : Math.floor(Math.random() * 6) + 1;
+        });
+        SoundFX.playClick();
+        renderPresenterSlide();
+      } else if (e.code === "KeyF") {
+        e.preventDefault();
+        if (!document.fullscreenElement) {
+          container.requestFullscreen().catch(err => showToast("Fullscreen Notice", err.message, "info"));
+        } else {
+          document.exitFullscreen();
+        }
+      } else if (e.code === "Escape") {
+        if (!document.fullscreenElement) {
+          removePresenterKeyHandler();
+          showConfig();
+        }
+      } else if (["Digit1", "KeyA"].includes(e.code)) {
+        castPresenterVote(0);
+      } else if (["Digit2", "KeyB"].includes(e.code)) {
+        castPresenterVote(1);
+      } else if (["Digit3", "KeyC"].includes(e.code)) {
+        castPresenterVote(2);
+      } else if (["Digit4", "KeyD"].includes(e.code)) {
+        castPresenterVote(3);
+      }
+    };
+    window.addEventListener("keydown", presenterKeyHandler);
+
     // Presenter Event Listeners
-    document.getElementById("btn-exit-presenter").addEventListener("click", showConfig);
+    document.getElementById("btn-exit-presenter").addEventListener("click", () => {
+      removePresenterKeyHandler();
+      showConfig();
+    });
     document.getElementById("btn-prev-slide").addEventListener("click", () => {
       if (presenterIndex > 0) {
         presenterIndex--;
         presenterRevealed = false;
+        SoundFX.playClick();
         renderPresenterSlide();
       }
     });
@@ -1027,19 +1178,22 @@ export function renderQuizEngine(containerId) {
       if (presenterIndex < activeQuestions.length - 1) {
         presenterIndex++;
         presenterRevealed = false;
+        SoundFX.playClick();
         renderPresenterSlide();
       }
     });
     document.getElementById("btn-toggle-reveal").addEventListener("click", () => {
       presenterRevealed = !presenterRevealed;
+      SoundFX.playSwitchSnap();
       renderPresenterSlide();
     });
     document.getElementById("btn-simulate-poll").addEventListener("click", () => {
-      const q = activeQuestions[presenterIndex];
-      const correctIdx = q.correctIndex;
-      presenterPolls[q.id] = [0, 0, 0, 0].map((_, idx) => {
+      const curQ = activeQuestions[presenterIndex];
+      const correctIdx = curQ.correctIndex;
+      presenterPolls[curQ.id] = [0, 0, 0, 0].map((_, idx) => {
         return idx === correctIdx ? Math.floor(Math.random() * 10) + 15 : Math.floor(Math.random() * 6) + 1;
       });
+      SoundFX.playClick();
       renderPresenterSlide();
     });
 
@@ -1047,6 +1201,7 @@ export function renderQuizEngine(containerId) {
       btn.addEventListener("click", () => {
         const vidx = parseInt(btn.dataset.vidx, 10);
         presenterPolls[q.id][vidx]++;
+        SoundFX.playClick();
         renderPresenterSlide();
       });
     });
@@ -1055,7 +1210,7 @@ export function renderQuizEngine(containerId) {
     if (fullBtn) {
       fullBtn.addEventListener("click", () => {
         if (!document.fullscreenElement) {
-          container.requestFullscreen().catch(err => alert(err.message));
+          container.requestFullscreen().catch(err => showToast("Fullscreen Notice", err.message, "info"));
         } else {
           document.exitFullscreen();
         }
@@ -1068,6 +1223,7 @@ export function renderQuizEngine(containerId) {
   // --- SUBMIT & RESULTS SCORECARD ---
   function finishExam() {
     viewState = "results";
+    removePresenterKeyHandler();
     if (timerInterval) clearInterval(timerInterval);
 
     let correctCount = 0;
@@ -1079,6 +1235,12 @@ export function renderQuizEngine(containerId) {
 
     const pct = Math.round((correctCount / activeQuestions.length) * 100);
     ProgressStore.recordQuizResult(selectedSubject, activeQuestions.length, correctCount);
+
+    if (pct >= 70) {
+      SoundFX.playChime();
+    } else {
+      SoundFX.playClick();
+    }
 
     container.innerHTML = `
       <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
@@ -1130,6 +1292,7 @@ export function renderQuizEngine(containerId) {
   // --- PRINTABLE TEST PAPER & TEACHER ANSWER KEY ---
   function renderPrintView() {
     viewState = "print";
+    removePresenterKeyHandler();
 
     container.innerHTML = `
       <div style="display: flex; flex-direction: column; gap: 20px;">

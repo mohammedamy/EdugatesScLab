@@ -1,0 +1,42 @@
+{
+  "name": "Edugates-ClipSAT Science Labs",
+  "short_name": "AmScLab",
+  "description": "Interactive STEM Virtual Laboratories & Curriculum covering Inspire Chemistry, Biology, and Physics",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#070a12",
+  "theme_color": "#070a12",
+  "categories": ["education", "science", "productivity"],
+  "icons": [
+    {
+      "src": "assets/logo.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Chemistry",
+      "url": "./index.html#chem",
+      "description": "Inspire Chemistry Curriculum & Labs"
+    },
+    {
+      "name": "Biology",
+      "url": "./index.html#bio",
+      "description": "Inspire Biology Curriculum & Labs"
+    },
+    {
+      "name": "Physics",
+      "url": "./index.html#phys",
+      "description": "Inspire Physics Curriculum & Labs"
+    },
+    {
+      "name": "Virtual Labs Suite",
+      "url": "./index.html#labs",
+      "description": "9 Interactive 60 FPS Science Workbenches"
+    }
+  ]
+}

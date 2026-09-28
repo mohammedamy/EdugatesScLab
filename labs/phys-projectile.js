@@ -3,6 +3,7 @@
 // Vector Decomposition, Air Resistance Drag Physics, and Photogate Telemetry.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
 export function initProjectileLab(containerId) {
   const container = document.getElementById(containerId);
@@ -227,6 +228,28 @@ export function initProjectileLab(containerId) {
           </label>
         </div>
       </div>
+
+      <!-- Telemetry Suite & Multi-Trial Bar -->
+      <div class="lab-telemetry-suite-bar">
+        <div class="lab-trials-badge-group" id="proj-trials-badge-group">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Multi-Trial Overlay:</span>
+          <span class="lab-trial-pill trial-1" id="pill-trial-1" style="opacity: 0.5;">Trial 1 (Cyan)</span>
+          <span class="lab-trial-pill trial-2" id="pill-trial-2" style="opacity: 0.5;">Trial 2 (Amber)</span>
+          <span class="lab-trial-pill trial-3" id="pill-trial-3" style="opacity: 0.5;">Trial 3 (Emerald)</span>
+        </div>
+
+        <div class="lab-export-buttons-group">
+          <button class="btn btn-secondary" id="btn-export-proj-csv" style="padding: 6px 14px; font-size: 0.82rem; gap: 6px;">
+            <span>📥 Export Telemetry (CSV)</span>
+          </button>
+          <button class="btn btn-primary" id="btn-open-proj-report" style="padding: 6px 14px; font-size: 0.82rem; gap: 6px; background: linear-gradient(135deg, #0284c7, #2563eb); border: none;">
+            <span>📑 Generate Lab Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Lab Checkpoint Assessment Mount -->
+      <div id="proj-checkpoint-container"></div>
     </div>
   `;
 
@@ -740,10 +763,30 @@ export function initProjectileLab(containerId) {
           document.getElementById("proj-status-dot").style.background = "#38bdf8";
         }
 
+        const trialEntry = LabTrialStore.addTrial("projectile", {
+          measurements: {
+            "Range (m)": parseFloat(x.toFixed(2)),
+            "Flight Time (s)": parseFloat(t.toFixed(2)),
+            "Max Altitude (m)": parseFloat(maxRecordedH.toFixed(2)),
+            "Angle (°)": angle,
+            "Speed (m/s)": speed
+          }
+        });
+
+        // Update trial pills in HUD
+        const currentTrials = LabTrialStore.getTrials("projectile");
+        currentTrials.forEach((tr, i) => {
+          const pill = document.getElementById(`pill-trial-${i + 1}`);
+          if (pill) {
+            pill.style.opacity = "1";
+            pill.innerText = `Trial ${tr.trialNumber}: R=${tr.measurements["Range (m)"]}m (θ=${tr.measurements["Angle (°)"]}°)`;
+          }
+        });
+
         trajectoryHistory.push({
           points: [...currentTrajectory],
           apex: apexPoint,
-          color: (Math.abs(x - targetX) <= 4.5) ? "#ec4899" : "#38bdf8"
+          color: trialEntry.color || ((Math.abs(x - targetX) <= 4.5) ? "#ec4899" : "#38bdf8")
         });
 
         drawScene();
@@ -883,6 +926,60 @@ export function initProjectileLab(containerId) {
     btnSim.style.color = "#94a3b8";
   });
 
+  // Telemetry Suite: CSV Export Button
+  document.getElementById("btn-export-proj-csv")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("projectile");
+    const headers = ["Time (s)", "x (m)", "y (m)", "vx (m/s)", "vy (m/s)"];
+    const rows = currentTrajectory.map(pt => [
+      pt.t || 0,
+      pt.x || 0,
+      pt.y || 0,
+      speed * Math.cos(angle * Math.PI / 180),
+      speed * Math.sin(angle * Math.PI / 180) - g * (pt.t || 0)
+    ]);
+
+    exportLabDataCsv({
+      title: "Precision Ballistics & Projectile Motion",
+      labId: "projectile",
+      parameters: {
+        "Elevation Angle (θ)": `${angle}°`,
+        "Muzzle Velocity (v₀)": `${speed} m/s`,
+        "Initial Height (y₀)": `${height} m`,
+        "Gravitational Acceleration (g)": `${g} m/s²`,
+        "Target Distance": `${targetX} m`
+      },
+      headers,
+      dataRows: rows.length > 0 ? rows : [[0, 0, height, speed * Math.cos(angle * Math.PI / 180), speed * Math.sin(angle * Math.PI / 180)]]
+    });
+  });
+
+  // Telemetry Suite: Lab Report Generator
+  document.getElementById("btn-open-proj-report")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("projectile");
+    openLabReportModal({
+      title: "Precision Kinematics & Projectile Motion",
+      subject: "Physics",
+      inquiryQuestion: "How do elevation angle and initial velocity quantitatively govern 2D trajectory range and apex height?",
+      parameters: {
+        "Launch Angle (θ)": `${angle}°`,
+        "Muzzle Speed (v₀)": `${speed} m/s`,
+        "Initial Platform Height (y₀)": `${height} m`,
+        "Gravity (g)": `${g} m/s²`,
+        "Target Position": `${targetX} m`
+      },
+      trials,
+      formulas: [
+        "y(x) = y_0 + x\\tan\\theta - \\frac{g x^2}{2v_0^2 \\cos^2\\theta}",
+        "R = \\frac{v_0^2 \\sin(2\\theta)}{g}",
+        "t_{\\text{flight}} = \\frac{2v_0 \\sin\\theta}{g}",
+        "H_{\\text{max}} = y_0 + \\frac{v_0^2 \\sin^2\\theta}{2g}"
+      ]
+    });
+  });
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("proj-checkpoint-container", "projectile");
+
   function handleResize() {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
@@ -894,3 +991,4 @@ export function initProjectileLab(containerId) {
   window.addEventListener("resize", handleResize);
   handleResize();
 }
+

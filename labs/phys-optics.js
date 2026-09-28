@@ -3,6 +3,7 @@
 // 4K Optical Bench Photography, Dynamic Frosted Glass Screen, and Real-Time Lens Telemetry.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
 export function initOpticsLab(containerId) {
   const container = document.getElementById(containerId);
@@ -188,6 +189,31 @@ export function initOpticsLab(containerId) {
           </label>
         </div>
       </div>
+
+      <!-- Telemetry Suite & Multi-Trial Bar -->
+      <div class="lab-telemetry-suite-bar">
+        <div class="lab-trials-badge-group" id="optics-trials-badge-group">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">Ray Tracing Lens Bench Log:</span>
+          <span class="lab-trial-pill trial-1" id="optics-pill-trial-1" style="opacity: 0.5;">Bench 1 (Cyan)</span>
+          <span class="lab-trial-pill trial-2" id="optics-pill-trial-2" style="opacity: 0.5;">Bench 2 (Amber)</span>
+          <span class="lab-trial-pill trial-3" id="optics-pill-trial-3" style="opacity: 0.5;">Bench 3 (Emerald)</span>
+        </div>
+
+        <div class="lab-export-buttons-group">
+          <button class="btn btn-secondary" id="btn-record-optics-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(99,102,241,0.4); color: #818cf8;">
+            <span>📸 Log Optical State</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-optics-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
+            <span>📥 Export CSV Data</span>
+          </button>
+          <button class="btn btn-primary" id="btn-open-optics-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #4f46e5, #4338ca); border: none;">
+            <span>📑 Generate Lab Report</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Lab Checkpoint Assessment Mount -->
+      <div id="optics-checkpoint-container"></div>
     </div>
   `;
 
@@ -695,6 +721,93 @@ export function initOpticsLab(containerId) {
     btnSim.style.background = "transparent";
     btnSim.style.color = "#94a3b8";
   });
+
+  // Telemetry Suite: Record Current State as Trial
+  document.getElementById("btn-record-optics-trial")?.addEventListener("click", () => {
+    const img = calculateImage();
+    const effF = opticType === "convex_lens" ? fVal : -fVal;
+
+    LabTrialStore.addTrial("optics", {
+      measurements: {
+        "Lens Architecture": opticType === "convex_lens" ? "Convex (+f)" : "Concave (-f)",
+        "Focal Length (f)": `${effF.toFixed(1)} cm`,
+        "Object Distance (do)": `${doVal.toFixed(1)} cm`,
+        "Image Distance (di)": isFinite(img.di) ? `${img.di.toFixed(1)} cm` : "Infinity",
+        "Magnification (m)": isFinite(img.m) ? `${img.m.toFixed(2)}×` : "N/A",
+        "Image Character": img.isReal ? "Real, Inverted" : "Virtual, Upright"
+      }
+    });
+
+    const trials = LabTrialStore.getTrials("optics");
+    trials.forEach((tr, i) => {
+      const pill = document.getElementById(`optics-pill-trial-${i + 1}`);
+      if (pill) {
+        pill.style.opacity = "1";
+        pill.innerText = `Bench ${tr.trialNumber}: do=${tr.measurements["Object Distance (do)"]}, di=${tr.measurements["Image Distance (di)"]} (m=${tr.measurements["Magnification (m)"]})`;
+      }
+    });
+  });
+
+  // Telemetry Suite: Export CSV
+  document.getElementById("btn-export-optics-csv")?.addEventListener("click", () => {
+    const img = calculateImage();
+    const effF = opticType === "convex_lens" ? fVal : -fVal;
+
+    exportLabDataCsv({
+      title: "Precision Geometric Optics & Ray Tracing Laboratory",
+      labId: "optics",
+      parameters: {
+        "Lens System": opticType === "convex_lens" ? "Double Convex (Converging)" : "Double Concave (Diverging)",
+        "Focal Length (|f|)": `${fVal.toFixed(1)} cm`,
+        "Object Distance (d_o)": `${doVal.toFixed(1)} cm`,
+        "Object Height (h_o)": `${hoVal.toFixed(1)} cm`,
+        "532nm Laser Mode": laserMode ? "Active" : "Standard Multi-Ray"
+      },
+      headers: ["Lens Type", "Focal Length f (cm)", "Object Distance do (cm)", "Image Distance di (cm)", "Object Height ho (cm)", "Image Height hi (cm)", "Magnification m", "Image Nature"],
+      dataRows: [
+        [
+          opticType === "convex_lens" ? "Convex (+f)" : "Concave (-f)",
+          effF,
+          doVal,
+          isFinite(img.di) ? parseFloat(img.di.toFixed(2)) : "Infinity",
+          hoVal,
+          isFinite(img.hi) ? parseFloat(img.hi.toFixed(2)) : "Infinity",
+          isFinite(img.m) ? parseFloat(img.m.toFixed(2)) : "Infinity",
+          img.isReal ? "Real, Inverted" : "Virtual, Upright"
+        ]
+      ]
+    });
+  });
+
+  // Telemetry Suite: Generate Lab Report
+  document.getElementById("btn-open-optics-report")?.addEventListener("click", () => {
+    const trials = LabTrialStore.getTrials("optics");
+    const img = calculateImage();
+    const effF = opticType === "convex_lens" ? fVal : -fVal;
+
+    openLabReportModal({
+      title: "Geometric Optics, Thin Lens Formulations & Image Formation",
+      subject: "Physics",
+      inquiryQuestion: "How do object distance and lens focal length quantitatively determine real vs virtual image position, orientation, and lateral magnification?",
+      parameters: {
+        "Lens Architecture": opticType === "convex_lens" ? "Biconvex Converging Lens" : "Biconcave Diverging Lens",
+        "Signed Focal Length (f)": `${effF.toFixed(1)} cm`,
+        "Object Distance (d_o)": `${doVal.toFixed(1)} cm`,
+        "Calculated Image Distance (d_i)": isFinite(img.di) ? `${img.di.toFixed(1)} cm` : "Infinity (Parallel Ray Collimation)",
+        "Transverse Magnification (m)": isFinite(img.m) ? `${img.m.toFixed(2)}×` : "N/A",
+        "Image Classification": img.isReal ? "Real & Inverted" : "Virtual & Upright"
+      },
+      trials,
+      formulas: [
+        "\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i} \\quad (\\text{Gaussian Thin Lens Formula})",
+        "m = -\\frac{d_i}{d_o} = \\frac{h_i}{h_o} \\quad (\\text{Transverse Magnification})",
+        "P = \\frac{1}{f} \\quad (\\text{Optical Power in Diopters, } m^{-1})"
+      ]
+    });
+  });
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("optics-checkpoint-container", "optics");
 
   function handleResize() {
     const rect = canvas.getBoundingClientRect();

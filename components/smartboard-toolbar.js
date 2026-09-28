@@ -1,6 +1,6 @@
 // Edugates-ClipSAT Science Labs - Smartboard Floating Interactive Annotation Toolbar
 // Features: Pointer, Precision Pen, Bright Neon Highlighter, Real-Time Stroke Resizer & Presets,
-// 7 Vibrant High-Contrast Scientific Colors, Eraser, Canvas Clear, and Fullscreen Presentation.
+import { SoundFX } from "../utils/audio-synth.js";
 
 export function initSmartboardToolbar() {
   let existingCanvas = document.getElementById("smartboard-draw-canvas");
@@ -104,8 +104,45 @@ export function initSmartboardToolbar() {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
       </button>
 
+      <!-- Teacher Presentation Suite Tools -->
+      <div class="sb-tools-divider"></div>
+
+      <!-- Classroom Countdown Timer & Stopwatch -->
+      <button class="icon-action-btn" id="sb-tool-timer" title="Classroom Timer & Stopwatch (Hot-key: T)" style="border-radius: 9999px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"/>
+          <line x1="12" y1="2" x2="12" y2="5"/>
+          <line x1="12" y1="13" x2="12" y2="9"/>
+          <line x1="12" y1="13" x2="15" y2="13"/>
+        </svg>
+      </button>
+
+      <!-- Screen Reveal Curtain -->
+      <button class="icon-action-btn" id="sb-tool-curtain" title="Screen Reveal Curtain / Shade (Hot-key: C)" style="border-radius: 9999px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <line x1="3" y1="9" x2="21" y2="9"/>
+          <line x1="3" y1="14" x2="21" y2="14"/>
+          <line x1="12" y1="9" x2="12" y2="14"/>
+        </svg>
+      </button>
+
+      <!-- Spotlight Focus Mode -->
+      <button class="icon-action-btn" id="sb-tool-spotlight" title="Spotlight Focus Mode (Hot-key: S)" style="border-radius: 9999px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <circle cx="12" cy="12" r="3" fill="currentColor"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+        </svg>
+      </button>
+
+      <div class="sb-tools-divider"></div>
+
       <!-- Full Screen Presentation -->
-      <button class="icon-action-btn" id="sb-tool-fullscreen" title="Full Screen Presentation" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-fullscreen" title="Full Screen Presentation (Hot-key: F)" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
       </button>
 
@@ -722,6 +759,844 @@ export function initSmartboardToolbar() {
 
     window.addEventListener("touchend", stopDraw);
   }
+
+  // =========================================================================
+  // Teacher Presentation Suite: Classroom Timer, Curtain, Spotlight & Shortcuts
+  // =========================================================================
+
+  const toolTimer = document.getElementById("sb-tool-timer");
+  const toolCurtain = document.getElementById("sb-tool-curtain");
+  const toolSpotlight = document.getElementById("sb-tool-spotlight");
+
+  // -------------------------------------------------------------------------
+  // 1. Classroom Countdown Timer & Stopwatch Widget
+  // -------------------------------------------------------------------------
+  let timerWidget = document.getElementById("sb-timer-widget");
+  if (timerWidget) timerWidget.remove();
+
+  timerWidget = document.createElement("div");
+  timerWidget.id = "sb-timer-widget";
+  timerWidget.className = "sb-timer-widget";
+  timerWidget.style.display = "none";
+  timerWidget.innerHTML = `
+    <div class="sb-timer-header" id="sb-timer-drag-handle" title="Drag to Reposition Timer">
+      <div class="sb-timer-title-box">
+        <span style="font-size: 1.15rem;">⏱️</span>
+        <span>Classroom Timer</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <button id="sb-timer-mute-btn" class="sb-timer-btn-icon" title="Toggle Sound Chimes">
+          ${SoundFX.isMuted() ? '🔇' : '🔔'}
+        </button>
+        <button id="sb-timer-close-btn" class="sb-timer-btn-icon" title="Close Timer (Esc)">✕</button>
+      </div>
+    </div>
+
+    <!-- Segmented Tabs -->
+    <div class="sb-timer-tabs">
+      <button id="sb-timer-tab-countdown" class="sb-timer-tab active">Countdown</button>
+      <button id="sb-timer-tab-stopwatch" class="sb-timer-tab">Stopwatch</button>
+    </div>
+
+    <!-- Countdown Panel -->
+    <div id="sb-timer-countdown-view" class="sb-timer-view" style="display: flex; flex-direction: column; gap: 10px;">
+      <div class="sb-timer-display-box" id="sb-timer-display-box">
+        <div class="sb-timer-display" id="sb-countdown-disp">03:00</div>
+        <div class="sb-timer-sub-label" id="sb-countdown-sub-label">Ready • 3 Minutes</div>
+      </div>
+
+      <!-- Quick Presets -->
+      <div class="sb-timer-presets">
+        <button class="sb-timer-preset" data-sec="30">30s</button>
+        <button class="sb-timer-preset" data-sec="60">1m</button>
+        <button class="sb-timer-preset" data-sec="120">2m</button>
+        <button class="sb-timer-preset active" data-sec="180">3m</button>
+        <button class="sb-timer-preset" data-sec="300">5m</button>
+        <button class="sb-timer-preset" data-sec="600">10m</button>
+      </div>
+
+      <!-- Quick Adjustments -->
+      <div class="sb-timer-adjust-row">
+        <button class="sb-timer-adj-btn" id="sb-timer-sub-30">-30s</button>
+        <button class="sb-timer-adj-btn" id="sb-timer-add-30">+30s</button>
+        <button class="sb-timer-adj-btn" id="sb-timer-add-60">+1m</button>
+      </div>
+
+      <!-- Controls -->
+      <div class="sb-timer-ctrls">
+        <button id="sb-timer-start-btn" class="sb-timer-main-btn btn-start">
+          <span>▶ Start</span>
+        </button>
+        <button id="sb-timer-reset-btn" class="sb-timer-sec-btn">
+          <span>↺ Reset</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stopwatch Panel -->
+    <div id="sb-timer-stopwatch-view" class="sb-timer-view" style="display: none; flex-direction: column; gap: 10px;">
+      <div class="sb-timer-display-box">
+        <div class="sb-timer-display" id="sb-stopwatch-disp" style="font-size: 2.3rem;">00:00.00</div>
+        <div class="sb-timer-sub-label">Chronometer Metrology</div>
+      </div>
+
+      <div class="sb-timer-ctrls">
+        <button id="sb-stopwatch-start-btn" class="sb-timer-main-btn btn-start">
+          <span>▶ Start</span>
+        </button>
+        <button id="sb-stopwatch-lap-btn" class="sb-timer-sec-btn" disabled>
+          <span>🚩 Split</span>
+        </button>
+        <button id="sb-stopwatch-reset-btn" class="sb-timer-sec-btn">
+          <span>↺ Reset</span>
+        </button>
+      </div>
+
+      <div id="sb-stopwatch-laps" class="sb-stopwatch-laps" style="display: none;"></div>
+    </div>
+  `;
+  document.body.appendChild(timerWidget);
+
+  // Timer Dragging Logic
+  let timerDragging = false;
+  let timerStartX = 0;
+  let timerStartY = 0;
+  let timerStartLeft = 0;
+  let timerStartTop = 0;
+  let timerActivePointerId = null;
+
+  const timerDragHandle = document.getElementById("sb-timer-drag-handle");
+  if (timerDragHandle) {
+    timerDragHandle.addEventListener("pointerdown", (e) => {
+      if (e.target.closest("button")) return;
+      timerActivePointerId = e.pointerId;
+      try { timerDragHandle.setPointerCapture(e.pointerId); } catch (err) {}
+      const rect = timerWidget.getBoundingClientRect();
+      timerStartLeft = rect.left;
+      timerStartTop = rect.top;
+      timerStartX = e.clientX;
+      timerStartY = e.clientY;
+      timerDragging = true;
+      timerWidget.classList.add("is-dragging");
+    });
+
+    timerDragHandle.addEventListener("pointermove", (e) => {
+      if (!timerDragging || e.pointerId !== timerActivePointerId) return;
+      const dx = e.clientX - timerStartX;
+      const dy = e.clientY - timerStartY;
+      const minX = 10;
+      const maxX = Math.max(10, window.innerWidth - timerWidget.offsetWidth - 10);
+      const minY = 10;
+      const maxY = Math.max(10, window.innerHeight - timerWidget.offsetHeight - 10);
+      const nx = Math.min(Math.max(minX, timerStartLeft + dx), maxX);
+      const ny = Math.min(Math.max(minY, timerStartTop + dy), maxY);
+      timerWidget.style.left = `${nx}px`;
+      timerWidget.style.top = `${ny}px`;
+      timerWidget.style.right = "auto";
+      timerWidget.style.bottom = "auto";
+    });
+
+    const endTimerDrag = (e) => {
+      if (!timerDragging || (timerActivePointerId !== null && e.pointerId !== timerActivePointerId)) return;
+      if (timerActivePointerId !== null) {
+        try { timerDragHandle.releasePointerCapture(timerActivePointerId); } catch (err) {}
+        timerActivePointerId = null;
+      }
+      timerDragging = false;
+      timerWidget.classList.remove("is-dragging");
+      try {
+        const rect = timerWidget.getBoundingClientRect();
+        localStorage.setItem("sb_timer_pos", JSON.stringify({ x: Math.round(rect.left), y: Math.round(rect.top) }));
+      } catch (err) {}
+    };
+    timerDragHandle.addEventListener("pointerup", endTimerDrag);
+    timerDragHandle.addEventListener("pointercancel", endTimerDrag);
+  }
+
+  function loadTimerPos() {
+    try {
+      const saved = localStorage.getItem("sb_timer_pos");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+          const minX = 10;
+          const maxX = Math.max(10, window.innerWidth - 340);
+          const minY = 10;
+          const maxY = Math.max(10, window.innerHeight - 300);
+          const nx = Math.min(Math.max(minX, parsed.x), maxX);
+          const ny = Math.min(Math.max(minY, parsed.y), maxY);
+          timerWidget.style.left = `${nx}px`;
+          timerWidget.style.top = `${ny}px`;
+          timerWidget.style.right = "auto";
+          timerWidget.style.bottom = "auto";
+          return;
+        }
+      }
+    } catch (e) {}
+    // Default top right position
+    timerWidget.style.top = "80px";
+    timerWidget.style.right = "28px";
+    timerWidget.style.left = "auto";
+    timerWidget.style.bottom = "auto";
+  }
+  loadTimerPos();
+
+  // Countdown State & Helpers
+  let countdownDuration = 180;
+  let countdownRemaining = 180;
+  let countdownRunning = false;
+  let countdownInterval = null;
+
+  function fmtSec(totalSec) {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+  }
+
+  function updateCountdownUI() {
+    const disp = document.getElementById("sb-countdown-disp");
+    const sub = document.getElementById("sb-countdown-sub-label");
+    if (disp) disp.textContent = fmtSec(countdownRemaining);
+    if (sub) {
+      if (countdownRemaining === 0) {
+        sub.textContent = "Time Expired!";
+      } else if (countdownRunning) {
+        sub.textContent = "Session Active";
+      } else {
+        sub.textContent = `Set for ${fmtSec(countdownDuration)}`;
+      }
+    }
+  }
+
+  function toggleCountdown() {
+    SoundFX.playClick();
+    const btn = document.getElementById("sb-timer-start-btn");
+    if (countdownRunning) {
+      // Pause
+      clearInterval(countdownInterval);
+      countdownRunning = false;
+      if (btn) {
+        btn.innerHTML = "<span>▶ Resume</span>";
+        btn.className = "sb-timer-main-btn btn-start";
+      }
+      updateCountdownUI();
+    } else {
+      // Start
+      if (countdownRemaining <= 0) {
+        countdownRemaining = countdownDuration;
+        timerWidget.classList.remove("sb-timer-alarm");
+      }
+      countdownRunning = true;
+      if (btn) {
+        btn.innerHTML = "<span>⏸ Pause</span>";
+        btn.className = "sb-timer-main-btn btn-pause";
+      }
+      updateCountdownUI();
+
+      countdownInterval = setInterval(() => {
+        if (countdownRemaining > 0) {
+          countdownRemaining--;
+          if (countdownRemaining <= 3 && countdownRemaining > 0) {
+            SoundFX.playCountdownBeep(false);
+          }
+          if (countdownRemaining === 0) {
+            clearInterval(countdownInterval);
+            countdownRunning = false;
+            timerWidget.classList.add("sb-timer-alarm");
+            SoundFX.playChime();
+            if (btn) {
+              btn.innerHTML = "<span>↺ Restart</span>";
+              btn.className = "sb-timer-main-btn btn-start";
+            }
+          }
+          updateCountdownUI();
+        }
+      }, 1000);
+    }
+  }
+
+  function resetCountdown() {
+    SoundFX.playClick();
+    clearInterval(countdownInterval);
+    countdownRunning = false;
+    countdownRemaining = countdownDuration;
+    timerWidget.classList.remove("sb-timer-alarm");
+    const btn = document.getElementById("sb-timer-start-btn");
+    if (btn) {
+      btn.innerHTML = "<span>▶ Start</span>";
+      btn.className = "sb-timer-main-btn btn-start";
+    }
+    updateCountdownUI();
+  }
+
+  // Stopwatch State & Helpers
+  let stopwatchRunning = false;
+  let stopwatchStartTime = 0;
+  let stopwatchElapsed = 0;
+  let stopwatchAnimId = null;
+  let stopwatchLaps = [];
+
+  function fmtMs(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    const c = Math.floor((ms % 1000) / 10);
+    return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}.${c < 10 ? '0' : ''}${c}`;
+  }
+
+  function tickStopwatch() {
+    if (!stopwatchRunning) return;
+    const now = performance.now();
+    stopwatchElapsed = now - stopwatchStartTime;
+    const disp = document.getElementById("sb-stopwatch-disp");
+    if (disp) disp.textContent = fmtMs(stopwatchElapsed);
+    stopwatchAnimId = requestAnimationFrame(tickStopwatch);
+  }
+
+  function toggleStopwatch() {
+    SoundFX.playClick();
+    const btn = document.getElementById("sb-stopwatch-start-btn");
+    const lapBtn = document.getElementById("sb-stopwatch-lap-btn");
+    if (stopwatchRunning) {
+      stopwatchRunning = false;
+      cancelAnimationFrame(stopwatchAnimId);
+      if (btn) {
+        btn.innerHTML = "<span>▶ Resume</span>";
+        btn.className = "sb-timer-main-btn btn-start";
+      }
+      if (lapBtn) lapBtn.disabled = true;
+    } else {
+      stopwatchStartTime = performance.now() - stopwatchElapsed;
+      stopwatchRunning = true;
+      if (btn) {
+        btn.innerHTML = "<span>⏸ Pause</span>";
+        btn.className = "sb-timer-main-btn btn-pause";
+      }
+      if (lapBtn) lapBtn.disabled = false;
+      stopwatchAnimId = requestAnimationFrame(tickStopwatch);
+    }
+  }
+
+  function recordLap() {
+    if (!stopwatchRunning) return;
+    SoundFX.playClick();
+    stopwatchLaps.unshift({ num: stopwatchLaps.length + 1, time: stopwatchElapsed });
+    renderLaps();
+  }
+
+  function renderLaps() {
+    const container = document.getElementById("sb-stopwatch-laps");
+    if (!container) return;
+    if (stopwatchLaps.length === 0) {
+      container.style.display = "none";
+      return;
+    }
+    container.style.display = "flex";
+    container.innerHTML = stopwatchLaps.map(lap => `
+      <div class="sb-lap-row">
+        <span style="color: #38bdf8; font-weight: 700;">Split ${lap.num}</span>
+        <span style="color: #f1f5f9; font-weight: 600;">${fmtMs(lap.time)}</span>
+      </div>
+    `).join("");
+  }
+
+  function resetStopwatch() {
+    SoundFX.playClick();
+    stopwatchRunning = false;
+    cancelAnimationFrame(stopwatchAnimId);
+    stopwatchElapsed = 0;
+    stopwatchLaps = [];
+    const disp = document.getElementById("sb-stopwatch-disp");
+    if (disp) disp.textContent = "00:00.00";
+    const btn = document.getElementById("sb-stopwatch-start-btn");
+    if (btn) {
+      btn.innerHTML = "<span>▶ Start</span>";
+      btn.className = "sb-timer-main-btn btn-start";
+    }
+    const lapBtn = document.getElementById("sb-stopwatch-lap-btn");
+    if (lapBtn) lapBtn.disabled = true;
+    renderLaps();
+  }
+
+  // Timer Widget Interactions
+  function toggleTimer(forceState) {
+    SoundFX.playClick();
+    const isOpen = forceState !== undefined ? forceState : (timerWidget.style.display !== "none");
+    if (!isOpen) {
+      timerWidget.style.display = "flex";
+      if (toolTimer) toolTimer.classList.add("active");
+      loadTimerPos();
+    } else {
+      timerWidget.style.display = "none";
+      if (toolTimer) toolTimer.classList.remove("active");
+    }
+  }
+
+  if (toolTimer) {
+    toolTimer.addEventListener("click", () => {
+      closeSizePopover();
+      toggleTimer();
+    });
+  }
+
+  document.getElementById("sb-timer-close-btn")?.addEventListener("click", () => toggleTimer(false));
+
+  const muteBtn = document.getElementById("sb-timer-mute-btn");
+  if (muteBtn) {
+    muteBtn.addEventListener("click", () => {
+      const isMuted = SoundFX.toggleMute();
+      muteBtn.textContent = isMuted ? "🔇" : "🔔";
+    });
+  }
+
+  // Segmented Tabs Switcher
+  const tabCountdown = document.getElementById("sb-timer-tab-countdown");
+  const tabStopwatch = document.getElementById("sb-timer-tab-stopwatch");
+  const viewCountdown = document.getElementById("sb-timer-countdown-view");
+  const viewStopwatch = document.getElementById("sb-timer-stopwatch-view");
+
+  if (tabCountdown && tabStopwatch) {
+    tabCountdown.addEventListener("click", () => {
+      SoundFX.playClick();
+      tabCountdown.classList.add("active");
+      tabStopwatch.classList.remove("active");
+      if (viewCountdown) viewCountdown.style.display = "flex";
+      if (viewStopwatch) viewStopwatch.style.display = "none";
+    });
+    tabStopwatch.addEventListener("click", () => {
+      SoundFX.playClick();
+      tabStopwatch.classList.add("active");
+      tabCountdown.classList.remove("active");
+      if (viewCountdown) viewCountdown.style.display = "none";
+      if (viewStopwatch) viewStopwatch.style.display = "flex";
+    });
+  }
+
+  // Countdown Presets & Adjusters
+  document.querySelectorAll(".sb-timer-preset").forEach(btn => {
+    btn.addEventListener("click", () => {
+      SoundFX.playClick();
+      document.querySelectorAll(".sb-timer-preset").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const sec = parseInt(btn.dataset.sec, 10);
+      countdownDuration = sec;
+      resetCountdown();
+    });
+  });
+
+  document.getElementById("sb-timer-sub-30")?.addEventListener("click", () => {
+    SoundFX.playClick();
+    countdownRemaining = Math.max(5, countdownRemaining - 30);
+    updateCountdownUI();
+  });
+  document.getElementById("sb-timer-add-30")?.addEventListener("click", () => {
+    SoundFX.playClick();
+    countdownRemaining += 30;
+    updateCountdownUI();
+  });
+  document.getElementById("sb-timer-add-60")?.addEventListener("click", () => {
+    SoundFX.playClick();
+    countdownRemaining += 60;
+    updateCountdownUI();
+  });
+
+  document.getElementById("sb-timer-start-btn")?.addEventListener("click", toggleCountdown);
+  document.getElementById("sb-timer-reset-btn")?.addEventListener("click", resetCountdown);
+
+  document.getElementById("sb-stopwatch-start-btn")?.addEventListener("click", toggleStopwatch);
+  document.getElementById("sb-stopwatch-lap-btn")?.addEventListener("click", recordLap);
+  document.getElementById("sb-stopwatch-reset-btn")?.addEventListener("click", resetStopwatch);
+
+  // -------------------------------------------------------------------------
+  // 2. Screen Reveal Curtain (Window Blind / Shade Tool)
+  // -------------------------------------------------------------------------
+  let curtainOverlay = document.getElementById("sb-curtain-overlay");
+  if (curtainOverlay) curtainOverlay.remove();
+
+  curtainOverlay = document.createElement("div");
+  curtainOverlay.id = "sb-curtain-overlay";
+  curtainOverlay.className = "sb-curtain-overlay";
+  curtainOverlay.style.display = "none";
+  curtainOverlay.innerHTML = `
+    <div id="sb-curtain-shade" class="sb-curtain-shade">
+      <div id="sb-curtain-handle" class="sb-curtain-handle sb-curtain-handle-horizontal" title="Drag to Reveal Screen">
+        <div class="sb-curtain-info">
+          <span>🪟 Reveal Curtain</span>
+          <span id="sb-curtain-pct-disp" class="sb-curtain-pct-badge">50%</span>
+        </div>
+        <div class="sb-curtain-grip-ridges">
+          <div class="sb-curtain-ridge"></div>
+          <div class="sb-curtain-ridge"></div>
+          <div class="sb-curtain-ridge"></div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button id="sb-curtain-dir-btn" class="sb-curtain-btn" title="Cycle Reveal Direction">
+            ↕ <span id="sb-curtain-dir-label">Top</span>
+          </button>
+          <button id="sb-curtain-opac-btn" class="sb-curtain-btn" title="Cycle Shade Opacity">
+            👁 <span id="sb-curtain-opac-label">100%</span>
+          </button>
+          <button id="sb-curtain-close-btn" class="sb-curtain-btn sb-curtain-close-btn" title="Close Curtain (Esc)">
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(curtainOverlay);
+
+  let curtainDirection = "top"; // 'top', 'bottom', 'left', 'right'
+  let curtainPct = 50;
+  let curtainOpacityIdx = 0;
+  const curtainOpacities = [
+    { label: "100%", val: 1.0 },
+    { label: "85%", val: 0.85 },
+    { label: "50%", val: 0.50 }
+  ];
+
+  function applyCurtainLayout() {
+    const shade = document.getElementById("sb-curtain-shade");
+    const handle = document.getElementById("sb-curtain-handle");
+    const pctDisp = document.getElementById("sb-curtain-pct-disp");
+    const dirLabel = document.getElementById("sb-curtain-dir-label");
+    const opacLabel = document.getElementById("sb-curtain-opac-label");
+    if (!shade || !handle) return;
+
+    shade.style.opacity = String(curtainOpacities[curtainOpacityIdx].val);
+    if (opacLabel) opacLabel.textContent = curtainOpacities[curtainOpacityIdx].label;
+    if (pctDisp) pctDisp.textContent = `${curtainPct}%`;
+    if (dirLabel) dirLabel.textContent = curtainDirection.toUpperCase();
+
+    // Reset styles
+    shade.style.top = "";
+    shade.style.bottom = "";
+    shade.style.left = "";
+    shade.style.right = "";
+    shade.style.width = "";
+    shade.style.height = "";
+
+    handle.style.top = "";
+    handle.style.bottom = "";
+    handle.style.left = "";
+    handle.style.right = "";
+    handle.style.width = "";
+    handle.style.height = "";
+    handle.classList.remove("sb-curtain-handle-horizontal", "sb-curtain-handle-vertical");
+
+    if (curtainDirection === "top") {
+      handle.classList.add("sb-curtain-handle-horizontal");
+      shade.style.top = "0";
+      shade.style.left = "0";
+      shade.style.right = "0";
+      shade.style.height = `${curtainPct}%`;
+      handle.style.bottom = "0";
+      handle.style.left = "0";
+      handle.style.right = "0";
+      handle.style.cursor = "ns-resize";
+    } else if (curtainDirection === "bottom") {
+      handle.classList.add("sb-curtain-handle-horizontal");
+      shade.style.bottom = "0";
+      shade.style.left = "0";
+      shade.style.right = "0";
+      shade.style.height = `${curtainPct}%`;
+      handle.style.top = "0";
+      handle.style.left = "0";
+      handle.style.right = "0";
+      handle.style.cursor = "ns-resize";
+    } else if (curtainDirection === "left") {
+      handle.classList.add("sb-curtain-handle-vertical");
+      shade.style.top = "0";
+      shade.style.bottom = "0";
+      shade.style.left = "0";
+      shade.style.width = `${curtainPct}%`;
+      handle.style.top = "0";
+      handle.style.bottom = "0";
+      handle.style.right = "0";
+      handle.style.cursor = "ew-resize";
+    } else if (curtainDirection === "right") {
+      handle.classList.add("sb-curtain-handle-vertical");
+      shade.style.top = "0";
+      shade.style.bottom = "0";
+      shade.style.right = "0";
+      shade.style.width = `${curtainPct}%`;
+      handle.style.top = "0";
+      handle.style.bottom = "0";
+      handle.style.left = "0";
+      handle.style.cursor = "ew-resize";
+    }
+  }
+
+  function toggleCurtain(forceState) {
+    SoundFX.playClick();
+    const shouldOpen = forceState !== undefined ? forceState : (curtainOverlay.style.display === "none");
+    if (shouldOpen) {
+      curtainOverlay.style.display = "block";
+      if (toolCurtain) toolCurtain.classList.add("active");
+      applyCurtainLayout();
+    } else {
+      curtainOverlay.style.display = "none";
+      if (toolCurtain) toolCurtain.classList.remove("active");
+    }
+  }
+
+  if (toolCurtain) {
+    toolCurtain.addEventListener("click", () => {
+      closeSizePopover();
+      toggleCurtain();
+    });
+  }
+
+  document.getElementById("sb-curtain-close-btn")?.addEventListener("click", () => toggleCurtain(false));
+
+  document.getElementById("sb-curtain-dir-btn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    SoundFX.playClick();
+    const dirs = ["top", "bottom", "left", "right"];
+    curtainDirection = dirs[(dirs.indexOf(curtainDirection) + 1) % dirs.length];
+    applyCurtainLayout();
+  });
+
+  document.getElementById("sb-curtain-opac-btn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    SoundFX.playClick();
+    curtainOpacityIdx = (curtainOpacityIdx + 1) % curtainOpacities.length;
+    applyCurtainLayout();
+  });
+
+  // Handle Dragging Curtain
+  const curtainHandle = document.getElementById("sb-curtain-handle");
+  let curtainDragging = false;
+  let curtainPointerId = null;
+
+  if (curtainHandle) {
+    curtainHandle.addEventListener("pointerdown", (e) => {
+      if (e.target.closest("button")) return;
+      curtainPointerId = e.pointerId;
+      try { curtainHandle.setPointerCapture(e.pointerId); } catch (err) {}
+      curtainDragging = true;
+      curtainHandle.classList.add("is-dragging");
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (!curtainDragging || e.pointerId !== curtainPointerId) return;
+      let newPct = 50;
+      if (curtainDirection === "top") {
+        newPct = Math.round((e.clientY / window.innerHeight) * 100);
+      } else if (curtainDirection === "bottom") {
+        newPct = Math.round(((window.innerHeight - e.clientY) / window.innerHeight) * 100);
+      } else if (curtainDirection === "left") {
+        newPct = Math.round((e.clientX / window.innerWidth) * 100);
+      } else if (curtainDirection === "right") {
+        newPct = Math.round(((window.innerWidth - e.clientX) / window.innerWidth) * 100);
+      }
+      curtainPct = Math.min(Math.max(5, newPct), 96);
+      applyCurtainLayout();
+    });
+
+    const endCurtainDrag = (e) => {
+      if (!curtainDragging || (curtainPointerId !== null && e.pointerId !== curtainPointerId)) return;
+      if (curtainPointerId !== null) {
+        try { curtainHandle.releasePointerCapture(curtainPointerId); } catch (err) {}
+        curtainPointerId = null;
+      }
+      curtainDragging = false;
+      curtainHandle.classList.remove("is-dragging");
+    };
+    window.addEventListener("pointerup", endCurtainDrag);
+    window.addEventListener("pointercancel", endCurtainDrag);
+  }
+
+  // -------------------------------------------------------------------------
+  // 3. Spotlight Focus Mode
+  // -------------------------------------------------------------------------
+  let spotlightOverlay = document.getElementById("sb-spotlight-overlay");
+  if (spotlightOverlay) spotlightOverlay.remove();
+
+  spotlightOverlay = document.createElement("div");
+  spotlightOverlay.id = "sb-spotlight-overlay";
+  spotlightOverlay.className = "sb-spotlight-overlay";
+  spotlightOverlay.style.display = "none";
+  spotlightOverlay.innerHTML = `
+    <canvas id="sb-spotlight-canvas" class="sb-spotlight-canvas"></canvas>
+    <div id="sb-spotlight-hud" class="sb-spotlight-hud">
+      <span class="sb-spotlight-title">🔦 Spotlight Mode</span>
+      <div class="sb-spotlight-presets">
+        <button class="sb-spotlight-preset" data-r="120">Small</button>
+        <button class="sb-spotlight-preset active" data-r="200">Medium</button>
+        <button class="sb-spotlight-preset" data-r="320">Large</button>
+      </div>
+      <button id="sb-spotlight-exit-btn" class="sb-spotlight-exit-btn" title="Exit Spotlight (Esc)">✕ Exit</button>
+    </div>
+  `;
+  document.body.appendChild(spotlightOverlay);
+
+  const spotCanvas = document.getElementById("sb-spotlight-canvas");
+  const spotCtx = spotCanvas.getContext("2d");
+  let spotRadius = 200;
+  let spotDarkness = 0.78;
+  let spotX = window.innerWidth / 2;
+  let spotY = window.innerHeight / 2;
+  let spotActive = false;
+
+  function renderSpotlight() {
+    if (!spotActive) return;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    if (spotCanvas.width !== w || spotCanvas.height !== h) {
+      spotCanvas.width = w;
+      spotCanvas.height = h;
+    }
+
+    spotCtx.clearRect(0, 0, w, h);
+
+    // Dark veil
+    spotCtx.save();
+    spotCtx.fillStyle = `rgba(4, 7, 18, ${spotDarkness})`;
+    spotCtx.fillRect(0, 0, w, h);
+
+    // Cutout circle with feathered edge
+    spotCtx.globalCompositeOperation = "destination-out";
+    const innerR = Math.max(1, spotRadius * 0.88);
+    const grad = spotCtx.createRadialGradient(spotX, spotY, innerR, spotX, spotY, spotRadius);
+    grad.addColorStop(0, "rgba(0,0,0,1)");
+    grad.addColorStop(1, "rgba(0,0,0,0)");
+    spotCtx.fillStyle = grad;
+    spotCtx.beginPath();
+    spotCtx.arc(spotX, spotY, spotRadius, 0, Math.PI * 2);
+    spotCtx.fill();
+    spotCtx.restore();
+
+    // Luminous halo border
+    spotCtx.save();
+    spotCtx.beginPath();
+    spotCtx.arc(spotX, spotY, spotRadius, 0, Math.PI * 2);
+    spotCtx.strokeStyle = "#38bdf8";
+    spotCtx.lineWidth = 3;
+    spotCtx.stroke();
+    spotCtx.restore();
+  }
+
+  function toggleSpotlight(forceState) {
+    SoundFX.playClick();
+    const shouldOpen = forceState !== undefined ? forceState : (spotlightOverlay.style.display === "none");
+    if (shouldOpen) {
+      spotActive = true;
+      spotX = window.innerWidth / 2;
+      spotY = window.innerHeight / 2;
+      spotlightOverlay.style.display = "block";
+      if (toolSpotlight) toolSpotlight.classList.add("active");
+      renderSpotlight();
+    } else {
+      spotActive = false;
+      spotlightOverlay.style.display = "none";
+      if (toolSpotlight) toolSpotlight.classList.remove("active");
+    }
+  }
+
+  if (toolSpotlight) {
+    toolSpotlight.addEventListener("click", () => {
+      closeSizePopover();
+      toggleSpotlight();
+    });
+  }
+
+  document.getElementById("sb-spotlight-exit-btn")?.addEventListener("click", () => toggleSpotlight(false));
+
+  document.querySelectorAll(".sb-spotlight-preset").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      SoundFX.playClick();
+      document.querySelectorAll(".sb-spotlight-preset").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      spotRadius = parseInt(btn.dataset.r, 10);
+      renderSpotlight();
+    });
+  });
+
+  spotlightOverlay.addEventListener("pointermove", (e) => {
+    if (!spotActive || e.target.closest("#sb-spotlight-hud")) return;
+    spotX = e.clientX;
+    spotY = e.clientY;
+    renderSpotlight();
+  });
+  spotlightOverlay.addEventListener("pointerdown", (e) => {
+    if (!spotActive || e.target.closest("#sb-spotlight-hud")) return;
+    spotX = e.clientX;
+    spotY = e.clientY;
+    renderSpotlight();
+  });
+
+  window.addEventListener("resize", () => {
+    if (spotActive) renderSpotlight();
+  });
+
+  // -------------------------------------------------------------------------
+  // 4. Universal Classroom Keyboard Shortcuts
+  // -------------------------------------------------------------------------
+  document.addEventListener("keydown", (e) => {
+    const target = e.target;
+    if (target) {
+      const tag = target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target.isContentEditable) {
+        return;
+      }
+    }
+
+    if (e.key === "t" || e.key === "T") {
+      e.preventDefault();
+      toggleTimer();
+    } else if (e.key === "c" || e.key === "C") {
+      e.preventDefault();
+      toggleCurtain();
+    } else if (e.key === "s" || e.key === "S") {
+      e.preventDefault();
+      toggleSpotlight();
+    } else if (e.key === " ") {
+      // Spacebar: Play/Pause timer if open, otherwise trigger active lab simulation
+      if (timerWidget.style.display !== "none") {
+        e.preventDefault();
+        const countdownView = document.getElementById("sb-timer-countdown-view");
+        if (countdownView && countdownView.style.display !== "none") {
+          toggleCountdown();
+        } else {
+          toggleStopwatch();
+        }
+      } else {
+        const simPlayBtn = document.querySelector("#btn-add-drop, #btn-titr-slow, #btn-launch, #btn-sim-play, .btn-launch-lesson-sim");
+        if (simPlayBtn) {
+          e.preventDefault();
+          simPlayBtn.click();
+        }
+      }
+    } else if (e.key === "r" || e.key === "R") {
+      // R: Reset timer if open, otherwise trigger simulation reset
+      if (timerWidget.style.display !== "none") {
+        e.preventDefault();
+        const countdownView = document.getElementById("sb-timer-countdown-view");
+        if (countdownView && countdownView.style.display !== "none") {
+          resetCountdown();
+        } else {
+          resetStopwatch();
+        }
+      } else {
+        const simResetBtn = document.querySelector("#btn-titr-reset, #btn-reset, #btn-sim-reset");
+        if (simResetBtn) {
+          e.preventDefault();
+          simResetBtn.click();
+        }
+      }
+    } else if (e.key === "Escape") {
+      if (spotlightOverlay.style.display !== "none") {
+        toggleSpotlight(false);
+      } else if (curtainOverlay.style.display !== "none") {
+        toggleCurtain(false);
+      } else if (timerWidget.style.display !== "none") {
+        toggleTimer(false);
+      } else {
+        closeSizePopover();
+      }
+    }
+  });
 
   // Initialize
   updateMode("pointer");
