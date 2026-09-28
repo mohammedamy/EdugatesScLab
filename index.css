@@ -4468,16 +4468,25 @@ sub.math-sub {
 /* Telemetry Box & Data Strip for Live Calculations & Formulas */
 .sim-telemetry-box,
 .sim-data-strip,
-.sim-formula-box {
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-color);
+.sim-formula-box,
+.sim-controls-panel > div:not(.sim-readout-pill):not(.control-slider-group) {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(56, 189, 248, 0.28);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 0.8rem;
   font-family: var(--font-mono);
-  color: var(--text-main);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  color: #f8fafc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   line-height: 1.45;
+}
+
+.sim-telemetry-box strong,
+.sim-data-strip strong,
+.sim-formula-box strong,
+.sim-controls-panel > div:not(.sim-readout-pill):not(.control-slider-group) strong {
+  color: #ffffff;
+  font-weight: 700;
 }
 
 /* Slider Groups */
@@ -6030,39 +6039,46 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   font-weight: 700 !important;
 }
 
-[data-theme="day"] .sim-readout-pill[style*="background: rgba(15,23,42"],
-[data-theme="day"] .sim-readout-pill[style*="background: rgba(15, 23, 42"] {
-  background: #f8fafc !important;
-  border: 1.5px solid #cbd5e1 !important;
-  color: #0f172a !important;
-}
-
 /* Telemetry Boxes, Live Calculation Strips & Formula Readouts in Day Mode */
 [data-theme="day"] .sim-telemetry-box,
 [data-theme="day"] .sim-data-strip,
 [data-theme="day"] .sim-formula-box,
-[data-theme="day"] .sim-controls-panel div[style*="background: rgba(15,23,42"],
-[data-theme="day"] .sim-controls-panel div[style*="background: rgba(15, 23, 42"],
-[data-theme="day"] .sim-controls-panel div[style*="background:rgba(15,23,42"],
-[data-theme="day"] .interactive-split-grid div[style*="background: rgba(15,23,42"],
-[data-theme="day"] .interactive-split-grid div[style*="background: rgba(15, 23, 42"],
-[data-theme="day"] .interactive-split-grid div[style*="background:rgba(15,23,42"] {
-  background: #f8fafc !important;
+[data-theme="day"] .sim-controls-panel .sim-telemetry-box,
+[data-theme="day"] .interactive-split-grid .sim-telemetry-box,
+[data-theme="day"] .sim-controls-panel .sim-data-strip,
+[data-theme="day"] .sim-controls-panel .sim-formula-box,
+[data-theme="day"] .sim-controls-panel > div:not(.sim-readout-pill):not(.control-slider-group) {
+  background: #ffffff !important;
   border: 1.5px solid #cbd5e1 !important;
   color: #0f172a !important;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05) !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06) !important;
 }
 
 [data-theme="day"] .sim-telemetry-box *,
 [data-theme="day"] .sim-data-strip *,
 [data-theme="day"] .sim-formula-box *,
-[data-theme="day"] .sim-controls-panel div[style*="background: rgba(15,23,42"] *:not([style*="color:"]):not(.btn-sim-action),
-[data-theme="day"] .sim-controls-panel div[style*="background: rgba(15, 23, 42"] *:not([style*="color:"]):not(.btn-sim-action),
-[data-theme="day"] .sim-controls-panel div[style*="background:rgba(15,23,42"] *:not([style*="color:"]):not(.btn-sim-action),
-[data-theme="day"] .interactive-split-grid div[style*="background: rgba(15,23,42"] *:not([style*="color:"]):not(.btn-sim-action),
-[data-theme="day"] .interactive-split-grid div[style*="background: rgba(15, 23, 42"] *:not([style*="color:"]):not(.btn-sim-action),
-[data-theme="day"] .interactive-split-grid div[style*="background:rgba(15,23,42"] *:not([style*="color:"]):not(.btn-sim-action) {
+[data-theme="day"] .sim-controls-panel > div:not(.sim-readout-pill):not(.control-slider-group) *:not([style*="color:"]):not(.btn-sim-action) {
   color: #0f172a !important;
+}
+
+[data-theme="day"] .sim-telemetry-box strong,
+[data-theme="day"] .sim-data-strip strong,
+[data-theme="day"] .sim-formula-box strong,
+[data-theme="day"] .sim-controls-panel > div:not(.sim-readout-pill):not(.control-slider-group) strong {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+/* Direct Telemetry ID Selectors in Day Mode (Values & Outputs) */
+[data-theme="day"] .sim-telemetry-box [id$="-val"],
+[data-theme="day"] .sim-telemetry-box [id$="-disp"],
+[data-theme="day"] .sim-telemetry-box [id$="-txt"],
+[data-theme="day"] .sim-telemetry-box [id$="-desc"],
+[data-theme="day"] .sim-telemetry-box [id$="-status"],
+[data-theme="day"] .sim-controls-panel [id$="-val"],
+[data-theme="day"] .sim-controls-panel [id$="-disp"] {
+  color: #0284c7 !important;
+  font-weight: 700 !important;
 }
 
 [data-theme="day"] .sim-telemetry-box [style*="color: #38bdf8"],
@@ -8831,6 +8847,12 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   border-radius: var(--radius-md, 12px);
 }
 
+[data-theme="day"] .lab-telemetry-suite-bar {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+}
+
 .lab-trials-badge-group {
   display: flex;
   align-items: center;
@@ -8884,6 +8906,13 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
 
+[data-theme="day"] .lab-checkpoint-section {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+  color: #0f172a !important;
+}
+
 .lab-checkpoint-header {
   display: flex;
   align-items: center;
@@ -8891,6 +8920,10 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   margin-bottom: 18px;
   border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
   padding-bottom: 12px;
+}
+
+[data-theme="day"] .lab-checkpoint-header {
+  border-bottom: 1px solid #cbd5e1 !important;
 }
 
 .lab-checkpoint-title {
@@ -8901,6 +8934,10 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   font-size: 1.15rem;
   font-weight: 800;
   color: var(--text-main, #f8fafc);
+}
+
+[data-theme="day"] .lab-checkpoint-title {
+  color: #0f172a !important;
 }
 
 .lab-checkpoint-score-pill {

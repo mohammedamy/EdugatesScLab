@@ -1,7 +1,7 @@
 // Edugates-ClipSAT Science Labs - Offline Service Worker Engine
 // Cache-First strategy for local scripts & styles, Stale-While-Revalidate for CDNs (KaTeX, Google Fonts).
 
-const CACHE_NAME = "amscilab-pwa-v1";
+const CACHE_NAME = "amscilab-pwa-v2";
 
 const CORE_ASSETS = [
   "./",

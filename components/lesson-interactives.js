@@ -12394,9 +12394,9 @@ function buildCircularMotionInteractive(mountId, params) {
           </div>
           <input type="range" class="range-slider" id="${mountId}-w-slider" min="1.0" max="8.0" step="0.5" value="${omega}">
         </div>
-        <div class="sim-telemetry-box" style="margin-top: 4px;">
-          <div id="${mountId}-v-val" style="font-weight: 700; color: var(--text-main);"><strong>Tangential Speed (v = ωr):</strong> 4.5 m/s</div>
-          <div id="${mountId}-fc-val" style="margin-top: 2px; color: var(--phys-primary); font-weight: 600;"><strong>Tether Tension (Fc = m·ac):</strong> 27.0 N</div>
+        <div class="sim-telemetry-box" style="margin-top: 6px;">
+          <div id="${mountId}-v-val" style="font-weight: 700;"><strong>Tangential Speed (v = ωr):</strong> 4.5 m/s</div>
+          <div id="${mountId}-fc-val" style="margin-top: 3px; font-weight: 600;"><strong>Tether Tension (Fc = m·ac):</strong> 27.0 N</div>
         </div>
       </div>
     </div>
