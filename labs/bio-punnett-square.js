@@ -2,7 +2,7 @@
 // High-Fidelity Simulation: Monohybrid (2×2) & Dihybrid (4×4) Crosses, Meiotic Chromosome Segregation,
 // Photorealistic 3D Specimen Rendering (Pea Shapes, Colors, Flower Petals), and Monte-Carlo Chi-Square Engine.
 
-import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { renderLatex, formatMathText, upgradeAllMath } from "../utils/math-renderer.js";
 
 export function initPunnettLab(containerId) {
   const container = document.getElementById(containerId);
@@ -161,7 +161,7 @@ export function initPunnettLab(containerId) {
             </div>
           </div>
           <div id="inquiry-math" class="sim-sub-card" style="padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; color: #38bdf8;">
-            $$P(\\text{dominant}) = \\frac{3}{4} = 75\\%,\\quad P(\\text{recessive}) = \\frac{1}{4} = 25\\%$$
+            ${renderLatex("P(\\text{dominant}) = \\frac{3}{4} = 75\\%,\\quad P(\\text{recessive}) = \\frac{1}{4} = 25\\%", false)}
           </div>
         </div>
       </div>
@@ -1101,7 +1101,7 @@ export function initPunnettLab(containerId) {
     "f1-mono": {
       title: "Mendel's First Law: Principle of Segregation",
       desc: "Heterozygous monohybrid cross (Rr × Rr) demonstrates the classic 3:1 phenotypic and 1:2:1 genotypic ratios.",
-      math: "$$P(\\text{Round}) = \\frac{3}{4},\\quad P(\\text{Wrinkled}) = \\frac{1}{4}$$",
+      math: "P(\\text{Round}) = \\frac{3}{4},\\quad P(\\text{Wrinkled}) = \\frac{1}{4}",
       mode: "monohybrid",
       trait: "pea_shape",
       p1: "Rr",
@@ -1110,7 +1110,7 @@ export function initPunnettLab(containerId) {
     "test-mono": {
       title: "Mendel's Testcross (Heterozygote × Homozygous Recessive)",
       desc: "Cross of an unknown dominant phenotype with a homozygous recessive tester yields a 1:1 ratio, proving heterozygosity.",
-      math: "$$Rr \\times rr \\implies 1\\text{ Round (50\\%)} : 1\\text{ Wrinkled (50\\%)}$$",
+      math: "Rr \\times rr \\implies 1\\text{ Round (50\\%)} : 1\\text{ Wrinkled (50\\%)}",
       mode: "monohybrid",
       trait: "pea_shape",
       p1: "Rr",
@@ -1119,7 +1119,7 @@ export function initPunnettLab(containerId) {
     "true-mono": {
       title: "P-Generation True-Breeding Parental Cross",
       desc: "Homozygous dominant crossed with homozygous recessive produces 100% uniform heterozygous F1 progeny.",
-      math: "$$RR \\times rr \\implies 100\\%\\ Rr\\text{ (Round)}$$",
+      math: "RR \\times rr \\implies 100\\%\\ Rr\\text{ (Round)}",
       mode: "monohybrid",
       trait: "pea_shape",
       p1: "RR",
@@ -1128,7 +1128,7 @@ export function initPunnettLab(containerId) {
     "f2-dihybrid": {
       title: "Mendel's Second Law: Independent Assortment",
       desc: "Dihybrid cross (RrYy × RrYy) of two unlinked traits yields the classic 9:3:3:1 phenotypic distribution in a 16-cell matrix.",
-      math: "$$9\\text{ R\\_Y\\_} : 3\\text{ R\\_yy} : 3\\text{ rrY\\_} : 1\\text{ rryy}$$",
+      math: "9\\text{ R\\_Y\\_} : 3\\text{ R\\_yy} : 3\\text{ rrY\\_} : 1\\text{ rryy}",
       mode: "dihybrid",
       trait: "pea_shape",
       p1: "RrYy",
@@ -1137,7 +1137,7 @@ export function initPunnettLab(containerId) {
     "test-dihybrid": {
       title: "Dihybrid Testcross for Linkage Verification",
       desc: "Double heterozygote crossed with double recessive tester yields a 1:1:1:1 ratio if alleles assort independently without genetic linkage.",
-      math: "$$RrYy \\times rryy \\implies 1 : 1 : 1 : 1\\text{ (25\\% each)}$$",
+      math: "RrYy \\times rryy \\implies 1 : 1 : 1 : 1\\text{ (25\\% each)}",
       mode: "dihybrid",
       trait: "pea_shape",
       p1: "RrYy",
@@ -1181,8 +1181,8 @@ export function initPunnettLab(containerId) {
     if (inqTitle) inqTitle.innerText = p.title;
     if (inqDesc) inqDesc.innerText = p.desc;
     if (mathEl) {
-      mathEl.innerHTML = p.math;
-      renderLatex(mathEl);
+      mathEl.innerHTML = renderLatex(p.math, false);
+      upgradeAllMath(mathEl);
     }
 
     // Update active preset button style

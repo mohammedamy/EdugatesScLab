@@ -1246,7 +1246,7 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "type": "bio-punnett",
     "lessonBadge": "Lesson 3",
     "title": "Applied Genetics: Selective Breeding & Test Crosses",
-    "formula": "\\text{Test Cross: Unknown (A_)} \\times \\text{Homozygous Recessive (aa)}",
+    "formula": "\\text{Test Cross: Unknown (A\\_)} \\times \\text{Homozygous Recessive (aa)}",
     "inquiry": "Perform a test cross to determine whether an individual showing dominant phenotype is homozygous or heterozygous.",
     "defaultParams": {
       "p1": "AA",

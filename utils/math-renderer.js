@@ -88,6 +88,8 @@ const LATEX_SYMBOLS = {
   "\\dots": "…",
   "\\qquad": "&emsp;&emsp;",
   "\\quad": "&emsp;",
+  "\\enspace": "&ensp;",
+  "\\ ": "&nbsp;",
   "\\,": "&thinsp;",
   "\\;": "&ensp;",
   "\\:": "&ensp;"
@@ -147,6 +149,40 @@ function classifyPlainTokens(html) {
 }
 
 /**
+ * Pre-processes LaTeX to repair common syntax quirks that break KaTeX parsers
+ * (such as unescaped underscores inside \text{...} or raw wrapping delimiters)
+ */
+export function sanitizeLatex(latex) {
+  if (!latex || typeof latex !== "string") return "";
+  let s = latex.trim();
+
+  // Strip wrapping $$ or $ if present
+  if (s.startsWith("$$") && s.endsWith("$$") && s.length >= 4) {
+    s = s.slice(2, -2).trim();
+  } else if (s.startsWith("$") && s.endsWith("$") && s.length >= 2) {
+    s = s.slice(1, -1).trim();
+  }
+
+  // Pre-fix unescaped underscores inside \text{...}, \mathrm{...}, \textbf{...}, \mathbf{...}
+  // Because in TeX/KaTeX, an unescaped _ in text mode is an invalid token and throws ParseError.
+  const textCmds = ["\\text{", "\\mathrm{", "\\textbf{", "\\mathbf{"];
+  for (const tcmd of textCmds) {
+    let tIdx = s.indexOf(tcmd);
+    while (tIdx !== -1) {
+      const extracted = extractBraceContent(s, tIdx + tcmd.length - 1);
+      if (!extracted) break;
+      const fixedContent = extracted.content.replace(/(?<!\\)_/g, "\\_");
+      const before = s.slice(0, tIdx);
+      const after = s.slice(extracted.endIndex + 1);
+      s = before + tcmd.slice(0, -1) + "{" + fixedContent + "}" + after;
+      tIdx = s.indexOf(tcmd, before.length + tcmd.length + fixedContent.length);
+    }
+  }
+
+  return s;
+}
+
+/**
  * Internal parsing function that translates LaTeX markup into high-fidelity semantic HTML
  */
 function formatInner(s, isRoot = true) {
@@ -172,7 +208,14 @@ function formatInner(s, isRoot = true) {
       if (!extracted) break;
       const before = s.slice(0, tIdx);
       const after = s.slice(extracted.endIndex + 1);
-      s = before + `<span class="math-text">${extracted.content}</span>` + after;
+      const textClean = extracted.content
+        .replace(/\\_/g, "_")
+        .replace(/\\%/g, "%")
+        .replace(/\\&/g, "&")
+        .replace(/\\\$/g, "$")
+        .replace(/\\#/g, "#")
+        .replace(/\\~/g, "~");
+      s = before + `<span class="math-text">${textClean}</span>` + after;
       tIdx = s.indexOf(tcmd);
     }
   }
@@ -295,6 +338,13 @@ function formatInner(s, isRoot = true) {
   // 14. Clean residual escape backslashes
   s = s.replace(/\\%/g, "%");
   s = s.replace(/\\&/g, "&");
+  s = s.replace(/\\_/g, "_");
+  s = s.replace(/\\\$/g, "$");
+  s = s.replace(/\\#/g, "#");
+  s = s.replace(/\\\{/g, "{");
+  s = s.replace(/\\\}/g, "}");
+  s = s.replace(/\\~/g, "~");
+  s = s.replace(/\\\s/g, "&nbsp;");
 
   // 15. Classify operators, numbers, and delimiters for clean typography (only at root)
   if (isRoot) {
@@ -310,10 +360,10 @@ export function standaloneLatexToHtml(latex, displayMode = false) {
   if (!latex) return "";
 
   let s = latex.trim();
-  if (s.startsWith("$$") && s.endsWith("$$")) {
+  if (s.startsWith("$$") && s.endsWith("$$") && s.length >= 4) {
     s = s.slice(2, -2).trim();
     displayMode = true;
-  } else if (s.startsWith("$") && s.endsWith("$")) {
+  } else if (s.startsWith("$") && s.endsWith("$") && s.length >= 2) {
     s = s.slice(1, -1).trim();
   }
 
@@ -331,15 +381,27 @@ const mathCache = new Map();
  * Master rendering function with LRU-style cache.
  * Uses window.katex if available for full vector typesetting, otherwise uses our enhanced standalone parser.
  * Always includes data-latex attribute for reactive upgrades.
+ * Supports passing either a LaTeX string or a DOM element directly.
  */
 export function renderLatex(latex, displayMode = false) {
   if (!latex) return "";
 
+  // Support HTMLElement passed directly: render into its innerHTML
+  if (typeof latex !== "string") {
+    if (latex && latex.nodeType === 1) {
+      const text = latex.textContent || latex.innerText || "";
+      const html = renderLatex(text, displayMode);
+      latex.innerHTML = html;
+      return html;
+    }
+    return String(latex);
+  }
+
   let cleaned = latex.trim();
-  if (cleaned.startsWith("$$") && cleaned.endsWith("$$")) {
+  if (cleaned.startsWith("$$") && cleaned.endsWith("$$") && cleaned.length >= 4) {
     cleaned = cleaned.slice(2, -2).trim();
     displayMode = true;
-  } else if (cleaned.startsWith("$") && cleaned.endsWith("$")) {
+  } else if (cleaned.startsWith("$") && cleaned.endsWith("$") && cleaned.length >= 2) {
     cleaned = cleaned.slice(1, -1).trim();
   }
 
@@ -348,23 +410,26 @@ export function renderLatex(latex, displayMode = false) {
     return mathCache.get(cacheKey);
   }
 
+  const sanitized = sanitizeLatex(cleaned);
   const rawEsc = escapeHtmlAttr(cleaned);
   let rendered = "";
 
   if (typeof window !== "undefined" && window.katex && typeof window.katex.renderToString === "function") {
     try {
-      const katexHtml = window.katex.renderToString(cleaned, {
+      const katexHtml = window.katex.renderToString(sanitized, {
         displayMode,
         throwOnError: false,
         output: "html"
       });
-      rendered = `<span class="math-katex-wrapper ${displayMode ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${displayMode}">${katexHtml}</span>`;
-      mathCache.set(cacheKey, rendered);
-      return rendered;
+      // KaTeX returns a span with class "katex-error" on parse failures when throwOnError is false.
+      // If it failed, do not use the raw error text; fall back to standalone parser.
+      if (katexHtml && !katexHtml.includes("katex-error")) {
+        rendered = `<span class="math-katex-wrapper ${displayMode ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${displayMode}">${katexHtml}</span>`;
+        mathCache.set(cacheKey, rendered);
+        return rendered;
+      }
     } catch {
-      rendered = standaloneLatexToHtml(cleaned, displayMode);
-      mathCache.set(cacheKey, rendered);
-      return rendered;
+      // Fall through to standalone parser
     }
   }
 
@@ -421,15 +486,21 @@ export function upgradeAllMath(root = (typeof document !== "undefined" ? documen
     }
 
     try {
-      const html = window.katex.renderToString(raw, {
+      const sanitized = sanitizeLatex(raw);
+      const html = window.katex.renderToString(sanitized, {
         displayMode: isDisplay,
         throwOnError: false,
         output: "html"
       });
-      const rawEsc = escapeHtmlAttr(raw);
-      const fullSpan = `<span class="math-katex-wrapper ${isDisplay ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${isDisplay}">${html}</span>`;
-      mathCache.set(cacheKey, fullSpan);
-      el.outerHTML = fullSpan;
+      if (html && !html.includes("katex-error")) {
+        const rawEsc = escapeHtmlAttr(raw);
+        const fullSpan = `<span class="math-katex-wrapper ${isDisplay ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${isDisplay}">${html}</span>`;
+        mathCache.set(cacheKey, fullSpan);
+        el.outerHTML = fullSpan;
+      } else {
+        // Keep clean standalone rendered HTML and avoid re-processing
+        el.classList.add("katex-upgraded");
+      }
     } catch {
       el.classList.add("katex-upgraded");
     }

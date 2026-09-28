@@ -3186,7 +3186,13 @@ sub.math-sub {
 }
 
 .interactive-formula-badge .katex,
-.interactive-formula-badge .katex * {
+.interactive-formula-badge .katex *,
+.interactive-formula-badge .math-rendered,
+.interactive-formula-badge .math-rendered *,
+#inquiry-math .katex,
+#inquiry-math .katex *,
+#inquiry-math .math-rendered,
+#inquiry-math .math-rendered * {
   color: #38bdf8 !important;
   -webkit-text-fill-color: #38bdf8 !important;
 }
@@ -4718,7 +4724,9 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 }
 
 [data-theme="day"] .interactive-formula-badge .katex,
-[data-theme="day"] .interactive-formula-badge .katex * {
+[data-theme="day"] .interactive-formula-badge .katex *,
+[data-theme="day"] .interactive-formula-badge .math-rendered,
+[data-theme="day"] .interactive-formula-badge .math-rendered * {
   color: #0f172a !important;
   -webkit-text-fill-color: #0f172a !important;
   font-weight: 600 !important;
