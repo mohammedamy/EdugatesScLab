@@ -43,9 +43,11 @@
         var w = window.innerWidth || (window.screen ? window.screen.width : 1920);
         var isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
         var isLowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+        var ua = navigator.userAgent || "";
+        var isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel|CrOS/i.test(ua);
         var savedMode = localStorage.getItem("edugates_device_mode");
-        // Automatically activate smartboard high-performance profile on large touchscreens or low-core processors
-        if (savedMode === "smartboard" || (!savedMode && (w >= 1800 || (isTouch && w >= 1150) || isLowCpu))) {
+        // Automatically activate smartboard 60FPS turbo profile on interactive panels, large touchscreens, or low-core hardware
+        if (savedMode === "smartboard" || (!savedMode && (isSmartboardUA || w >= 1600 || (isTouch && w >= 1024) || isLowCpu))) {
           document.documentElement.setAttribute("data-mode", "smartboard");
           document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
         }

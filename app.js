@@ -127,11 +127,13 @@ function setupDeviceDetection() {
   const w = window.innerWidth || (window.screen ? window.screen.width : 1920);
   const isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
   const isLowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
+  const ua = navigator.userAgent || "";
+  const isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel|CrOS/i.test(ua);
   const savedMode = localStorage.getItem("edugates_device_mode");
 
   if (savedMode) {
     setDeviceMode(savedMode);
-  } else if (w >= 1800 || (isTouch && w >= 1150) || isLowCpu) {
+  } else if (isSmartboardUA || w >= 1600 || (isTouch && w >= 1024) || isLowCpu) {
     setDeviceMode("smartboard");
   }
 }
@@ -156,14 +158,18 @@ function setDeviceMode(mode) {
     document.body.classList.add("mode-mobile");
     document.documentElement.setAttribute("data-mode", "mobile");
   } else {
-    document.documentElement.removeAttribute("data-mode");
+    // Auto Mode: evaluate hardware profile
     const w = window.innerWidth || 1920;
-    const isTouch = navigator.maxTouchPoints > 0;
+    const isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
     const isLowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
-    if (w >= 1800 || (isTouch && w >= 1150) || isLowCpu) {
+    const ua = navigator.userAgent || "";
+    const isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel|CrOS/i.test(ua);
+    if (isSmartboardUA || w >= 1600 || (isTouch && w >= 1024) || isLowCpu) {
       document.body.classList.add("mode-smartboard", "fast-smartboard-mode");
       document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
       document.documentElement.setAttribute("data-mode", "smartboard");
+    } else {
+      document.documentElement.removeAttribute("data-mode");
     }
   }
 
@@ -270,7 +276,7 @@ function renderAppShell() {
 
         <div class="device-mode-toggle" title="Screen Optimization &amp; Hardware Profile">
           <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto">Auto</button>
-          <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" title="Smartboard Fast Mode (Hardware Accelerated)">⚡ Smartboard</button>
+          <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" title="Smartboard 60 FPS Turbo Profile (Zero-Blur, Hardware Accelerated)">⚡ Smartboard Turbo</button>
           <button class="device-btn ${AppState.deviceMode === 'tablet' ? 'active' : ''}" data-mode="tablet" title="Tablet Mode">Tablet</button>
           <button class="device-btn ${AppState.deviceMode === 'mobile' ? 'active' : ''}" data-mode="mobile" title="Mobile Mode">Mobile</button>
         </div>

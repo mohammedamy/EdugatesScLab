@@ -44,7 +44,7 @@
   --touch-target: 44px;
 }
 
-/* SMARTBOARD CLASSROOM & LOW-POWER PROCESSOR PERFORMANCE OPTIMIZATION */
+/* SMARTBOARD CLASSROOM & LOW-POWER PROCESSOR PERFORMANCE OPTIMIZATION (60 FPS TURBO PROFILE) */
 [data-mode="smartboard"],
 body.mode-smartboard,
 html.mode-smartboard,
@@ -52,44 +52,44 @@ html.mode-smartboard,
   --nav-height: 96px;
   --touch-target: 64px;
   font-size: 19px;
-  scroll-behavior: smooth;
+  scroll-behavior: auto !important; /* Immediate 1:1 touch response without software animation lag */
+  -webkit-overflow-scrolling: touch;
 }
 
-/* 1. Eliminate 4K Blurred Glow Blobs to free 100% GPU fill-rate */
+/* 1. Eliminate 100% of GPU fill-rate bottlenecks: Remove all backdrop-filters across the entire DOM */
+[data-mode="smartboard"] *,
+body.mode-smartboard *,
+html.mode-smartboard *,
+.fast-smartboard-mode * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 2. Eliminate 4K atmospheric glow blobs & heavy blur filters to free GPU memory */
 [data-mode="smartboard"] .bg-glow-container,
 body.mode-smartboard .bg-glow-container,
 html.mode-smartboard .bg-glow-container,
-.fast-smartboard-mode .bg-glow-container {
+.fast-smartboard-mode .bg-glow-container,
+[data-mode="smartboard"] .bg-glow-blob,
+body.mode-smartboard .bg-glow-blob,
+.fast-smartboard-mode .bg-glow-blob {
   display: none !important;
+  filter: none !important;
 }
 
-/* 2. Eliminate expensive backdrop-filter Gaussian blurs across all smartboard UI elements */
+/* 3. Solid, high-contrast, performant opaque surfaces for smooth 4K compositing */
 [data-mode="smartboard"] .app-navbar,
 body.mode-smartboard .app-navbar,
 .fast-smartboard-mode .app-navbar {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
   background: #070a12 !important;
 }
 
 [data-mode="smartboard"] .hero-banner,
 body.mode-smartboard .hero-banner,
-.fast-smartboard-mode .hero-banner {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  background: #0f172a !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
-}
-
+.fast-smartboard-mode .hero-banner,
 [data-mode="smartboard"] .smartboard-pen-bar,
 body.mode-smartboard .smartboard-pen-bar,
-.fast-smartboard-mode .smartboard-pen-bar {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  background: #0f172a !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45) !important;
-}
-
+.fast-smartboard-mode .smartboard-pen-bar,
 [data-mode="smartboard"] .module-card,
 body.mode-smartboard .module-card,
 .fast-smartboard-mode .module-card,
@@ -101,20 +101,114 @@ body.mode-smartboard .modal-content-shell,
 .fast-smartboard-mode .modal-content-shell,
 [data-mode="smartboard"] .nav-dropdown-menu,
 body.mode-smartboard .nav-dropdown-menu,
-.fast-smartboard-mode .nav-dropdown-menu {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  background: #0b1120 !important;
+.fast-smartboard-mode .nav-dropdown-menu,
+[data-mode="smartboard"] .calculator-modal,
+body.mode-smartboard .calculator-modal,
+.fast-smartboard-mode .calculator-modal,
+[data-mode="smartboard"] .quiz-modal,
+body.mode-smartboard .quiz-modal,
+.fast-smartboard-mode .quiz-modal,
+[data-mode="smartboard"] .interactive-shell,
+body.mode-smartboard .interactive-shell,
+.fast-smartboard-mode .interactive-shell {
+  background: #0f172a !important;
 }
 
-/* 3. Hardware rasterization promotion without style recalculation */
+[data-mode="smartboard"] .modal-backdrop,
+body.mode-smartboard .modal-backdrop,
+.fast-smartboard-mode .modal-backdrop {
+  background: rgba(0, 0, 0, 0.78) !important;
+}
+
+/* 4. GPU Overdraw Elimination: Low-spread, crisp box-shadows */
 [data-mode="smartboard"] .module-card,
 body.mode-smartboard .module-card,
 .fast-smartboard-mode .module-card,
 [data-mode="smartboard"] .lesson-card-full,
 body.mode-smartboard .lesson-card-full,
-.fast-smartboard-mode .lesson-card-full {
+.fast-smartboard-mode .lesson-card-full,
+[data-mode="smartboard"] .hero-banner,
+body.mode-smartboard .hero-banner,
+.fast-smartboard-mode .hero-banner,
+[data-mode="smartboard"] .modal-content-shell,
+body.mode-smartboard .modal-content-shell,
+.fast-smartboard-mode .modal-content-shell,
+[data-mode="smartboard"] .nav-dropdown-menu,
+body.mode-smartboard .nav-dropdown-menu,
+.fast-smartboard-mode .nav-dropdown-menu,
+[data-mode="smartboard"] .btn,
+body.mode-smartboard .btn,
+.fast-smartboard-mode .btn,
+[data-mode="smartboard"] .lab-nav-btn,
+body.mode-smartboard .lab-nav-btn,
+.fast-smartboard-mode .lab-nav-btn,
+[data-mode="smartboard"] .smartboard-pen-bar,
+body.mode-smartboard .smartboard-pen-bar,
+.fast-smartboard-mode .smartboard-pen-bar {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* 5. Virtualized DOM rendering: Skip layout & paint for off-screen cards */
+[data-mode="smartboard"] .module-card,
+body.mode-smartboard .module-card,
+.fast-smartboard-mode .module-card,
+[data-mode="smartboard"] .lesson-card-full,
+body.mode-smartboard .lesson-card-full,
+.fast-smartboard-mode .lesson-card-full,
+[data-mode="smartboard"] .lesson-row-card,
+body.mode-smartboard .lesson-row-card,
+.fast-smartboard-mode .lesson-row-card {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 320px;
   transform: translateZ(0);
+}
+
+/* 6. Zero-delay touch responsiveness & remove stuck touch hover translations */
+[data-mode="smartboard"] button,
+body.mode-smartboard button,
+.fast-smartboard-mode button,
+[data-mode="smartboard"] a,
+body.mode-smartboard a,
+.fast-smartboard-mode a,
+[data-mode="smartboard"] .btn,
+body.mode-smartboard .btn,
+.fast-smartboard-mode .btn,
+[data-mode="smartboard"] .nav-tab,
+body.mode-smartboard .nav-tab,
+.fast-smartboard-mode .nav-tab,
+[data-mode="smartboard"] .lesson-row-card,
+body.mode-smartboard .lesson-row-card,
+.fast-smartboard-mode .lesson-row-card,
+[data-mode="smartboard"] .unit-filter-chip,
+body.mode-smartboard .unit-filter-chip,
+.fast-smartboard-mode .unit-filter-chip,
+[data-mode="smartboard"] .lab-nav-btn,
+body.mode-smartboard .lab-nav-btn,
+.fast-smartboard-mode .lab-nav-btn {
+  touch-action: manipulation;
+}
+
+[data-mode="smartboard"] .module-card:hover,
+body.mode-smartboard .module-card:hover,
+.fast-smartboard-mode .module-card:hover,
+[data-mode="smartboard"] .lesson-card-full:hover,
+body.mode-smartboard .lesson-card-full:hover,
+.fast-smartboard-mode .lesson-card-full:hover,
+[data-mode="smartboard"] .btn:hover,
+body.mode-smartboard .btn:hover,
+.fast-smartboard-mode .btn:hover,
+[data-mode="smartboard"] .lab-nav-btn:hover,
+body.mode-smartboard .lab-nav-btn:hover,
+.fast-smartboard-mode .lab-nav-btn:hover {
+  transform: none !important;
+}
+
+/* 7. Snappy, low-CPU UI transitions */
+[data-mode="smartboard"] *,
+body.mode-smartboard *,
+html.mode-smartboard *,
+.fast-smartboard-mode * {
+  transition-duration: 0.06s !important;
 }
 
 [data-mode="smartboard"] .brand-logo-box,

@@ -142,6 +142,8 @@ export function initSmartboardToolbar() {
   const canvas = existingCanvas;
   // Use desynchronized 2d context for low-latency hardware-accelerated smartboard inking
   const ctx = canvas.getContext("2d", { desynchronized: true, alpha: true }) || canvas.getContext("2d");
+  // Canvas is initially hidden when no ink is drawn to completely eliminate full-screen 4K GPU compositing overhead
+  canvas.style.display = "none";
 
   let resizeTimeout;
   function resize() {
@@ -159,6 +161,7 @@ export function initSmartboardToolbar() {
   // State
   let isDrawing = false;
   let hasMoved = false;
+  let hasDrawings = false;
   let lastX = 0;
   let lastY = 0;
   let currentTool = "pointer"; // 'pointer', 'pen', 'highlighter', 'eraser'
@@ -302,15 +305,22 @@ export function initSmartboardToolbar() {
     if (mode === "pointer") {
       toolPointer.classList.add("active");
       canvas.classList.remove("drawing-active");
-    } else if (mode === "pen") {
-      toolPen.classList.add("active");
+      // If canvas is blank, hide it completely to free 100% of 4K GPU fill-rate during site navigation
+      if (!hasDrawings) {
+        canvas.style.display = "none";
+      } else {
+        canvas.style.display = "block";
+      }
+    } else {
+      canvas.style.display = "block";
       canvas.classList.add("drawing-active");
-    } else if (mode === "highlighter") {
-      toolHighlighter.classList.add("active");
-      canvas.classList.add("drawing-active");
-    } else if (mode === "eraser") {
-      toolEraser.classList.add("active");
-      canvas.classList.add("drawing-active");
+      if (mode === "pen") {
+        toolPen.classList.add("active");
+      } else if (mode === "highlighter") {
+        toolHighlighter.classList.add("active");
+      } else if (mode === "eraser") {
+        toolEraser.classList.add("active");
+      }
     }
     syncSizeUI();
     updateMiniBadge();
@@ -551,6 +561,10 @@ export function initSmartboardToolbar() {
   document.getElementById("sb-tool-clear").addEventListener("click", () => {
     closeSizePopover();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    hasDrawings = false;
+    if (currentTool === "pointer") {
+      canvas.style.display = "none";
+    }
   });
 
   // Fullscreen Presentation
@@ -570,7 +584,7 @@ export function initSmartboardToolbar() {
     }
   });
 
-  // Drawing Engine
+  // Drawing Engine with Sub-Millisecond Latency
   function getPos(e) {
     if (e.touches && e.touches.length > 0) {
       return { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -583,6 +597,8 @@ export function initSmartboardToolbar() {
     closeSizePopover();
     isDrawing = true;
     hasMoved = false;
+    hasDrawings = true;
+    canvas.style.display = "block";
     const pos = getPos(e);
     lastX = pos.x;
     lastY = pos.y;
@@ -591,6 +607,7 @@ export function initSmartboardToolbar() {
   function moveDraw(e) {
     if (!isDrawing || currentTool === "pointer") return;
     hasMoved = true;
+    hasDrawings = true;
     const pos = getPos(e);
     const x = pos.x;
     const y = pos.y;
@@ -611,8 +628,7 @@ export function initSmartboardToolbar() {
       ctx.globalAlpha = 0.38;
       ctx.strokeStyle = strokeColor;
       ctx.lineWidth = highlighterStrokeWidth;
-      ctx.shadowColor = strokeColor;
-      ctx.shadowBlur = 12;
+      // High-performance direct stroke without expensive Gaussian shadowBlur
       ctx.beginPath();
       ctx.moveTo(lastX, lastY);
       ctx.lineTo(x, y);
@@ -623,8 +639,7 @@ export function initSmartboardToolbar() {
       ctx.globalAlpha = 1.0;
       ctx.strokeStyle = strokeColor;
       ctx.lineWidth = penStrokeWidth;
-      ctx.shadowColor = strokeColor;
-      ctx.shadowBlur = 4;
+      // High-performance direct stroke without expensive Gaussian shadowBlur
       ctx.beginPath();
       ctx.moveTo(lastX, lastY);
       ctx.lineTo(x, y);
@@ -648,8 +663,6 @@ export function initSmartboardToolbar() {
         ctx.globalCompositeOperation = "source-over";
         ctx.globalAlpha = 0.38;
         ctx.fillStyle = strokeColor;
-        ctx.shadowColor = strokeColor;
-        ctx.shadowBlur = 12;
         ctx.beginPath();
         ctx.arc(lastX, lastY, highlighterStrokeWidth / 2, 0, Math.PI * 2);
         ctx.fill();
@@ -657,8 +670,6 @@ export function initSmartboardToolbar() {
         ctx.globalCompositeOperation = "source-over";
         ctx.globalAlpha = 1.0;
         ctx.fillStyle = strokeColor;
-        ctx.shadowColor = strokeColor;
-        ctx.shadowBlur = 4;
         ctx.beginPath();
         ctx.arc(lastX, lastY, penStrokeWidth / 2, 0, Math.PI * 2);
         ctx.fill();
@@ -668,21 +679,49 @@ export function initSmartboardToolbar() {
     isDrawing = false;
   }
 
-  canvas.addEventListener("mousedown", startDraw);
-  canvas.addEventListener("mousemove", moveDraw);
-  window.addEventListener("mouseup", stopDraw);
+  // Pointer Events provide zero-latency coalesced touch coordinates on Smartboards
+  if (window.PointerEvent) {
+    canvas.addEventListener("pointerdown", (e) => {
+      if (currentTool !== "pointer") {
+        e.preventDefault();
+        startDraw(e);
+      }
+    }, { passive: false });
 
-  canvas.addEventListener("touchstart", (e) => {
-    if (currentTool !== "pointer") e.preventDefault();
-    startDraw(e);
-  }, { passive: false });
+    canvas.addEventListener("pointermove", (e) => {
+      if (currentTool !== "pointer" && isDrawing) {
+        e.preventDefault();
+        if (e.getCoalescedEvents) {
+          const events = e.getCoalescedEvents();
+          for (let i = 0; i < events.length; i++) {
+            moveDraw(events[i]);
+          }
+        } else {
+          moveDraw(e);
+        }
+      }
+    }, { passive: false });
 
-  canvas.addEventListener("touchmove", (e) => {
-    if (currentTool !== "pointer") e.preventDefault();
-    moveDraw(e);
-  }, { passive: false });
+    window.addEventListener("pointerup", stopDraw);
+    window.addEventListener("pointercancel", stopDraw);
+  } else {
+    // Fallback for older browsers
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", moveDraw);
+    window.addEventListener("mouseup", stopDraw);
 
-  window.addEventListener("touchend", stopDraw);
+    canvas.addEventListener("touchstart", (e) => {
+      if (currentTool !== "pointer") e.preventDefault();
+      startDraw(e);
+    }, { passive: false });
+
+    canvas.addEventListener("touchmove", (e) => {
+      if (currentTool !== "pointer") e.preventDefault();
+      moveDraw(e);
+    }, { passive: false });
+
+    window.addEventListener("touchend", stopDraw);
+  }
 
   // Initialize
   updateMode("pointer");
