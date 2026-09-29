@@ -74,8 +74,8 @@ export const NAV_SUBJECTS = [
   {
     id: "labs",
     name: "Virtual Labs",
-    badge: "12 Labs",
-    tagline: "12 Interactive STEM Workbenches",
+    badge: "20 Labs",
+    tagline: "20 Interactive STEM Workbenches",
     icon: icons.microscope,
     themeClass: "tab-labs",
     color: "#38bdf8"
@@ -775,6 +775,14 @@ function getSubjectPlaceholderSvg(code) {
 export function normalizeLabId(rawId) {
   if (!rawId) return "projectile";
   const str = String(rawId).toLowerCase().trim().replace(/^lab[-_]?/, "");
+  if (str === "calorimetry" || str.includes("calorim")) return "calorimetry";
+  if (str === "equilibrium" || str.includes("equilib") || str.includes("chatelier")) return "equilibrium";
+  if (str === "electrochem" || str.includes("electro") || str.includes("galvan") || str.includes("voltaic")) return "electrochem";
+  if (str === "harmonic" || str.includes("harmon") || str.includes("hooke") || str.includes("pendul")) return "harmonic";
+  if (str === "photoelectric" || str.includes("photoelec") || str.includes("quantum")) return "photoelectric";
+  if (str === "magnetism" || str.includes("magnet") || str.includes("lorentz")) return "magnetism";
+  if (str === "enzymes" || str === "enzyme" || str.includes("enzym") || str.includes("catalys")) return "enzymes";
+  if (str === "respiration" || str.includes("respir") || str.includes("ferment")) return "respiration";
   if (str === "ptable" || str === "periodic-table" || str === "periodictable" || str.includes("period")) return "ptable";
   if (str === "gaslaws" || str === "gas-laws" || str === "gaslaw" || str.includes("gas")) return "gaslaws";
   if (str === "dnaprotein" || str === "dna-protein" || str.includes("dna") || str.includes("protein")) return "dnaprotein";
@@ -803,8 +811,16 @@ function formatLabName(labKey) {
     "punnett": "Punnett Genetics & Ecology",
     "optics": "Optics & Wave Phenomena",
     "vsepr": "VSEPR & Molecular Geometry",
-    "waves": "Wave Interference & Optics",
-    "photosynthesis": "Photosynthesis & Respiration"
+    "waves": "Wave Interference & Slits",
+    "photosynthesis": "Photosynthesis & Bioenergetics",
+    "calorimetry": "Calorimetry & Thermochemistry",
+    "equilibrium": "Equilibrium & Le Chatelier",
+    "electrochem": "Electrochemistry & Voltaic Cells",
+    "harmonic": "Harmonic Motion & Hooke's Law",
+    "photoelectric": "Photoelectric Effect & Quantum Physics",
+    "magnetism": "Magnetic Fields & Lorentz Force",
+    "enzymes": "Enzyme Kinetics & Catalysis",
+    "respiration": "Cellular Respiration & Respirometer"
   };
   return map[norm] || "Virtual Laboratory";
 }
@@ -1263,7 +1279,7 @@ function renderVirtualLabsHub(container) {
           High-performance physics, chemistry, and biological simulations with live numerical data telemetry, variable control inputs, real-time calculus, and interactive laboratory apparatus.
         </p>
 
-        <!-- 12 Lab Selector Tabs -->
+        <!-- 20 Lab Selector Tabs -->
         <div class="lab-nav-pills-container">
           <a href="#labs/projectile" class="btn ${AppState.activeLabId === 'projectile' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="projectile" aria-label="Kinematics and Projectiles Virtual Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.projectile}</span>
@@ -1309,9 +1325,41 @@ function renderVirtualLabsHub(container) {
             <span class="lab-btn-icon-wrapper">${icons.waveInterference}</span>
             <span class="lab-btn-title">Wave Interference &amp; Slits</span>
           </a>
-          <a href="#labs/photosynthesis" class="btn ${AppState.activeLabId === 'photosynthesis' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="photosynthesis" aria-label="Photosynthesis and Respirometer Lab" style="text-decoration: none;">
+          <a href="#labs/photosynthesis" class="btn ${AppState.activeLabId === 'photosynthesis' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="photosynthesis" aria-label="Photosynthesis and Bioenergetics Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.photosynthesis}</span>
-            <span class="lab-btn-title">Photosynthesis &amp; Respirometer</span>
+            <span class="lab-btn-title">Photosynthesis &amp; Bioenergetics</span>
+          </a>
+          <a href="#labs/calorimetry" class="btn ${AppState.activeLabId === 'calorimetry' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="calorimetry" aria-label="Calorimetry and Thermochemistry Virtual Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.calorimetry}</span>
+            <span class="lab-btn-title">Calorimetry &amp; &Delta;H</span>
+          </a>
+          <a href="#labs/equilibrium" class="btn ${AppState.activeLabId === 'equilibrium' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="equilibrium" aria-label="Chemical Equilibrium and Le Chatelier Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.equilibrium}</span>
+            <span class="lab-btn-title">Equilibrium &amp; Le Chatelier</span>
+          </a>
+          <a href="#labs/electrochem" class="btn ${AppState.activeLabId === 'electrochem' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="electrochem" aria-label="Electrochemistry and Voltaic Cells Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.electrochem}</span>
+            <span class="lab-btn-title">Electrochemistry &amp; Voltaic</span>
+          </a>
+          <a href="#labs/harmonic" class="btn ${AppState.activeLabId === 'harmonic' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="harmonic" aria-label="Harmonic Motion and Hooke's Law Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.harmonic}</span>
+            <span class="lab-btn-title">Harmonic Motion &amp; Hooke</span>
+          </a>
+          <a href="#labs/photoelectric" class="btn ${AppState.activeLabId === 'photoelectric' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="photoelectric" aria-label="Photoelectric Effect and Quantum Physics Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.photoelectric}</span>
+            <span class="lab-btn-title">Photoelectric Effect</span>
+          </a>
+          <a href="#labs/magnetism" class="btn ${AppState.activeLabId === 'magnetism' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="magnetism" aria-label="Magnetic Force and Lorentz e/m Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.magnetism}</span>
+            <span class="lab-btn-title">Magnetic Force &amp; e/m</span>
+          </a>
+          <a href="#labs/enzymes" class="btn ${AppState.activeLabId === 'enzymes' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="enzymes" aria-label="Enzyme Kinetics and Catalysis Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.enzymes}</span>
+            <span class="lab-btn-title">Enzyme Kinetics</span>
+          </a>
+          <a href="#labs/respiration" class="btn ${AppState.activeLabId === 'respiration' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="respiration" aria-label="Cellular Respiration and Respirometer Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.respiration}</span>
+            <span class="lab-btn-title">Cellular Respiration</span>
           </a>
         </div>
       </div>
@@ -1406,7 +1454,23 @@ function mountActiveLab() {
     "wave": () => import("./labs/phys-waves.js").then(m => m.initWaveLab("active-lab-mount")),
     "lab-waves": () => import("./labs/phys-waves.js").then(m => m.initWaveLab("active-lab-mount")),
     "photosynthesis": () => import("./labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("active-lab-mount")),
-    "lab-photosynthesis": () => import("./labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("active-lab-mount"))
+    "lab-photosynthesis": () => import("./labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("active-lab-mount")),
+    "calorimetry": () => import("./labs/chem-calorimetry.js").then(m => m.initCalorimetryLab("active-lab-mount")),
+    "lab-calorimetry": () => import("./labs/chem-calorimetry.js").then(m => m.initCalorimetryLab("active-lab-mount")),
+    "equilibrium": () => import("./labs/chem-equilibrium.js").then(m => m.initEquilibriumLab("active-lab-mount")),
+    "lab-equilibrium": () => import("./labs/chem-equilibrium.js").then(m => m.initEquilibriumLab("active-lab-mount")),
+    "electrochem": () => import("./labs/chem-electrochem.js").then(m => m.initElectrochemLab("active-lab-mount")),
+    "lab-electrochem": () => import("./labs/chem-electrochem.js").then(m => m.initElectrochemLab("active-lab-mount")),
+    "harmonic": () => import("./labs/phys-harmonic.js").then(m => m.initHarmonicLab("active-lab-mount")),
+    "lab-harmonic": () => import("./labs/phys-harmonic.js").then(m => m.initHarmonicLab("active-lab-mount")),
+    "photoelectric": () => import("./labs/phys-photoelectric.js").then(m => m.initPhotoelectricLab("active-lab-mount")),
+    "lab-photoelectric": () => import("./labs/phys-photoelectric.js").then(m => m.initPhotoelectricLab("active-lab-mount")),
+    "magnetism": () => import("./labs/phys-magnetism.js").then(m => m.initMagnetismLab("active-lab-mount")),
+    "lab-magnetism": () => import("./labs/phys-magnetism.js").then(m => m.initMagnetismLab("active-lab-mount")),
+    "enzymes": () => import("./labs/bio-enzyme-kinetics.js").then(m => m.initEnzymeLab("active-lab-mount")),
+    "lab-enzymes": () => import("./labs/bio-enzyme-kinetics.js").then(m => m.initEnzymeLab("active-lab-mount")),
+    "respiration": () => import("./labs/bio-respiration.js").then(m => m.initRespirationLab("active-lab-mount")),
+    "lab-respiration": () => import("./labs/bio-respiration.js").then(m => m.initRespirationLab("active-lab-mount"))
   };
 
   const loader = labLoaders[normId] || labLoaders["projectile"];

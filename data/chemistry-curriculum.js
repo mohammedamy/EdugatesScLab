@@ -231,7 +231,7 @@ export const chemistryCurriculum = {
         { id: 5, title: "Reaction Spontaneity", objectives: ["Entropy (S) and Second Law of Thermodynamics", "Gibbs Free Energy ΔG = ΔH - TΔS", "Spontaneity criteria"] }
       ],
       formulas: ["q = m c \\Delta T", "\\Delta H_{\\text{rxn}}^\\circ = \\sum n\\Delta H_f^\\circ(\\text{prod}) - \\sum m\\Delta H_f^\\circ(\\text{react})", "\\Delta G = \\Delta H - T\\Delta S"],
-      lab: "lab-gas-laws"
+      lab: "lab-calorimetry"
     },
     {
       id: 15,
@@ -262,7 +262,7 @@ export const chemistryCurriculum = {
         { id: 3, title: "Using Equilibrium Constants", objectives: ["Calculating equilibrium concentrations (ICE tables)", "Reaction quotient (Q) vs Keq comparison", "Solubility product constant Ksp and precipitate prediction"] }
       ],
       formulas: ["K_{eq} = \\frac{[C]^c [D]^d}{[A]^a [B]^b}", "Q < K \\rightarrow \\text{Shift Right}", "K_{sp} = [M^{m+}]^n [X^{n-}]^m"],
-      lab: "lab-titration"
+      lab: "lab-equilibrium"
     },
     {
       id: 17,
@@ -307,7 +307,7 @@ export const chemistryCurriculum = {
         { id: 3, title: "Electrolysis", objectives: ["Downs cell for sodium extraction", "Electrolysis of water", "Electroplating mechanisms"] }
       ],
       formulas: ["E_{\\text{cell}}^\\circ = E_{\\text{reduction (cathode)}}^\\circ - E_{\\text{reduction (anode)}}^\\circ", "\\Delta G^\\circ = -n F E_{\\text{cell}}^\\circ"],
-      lab: "lab-circuits"
+      lab: "lab-electrochem"
     },
     {
       id: 20,

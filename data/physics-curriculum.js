@@ -219,7 +219,7 @@ export const physicsCurriculum = {
         { id: 3, title: "Wave Behavior", objectives: ["Reflection at fixed vs free boundaries", "Superposition principle and constructive/destructive interference", "Standing waves, nodes, and antinodes"] }
       ],
       formulas: ["T_{\\text{pendulum}} = 2\\pi \\sqrt{\\frac{L}{g}}", "v = f \\lambda", "f = \\frac{1}{T}"],
-      lab: "lab-waves"
+      lab: "lab-harmonic"
     },
     {
       id: 14,
@@ -325,7 +325,7 @@ export const physicsCurriculum = {
         { id: 2, title: "Applying Magnetic Forces", objectives: ["Magnetic field around straight wire and solenoids (Right-Hand Rules)", "Magnetic force on current-carrying wire F = ILB sin θ", "Lorentz force on moving point charge F = qvB sin θ", "Loudspeakers, galvanometers, and DC electric motor operation"] }
       ],
       formulas: ["F = q v B \\sin\\theta", "F = I L B \\sin\\theta", "r = \\frac{mv}{qB} \\text{ (Cyclotron radius)}"],
-      lab: "lab-circuits"
+      lab: "lab-magnetism"
     },
     {
       id: 21,
@@ -358,7 +358,7 @@ export const physicsCurriculum = {
         { id: 4, title: "The Quantum Model of the Atom", objectives: ["Schrödinger wave mechanics", "Atomic orbital probability clouds and quantum numbers (n, l, ml, ms)", "Lasers and stimulated emission of radiation"] }
       ],
       formulas: ["E = h f", "KE_{\\text{max}} = h f - W_0", "\\lambda = \\frac{h}{m v}", "\\Delta x \\Delta p \\ge \\frac{h}{4\\pi}"],
-      lab: "lab-optics"
+      lab: "lab-photoelectric"
     },
     {
       id: 23,

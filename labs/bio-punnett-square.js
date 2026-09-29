@@ -11,11 +11,56 @@ export function initPunnettLab(containerId) {
 
   container.innerHTML = `
     <div class="lab-container">
+      <!-- Header View Switcher Bar -->
+      <div class="lab-header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(15, 23, 42, 0.92); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 18px; flex-wrap: wrap; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 0.85rem; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981;"></span>
+            Mendelian Genetics Research Laboratory
+          </span>
+          <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
+            Allelic Segregation &amp; Chi-Square Goodness-of-Fit
+          </span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-punnett-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🧬 Genetics Matrix
+            </button>
+            <button id="view-mode-punnett-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Lab Bench
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Top Dual Viewports: Interactive Punnett Matrix & Phenotypic Telemetry / Monte-Carlo Engine -->
       <div style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px;" class="punnett-layout">
         <!-- Left: Punnett Square Canvas -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-md); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: #070b14; overflow: hidden;">
           <canvas id="punnett-canvas" style="display: block; width: 100%; height: 540px;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="punnett-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/punnett_bench.jpg" alt="4K Genetics Research Laboratory Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Stereomicroscope Station</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Leica S9 • Seed Sorting Grid</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Model Organism Culture</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Drosophila &amp; Pisum Sativum</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Mendel F2 Segregation</div>
+                <div style="color: #f59e0b; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">3:1 Phenotypic Ratio Verified</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top Status HUD -->
           <div style="position: absolute; top: 14px; left: 14px; right: 14px; display: flex; align-items: center; justify-content: space-between; z-index: 5; pointer-events: none;">
@@ -1541,6 +1586,27 @@ export function initPunnettLab(containerId) {
         "\\text{Dihybrid F2} \\to 9:3:3:1 \\quad (\\text{Independent Assortment})"
       ]
     });
+  });
+
+  // 4K Photo Bench Switcher
+  const btnModeSim = container.querySelector("#view-mode-punnett-sim");
+  const btnModePhoto = container.querySelector("#view-mode-punnett-photo");
+  const photoOverlay = container.querySelector("#punnett-photo-overlay");
+
+  btnModeSim?.addEventListener("click", () => {
+    btnModeSim.classList.add("active");
+    btnModeSim.style.background = "";
+    btnModePhoto.classList.remove("active");
+    btnModePhoto.style.background = "transparent";
+    if (photoOverlay) photoOverlay.style.display = "none";
+  });
+
+  btnModePhoto?.addEventListener("click", () => {
+    btnModePhoto.classList.add("active");
+    btnModePhoto.style.background = "";
+    btnModeSim.classList.remove("active");
+    btnModeSim.style.background = "transparent";
+    if (photoOverlay) photoOverlay.style.display = "block";
   });
 
   // Mount Post-Lab Checkpoint Assessment

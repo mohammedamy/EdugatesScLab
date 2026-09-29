@@ -804,6 +804,318 @@ export const LAB_CHECKPOINTS = {
       correctIndex: 1,
       explanation: "Rubisco is the primary enzyme responsible for fixing inorganic CO₂ onto RuBP to yield 3-phosphoglycerate (3-PGA) during the first stage of the Calvin cycle."
     }
+  ],
+
+  calorimetry: [
+    {
+      id: "q1",
+      question: "In constant-pressure calorimetry, heat released by an exothermic chemical reaction (q_rxn) is related to solution temperature change by:",
+      options: [
+        "q_rxn = -(m_sol × c_sol × ΔT + C_cal × ΔT)",
+        "q_rxn = m × g × h",
+        "q_rxn = P × ΔV",
+        "q_rxn = + (m_sol × c_sol × ΔT)"
+      ],
+      correctIndex: 0,
+      explanation: "By conservation of energy in an insulated system, q_rxn + q_calorimeter = 0, so q_rxn = -(q_sol + q_cal) = -(m·c·ΔT + C_cal·ΔT)."
+    },
+    {
+      id: "q2",
+      question: "Mixing 50.0 mL of 1.0 M HCl with 50.0 mL of 1.0 M NaOH causes the temperature to rise from 21.0°C to 27.8°C. This enthalpy of neutralization is:",
+      options: [
+        "Endothermic (ΔH > 0)",
+        "Exothermic (ΔH < 0, releasing heat into the aqueous solution)",
+        "Isothermal (ΔH = 0)",
+        "Adiabatic without thermal exchange"
+      ],
+      correctIndex: 1,
+      explanation: "A positive temperature rise in the aqueous surroundings signifies that the chemical bond formation released heat into the solvent, meaning ΔH_rxn is negative (exothermic)."
+    },
+    {
+      id: "q3",
+      question: "Specific heat capacity (c) is scientifically defined as:",
+      options: [
+        "Total heat contained within a substance at absolute zero",
+        "Amount of heat energy required to raise the temperature of 1 gram of a substance by 1°C (or 1 K)",
+        "Boiling point minus melting point of a pure compound",
+        "Heat required to vaporize 1 mole of liquid into gas"
+      ],
+      correctIndex: 1,
+      explanation: "Specific heat capacity is the intensive property c = q / (m·ΔT), measured in J/(g·°C) or J/(g·K)."
+    }
+  ],
+
+  equilibrium: [
+    {
+      id: "q1",
+      question: "Le Chatelier's principle states that if an external disturbance (concentration, temperature, pressure) is imposed on a system at chemical equilibrium:",
+      options: [
+        "The reaction stops completely and irrevocably",
+        "The equilibrium constant Kc immediately drops to zero",
+        "The system shifts in the direction that counteracts and relieves the applied stress",
+        "All reactants convert completely into products"
+      ],
+      correctIndex: 2,
+      explanation: "A dynamic equilibrium shifts its forward or reverse rate to partially counteract any disturbance in concentration, pressure, or temperature."
+    },
+    {
+      id: "q2",
+      question: "For the endothermic gas equilibrium N₂O₄ (colorless) + heat ⇌ 2 NO₂ (dark brown), increasing the temperature will cause:",
+      options: [
+        "The mixture to become darker brown as equilibrium shifts forward toward NO₂",
+        "The mixture to become colorless as equilibrium shifts toward N₂O₄",
+        "No color or concentration change whatsoever",
+        "The equilibrium constant Kc to decrease"
+      ],
+      correctIndex: 0,
+      explanation: "Since the forward reaction is endothermic (absorbs heat), raising temperature shifts the equilibrium in the endothermic direction (forward), producing more brown NO₂ and increasing Kc."
+    },
+    {
+      id: "q3",
+      question: "How does adding an inert noble gas (like Argon) to a gas-phase equilibrium mixture at CONSTANT VOLUME affect the equilibrium position?",
+      options: [
+        "Shifts toward the side with fewer gas molecules",
+        "Shifts toward the side with more gas molecules",
+        "It has NO effect on equilibrium because partial pressures of reacting gases remain unchanged",
+        "Doubles the value of equilibrium constant Kp"
+      ],
+      correctIndex: 2,
+      explanation: "At constant volume, adding an inert gas increases total pressure, but does not alter the volume or partial pressures of the reactant and product gases, leaving Q and equilibrium position unchanged."
+    }
+  ],
+
+  electrochem: [
+    {
+      id: "q1",
+      question: "In a standard Daniell voltaic cell (Zn | Zn²⁺ || Cu²⁺ | Cu), oxidation occurs spontaneously at the:",
+      options: [
+        "Copper cathode (+)",
+        "Zinc anode (-) via Zn(s) → Zn²⁺(aq) + 2e⁻",
+        "Porous salt bridge glass frit",
+        "Voltmeter display terminal"
+      ],
+      correctIndex: 1,
+      explanation: "Oxidation always occurs at the anode (An Ox). Zinc is more readily oxidized than copper (E°_red = -0.76 V vs +0.34 V), so Zn dissolves to Zn²⁺ releasing electrons."
+    },
+    {
+      id: "q2",
+      question: "What is the indispensable function of the salt bridge in a galvanic electrochemical cell?",
+      options: [
+        "Allows direct flow of valence electrons between metallic electrodes",
+        "Maintains electrical charge neutrality by allowing counter-ions to migrate into half-cells, completing the circuit",
+        "Increases the cell voltage by adding extra kinetic energy",
+        "Filters out unwanted precipitate crystals"
+      ],
+      correctIndex: 1,
+      explanation: "Without a salt bridge, positive charge builds up in the anode beaker and negative charge in the cathode beaker, instantly halting current. Ions (e.g. K⁺ and NO₃⁻) flow to neutralize excess charge."
+    },
+    {
+      id: "q3",
+      question: "According to the Nernst equation (E = E° - (RT/nF)·ln Q), when the reaction quotient Q < 1 (reactants in excess):",
+      options: [
+        "Cell potential E is greater than standard potential E° (E > E°)",
+        "Cell potential E drops to zero (cell is dead)",
+        "Cell potential becomes negative and reverses current",
+        "Standard cell potential E° is destroyed"
+      ],
+      correctIndex: 0,
+      explanation: "When Q < 1, ln(Q) is negative, making the term - (RT/nF)ln(Q) positive. Hence, the instantaneous cell voltage E exceeds standard potential E°."
+    }
+  ],
+
+  harmonic: [
+    {
+      id: "q1",
+      question: "For an ideal mass-spring system undergoing Simple Harmonic Motion (SHM), the period of oscillation T is given by:",
+      options: [
+        "T = 2π √(m / k)",
+        "T = 2π √(k / m)",
+        "T = 2π √(L / g)",
+        "T = ½ k A²"
+      ],
+      correctIndex: 0,
+      explanation: "The angular frequency is ω = √(k/m). Since T = 2π/ω, the period is T = 2π√(m/k). Period increases with mass m and decreases with spring stiffness k."
+    },
+    {
+      id: "q2",
+      question: "At the points of maximum displacement (x = +A or x = -A) in simple harmonic motion:",
+      options: [
+        "Kinetic energy is maximized and potential energy is zero",
+        "Velocity is zero, while acceleration and restoring force reach maximum magnitude",
+        "Restoring force is zero and velocity is maximized",
+        "Total mechanical energy drops to zero"
+      ],
+      correctIndex: 1,
+      explanation: "At turning points (x = ±A), velocity instantaneously passes through zero (v = 0). By Hooke's law F = -kx, restoring force and acceleration (a = -ω²x) are at absolute maxima."
+    },
+    {
+      id: "q3",
+      question: "If the suspended mass on a Hooke's spring oscillator is increased by a factor of 4, the oscillation frequency f will:",
+      options: [
+        "Double (2×)",
+        "Quadruple (4×)",
+        "Halve (f' = ½ f)",
+        "Remain strictly unchanged"
+      ],
+      correctIndex: 2,
+      explanation: "Frequency f = (1 / 2π) √(k / m). Multiplying mass m by 4 results in √(1/4) = 1/2, so the frequency is halved."
+    }
+  ],
+
+  photoelectric: [
+    {
+      id: "q1",
+      question: "In Einstein's explanation of the photoelectric effect, the maximum kinetic energy (KE_max) of ejected photoelectrons is expressed as:",
+      options: [
+        "KE_max = hf - Φ (where hf is photon energy and Φ is the metal work function)",
+        "KE_max = ½ m c²",
+        "KE_max = h / λ",
+        "KE_max = q · V_stopping + hf"
+      ],
+      correctIndex: 0,
+      explanation: "Energy conservation dictates that absorbed photon energy (hf) is consumed first to liberate the electron (work function Φ), with any surplus manifesting as maximum kinetic energy KE_max."
+    },
+    {
+      id: "q2",
+      question: "If incident light has a frequency lower than the metal's threshold frequency (f < f₀):",
+      options: [
+        "Electrons are emitted with very low kinetic energy",
+        "Electrons are emitted only if the light is extremely bright (high intensity)",
+        "No photoelectrons are emitted, regardless of light intensity or illumination duration",
+        "Electrons are emitted after several hours of heat absorption"
+      ],
+      correctIndex: 2,
+      explanation: "Photoelectric emission is a single-photon single-electron quantum interaction. If photon energy hf < Φ, no single photon possesses enough energy to overcome the binding energy, so zero emission occurs."
+    },
+    {
+      id: "q3",
+      question: "When incident light frequency is kept constant above threshold (f > f₀), increasing light intensity (brightness) will:",
+      options: [
+        "Increase electron maximum kinetic energy KE_max",
+        "Increase the stopping potential V_stop",
+        "Increase the number of photoelectrons emitted per second (photocurrent), while KE_max remains constant",
+        "Decrease the electron velocity"
+      ],
+      correctIndex: 2,
+      explanation: "Higher intensity means more photons per second, yielding a higher rate of ejected electrons (photocurrent). Since photon energy hf is unchanged, maximum kinetic energy KE_max is identical."
+    }
+  ],
+
+  magnetism: [
+    {
+      id: "q1",
+      question: "The magnetic Lorentz force acting on a charged particle moving with velocity v through magnetic field B is F = q(v × B). The direction of F is:",
+      options: [
+        "Parallel to the velocity vector v",
+        "Parallel to the magnetic field vector B",
+        "Perpendicular to both the velocity vector v and the magnetic field vector B",
+        "Always directed toward the magnetic North pole"
+      ],
+      correctIndex: 2,
+      explanation: "The vector cross product (v × B) produces a vector strictly perpendicular to the plane formed by v and B (determined by the right-hand rule, or left-hand for negative electrons)."
+    },
+    {
+      id: "q2",
+      question: "In the e/m fine-beam tube experiment, an electron enters a uniform magnetic field perpendicular to its velocity. Why does it follow a circular path?",
+      options: [
+        "Magnetic force does work and accelerates the particle along its path",
+        "The constant magnetic force is always perpendicular to velocity, acting as a pure centripetal force (qvB = mv²/r) without changing particle speed",
+        "Gravity pulls the electron downward",
+        "Electrostatic repulsion from the glass walls pushes it inward"
+      ],
+      correctIndex: 1,
+      explanation: "Because F is always perpendicular to v, F · v = 0. The magnetic field does zero work on the particle; it changes only direction, producing uniform circular motion with radius r = mv / (qB)."
+    },
+    {
+      id: "q3",
+      question: "If the accelerating potential V in the electron gun is doubled while magnetic field B remains constant, the circular orbit radius r will:",
+      options: [
+        "Double (2×)",
+        "Increase by a factor of √2 (≈ 1.414×)",
+        "Halve (½×)",
+        "Remain completely unchanged"
+      ],
+      correctIndex: 1,
+      explanation: "Kinetic energy is ½ mv² = eV, so v = √(2eV/m). The radius is r = mv / (eB) = (1/B) √(2mV/e). Hence, r is proportional to √V. Doubling V increases r by √2."
+    }
+  ],
+
+  enzymes: [
+    {
+      id: "q1",
+      question: "In Michaelis-Menten enzyme kinetics, the Michaelis constant (Km) represents:",
+      options: [
+        "The maximum catalytic velocity at infinite substrate",
+        "The substrate concentration [S] at which the initial reaction velocity reaches half of Vmax (V₀ = ½ Vmax)",
+        "The turnover number k_cat of the active site",
+        "The optimal pH of the reaction buffer"
+      ],
+      correctIndex: 1,
+      explanation: "Km = [S] at ½ Vmax. A lower Km indicates higher enzyme affinity for the substrate, because less substrate is required to achieve half-saturation."
+    },
+    {
+      id: "q2",
+      question: "How does a competitive inhibitor influence the kinetic parameters Vmax and Km of an enzyme?",
+      options: [
+        "Increases apparent Km while leaving Vmax unchanged",
+        "Decreases both Vmax and Km",
+        "Decreases Vmax while leaving Km unchanged",
+        "Increases both Vmax and Km"
+      ],
+      correctIndex: 0,
+      explanation: "A competitive inhibitor binds reversibly to the active site. High substrate concentrations can outcompete the inhibitor, so Vmax is still reachable, but a higher substrate concentration is needed, increasing apparent Km."
+    },
+    {
+      id: "q3",
+      question: "Heating an enzyme far above its optimal temperature (~55°C-70°C) causes reaction rate to collapse to zero because:",
+      options: [
+        "Substrate molecules break down instantly into atoms",
+        "Thermal agitation disrupts hydrogen bonds and hydrophobic interactions, denaturing the active site's 3D tertiary structure",
+        "Activation energy drops to zero",
+        "Water molecules freeze and stop molecular diffusion"
+      ],
+      correctIndex: 1,
+      explanation: "Enzymes are globular proteins whose catalytic function depends on precise tertiary folding. Excess thermal energy denatures the enzyme, destroying the catalytic active site cleft."
+    }
+  ],
+
+  respiration: [
+    {
+      id: "q1",
+      question: "In aerobic cellular respiration, what is the ultimate terminal electron acceptor in the mitochondrial electron transport chain?",
+      options: [
+        "NAD⁺",
+        "Molecular oxygen (O₂), which combines with electrons and protons to form H₂O",
+        "Pyruvate",
+        "Carbon dioxide (CO₂)"
+      ],
+      correctIndex: 1,
+      explanation: "At Complex IV (cytochrome c oxidase), electrons are transferred to O₂, which reacts with 4 H⁺ to form 2 H₂O. Without O₂, the electron transport chain backs up."
+    },
+    {
+      id: "q2",
+      question: "In a micro-respirometer measuring oxygen consumption of germinating peas, why are potassium hydroxide (KOH) pellets placed at the bottom of the vial?",
+      options: [
+        "To provide potassium mineral nutrients to the peas",
+        "To absorb all CO₂ gas produced by cellular respiration, ensuring that volume reduction directly measures net O₂ consumed",
+        "To generate oxygen gas chemically",
+        "To regulate temperature and prevent overheating"
+      ],
+      correctIndex: 1,
+      explanation: "Germinating peas consume O₂ and release CO₂ at approximately a 1:1 molar ratio. KOH reacts with CO₂ (2 KOH + CO₂ → K₂CO₃ + H₂O), forming a solid precipitate so that gas volume drops solely from O₂ consumption."
+    },
+    {
+      id: "q3",
+      question: "During anaerobic alcoholic fermentation in yeast cells, pyruvate is converted into:",
+      options: [
+        "Lactic acid and oxygen",
+        "Ethanol (C₂H₅OH) and carbon dioxide (CO₂), regenerating NAD⁺ for glycolysis",
+        "Acetyl-CoA and citric acid",
+        "Glucose and water"
+      ],
+      correctIndex: 1,
+      explanation: "In the absence of oxygen, yeast decarboxylates pyruvate to acetaldehyde releasing CO₂, then reduces acetaldehyde to ethanol to regenerate NAD⁺ so glycolysis can continue generating 2 ATP per glucose."
+    }
   ]
 };
 
@@ -831,7 +1143,15 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
     if (clean.includes("optic")) return LAB_CHECKPOINTS.optics;
     if (clean.includes("vsepr")) return LAB_CHECKPOINTS.vsepr;
     if (clean.includes("wave")) return LAB_CHECKPOINTS.waves;
-    if (clean.includes("photo") || clean.includes("resp")) return LAB_CHECKPOINTS.photosynthesis;
+    if (clean.includes("photoelec")) return LAB_CHECKPOINTS.photoelectric;
+    if (clean.includes("photo")) return LAB_CHECKPOINTS.photosynthesis;
+    if (clean.includes("calor")) return LAB_CHECKPOINTS.calorimetry;
+    if (clean.includes("equil")) return LAB_CHECKPOINTS.equilibrium;
+    if (clean.includes("electro")) return LAB_CHECKPOINTS.electrochem;
+    if (clean.includes("harmon") || clean.includes("shm") || clean.includes("hooke")) return LAB_CHECKPOINTS.harmonic;
+    if (clean.includes("magnet") || clean.includes("lorentz")) return LAB_CHECKPOINTS.magnetism;
+    if (clean.includes("enzym")) return LAB_CHECKPOINTS.enzymes;
+    if (clean.includes("respir")) return LAB_CHECKPOINTS.respiration;
     return null;
   };
 

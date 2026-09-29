@@ -2,7 +2,7 @@
 // Network-First with Cache Fallback for dynamic local scripts & styles,
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts).
 
-const CACHE_NAME = "amscilab-pwa-v30";
+const CACHE_NAME = "amscilab-pwa-v31";
 
 const CORE_ASSETS = [
   "./",
@@ -48,7 +48,35 @@ const CORE_ASSETS = [
   "./labs/phys-optics.js",
   "./labs/chem-vsepr.js",
   "./labs/phys-waves.js",
-  "./labs/bio-photosynthesis.js"
+  "./labs/bio-photosynthesis.js",
+  "./labs/chem-calorimetry.js",
+  "./labs/chem-equilibrium.js",
+  "./labs/chem-electrochem.js",
+  "./labs/phys-harmonic.js",
+  "./labs/phys-photoelectric.js",
+  "./labs/phys-magnetism.js",
+  "./labs/bio-enzyme-kinetics.js",
+  "./labs/bio-respiration.js",
+  "./assets/labs/calorimetry_bench.jpg",
+  "./assets/labs/circuits_bench.jpg",
+  "./assets/labs/dna_structure.jpg",
+  "./assets/labs/electrochem_bench.jpg",
+  "./assets/labs/element_samples.jpg",
+  "./assets/labs/enzymes_bench.jpg",
+  "./assets/labs/equilibrium_bench.jpg",
+  "./assets/labs/gas_laws_bench.jpg",
+  "./assets/labs/harmonic_bench.jpg",
+  "./assets/labs/magnetism_bench.jpg",
+  "./assets/labs/microscope_bench.jpg",
+  "./assets/labs/optics_bench.jpg",
+  "./assets/labs/photoelectric_bench.jpg",
+  "./assets/labs/photosynthesis_bench.jpg",
+  "./assets/labs/projectile_bench.jpg",
+  "./assets/labs/punnett_bench.jpg",
+  "./assets/labs/respiration_bench.jpg",
+  "./assets/labs/titration_bench.jpg",
+  "./assets/labs/vsepr_bench.jpg",
+  "./assets/labs/waves_bench.jpg"
 ];
 
 // Install: Pre-cache core shell

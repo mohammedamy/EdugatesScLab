@@ -808,6 +808,245 @@ export const icons = {
     <text x="4" y="42.5" fill="#38bdf8" font-size="5.2" font-family="system-ui, sans-serif" font-weight="900">O₂+C₆</text>
   </svg>`,
 
+  calorimetry: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-cal-vessel" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#475569"/>
+        <stop offset="50%" stop-color="#334155"/>
+        <stop offset="100%" stop-color="#1e293b"/>
+      </linearGradient>
+      <linearGradient id="ico-cal-chamber" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#f43f5e" stop-opacity="0.5"/>
+      </linearGradient>
+      <linearGradient id="ico-cal-therm" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#ef4444"/>
+        <stop offset="100%" stop-color="#dc2626"/>
+      </linearGradient>
+    </defs>
+    <!-- Insulated Outer Shell / Dewar -->
+    <rect x="10" y="14" width="28" height="30" rx="4" fill="url(#ico-cal-vessel)" stroke="#64748b" stroke-width="1.5"/>
+    <path d="M7 14 C7 12 11 11 24 11 C37 11 41 12 41 14 L39 17 H9 Z" fill="#64748b" stroke="#94a3b8" stroke-width="1"/>
+    <!-- Inner Reaction Chamber -->
+    <rect x="15" y="20" width="18" height="20" rx="2" fill="url(#ico-cal-chamber)" stroke="#06b6d4" stroke-width="1.2"/>
+    <!-- Thermometer Probe -->
+    <rect x="19" y="3" width="3" height="30" rx="1.5" fill="#f8fafc" stroke="#94a3b8" stroke-width="0.8"/>
+    <rect x="19.5" y="16" width="2" height="16" rx="1" fill="url(#ico-cal-therm)"/>
+    <circle cx="20.5" cy="33" r="3" fill="#dc2626"/>
+    <!-- Motorized Stirrer Rod -->
+    <path d="M28 4 V32 L25 35 M28 32 L31 35" stroke="#facc15" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Heat Exchange Waves (Q = mcΔT) -->
+    <path d="M3 24 Q6 21 3 18" stroke="#f43f5e" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    <path d="M45 24 Q42 21 45 18" stroke="#f43f5e" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+    <rect x="2" y="38" width="14" height="8" rx="2" fill="#0f172a" stroke="#f43f5e" stroke-width="0.8"/>
+    <text x="4" y="44" fill="#f43f5e" font-size="5" font-family="system-ui, sans-serif" font-weight="900">ΔH</text>
+  </svg>`,
+
+  equilibrium: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-eq-tube1" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#bae6fd" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#0284c7" stop-opacity="0.9"/>
+      </linearGradient>
+      <linearGradient id="ico-eq-tube2" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#fed7aa" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#c2410c" stop-opacity="0.9"/>
+      </linearGradient>
+    </defs>
+    <!-- Left Cuvette (Reactant N2O4 - Clear/Cyan) -->
+    <rect x="7" y="10" width="12" height="28" rx="2" fill="url(#ico-eq-tube1)" stroke="#38bdf8" stroke-width="1.5"/>
+    <line x1="9" y1="18" x2="17" y2="18" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+    <!-- Right Cuvette (Product NO2 - Amber Brown) -->
+    <rect x="29" y="10" width="12" height="28" rx="2" fill="url(#ico-eq-tube2)" stroke="#f97316" stroke-width="1.5"/>
+    <line x1="31" y1="18" x2="39" y2="18" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+    <!-- Dynamic Le Chatelier Equilibrium Double Arrows -->
+    <!-- Forward Arrow (Right) -->
+    <path d="M20 18 H27 M25 15 L28 18 L25 21" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Reverse Arrow (Left) -->
+    <path d="M28 26 H21 M23 23 L20 26 L23 29" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Center Equilibrium Balance Fulcrum -->
+    <polygon points="24,34 21,41 27,41" fill="#64748b"/>
+    <line x1="16" y1="34" x2="32" y2="34" stroke="#e2e8f0" stroke-width="2" stroke-linecap="round"/>
+    <!-- Kc Badge -->
+    <rect x="18" y="2" width="12" height="7" rx="2" fill="#0f172a" stroke="#22c55e" stroke-width="0.8"/>
+    <text x="20.5" y="7.5" fill="#22c55e" font-size="5" font-family="system-ui, sans-serif" font-weight="900">Kc</text>
+  </svg>`,
+
+  electrochem: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-ec-zn" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#94a3b8"/>
+        <stop offset="100%" stop-color="#64748b"/>
+      </linearGradient>
+      <linearGradient id="ico-ec-cu" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#f97316"/>
+        <stop offset="100%" stop-color="#b45309"/>
+      </linearGradient>
+    </defs>
+    <!-- Left Anode Beaker (ZnSO4) -->
+    <rect x="5" y="18" width="15" height="24" rx="2" fill="#0284c7" fill-opacity="0.35" stroke="#38bdf8" stroke-width="1.2"/>
+    <!-- Right Cathode Beaker (CuSO4) -->
+    <rect x="28" y="18" width="15" height="24" rx="2" fill="#2563eb" fill-opacity="0.55" stroke="#60a5fa" stroke-width="1.2"/>
+    <!-- Zinc Anode Strip -->
+    <rect x="9" y="12" width="4" height="24" rx="1" fill="url(#ico-ec-zn)" stroke="#cbd5e1" stroke-width="0.8"/>
+    <!-- Copper Cathode Strip -->
+    <rect x="35" y="12" width="4" height="24" rx="1" fill="url(#ico-ec-cu)" stroke="#fdba74" stroke-width="0.8"/>
+    <!-- Inverted U-tube Salt Bridge -->
+    <path d="M16 26 V15 C16 13 18 12 21 12 H27 C30 12 32 13 32 15 V26" fill="none" stroke="#f1f5f9" stroke-width="3" stroke-linecap="round"/>
+    <path d="M16 26 V15 C16 13 18 12 21 12 H27 C30 12 32 13 32 15 V26" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="1.5 1.5"/>
+    <!-- Voltmeter Connecting Wire with Digital Meter -->
+    <path d="M11 12 V5 H20 M28 5 H37 V12" stroke="#e2e8f0" stroke-width="1.2"/>
+    <circle cx="24" cy="5" r="5" fill="#0f172a" stroke="#10b981" stroke-width="1.2"/>
+    <text x="21" y="7" fill="#10b981" font-size="4" font-family="system-ui, sans-serif" font-weight="900">1.1V</text>
+  </svg>`,
+
+  harmonic: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-shm-spring" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#94a3b8"/>
+        <stop offset="100%" stop-color="#cbd5e1"/>
+      </linearGradient>
+      <linearGradient id="ico-shm-mass" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f59e0b"/>
+        <stop offset="100%" stop-color="#b45309"/>
+      </linearGradient>
+    </defs>
+    <!-- Rigid Ceiling / Support -->
+    <line x1="6" y1="6" x2="24" y2="6" stroke="#475569" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="8" y1="6" x2="5" y2="3" stroke="#64748b" stroke-width="1"/>
+    <line x1="13" y1="6" x2="10" y2="3" stroke="#64748b" stroke-width="1"/>
+    <line x1="18" y1="6" x2="15" y2="3" stroke="#64748b" stroke-width="1"/>
+    <line x1="23" y1="6" x2="20" y2="3" stroke="#64748b" stroke-width="1"/>
+    <!-- Coiled Hooke's Spring -->
+    <path d="M15 6 V9 L11 12 L19 15 L11 18 L19 21 L11 24 L19 27 L15 30 V32" fill="none" stroke="url(#ico-shm-spring)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Suspended Brass Mass -->
+    <rect x="10" y="32" width="10" height="9" rx="2" fill="url(#ico-shm-mass)" stroke="#fde68a" stroke-width="1"/>
+    <!-- Hook -->
+    <circle cx="15" cy="32" r="1.5" stroke="#fde68a" stroke-width="1" fill="none"/>
+    <!-- Sinusoidal Oscillation Trace x(t) = A cos(ωt) -->
+    <path d="M23 20 Q28 8 33 20 T43 20" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linecap="round"/>
+    <!-- Equilibrium Dotted Line -->
+    <line x1="22" y1="20" x2="45" y2="20" stroke="#64748b" stroke-width="1" stroke-dasharray="2 2"/>
+    <!-- Restoring Force Vector F = -kx -->
+    <path d="M5 36 V28 M3 30 L5 28 L7 30" stroke="#f43f5e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="3" y="44" fill="#f43f5e" font-size="4.5" font-family="system-ui, sans-serif" font-weight="900">F=-kx</text>
+  </svg>`,
+
+  photoelectric: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-pe-photon" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#a855f7"/>
+        <stop offset="100%" stop-color="#3b82f6"/>
+      </linearGradient>
+      <linearGradient id="ico-pe-metal" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#64748b"/>
+        <stop offset="100%" stop-color="#334155"/>
+      </linearGradient>
+    </defs>
+    <!-- Phototube Vacuum Glass Envelope -->
+    <ellipse cx="24" cy="24" rx="20" ry="16" fill="#0f172a" fill-opacity="0.4" stroke="#38bdf8" stroke-width="1.2"/>
+    <!-- Emitter Metal Cathode Plate (Work Function Φ) -->
+    <path d="M12 14 V34" stroke="url(#ico-pe-metal)" stroke-width="3" stroke-linecap="round"/>
+    <!-- Collector Anode Ring / Plate -->
+    <path d="M36 17 V31" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Incoming UV Photon Wave Packets (hf) -->
+    <path d="M3 10 Q6 6 9 10 T15 10" fill="none" stroke="#ec4899" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M5 19 Q8 15 11 19 T17 19" fill="none" stroke="#a855f7" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- Ejected Photoelectrons (e-) with kinetic energy trajectories -->
+    <circle cx="21" cy="18" r="2" fill="#00f0ff"/>
+    <line x1="16" y1="18" x2="19" y2="18" stroke="#00f0ff" stroke-width="1.2" stroke-dasharray="1 1"/>
+    <path d="M21 18 L32 16" stroke="#00f0ff" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="25" cy="26" r="2" fill="#00f0ff"/>
+    <path d="M25 26 L34 28" stroke="#00f0ff" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Formula Badge -->
+    <rect x="2" y="38" width="16" height="8" rx="2" fill="#0f172a" stroke="#a855f7" stroke-width="0.8"/>
+    <text x="4" y="44" fill="#a855f7" font-size="4.5" font-family="system-ui, sans-serif" font-weight="900">E=hf</text>
+  </svg>`,
+
+  magnetism: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-mag-coil" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#d97706"/>
+        <stop offset="100%" stop-color="#b45309"/>
+      </linearGradient>
+    </defs>
+    <!-- Helmholtz Coil Ring Pair (Perspective) -->
+    <ellipse cx="24" cy="24" rx="20" ry="18" fill="none" stroke="url(#ico-mag-coil)" stroke-width="3" opacity="0.85"/>
+    <ellipse cx="24" cy="24" rx="16" ry="14" fill="none" stroke="url(#ico-mag-coil)" stroke-width="1.5" opacity="0.5"/>
+    <!-- Uniform Magnetic Field Vectors B (Inwards × symbols) -->
+    <g stroke="#38bdf8" stroke-width="1.2" opacity="0.7">
+      <path d="M12 12 L16 16 M16 12 L12 16"/>
+      <path d="M32 12 L36 16 M36 12 L32 16"/>
+      <path d="M12 32 L16 36 M16 32 L12 36"/>
+      <path d="M32 32 L36 36 M36 32 L32 36"/>
+    </g>
+    <!-- Circular Electron Trajectory in B-field (r = mv/qB) -->
+    <circle cx="24" cy="24" r="10" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="3 2"/>
+    <!-- Electron Particle with Tangent Velocity Vector -->
+    <circle cx="24" cy="14" r="2.5" fill="#22c55e"/>
+    <path d="M24 14 H31 M29 12 L31 14 L29 16" stroke="#facc15" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Centripetal Lorentz Force Vector -->
+    <path d="M24 14 V19 M22 17 L24 19 L26 17" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- e/m Ratio Badge -->
+    <rect x="2" y="38" width="14" height="8" rx="2" fill="#0f172a" stroke="#22c55e" stroke-width="0.8"/>
+    <text x="4" y="44" fill="#22c55e" font-size="4.5" font-family="system-ui, sans-serif" font-weight="900">e/m</text>
+  </svg>`,
+
+  enzymes: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-enz-protein" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6366f1"/>
+        <stop offset="50%" stop-color="#4f46e5"/>
+        <stop offset="100%" stop-color="#312e81"/>
+      </linearGradient>
+      <linearGradient id="ico-enz-sub" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fbbf24"/>
+        <stop offset="100%" stop-color="#ea580c"/>
+      </linearGradient>
+    </defs>
+    <!-- Large Enzyme Globular Protein with Active Site Cleft -->
+    <path d="M8 26 C8 15 15 10 26 10 C32 10 38 13 41 18 C44 23 43 32 38 37 C33 42 22 42 14 38 C10 35 8 31 8 26 Z" fill="url(#ico-enz-protein)" stroke="#818cf8" stroke-width="1.5"/>
+    <!-- Active Site Cleft Indentation -->
+    <path d="M20 10 C20 16 23 19 28 19 C33 19 36 16 36 10" fill="#0f172a" stroke="#818cf8" stroke-width="1.5"/>
+    <!-- Substrate Key (Fitting perfectly into cleft) -->
+    <path d="M23 4 C23 7 25 11 28 11 C31 11 33 7 33 4 Z" fill="url(#ico-enz-sub)" stroke="#fef08a" stroke-width="1.2"/>
+    <!-- Transition State Energy Arrow -->
+    <path d="M28 2 V6 M26 4 L28 6 L30 4" stroke="#facc15" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Michaelis-Menten Rate Curve Mini-Plot -->
+    <rect x="3" y="32" width="16" height="13" rx="2" fill="#0f172a" stroke="#38bdf8" stroke-width="0.8"/>
+    <path d="M5 43 H17 M5 43 V34" stroke="#64748b" stroke-width="0.8"/>
+    <path d="M5 43 Q8 37 16 35" fill="none" stroke="#22c55e" stroke-width="1.2"/>
+    <text x="6" y="35" fill="#38bdf8" font-size="3" font-family="system-ui, sans-serif" font-weight="900">Vmax</text>
+  </svg>`,
+
+  respiration: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-resp-mito" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f97316"/>
+        <stop offset="50%" stop-color="#ea580c"/>
+        <stop offset="100%" stop-color="#9a3412"/>
+      </linearGradient>
+      <linearGradient id="ico-resp-fluid" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="100%" stop-color="#0284c7"/>
+      </linearGradient>
+    </defs>
+    <!-- Mitochondrion Organelle (Cellular Powerhouse) -->
+    <ellipse cx="18" cy="22" rx="14" ry="9" transform="rotate(-15 18 22)" fill="url(#ico-resp-mito)" stroke="#fdba74" stroke-width="1.5"/>
+    <!-- Inner Cristae Folding Membrane -->
+    <path d="M8 24 Q12 18 16 23 Q20 18 24 23 Q27 18 29 20" fill="none" stroke="#fed7aa" stroke-width="1.5" stroke-linecap="round"/>
+    <!-- Respirometer Glass U-Tube Manometer with Displaced Liquid Column -->
+    <path d="M34 8 V32 C34 37 44 37 44 32 V12" fill="none" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- Manometer Indicating Fluid Droplet Shift -->
+    <path d="M34 26 V32 C34 36 44 36 44 32 V20" fill="none" stroke="url(#ico-resp-fluid)" stroke-width="1.8" stroke-linecap="round"/>
+    <!-- ATP Energy Sparks -->
+    <polygon points="12,10 14,5 16,8 19,4 18,9 21,9 17,14 17,11" fill="#facc15"/>
+    <text x="21" y="9" fill="#fde047" font-size="4" font-family="system-ui, sans-serif" font-weight="900">ATP</text>
+    <!-- O2 Consumption Indicator -->
+    <rect x="2" y="38" width="18" height="8" rx="2" fill="#0f172a" stroke="#f97316" stroke-width="0.8"/>
+    <text x="4" y="44" fill="#f97316" font-size="4.2" font-family="system-ui, sans-serif" font-weight="900">-O₂/+CO₂</text>
+  </svg>`,
+
   cards: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect width="14" height="16" x="6" y="5" rx="2"/>
     <path d="M4 19h14"/>

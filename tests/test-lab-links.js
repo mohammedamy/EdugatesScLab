@@ -23,6 +23,12 @@ const ctxProxy = new Proxy({
 });
 
 const elements = {};
+function getOrCreateMock(sel) {
+  const cleanId = sel ? String(sel).replace(/^[#.:\[\]'"]+/, "") : "";
+  if (!elements[cleanId]) elements[cleanId] = createMockEl(cleanId);
+  return elements[cleanId];
+}
+
 function createMockEl(id) {
   return {
     id: id || "",
@@ -32,8 +38,8 @@ function createMockEl(id) {
     classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
     addEventListener: () => {},
     removeEventListener: () => {},
-    querySelectorAll: () => [],
-    querySelector: () => null,
+    querySelectorAll: (sel) => [getOrCreateMock(sel)],
+    querySelector: (sel) => getOrCreateMock(sel),
     appendChild: () => {},
     removeChild: () => {},
     getBoundingClientRect: () => ({ width: 600, height: 500, left: 0, top: 0, right: 600, bottom: 500 }),
@@ -57,14 +63,11 @@ globalThis.cancelAnimationFrame = () => {};
 
 globalThis.document = {
   documentElement: { setAttribute: () => {} },
-  getElementById: (id) => {
-    if (!elements[id]) elements[id] = createMockEl(id);
-    return elements[id];
-  },
-  querySelectorAll: () => [],
-  querySelector: () => null,
+  getElementById: (id) => getOrCreateMock(id),
+  querySelectorAll: (sel) => [getOrCreateMock(sel)],
+  querySelector: (sel) => getOrCreateMock(sel),
   addEventListener: () => {},
-  createElement: (tag) => createMockEl(tag)
+  createElement: (tag) => getOrCreateMock(tag)
 };
 
 globalThis.localStorage = {
@@ -128,7 +131,31 @@ const testCases = [
   { input: "wave", expected: "waves" },
   { input: "waves", expected: "waves" },
   { input: "lab-photosynthesis", expected: "photosynthesis" },
-  { input: "photosynthesis", expected: "photosynthesis" }
+  { input: "photosynthesis", expected: "photosynthesis" },
+  { input: "lab-calorimetry", expected: "calorimetry" },
+  { input: "calorimeter", expected: "calorimetry" },
+  { input: "calorimetry", expected: "calorimetry" },
+  { input: "lab-equilibrium", expected: "equilibrium" },
+  { input: "lechatelier", expected: "equilibrium" },
+  { input: "equilibrium", expected: "equilibrium" },
+  { input: "lab-electrochem", expected: "electrochem" },
+  { input: "galvanic", expected: "electrochem" },
+  { input: "electrochem", expected: "electrochem" },
+  { input: "lab-harmonic", expected: "harmonic" },
+  { input: "hooke", expected: "harmonic" },
+  { input: "harmonic", expected: "harmonic" },
+  { input: "lab-photoelectric", expected: "photoelectric" },
+  { input: "quantum", expected: "photoelectric" },
+  { input: "photoelectric", expected: "photoelectric" },
+  { input: "lab-magnetism", expected: "magnetism" },
+  { input: "lorentz", expected: "magnetism" },
+  { input: "magnetism", expected: "magnetism" },
+  { input: "lab-enzymes", expected: "enzymes" },
+  { input: "enzyme", expected: "enzymes" },
+  { input: "enzymes", expected: "enzymes" },
+  { input: "lab-respiration", expected: "respiration" },
+  { input: "respirometer", expected: "respiration" },
+  { input: "respiration", expected: "respiration" }
 ];
 
 let allNormalized = true;
@@ -139,13 +166,15 @@ testCases.forEach(({ input, expected }) => {
     console.error(`normalizeLabId("${input}") gave "${result}", expected "${expected}"`);
   }
 });
-assert(allNormalized, "normalizeLabId correctly resolves all 32 alias and canonical permutations");
+assert(allNormalized, `normalizeLabId correctly resolves all ${testCases.length} alias and canonical permutations`);
 
 // 2. All 74 Modules Map to Valid Laboratory Suites
 const expectedLabIds = [
   "projectile", "titration", "microscope", "ptable",
   "circuits", "gaslaws", "dnaprotein", "punnett",
-  "optics", "vsepr", "waves", "photosynthesis"
+  "optics", "vsepr", "waves", "photosynthesis",
+  "calorimetry", "equilibrium", "electrochem", "harmonic",
+  "photoelectric", "magnetism", "enzymes", "respiration"
 ];
 
 let allModulesMapValid = true;
@@ -162,7 +191,7 @@ allModules.forEach(m => {
     console.error(`Module ${m.code} has unmapped lab: "${m.lab}" -> "${labNorm}"`);
   }
 });
-assert(allModulesMapValid && allModules.length === 74, `All 74 curriculum modules map to one of 12 verified lab suites (Total: ${allModules.length})`);
+assert(allModulesMapValid && allModules.length === 74, `All 74 curriculum modules map to one of 20 verified lab suites (Total: ${allModules.length})`);
 
 // 3. Competency Checkpoint Questions Coverage
 let allCheckpointsPresent = true;
@@ -173,7 +202,7 @@ expectedLabIds.forEach(id => {
     console.error(`Missing or incomplete checkpoint questions for lab: ${id}`);
   }
 });
-assert(allCheckpointsPresent, "All 12 virtual laboratory suites contain at least 3 validated checkpoint questions");
+assert(allCheckpointsPresent, "All 20 virtual laboratory suites contain at least 3 validated checkpoint questions");
 
 // 4. Checkpoint Question Structure & Rubric Quality
 let questionsValid = true;
@@ -200,7 +229,15 @@ const labLoaders = [
   { name: "optics", loader: () => import("../labs/phys-optics.js").then(m => m.initOpticsLab("test-mount")) },
   { name: "vsepr", loader: () => import("../labs/chem-vsepr.js").then(m => m.initVseprLab("test-mount")) },
   { name: "waves", loader: () => import("../labs/phys-waves.js").then(m => m.initWaveLab("test-mount")) },
-  { name: "photosynthesis", loader: () => import("../labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("test-mount")) }
+  { name: "photosynthesis", loader: () => import("../labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("test-mount")) },
+  { name: "calorimetry", loader: () => import("../labs/chem-calorimetry.js").then(m => m.initCalorimetryLab("test-mount")) },
+  { name: "equilibrium", loader: () => import("../labs/chem-equilibrium.js").then(m => m.initEquilibriumLab("test-mount")) },
+  { name: "electrochem", loader: () => import("../labs/chem-electrochem.js").then(m => m.initElectrochemLab("test-mount")) },
+  { name: "harmonic", loader: () => import("../labs/phys-harmonic.js").then(m => m.initHarmonicLab("test-mount")) },
+  { name: "photoelectric", loader: () => import("../labs/phys-photoelectric.js").then(m => m.initPhotoelectricLab("test-mount")) },
+  { name: "magnetism", loader: () => import("../labs/phys-magnetism.js").then(m => m.initMagnetismLab("test-mount")) },
+  { name: "enzymes", loader: () => import("../labs/bio-enzyme-kinetics.js").then(m => m.initEnzymeLab("test-mount")) },
+  { name: "respiration", loader: () => import("../labs/bio-respiration.js").then(m => m.initRespirationLab("test-mount")) }
 ];
 
 let allLabsInitCleanly = true;
@@ -213,7 +250,7 @@ for (const lab of labLoaders) {
     console.error(`Error initializing lab "${lab.name}":`, err);
   }
 }
-assert(allLabsInitCleanly, "All 12 virtual laboratory workbenches initialize without runtime errors");
+assert(allLabsInitCleanly, "All 20 virtual laboratory workbenches initialize without runtime errors");
 
 console.log("\n========================================================");
 console.log(`📊 Lab Links Tests: ${passed} Passed, ${failed} Failed`);

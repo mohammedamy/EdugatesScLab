@@ -50,6 +50,9 @@ export function initPhotosynthesisLab(containerId) {
             <button id="mode-btn-resp" class="btn btn-secondary ${apparatusMode === 'respiration' ? 'active' : ''}" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border: none;">
               🧫 Pea Respirometer
             </button>
+            <button id="mode-btn-real-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border: none; background: transparent;">
+              📸 4K Real Lab Bench
+            </button>
           </div>
           <button class="btn btn-secondary btn-sm" id="btn-photo-toggle-run" style="padding: 5px 12px; font-size: 0.78rem;">
             ${isRunning ? "⏸ Pause" : "▶ Resume"}
@@ -65,6 +68,27 @@ export function initPhotosynthesisLab(containerId) {
         <!-- Chamber Canvas -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(34, 197, 94, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #07130b 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="photo-chamber-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="photosynthesis-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/photosynthesis_bench.jpg" alt="4K Photosynthesis & Photobiology Laboratory Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Aquatic Chamber Workstation</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Elodea Densa • NaHCO₃ Buffered</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Vernier Optical DO Probe</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Dissolved O₂: 8.42 mg/L</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Tunable Spectral Illuminator</div>
+                <div style="color: #f59e0b; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">430nm Blue / 660nm Red Peak</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD Overlay -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -550,10 +574,20 @@ export function initPhotosynthesisLab(containerId) {
   animId = requestAnimationFrame(loop);
 
   // --- EVENT LISTENERS ---
+  const photoOverlay = document.getElementById("photosynthesis-photo-overlay");
+  const btnRealPhoto = document.getElementById("mode-btn-real-photo");
+
   document.getElementById("mode-btn-photo").addEventListener("click", () => {
     apparatusMode = "photosynthesis";
     document.getElementById("mode-btn-photo").classList.add("active");
+    document.getElementById("mode-btn-photo").style.background = "";
     document.getElementById("mode-btn-resp").classList.remove("active");
+    document.getElementById("mode-btn-resp").style.background = "";
+    if (btnRealPhoto) {
+      btnRealPhoto.classList.remove("active");
+      btnRealPhoto.style.background = "transparent";
+    }
+    if (photoOverlay) photoOverlay.style.display = "none";
     document.getElementById("photo-controls-block").style.display = "flex";
     document.getElementById("resp-controls-block").style.display = "none";
     document.getElementById("chart-title").innerText = "Chlorophyll a & b Absorption Spectrum";
@@ -564,12 +598,30 @@ export function initPhotosynthesisLab(containerId) {
   document.getElementById("mode-btn-resp").addEventListener("click", () => {
     apparatusMode = "respiration";
     document.getElementById("mode-btn-resp").classList.add("active");
+    document.getElementById("mode-btn-resp").style.background = "";
     document.getElementById("mode-btn-photo").classList.remove("active");
+    document.getElementById("mode-btn-photo").style.background = "";
+    if (btnRealPhoto) {
+      btnRealPhoto.classList.remove("active");
+      btnRealPhoto.style.background = "transparent";
+    }
+    if (photoOverlay) photoOverlay.style.display = "none";
     document.getElementById("photo-controls-block").style.display = "none";
     document.getElementById("resp-controls-block").style.display = "flex";
     document.getElementById("chart-title").innerText = "Manometric Respiration Kinetics";
     SoundFX.playClick();
     updateHUD();
+  });
+
+  btnRealPhoto?.addEventListener("click", () => {
+    btnRealPhoto.classList.add("active");
+    btnRealPhoto.style.background = "";
+    document.getElementById("mode-btn-photo").classList.remove("active");
+    document.getElementById("mode-btn-photo").style.background = "transparent";
+    document.getElementById("mode-btn-resp").classList.remove("active");
+    document.getElementById("mode-btn-resp").style.background = "transparent";
+    if (photoOverlay) photoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Wavelength filter buttons

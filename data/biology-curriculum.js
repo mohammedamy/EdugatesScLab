@@ -108,7 +108,7 @@ export const biologyCurriculum = {
         { id: 4, title: "The Building Blocks of Life", objectives: ["Carbohydrates, lipids, proteins, and nucleic acids"] }
       ],
       formulas: ["\\text{Enzyme} + \\text{Substrate} \\rightleftharpoons [\\text{ES}] \\rightarrow \\text{Enzyme} + \\text{Product}"],
-      lab: "lab-dna-protein"
+      lab: "lab-enzymes"
     },
     {
       id: 7,

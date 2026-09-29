@@ -185,14 +185,22 @@ const virtualLabFiles = [
   "labs/chem-gas-laws.js",
   "labs/chem-periodic-table.js",
   "labs/chem-vsepr.js",
+  "labs/chem-calorimetry.js",
+  "labs/chem-equilibrium.js",
+  "labs/chem-electrochem.js",
   "labs/bio-microscope.js",
   "labs/bio-punnett-square.js",
   "labs/bio-dna-protein.js",
   "labs/bio-photosynthesis.js",
+  "labs/bio-enzyme-kinetics.js",
+  "labs/bio-respiration.js",
   "labs/phys-circuits.js",
   "labs/phys-optics.js",
   "labs/phys-projectile.js",
-  "labs/phys-waves.js"
+  "labs/phys-waves.js",
+  "labs/phys-harmonic.js",
+  "labs/phys-photoelectric.js",
+  "labs/phys-magnetism.js"
 ];
 
 let allLabsImported = true;
@@ -212,7 +220,7 @@ await Promise.all(
     }
   })
 );
-assert(allLabsImported, `All 12 virtual lab modules load successfully with required interface`);
+assert(allLabsImported, `All 20 virtual lab modules load successfully with required interface`);
 
 // ----------------------------------------------------
 // Test 6: Scientific Diagrams & Flagship SVG Models Verification
