@@ -124,7 +124,7 @@ assert(
 // Test 4: Question Bank Consistency
 // ----------------------------------------------------
 console.log("\n❓ Test 4: Assessment Question Bank Integrity");
-assert(Array.isArray(questionBank) && questionBank.length > 0, `Question bank is loaded with ${questionBank.length} seeded items`);
+assert(Array.isArray(questionBank) && questionBank.length >= 3630, `Question bank is loaded with ${questionBank.length} items (Minimum required: 3,630)`);
 
 let qBankValid = true;
 questionBank.forEach((q, idx) => {
@@ -147,6 +147,32 @@ questionBank.forEach((q, idx) => {
   }
 });
 assert(qBankValid, `All seeded questions have valid prompts, types, options, and rubrics`);
+
+// Verify that every single lesson across all 242 curriculum lessons has >= 15 questions
+let minQuestionsPerLesson = Infinity;
+let lessonsBelowThreshold = [];
+[chemistryCurriculum, biologyCurriculum, physicsCurriculum].forEach(cur => {
+  cur.modules.forEach(m => {
+    m.lessons.forEach(l => {
+      const lessonQuestions = questionBank.filter(q => 
+        q.subject === cur.code && 
+        q.moduleId === m.id && 
+        (q.lessonId === undefined || q.lessonId === l.id)
+      );
+      if (lessonQuestions.length < minQuestionsPerLesson) {
+        minQuestionsPerLesson = lessonQuestions.length;
+      }
+      if (lessonQuestions.length < 15) {
+        lessonsBelowThreshold.push(`${cur.code}-M${m.id}-L${l.id} (${lessonQuestions.length})`);
+      }
+    });
+  });
+});
+assert(
+  lessonsBelowThreshold.length === 0,
+  `Every single lesson has at least 15 questions (Min: ${minQuestionsPerLesson}, Failing: ${lessonsBelowThreshold.join(", ") || "None"})`
+);
+
 
 // ----------------------------------------------------
 // Test 5: Virtual Laboratories Interface Compliance

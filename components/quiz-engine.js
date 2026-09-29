@@ -914,22 +914,39 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       }
     });
 
-    // 1. Gather static questions that match the selected modules
+    // 1. Gather questions that match the selected lessons (exact lesson-level scope)
+    const selectedLessonKeys = new Set(scopeLessons.map(sl => `${sl.subj}-M${sl.mid}-L${sl.lid}`));
     const selectedModIds = new Set(scopeLessons.map(sl => `${sl.subj}-${sl.mid}`));
+
     let pool = questionBank.filter(q => {
-      const matchMod = selectedModIds.has(`${q.subject}-${q.moduleId}`);
+      const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
+      const matchScope = q.lessonId 
+        ? selectedLessonKeys.has(qLessonKey) 
+        : selectedModIds.has(`${q.subject}-${q.moduleId}`);
       const matchDiff = difficulty === "ALL" || q.difficulty === difficulty;
       const matchType = qTypeVal === "ALL" || q.type === qTypeVal;
-      return matchMod && matchDiff && matchType;
+      return matchScope && matchDiff && matchType;
     });
 
-    // 2. Synthesize curriculum-grounded questions for any lessons in scope that need representation
-    scopeLessons.forEach((sl, idx) => {
-      const synthQ = synthesizeCurriculumQuestion(sl, difficulty, idx);
-      if (qTypeVal === "ALL" || synthQ.type === qTypeVal) {
-        pool.push(synthQ);
-      }
-    });
+    // If pool is empty due to ultra-restrictive difficulty/type combination, relax filter to ensure valid assessment
+    if (pool.length === 0) {
+      pool = questionBank.filter(q => {
+        const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
+        return q.lessonId 
+          ? selectedLessonKeys.has(qLessonKey) 
+          : selectedModIds.has(`${q.subject}-${q.moduleId}`);
+      });
+    }
+
+    // Fallback synthesis if still empty
+    if (pool.length === 0) {
+      scopeLessons.forEach((sl, idx) => {
+        const synthQ = synthesizeCurriculumQuestion(sl, difficulty, idx);
+        if (qTypeVal === "ALL" || synthQ.type === qTypeVal) {
+          pool.push(synthQ);
+        }
+      });
+    }
 
     // Shuffle pool
     pool.sort(() => Math.random() - 0.5);
