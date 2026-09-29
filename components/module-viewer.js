@@ -20,6 +20,7 @@ import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js"
 import { openLessonPlanModal } from "./lesson-plan-generator.js";
 import { SoundFX } from "../utils/audio-synth.js";
 import { copyShareLink } from "../utils/toast.js";
+import { openLmsShareModal } from "../utils/lms-share.js";
 
 export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   ProgressStore.recordModuleExplored(moduleData.code);
@@ -79,8 +80,8 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
             <div class="modal-title">${moduleData.title}</div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button class="btn btn-secondary btn-header-share" id="btn-header-share-modal" title="Copy shareable deep-link to this chapter" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.15); color: var(--text-main); cursor: pointer;">
-              <span>🔗 Share</span>
+            <button class="btn btn-secondary btn-header-share" id="btn-header-share-modal" title="Share to Google Classroom, Classera, or Copy Link" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
+              <span>📤 Share to LMS</span>
             </button>
             <button class="btn btn-secondary btn-header-lesson-plan" id="btn-header-lesson-plan" title="Open 2-Page A4 Teacher Lesson Plan &amp; Export PDF" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
               <span>📄 Lesson Plan (A4)</span>
@@ -122,7 +123,16 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
         const linkRoute = activeTab === "interactive" 
           ? `#lesson/${moduleData.code}-L${currentLessonId}` 
           : `#module/${moduleData.code}`;
-        copyShareLink(linkRoute, `${moduleData.code}: ${moduleData.title}`);
+        const curLesson = moduleData.lessons ? moduleData.lessons.find(l => l.id === currentLessonId) : null;
+        const curSub = moduleData.code.startsWith("CHEM") ? "Inspire Chemistry" : (moduleData.code.startsWith("BIO") ? "Inspire Biology" : "Inspire Physics");
+        openLmsShareModal({
+          url: linkRoute,
+          title: curLesson ? `${moduleData.title}: ${curLesson.title}` : moduleData.title,
+          subject: curSub,
+          moduleCode: moduleData.code,
+          description: curLesson && curLesson.objectives ? curLesson.objectives.join(". ") : (moduleData.phenomenon || moduleData.bigIdea),
+          objectives: curLesson && curLesson.objectives ? curLesson.objectives : (moduleData.lessons ? moduleData.lessons.flatMap(l => l.objectives || []) : [])
+        });
       });
     }
 

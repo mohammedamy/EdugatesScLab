@@ -5,7 +5,7 @@
 class SoundEffectEngine {
   constructor() {
     this._ctx = null;
-    this._muted = localStorage.getItem("edugates_sound_muted") === "true";
+    this._muted = typeof localStorage !== "undefined" ? (localStorage.getItem("edugates_sound_muted") === "true") : false;
   }
 
   getContext() {

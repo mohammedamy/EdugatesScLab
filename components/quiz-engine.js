@@ -11,6 +11,8 @@ import { formatMathText, renderMathInElement, renderLatex } from "../utils/math-
 import { SoundFX } from "../utils/audio-synth.js";
 import { showToast, copyShareLink } from "../utils/toast.js";
 import { generateQRSvg } from "../utils/qr-code.js";
+import { openLmsShareModal } from "../utils/lms-share.js";
+import { toggleScienceCalculator } from "./science-calculator.js";
 
 export function renderQuizEngine(containerId, initialConfig = null) {
   const container = document.getElementById(containerId);
@@ -291,9 +293,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             <div style="font-size: 0.88rem; color: #94a3b8;">
               Ready to generate: <strong id="summary-ready-count" style="color: #38bdf8;">${initialCount === 'ALL' ? 'all matching' : `${initialCount} questions`}</strong> from <strong id="summary-scope-count" style="color: #10b981;">${selectedLessons.size} selected lessons</strong>.
             </div>
-            <button class="btn btn-accent" id="btn-generate-exam" style="padding: 12px 32px; font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);">
-              <span>⚡ Generate Assessment Now</span>
-            </button>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <button class="btn btn-secondary" id="btn-config-share-lms" title="Share this Quiz preset to Google Classroom or Classera" style="padding: 12px 20px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                <span>📤 Share to LMS</span>
+              </button>
+              <button class="btn btn-accent" id="btn-generate-exam" style="padding: 12px 32px; font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);">
+                <span>⚡ Generate Assessment Now</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -764,6 +771,24 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     }
 
+    const btnShareLms = document.getElementById("btn-config-share-lms");
+    if (btnShareLms) {
+      btnShareLms.addEventListener("click", () => {
+        const diffVal = document.getElementById("cfg-difficulty")?.value || initialDifficulty;
+        const countVal = document.getElementById("cfg-count")?.value || initialCount;
+        const qtypeVal = document.getElementById("cfg-qtype")?.value || initialQType;
+        const modeVal = document.getElementById("cfg-mode")?.value || examMode;
+        const scopeStr = [...selectedLessons].join(",");
+        const hash = `#quiz?subj=${selectedSubject}&mode=${modeVal}&count=${countVal}&diff=${diffVal}&qtype=${qtypeVal}&scope=${encodeURIComponent(scopeStr)}`;
+        openLmsShareModal({
+          url: hash,
+          title: `${selectedSubject} Custom Assessment (${selectedLessons.size} Lessons)`,
+          subject: selectedSubject,
+          description: `Custom STEM assessment with ${selectedLessons.size} lessons selected (${countVal} questions). Instant self-grading and explanations.`
+        });
+      });
+    }
+
     // Generate Exam Button
     const btnGen = document.getElementById("btn-generate-exam");
     if (btnGen) {
@@ -1166,7 +1191,13 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             </div>
           ` : ""}
 
-          <div style="display: flex; gap: 10px;">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-secondary" id="btn-quiz-calc" style="padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;" title="Open Scientific Pocket Calculator &amp; Constants (Hot-key: K)">
+              <span>🧮 Calc</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-quiz-share-lms" style="padding: 8px 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;" title="Share this Exam to Google Classroom or Classera">
+              <span>📤 Assign to LMS</span>
+            </button>
             <button class="btn btn-secondary" id="btn-switch-to-presenter" style="padding: 8px 16px; font-size: 0.85rem;">
               Smartboard Mode
             </button>
@@ -1188,6 +1219,19 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     document.getElementById("btn-switch-to-presenter").addEventListener("click", () => {
       examMode = "presenter";
       renderPresenterSlide();
+    });
+    document.getElementById("btn-quiz-calc")?.addEventListener("click", () => {
+      toggleScienceCalculator();
+    });
+    document.getElementById("btn-quiz-share-lms")?.addEventListener("click", () => {
+      const lessonIds = Array.from(selectedLessons).join(",");
+      const scopeHash = `#quiz?scope=${encodeURIComponent(lessonIds)}&subj=${selectedSubject}&mode=${examMode}&count=${activeQuestions.length}`;
+      openLmsShareModal({
+        url: scopeHash,
+        title: `${selectedSubject} ${examMode === "timed" ? "Timed Exam" : "Quiz"} (${activeQuestions.length} Questions)`,
+        subject: selectedSubject,
+        description: `Interactive online ${examMode === "timed" ? "timed examination" : "practice quiz"} with instant feedback.`
+      });
     });
 
     bindQuestionEvents();
@@ -1327,8 +1371,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             </span>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <span style="font-size: 0.9rem; color: #38bdf8; font-weight: 600;">${q.subject} • ${q.moduleTitle}</span>
+            <button class="btn btn-secondary" id="btn-presenter-calc" title="Scientific Pocket Calculator &amp; Constants (Hot-key: K)" style="padding: 8px 12px; display: flex; align-items: center; gap: 6px;">
+              <span>🧮 Calc</span>
+            </button>
+            <button class="btn btn-secondary" id="btn-presenter-share-lms" title="Share Question to Google Classroom or Classera" style="padding: 8px 12px; display: flex; align-items: center; gap: 6px;">
+              <span>📤 Share to LMS</span>
+            </button>
             <button class="btn btn-secondary" id="btn-toggle-fullscreen" title="Full Screen Presentation" style="padding: 8px 14px;">
               ⛶ Fullscreen
             </button>
@@ -1546,6 +1596,18 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     document.getElementById("btn-exit-presenter").addEventListener("click", () => {
       removePresenterKeyHandler();
       showConfig();
+    });
+    document.getElementById("btn-presenter-calc")?.addEventListener("click", () => {
+      toggleScienceCalculator();
+    });
+    document.getElementById("btn-presenter-share-lms")?.addEventListener("click", () => {
+      const curQ = activeQuestions[presenterIndex];
+      openLmsShareModal({
+        url: `#quiz?scope=${curQ.lessonId || ''}&subj=${selectedSubject}`,
+        title: `${curQ.subject}: ${curQ.moduleTitle} (Question ${presenterIndex + 1})`,
+        subject: curQ.subject,
+        description: curQ.question
+      });
     });
     document.getElementById("btn-prev-slide").addEventListener("click", () => {
       if (presenterIndex > 0) {
@@ -1870,6 +1932,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                   </button>
                 </div>
 
+                <!-- Assign to LMS (Google Classroom & Classera) -->
+                <button class="btn btn-secondary" id="btn-print-share-lms" style="font-weight: 700; padding: 7px 16px; display: inline-flex; align-items: center; gap: 8px;" title="Share this Exam Preset to Google Classroom or Classera">
+                  <span>📤</span>
+                  <span>Assign to LMS</span>
+                </button>
+
                 <!-- Print Trigger Button -->
                 <button class="btn btn-primary" onclick="window.print()" style="font-weight: 800; padding: 7px 18px; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);">
                   <span>🖨️</span>
@@ -2079,6 +2147,15 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
       document.getElementById("inp-print-title")?.addEventListener("input", (e) => {
         printExamTitle = e.target.value;
+      });
+
+      document.getElementById("btn-print-share-lms")?.addEventListener("click", () => {
+        openLmsShareModal({
+          url: qrDeepLink,
+          title: `${selectedSubject} - ${printExamTitle}`,
+          subject: selectedSubject,
+          description: `Interactive online exam matching Form ${printForm} with ${displayQuestions.length} questions across ${selectedLessons.size} lessons.`
+        });
       });
 
       renderMathInElement(container);

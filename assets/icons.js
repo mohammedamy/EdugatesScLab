@@ -827,6 +827,38 @@ export const icons = {
     <path d="M2 3h20"/>
     <path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/>
     <path d="m7 21 5-5 5 5"/>
+  </svg>`,
+
+  googleClassroom: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+    <rect x="2" y="3" width="20" height="15" rx="3" fill="#0F9D58" stroke="#0B8043" stroke-width="1.5"/>
+    <rect x="4" y="5" width="16" height="11" rx="1.5" fill="#188038"/>
+    <circle cx="12" cy="9" r="2.2" fill="#E8F0FE"/>
+    <path d="M7.8 14.5c0-1.8 1.9-2.8 4.2-2.8s4.2 1 4.2 2.8" fill="#E8F0FE"/>
+    <circle cx="7" cy="9.5" r="1.5" fill="#CEEAD6"/>
+    <path d="M4 14.2c0-1.3 1.3-2 3-2" stroke="#CEEAD6" stroke-width="1.2" stroke-linecap="round"/>
+    <circle cx="17" cy="9.5" r="1.5" fill="#CEEAD6"/>
+    <path d="M20 14.2c0-1.3-1.3-2-3-2" stroke="#CEEAD6" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M11 18.5h2l.5 2.5h-3z" fill="#E37400"/>
+  </svg>`,
+
+  classera: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+    <rect x="2" y="2" width="20" height="20" rx="5" fill="#6C2BD9"/>
+    <path d="M6 16.5l6-9 6 9" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="12" cy="7.5" r="2" fill="#FFFFFF"/>
+    <path d="M8.5 13h7" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+  </svg>`,
+
+  calculator: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="16" height="20" x="4" y="2" rx="2"/>
+    <line x1="8" x2="16" y1="6" y2="6"/>
+    <line x1="16" x2="16" y1="14"/>
+    <path d="M16 10h.01"/>
+    <path d="M12 10h.01"/>
+    <path d="M8 10h.01"/>
+    <path d="M12 14h.01"/>
+    <path d="M8 14h.01"/>
+    <path d="M12 18h.01"/>
+    <path d="M8 18h.01"/>
   </svg>`
 };
 

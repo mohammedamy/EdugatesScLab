@@ -1,6 +1,5 @@
-// Edugates-ClipSAT Science Labs - Smartboard Floating Interactive Annotation Toolbar
-// Features: Pointer, Precision Pen, Bright Neon Highlighter, Real-Time Stroke Resizer & Presets,
 import { SoundFX } from "../utils/audio-synth.js";
+import { toggleScienceCalculator } from "./science-calculator.js";
 
 export function initSmartboardToolbar() {
   let existingCanvas = document.getElementById("smartboard-draw-canvas");
@@ -157,6 +156,16 @@ export function initSmartboardToolbar() {
           <path d="M12 18v-3"/>
           <path d="m8 18 1.5-2.6"/>
           <path d="m16 18-1.5-2.6"/>
+        </svg>
+      </button>
+
+      <!-- Scientific Pocket Calculator & Constants -->
+      <button class="icon-action-btn" id="sb-tool-calc" title="Scientific Pocket Calculator &amp; Constants (Hot-key: K)" style="border-radius: 9999px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="4" y="2" width="16" height="20" rx="2"/>
+          <line x1="8" y1="6" x2="16" y2="6"/>
+          <line x1="16" y1="14" x2="16" y2="18"/>
+          <path d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M8 18h.01M12 18h.01"/>
         </svg>
       </button>
 
@@ -1971,6 +1980,18 @@ export function initSmartboardToolbar() {
   needleGrip?.addEventListener("pointercancel", stopNeedleDrag);
 
   // -------------------------------------------------------------------------
+  // 3b. Scientific Pocket Calculator & Physical Constants
+  // -------------------------------------------------------------------------
+  const toolCalc = document.getElementById("sb-tool-calc");
+  toolCalc?.addEventListener("click", () => {
+    const isShowing = toggleScienceCalculator();
+    if (toolCalc) {
+      if (isShowing) toolCalc.classList.add("active");
+      else toolCalc.classList.remove("active");
+    }
+  });
+
+  // -------------------------------------------------------------------------
   // 4. Universal Classroom Keyboard Shortcuts
   // -------------------------------------------------------------------------
   document.addEventListener("keydown", (e) => {
@@ -1997,6 +2018,13 @@ export function initSmartboardToolbar() {
     } else if (e.key === "p" || e.key === "P") {
       e.preventDefault();
       toggleProtractor();
+    } else if (e.key === "k" || e.key === "K") {
+      e.preventDefault();
+      const isShowing = toggleScienceCalculator();
+      if (toolCalc) {
+        if (isShowing) toolCalc.classList.add("active");
+        else toolCalc.classList.remove("active");
+      }
     } else if (e.key === " ") {
       // Spacebar: Play/Pause timer if open, otherwise trigger active lab simulation
       if (timerWidget.style.display !== "none") {
