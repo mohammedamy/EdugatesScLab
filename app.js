@@ -6,29 +6,11 @@ import { biologyCurriculum } from "./data/biology-curriculum.js";
 import { physicsCurriculum } from "./data/physics-curriculum.js";
 import { icons } from "./assets/icons.js";
 import { openModuleModal } from "./components/module-viewer.js";
-import { renderQuizEngine } from "./components/quiz-engine.js?v=3.1";
-import { initSmartboardToolbar } from "./components/smartboard-toolbar.js?v=3.1";
-import { renderFlashcards } from "./components/flashcards.js";
 import { openProgressModal, ProgressStore } from "./components/progress-tracker.js";
 import { renderMathInElement, renderLatex } from "./utils/math-renderer.js";
 import { getLessonInteractiveSpec } from "./components/lesson-interactives.js";
-import { openLessonPlanModal } from "./components/lesson-plan-generator.js";
 import { SoundFX } from "./utils/audio-synth.js";
 import { showToast, copyShareLink } from "./utils/toast.js";
-import { openLmsShareModal } from "./utils/lms-share.js";
-
-import { initProjectileLab } from "./labs/phys-projectile.js";
-import { initTitrationLab } from "./labs/chem-titration.js";
-import { initMicroscopeLab } from "./labs/bio-microscope.js";
-import { initPeriodicTableLab } from "./labs/chem-periodic-table.js";
-import { initCircuitsLab } from "./labs/phys-circuits.js";
-import { initGasLawsLab } from "./labs/chem-gas-laws.js";
-import { initDnaProteinLab } from "./labs/bio-dna-protein.js";
-import { initPunnettLab } from "./labs/bio-punnett-square.js";
-import { initOpticsLab } from "./labs/phys-optics.js";
-import { initVseprLab } from "./labs/chem-vsepr.js";
-import { initWaveLab } from "./labs/phys-waves.js";
-import { initPhotosynthesisLab } from "./labs/bio-photosynthesis.js";
 
 // Initialize Theme (Respect user preference or fallback to system color scheme)
 const userSavedTheme = localStorage.getItem("edugates_theme");
@@ -141,10 +123,15 @@ function bootApp() {
   }
 
   // Defer floating smartboard pen bar canvas initialization slightly so first paint is instantaneous
+  const loadSmartboardToolbar = () => {
+    import("./components/smartboard-toolbar.js?v=3.1").then(m => m.initSmartboardToolbar()).catch(err => {
+      console.warn("Smartboard toolbar deferred load warning:", err);
+    });
+  };
   if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(() => initSmartboardToolbar(), { timeout: 250 });
+    window.requestIdleCallback(loadSmartboardToolbar, { timeout: 350 });
   } else {
-    setTimeout(initSmartboardToolbar, 60);
+    setTimeout(loadSmartboardToolbar, 100);
   }
 }
 
@@ -309,6 +296,12 @@ function renderAppShell() {
             <span>Mastery</span>
           </button>
 
+          <!-- Focus Presentation Mode Toggle Button -->
+          <button class="btn btn-secondary" id="btn-toggle-focus-mode" title="Focus Presentation Mode (Hide Navigation Chrome, Shift+F)" aria-label="Toggle Focus Presentation Mode" style="padding: 6px 12px; font-size: 0.85rem; gap: 6px;">
+            <span>🎯</span>
+            <span>Focus</span>
+          </button>
+
           <div class="device-mode-toggle" role="group" aria-label="Screen Optimization &amp; Hardware Profile" title="Screen Optimization &amp; Hardware Profile">
             <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto" aria-label="Auto hardware profile">Auto</button>
             <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" aria-label="Smartboard 60 FPS Turbo Profile" title="Smartboard 60 FPS Turbo Profile (Zero-Blur, Hardware Accelerated)">⚡ Smartboard Turbo</button>
@@ -318,6 +311,12 @@ function renderAppShell() {
         </div>
       </nav>
     </header>
+
+    <!-- Exit Focus Mode Floating Pill Button -->
+    <button class="btn-focus-mode-exit" id="btn-exit-focus-mode" title="Exit Focus Mode (Shift+F or Esc)" aria-label="Exit Focus Presentation Mode">
+      <span aria-hidden="true">✕</span>
+      <span>Exit Focus Mode</span>
+    </button>
 
     <!-- Main Viewport Area -->
     <main class="app-main" id="main-content-view" tabindex="-1"></main>
@@ -469,6 +468,24 @@ function bindGlobalEvents() {
       }
     }
   });
+
+  // Focus Presentation Mode Toggle & Exit
+  const toggleFocusMode = () => {
+    document.body.classList.toggle("focus-mode");
+    try { SoundFX.playPop(); } catch (e) {}
+  };
+  document.getElementById("btn-toggle-focus-mode")?.addEventListener("click", toggleFocusMode);
+  document.getElementById("btn-exit-focus-mode")?.addEventListener("click", toggleFocusMode);
+
+  // Shift+F Keyboard Shortcut for Focus Mode
+  document.addEventListener("keydown", (e) => {
+    if (e.shiftKey && e.key.toLowerCase() === "f" && !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      toggleFocusMode();
+    } else if (e.key === "Escape" && document.body.classList.contains("focus-mode")) {
+      document.body.classList.remove("focus-mode");
+    }
+  });
 }
 
 export function findModuleByCode(rawCode) {
@@ -580,7 +597,9 @@ export function handleHashRoute() {
     if (res) {
       const tabId = res.curr.code.toLowerCase();
       switchTab(tabId, false);
-      openLessonPlanModal(res.curr.code, res.mod.id, lid);
+      import("./components/lesson-plan-generator.js").then(m => {
+        m.openLessonPlanModal(res.curr.code, res.mod.id, lid);
+      });
     } else {
       switchTab("chem", false);
     }
@@ -685,18 +704,28 @@ function renderCurrentView() {
   if (!container) return;
 
   if (AppState.currentTab === "flashcards") {
-    container.innerHTML = `<div id="flashcards-mount"></div>`;
+    container.innerHTML = `<div id="flashcards-mount"><div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading Flashcards Deck...</div></div>`;
     const initialFilter = AppState.flashcardFilter || {};
     AppState.flashcardFilter = null;
-    renderFlashcards("flashcards-mount", initialFilter);
+    import("./components/flashcards.js").then(m => {
+      m.renderFlashcards("flashcards-mount", initialFilter);
+    }).catch(err => {
+      console.error("Flashcards load error:", err);
+      container.innerHTML = `<div style="padding: 30px; text-align: center; color: #ef4444;">Failed to load flashcards engine.</div>`;
+    });
     return;
   }
 
   if (AppState.currentTab === "quiz") {
-    container.innerHTML = `<div id="quiz-engine-mount"></div>`;
+    container.innerHTML = `<div id="quiz-engine-mount"><div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading Assessment Engine & Question Bank...</div></div>`;
     const initialConfig = AppState.quizFilter || null;
     AppState.quizFilter = null;
-    renderQuizEngine("quiz-engine-mount", initialConfig);
+    import("./components/quiz-engine.js?v=3.1").then(m => {
+      m.renderQuizEngine("quiz-engine-mount", initialConfig);
+    }).catch(err => {
+      console.error("Quiz load error:", err);
+      container.innerHTML = `<div style="padding: 30px; text-align: center; color: #ef4444;">Failed to load assessment engine.</div>`;
+    });
     return;
   }
 
@@ -807,6 +836,24 @@ function renderSubjectView(container, curData, themeColor) {
   const isLessonsView = AppState.homeViewMode === "lessons";
   const totalLessonsCount = filtered.reduce((acc, m) => acc + m.lessons.length, 0);
 
+  const stats = ProgressStore.getStats();
+  const showPresenterTip = localStorage.getItem("sb_hide_presenter_tip") !== "true";
+
+  // Determine Continue Learning module
+  let lastMod = null;
+  let isResuming = false;
+  if (stats.modulesExplored && stats.modulesExplored.length > 0) {
+    const lastCode = stats.modulesExplored[stats.modulesExplored.length - 1];
+    const found = findModuleByCode(lastCode);
+    if (found) {
+      lastMod = found.mod;
+      isResuming = true;
+    }
+  }
+  if (!lastMod && curData.modules && curData.modules.length > 0) {
+    lastMod = curData.modules[0];
+  }
+
   container.innerHTML = `
     <!-- Subject Hero Banner -->
     <div class="hero-banner">
@@ -840,6 +887,39 @@ function renderSubjectView(container, curData, themeColor) {
         </div>
       </div>
     </div>
+
+    ${showPresenterTip ? `
+      <!-- Classroom Presenter Tip Banner -->
+      <div class="presenter-tip-banner" id="classroom-presenter-tip">
+        <div class="presenter-tip-content">
+          <span>💡</span>
+          <span><strong>Classroom Presenter Tip:</strong> Press <kbd style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-mono, monospace);">Shift + F</kbd> anytime for distraction-free Focus Mode on smartboards and projectors.</span>
+        </div>
+        <button class="presenter-tip-dismiss" id="btn-dismiss-presenter-tip" aria-label="Dismiss presenter tip">✕</button>
+      </div>
+    ` : ''}
+
+    ${lastMod ? `
+      <!-- Continue Learning Progress Strip -->
+      <div class="continue-learning-strip">
+        <div class="continue-learning-left">
+          <div class="continue-learning-pulse-dot"></div>
+          <div class="continue-learning-text">
+            <span class="continue-learning-label">${isResuming ? 'Continue Where You Left Off' : 'Recommended Starting Chapter'}</span>
+            <span class="continue-learning-target">${lastMod.code}: ${lastMod.title}</span>
+          </div>
+        </div>
+        <div class="continue-learning-actions">
+          <div class="continue-learning-meta">
+            <span>${stats.modulesExplored.length} chapter${stats.modulesExplored.length === 1 ? '' : 's'} explored • ${stats.labsLaunched.length} lab${stats.labsLaunched.length === 1 ? '' : 's'} launched</span>
+          </div>
+          <a href="#module/${lastMod.code}" class="btn-continue-resume" aria-label="${isResuming ? 'Resume' : 'Start'} Chapter ${lastMod.code}">
+            <span>${isResuming ? 'Resume Chapter' : 'Start Chapter'}</span>
+            <span>→</span>
+          </a>
+        </div>
+      </div>
+    ` : ''}
 
     <!-- Search, View Switcher & Unit Filter Chips -->
     <div class="filter-search-row">
@@ -1002,6 +1082,15 @@ function renderSubjectView(container, curData, themeColor) {
       </div>
     `}
   `;
+
+  // Bind Classroom Presenter Tip Dismiss
+  const btnDismissTip = document.getElementById("btn-dismiss-presenter-tip");
+  if (btnDismissTip) {
+    btnDismissTip.addEventListener("click", () => {
+      localStorage.setItem("sb_hide_presenter_tip", "true");
+      document.getElementById("classroom-presenter-tip")?.remove();
+    });
+  }
 
   // Bind Search Input
   const searchInput = document.getElementById("search-modules-input");
@@ -1187,11 +1276,15 @@ function renderVirtualLabsHub(container) {
 
   document.getElementById("btn-lms-share-active-lab")?.addEventListener("click", () => {
     const labTitle = formatLabName("lab-" + AppState.activeLabId);
-    openLmsShareModal({
-      url: `#labs/${AppState.activeLabId}`,
-      title: `Virtual Lab: ${labTitle}`,
-      subject: "Science Lab",
-      description: `Interactive 60 FPS science laboratory workbench with real-time sensor telemetry, controls, and apparatus.`
+    import("./utils/lms-share.js").then(m => {
+      m.openLmsShareModal({
+        url: `#labs/${AppState.activeLabId}`,
+        title: `Virtual Lab: ${labTitle}`,
+        subject: "Science Lab",
+        description: `Interactive 60 FPS science laboratory workbench with real-time sensor telemetry, controls, and apparatus.`
+      });
+    }).catch(err => {
+      console.error("LMS Share load error:", err);
     });
   });
 
@@ -1210,35 +1303,41 @@ function renderVirtualLabsHub(container) {
   mountActiveLab();
 }
 
+let currentActiveLabCleanup = null;
+
 function mountActiveLab() {
   const mount = document.getElementById("active-lab-mount");
   if (!mount) return;
 
+  if (typeof currentActiveLabCleanup === "function") {
+    try { currentActiveLabCleanup(); } catch (e) {}
+    currentActiveLabCleanup = null;
+  }
+
   ProgressStore.recordLabLaunched(AppState.activeLabId);
 
-  if (AppState.activeLabId === "projectile") {
-    initProjectileLab("active-lab-mount");
-  } else if (AppState.activeLabId === "titration") {
-    initTitrationLab("active-lab-mount");
-  } else if (AppState.activeLabId === "microscope") {
-    initMicroscopeLab("active-lab-mount");
-  } else if (AppState.activeLabId === "ptable") {
-    initPeriodicTableLab("active-lab-mount");
-  } else if (AppState.activeLabId === "circuits") {
-    initCircuitsLab("active-lab-mount");
-  } else if (AppState.activeLabId === "gaslaws") {
-    initGasLawsLab("active-lab-mount");
-  } else if (AppState.activeLabId === "dnaprotein") {
-    initDnaProteinLab("active-lab-mount");
-  } else if (AppState.activeLabId === "punnett") {
-    initPunnettLab("active-lab-mount");
-  } else if (AppState.activeLabId === "optics") {
-    initOpticsLab("active-lab-mount");
-  } else if (AppState.activeLabId === "vsepr") {
-    initVseprLab("active-lab-mount");
-  } else if (AppState.activeLabId === "waves") {
-    initWaveLab("active-lab-mount");
-  } else if (AppState.activeLabId === "photosynthesis") {
-    initPhotosynthesisLab("active-lab-mount");
-  }
+  const labLoaders = {
+    "projectile": () => import("./labs/phys-projectile.js").then(m => m.initProjectileLab("active-lab-mount")),
+    "titration": () => import("./labs/chem-titration.js").then(m => m.initTitrationLab("active-lab-mount")),
+    "microscope": () => import("./labs/bio-microscope.js").then(m => m.initMicroscopeLab("active-lab-mount")),
+    "ptable": () => import("./labs/chem-periodic-table.js").then(m => m.initPeriodicTableLab("active-lab-mount")),
+    "circuits": () => import("./labs/phys-circuits.js").then(m => m.initCircuitsLab("active-lab-mount")),
+    "gaslaws": () => import("./labs/chem-gas-laws.js").then(m => m.initGasLawsLab("active-lab-mount")),
+    "dnaprotein": () => import("./labs/bio-dna-protein.js").then(m => m.initDnaProteinLab("active-lab-mount")),
+    "punnett": () => import("./labs/bio-punnett-square.js").then(m => m.initPunnettLab("active-lab-mount")),
+    "optics": () => import("./labs/phys-optics.js").then(m => m.initOpticsLab("active-lab-mount")),
+    "vsepr": () => import("./labs/chem-vsepr.js").then(m => m.initVseprLab("active-lab-mount")),
+    "waves": () => import("./labs/phys-waves.js").then(m => m.initWaveLab("active-lab-mount")),
+    "photosynthesis": () => import("./labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("active-lab-mount"))
+  };
+
+  const loader = labLoaders[AppState.activeLabId] || labLoaders["projectile"];
+  mount.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading 60 FPS Laboratory Workbench...</div>`;
+
+  loader().then(cleanup => {
+    currentActiveLabCleanup = cleanup;
+  }).catch(err => {
+    console.error("Failed to load laboratory workbench:", err);
+    mount.innerHTML = `<div style="padding: 30px; text-align: center; color: #ef4444;">Failed to load laboratory workbench.</div>`;
+  });
 }

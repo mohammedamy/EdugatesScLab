@@ -1,26 +1,12 @@
 // Edugates-ClipSAT Science Labs - Interactive Module Deep-Dive Viewer
 // Detailed lesson reader, formulas, CER inquiry, and bespoke lesson-specific virtual lab launcher
 
-import { initProjectileLab } from "../labs/phys-projectile.js";
-import { initTitrationLab } from "../labs/chem-titration.js";
-import { initMicroscopeLab } from "../labs/bio-microscope.js";
-import { initPeriodicTableLab } from "../labs/chem-periodic-table.js";
-import { initCircuitsLab } from "../labs/phys-circuits.js";
-import { initGasLawsLab } from "../labs/chem-gas-laws.js";
-import { initDnaProteinLab } from "../labs/bio-dna-protein.js";
-import { initPunnettLab } from "../labs/bio-punnett-square.js";
-import { initOpticsLab } from "../labs/phys-optics.js";
-import { initVseprLab } from "../labs/chem-vsepr.js";
-import { initWaveLab } from "../labs/phys-waves.js";
-import { initPhotosynthesisLab } from "../labs/bio-photosynthesis.js";
 import { ProgressStore } from "./progress-tracker.js";
 import { renderLatex, renderMathInElement } from "../utils/math-renderer.js";
 import { mountLessonInteractive, cleanupLessonInteractive, getLessonInteractiveSpec } from "./lesson-interactives.js";
 import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
-import { openLessonPlanModal } from "./lesson-plan-generator.js";
 import { SoundFX } from "../utils/audio-synth.js";
 import { copyShareLink } from "../utils/toast.js";
-import { openLmsShareModal } from "../utils/lms-share.js";
 
 export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   ProgressStore.recordModuleExplored(moduleData.code);
@@ -163,13 +149,15 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
           : `#module/${moduleData.code}`;
         const curLesson = moduleData.lessons ? moduleData.lessons.find(l => l.id === currentLessonId) : null;
         const curSub = moduleData.code.startsWith("CHEM") ? "Inspire Chemistry" : (moduleData.code.startsWith("BIO") ? "Inspire Biology" : "Inspire Physics");
-        openLmsShareModal({
-          url: linkRoute,
-          title: curLesson ? `${moduleData.title}: ${curLesson.title}` : moduleData.title,
-          subject: curSub,
-          moduleCode: moduleData.code,
-          description: curLesson && curLesson.objectives ? curLesson.objectives.join(". ") : (moduleData.phenomenon || moduleData.bigIdea),
-          objectives: curLesson && curLesson.objectives ? curLesson.objectives : (moduleData.lessons ? moduleData.lessons.flatMap(l => l.objectives || []) : [])
+        import("../utils/lms-share.js").then(m => {
+          m.openLmsShareModal({
+            url: linkRoute,
+            title: curLesson ? `${moduleData.title}: ${curLesson.title}` : moduleData.title,
+            subject: curSub,
+            moduleCode: moduleData.code,
+            description: curLesson && curLesson.objectives ? curLesson.objectives.join(". ") : (moduleData.phenomenon || moduleData.bigIdea),
+            objectives: curLesson && curLesson.objectives ? curLesson.objectives : (moduleData.lessons ? moduleData.lessons.flatMap(l => l.objectives || []) : [])
+          });
         });
       });
     }
@@ -178,7 +166,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     const btnHeaderPlan = document.getElementById("btn-header-lesson-plan");
     if (btnHeaderPlan) {
       btnHeaderPlan.addEventListener("click", () => {
-        openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+        import("./lesson-plan-generator.js").then(m => {
+          m.openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+        });
       });
     }
 
@@ -207,7 +197,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
       const btnConceptsPlan = document.getElementById("btn-concepts-lesson-plan");
       if (btnConceptsPlan) {
         btnConceptsPlan.addEventListener("click", () => {
-          openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+          import("./lesson-plan-generator.js").then(m => {
+            m.openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+          });
         });
       }
     }
@@ -701,33 +693,31 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     const labKey = moduleData.lab || "lab-projectile";
     ProgressStore.recordLabLaunched(labKey);
 
-    if (labKey === "lab-projectile") {
-      currentLabCleanup = initProjectileLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-titration") {
-      currentLabCleanup = initTitrationLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-microscope") {
-      currentLabCleanup = initMicroscopeLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-periodic-table") {
-      currentLabCleanup = initPeriodicTableLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-circuits") {
-      currentLabCleanup = initCircuitsLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-gas-laws") {
-      currentLabCleanup = initGasLawsLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-dna-protein") {
-      currentLabCleanup = initDnaProteinLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-punnett") {
-      currentLabCleanup = initPunnettLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-optics") {
-      currentLabCleanup = initOpticsLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-vsepr" || labKey === "vsepr") {
-      currentLabCleanup = initVseprLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-waves" || labKey === "waves") {
-      currentLabCleanup = initWaveLab("embedded-module-lab-mount");
-    } else if (labKey === "lab-photosynthesis" || labKey === "photosynthesis") {
-      currentLabCleanup = initPhotosynthesisLab("embedded-module-lab-mount");
-    } else {
-      currentLabCleanup = initProjectileLab("embedded-module-lab-mount");
-    }
+    const labLoaders = {
+      "lab-projectile": () => import("../labs/phys-projectile.js").then(m => m.initProjectileLab("embedded-module-lab-mount")),
+      "lab-titration": () => import("../labs/chem-titration.js").then(m => m.initTitrationLab("embedded-module-lab-mount")),
+      "lab-microscope": () => import("../labs/bio-microscope.js").then(m => m.initMicroscopeLab("embedded-module-lab-mount")),
+      "lab-periodic-table": () => import("../labs/chem-periodic-table.js").then(m => m.initPeriodicTableLab("embedded-module-lab-mount")),
+      "lab-circuits": () => import("../labs/phys-circuits.js").then(m => m.initCircuitsLab("embedded-module-lab-mount")),
+      "lab-gas-laws": () => import("../labs/chem-gas-laws.js").then(m => m.initGasLawsLab("embedded-module-lab-mount")),
+      "lab-dna-protein": () => import("../labs/bio-dna-protein.js").then(m => m.initDnaProteinLab("embedded-module-lab-mount")),
+      "lab-punnett": () => import("../labs/bio-punnett-square.js").then(m => m.initPunnettLab("embedded-module-lab-mount")),
+      "lab-optics": () => import("../labs/phys-optics.js").then(m => m.initOpticsLab("embedded-module-lab-mount")),
+      "lab-vsepr": () => import("../labs/chem-vsepr.js").then(m => m.initVseprLab("embedded-module-lab-mount")),
+      "vsepr": () => import("../labs/chem-vsepr.js").then(m => m.initVseprLab("embedded-module-lab-mount")),
+      "lab-waves": () => import("../labs/phys-waves.js").then(m => m.initWaveLab("embedded-module-lab-mount")),
+      "waves": () => import("../labs/phys-waves.js").then(m => m.initWaveLab("embedded-module-lab-mount")),
+      "lab-photosynthesis": () => import("../labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("embedded-module-lab-mount")),
+      "photosynthesis": () => import("../labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("embedded-module-lab-mount"))
+    };
+
+    const loader = labLoaders[labKey] || labLoaders["lab-projectile"];
+    loader().then(cleanup => {
+      currentLabCleanup = cleanup;
+    }).catch(err => {
+      console.error("Failed to load lab simulation:", err);
+      mount.innerHTML = `<div style="padding: 24px; text-align: center; color: #ef4444;">Failed to load lab simulation.</div>`;
+    });
   }
 
   overlay.style.display = "flex";

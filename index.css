@@ -10669,5 +10669,215 @@ mark.search-highlight {
   box-shadow: 0 25px 60px rgba(15, 23, 42, 0.2) !important;
 }
 
+/* ========================================================
+   Continue Learning Progress Strip
+======================================================== */
+.continue-learning-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.75) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-left: 4px solid var(--chem-primary, #38bdf8);
+  border-radius: var(--radius-md, 12px);
+  padding: 14px 22px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35), 0 0 15px rgba(56, 189, 248, 0.1);
+  animation: fadeIn 0.3s ease;
+}
+
+[data-theme="day"] .continue-learning-strip {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%);
+  border-color: rgba(14, 165, 233, 0.35);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.continue-learning-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.continue-learning-pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  flex-shrink: 0;
+  animation: pulseGreen 2s infinite;
+}
+
+@keyframes pulseGreen {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.continue-learning-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.continue-learning-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.continue-learning-target {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--text-main, #f8fafc);
+}
+
+.continue-learning-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.continue-learning-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted, #94a3b8);
+  font-weight: 600;
+}
+
+.btn-continue-resume {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-continue-resume:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(14, 165, 233, 0.5);
+  color: #ffffff;
+}
+
+@media (max-width: 768px) {
+  .continue-learning-strip {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .continue-learning-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* ========================================================
+   Presenter Onboarding Tooltip Banner
+======================================================== */
+.presenter-tip-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 18px;
+  border-radius: var(--radius-md, 10px);
+  background: rgba(14, 165, 233, 0.12);
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  color: var(--text-main, #f8fafc);
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+.presenter-tip-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.presenter-tip-dismiss {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #94a3b8);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.presenter-tip-dismiss:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main, #f8fafc);
+}
+
+/* ========================================================
+   Focus Mode (Classroom Presenter View)
+======================================================== */
+body.focus-mode .app-navbar {
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+}
+body.focus-mode .app-navbar:hover {
+  transform: translateY(0);
+}
+body.focus-mode .hero-banner,
+body.focus-mode .continue-learning-strip,
+body.focus-mode .presenter-tip-banner {
+  display: none !important;
+}
+
+.btn-focus-mode-exit {
+  display: none;
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 10001;
+  background: rgba(15, 23, 42, 0.9);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+}
+
+.btn-focus-mode-exit:hover {
+  background: rgba(14, 165, 233, 0.2);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+body.focus-mode .btn-focus-mode-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+
 
 
