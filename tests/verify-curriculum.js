@@ -182,12 +182,15 @@ const virtualLabFiles = [
   "labs/chem-titration.js",
   "labs/chem-gas-laws.js",
   "labs/chem-periodic-table.js",
+  "labs/chem-vsepr.js",
   "labs/bio-microscope.js",
   "labs/bio-punnett-square.js",
   "labs/bio-dna-protein.js",
+  "labs/bio-photosynthesis.js",
   "labs/phys-circuits.js",
   "labs/phys-optics.js",
-  "labs/phys-projectile.js"
+  "labs/phys-projectile.js",
+  "labs/phys-waves.js"
 ];
 
 let allLabsImported = true;
@@ -207,7 +210,7 @@ await Promise.all(
     }
   })
 );
-assert(allLabsImported, `All 9 virtual lab modules load successfully with required interface`);
+assert(allLabsImported, `All 12 virtual lab modules load successfully with required interface`);
 
 // ----------------------------------------------------
 // Summary

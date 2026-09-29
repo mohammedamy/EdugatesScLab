@@ -638,6 +638,176 @@ export const icons = {
     <circle cx="35" cy="33.5" r="0.9" fill="#a7f3d0" fill-opacity="0.9"/>
   </svg>`,
 
+  vsepr: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="ico-vsepr-central" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#38bdf8"/>
+        <stop offset="45%" stop-color="#0284c7"/>
+        <stop offset="90%" stop-color="#0f172a"/>
+      </radialGradient>
+      <radialGradient id="ico-vsepr-ligand1" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#34d399"/>
+        <stop offset="50%" stop-color="#059669"/>
+        <stop offset="100%" stop-color="#064e3b"/>
+      </radialGradient>
+      <radialGradient id="ico-vsepr-ligand2" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#a78bfa"/>
+        <stop offset="50%" stop-color="#7c3aed"/>
+        <stop offset="100%" stop-color="#4c1d95"/>
+      </radialGradient>
+      <radialGradient id="ico-vsepr-lonepair" cx="40%" cy="30%" r="65%">
+        <stop offset="0%" stop-color="#fef08a" stop-opacity="0.8"/>
+        <stop offset="60%" stop-color="#eab308" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#ca8a04" stop-opacity="0.05"/>
+      </radialGradient>
+      <linearGradient id="ico-vsepr-bond" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#94a3b8"/>
+        <stop offset="100%" stop-color="#475569"/>
+      </linearGradient>
+    </defs>
+    <!-- Background Lone Pair Electron Density Cloud / Lobes (Top-Left) -->
+    <path d="M24 24 C20 18 14 10 17 6 C20 2 27 8 24 24 Z" fill="url(#ico-vsepr-lonepair)" stroke="#eab308" stroke-width="0.8" stroke-dasharray="2 1.5"/>
+    <circle cx="19" cy="9" r="1.1" fill="#fde047"/>
+    <circle cx="22" cy="7.5" r="1.1" fill="#fde047"/>
+    
+    <!-- Dipole Moment Vector Arrow (Net Dipole with Crossed Tail) -->
+    <path d="M24 24 L36 12" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M33 11 L37 11 L37 15" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="22" y1="24" x2="25" y2="27" stroke="#f59e0b" stroke-width="1.6"/>
+    
+    <!-- Covalent Bonds radiating in 3D tetrahedral angles -->
+    <line x1="24" y1="24" x2="38" y2="28" stroke="url(#ico-vsepr-bond)" stroke-width="3" stroke-linecap="round"/>
+    <path d="M24 24 L10 37 L14 41 Z" fill="#64748b"/>
+    <path d="M24 24 L27 42" stroke="#64748b" stroke-width="2.5" stroke-dasharray="2.5 2"/>
+    <line x1="24" y1="24" x2="9" y2="20" stroke="url(#ico-vsepr-bond)" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Bond Angle Arc (109.5°) -->
+    <path d="M19 23 A8 8 0 0 1 29 25" stroke="#38bdf8" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+    <text x="21" y="31" fill="#38bdf8" font-size="4" font-family="system-ui, sans-serif" font-weight="800">109.5°</text>
+
+    <!-- Atoms: Peripheral Ligands -->
+    <circle cx="8" cy="20" r="4.2" fill="url(#ico-vsepr-ligand1)"/>
+    <circle cx="6.8" cy="18.5" r="1.1" fill="#ffffff" fill-opacity="0.8"/>
+    <circle cx="39" cy="29" r="4.8" fill="url(#ico-vsepr-ligand1)"/>
+    <circle cx="37.5" cy="27.5" r="1.2" fill="#ffffff" fill-opacity="0.8"/>
+    <circle cx="27" cy="42" r="3.8" fill="url(#ico-vsepr-ligand2)" opacity="0.85"/>
+    <circle cx="26" cy="41" r="0.9" fill="#ffffff" fill-opacity="0.6"/>
+    <circle cx="12" cy="39" r="5.6" fill="url(#ico-vsepr-ligand1)"/>
+    <circle cx="10.5" cy="37" r="1.6" fill="#ffffff" fill-opacity="0.85"/>
+
+    <!-- Central Atom (Hub) -->
+    <circle cx="24" cy="24" r="7.2" fill="url(#ico-vsepr-central)"/>
+    <circle cx="21.5" cy="21.5" r="2.2" fill="#ffffff" fill-opacity="0.85"/>
+    <text x="22" y="26.5" fill="#ffffff" font-size="6.5" font-family="system-ui, sans-serif" font-weight="900" text-anchor="middle">A</text>
+  </svg>`,
+
+  waveInterference: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-wave-barrier" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#475569"/>
+        <stop offset="100%" stop-color="#1e293b"/>
+      </linearGradient>
+      <radialGradient id="ico-wave-src" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="60%" stop-color="#38bdf8"/>
+        <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <!-- Plane incident wavefronts from left -->
+    <line x1="4" y1="8" x2="4" y2="40" stroke="#0ea5e9" stroke-width="1.4" opacity="0.6"/>
+    <line x1="9" y1="8" x2="9" y2="40" stroke="#38bdf8" stroke-width="1.6" opacity="0.8"/>
+    <line x1="14" y1="8" x2="14" y2="40" stroke="#00f0ff" stroke-width="1.8"/>
+
+    <!-- Double-Slit Barrier Wall -->
+    <rect x="17" y="4" width="3" height="11" rx="1" fill="url(#ico-wave-barrier)" stroke="#64748b" stroke-width="0.8"/>
+    <rect x="17" y="21" width="3" height="6" rx="1" fill="url(#ico-wave-barrier)" stroke="#64748b" stroke-width="0.8"/>
+    <rect x="17" y="33" width="3" height="11" rx="1" fill="url(#ico-wave-barrier)" stroke="#64748b" stroke-width="0.8"/>
+
+    <!-- Slit 1 & Slit 2 Glow Sources -->
+    <circle cx="18.5" cy="18" r="2.5" fill="url(#ico-wave-src)"/>
+    <circle cx="18.5" cy="30" r="2.5" fill="url(#ico-wave-src)"/>
+
+    <!-- Coherent Circular Wavefronts S1 -->
+    <path d="M18.5 11 A7 7 0 0 1 25.5 18 A7 7 0 0 1 18.5 25" stroke="#38bdf8" stroke-width="1.1" fill="none" opacity="0.7"/>
+    <path d="M18.5 6 A12 12 0 0 1 30.5 18 A12 12 0 0 1 18.5 30" stroke="#00f0ff" stroke-width="1.2" fill="none" opacity="0.8"/>
+    <path d="M18.5 1 A17 17 0 0 1 35.5 18" stroke="#38bdf8" stroke-width="1.1" fill="none" opacity="0.6"/>
+
+    <!-- Coherent Circular Wavefronts S2 -->
+    <path d="M18.5 23 A7 7 0 0 1 25.5 30 A7 7 0 0 1 18.5 37" stroke="#38bdf8" stroke-width="1.1" fill="none" opacity="0.7"/>
+    <path d="M18.5 18 A12 12 0 0 1 30.5 30 A12 12 0 0 1 18.5 42" stroke="#00f0ff" stroke-width="1.2" fill="none" opacity="0.8"/>
+    <path d="M18.5 13 A17 17 0 0 1 35.5 30" stroke="#38bdf8" stroke-width="1.1" fill="none" opacity="0.6"/>
+
+    <!-- Central Antinodal Constructive Line (Bright axis) -->
+    <line x1="20" y1="24" x2="42" y2="24" stroke="#fde047" stroke-width="1.2" stroke-dasharray="2 2" opacity="0.85"/>
+
+    <!-- Detector Screen on Right -->
+    <line x1="43" y1="4" x2="43" y2="44" stroke="#94a3b8" stroke-width="1.5"/>
+
+    <!-- Interference Fringe Intensity Curve I(y) on detector -->
+    <path d="M43 6 Q41 9 43 12 Q40 14 43 16 Q37 20 43 24 Q37 28 43 32 Q40 34 43 36 Q41 39 43 42" stroke="#00f0ff" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <circle cx="43" cy="24" r="2.2" fill="#00f0ff"/>
+    <circle cx="43" cy="14" r="1.4" fill="#38bdf8"/>
+    <circle cx="43" cy="34" r="1.4" fill="#38bdf8"/>
+  </svg>`,
+
+  photosynthesis: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-photo-chloroplast" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#15803d"/>
+        <stop offset="40%" stop-color="#047857"/>
+        <stop offset="100%" stop-color="#064e3b"/>
+      </linearGradient>
+      <linearGradient id="ico-photo-thylakoid" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#86efac"/>
+        <stop offset="50%" stop-color="#22c55e"/>
+        <stop offset="100%" stop-color="#16a34a"/>
+      </linearGradient>
+      <linearGradient id="ico-photo-sunbeam" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#fef08a"/>
+        <stop offset="50%" stop-color="#facc15"/>
+        <stop offset="100%" stop-color="#ea580c"/>
+      </linearGradient>
+      <radialGradient id="ico-photo-o2-bubble" cx="35%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#ffffff"/>
+        <stop offset="40%" stop-color="#7dd3fc"/>
+        <stop offset="80%" stop-color="#0284c7"/>
+        <stop offset="100%" stop-color="#0369a1"/>
+      </radialGradient>
+    </defs>
+    <!-- Sunlight Photon Rays (Top-Left) -->
+    <path d="M4 6 L14 16" stroke="url(#ico-photo-sunbeam)" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M12 16 L14 16 L14 14" stroke="#facc15" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M10 4 L19 13" stroke="url(#ico-photo-sunbeam)" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="5" cy="5" r="2.5" fill="#fde047"/>
+
+    <!-- Chloroplast Double-Membrane Organelle Envelope (Oval) -->
+    <ellipse cx="26" cy="27" rx="19" ry="14" fill="url(#ico-photo-chloroplast)" stroke="#22c55e" stroke-width="1.8"/>
+    <ellipse cx="26" cy="27" rx="16.5" ry="11.8" fill="none" stroke="#4ade80" stroke-width="0.9" opacity="0.6" stroke-dasharray="3 2"/>
+
+    <!-- Grana 1 (Left Stack of Thylakoids) -->
+    <ellipse cx="17" cy="24" rx="5" ry="1.6" fill="url(#ico-photo-thylakoid)"/>
+    <ellipse cx="17" cy="27" rx="5" ry="1.6" fill="url(#ico-photo-thylakoid)"/>
+    <ellipse cx="17" cy="30" rx="5" ry="1.6" fill="url(#ico-photo-thylakoid)"/>
+    <!-- Interconnecting Stroma Lamella -->
+    <path d="M17 27 Q24 28 31 26" stroke="#86efac" stroke-width="1.2" fill="none"/>
+
+    <!-- Grana 2 (Right Stack of Thylakoids) -->
+    <ellipse cx="31" cy="23" rx="5.5" ry="1.7" fill="url(#ico-photo-thylakoid)"/>
+    <ellipse cx="31" cy="26" rx="5.5" ry="1.7" fill="url(#ico-photo-thylakoid)"/>
+    <ellipse cx="31" cy="29" rx="5.5" ry="1.7" fill="url(#ico-photo-thylakoid)"/>
+    <ellipse cx="31" cy="32" rx="5.5" ry="1.7" fill="url(#ico-photo-thylakoid)"/>
+
+    <!-- Rising O2 Gas Bubbles with Specular Highlight (Right) -->
+    <circle cx="40" cy="11" r="3.2" fill="url(#ico-photo-o2-bubble)"/>
+    <circle cx="39" cy="9.8" r="0.9" fill="#ffffff" fill-opacity="0.9"/>
+    <circle cx="36" cy="5" r="2.2" fill="url(#ico-photo-o2-bubble)"/>
+    <circle cx="35.3" cy="4.2" r="0.6" fill="#ffffff" fill-opacity="0.9"/>
+    
+    <!-- Chemical Formula Badge: O2 + C6 -->
+    <rect x="2" y="36" width="18" height="9" rx="3" fill="#0f172a" fill-opacity="0.85" stroke="#38bdf8" stroke-width="0.8"/>
+    <text x="4" y="42.5" fill="#38bdf8" font-size="5.2" font-family="system-ui, sans-serif" font-weight="900">O₂+C₆</text>
+  </svg>`,
+
   cards: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect width="14" height="16" x="6" y="5" rx="2"/>
     <path d="M4 19h14"/>

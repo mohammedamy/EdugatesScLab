@@ -25,6 +25,9 @@ import { initGasLawsLab } from "./labs/chem-gas-laws.js";
 import { initDnaProteinLab } from "./labs/bio-dna-protein.js";
 import { initPunnettLab } from "./labs/bio-punnett-square.js";
 import { initOpticsLab } from "./labs/phys-optics.js";
+import { initVseprLab } from "./labs/chem-vsepr.js";
+import { initWaveLab } from "./labs/phys-waves.js";
+import { initPhotosynthesisLab } from "./labs/bio-photosynthesis.js";
 
 // Initialize Theme
 const savedTheme = localStorage.getItem("edugates_theme") || "night";
@@ -74,8 +77,8 @@ export const NAV_SUBJECTS = [
   {
     id: "labs",
     name: "Virtual Labs",
-    badge: "9 Labs",
-    tagline: "9 Interactive STEM Workbenches",
+    badge: "12 Labs",
+    tagline: "12 Interactive STEM Workbenches",
     icon: icons.microscope,
     themeClass: "tab-labs",
     color: "#38bdf8"
@@ -698,7 +701,10 @@ function formatLabName(labKey) {
     "lab-gas-laws": "Gas Kinetics & Thermal",
     "lab-dna-protein": "DNA & Molecular Genetics",
     "lab-punnett": "Punnett Genetics & Ecology",
-    "lab-optics": "Optics & Wave Phenomena"
+    "lab-optics": "Optics & Wave Phenomena",
+    "lab-vsepr": "VSEPR & Molecular Geometry",
+    "lab-waves": "Wave Interference & Optics",
+    "lab-photosynthesis": "Photosynthesis & Respiration"
   };
   return map[labKey] || "Virtual Laboratory";
 }
@@ -1058,7 +1064,7 @@ function renderVirtualLabsHub(container) {
           High-performance physics, chemistry, and biological simulations with live numerical data telemetry, variable control inputs, real-time calculus, and interactive laboratory apparatus.
         </p>
 
-        <!-- 9 Lab Selector Tabs -->
+        <!-- 12 Lab Selector Tabs -->
         <div class="lab-nav-pills-container">
           <button class="btn ${AppState.activeLabId === 'projectile' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="projectile">
             <span class="lab-btn-icon-wrapper">${icons.projectile}</span>
@@ -1095,6 +1101,18 @@ function renderVirtualLabsHub(container) {
           <button class="btn ${AppState.activeLabId === 'optics' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="optics">
             <span class="lab-btn-icon-wrapper">${icons.optics}</span>
             <span class="lab-btn-title">Geometric Optics Ray Tracing</span>
+          </button>
+          <button class="btn ${AppState.activeLabId === 'vsepr' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="vsepr">
+            <span class="lab-btn-icon-wrapper">${icons.vsepr}</span>
+            <span class="lab-btn-title">VSEPR 3D Modeler</span>
+          </button>
+          <button class="btn ${AppState.activeLabId === 'waves' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="waves">
+            <span class="lab-btn-icon-wrapper">${icons.waveInterference}</span>
+            <span class="lab-btn-title">Wave Interference &amp; Slits</span>
+          </button>
+          <button class="btn ${AppState.activeLabId === 'photosynthesis' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="photosynthesis">
+            <span class="lab-btn-icon-wrapper">${icons.photosynthesis}</span>
+            <span class="lab-btn-title">Photosynthesis &amp; Respirometer</span>
           </button>
         </div>
       </div>
@@ -1146,5 +1164,11 @@ function mountActiveLab() {
     initPunnettLab("active-lab-mount");
   } else if (AppState.activeLabId === "optics") {
     initOpticsLab("active-lab-mount");
+  } else if (AppState.activeLabId === "vsepr") {
+    initVseprLab("active-lab-mount");
+  } else if (AppState.activeLabId === "waves") {
+    initWaveLab("active-lab-mount");
+  } else if (AppState.activeLabId === "photosynthesis") {
+    initPhotosynthesisLab("active-lab-mount");
   }
 }
