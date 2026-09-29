@@ -184,16 +184,18 @@ export function exportToDocx({ title, filename, content, subject = "Science", or
       margin-bottom: 4pt;
       font-size: 9pt;
       font-family: 'Consolas', 'Courier New', monospace;
+      text-align: left;
     }
     .omr-q-num {
       display: inline-block;
       min-width: 22pt;
       font-weight: bold;
-      text-align: right;
-      margin-right: 6pt;
+      text-align: left;
+      margin-right: 4pt;
     }
     .omr-bubbles-group {
       display: inline-block;
+      text-align: left;
     }
     .omr-section-card {
       display: inline-block;
@@ -202,6 +204,7 @@ export function exportToDocx({ title, filename, content, subject = "Science", or
       padding: 8pt 10pt;
       margin: 6pt;
       background-color: #ffffff;
+      text-align: left;
     }
   </style>
 </head>

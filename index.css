@@ -3021,9 +3021,11 @@ html, body {
 
   .omr-sections-grid {
     display: flex !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
     gap: 16px !important;
     flex-wrap: wrap !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
   }
 
   .omr-section-card {
@@ -3036,6 +3038,8 @@ html, body {
     min-width: 135px !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+    text-align: left !important;
+    margin: 0 !important;
   }
 
   .omr-q-row {
@@ -3044,15 +3048,17 @@ html, body {
     justify-content: flex-start !important;
     gap: 5px !important;
     margin-bottom: 5px !important;
+    margin-right: auto !important;
     font-family: var(--font-mono), monospace !important;
     font-size: 0.84rem !important;
     width: fit-content !important;
+    text-align: left !important;
   }
 
   .omr-q-num {
     font-weight: 800 !important;
     min-width: 24px !important;
-    text-align: right !important;
+    text-align: left !important;
     color: #000000 !important;
     margin-right: 2px !important;
   }
@@ -3060,7 +3066,10 @@ html, body {
   .omr-bubbles-group {
     display: flex !important;
     align-items: center !important;
+    justify-content: flex-start !important;
     gap: 5px !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
   }
 
   .omr-bubble {
@@ -3094,9 +3103,11 @@ html, body {
 /* OMR Bubble & Paper-Saver Preview Rules (Screen Mode) */
 .omr-sections-grid {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 16px;
   flex-wrap: wrap;
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .omr-section-card {
@@ -3107,6 +3118,8 @@ html, body {
   width: fit-content;
   max-width: 145px;
   min-width: 135px;
+  text-align: left;
+  margin: 0;
 }
 
 .omr-q-row {
@@ -3115,15 +3128,17 @@ html, body {
   justify-content: flex-start;
   gap: 5px;
   margin-bottom: 5px;
+  margin-right: auto;
   font-family: var(--font-mono), monospace;
   font-size: 0.84rem;
   width: fit-content;
+  text-align: left;
 }
 
 .omr-q-num {
   font-weight: 800;
   min-width: 24px;
-  text-align: right;
+  text-align: left;
   color: #000000;
   margin-right: 2px;
 }
@@ -3131,7 +3146,10 @@ html, body {
 .omr-bubbles-group {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 5px;
+  margin-left: 0;
+  margin-right: auto;
 }
 
 .omr-bubble {

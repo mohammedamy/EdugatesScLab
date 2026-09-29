@@ -38,6 +38,12 @@ assert(quizEngineSrc.includes('class="omr-q-num"'),
 assert(quizEngineSrc.includes('class="omr-bubbles-group"'), 
   "omr-bubbles-group class groups option bubbles immediately next to question number");
 
+assert(quizEngineSrc.includes('margin-right: auto; text-align: left;') && quizEngineSrc.includes('text-align: left; color: #000000; margin-right: 2px;'),
+  "omr-q-row and omr-q-num strictly left-aligned");
+
+assert(quizEngineSrc.includes('justify-content: flex-start; gap: 8px; align-items: center;'),
+  "Answer key matrix bubbles are strictly left-aligned next to question numbers");
+
 // Verify column balancing logic
 assert(quizEngineSrc.includes('const numCols = questions.length <= 15 ? 1 : (questions.length <= 30 ? 2 : (questions.length <= 60 ? 3 : 4));'),
   "Columns are balanced dynamically based on total question count");
@@ -52,8 +58,11 @@ assert(indexCssSrc.includes('.omr-q-row {') && indexCssSrc.includes('justify-con
 assert(indexCssSrc.includes('.omr-bubbles-group {') && indexCssSrc.includes('display: flex'),
   "index.css defines .omr-bubbles-group");
 
-assert(indexCssSrc.includes('.omr-sections-grid {') && indexCssSrc.includes('justify-content: center'),
-  "index.css centers section columns cleanly");
+assert(indexCssSrc.includes('.omr-sections-grid {') && indexCssSrc.includes('justify-content: flex-start'),
+  "index.css aligns section columns to the left cleanly");
+
+assert(indexCssSrc.includes('.omr-q-num {') && indexCssSrc.includes('text-align: left'),
+  "index.css aligns question numbers to the left");
 
 console.log("\n========================================================");
 console.log(`📊 Bubble Sheet Tests: ${passed} Passed, ${failed} Failed`);

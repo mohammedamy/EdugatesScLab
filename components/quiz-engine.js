@@ -1786,9 +1786,9 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         cols.push(questions.slice(i, i + colSize).map((q) => {
           const qNum = q.formIndex;
           return `
-            <div class="omr-q-row" style="display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-bottom: 5px; font-family: var(--font-mono), monospace; font-size: 0.84rem; width: fit-content;">
-              <span class="omr-q-num" style="font-weight: 800; min-width: 24px; text-align: right; color: #000000; margin-right: 2px;">${qNum < 10 ? '0' + qNum : qNum}.</span>
-              <div class="omr-bubbles-group" style="display: flex; gap: 5px; align-items: center;">
+            <div class="omr-q-row" style="display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-bottom: 5px; font-family: var(--font-mono), monospace; font-size: 0.84rem; width: fit-content; margin-right: auto; text-align: left;">
+              <span class="omr-q-num" style="font-weight: 800; min-width: 24px; text-align: left; color: #000000; margin-right: 2px;">${qNum < 10 ? '0' + qNum : qNum}.</span>
+              <div class="omr-bubbles-group" style="display: flex; gap: 5px; align-items: center; justify-content: flex-start; margin-left: 0; margin-right: auto;">
                 <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option A">A</span>
                 <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option B">B</span>
                 <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option C">C</span>
@@ -1875,10 +1875,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           </div>
 
           <!-- Multi-Column Bubble Grid -->
-          <div class="omr-sections-grid" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 4px 0;">
+          <div class="omr-sections-grid" style="display: flex; justify-content: flex-start; gap: 20px; flex-wrap: wrap; padding: 4px 0; margin-left: 0; margin-right: auto;">
             ${cols.map((colHtml, colIdx) => `
-              <div class="omr-section-card" style="border: 1.5px solid #000000; border-radius: 4px; padding: 8px 10px; background: #ffffff; width: fit-content; max-width: 145px; min-width: 135px;">
-                <div style="font-size: 0.74rem; font-weight: 800; text-align: center; border-bottom: 1.5px solid #000000; padding-bottom: 4px; margin-bottom: 8px; color: #000000; letter-spacing: 0.05em;">
+              <div class="omr-section-card" style="border: 1.5px solid #000000; border-radius: 4px; padding: 8px 10px; background: #ffffff; width: fit-content; max-width: 145px; min-width: 135px; text-align: left; margin: 0;">
+                <div style="font-size: 0.74rem; font-weight: 800; text-align: left; border-bottom: 1.5px solid #000000; padding-bottom: 4px; margin-bottom: 8px; color: #000000; letter-spacing: 0.05em; width: 100%;">
                   SECTION ${colIdx + 1}
                 </div>
                 ${colHtml}
@@ -2080,8 +2080,8 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 <!-- Answer Key Matrix Table -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 24px;">
                   ${displayQuestions.map(q => `
-                    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-family: var(--font-mono);">
-                      <span style="font-weight: 700; color: #475569;">Q${q.formIndex}:</span>
+                    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; background: #f8fafc; display: flex; justify-content: flex-start; gap: 8px; align-items: center; font-size: 0.85rem; font-family: var(--font-mono);">
+                      <span style="font-weight: 700; color: #475569; min-width: 32px;">Q${q.formIndex}:</span>
                       <strong style="font-size: 1.05rem; color: #000000; background: #e2e8f0; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;">
                         ${String.fromCharCode(65 + q.formCorrectIdx)}
                       </strong>

@@ -6,7 +6,7 @@ import { biologyCurriculum } from "./data/biology-curriculum.js";
 import { physicsCurriculum } from "./data/physics-curriculum.js";
 import { icons } from "./assets/icons.js";
 import { openModuleModal } from "./components/module-viewer.js";
-import { renderQuizEngine } from "./components/quiz-engine.js";
+import { renderQuizEngine } from "./components/quiz-engine.js?v=2.9";
 import { initSmartboardToolbar } from "./components/smartboard-toolbar.js";
 import { renderFlashcards } from "./components/flashcards.js";
 import { openProgressModal, ProgressStore } from "./components/progress-tracker.js";
