@@ -3097,38 +3097,67 @@ function buildDensityInteractive(mountId, params) {
         // F_net = F_gravity - F_buoyancy
         // mass (kg) = mass / 1000
         const massKg = Math.max(0.005, mass / 1000);
-        const fNet = fGravity - fBuoyant; // Positive downwards
+        const fNet = fGravity - fBuoyant; // Positive downwards (negative when buoyant force dominates)
         const aPhys = (fNet / massKg); // m/s^2
 
         // Visual scaling: map m/s^2 to px/s^2
-        const aVisual = aPhys * 65;
+        const aVisual = aPhys * 110;
         // Hydrodynamic viscous drag: opposes velocity
-        const dragCoeff = 3.6;
+        const dragCoeff = 3.2;
         blockVy += (aVisual - dragCoeff * blockVy) * dt;
         blockY += blockVy * dt;
 
         // Bottom collision with beaker
-        if (blockBottomY >= bottomY) {
+        if (blockY + blockSize >= bottomY) {
           blockY = bottomY - blockSize;
-          if (blockVy > 15) {
-            blockVy = -blockVy * 0.18; // soft damp bounce
-            // Release micro bubbles
-            for (let b = 0; b < 3; b++) {
-              bubbles.push({
-                x: objX + Math.random() * blockSize,
-                y: bottomY - 5,
-                vy: -30 - Math.random() * 25,
-                radius: 1.5 + Math.random() * 2
-              });
+          if (sinks) {
+            // Denser than fluid (ρ > 1.0): rests on beaker bottom
+            if (blockVy > 12) {
+              blockVy = -blockVy * 0.18; // soft damp bounce
+              // Release micro bubbles
+              for (let b = 0; b < 3; b++) {
+                bubbles.push({
+                  x: objX + Math.random() * blockSize,
+                  y: bottomY - 5,
+                  vy: -30 - Math.random() * 25,
+                  radius: 1.5 + Math.random() * 2
+                });
+              }
+            } else {
+              blockVy = 0;
             }
           } else {
+            // Less dense than fluid (ρ <= 1.0, e.g. Ice, Wood):
+            // Buoyant upward push! Rebound if plunging down, and NEVER trap at bottom
+            if (blockVy > 0) {
+              blockVy = -Math.abs(blockVy) * 0.35; // upward bounce
+              for (let b = 0; b < 4; b++) {
+                bubbles.push({
+                  x: objX + Math.random() * blockSize,
+                  y: bottomY - 5,
+                  vy: -40 - Math.random() * 25,
+                  radius: 1.5 + Math.random() * 2
+                });
+              }
+            }
+            // CRITICAL FIX: If blockVy <= 0 (moving up), DO NOT clamp blockVy to 0!
+            // Upward buoyant force (F_b > F_g) naturally accelerates specimen to the surface!
+          }
+        }
+
+        // Floating equilibrium soft snap when near resting point
+        if (!sinks) {
+          const targetSubmergedPx = blockSize * Math.min(1.0, density);
+          const currentSubmergedPx = Math.max(0, Math.min(blockSize, (blockY + blockSize) - waterSurfaceY));
+          if (Math.abs(blockVy) < 2.5 && Math.abs(currentSubmergedPx - targetSubmergedPx) < 1.5) {
             blockVy = 0;
+            blockY = waterSurfaceY - (blockSize - targetSubmergedPx);
           }
         }
 
         // Status badge updates
         if (sinks) {
-          if (blockBottomY >= bottomY - 1) {
+          if (blockY + blockSize >= bottomY - 1) {
             statusBadge.innerText = `Sunk to Beaker Bottom (ρ = ${density.toFixed(2)} g/cm³)`;
             statusBadge.style.color = "#f87171";
             statusBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
@@ -3138,12 +3167,16 @@ function buildDensityInteractive(mountId, params) {
             statusBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
           }
         } else {
-          if (Math.abs(blockVy) > 4) {
+          if (blockY + blockSize >= bottomY - 2 && blockVy >= 0) {
+            statusBadge.innerText = "Rebounding from Bottom (F_b > F_g)";
+            statusBadge.style.color = "#38bdf8";
+            statusBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
+          } else if (Math.abs(blockVy) > 3) {
             statusBadge.innerText = "Damped Bobbing Oscillation";
             statusBadge.style.color = "#38bdf8";
             statusBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
           } else {
-            const pct = (currentSubmergeRatio * 100).toFixed(0);
+            const pct = (Math.min(1.0, density) * 100).toFixed(0);
             statusBadge.innerText = `Floats Equilibrium (${pct}% Submerged)`;
             statusBadge.style.color = "#34d399";
             statusBadge.style.borderColor = "rgba(16, 185, 129, 0.4)";
