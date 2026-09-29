@@ -58,16 +58,28 @@ export async function safeCopyTextToClipboard(text) {
  */
 export function getAbsoluteShareUrl(routeOrHash = "") {
   try {
-    const base = new URL(window.location.href);
+    const isLocal = typeof window === "undefined" || 
+                    !window.location.hostname || 
+                    window.location.hostname === "localhost" || 
+                    window.location.hostname === "127.0.0.1" || 
+                    window.location.protocol === "file:";
+    const canonicalBase = isLocal ? "https://mohammedamy.github.io/EdugtesScLab/" : (window.location.origin + window.location.pathname);
+    const base = new URL(canonicalBase);
     if (!routeOrHash) return base.toString();
     if (routeOrHash.startsWith("http://") || routeOrHash.startsWith("https://")) {
+      try {
+        const parsed = new URL(routeOrHash);
+        if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1" || parsed.protocol === "file:") {
+          return canonicalBase + (parsed.hash || "");
+        }
+      } catch (err) {}
       return routeOrHash;
     }
     const hash = routeOrHash.startsWith("#") ? routeOrHash : "#" + routeOrHash;
     base.hash = hash;
     return base.toString();
   } catch (e) {
-    return window.location.href;
+    return "https://mohammedamy.github.io/EdugtesScLab/";
   }
 }
 

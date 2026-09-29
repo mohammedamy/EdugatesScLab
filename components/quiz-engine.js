@@ -1891,13 +1891,21 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
     function renderDOM() {
       const displayQuestions = getFormQuestions(printForm);
-      const originUrl = window.location.origin + window.location.pathname;
+      const isLocal = typeof window === "undefined" || 
+                      !window.location.hostname || 
+                      window.location.hostname === "localhost" || 
+                      window.location.hostname === "127.0.0.1" || 
+                      window.location.protocol === "file:";
+      const originUrl = isLocal ? "https://mohammedamy.github.io/EdugtesScLab/" : (window.location.origin + window.location.pathname);
       const scopeParam = Array.from(selectedLessons).join(",");
-      const qrDeepLink = `${originUrl}#quiz?scope=${encodeURIComponent(scopeParam)}&subj=${selectedSubject}`;
+      const qrDeepLink = scopeParam 
+        ? `${originUrl}#quiz?scope=${encodeURIComponent(scopeParam)}&subj=${selectedSubject}`
+        : `${originUrl}#quiz?subj=${selectedSubject}`;
       let qrSvg = "";
       try {
-        qrSvg = generateQRSvg(qrDeepLink, { pixelSize: 3, margin: 1 });
+        qrSvg = generateQRSvg(qrDeepLink, { pixelSize: 3, margin: 2 });
       } catch (err) {
+        console.error("QR Generation error:", err);
         qrSvg = `<div style="font-size: 0.65rem; color: #64748b; text-align: center; padding: 8px;">Scan URL:<br>${qrDeepLink.slice(0, 30)}...</div>`;
       }
 
@@ -2004,7 +2012,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                       <div style="font-size: 1.5rem; font-weight: 900; color: #000000;">${printForm}</div>
                     </div>
                     <div style="display: flex; align-items: center; gap: 8px; border: 1.5px solid #000000; border-radius: 6px; padding: 5px 8px; background: #ffffff;">
-                      <div style="width: 54px; height: 54px; flex-shrink: 0;">
+                      <div style="width: 60px; height: 60px; flex-shrink: 0;">
                         ${qrSvg}
                       </div>
                       <div style="font-size: 0.7rem; color: #000000; max-width: 105px; line-height: 1.2; font-weight: 500;">
