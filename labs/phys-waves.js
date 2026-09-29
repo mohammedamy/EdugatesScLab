@@ -481,7 +481,11 @@ export function initWaveLab(containerId) {
       const ctrlSlitSep = container.querySelector("#ctrl-slit-sep");
       const ctrlSlitWidth = container.querySelector("#ctrl-slit-width");
       const ctrlDopplerVel = container.querySelector("#ctrl-doppler-vel");
-      if (ctrlSlitSep) ctrlSlitSep.style.display = setupMode === "double_slit" ? "block" : "none";
+      if (ctrlSlitSep) {
+        ctrlSlitSep.style.display = (setupMode === "double_slit" || setupMode === "dual_sources") ? "block" : "none";
+        const titleSpan = ctrlSlitSep.querySelector("span:first-child");
+        if (titleSpan) titleSpan.innerText = setupMode === "dual_sources" ? "Source Separation (d)" : "Slit Separation (d)";
+      }
       if (ctrlSlitWidth) ctrlSlitWidth.style.display = (setupMode === "double_slit" || setupMode === "single_slit") ? "block" : "none";
       if (ctrlDopplerVel) ctrlDopplerVel.style.display = setupMode === "doppler" ? "block" : "none";
 

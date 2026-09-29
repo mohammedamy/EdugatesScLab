@@ -29,6 +29,8 @@ if (typeof window !== "undefined" && window.matchMedia) {
 }
 
 // Global Application State
+let currentActiveLabCleanup = null;
+
 const AppState = {
   currentTab: "chem", // 'chem', 'bio', 'phys', 'labs', 'quiz', 'flashcards'
   deviceMode: "auto", // 'auto', 'smartboard', 'desktop', 'tablet', 'mobile'
@@ -620,8 +622,6 @@ export function handleHashRoute() {
 // Fallback default
   switchTab("chem", false);
 }
-
-let currentActiveLabCleanup = null;
 
 function switchTab(tabId, updateHash = true) {
   if (tabId !== "labs" && typeof currentActiveLabCleanup === "function") {
