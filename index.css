@@ -3012,6 +3012,13 @@ html, body {
     border: 2px solid #000000 !important;
   }
 
+  .print-bubble-sheet.standalone-sheet,
+  .print-solution-key.standalone-sheet {
+    page-break-before: auto !important;
+    break-before: auto !important;
+    margin-top: 0 !important;
+  }
+
   .omr-sections-grid {
     display: flex !important;
     justify-content: center !important;

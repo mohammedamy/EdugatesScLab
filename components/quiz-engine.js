@@ -1802,7 +1802,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       const maxColWidth = '145px';
 
       return `
-        <div class="print-bubble-sheet" style="page-break-before: always; margin-top: 24px; border: 2px solid #000000; padding: 24px 30px; border-radius: 4px; background: #ffffff; color: #000000;">
+        <div class="print-bubble-sheet ${!printShowTest ? 'standalone-sheet' : ''}" style="${printShowTest ? 'page-break-before: always; margin-top: 24px;' : 'page-break-before: auto; margin-top: 0;'} border: 2px solid #000000; padding: 24px 30px; border-radius: 4px; background: #ffffff; color: #000000;">
           <!-- Bubble Sheet Header -->
           <div style="border-bottom: 2px solid #000000; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
@@ -2062,7 +2062,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
             <!-- Section III: Teacher Scoring Guide & Detailed Solutions Key -->
             ${printShowKey ? `
-              <div style="page-break-before: always; margin-top: 40px; border-top: 2px dashed #000000; padding-top: 24px;">
+              <div class="print-solution-key ${!(printShowTest || printShowBubble) ? 'standalone-sheet' : ''}" style="${(printShowTest || printShowBubble) ? 'page-break-before: always; margin-top: 40px; border-top: 2px dashed #000000; padding-top: 24px;' : 'page-break-before: auto; margin-top: 0; border-top: none; padding-top: 0;'}">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000000; padding-bottom: 12px; margin-bottom: 20px;">
                   <div>
                     <h2 style="font-size: 1.4rem; font-weight: 900; margin: 0 0 4px 0; color: #000000;">
