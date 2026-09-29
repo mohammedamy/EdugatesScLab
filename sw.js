@@ -2,7 +2,7 @@
 // Network-First with Cache Fallback for dynamic local scripts & styles,
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts).
 
-const CACHE_NAME = "amscilab-pwa-v17";
+const CACHE_NAME = "amscilab-pwa-v20";
 
 const CORE_ASSETS = [
   "./",
@@ -17,6 +17,7 @@ const CORE_ASSETS = [
   "./utils/qr-code.js",
   "./utils/toast.js",
   "./utils/lms-share.js",
+  "./utils/docx-export.js",
   "./data/chemistry-curriculum.js",
   "./data/biology-curriculum.js",
   "./data/physics-curriculum.js",

@@ -32,6 +32,8 @@ import { biologyCurriculum } from "../data/biology-curriculum.js";
 import { physicsCurriculum } from "../data/physics-curriculum.js";
 import { questionBank } from "../data/question-bank.js";
 import { getLessonInteractiveSpec } from "../components/lesson-interactives.js";
+import { SCIENTIFIC_DIAGRAMS } from "../data/scientific-diagrams.js";
+import { getOrGenerateDiagram } from "../scripts/diagram-svg-generator.mjs";
 
 console.log("\n========================================================");
 console.log("🧪 Edugates-ClipSAT Science Labs - Master Verification Suite");
@@ -211,6 +213,103 @@ await Promise.all(
   })
 );
 assert(allLabsImported, `All 12 virtual lab modules load successfully with required interface`);
+
+// ----------------------------------------------------
+// Test 6: Scientific Diagrams & Flagship SVG Models Verification
+// ----------------------------------------------------
+console.log("\n📐 Test 6: Scientific Diagrams & Flagship Vector SVG Models");
+const expectedFlagships = [
+  "chem_heating_curve",
+  "chem_rutherford_gold_foil",
+  "chem_mass_spectrometry",
+  "chem_energy_diagram",
+  "chem_titration_curve",
+  "chem_galvanic_cell",
+  "chem_le_chatelier_shifts",
+  "bio_membrane_fluid_mosaic",
+  "bio_photosynthesis_z_scheme",
+  "bio_pedigree_chart",
+  "bio_dna_replication_fork",
+  "bio_pcr_thermocycling",
+  "bio_action_potential",
+  "phys_velocity_time_graph",
+  "phys_free_body_incline",
+  "phys_carnot_cycle",
+  "phys_ray_refraction",
+  "phys_double_slit_interference",
+  "phys_circuit_resistors",
+  "phys_photoelectric_effect"
+];
+
+let allFlagshipsPresent = true;
+let flagshipsValidSvg = true;
+
+expectedFlagships.forEach(id => {
+  const diag = SCIENTIFIC_DIAGRAMS[id];
+  if (!diag) {
+    allFlagshipsPresent = false;
+    console.error(`Missing expected flagship diagram: ${id}`);
+    return;
+  }
+  if (!diag.svg || !diag.svg.includes("<svg") || !diag.svg.includes("</svg>") || !diag.svg.includes("viewBox")) {
+    flagshipsValidSvg = false;
+    console.error(`Diagram ${id} has invalid or missing SVG structure`);
+  }
+});
+
+assert(allFlagshipsPresent, `All ${expectedFlagships.length} flagship diagrams defined in SCIENTIFIC_DIAGRAMS`);
+assert(flagshipsValidSvg, `All flagship diagrams contain valid vector SVG markup with calibrated viewBox`);
+
+// Verify targeted flagship diagram additions
+const dnaDiag = SCIENTIFIC_DIAGRAMS.bio_dna_replication_fork;
+assert(
+  dnaDiag && dnaDiag.svg.includes("Helicase") && dnaDiag.svg.includes("Okazaki"),
+  "DNA Replication Fork model contains continuous/lagging strands, Helicase, and Okazaki fragments"
+);
+
+const peDiag = SCIENTIFIC_DIAGRAMS.phys_photoelectric_effect;
+assert(
+  peDiag && peDiag.svg.includes("Work Function") && peDiag.svg.includes("Fermi Level"),
+  "Photoelectric Effect model includes work function (Φ), Fermi level, and kinetic energy vs frequency graph"
+);
+
+const eqDiag = SCIENTIFIC_DIAGRAMS.chem_le_chatelier_shifts;
+assert(
+  eqDiag && (eqDiag.svg.includes("LE CHATELIER") || eqDiag.title.includes("Le Chatelier")) && eqDiag.svg.includes("[N₂]"),
+  "Le Chatelier Shifts model displays concentration vs time curves and stoichiometric consumption"
+);
+
+const ruthDiag = SCIENTIFIC_DIAGRAMS.chem_rutherford_gold_foil;
+assert(
+  ruthDiag && ruthDiag.svg.includes("RUTHERFORD") && ruthDiag.svg.includes("Gold Foil"),
+  "Rutherford Gold Foil model illustrates alpha particle trajectories and dense positive nucleus"
+);
+
+const photoDiag = SCIENTIFIC_DIAGRAMS.bio_photosynthesis_z_scheme;
+assert(
+  photoDiag && photoDiag.svg.includes("LIGHT-DEPENDENT") && photoDiag.svg.includes("PS II"),
+  "Photosynthesis Thylakoid model illustrates Z-scheme electron transport, photolysis, and ATP Synthase"
+);
+
+// Verify routing in getOrGenerateDiagram
+const chem17L2 = getOrGenerateDiagram("CHEM", { id: 17 }, { id: 2 }, null);
+assert(chem17L2 && chem17L2.id === "chem_le_chatelier_shifts", "CHEM-M17-L2 routes to chem_le_chatelier_shifts");
+
+const chem3L2 = getOrGenerateDiagram("CHEM", { id: 3 }, { id: 2 }, null);
+assert(chem3L2 && chem3L2.id === "chem_rutherford_gold_foil", "CHEM-M03-L2 routes to chem_rutherford_gold_foil");
+
+const bio11L2 = getOrGenerateDiagram("BIO", { id: 11 }, { id: 2 }, null);
+assert(bio11L2 && bio11L2.id === "bio_dna_replication_fork", "BIO-M11-L2 routes to bio_dna_replication_fork");
+
+const bio8L2 = getOrGenerateDiagram("BIO", { id: 8 }, { id: 2 }, null);
+assert(bio8L2 && bio8L2.id === "bio_photosynthesis_z_scheme", "BIO-M08-L2 routes to bio_photosynthesis_z_scheme");
+
+const phys22L1 = getOrGenerateDiagram("PHYS", { id: 22 }, { id: 1 }, null);
+assert(phys22L1 && phys22L1.id === "phys_photoelectric_effect", "PHYS-M22-L1 routes to phys_photoelectric_effect");
+
+// Verify interactive simulation mapping for BIO-M11-L2
+const bio11L2Spec = getLessonInteractiveSpec("BIO", 11, 2);
+assert(bio11L2Spec && bio11L2Spec.type === "bio-dna-replication", "BIO-M11-L2 interactive maps to dedicated 'bio-dna-replication' workbench");
 
 // ----------------------------------------------------
 // Summary

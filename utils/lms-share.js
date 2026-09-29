@@ -9,6 +9,7 @@
 import { showToast } from "./toast.js";
 import { SoundFX } from "./audio-synth.js";
 import { generateQRSvg } from "./qr-code.js";
+import { exportToDocx } from "./docx-export.js";
 
 /**
  * Resilient cross-browser clipboard copy with fallback to document.execCommand
@@ -195,7 +196,7 @@ export function openLmsShareModal(shareData = {}) {
     background: rgba(2, 6, 23, 0.82);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    z-index: 10005;
+    z-index: 210000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -468,8 +469,12 @@ export function openLmsShareModal(shareData = {}) {
               </div>
             </div>
 
-            <!-- Embed & Messaging Buttons -->
+            <!-- Embed, Export & Messaging Buttons -->
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm" id="btn-export-lms-docx" style="padding: 6px 12px; font-size: 0.78rem; display: flex; align-items: center; gap: 6px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); font-weight: 700;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <span>📄 Export Assignment Sheet (.docx)</span>
+              </button>
               <button class="btn btn-secondary btn-sm" id="btn-copy-embed" style="padding: 6px 12px; font-size: 0.78rem; display: flex; align-items: center; gap: 6px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                 <span>Copy &lt;iframe&gt; Embed</span>
@@ -663,5 +668,147 @@ export function openLmsShareModal(shareData = {}) {
     const teamsUrl = `https://teams.microsoft.com/share?href=${encodeURIComponent(fullUrl)}&msgText=${encodeURIComponent(`Science Lab: ${title}`)}`;
     window.open(teamsUrl, "_blank", "width=680,height=580");
     try { SoundFX.playScorePip(); } catch (e) {}
+  });
+
+  // Action: Export Editable Assignment Sheet (.docx)
+  const btnExportDocx = overlay.querySelector("#btn-export-lms-docx");
+  btnExportDocx?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const escapeXml = (str) => {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+    };
+
+    const assignmentHtml = `
+      <div style="font-family: 'Calibri', Arial, sans-serif; line-height: 1.5; color: #000000;">
+        <table style="width: 100%; border-bottom: 2pt solid #0284c7; padding-bottom: 8pt; margin-bottom: 14pt;">
+          <tr>
+            <td style="border: none; padding: 0;">
+              <h2 style="margin: 0; color: #0369a1; font-size: 16pt; font-weight: bold;">Edugates-ClipSAT Science Labs | Student Laboratory Assignment</h2>
+              <div style="font-size: 11pt; color: #475569; margin-top: 2pt;">${escapeXml(title)} &bull; ${escapeXml(subject)}${moduleCode ? ' &bull; ' + escapeXml(moduleCode) : ''}</div>
+            </td>
+            <td style="border: none; padding: 0; text-align: right; vertical-align: top;">
+              <div style="display: inline-block; border: 1pt solid #0284c7; padding: 4pt 8pt; font-size: 9pt; font-weight: bold; color: #0284c7;">
+                STEM INTERACTIVE DOSSIER
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Student Meta Header Table -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 14pt; border: 1pt solid #cbd5e1;">
+          <tr style="background-color: #f8fafc;">
+            <td style="width: 50%; padding: 6pt 10pt; border: 1pt solid #cbd5e1;"><strong>Student Name:</strong> _____________________________</td>
+            <td style="width: 25%; padding: 6pt 10pt; border: 1pt solid #cbd5e1;"><strong>Date:</strong> _______________</td>
+            <td style="width: 25%; padding: 6pt 10pt; border: 1pt solid #cbd5e1;"><strong>Period/Class:</strong> ________</td>
+          </tr>
+        </table>
+
+        <!-- Learning Objectives -->
+        <div style="background-color: #f0fdf4; border-left: 3pt solid #16a34a; padding: 8pt 12pt; margin-bottom: 14pt;">
+          <strong style="color: #166534; font-size: 11pt;">🎯 Targeted Learning Objectives &amp; Core Standards:</strong>
+          <ul style="margin: 6pt 0 0 16pt; padding: 0; color: #1e293b;">
+            ${(objectives && objectives.length > 0 ? objectives : ["Investigate scientific phenomena using authentic virtual instrumentation and empirical trials.", "Synthesize observations into quantitative and qualitative scientific conclusions."]).map(o => `<li>${escapeXml(o)}</li>`).join("")}
+          </ul>
+        </div>
+
+        <!-- Student Investigation Protocol -->
+        <h3 style="font-size: 13pt; color: #0f172a; border-bottom: 1pt solid #e2e8f0; padding-bottom: 4pt; margin-top: 16pt;">
+          🔬 Part 1: Interactive Virtual Laboratory Investigation
+        </h3>
+        <p style="margin-bottom: 8pt;">
+          <strong>Interactive Link:</strong> <a href="${escapeXml(fullUrl)}">${escapeXml(fullUrl)}</a>
+        </p>
+        <p style="font-size: 10pt; color: #334155; margin-bottom: 12pt;">
+          Launch the interactive simulation via the URL above. Adjust experimental parameters, record empirical observations, and complete the data table below.
+        </p>
+
+        <!-- Data Collection Table -->
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 16pt; border: 1pt solid #000000;">
+          <thead>
+            <tr style="background-color: #f1f5f9;">
+              <th style="border: 1pt solid #000000; padding: 6pt; width: 12%; text-align: center;">Trial #</th>
+              <th style="border: 1pt solid #000000; padding: 6pt; width: 28%;">Independent Variable (Input)</th>
+              <th style="border: 1pt solid #000000; padding: 6pt; width: 28%;">Dependent Variable (Output)</th>
+              <th style="border: 1pt solid #000000; padding: 6pt; width: 32%;">Observations &amp; Physical Behavior</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt; text-align: center;">Trial 1</td>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt;"></td>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt;"></td>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt;"></td>
+            </tr>
+            <tr>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt; text-align: center;">Trial 2</td>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt;"></td>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt;"></td>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt;"></td>
+            </tr>
+            <tr>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt; text-align: center;">Trial 3</td>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt;"></td>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt;"></td>
+              <td style="border: 1pt solid #000000; padding: 12pt 6pt;"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Synthesis & Analysis Questions -->
+        <h3 style="font-size: 13pt; color: #0f172a; border-bottom: 1pt solid #e2e8f0; padding-bottom: 4pt; margin-top: 16pt;">
+          📝 Part 2: Scientific Synthesis &amp; Claim-Evidence-Reasoning (CER)
+        </h3>
+        <p><strong>1. Claim:</strong> Based on your simulation trials, describe the governing relationship or scientific trend observed:</p>
+        <p style="border-bottom: 1pt dotted #94a3b8; height: 32pt; margin-bottom: 14pt;"></p>
+
+        <p><strong>2. Evidence &amp; Calculation:</strong> Cite quantitative numerical evidence from your data table supporting your claim:</p>
+        <p style="border-bottom: 1pt dotted #94a3b8; height: 32pt; margin-bottom: 14pt;"></p>
+
+        <p><strong>3. Reasoning &amp; Real-World Connection:</strong> Explain how underlying submicroscopic or physical principles account for these results:</p>
+        <p style="border-bottom: 1pt dotted #94a3b8; height: 40pt; margin-bottom: 18pt;"></p>
+
+        <!-- Analytic Grading Rubric Table -->
+        <h3 style="font-size: 12pt; color: #0f172a; margin-top: 18pt; margin-bottom: 6pt;">
+          📊 4-Tier Analytic Performance Rubric
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; font-size: 9pt; border: 1pt solid #cbd5e1;">
+          <tr style="background-color: #f8fafc; font-weight: bold;">
+            <th style="border: 1pt solid #cbd5e1; padding: 4pt 6pt; width: 22%;">Evaluation Criteria</th>
+            <th style="border: 1pt solid #cbd5e1; padding: 4pt 6pt; width: 26%;">Exemplary (4 pts)</th>
+            <th style="border: 1pt solid #cbd5e1; padding: 4pt 6pt; width: 26%;">Proficient (3 pts)</th>
+            <th style="border: 1pt solid #cbd5e1; padding: 4pt 6pt; width: 26%;">Developing (1-2 pts)</th>
+          </tr>
+          <tr>
+            <td style="border: 1pt solid #cbd5e1; padding: 4pt 6pt; font-weight: bold;">Data Collection &amp; Precision</td>
+            <td style="border: 1pt solid #cbd5e1; padding: 4pt 6pt;">All 3 trials completed with correct SI units and precise readings.</td>
+            <td style="border: 1pt solid #cbd5e1; padding: 4pt 6pt;">Trials completed with minor unit or precision omissions.</td>
+            <td style="border: 1pt solid #cbd5e1; padding: 4pt 6pt;">Incomplete trials or missing measurements.</td>
+          </tr>
+          <tr>
+            <td style="border: 1pt solid #cbd5e1; padding: 4pt 6pt; font-weight: bold;">Scientific Reasoning (CER)</td>
+            <td style="border: 1pt solid #cbd5e1; padding: 4pt 6pt;">Clear, scientifically sound claim fully grounded in quantitative evidence.</td>
+            <td style="border: 1pt solid #cbd5e1; padding: 4pt 6pt;">Claim accurately stated with qualitative evidence.</td>
+            <td style="border: 1pt solid #cbd5e1; padding: 4pt 6pt;">Vague claim or reasoning disconnected from trial data.</td>
+          </tr>
+        </table>
+      </div>
+    `;
+
+    const cleanFilename = `${(subject || "Science").replace(/\s+/g, "_")}_${(moduleCode || "Activity").replace(/\s+/g, "_")}_Assignment`;
+    exportToDocx({
+      title: `${title} - Assignment Sheet`,
+      filename: cleanFilename,
+      content: assignmentHtml,
+      subject: subject || "Science"
+    });
+    flashButtonSuccess(btnExportDocx, "Assignment .docx Saved!");
+    showToast("Editable DOCX Generated", "Saved student assignment sheet to your downloads", "success");
+    try { SoundFX.playLevelUp(); } catch (err) {}
   });
 }

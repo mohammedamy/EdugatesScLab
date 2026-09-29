@@ -16,13 +16,17 @@ export function getOrGenerateDiagram(subKey, module, lesson, profile) {
   // 1. Check for flagship pre-crafted diagrams
   if (subKey === "CHEM") {
     if (m.id === 2 && l.id === 2) return SCIENTIFIC_DIAGRAMS.chem_heating_curve;
+    if (m.id === 3 && l.id === 2) return SCIENTIFIC_DIAGRAMS.chem_rutherford_gold_foil;
     if (m.id === 3 && l.id === 3) return SCIENTIFIC_DIAGRAMS.chem_mass_spectrometry;
     if (m.id === 15) return SCIENTIFIC_DIAGRAMS.chem_energy_diagram;
+    if (m.id === 17 && l.id === 2) return SCIENTIFIC_DIAGRAMS.chem_le_chatelier_shifts;
     if (m.id === 17) return SCIENTIFIC_DIAGRAMS.chem_titration_curve;
     if (m.id === 19) return SCIENTIFIC_DIAGRAMS.chem_galvanic_cell;
   } else if (subKey === "BIO") {
     if (m.id === 7 && l.id === 4) return SCIENTIFIC_DIAGRAMS.bio_membrane_fluid_mosaic;
+    if (m.id === 8 && l.id === 2) return SCIENTIFIC_DIAGRAMS.bio_photosynthesis_z_scheme;
     if (m.id === 10) return SCIENTIFIC_DIAGRAMS.bio_pedigree_chart;
+    if (m.id === 11 && l.id === 2) return SCIENTIFIC_DIAGRAMS.bio_dna_replication_fork;
     if (m.id === 12 && l.id === 1) return SCIENTIFIC_DIAGRAMS.bio_pcr_thermocycling;
     if (m.id === 23) return SCIENTIFIC_DIAGRAMS.bio_action_potential;
   } else if (subKey === "PHYS") {
@@ -32,6 +36,7 @@ export function getOrGenerateDiagram(subKey, module, lesson, profile) {
     if (m.id === 16) return SCIENTIFIC_DIAGRAMS.phys_ray_refraction;
     if (m.id === 17 && l.id === 1) return SCIENTIFIC_DIAGRAMS.phys_double_slit_interference;
     if (m.id === 20) return SCIENTIFIC_DIAGRAMS.phys_circuit_resistors;
+    if (m.id === 22 && l.id === 1) return SCIENTIFIC_DIAGRAMS.phys_photoelectric_effect;
   }
 
   // 2. Generate calibrated SVG based on discipline and topic

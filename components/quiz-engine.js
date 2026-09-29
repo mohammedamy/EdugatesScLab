@@ -13,6 +13,7 @@ import { showToast, copyShareLink } from "../utils/toast.js";
 import { generateQRSvg } from "../utils/qr-code.js";
 import { openLmsShareModal } from "../utils/lms-share.js";
 import { toggleScienceCalculator } from "./science-calculator.js";
+import { exportToDocx } from "../utils/docx-export.js";
 
 export function renderQuizEngine(containerId, initialConfig = null) {
   const container = document.getElementById(containerId);
@@ -1778,24 +1779,27 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     }
 
     function renderBubbleSheetHtml(questions, formKey) {
-      const colSize = Math.max(15, Math.ceil(questions.length / (questions.length > 30 ? 3 : 2)));
+      const numCols = questions.length <= 15 ? 1 : (questions.length <= 30 ? 2 : (questions.length <= 60 ? 3 : 4));
+      const colSize = Math.ceil(questions.length / numCols);
       const cols = [];
       for (let i = 0; i < questions.length; i += colSize) {
         cols.push(questions.slice(i, i + colSize).map((q) => {
           const qNum = q.formIndex;
           return `
-            <div class="omr-q-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; font-family: var(--font-mono); font-size: 0.85rem;">
-              <span style="font-weight: 800; min-width: 26px; color: #000;">${qNum < 10 ? '0' + qNum : qNum}.</span>
-              <div style="display: flex; gap: 8px;">
-                <span class="omr-bubble" title="Option A">A</span>
-                <span class="omr-bubble" title="Option B">B</span>
-                <span class="omr-bubble" title="Option C">C</span>
-                <span class="omr-bubble" title="Option D">D</span>
+            <div class="omr-q-row" style="display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-bottom: 5px; font-family: var(--font-mono), monospace; font-size: 0.84rem; width: fit-content;">
+              <span class="omr-q-num" style="font-weight: 800; min-width: 24px; text-align: right; color: #000000; margin-right: 2px;">${qNum < 10 ? '0' + qNum : qNum}.</span>
+              <div class="omr-bubbles-group" style="display: flex; gap: 5px; align-items: center;">
+                <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option A">A</span>
+                <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option B">B</span>
+                <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option C">C</span>
+                <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option D">D</span>
               </div>
             </div>
           `;
         }).join(""));
       }
+
+      const maxColWidth = '145px';
 
       return `
         <div class="print-bubble-sheet" style="page-break-before: always; margin-top: 24px; border: 2px solid #000000; padding: 24px 30px; border-radius: 4px; background: #ffffff; color: #000000;">
@@ -1871,10 +1875,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           </div>
 
           <!-- Multi-Column Bubble Grid -->
-          <div style="display: grid; grid-template-columns: repeat(${cols.length}, 1fr); gap: 24px; padding: 4px 0;">
+          <div class="omr-sections-grid" style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 4px 0;">
             ${cols.map((colHtml, colIdx) => `
-              <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 10px 14px; background: #ffffff;">
-                <div style="font-size: 0.74rem; font-weight: 800; text-align: center; border-bottom: 1px solid #000000; padding-bottom: 4px; margin-bottom: 8px; color: #475569;">
+              <div class="omr-section-card" style="border: 1.5px solid #000000; border-radius: 4px; padding: 8px 10px; background: #ffffff; width: fit-content; max-width: 145px; min-width: 135px;">
+                <div style="font-size: 0.74rem; font-weight: 800; text-align: center; border-bottom: 1.5px solid #000000; padding-bottom: 4px; margin-bottom: 8px; color: #000000; letter-spacing: 0.05em;">
                   SECTION ${colIdx + 1}
                 </div>
                 ${colHtml}
@@ -1936,6 +1940,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 <button class="btn btn-secondary" id="btn-print-share-lms" style="font-weight: 700; padding: 7px 16px; display: inline-flex; align-items: center; gap: 8px;" title="Share this Exam Preset to Google Classroom or Classera">
                   <span>📤</span>
                   <span>Assign to LMS</span>
+                </button>
+
+                <!-- Export Editable DOCX -->
+                <button class="btn btn-secondary" id="btn-print-export-docx" style="font-weight: 700; padding: 7px 16px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.12); color: #38bdf8;" title="Export fully editable Microsoft Word (.docx) exam document">
+                  <span>📄</span>
+                  <span>Save as .docx</span>
                 </button>
 
                 <!-- Print Trigger Button -->
@@ -2155,6 +2165,17 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           title: `${selectedSubject} - ${printExamTitle}`,
           subject: selectedSubject,
           description: `Interactive online exam matching Form ${printForm} with ${displayQuestions.length} questions across ${selectedLessons.size} lessons.`
+        });
+      });
+
+      document.getElementById("btn-print-export-docx")?.addEventListener("click", () => {
+        const printContainer = container.querySelector(".print-test-container");
+        if (!printContainer) return;
+        exportToDocx({
+          title: `${printSchoolName} - ${printExamTitle} (Form ${printForm})`,
+          filename: `${selectedSubject}_${printExamTitle.replace(/[^a-zA-Z0-9]/g, '_')}_Form_${printForm}`,
+          content: printContainer,
+          subject: selectedSubject
         });
       });
 

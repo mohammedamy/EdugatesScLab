@@ -1793,6 +1793,7 @@ html, body {
 #smartboard-draw-canvas.drawing-active {
   pointer-events: auto;
   cursor: crosshair;
+  z-index: 199999 !important;
 }
 
 /* Floating Smartboard Pen Bar */
@@ -1800,7 +1801,7 @@ html, body {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 1001;
+  z-index: 200050 !important;
   background: rgba(15, 23, 42, 0.92);
   backdrop-filter: blur(20px);
   border: 2px solid rgba(56, 189, 248, 0.4);
@@ -1827,6 +1828,16 @@ html, body {
   transition: none !important;
   opacity: 0.95;
   box-shadow: 0 20px 48px rgba(0, 0, 0, 0.75), 0 0 24px rgba(56, 189, 248, 0.35) !important;
+}
+
+/* Smartboard Measurement Tools: Calibrated Science Ruler & 180° Protractor */
+.sb-ruler-widget,
+.sb-protractor-widget {
+  position: fixed !important;
+  z-index: 200000 !important;
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 .smartboard-pen-bar.is-dragging * {
   cursor: grabbing !important;
@@ -3001,6 +3012,50 @@ html, body {
     border: 2px solid #000000 !important;
   }
 
+  .omr-sections-grid {
+    display: flex !important;
+    justify-content: center !important;
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .omr-section-card {
+    border: 1.5px solid #000000 !important;
+    border-radius: 4px !important;
+    padding: 8px 10px !important;
+    background: #ffffff !important;
+    width: fit-content !important;
+    max-width: 145px !important;
+    min-width: 135px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .omr-q-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 5px !important;
+    margin-bottom: 5px !important;
+    font-family: var(--font-mono), monospace !important;
+    font-size: 0.84rem !important;
+    width: fit-content !important;
+  }
+
+  .omr-q-num {
+    font-weight: 800 !important;
+    min-width: 24px !important;
+    text-align: right !important;
+    color: #000000 !important;
+    margin-right: 2px !important;
+  }
+
+  .omr-bubbles-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+
   .omr-bubble {
     display: inline-flex !important;
     align-items: center !important;
@@ -3009,7 +3064,7 @@ html, body {
     height: 17px !important;
     border-radius: 50% !important;
     border: 1.5px solid #000000 !important;
-    font-size: 0.68rem !important;
+    font-size: 0.66rem !important;
     font-weight: 800 !important;
     color: #000000 !important;
     background: #ffffff !important;
@@ -3030,15 +3085,57 @@ html, body {
 }
 
 /* OMR Bubble & Paper-Saver Preview Rules (Screen Mode) */
+.omr-sections-grid {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.omr-section-card {
+  border: 1.5px solid #000000;
+  border-radius: 4px;
+  padding: 8px 10px;
+  background: #ffffff;
+  width: fit-content;
+  max-width: 145px;
+  min-width: 135px;
+}
+
+.omr-q-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  margin-bottom: 5px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.84rem;
+  width: fit-content;
+}
+
+.omr-q-num {
+  font-weight: 800;
+  min-width: 24px;
+  text-align: right;
+  color: #000000;
+  margin-right: 2px;
+}
+
+.omr-bubbles-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .omr-bubble {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 17px;
+  height: 17px;
   border-radius: 50%;
   border: 1.5px solid #000000;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 800;
   color: #000000;
   background: #ffffff;
@@ -9670,7 +9767,7 @@ mark.search-highlight {
    ========================================================================== */
 .calculator-modal {
   position: fixed;
-  z-index: 10000;
+  z-index: 200000 !important;
   width: 375px;
   max-width: 95vw;
   background: rgba(15, 23, 42, 0.96);
@@ -9939,6 +10036,35 @@ mark.search-highlight {
   color: #38bdf8;
   font-weight: 700;
   text-align: right;
+}
+
+/* Dedicated History Subview */
+#subview-history {
+  display: none;
+  padding: 12px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+#subview-history.active {
+  display: block;
+}
+
+.calc-history-view-hdr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+}
+
+.calc-history-view-hdr span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Quick Constants Bar */

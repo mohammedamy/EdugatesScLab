@@ -1,5 +1,6 @@
 import { SoundFX } from "../utils/audio-synth.js";
 import { toggleScienceCalculator } from "./science-calculator.js";
+import { openLmsShareModal } from "../utils/lms-share.js";
 
 export function initSmartboardToolbar() {
   let existingCanvas = document.getElementById("smartboard-draw-canvas");
@@ -166,6 +167,17 @@ export function initSmartboardToolbar() {
           <line x1="8" y1="6" x2="16" y2="6"/>
           <line x1="16" y1="14" x2="16" y2="18"/>
           <path d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M8 18h.01M12 18h.01"/>
+        </svg>
+      </button>
+
+      <!-- Classroom LMS Share & Student Join QR -->
+      <button class="icon-action-btn" id="sb-tool-share" title="Classroom LMS Share &amp; Student Join QR (Hot-key: Q)" style="border-radius: 9999px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <path d="M7 17h.01M17 17h.01M7 7h.01M17 7h.01"/>
         </svg>
       </button>
 
@@ -1565,6 +1577,13 @@ export function initSmartboardToolbar() {
   // -------------------------------------------------------------------------
   // 3b. Interactive Calibrated Science Ruler (cm / inches)
   // -------------------------------------------------------------------------
+  let smartboardTopZ = 200000;
+  function elevateSmartboardTool(widget) {
+    if (!widget) return;
+    smartboardTopZ += 2;
+    widget.style.zIndex = String(smartboardTopZ);
+  }
+
   let rulerWidget = document.getElementById("sb-ruler-widget");
   if (rulerWidget) rulerWidget.remove();
 
@@ -1577,7 +1596,8 @@ export function initSmartboardToolbar() {
   rulerWidget.style.top = "180px";
   rulerWidget.style.width = "540px";
   rulerWidget.style.height = "86px";
-  rulerWidget.style.zIndex = "99980";
+  rulerWidget.style.zIndex = "200000";
+  rulerWidget.style.transformOrigin = "270px 43px";
   rulerWidget.style.touchAction = "none";
   rulerWidget.style.userSelect = "none";
 
@@ -1627,12 +1647,14 @@ export function initSmartboardToolbar() {
 
       <button id="sb-ruler-close-btn" title="Close Ruler (Esc)" style="position: absolute; right: 8px; top: 32px; z-index: 10; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; cursor: pointer;">✕</button>
 
-      <div id="sb-ruler-rot-handle" title="Drag to Rotate Ruler" style="position: absolute; right: 38px; top: 28px; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(56,189,248,0.6); cursor: grab; display: flex; align-items: center; justify-content: center; z-index: 10; touch-action: none;">
+      <div id="sb-ruler-rot-handle" title="Drag to Rotate Ruler (or Scroll Wheel)" style="position: absolute; right: 38px; top: 28px; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(56,189,248,0.6); cursor: grab; display: flex; align-items: center; justify-content: center; z-index: 10; touch-action: none;">
         <span style="font-size: 0.8rem; color: #ffffff; user-select: none;">↻</span>
       </div>
     </div>
   `;
   document.body.appendChild(rulerWidget);
+
+  rulerWidget.addEventListener("pointerdown", () => elevateSmartboardTool(rulerWidget));
 
   let rulerAngle = 0;
   let rulerDragging = false;
@@ -1652,8 +1674,12 @@ export function initSmartboardToolbar() {
     const isShowing = force !== null ? force : rulerWidget.style.display === "none";
     rulerWidget.style.display = isShowing ? "block" : "none";
     if (toolRuler) {
-      if (isShowing) toolRuler.classList.add("active");
-      else toolRuler.classList.remove("active");
+      if (isShowing) {
+        toolRuler.classList.add("active");
+        elevateSmartboardTool(rulerWidget);
+      } else {
+        toolRuler.classList.remove("active");
+      }
     }
     if (isShowing) {
       try { SoundFX.playClick(); } catch (e) {}
@@ -1676,10 +1702,11 @@ export function initSmartboardToolbar() {
   const rulerBody = document.getElementById("sb-ruler-body");
   rulerBody?.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button") || e.target.closest("#sb-ruler-rot-handle")) return;
+    elevateSmartboardTool(rulerWidget);
     rulerDragging = true;
     try { rulerBody.setPointerCapture(e.pointerId); } catch (err) {}
-    rulerStartLeft = rulerWidget.offsetLeft;
-    rulerStartTop = rulerWidget.offsetTop;
+    rulerStartLeft = parseFloat(rulerWidget.style.left) || 140;
+    rulerStartTop = parseFloat(rulerWidget.style.top) || 180;
     rulerStartX = e.clientX;
     rulerStartY = e.clientY;
     rulerBody.style.cursor = "grabbing";
@@ -1703,22 +1730,31 @@ export function initSmartboardToolbar() {
   rulerBody?.addEventListener("pointerup", stopRulerDrag);
   rulerBody?.addEventListener("pointercancel", stopRulerDrag);
 
+  let rulerRotStartPointerAngle = 0;
+  let rulerRotStartAngle = 0;
+
   const rulerRotHandle = document.getElementById("sb-ruler-rot-handle");
   rulerRotHandle?.addEventListener("pointerdown", (e) => {
     e.stopPropagation();
+    elevateSmartboardTool(rulerWidget);
     rulerRotating = true;
     try { rulerRotHandle.setPointerCapture(e.pointerId); } catch (err) {}
     rulerRotHandle.style.cursor = "grabbing";
+    const anchorX = (parseFloat(rulerWidget.style.left) || 140) + 270;
+    const anchorY = (parseFloat(rulerWidget.style.top) || 180) + 43;
+    rulerRotStartPointerAngle = Math.atan2(e.clientY - anchorY, e.clientX - anchorX) * (180 / Math.PI);
+    rulerRotStartAngle = rulerAngle;
   });
 
   rulerRotHandle?.addEventListener("pointermove", (e) => {
     if (!rulerRotating) return;
-    const rect = rulerWidget.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    let deg = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    const anchorX = (parseFloat(rulerWidget.style.left) || 140) + 270;
+    const anchorY = (parseFloat(rulerWidget.style.top) || 180) + 43;
+    const curAngle = Math.atan2(e.clientY - anchorY, e.clientX - anchorX) * (180 / Math.PI);
+    let delta = curAngle - rulerRotStartPointerAngle;
+    let deg = (rulerRotStartAngle + delta) % 360;
     if (deg < 0) deg += 360;
-    if (Math.abs(deg % 5) < 0.8) deg = Math.round(deg / 5) * 5;
+    if (!e.shiftKey && Math.abs(deg % 5) < 0.8) deg = Math.round(deg / 5) * 5;
     rulerAngle = Math.round(deg * 10) / 10;
     updateRulerTransform();
   });
@@ -1732,6 +1768,18 @@ export function initSmartboardToolbar() {
   };
   rulerRotHandle?.addEventListener("pointerup", stopRulerRot);
   rulerRotHandle?.addEventListener("pointercancel", stopRulerRot);
+
+  // Wheel rotation for ruler
+  rulerWidget.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const step = e.shiftKey ? 1 : 5;
+    const dir = e.deltaY > 0 ? 1 : -1;
+    rulerAngle = (rulerAngle + dir * step) % 360;
+    if (rulerAngle < 0) rulerAngle += 360;
+    rulerAngle = Math.round(rulerAngle * 10) / 10;
+    updateRulerTransform();
+  }, { passive: false });
+
 
 
   // -------------------------------------------------------------------------
@@ -1749,7 +1797,8 @@ export function initSmartboardToolbar() {
   protractorWidget.style.top = "200px";
   protractorWidget.style.width = "400px";
   protractorWidget.style.height = "215px";
-  protractorWidget.style.zIndex = "99980";
+  protractorWidget.style.zIndex = "200000";
+  protractorWidget.style.transformOrigin = "200px 200px";
   protractorWidget.style.touchAction = "none";
   protractorWidget.style.userSelect = "none";
 
@@ -1803,26 +1852,39 @@ export function initSmartboardToolbar() {
         <line id="sb-protractor-ray" x1="200" y1="200" x2="330" y2="70" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
       </svg>
 
-      <div id="sb-protractor-needle-grip" title="Drag to Measure Angle" style="position: absolute; left: 320px; top: 60px; width: 22px; height: 22px; border-radius: 50%; background: #ef4444; border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(239,68,68,0.8); cursor: grab; z-index: 15; touch-action: none;"></div>
+      <div id="sb-protractor-needle-grip" title="Drag to Measure Angle" style="position: absolute; left: 320px; top: 60px; width: 24px; height: 24px; border-radius: 50%; background: #ef4444; border: 2.5px solid #ffffff; box-shadow: 0 0 12px rgba(239,68,68,0.9); cursor: grab; z-index: 15; touch-action: none;"></div>
 
-      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 125px; display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 10;">
-        <div style="display: flex; align-items: center; gap: 6px;">
-          <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">ANGLE θ:</span>
-          <span id="sb-protractor-val" style="background: rgba(0,0,0,0.6); border: 1px solid #ef4444; color: #f87171; font-family: monospace; font-size: 0.95rem; font-weight: 900; padding: 2px 8px; border-radius: 4px;">45.0°</span>
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 112px; display: flex; flex-direction: column; align-items: center; gap: 5px; z-index: 10; pointer-events: auto;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <span style="font-size: 0.68rem; color: #94a3b8; font-weight: 700;">MEASURE:</span>
+            <span id="sb-protractor-val" style="background: rgba(0,0,0,0.6); border: 1px solid #ef4444; color: #f87171; font-family: monospace; font-size: 0.88rem; font-weight: 900; padding: 1px 6px; border-radius: 4px;">45.0°</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px;">
+            <span style="font-size: 0.68rem; color: #38bdf8; font-weight: 700;">BASE:</span>
+            <span id="sb-protractor-body-val" style="background: rgba(0,0,0,0.6); border: 1px solid #38bdf8; color: #38bdf8; font-family: monospace; font-size: 0.88rem; font-weight: 900; padding: 1px 6px; border-radius: 4px;">0.0°</span>
+          </div>
         </div>
-        <div style="display: flex; gap: 6px;">
-          <button id="sb-protractor-reset-rot" title="Reset Protractor Body (0°)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.7rem; cursor: pointer;">0° Body</button>
+        <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: center;">
+          <button id="sb-protractor-rot-n15" title="Rotate Body -15°" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">↺ -15°</button>
+          <button id="sb-protractor-reset-rot" title="Reset Protractor Body (0° Horizontal)" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer; font-weight: 700;">0° Base</button>
+          <button id="sb-protractor-rot-45" title="Rotate Body to 45°" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">45°</button>
+          <button id="sb-protractor-rot-90" title="Rotate Body to 90° (Vertical)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">90°</button>
+          <button id="sb-protractor-rot-180" title="Rotate Body to 180°" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">180°</button>
+          <button id="sb-protractor-rot-p15" title="Rotate Body +15°" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">↻ +15°</button>
         </div>
       </div>
 
-      <button id="sb-protractor-close-btn" title="Close Protractor (Esc)" style="position: absolute; right: 20px; top: 40px; z-index: 10; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; cursor: pointer;">✕</button>
+      <button id="sb-protractor-close-btn" title="Close Protractor (Esc)" style="position: absolute; right: 18px; top: 38px; z-index: 10; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; cursor: pointer;">✕</button>
 
-      <div id="sb-protractor-rot-handle" title="Drag to Rotate Protractor Body" style="position: absolute; left: 16px; top: 40px; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); border: 1.5px solid #ffffff; cursor: grab; display: flex; align-items: center; justify-content: center; z-index: 10; touch-action: none;">
-        <span style="font-size: 0.7rem; color: #ffffff; user-select: none;">↻</span>
+      <div id="sb-protractor-rot-handle" title="Drag to Rotate Protractor Body (or Scroll Wheel)" style="position: absolute; left: 16px; top: 36px; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); border: 2px solid #ffffff; box-shadow: 0 0 12px rgba(56,189,248,0.7); cursor: grab; display: flex; align-items: center; justify-content: center; z-index: 10; touch-action: none;">
+        <span style="font-size: 0.85rem; color: #ffffff; user-select: none; line-height: 1;">↻</span>
       </div>
     </div>
   `;
   document.body.appendChild(protractorWidget);
+
+  protractorWidget.addEventListener("pointerdown", () => elevateSmartboardTool(protractorWidget));
 
   let protractorBodyAngle = 0;
   let protractorMeasuredAngle = 45;
@@ -1836,6 +1898,10 @@ export function initSmartboardToolbar() {
 
   function updateProtractorTransform() {
     protractorWidget.style.transform = `rotate(${protractorBodyAngle}deg)`;
+    const bodyValDisp = document.getElementById("sb-protractor-body-val");
+    if (bodyValDisp) {
+      bodyValDisp.textContent = `${protractorBodyAngle.toFixed(1)}°`;
+    }
   }
 
   function updateProtractorNeedle() {
@@ -1850,8 +1916,8 @@ export function initSmartboardToolbar() {
     }
     const grip = document.getElementById("sb-protractor-needle-grip");
     if (grip) {
-      grip.style.left = `${nx - 11}px`;
-      grip.style.top = `${ny - 11}px`;
+      grip.style.left = `${nx - 12}px`;
+      grip.style.top = `${ny - 12}px`;
     }
     const valDisp = document.getElementById("sb-protractor-val");
     if (valDisp) {
@@ -1863,19 +1929,55 @@ export function initSmartboardToolbar() {
     const isShowing = force !== null ? force : protractorWidget.style.display === "none";
     protractorWidget.style.display = isShowing ? "block" : "none";
     if (toolProtractor) {
-      if (isShowing) toolProtractor.classList.add("active");
-      else toolProtractor.classList.remove("active");
+      if (isShowing) {
+        toolProtractor.classList.add("active");
+        elevateSmartboardTool(protractorWidget);
+      } else {
+        toolProtractor.classList.remove("active");
+      }
     }
     if (isShowing) {
       try { SoundFX.playClick(); } catch (e) {}
       updateProtractorNeedle();
+      updateProtractorTransform();
     }
   }
 
   toolProtractor?.addEventListener("click", () => toggleProtractor());
   document.getElementById("sb-protractor-close-btn")?.addEventListener("click", () => toggleProtractor(false));
+
   document.getElementById("sb-protractor-reset-rot")?.addEventListener("click", () => {
     protractorBodyAngle = 0;
+    updateProtractorTransform();
+    try { SoundFX.playClick(); } catch (e) {}
+  });
+
+  document.getElementById("sb-protractor-rot-n15")?.addEventListener("click", () => {
+    protractorBodyAngle = (protractorBodyAngle - 15 + 360) % 360;
+    updateProtractorTransform();
+    try { SoundFX.playClick(); } catch (e) {}
+  });
+
+  document.getElementById("sb-protractor-rot-p15")?.addEventListener("click", () => {
+    protractorBodyAngle = (protractorBodyAngle + 15) % 360;
+    updateProtractorTransform();
+    try { SoundFX.playClick(); } catch (e) {}
+  });
+
+  document.getElementById("sb-protractor-rot-45")?.addEventListener("click", () => {
+    protractorBodyAngle = 45;
+    updateProtractorTransform();
+    try { SoundFX.playClick(); } catch (e) {}
+  });
+
+  document.getElementById("sb-protractor-rot-90")?.addEventListener("click", () => {
+    protractorBodyAngle = 90;
+    updateProtractorTransform();
+    try { SoundFX.playClick(); } catch (e) {}
+  });
+
+  document.getElementById("sb-protractor-rot-180")?.addEventListener("click", () => {
+    protractorBodyAngle = 180;
     updateProtractorTransform();
     try { SoundFX.playClick(); } catch (e) {}
   });
@@ -1883,10 +1985,11 @@ export function initSmartboardToolbar() {
   const protractorBody = document.getElementById("sb-protractor-body");
   protractorBody?.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button") || e.target.closest("#sb-protractor-needle-grip") || e.target.closest("#sb-protractor-rot-handle")) return;
+    elevateSmartboardTool(protractorWidget);
     protractorDragging = true;
     try { protractorBody.setPointerCapture(e.pointerId); } catch (err) {}
-    protractorStartLeft = protractorWidget.offsetLeft;
-    protractorStartTop = protractorWidget.offsetTop;
+    protractorStartLeft = parseFloat(protractorWidget.style.left) || 220;
+    protractorStartTop = parseFloat(protractorWidget.style.top) || 200;
     protractorStartX = e.clientX;
     protractorStartY = e.clientY;
     protractorBody.style.cursor = "grabbing";
@@ -1910,22 +2013,32 @@ export function initSmartboardToolbar() {
   protractorBody?.addEventListener("pointerup", stopProtractorDrag);
   protractorBody?.addEventListener("pointercancel", stopProtractorDrag);
 
+  let protractorRotStartPointerAngle = 0;
+  let protractorRotStartBodyAngle = 0;
+
   const protractorRotHandle = document.getElementById("sb-protractor-rot-handle");
   protractorRotHandle?.addEventListener("pointerdown", (e) => {
     e.stopPropagation();
+    elevateSmartboardTool(protractorWidget);
     protractorRotating = true;
     try { protractorRotHandle.setPointerCapture(e.pointerId); } catch (err) {}
     protractorRotHandle.style.cursor = "grabbing";
+
+    const anchorX = (parseFloat(protractorWidget.style.left) || 220) + 200;
+    const anchorY = (parseFloat(protractorWidget.style.top) || 200) + 200;
+    protractorRotStartPointerAngle = Math.atan2(e.clientY - anchorY, e.clientX - anchorX) * (180 / Math.PI);
+    protractorRotStartBodyAngle = protractorBodyAngle;
   });
 
   protractorRotHandle?.addEventListener("pointermove", (e) => {
     if (!protractorRotating) return;
-    const rect = protractorWidget.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height;
-    let deg = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    const anchorX = (parseFloat(protractorWidget.style.left) || 220) + 200;
+    const anchorY = (parseFloat(protractorWidget.style.top) || 200) + 200;
+    const curPointerAngle = Math.atan2(e.clientY - anchorY, e.clientX - anchorX) * (180 / Math.PI);
+    let delta = curPointerAngle - protractorRotStartPointerAngle;
+    let deg = (protractorRotStartBodyAngle + delta) % 360;
     if (deg < 0) deg += 360;
-    if (Math.abs(deg % 5) < 0.8) deg = Math.round(deg / 5) * 5;
+    if (!e.shiftKey && Math.abs(deg % 5) < 0.8) deg = Math.round(deg / 5) * 5;
     protractorBodyAngle = Math.round(deg * 10) / 10;
     updateProtractorTransform();
   });
@@ -1940,9 +2053,21 @@ export function initSmartboardToolbar() {
   protractorRotHandle?.addEventListener("pointerup", stopProtractorRot);
   protractorRotHandle?.addEventListener("pointercancel", stopProtractorRot);
 
+  // Wheel rotation for protractor body
+  protractorWidget.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const step = e.shiftKey ? 1 : 5;
+    const dir = e.deltaY > 0 ? 1 : -1;
+    protractorBodyAngle = (protractorBodyAngle + dir * step) % 360;
+    if (protractorBodyAngle < 0) protractorBodyAngle += 360;
+    protractorBodyAngle = Math.round(protractorBodyAngle * 10) / 10;
+    updateProtractorTransform();
+  }, { passive: false });
+
   const needleGrip = document.getElementById("sb-protractor-needle-grip");
   needleGrip?.addEventListener("pointerdown", (e) => {
     e.stopPropagation();
+    elevateSmartboardTool(protractorWidget);
     protractorArmDragging = true;
     try { needleGrip.setPointerCapture(e.pointerId); } catch (err) {}
     needleGrip.style.cursor = "grabbing";
@@ -1950,14 +2075,14 @@ export function initSmartboardToolbar() {
 
   needleGrip?.addEventListener("pointermove", (e) => {
     if (!protractorArmDragging) return;
-    const rect = protractorWidget.getBoundingClientRect();
+    const anchorX = (parseFloat(protractorWidget.style.left) || 220) + 200;
+    const anchorY = (parseFloat(protractorWidget.style.top) || 200) + 200;
     const baseAngleRad = (protractorBodyAngle * Math.PI) / 180;
-    const unrotatedCx = rect.left + 200;
-    const unrotatedCy = rect.top + 200;
 
-    const dx = e.clientX - unrotatedCx;
-    const dy = e.clientY - unrotatedCy;
+    const dx = e.clientX - anchorX;
+    const dy = e.clientY - anchorY;
 
+    // De-rotate pointer by current protractor body angle
     const localX = dx * Math.cos(-baseAngleRad) - dy * Math.sin(-baseAngleRad);
     const localY = dx * Math.sin(-baseAngleRad) + dy * Math.cos(-baseAngleRad);
 
@@ -1979,6 +2104,7 @@ export function initSmartboardToolbar() {
   needleGrip?.addEventListener("pointerup", stopNeedleDrag);
   needleGrip?.addEventListener("pointercancel", stopNeedleDrag);
 
+
   // -------------------------------------------------------------------------
   // 3b. Scientific Pocket Calculator & Physical Constants
   // -------------------------------------------------------------------------
@@ -1989,6 +2115,20 @@ export function initSmartboardToolbar() {
       if (isShowing) toolCalc.classList.add("active");
       else toolCalc.classList.remove("active");
     }
+  });
+
+  // -------------------------------------------------------------------------
+  // 3c. Classroom LMS Share & Instant Student Join QR
+  // -------------------------------------------------------------------------
+  const toolShare = document.getElementById("sb-tool-share");
+  toolShare?.addEventListener("click", () => {
+    const activeTitle = document.querySelector(".module-hero-title, .interactive-title, h1, h2")?.textContent?.trim() || "Interactive Science Laboratory";
+    const activeSubj = document.querySelector(".interactive-tag, .module-badge")?.textContent?.trim() || "STEM Science";
+    openLmsShareModal({
+      url: window.location.href,
+      title: activeTitle,
+      subject: activeSubj
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -2018,6 +2158,9 @@ export function initSmartboardToolbar() {
     } else if (e.key === "p" || e.key === "P") {
       e.preventDefault();
       toggleProtractor();
+    } else if (e.key === "q" || e.key === "Q") {
+      e.preventDefault();
+      toolShare?.click();
     } else if (e.key === "k" || e.key === "K") {
       e.preventDefault();
       const isShowing = toggleScienceCalculator();

@@ -864,6 +864,585 @@ export const SCIENTIFIC_DIAGRAMS = {
       <polygon points="415,150 412,143 418,143" fill="#38bdf8"/>
       <text x="395" y="118" fill="#38bdf8" font-size="9" font-weight="800" text-anchor="end">Δy</text>
     </svg>`
+  },
+
+  // ==========================================
+  // FLAGSHIP BIOLOGY: DNA REPLICATION FORK
+  // ==========================================
+
+  bio_dna_replication_fork: {
+    id: "bio_dna_replication_fork",
+    subject: "BIO",
+    moduleId: 11,
+    title: "DNA Replication Fork & Enzymatic Machinery",
+    caption: "Figure 16: Semiconservative 5' to 3' synthesis showing Helicase, DNA Polymerase III, Primase, Okazaki fragments, and Ligase",
+    svg: `<svg viewBox="0 0 540 320" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 530px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <defs>
+        <linearGradient id="helicase-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#34d399"/>
+          <stop offset="100%" stop-color="#059669"/>
+        </linearGradient>
+        <linearGradient id="pol-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#38bdf8"/>
+          <stop offset="100%" stop-color="#0284c7"/>
+        </linearGradient>
+        <linearGradient id="primase-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#fbbf24"/>
+          <stop offset="100%" stop-color="#d97706"/>
+        </linearGradient>
+        <linearGradient id="ligase-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f472b6"/>
+          <stop offset="100%" stop-color="#db2777"/>
+        </linearGradient>
+      </defs>
+      <rect width="540" height="320" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+
+      <!-- Header Title Banner -->
+      <text x="270" y="24" fill="#38bdf8" font-size="12" font-weight="800" text-anchor="middle" letter-spacing="0.5">DNA REPLICATION FORK ARCHITECTURE (SEMICONSERVATIVE)</text>
+      
+      <!-- Direction of Fork Movement Arrow -->
+      <g transform="translate(320, 160)">
+        <line x1="0" y1="0" x2="65" y2="0" stroke="#facc15" stroke-width="2.5" stroke-dasharray="3,2"/>
+        <polygon points="65,0 55,-5 55,5" fill="#facc15"/>
+        <text x="32" y="-8" fill="#facc15" font-size="9" font-weight="800" text-anchor="middle">Fork Motion →</text>
+      </g>
+
+      <!-- Parental Double Helix (Right of Helicase) -->
+      <!-- Top Parental Strand (3' -> 5' into fork) -->
+      <path d="M 400 148 Q 440 140 480 148 T 520 148" fill="none" stroke="#94a3b8" stroke-width="3"/>
+      <!-- Bottom Parental Strand (5' -> 3' into fork) -->
+      <path d="M 400 172 Q 440 180 480 172 T 520 172" fill="none" stroke="#94a3b8" stroke-width="3"/>
+      <!-- Hydrogen Bond Rungs (Parental) -->
+      <line x1="420" y1="145" x2="420" y2="175" stroke="#38bdf8" stroke-width="2"/>
+      <line x1="440" y1="141" x2="440" y2="179" stroke="#34d399" stroke-width="2"/>
+      <line x1="460" y1="144" x2="460" y2="176" stroke="#fbbf24" stroke-width="2"/>
+      <line x1="480" y1="148" x2="480" y2="172" stroke="#f472b6" stroke-width="2"/>
+      <line x1="500" y1="144" x2="500" y2="176" stroke="#38bdf8" stroke-width="2"/>
+      <text x="525" y="145" fill="#94a3b8" font-size="10" font-weight="800">5'</text>
+      <text x="525" y="178" fill="#94a3b8" font-size="10" font-weight="800">3'</text>
+
+      <!-- DNA Helicase (Enzyme Ring at the Junction) -->
+      <polygon points="340,130 395,160 340,190" fill="url(#helicase-grad)" stroke="#10b981" stroke-width="1.5"/>
+      <text x="355" y="164" fill="#ffffff" font-size="9" font-weight="900" text-anchor="middle">HELICASE</text>
+
+      <!-- Single-Stranded Binding Proteins (SSBs) -->
+      <circle cx="310" cy="98" r="5" fill="#06b6d4" stroke="#0891b2" stroke-width="1"/>
+      <circle cx="280" cy="108" r="5" fill="#06b6d4" stroke="#0891b2" stroke-width="1"/>
+      <circle cx="310" cy="222" r="5" fill="#06b6d4" stroke="#0891b2" stroke-width="1"/>
+      <circle cx="280" cy="212" r="5" fill="#06b6d4" stroke="#0891b2" stroke-width="1"/>
+      <text x="325" y="92" fill="#06b6d4" font-size="8" font-weight="700">SSB</text>
+
+      <!-- ================= TOP: LEADING STRAND ================= -->
+      <!-- Parental Template Strand -->
+      <path d="M 345 133 C 300 115 180 85 40 85" fill="none" stroke="#94a3b8" stroke-width="3"/>
+      <text x="25" y="89" fill="#94a3b8" font-size="11" font-weight="800">3'</text>
+      <text x="27" y="73" fill="#cbd5e1" font-size="8">Parental Template</text>
+
+      <!-- Synthesized Leading Daughter Strand (Continuous 5' -> 3') -->
+      <path d="M 60 102 L 250 102" fill="none" stroke="#38bdf8" stroke-width="3.5"/>
+      <polygon points="255,102 245,97 245,107" fill="#38bdf8"/>
+      <text x="50" y="106" fill="#38bdf8" font-size="11" font-weight="800">5'</text>
+      <text x="260" y="106" fill="#38bdf8" font-size="11" font-weight="800">3'</text>
+
+      <!-- Base pairs between parental and daughter -->
+      <line x1="80" y1="87" x2="80" y2="101" stroke="#34d399" stroke-width="1.8"/>
+      <line x1="100" y1="87" x2="100" y2="101" stroke="#f472b6" stroke-width="1.8"/>
+      <line x1="120" y1="87" x2="120" y2="101" stroke="#fbbf24" stroke-width="1.8"/>
+      <line x1="140" y1="88" x2="140" y2="101" stroke="#38bdf8" stroke-width="1.8"/>
+      <line x1="160" y1="89" x2="160" y2="101" stroke="#34d399" stroke-width="1.8"/>
+      <line x1="180" y1="91" x2="180" y2="101" stroke="#f472b6" stroke-width="1.8"/>
+
+      <!-- DNA Polymerase III (Leading Strand) -->
+      <rect x="200" y="76" width="55" height="32" rx="6" fill="url(#pol-grad)" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="227" y="96" fill="#ffffff" font-size="8.5" font-weight="800" text-anchor="middle">DNA Pol III</text>
+      
+      <!-- Leading Strand Label Callout -->
+      <rect x="80" y="42" width="160" height="22" rx="4" fill="#0284c7" fill-opacity="0.25" stroke="#38bdf8" stroke-width="1"/>
+      <text x="160" y="57" fill="#38bdf8" font-size="9.5" font-weight="800" text-anchor="middle">LEADING STRAND (Continuous 5'→3')</text>
+
+      <!-- ================= BOTTOM: LAGGING STRAND ================= -->
+      <!-- Parental Template Strand -->
+      <path d="M 345 187 C 300 205 180 235 40 235" fill="none" stroke="#94a3b8" stroke-width="3"/>
+      <text x="25" y="239" fill="#94a3b8" font-size="11" font-weight="800">5'</text>
+      <text x="27" y="253" fill="#cbd5e1" font-size="8">Parental Template</text>
+
+      <!-- Okazaki Fragment 1 (Synthesized Away from Fork: Leftward) -->
+      <!-- RNA Primer 1 -->
+      <rect x="150" y="217" width="16" height="5" fill="#f97316" rx="1"/>
+      <text x="158" y="212" fill="#f97316" font-size="7.5" font-weight="800" text-anchor="middle">RNA</text>
+      <!-- DNA Fragment 1 -->
+      <line x1="134" y1="219" x2="70" y2="219" stroke="#38bdf8" stroke-width="3.5"/>
+      <polygon points="65,219 75,214 75,224" fill="#38bdf8"/>
+      <text x="100" y="210" fill="#38bdf8" font-size="8" font-weight="700">Okazaki Fragment 1</text>
+
+      <!-- DNA Ligase at Nick -->
+      <circle cx="62" cy="219" r="11" fill="url(#ligase-grad)" stroke="#f472b6" stroke-width="1.5"/>
+      <text x="62" y="222" fill="#ffffff" font-size="6.5" font-weight="800" text-anchor="middle">LIGASE</text>
+
+      <!-- Okazaki Fragment 2 (Under Construction) -->
+      <!-- RNA Primase Enzyme -->
+      <rect x="245" y="230" width="46" height="24" rx="5" fill="url(#primase-grad)" stroke="#f59e0b" stroke-width="1.5"/>
+      <text x="268" y="245" fill="#ffffff" font-size="8" font-weight="800" text-anchor="middle">PRIMASE</text>
+      
+      <!-- RNA Primer 2 -->
+      <rect x="235" y="217" width="18" height="5" fill="#f97316" rx="1"/>
+      <text x="244" y="212" fill="#f97316" font-size="7.5" font-weight="800" text-anchor="middle">RNA</text>
+
+      <!-- DNA Polymerase III (Lagging Strand) -->
+      <rect x="165" y="203" width="55" height="32" rx="6" fill="url(#pol-grad)" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="192" y="223" fill="#ffffff" font-size="8.5" font-weight="800" text-anchor="middle">DNA Pol III</text>
+      <line x1="192" y1="219" x2="165" y2="219" stroke="#38bdf8" stroke-width="3.5"/>
+      <polygon points="160,219 168,215 168,223" fill="#38bdf8"/>
+
+      <!-- Lagging Strand Label Callout -->
+      <rect x="80" y="278" width="185" height="22" rx="4" fill="#db2777" fill-opacity="0.25" stroke="#f472b6" stroke-width="1"/>
+      <text x="172" y="293" fill="#f472b6" font-size="9.5" font-weight="800" text-anchor="middle">LAGGING STRAND (Discontinuous / Okazaki)</text>
+
+      <!-- Legend Pill Box -->
+      <rect x="360" y="260" width="165" height="46" rx="6" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <circle cx="372" cy="275" r="4" fill="#f97316"/>
+      <text x="382" y="278" fill="#cbd5e1" font-size="8">RNA Primer (Primase)</text>
+      <circle cx="372" cy="293" r="4" fill="#38bdf8"/>
+      <text x="382" y="296" fill="#cbd5e1" font-size="8">Newly Synthesized DNA</text>
+    </svg>`
+  },
+
+  // ==========================================
+  // FLAGSHIP PHYSICS: PHOTOELECTRIC WORK FUNCTION
+  // ==========================================
+
+  phys_photoelectric_effect: {
+    id: "phys_photoelectric_effect",
+    subject: "PHYS",
+    moduleId: 22,
+    title: "Photoelectric Effect: Work Function & Stopping Potential",
+    caption: "Figure 17: Photon energy E = hν overcoming surface work function Φ with kinetic energy K_max = hν - Φ = eV_stop",
+    svg: `<svg viewBox="0 0 540 320" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 530px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <defs>
+        <linearGradient id="metal-surface-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#475569"/>
+          <stop offset="100%" stop-color="#1e293b"/>
+        </linearGradient>
+        <linearGradient id="band-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#0284c7" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#0284c7" stop-opacity="0.1"/>
+        </linearGradient>
+      </defs>
+      <rect width="540" height="320" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+
+      <!-- Header Title Banner -->
+      <text x="270" y="24" fill="#38bdf8" font-size="12" font-weight="800" text-anchor="middle" letter-spacing="0.5">EINSTEIN'S PHOTOELECTRIC EFFECT &amp; WORK FUNCTION (Φ)</text>
+
+      <!-- ================= LEFT: ENERGY LEVEL & ESCAPE DIAGRAM ================= -->
+      <g transform="translate(15, 45)">
+        <rect width="245" height="255" rx="8" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
+        <text x="122" y="20" fill="#38bdf8" font-size="10" font-weight="800" text-anchor="middle">Potential Energy Diagram</text>
+
+        <!-- Vacuum Level (E = 0) -->
+        <line x1="30" y1="50" x2="225" y2="50" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="228" y="53" fill="#ef4444" font-size="9" font-weight="700">E_vac = 0</text>
+
+        <!-- Fermi Level (E_F) -->
+        <line x1="30" y1="130" x2="225" y2="130" stroke="#38bdf8" stroke-width="2"/>
+        <text x="228" y="133" fill="#38bdf8" font-size="9" font-weight="800">E_F (Fermi)</text>
+
+        <!-- Metal Conduction Band Shading -->
+        <rect x="30" y="130" width="195" height="100" fill="url(#band-grad)"/>
+        <text x="127" y="180" fill="#94a3b8" font-size="10" font-weight="600" text-anchor="middle">Filled Metal States</text>
+
+        <!-- Work Function Φ Arrow (from E_F to E_vac) -->
+        <line x1="55" y1="130" x2="55" y2="50" stroke="#f59e0b" stroke-width="2.5"/>
+        <polygon points="55,50 51,58 59,58" fill="#f59e0b"/>
+        <polygon points="55,130 51,122 59,122" fill="#f59e0b"/>
+        <text x="65" y="94" fill="#f59e0b" font-size="11" font-weight="900">Φ</text>
+        <text x="65" y="106" fill="#f59e0b" font-size="7.5" font-weight="700">Work Function</text>
+
+        <!-- Incident Photon Arrow (hν) -->
+        <path d="M 90 230 C 95 210, 105 210, 110 190 C 115 170, 125 170, 130 150 C 135 130, 145 130, 150 110" fill="none" stroke="#ec4899" stroke-width="2.5"/>
+        <polygon points="150,110 142,117 148,122" fill="#ec4899"/>
+        <text x="145" y="175" fill="#ec4899" font-size="10" font-weight="800">hν</text>
+        <text x="145" y="187" fill="#ec4899" font-size="7.5">(Photon)</text>
+
+        <!-- Ejected Photoelectron with K_max -->
+        <line x1="175" y1="50" x2="175" y2="25" stroke="#10b981" stroke-width="2.5"/>
+        <polygon points="175,25 171,33 179,33" fill="#10b981"/>
+        <circle cx="175" cy="50" r="5" fill="#10b981"/>
+        <text x="185" y="36" fill="#10b981" font-size="10" font-weight="900">K_max</text>
+        <text x="185" y="46" fill="#10b981" font-size="7.5">e⁻ Ejected</text>
+      </g>
+
+      <!-- ================= RIGHT: K_MAX VS FREQUENCY GRAPH ================= -->
+      <g transform="translate(275, 45)">
+        <rect width="250" height="255" rx="8" fill="#1e293b" fill-opacity="0.6" stroke="#334155" stroke-width="1"/>
+        <text x="125" y="20" fill="#38bdf8" font-size="10" font-weight="800" text-anchor="middle">K_max vs Incident Frequency (ν)</text>
+
+        <!-- Axes -->
+        <!-- X Axis (Frequency) -->
+        <line x1="30" y1="165" x2="235" y2="165" stroke="#94a3b8" stroke-width="1.8"/>
+        <polygon points="237,165 230,161 230,169" fill="#94a3b8"/>
+        <text x="215" y="180" fill="#cbd5e1" font-size="9" font-weight="700">ν (Hz)</text>
+
+        <!-- Y Axis (Kinetic Energy) -->
+        <line x1="60" y1="230" x2="60" y2="35" stroke="#94a3b8" stroke-width="1.8"/>
+        <polygon points="60,33 56,40 64,40" fill="#94a3b8"/>
+        <text x="20" y="42" fill="#cbd5e1" font-size="9" font-weight="700">K_max (eV)</text>
+
+        <!-- Linear Line: K_max = hν - Φ -->
+        <!-- Dashed extrapolation to -Φ on Y axis -->
+        <line x1="60" y1="210" x2="115" y2="165" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3,3"/>
+        <circle cx="60" cy="210" r="3.5" fill="#f59e0b"/>
+        <text x="45" y="214" fill="#f59e0b" font-size="9" font-weight="800" text-anchor="end">-Φ</text>
+
+        <!-- Solid Active Photoemission Line -->
+        <line x1="115" y1="165" x2="225" y2="75" stroke="#10b981" stroke-width="3"/>
+        
+        <!-- Threshold Frequency ν_0 (X-Intercept) -->
+        <circle cx="115" cy="165" r="4.5" fill="#facc15" stroke="#0f172a" stroke-width="1.5"/>
+        <text x="115" y="182" fill="#facc15" font-size="10" font-weight="900" text-anchor="middle">ν₀</text>
+        <text x="115" y="193" fill="#facc15" font-size="7" font-weight="700" text-anchor="middle">(Threshold)</text>
+
+        <!-- Slope Indicator: Slope = h -->
+        <line x1="160" y1="128" x2="200" y2="128" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="2,2"/>
+        <line x1="200" y1="128" x2="200" y2="95" stroke="#38bdf8" stroke-width="1.2" stroke-dasharray="2,2"/>
+        <text x="205" y="115" fill="#38bdf8" font-size="9" font-weight="800">Slope = h</text>
+
+        <!-- Governing Formula Card -->
+        <rect x="25" y="222" width="200" height="24" rx="4" fill="#0f172a" stroke="#38bdf8" stroke-width="1"/>
+        <text x="125" y="238" fill="#38bdf8" font-size="9.5" font-weight="800" text-anchor="middle">K_max = hν - Φ = e · V_stop</text>
+      </g>
+    </svg>`
+  },
+
+  // ==========================================
+  // FLAGSHIP CHEMISTRY: LE CHATELIER SHIFTS
+  // ==========================================
+
+  chem_le_chatelier_shifts: {
+    id: "chem_le_chatelier_shifts",
+    subject: "CHEM",
+    moduleId: 17,
+    title: "Le Chatelier's Principle: Equilibrium Shift Kinetics",
+    caption: "Figure 18: Concentration response curves for N₂(g) + 3H₂(g) ⇌ 2NH₃(g) following sudden N₂ injection stress",
+    svg: `<svg viewBox="0 0 540 320" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 530px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <rect width="540" height="320" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+
+      <!-- Header Title Banner -->
+      <text x="270" y="24" fill="#38bdf8" font-size="12" font-weight="800" text-anchor="middle" letter-spacing="0.5">LE CHATELIER'S PRINCIPLE: CONCENTRATION PERTURBATION</text>
+      
+      <!-- Reaction Formula Badge -->
+      <rect x="135" y="34" width="270" height="24" rx="5" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+      <text x="270" y="50" fill="#f8fafc" font-size="10.5" font-weight="800" text-anchor="middle">N₂(g) + 3 H₂(g)  ⇌  2 NH₃(g)    ΔH = -92.4 kJ</text>
+
+      <!-- Plot Area -->
+      <!-- Coordinate Axes -->
+      <line x1="60" y1="260" x2="500" y2="260" stroke="#94a3b8" stroke-width="2"/>
+      <polygon points="505,260 495,256 495,264" fill="#94a3b8"/>
+      <text x="280" y="285" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">Reaction Time (t)</text>
+
+      <line x1="60" y1="260" x2="60" y2="70" stroke="#94a3b8" stroke-width="2"/>
+      <polygon points="60,65 56,72 64,72" fill="#94a3b8"/>
+      <text x="22" y="165" fill="#38bdf8" font-size="11" font-weight="700" transform="rotate(-90 22 165)" text-anchor="middle">Concentration [mol/L]</text>
+
+      <!-- Time Phase Vertical Markers -->
+      <!-- t_stress (Instantaneous N2 addition) -->
+      <line x1="200" y1="75" x2="200" y2="260" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <rect x="155" y="70" width="90" height="18" rx="3" fill="#ef4444" fill-opacity="0.2" stroke="#ef4444" stroke-width="1"/>
+      <text x="200" y="82" fill="#ef4444" font-size="8" font-weight="800" text-anchor="middle">Stress: +N₂ Injected</text>
+
+      <!-- t_new_eq (Re-establishment of Equilibrium) -->
+      <line x1="380" y1="75" x2="380" y2="260" stroke="#10b981" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <rect x="335" y="70" width="90" height="18" rx="3" fill="#10b981" fill-opacity="0.2" stroke="#10b981" stroke-width="1"/>
+      <text x="380" y="82" fill="#10b981" font-size="8" font-weight="800" text-anchor="middle">New Equilibrium</text>
+
+      <!-- Zone Shading Indicators -->
+      <text x="130" y="250" fill="#64748b" font-size="9" font-weight="700" text-anchor="middle">Equilibrium 1 (Q = K)</text>
+      <text x="290" y="250" fill="#f59e0b" font-size="9" font-weight="800" text-anchor="middle">Shift Right → (Q &lt; K)</text>
+      <text x="440" y="250" fill="#64748b" font-size="9" font-weight="700" text-anchor="middle">Equilibrium 2 (Q = K)</text>
+
+      <!-- ================= CURVE 1: [H2] (Cyan, Decreases by 3Δx) ================= -->
+      <!-- Plateaus at 110, then drops smoothly to 145 -->
+      <path d="M 60 110 L 200 110 C 240 110, 320 145, 380 145 L 490 145" fill="none" stroke="#38bdf8" stroke-width="3"/>
+      <text x="500" y="149" fill="#38bdf8" font-size="10" font-weight="800">[H₂]</text>
+      <text x="290" y="125" fill="#38bdf8" font-size="8" font-weight="700">Drops by 3Δx</text>
+
+      <!-- ================= CURVE 2: [N2] (Emerald, Instant Spike then drops by Δx) ================= -->
+      <!-- Plateaus at 195, spikes up to 125 at t=200, then drops smoothly to 160 -->
+      <!-- Initial plateau -->
+      <line x1="60" y1="195" x2="200" y2="195" stroke="#34d399" stroke-width="3"/>
+      <!-- Instant vertical spike -->
+      <line x1="200" y1="195" x2="200" y2="125" stroke="#34d399" stroke-width="3"/>
+      <polygon points="200,123 196,132 204,132" fill="#34d399"/>
+      <!-- Recovery curve -->
+      <path d="M 200 125 C 240 135, 320 160, 380 160 L 490 160" fill="none" stroke="#34d399" stroke-width="3"/>
+      <text x="500" y="164" fill="#34d399" font-size="10" font-weight="800">[N₂]</text>
+      <text x="215" y="140" fill="#34d399" font-size="8" font-weight="700">+Δ[N₂] Spike</text>
+
+      <!-- ================= CURVE 3: [NH3] (Amber, Increases by 2Δx) ================= -->
+      <!-- Plateaus at 215, then rises smoothly to 180 -->
+      <path d="M 60 215 L 200 215 C 240 215, 320 180, 380 180 L 490 180" fill="none" stroke="#f59e0b" stroke-width="3"/>
+      <text x="500" y="184" fill="#f59e0b" font-size="10" font-weight="800">[NH₃]</text>
+      <text x="290" y="208" fill="#f59e0b" font-size="8" font-weight="700">Rises by +2Δx</text>
+
+      <!-- Stoichiometric Callout Note -->
+      <rect x="65" y="294" width="410" height="18" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <text x="270" y="306" fill="#cbd5e1" font-size="8" font-weight="600" text-anchor="middle">
+        Stoichiometric Ratio: 1 mole N₂ consumed : 3 moles H₂ consumed : 2 moles NH₃ produced
+      </text>
+    </svg>`
+  },
+
+  chem_rutherford_gold_foil: {
+    id: "chem_rutherford_gold_foil",
+    subject: "CHEM",
+    moduleId: 3,
+    title: "Rutherford's Alpha Particle Gold Foil Scattering Experiment",
+    caption: "Figure 19: Apparatus schematic and nuclear Coulomb repulsion trajectories discovering the dense atomic nucleus",
+    svg: `<svg viewBox="0 0 540 330" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 530px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <defs>
+        <radialGradient id="nucGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ef4444" stop-opacity="1"/>
+          <stop offset="60%" stop-color="#f59e0b" stop-opacity="0.8"/>
+          <stop offset="100%" stop-color="#ef4444" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="goldSheetGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#f59e0b"/>
+          <stop offset="50%" stop-color="#fef08a"/>
+          <stop offset="100%" stop-color="#d97706"/>
+        </linearGradient>
+      </defs>
+
+      <rect width="540" height="330" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+
+      <!-- Header Title Banner -->
+      <text x="270" y="22" fill="#38bdf8" font-size="11.5" font-weight="800" text-anchor="middle" letter-spacing="0.5">
+        RUTHERFORD'S ALPHA PARTICLE SCATTERING EXPERIMENT (1911)
+      </text>
+
+      <!-- ================= LEFT: EXPERIMENTAL APPARATUS ================= -->
+      <g transform="translate(10, 30)">
+        <!-- Lead Collimator Box -->
+        <rect x="15" y="115" width="40" height="40" rx="3" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+        <circle cx="35" cy="135" r="7" fill="#ef4444"/>
+        <text x="35" y="105" fill="#94a3b8" font-size="8" font-weight="700" text-anchor="middle">α Emitter</text>
+        <text x="35" y="170" fill="#64748b" font-size="7.5" text-anchor="middle">²¹⁴Po in Lead</text>
+
+        <!-- Collimator Slit -->
+        <rect x="68" y="100" width="6" height="28" fill="#475569"/>
+        <rect x="68" y="142" width="6" height="28" fill="#475569"/>
+        <line x1="35" y1="135" x2="140" y2="135" stroke="#f59e0b" stroke-width="2.5"/>
+
+        <!-- Circular ZnS Fluorescent Screen -->
+        <path d="M 120 40 A 105 105 0 1 1 120 230" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="4,2"/>
+        <text x="235" y="45" fill="#10b981" font-size="8" font-weight="700">Circular ZnS Detector Screen</text>
+
+        <!-- Gold Foil Target (Ultrathin) -->
+        <line x1="140" y1="75" x2="140" y2="195" stroke="url(#goldSheetGrad)" stroke-width="5"/>
+        <rect x="138" y="75" width="4" height="120" fill="url(#goldSheetGrad)"/>
+        <text x="140" y="65" fill="#fbbf24" font-size="8.5" font-weight="800" text-anchor="middle">Gold Foil (Au)</text>
+        <text x="140" y="210" fill="#f59e0b" font-size="7.5" font-weight="600" text-anchor="middle">~400 nm Thick</text>
+
+        <!-- Beam Scenarios from Foil -->
+        <!-- 1. Undeviated (99.9%) -->
+        <line x1="140" y1="135" x2="245" y2="135" stroke="#34d399" stroke-width="2.5"/>
+        <circle cx="245" cy="135" r="4" fill="#34d399"/>
+        <text x="250" y="138" fill="#34d399" font-size="7.5" font-weight="700">0° Undeviated (99.9%)</text>
+
+        <!-- 2. Small Angle Deflection (~0.1%) -->
+        <path d="M 140 135 Q 180 130 235 90" fill="none" stroke="#38bdf8" stroke-width="2"/>
+        <circle cx="235" cy="90" r="3.5" fill="#38bdf8"/>
+        <text x="242" y="92" fill="#38bdf8" font-size="7.5" font-weight="700">Small Angle (θ &lt; 10°)</text>
+
+        <!-- 3. Large Backward Deflection (1 in 20,000) -->
+        <path d="M 140 135 Q 145 130 95 65" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-dasharray="3,1"/>
+        <circle cx="95" cy="65" r="4" fill="#ef4444"/>
+        <polygon points="95,65 104,69 101,75" fill="#ef4444"/>
+        <text x="85" y="55" fill="#ef4444" font-size="8" font-weight="800" text-anchor="middle">Backscatter (θ &gt; 90°)</text>
+        <text x="85" y="240" fill="#ef4444" font-size="7.5" font-weight="700" text-anchor="middle">1 in 20,000 reflected</text>
+      </g>
+
+      <!-- ================= RIGHT: SUBATOMIC COULOMB SCATTERING ZOOM ================= -->
+      <g transform="translate(305, 34)">
+        <rect x="0" y="0" width="220" height="225" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1.2"/>
+        <text x="110" y="16" fill="#38bdf8" font-size="9" font-weight="800" text-anchor="middle">
+          SUBATOMIC COULOMB SCATTERING
+        </text>
+
+        <!-- Gold Atom Boundary (Faint electron cloud) -->
+        <circle cx="110" cy="118" r="85" fill="#0f172a" stroke="#64748b" stroke-width="1" stroke-dasharray="3,3"/>
+        <text x="110" y="32" fill="#64748b" font-size="7.5" text-anchor="middle">Electron Cloud (r ≈ 10⁻¹⁰ m)</text>
+
+        <!-- Gold Nucleus (+79e) -->
+        <circle cx="110" cy="118" r="16" fill="url(#nucGlow)"/>
+        <circle cx="110" cy="118" r="8" fill="#ef4444" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="110" y="121" fill="#ffffff" font-size="8" font-weight="900" text-anchor="middle">+79</text>
+        <text x="110" y="145" fill="#fbbf24" font-size="7.5" font-weight="800" text-anchor="middle">Au Nucleus</text>
+        <text x="110" y="156" fill="#94a3b8" font-size="7" text-anchor="middle">(r ≈ 10⁻¹⁴ m)</text>
+
+        <!-- Hyperbolic Particle Tracks -->
+        <!-- Track 1: Far trajectory (No deflection) -->
+        <line x1="5" y1="48" x2="215" y2="48" stroke="#34d399" stroke-width="1.5"/>
+        <polygon points="215,48 208,45 208,51" fill="#34d399"/>
+        <text x="15" y="44" fill="#34d399" font-size="7">Large b (undeflected)</text>
+
+        <!-- Track 2: Intermediate trajectory (Glancing Coulomb Repulsion) -->
+        <path d="M 5 95 C 75 95, 100 85, 150 62 L 210 38" fill="none" stroke="#38bdf8" stroke-width="1.8"/>
+        <polygon points="210,38 203,38 206,44" fill="#38bdf8"/>
+        <text x="15" y="90" fill="#38bdf8" font-size="7">Medium b: Glancing θ</text>
+
+        <!-- Track 3: Head-on Trajectory (Direct Coulomb Repulsion & Backscatter) -->
+        <path d="M 5 118 L 85 118 C 95 118, 95 110, 85 102 L 15 78" fill="none" stroke="#ef4444" stroke-width="2"/>
+        <polygon points="15,78 23,76 21,83" fill="#ef4444"/>
+        <circle cx="92" cy="118" r="3" fill="#ef4444"/>
+        <text x="50" y="132" fill="#ef4444" font-size="7" font-weight="700">Head-on: d_min</text>
+      </g>
+
+      <!-- Key Scientific Conclusion Footer -->
+      <rect x="15" y="270" width="510" height="50" rx="5" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <text x="25" y="288" fill="#38bdf8" font-size="9" font-weight="800">RUTHERFORD'S CONCLUSION:</text>
+      <text x="25" y="302" fill="#f8fafc" font-size="8.2" font-weight="500">
+        1. The atom is mostly empty space — explains why 99.9% of alpha particles pass through unaffected.
+      </text>
+      <text x="25" y="314" fill="#f8fafc" font-size="8.2" font-weight="500">
+        2. Nuclear Core: All positive charge and &gt;99.95% of mass reside in a tiny, dense nucleus (r ≈ 10⁻¹⁴ m) deflecting α particles by electrostatic repulsion (F ∝ 1/r²).
+      </text>
+    </svg>`
+  },
+
+  bio_photosynthesis_z_scheme: {
+    id: "bio_photosynthesis_z_scheme",
+    subject: "BIO",
+    moduleId: 8,
+    title: "Thylakoid Membrane Light Reactions: Z-Scheme & Photophosphorylation",
+    caption: "Figure 20: Photosystems II & I electron transport chain, water photolysis, and chemiosmotic ATP synthesis across the thylakoid membrane",
+    svg: `<svg viewBox="0 0 540 330" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 530px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <defs>
+        <linearGradient id="ps2Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#10b981"/>
+          <stop offset="100%" stop-color="#047857"/>
+        </linearGradient>
+        <linearGradient id="ps1Grad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#059669"/>
+          <stop offset="100%" stop-color="#064e3b"/>
+        </linearGradient>
+        <linearGradient id="atpGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#f59e0b"/>
+          <stop offset="100%" stop-color="#b45309"/>
+        </linearGradient>
+      </defs>
+
+      <rect width="540" height="330" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+
+      <!-- Header Title Banner -->
+      <text x="270" y="22" fill="#38bdf8" font-size="11.5" font-weight="800" text-anchor="middle" letter-spacing="0.5">
+        LIGHT-DEPENDENT REACTIONS: THYLAKOID CHEMIOSMOSIS
+      </text>
+
+      <!-- Region Dividers & pH Labels -->
+      <!-- Stroma (Top) -->
+      <rect x="15" y="32" width="510" height="98" fill="#1e293b" fill-opacity="0.3"/>
+      <text x="25" y="48" fill="#38bdf8" font-size="9" font-weight="800">STROMA (pH ≈ 8.0, Low [H⁺])</text>
+
+      <!-- Thylakoid Membrane Bilayer (Middle) -->
+      <rect x="15" y="130" width="510" height="50" fill="#334155" fill-opacity="0.4" stroke="#475569" stroke-width="1"/>
+      <line x1="15" y1="130" x2="525" y2="130" stroke="#10b981" stroke-width="2"/>
+      <line x1="15" y1="180" x2="525" y2="180" stroke="#10b981" stroke-width="2"/>
+      <text x="25" y="158" fill="#94a3b8" font-size="8" font-weight="700">Thylakoid Bilayer</text>
+
+      <!-- Lumen (Bottom) -->
+      <rect x="15" y="180" width="510" height="100" fill="#0f172a" fill-opacity="0.6"/>
+      <text x="25" y="196" fill="#f59e0b" font-size="9" font-weight="800">THYLAKOID LUMEN (pH ≈ 5.0, High [H⁺] Reservoir)</text>
+
+      <!-- ================= COMPLEX 1: PHOTOSYSTEM II (P680) ================= -->
+      <g transform="translate(100, 110)">
+        <rect x="0" y="0" width="52" height="70" rx="8" fill="url(#ps2Grad)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="26" y="28" fill="#ffffff" font-size="9" font-weight="900" text-anchor="middle">PS II</text>
+        <text x="26" y="40" fill="#a7f3d0" font-size="8" font-weight="700" text-anchor="middle">P680</text>
+
+        <!-- Sunlight Photon (hν) -->
+        <path d="M 10 -40 L 18 -25 L 14 -20 L 26 -2" fill="none" stroke="#fbbf24" stroke-width="2"/>
+        <polygon points="26,-2 20,-7 25,-10" fill="#fbbf24"/>
+        <text x="26" y="-45" fill="#fbbf24" font-size="8" font-weight="800" text-anchor="middle">Photon hν (680nm)</text>
+
+        <!-- Photolysis of H2O in Lumen -->
+        <rect x="-18" y="74" width="88" height="24" rx="4" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+        <text x="26" y="86" fill="#38bdf8" font-size="7.5" font-weight="800" text-anchor="middle">2 H₂O → O₂ + 4 H⁺ + 4 e⁻</text>
+        <text x="26" y="95" fill="#94a3b8" font-size="6.5" text-anchor="middle">Oxygen Evolving Complex</text>
+      </g>
+
+      <!-- ================= ELECTRON FLOW 1: PQ -> Cyt b6f ================= -->
+      <!-- Plastoquinone (PQ) -->
+      <circle cx="180" cy="145" r="14" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="180" y="148" fill="#ffffff" font-size="8" font-weight="800" text-anchor="middle">PQ</text>
+
+      <!-- Cytochrome b6f Complex -->
+      <g transform="translate(220, 115)">
+        <rect x="0" y="0" width="46" height="65" rx="6" fill="#475569" stroke="#94a3b8" stroke-width="1.5"/>
+        <text x="23" y="30" fill="#ffffff" font-size="8.5" font-weight="800" text-anchor="middle">Cyt</text>
+        <text x="23" y="42" fill="#cbd5e1" font-size="8" font-weight="700" text-anchor="middle">b₆f</text>
+
+        <!-- Active H+ Pump Arrow (Stroma -> Lumen) -->
+        <path d="M 23 -15 L 23 85" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="3,2"/>
+        <polygon points="23,88 19,80 27,80" fill="#f59e0b"/>
+        <text x="23" y="-20" fill="#f59e0b" font-size="8" font-weight="800" text-anchor="middle">+4 H⁺ PUMP</text>
+      </g>
+
+      <!-- Plastocyanin (PC) -->
+      <circle cx="295" cy="170" r="13" fill="#0d9488" stroke="#2dd4bf" stroke-width="1.5"/>
+      <text x="295" y="173" fill="#ffffff" font-size="8" font-weight="800" text-anchor="middle">PC</text>
+
+      <!-- ================= COMPLEX 2: PHOTOSYSTEM I (P700) ================= -->
+      <g transform="translate(330, 110)">
+        <rect x="0" y="0" width="52" height="70" rx="8" fill="url(#ps1Grad)" stroke="#34d399" stroke-width="1.5"/>
+        <text x="26" y="28" fill="#ffffff" font-size="9" font-weight="900" text-anchor="middle">PS I</text>
+        <text x="26" y="40" fill="#a7f3d0" font-size="8" font-weight="700" text-anchor="middle">P700</text>
+
+        <!-- Sunlight Photon (hν) -->
+        <path d="M 10 -40 L 18 -25 L 14 -20 L 26 -2" fill="none" stroke="#fbbf24" stroke-width="2"/>
+        <polygon points="26,-2 20,-7 25,-10" fill="#fbbf24"/>
+        <text x="26" y="-45" fill="#fbbf24" font-size="8" font-weight="800" text-anchor="middle">Photon hν (700nm)</text>
+      </g>
+
+      <!-- Ferredoxin (Fd) & FNR Reductase (Stroma) -->
+      <g transform="translate(385, 45)">
+        <circle cx="15" cy="15" r="12" fill="#7c3aed" stroke="#c084fc" stroke-width="1.5"/>
+        <text x="15" y="18" fill="#ffffff" font-size="7.5" font-weight="800" text-anchor="middle">Fd</text>
+
+        <!-- FNR Arrow to NADPH -->
+        <path d="M 28 15 L 75 15" fill="none" stroke="#c084fc" stroke-width="2"/>
+        <polygon points="75,15 67,11 67,19" fill="#c084fc"/>
+        <rect x="42" y="22" width="85" height="18" rx="3" fill="#1e293b" stroke="#c084fc" stroke-width="1"/>
+        <text x="84" y="34" fill="#c084fc" font-size="7.5" font-weight="800" text-anchor="middle">NADP⁺ + H⁺ → NADPH</text>
+      </g>
+
+      <!-- ================= COMPLEX 3: ATP SYNTHASE (CHEMIOSMOSIS) ================= -->
+      <g transform="translate(460, 95)">
+        <!-- CF0 Rotor in Membrane -->
+        <rect x="6" y="35" width="30" height="50" rx="4" fill="#475569" stroke="#f59e0b" stroke-width="1.5"/>
+        <text x="21" y="62" fill="#fef08a" font-size="7.5" font-weight="800" text-anchor="middle">CF₀</text>
+
+        <!-- CF1 Catalytic Head in Stroma -->
+        <circle cx="21" cy="15" r="20" fill="url(#atpGrad)" stroke="#fef08a" stroke-width="1.5"/>
+        <text x="21" y="18" fill="#ffffff" font-size="8.5" font-weight="900" text-anchor="middle">CF₁</text>
+
+        <!-- Proton Efflux Arrow (Lumen -> Stroma) -->
+        <path d="M 21 115 L 21 40" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+        <polygon points="21,37 17,45 25,45" fill="#f59e0b"/>
+        <text x="21" y="125" fill="#f59e0b" font-size="8" font-weight="800" text-anchor="middle">H⁺ Efflux</text>
+
+        <!-- ADP + Pi -> ATP Generation Badge -->
+        <rect x="-42" y="-12" width="70" height="18" rx="3" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+        <text x="-7" y="0" fill="#f59e0b" font-size="7.5" font-weight="800" text-anchor="middle">ADP + Pᵢ → ATP</text>
+      </g>
+
+      <!-- Footer Summary Equation -->
+      <rect x="15" y="288" width="510" height="34" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <text x="270" y="302" fill="#cbd5e1" font-size="8.2" font-weight="600" text-anchor="middle">
+        Net Light Reaction: 2 H₂O + 2 NADP⁺ + 3 ADP + 3 Pᵢ + Light → O₂ + 2 NADPH + 3 ATP
+      </text>
+      <text x="270" y="315" fill="#38bdf8" font-size="7.5" font-weight="700" text-anchor="middle">
+        Proton Motive Force (PMF) across thylakoid drives photophosphorylation via chemiosmotic rotary coupling
+      </text>
+    </svg>`
   }
 };
 

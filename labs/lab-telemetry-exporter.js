@@ -5,6 +5,7 @@
 import { renderLatex, upgradeAllMath } from "../utils/math-renderer.js";
 import { showToast } from "../utils/toast.js";
 import { ProgressStore } from "../components/progress-tracker.js";
+import { exportToDocx } from "../utils/docx-export.js";
 
 /**
  * In-memory trial store for virtual labs (persisted in session)
@@ -129,6 +130,10 @@ export function openLabReportModal(config) {
           <span style="color: #94a3b8; font-size: 0.8rem;">• ${title}</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
+          <button id="btn-export-docx-lab-report" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; gap: 6px; border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.15); color: #38bdf8;" title="Export editable Microsoft Word (.docx) lab dossier">
+            <span>📄</span>
+            <span>Save as .docx</span>
+          </button>
           <button id="btn-print-lab-report" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; gap: 6px;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span>Print / Save PDF</span>
@@ -294,6 +299,18 @@ export function openLabReportModal(config) {
   document.body.style.overflow = "hidden";
 
   upgradeAllMath(overlay);
+
+  // DOCX Export button
+  document.getElementById("btn-export-docx-lab-report")?.addEventListener("click", () => {
+    const reportSheet = document.getElementById("lab-report-printable-area");
+    if (!reportSheet) return;
+    exportToDocx({
+      title: `${title} - Laboratory Investigation Dossier`,
+      filename: `LabReport_${title.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0, 10)}`,
+      content: reportSheet,
+      subject: subject
+    });
+  });
 
   // Print button
   document.getElementById("btn-print-lab-report")?.addEventListener("click", () => {

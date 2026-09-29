@@ -10,6 +10,7 @@ import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js"
 import { renderLatex, formatMathText, upgradeAllMath } from "../utils/math-renderer.js";
 import { copyShareLink } from "../utils/toast.js";
 import { openLmsShareModal } from "../utils/lms-share.js";
+import { exportToDocx } from "../utils/docx-export.js";
 
 /**
  * High School NGSS Standards Reference Matrix
@@ -597,6 +598,10 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
             <span>📤 Assign to LMS</span>
           </button>
 
+          <button id="btn-lp-docx" class="btn btn-secondary lp-btn-docx" title="Export as Editable Microsoft Word (.docx) Document" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; cursor: pointer;">
+            <span>📄 Save as .docx</span>
+          </button>
+
           <button id="btn-lp-print" class="btn btn-primary lp-btn-print" title="Print or Save as PDF (Strict 2 A4 Pages)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span>Print / Save PDF (2 Pages)</span>
@@ -655,6 +660,18 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
       title: `${planData.meta.subject} ${planData.meta.moduleCode}: Lesson ${planData.meta.lessonId} Instructional Plan`,
       subject: planData.meta.subject,
       description: `Standards-aligned (NGSS 3D Learning) 2-Page Instructional Dossier with 5E Inquiry Cycle, Formative Checkpoints, and Rubric.`
+    });
+  });
+
+  // DOCX Export Action
+  document.getElementById("btn-lp-docx")?.addEventListener("click", () => {
+    const target = document.getElementById("lp-render-target");
+    if (!target) return;
+    exportToDocx({
+      title: `${planData.meta.subject} - Lesson ${planData.meta.lessonId}: ${planData.meta.lessonTitle} Instructional Plan`,
+      filename: `LessonPlan_${planData.meta.subjectCode}_M${planData.meta.moduleId}_L${planData.meta.lessonId}`,
+      content: target,
+      subject: planData.meta.subjectCode
     });
   });
 

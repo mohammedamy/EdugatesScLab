@@ -398,7 +398,7 @@ let dragStartX = 0;
 let dragStartY = 0;
 let initialModalX = 0;
 let initialModalY = 0;
-let topFloatingZ = 9500;
+let topFloatingZ = 200000;
 
 export function bringWidgetToFront(el) {
   if (!el) return;
@@ -480,9 +480,6 @@ function createCalculatorDOM() {
         </div>
 
         <div class="calc-header-actions">
-          <button class="calc-hdr-btn" id="calc-btn-history-toggle" title="Toggle Calculation Tape (History)" aria-label="Toggle History">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          </button>
           <button class="calc-hdr-btn" id="calc-btn-minimize" title="Minimize / Compact Floating Badge" aria-label="Minimize Calculator">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
@@ -495,6 +492,7 @@ function createCalculatorDOM() {
       <!-- Tier 2: Mode & Utility Navigation Tabs -->
       <div class="calc-header-tabs" id="calc-header-tabs">
         <button class="calc-header-tab active" data-tab="calc" id="tab-btn-calc" title="Scientific Keypad">Calculator</button>
+        <button class="calc-header-tab" data-tab="history" id="tab-btn-history" title="Calculation Tape & History">History</button>
         <button class="calc-header-tab" data-tab="constants" id="tab-btn-constants" title="Physical &amp; Chemical Constants">Constants</button>
         <button class="calc-header-tab" data-tab="formulas" id="tab-btn-formulas" title="AP/SAT STEM Reference Equations">Formulas</button>
       </div>
@@ -519,17 +517,6 @@ function createCalculatorDOM() {
           </div>
           <div class="calc-lcd-bottom">
             <span class="calc-eval-status" id="calc-eval-status">= 0</span>
-          </div>
-        </div>
-
-        <!-- History Tape Dropdown Drawer -->
-        <div class="calc-history-drawer" id="calc-history-drawer" style="display: none;">
-          <div class="calc-history-hdr">
-            <span>Calculation Tape</span>
-            <button class="btn btn-sm btn-secondary" id="btn-clear-history" style="padding: 2px 8px; font-size: 0.72rem;">Clear</button>
-          </div>
-          <div class="calc-history-list" id="calc-history-list">
-            <div class="calc-history-empty">No previous calculations recorded</div>
           </div>
         </div>
 
@@ -597,7 +584,18 @@ function createCalculatorDOM() {
         </div>
       </div>
 
-      <!-- 2. CONSTANTS DIRECTORY VIEW -->
+      <!-- 2. CALCULATION TAPE / HISTORY VIEW -->
+      <div class="calc-subview" id="subview-history" style="display: none;">
+        <div class="calc-history-view-hdr">
+          <span>Calculation Tape &amp; Recall</span>
+          <button class="btn btn-sm btn-secondary" id="btn-clear-history-view" style="padding: 3px 10px; font-size: 0.72rem; border-radius: 4px;">Clear Tape</button>
+        </div>
+        <div class="calc-history-list" id="calc-history-list">
+          <div class="calc-history-empty" style="padding: 28px 14px; text-align: center; color: var(--text-muted); font-size: 0.82rem;">No previous calculations recorded</div>
+        </div>
+      </div>
+
+      <!-- 3. CONSTANTS DIRECTORY VIEW -->
       <div class="calc-subview" id="subview-constants" style="display: none;">
         <div class="calc-ref-header">
           <div style="display: flex; gap: 6px; margin-bottom: 8px;">
@@ -654,9 +652,7 @@ function bindCalculatorEvents(modal) {
   const btnClear = modal.querySelector("#btn-calc-clear");
   const btnBackspace = modal.querySelector("#btn-calc-backspace");
   const btnCopy = modal.querySelector("#calc-copy-result");
-  const btnHistoryToggle = modal.querySelector("#calc-btn-history-toggle");
-  const historyDrawer = modal.querySelector("#calc-history-drawer");
-  const btnClearHistory = modal.querySelector("#btn-clear-history");
+  const btnClearHistory = modal.querySelector("#btn-clear-history-view");
   const btnClose = modal.querySelector("#calc-btn-close");
   const btnMinimize = modal.querySelector("#calc-btn-minimize");
 
@@ -728,7 +724,9 @@ function bindCalculatorEvents(modal) {
         targetView.classList.add("active");
       }
 
-      if (activeTab === "constants") {
+      if (activeTab === "history") {
+        renderHistoryTape();
+      } else if (activeTab === "constants") {
         renderConstantsTable();
       } else if (activeTab === "formulas") {
         renderFormulasView();
@@ -932,16 +930,8 @@ function bindCalculatorEvents(modal) {
     }
   });
 
-  // Toggle History Drawer
-  btnHistoryToggle.addEventListener("click", () => {
-    const isShown = historyDrawer.style.display !== "none";
-    historyDrawer.style.display = isShown ? "none" : "block";
-    btnHistoryToggle.classList.toggle("active", !isShown);
-    SoundFX.playClick();
-  });
-
-  // Clear History
-  btnClearHistory.addEventListener("click", () => {
+  // Clear History Tape
+  btnClearHistory?.addEventListener("click", () => {
     calcHistory = [];
     renderHistoryTape();
     SoundFX.playClick();
@@ -1038,17 +1028,53 @@ function renderHistoryTape() {
   if (!list) return;
 
   if (calcHistory.length === 0) {
-    list.innerHTML = `<div class="calc-history-empty">No previous calculations recorded</div>`;
+    list.innerHTML = `<div class="calc-history-empty" style="padding: 28px 14px; text-align: center; color: var(--text-muted); font-size: 0.82rem;">No previous calculations recorded</div>`;
     return;
   }
 
   list.innerHTML = calcHistory.map((item, idx) => `
-    <div class="calc-history-item" data-idx="${idx}" title="Click to insert result into calculation">
-      <div class="calc-history-time">${item.timestamp}</div>
-      <div class="calc-history-expr">${item.expr}</div>
-      <div class="calc-history-ans">= ${item.result}</div>
+    <div class="calc-history-item" data-idx="${idx}" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; transition: border-color 0.15s ease;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <span class="calc-history-time" style="font-size: 0.7rem; color: #64748b;">${item.timestamp}</span>
+        <div style="display: flex; gap: 4px;">
+          <button class="btn btn-sm btn-secondary btn-reuse-expr" data-idx="${idx}" title="Load expression into calculator input" style="padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">↺ Expr</button>
+          <button class="btn btn-sm btn-primary btn-insert-ans" data-idx="${idx}" title="Insert answer into calculator" style="padding: 1px 6px; font-size: 0.68rem; border-radius: 4px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8;">+ Ans</button>
+        </div>
+      </div>
+      <div class="calc-history-expr" style="font-family: var(--font-mono); font-size: 0.82rem; color: #cbd5e1; margin-bottom: 2px;">${item.expr}</div>
+      <div class="calc-history-ans" style="font-family: var(--font-mono); font-size: 0.95rem; color: #38bdf8; font-weight: 800; text-align: right;">= ${item.result}</div>
     </div>
   `).join("");
+
+  const modal = document.getElementById("edugates-science-calculator");
+
+  list.querySelectorAll(".btn-insert-ans").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.idx, 10);
+      const chosen = calcHistory[idx];
+      if (chosen) {
+        insertAtCursor(chosen.result);
+        modal?.querySelector('#tab-btn-calc')?.click();
+        SoundFX.playScorePip();
+      }
+    });
+  });
+
+  list.querySelectorAll(".btn-reuse-expr").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.idx, 10);
+      const chosen = calcHistory[idx];
+      if (chosen) {
+        currentExpression = chosen.expr;
+        updateDisplay();
+        previewEvaluation();
+        modal?.querySelector('#tab-btn-calc')?.click();
+        SoundFX.playClick();
+      }
+    });
+  });
 
   list.querySelectorAll(".calc-history-item").forEach(itemEl => {
     itemEl.addEventListener("click", () => {
@@ -1056,7 +1082,8 @@ function renderHistoryTape() {
       const chosen = calcHistory[idx];
       if (chosen) {
         insertAtCursor(chosen.result);
-        SoundFX.playClick();
+        modal?.querySelector('#tab-btn-calc')?.click();
+        SoundFX.playScorePip();
       }
     });
   });

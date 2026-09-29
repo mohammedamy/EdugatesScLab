@@ -1284,12 +1284,14 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "defaultParams": {}
   },
   "BIO-M11-L2": {
-    "type": "bio-mitosis-cell-cycle",
+    "type": "bio-dna-replication",
     "lessonBadge": "Lesson 2",
     "title": "Semiconservative Replication of DNA: Fork Enzymes",
     "formula": "\\text{Leading Strand: } 5' \\rightarrow 3' \\text{ Continuous}, \\quad \\text{Lagging: Okazaki Fragments}",
     "inquiry": "Trace helicase unwinding and DNA polymerase III nucleotide synthesis along replication forks.",
-    "defaultParams": {}
+    "defaultParams": {
+      "speed": 50
+    }
   },
   "BIO-M11-L3": {
     "type": "bio-enzyme-kinetics",
@@ -2802,6 +2804,8 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
     buildPopulationGrowthInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-photosynthesis-respiration")) {
     buildPhotosynthesisRespirationInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("bio-dna-replication")) {
+    buildDnaReplicationInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-mitosis") || spec.type.startsWith("bio-cell-cycle")) {
     buildMitosisCellCycleInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-hardy-weinberg") || spec.type.startsWith("bio-natural-selection")) {
@@ -12728,15 +12732,19 @@ function buildEquilibriumInteractive(mountId, params) {
   const ctx = canvas.getContext("2d");
 
   const particles = [];
+  const concHistory = [];
+  const maxHistory = 120;
+  let historyTick = 0;
+
   function refreshParticles() {
     particles.length = 0;
     const n2o4Count = Math.min(30, Math.max(5, Math.round(molesN2O4 * 18)));
     const no2Count = Math.min(45, Math.max(5, Math.round(molesNO2 * 25)));
     for (let i = 0; i < n2o4Count; i++) {
-      particles.push({ type: 'N2O4', x: 60 + Math.random() * 260, y: 50 + Math.random() * 150, vx: (Math.random() - 0.5) * 1.5, vy: (Math.random() - 0.5) * 1.5 });
+      particles.push({ type: 'N2O4', x: 50 + Math.random() * 280, y: 35 + Math.random() * 110, vx: (Math.random() - 0.5) * 1.5, vy: (Math.random() - 0.5) * 1.5 });
     }
     for (let i = 0; i < no2Count; i++) {
-      particles.push({ type: 'NO2', x: 60 + Math.random() * 260, y: 50 + Math.random() * 150, vx: (Math.random() - 0.5) * 2.8, vy: (Math.random() - 0.5) * 2.8 });
+      particles.push({ type: 'NO2', x: 50 + Math.random() * 280, y: 35 + Math.random() * 110, vx: (Math.random() - 0.5) * 2.8, vy: (Math.random() - 0.5) * 2.8 });
     }
   }
   refreshParticles();
@@ -12754,13 +12762,13 @@ function buildEquilibriumInteractive(mountId, params) {
       if (diff > 0) {
         molesNO2 = Math.max(0.1, molesNO2 - rate * 2);
         molesN2O4 += rate;
-        document.getElementById(`${mountId}-shift-badge`).innerText = "← Le Chatelier Shift: Left (Favoring N₂O₄)";
+        document.getElementById(`${mountId}-shift-badge`).innerText = "← Shift Left: 2 NO₂ → N₂O₄";
         document.getElementById(`${mountId}-shift-badge`).style.borderColor = "#f59e0b";
         document.getElementById(`${mountId}-shift-badge`).style.color = "#f59e0b";
       } else {
         molesN2O4 = Math.max(0.1, molesN2O4 - rate);
         molesNO2 += rate * 2;
-        document.getElementById(`${mountId}-shift-badge`).innerText = "→ Le Chatelier Shift: Right (Favoring NO₂)";
+        document.getElementById(`${mountId}-shift-badge`).innerText = "→ Shift Right: N₂O₄ → 2 NO₂";
         document.getElementById(`${mountId}-shift-badge`).style.borderColor = "#ef4444";
         document.getElementById(`${mountId}-shift-badge`).style.color = "#ef4444";
       }
@@ -12772,43 +12780,97 @@ function buildEquilibriumInteractive(mountId, params) {
 
     document.getElementById(`${mountId}-q-val`).innerText = `Q = ${Q.toFixed(2)} | Keq = ${Keq.toFixed(2)}`;
 
+    // Track rolling kinetics history for strip chart
+    historyTick++;
+    if (historyTick % 4 === 0) {
+      concHistory.push({ no2: concNO2, n2o4: concN2O4 });
+      if (concHistory.length > maxHistory) concHistory.shift();
+    }
+
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const chamberLeft = 40, chamberTop = 40, chamberWidth = 300, chamberHeight = 175;
-    const brownAlpha = Math.min(0.85, Math.max(0.1, concNO2 * 0.45));
+
+    // 1. Gas Reaction Chamber (Upper Half)
+    const chamberLeft = 30, chamberTop = 24, chamberWidth = 320, chamberHeight = 135;
+    const brownAlpha = Math.min(0.85, Math.max(0.08, concNO2 * 0.42));
     ctx.fillStyle = `rgba(180, 83, 9, ${brownAlpha})`;
     ctx.fillRect(chamberLeft, chamberTop, chamberWidth, chamberHeight);
 
-    ctx.strokeStyle = "rgba(148, 163, 184, 0.7)";
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = isDay ? "#64748b" : "rgba(148, 163, 184, 0.7)";
+    ctx.lineWidth = 2.5;
     ctx.strokeRect(chamberLeft, chamberTop, chamberWidth, chamberHeight);
 
+    // Chamber label
+    ctx.fillStyle = isDay ? "#0f172a" : "#cbd5e1";
+    ctx.font = "bold 9px monospace";
+    ctx.fillText(`V = ${vol.toFixed(1)} L | T = ${temp} K`, chamberLeft + 10, chamberTop + 14);
+
+    // Floating Particles
     particles.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
-      if (p.x < chamberLeft + 10 || p.x > chamberLeft + chamberWidth - 10) p.vx *= -1;
-      if (p.y < chamberTop + 10 || p.y > chamberTop + chamberHeight - 10) p.vy *= -1;
+      if (p.x < chamberLeft + 8 || p.x > chamberLeft + chamberWidth - 8) p.vx *= -1;
+      if (p.y < chamberTop + 8 || p.y > chamberTop + chamberHeight - 8) p.vy *= -1;
 
       if (p.type === 'N2O4') {
         ctx.fillStyle = "rgba(56, 189, 248, 0.9)";
         ctx.beginPath();
-        ctx.arc(p.x - 3, p.y, 4.5, 0, Math.PI * 2);
-        ctx.arc(p.x + 3, p.y, 4.5, 0, Math.PI * 2);
+        ctx.arc(p.x - 3, p.y, 4, 0, Math.PI * 2);
+        ctx.arc(p.x + 3, p.y, 4, 0, Math.PI * 2);
         ctx.fill();
       } else {
         ctx.fillStyle = "rgba(239, 68, 68, 0.95)";
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
         ctx.fill();
       }
     });
 
-    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
-    ctx.fillRect(0, 225, canvas.width, 35);
-    ctx.font = "11px Inter, sans-serif";
+    // 2. Real-Time Concentration Kinetics Strip Chart (Lower Half)
+    const chartLeft = 30, chartTop = 175, chartWidth = 320, chartHeight = 75;
+    ctx.fillStyle = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+    ctx.fillRect(chartLeft, chartTop, chartWidth, chartHeight);
+    ctx.strokeStyle = isDay ? "#cbd5e1" : "#334155";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(chartLeft, chartTop, chartWidth, chartHeight);
+
+    // Chart Header
+    ctx.font = "bold 8.5px sans-serif";
     ctx.fillStyle = "#38bdf8";
-    ctx.fillText(`[N₂O₄] = ${concN2O4.toFixed(2)} M (Colorless Dimer)`, 20, 246);
+    ctx.fillText(`[N₂O₄] = ${concN2O4.toFixed(2)} M`, chartLeft + 8, chartTop + 12);
     ctx.fillStyle = "#f87171";
-    ctx.fillText(`[NO₂] = ${concNO2.toFixed(2)} M (Red-Brown Monomer)`, 200, 246);
+    ctx.fillText(`[NO₂] = ${concNO2.toFixed(2)} M`, chartLeft + 120, chartTop + 12);
+    ctx.fillStyle = isDay ? "#64748b" : "#94a3b8";
+    ctx.fillText("Real-Time Shift Kinetics", chartLeft + 220, chartTop + 12);
+
+    // Plot curves
+    if (concHistory.length > 1) {
+      const maxConc = 2.5;
+
+      // [N2O4] Curve (Cyan)
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      concHistory.forEach((pt, i) => {
+        const x = chartLeft + (i / maxHistory) * chartWidth;
+        const y = chartTop + chartHeight - 6 - (pt.n2o4 / maxConc) * (chartHeight - 22);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // [NO2] Curve (Red)
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      concHistory.forEach((pt, i) => {
+        const x = chartLeft + (i / maxHistory) * chartWidth;
+        const y = chartTop + chartHeight - 6 - (pt.no2 / maxConc) * (chartHeight - 22);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
 
     animId = requestAnimationFrame(loop);
   }
@@ -12827,16 +12889,19 @@ function buildEquilibriumInteractive(mountId, params) {
   document.getElementById(`${mountId}-btn-add-no2`).addEventListener("click", () => {
     molesNO2 += 0.5;
     refreshParticles();
+    try { SoundFX.playPop(); } catch (err) {}
   });
   document.getElementById(`${mountId}-btn-add-n2o4`).addEventListener("click", () => {
     molesN2O4 += 0.5;
     refreshParticles();
+    try { SoundFX.playPop(); } catch (err) {}
   });
   document.getElementById(`${mountId}-btn-reset`).addEventListener("click", () => {
     vol = 1.0;
     temp = 300;
     molesN2O4 = 0.8;
     molesNO2 = 0.4;
+    concHistory.length = 0;
     document.getElementById(`${mountId}-v-slider`).value = vol;
     document.getElementById(`${mountId}-t-slider`).value = temp;
     document.getElementById(`${mountId}-v-lbl`).innerText = "1.0 L";
@@ -14511,6 +14576,404 @@ function buildPhotosynthesisRespirationInteractive(mountId, params) {
     co2 = parseInt(e.target.value, 10);
     document.getElementById(`${mountId}-co2-lbl`).innerText = `${co2} ppm`;
   });
+}
+
+/**
+ * 27b. Biology: DNA Replication Fork & Molecular Machinery Simulator
+ */
+function buildDnaReplicationInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  let speed = (params && params.speed) || 50; // bp/s (10 to 120)
+  let isPlaying = true;
+  let mode = "normal"; // "normal", "proofread", "inhibited"
+  let totalBp = 1240;
+  let okazakiLigated = 4;
+  let animId = null;
+  let phase = 0;
+  let sparkTimer = 0;
+  let dntpPool = [];
+
+  // Seed initial free dNTPs
+  for (let i = 0; i < 10; i++) {
+    dntpPool.push({
+      x: 30 + Math.random() * 340,
+      y: 20 + Math.random() * 220,
+      vx: (Math.random() - 0.5) * 1.2,
+      vy: (Math.random() - 0.5) * 1.2,
+      base: ["dATP", "dTTP", "dCTP", "dGTP"][Math.floor(Math.random() * 4)],
+      col: ["#10b981", "#facc15", "#38bdf8", "#ec4899"][Math.floor(Math.random() * 4)]
+    });
+  }
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #050814;">
+        <canvas id="${mountId}-canvas" width="400" height="260" style="width: 100%; height: 260px; display: block;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5;">
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; font-size: 0.72rem; padding: 3px 8px; border-radius: 999px;">
+            Replication Fork 5'→3'
+          </span>
+          <span class="badge" id="${mountId}-status-badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(16,185,129,0.4); color: #34d399; font-size: 0.72rem; padding: 3px 8px; border-radius: 999px;">
+            Active Synthesis
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56,189,248,0.4);">
+          <span class="readout-label">Synthesized DNA:</span>
+          <span class="readout-val" id="${mountId}-bp-val" style="color: #38bdf8;">${totalBp} bp</span>
+        </div>
+
+        <div class="sim-readout-pill" style="background: rgba(15,23,42,0.85); font-family: var(--font-mono); font-size: 0.8rem;">
+          <span class="readout-label">Replication Fidelity:</span>
+          <span class="readout-val" id="${mountId}-fidelity-val" style="color: #34d399;">1 error in 10⁷ bp</span>
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Synthesis Velocity:</span>
+            <strong id="${mountId}-speed-lbl" style="color: #fbbf24;">${speed} bp/s</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-speed-slider" min="10" max="120" step="5" value="${speed}">
+        </div>
+
+        <div style="display: flex; gap: 4px; margin-top: 4px;">
+          <button class="btn-sim-action active" id="${mountId}-btn-mode-normal" style="flex: 1; padding: 6px 3px; font-size: 0.72rem;">Semiconservative</button>
+          <button class="btn-sim-action" id="${mountId}-btn-mode-proof" style="flex: 1; padding: 6px 3px; font-size: 0.72rem;">3'→5' Exonuclease</button>
+          <button class="btn-sim-action" id="${mountId}-btn-mode-inhibit" style="flex: 1; padding: 6px 3px; font-size: 0.72rem;">Helicase Block</button>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 8px;">
+          <button class="btn-sim-action" id="${mountId}-btn-play" style="flex: 1; padding: 6px 10px; font-size: 0.82rem; background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #38bdf8; font-weight: 700;">
+            ⏸ Pause
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-add-dntp" style="flex: 1; padding: 6px 10px; font-size: 0.82rem;">
+            + Feed dNTPs
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-reset" style="padding: 6px 10px; font-size: 0.82rem;">
+            ↺
+          </button>
+        </div>
+
+        <div class="sim-telemetry-box" id="${mountId}-telemetry-box" style="margin-top: 8px; font-size: 0.78rem;">
+          <div id="${mountId}-active-enz" style="font-weight: 700; color: #38bdf8;">Active: Helicase unzipping H-bonds • Pol III polymerizing leading strand</div>
+          <div style="margin-top: 2px; color: var(--text-muted); font-size: 0.74rem;">Okazaki Fragments Ligated: <strong id="${mountId}-okazaki-val" style="color: #f472b6;">${okazakiLigated}</strong> &bull; SSBs bound to single strands</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  const ctx = canvas.getContext("2d");
+
+  function loop() {
+    if (isPlaying && mode !== "inhibited") {
+      phase += (speed / 50) * 0.08;
+      totalBp += Math.round(speed * 0.02);
+      if (Math.random() < (speed / 100) * 0.03) {
+        okazakiLigated++;
+        sparkTimer = 18;
+      }
+    }
+
+    if (sparkTimer > 0) sparkTimer--;
+
+    // Update telemetry readouts
+    const bpValEl = document.getElementById(`${mountId}-bp-val`);
+    if (bpValEl) bpValEl.innerText = `${totalBp.toLocaleString()} bp`;
+    const okazakiEl = document.getElementById(`${mountId}-okazaki-val`);
+    if (okazakiEl) okazakiEl.innerText = okazakiLigated;
+
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+
+    // Clear Canvas
+    ctx.fillStyle = isDay ? "#f8fafc" : "#050814";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const forkX = 250;
+    const forkY = 130;
+
+    // Draw floating nucleoplasm dNTP particles
+    dntpPool.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 15 || p.x > canvas.width - 15) p.vx *= -1;
+      if (p.y < 15 || p.y > canvas.height - 15) p.vy *= -1;
+      ctx.fillStyle = p.col;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 1. Parental Unwound Double Helix (Right of Fork)
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = isDay ? "#64748b" : "#94a3b8";
+    
+    // Top parental line into fork
+    ctx.beginPath();
+    ctx.moveTo(canvas.width, 115);
+    ctx.lineTo(forkX + 35, 115);
+    ctx.stroke();
+
+    // Bottom parental line into fork
+    ctx.beginPath();
+    ctx.moveTo(canvas.width, 145);
+    ctx.lineTo(forkX + 35, 145);
+    ctx.stroke();
+
+    // Parental base pair rungs
+    for (let x = forkX + 45; x < canvas.width - 10; x += 16) {
+      const rungColor = ["#10b981", "#facc15", "#38bdf8", "#ec4899"][Math.floor((x + Math.floor(phase * 4)) / 16) % 4];
+      ctx.strokeStyle = rungColor;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, 116);
+      ctx.lineTo(x, 144);
+      ctx.stroke();
+    }
+
+    // 2. Helicase Enzyme Wedge at Fork
+    ctx.save();
+    ctx.translate(forkX + 15, forkY);
+    if (isPlaying && mode !== "inhibited") {
+      ctx.rotate(Math.sin(phase * 2) * 0.15);
+    }
+    const helGrad = ctx.createLinearGradient(-15, -25, 20, 25);
+    helGrad.addColorStop(0, mode === "inhibited" ? "#f59e0b" : "#34d399");
+    helGrad.addColorStop(1, mode === "inhibited" ? "#b45309" : "#059669");
+    ctx.fillStyle = helGrad;
+    ctx.beginPath();
+    ctx.moveTo(-15, -25);
+    ctx.lineTo(22, 0);
+    ctx.lineTo(-15, 25);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 8px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("HELICASE", -2, 3);
+    ctx.restore();
+
+    // 3. Top Diverging Template Strand (Leading Template: 3' -> 5')
+    ctx.lineWidth = 2.8;
+    ctx.strokeStyle = isDay ? "#475569" : "#94a3b8";
+    ctx.beginPath();
+    ctx.moveTo(forkX + 5, 115);
+    ctx.quadraticCurveTo(forkX - 40, 70, 30, 70);
+    ctx.stroke();
+
+    // Leading Daughter Strand (Synthesized 5' -> 3' Continuously)
+    ctx.lineWidth = 3.2;
+    ctx.strokeStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.moveTo(50, 86);
+    ctx.lineTo(forkX - 25, 86);
+    ctx.stroke();
+
+    // Arrowhead on leading strand
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.moveTo(forkX - 20, 86);
+    ctx.lineTo(forkX - 28, 81);
+    ctx.lineTo(forkX - 28, 91);
+    ctx.closePath();
+    ctx.fill();
+
+    // Base pairs on leading strand
+    for (let x = 60; x < forkX - 30; x += 14) {
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(x, 72);
+      ctx.lineTo(x, 85);
+      ctx.stroke();
+    }
+
+    // Leading DNA Polymerase III
+    const polGrad = ctx.createLinearGradient(forkX - 75, 60, forkX - 35, 95);
+    polGrad.addColorStop(0, "#38bdf8");
+    polGrad.addColorStop(1, "#0284c7");
+    ctx.fillStyle = polGrad;
+    ctx.beginPath();
+    ctx.roundRect(forkX - 78, 62, 45, 26, [5]);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 8px sans-serif";
+    ctx.fillText("DNA Pol III", forkX - 56, 78);
+
+    // 4. Bottom Diverging Template Strand (Lagging Template: 5' -> 3')
+    ctx.lineWidth = 2.8;
+    ctx.strokeStyle = isDay ? "#475569" : "#94a3b8";
+    ctx.beginPath();
+    ctx.moveTo(forkX + 5, 145);
+    ctx.quadraticCurveTo(forkX - 40, 190, 30, 190);
+    ctx.stroke();
+
+    // Okazaki Fragment 1 (synthesized leftward)
+    // RNA Primer (orange)
+    ctx.fillStyle = "#f97316";
+    ctx.fillRect(110, 174, 14, 5);
+    // DNA Segment (cyan)
+    ctx.lineWidth = 3.2;
+    ctx.strokeStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.moveTo(110, 176);
+    ctx.lineTo(55, 176);
+    ctx.stroke();
+
+    // Okazaki Fragment 2 (active synthesis)
+    // Primase Enzyme
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    ctx.roundRect(forkX - 75, 185, 38, 22, [4]);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 7px sans-serif";
+    ctx.fillText("PRIMASE", forkX - 56, 199);
+
+    // RNA Primer 2
+    ctx.fillStyle = "#f97316";
+    ctx.fillRect(forkX - 85, 174, 14, 5);
+
+    // Lagging DNA Polymerase III synthesizing toward fragment 1
+    ctx.fillStyle = polGrad;
+    ctx.beginPath();
+    ctx.roundRect(135, 163, 44, 26, [5]);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 8px sans-serif";
+    ctx.fillText("DNA Pol III", 157, 179);
+
+    // Fragment 2 DNA arrow
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.moveTo(180, 176);
+    ctx.lineTo(135, 176);
+    ctx.stroke();
+
+    // DNA Ligase at Nick (Left)
+    ctx.fillStyle = "#db2777";
+    ctx.beginPath();
+    ctx.arc(52, 176, 9, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 6.5px sans-serif";
+    ctx.fillText("LIGASE", 52, 178);
+
+    // Spark effect when ligase seals nick
+    if (sparkTimer > 0) {
+      ctx.fillStyle = "#facc15";
+      for (let s = 0; s < 6; s++) {
+        const ang = (s * Math.PI) / 3 + phase;
+        ctx.beginPath();
+        ctx.arc(52 + Math.cos(ang) * 14, 176 + Math.sin(ang) * 14, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // SSBs (Single-Stranded Binding Proteins)
+    ctx.fillStyle = "#06b6d4";
+    [-15, -45, -75].forEach(dx => {
+      ctx.beginPath();
+      ctx.arc(forkX + dx, 104, 3.5, 0, Math.PI * 2);
+      ctx.arc(forkX + dx, 156, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // 5' and 3' Strand Polarity Labels
+    ctx.font = "bold 9px monospace";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillText("3'", 16, 73);
+    ctx.fillText("5'", 16, 193);
+    ctx.fillText("5'", 390, 112);
+    ctx.fillText("3'", 390, 158);
+
+    animId = requestAnimationFrame(loop);
+  }
+
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => cancelAnimationFrame(animId));
+
+  // Controls Event Listeners
+  const speedSlider = document.getElementById(`${mountId}-speed-slider`);
+  speedSlider?.addEventListener("input", (e) => {
+    speed = parseInt(e.target.value, 10);
+    document.getElementById(`${mountId}-speed-lbl`).innerText = `${speed} bp/s`;
+  });
+
+  const playBtn = document.getElementById(`${mountId}-btn-play`);
+  playBtn?.addEventListener("click", () => {
+    isPlaying = !isPlaying;
+    playBtn.innerText = isPlaying ? "⏸ Pause" : "▶ Resume";
+    playBtn.style.color = isPlaying ? "#38bdf8" : "#34d399";
+  });
+
+  const dntpBtn = document.getElementById(`${mountId}-btn-add-dntp`);
+  dntpBtn?.addEventListener("click", () => {
+    for (let i = 0; i < 8; i++) {
+      dntpPool.push({
+        x: 340 + Math.random() * 40,
+        y: 110 + Math.random() * 40,
+        vx: -(1 + Math.random() * 2),
+        vy: (Math.random() - 0.5) * 1.5,
+        base: ["dATP", "dTTP", "dCTP", "dGTP"][Math.floor(Math.random() * 4)],
+        col: ["#10b981", "#facc15", "#38bdf8", "#ec4899"][Math.floor(Math.random() * 4)]
+      });
+    }
+    if (dntpPool.length > 30) dntpPool.splice(0, 10);
+  });
+
+  const resetBtn = document.getElementById(`${mountId}-btn-reset`);
+  resetBtn?.addEventListener("click", () => {
+    totalBp = 1240;
+    okazakiLigated = 4;
+    mode = "normal";
+    isPlaying = true;
+    updateModeButtons();
+  });
+
+  // Mode Selection Buttons
+  const btnNormal = document.getElementById(`${mountId}-btn-mode-normal`);
+  const btnProof = document.getElementById(`${mountId}-btn-mode-proof`);
+  const btnInhibit = document.getElementById(`${mountId}-btn-mode-inhibit`);
+
+  function updateModeButtons() {
+    [btnNormal, btnProof, btnInhibit].forEach(b => b?.classList.remove("active"));
+    const badge = document.getElementById(`${mountId}-status-badge`);
+    const fidVal = document.getElementById(`${mountId}-fidelity-val`);
+    const teleBox = document.getElementById(`${mountId}-active-enz`);
+
+    if (mode === "normal") {
+      btnNormal?.classList.add("active");
+      if (badge) { badge.innerText = "Active Synthesis"; badge.style.color = "#34d399"; badge.style.borderColor = "rgba(16,185,129,0.4)"; }
+      if (fidVal) fidVal.innerText = "1 error in 10⁷ bp";
+      if (teleBox) teleBox.innerText = "Active: Helicase unzipping H-bonds • Pol III polymerizing leading strand";
+    } else if (mode === "proofread") {
+      btnProof?.classList.add("active");
+      if (badge) { badge.innerText = "Proofreading Active"; badge.style.color = "#38bdf8"; badge.style.borderColor = "rgba(56,189,248,0.4)"; }
+      if (fidVal) fidVal.innerText = "1 error in 10⁹ bp (Exonuclease)";
+      if (teleBox) teleBox.innerText = "Proofreading: 3'→5' Exonuclease excises mismatched dNTPs with 99.99% accuracy";
+    } else if (mode === "inhibited") {
+      btnInhibit?.classList.add("active");
+      if (badge) { badge.innerText = "Fork Arrested (Inhibitor)"; badge.style.color = "#ef4444"; badge.style.borderColor = "rgba(239,68,68,0.4)"; }
+      if (fidVal) fidVal.innerText = "Replication Stalled";
+      if (teleBox) teleBox.innerText = "Inhibition: Helicase uncoupling agent blocks replication fork progression";
+    }
+  }
+
+  btnNormal?.addEventListener("click", () => { mode = "normal"; updateModeButtons(); });
+  btnProof?.addEventListener("click", () => { mode = "proofread"; updateModeButtons(); });
+  btnInhibit?.addEventListener("click", () => { mode = "inhibited"; updateModeButtons(); });
 }
 
 /**
