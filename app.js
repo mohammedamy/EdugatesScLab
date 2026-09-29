@@ -15,6 +15,7 @@ import { getLessonInteractiveSpec } from "./components/lesson-interactives.js";
 import { openLessonPlanModal } from "./components/lesson-plan-generator.js";
 import { SoundFX } from "./utils/audio-synth.js";
 import { showToast, copyShareLink } from "./utils/toast.js";
+import { openLmsShareModal } from "./utils/lms-share.js";
 
 import { initProjectileLab } from "./labs/phys-projectile.js";
 import { initTitrationLab } from "./labs/chem-titration.js";
@@ -1055,9 +1056,14 @@ function renderVirtualLabsHub(container) {
           <div class="hero-badge labs-suite-badge">
             Interactive Simulation Workbenches (60 FPS)
           </div>
-          <button class="btn btn-secondary btn-share-link" id="btn-share-active-lab" title="Share deep-link to this laboratory workbench">
-            <span>🔗 Share Workbench</span>
-          </button>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button class="btn btn-secondary" id="btn-lms-share-active-lab" title="Assign this laboratory workbench to Google Classroom, Classera, Canvas, or Teams" style="padding: 6px 14px; font-size: 0.85rem; font-weight: 700; gap: 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+              <span>📤 Assign to LMS</span>
+            </button>
+            <button class="btn btn-secondary btn-share-link" id="btn-share-active-lab" title="Share deep-link to this laboratory workbench">
+              <span>🔗 Share Workbench</span>
+            </button>
+          </div>
         </div>
         <h2 class="hero-title">Virtual Laboratories Suite</h2>
         <p class="hero-desc">
@@ -1122,9 +1128,19 @@ function renderVirtualLabsHub(container) {
     </div>
   `;
 
-  // Bind Share Button
+  // Bind Share Buttons
   document.getElementById("btn-share-active-lab")?.addEventListener("click", () => {
     copyShareLink(`#labs/${AppState.activeLabId}`, `Virtual Lab: ${formatLabName("lab-" + AppState.activeLabId)}`);
+  });
+
+  document.getElementById("btn-lms-share-active-lab")?.addEventListener("click", () => {
+    const labTitle = formatLabName("lab-" + AppState.activeLabId);
+    openLmsShareModal({
+      url: `#labs/${AppState.activeLabId}`,
+      title: `Virtual Lab: ${labTitle}`,
+      subject: "Science Lab",
+      description: `Interactive 60 FPS science laboratory workbench with real-time sensor telemetry, controls, and apparatus.`
+    });
   });
 
   // Bind Lab Selector Buttons

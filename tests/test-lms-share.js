@@ -57,6 +57,18 @@ const shareEndpoint = `https://classroom.google.com/share?url=${encodeURICompone
 assert(shareEndpoint.includes("classroom.google.com/share"), `Classroom share URL endpoint is correct`);
 assert(shareEndpoint.includes(encodeURIComponent(testUrl)), `URL properly encoded in query params`);
 
+// 4. Virtual Lab Deep-Links
+const labUrl = getAbsoluteShareUrl("#labs/photosynthesis");
+assert(labUrl.includes("#labs/photosynthesis"), `Lab hash route correctly preserved: ${labUrl}`);
+
+// 5. Lesson Plan Deep-Links
+const planUrl = getAbsoluteShareUrl("#plan/CHEM-M08-L2");
+assert(planUrl.includes("#plan/CHEM-M08-L2"), `Lesson plan route correctly formatted: ${planUrl}`);
+
+// 6. Flashcard Deck Filter Deep-Links
+const fcUrl = getAbsoluteShareUrl("#flashcards?subject=CHEM&moduleId=4");
+assert(fcUrl.includes("#flashcards?subject=CHEM&moduleId=4"), `Flashcard filtered deck preserved: ${fcUrl}`);
+
 console.log("\n========================================================");
 console.log(`📊 LMS Share Tests: ${passed} Passed, ${failed} Failed`);
 console.log("========================================================\n");

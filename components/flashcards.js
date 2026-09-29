@@ -9,7 +9,8 @@ import { biologyCurriculum } from "../data/biology-curriculum.js";
 import { physicsCurriculum } from "../data/physics-curriculum.js";
 import { getLessonInteractiveSpec } from "./lesson-interactives.js";
 import { SoundFX } from "../utils/audio-synth.js";
-import { showToast } from "../utils/toast.js";
+import { showToast, copyShareLink } from "../utils/toast.js";
+import { openLmsShareModal } from "../utils/lms-share.js";
 
 // Core high-yield scientific laws and mathematical principles
 const CORE_HIGH_YIELD_CARDS = [
@@ -1123,11 +1124,19 @@ export function renderFlashcards(containerId, initialFilter = {}) {
             <div style="font-family: var(--font-heading); font-size: 1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
               <span>Adjust Track, Module & Lessons</span>
             </div>
-            ${isAnyFilterActive ? `
-              <button class="btn btn-secondary" id="btn-reset-filters" style="padding: 6px 14px; font-size: 0.8rem; border-color: rgba(244,63,94,0.4); color: #f43f5e;">
-                ↺ Reset All Filters
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-secondary" id="btn-fc-lms-share" title="Assign this flashcard practice deck to Google Classroom, Classera, Canvas, or Teams" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-color: rgba(236, 72, 153, 0.4); color: #ec4899;">
+                <span>📤 Assign to LMS</span>
               </button>
-            ` : ''}
+              <button class="btn btn-secondary" id="btn-fc-share" title="Copy shareable link to this filtered flashcard deck" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <span>🔗 Share Deck</span>
+              </button>
+              ${isAnyFilterActive ? `
+                <button class="btn btn-secondary" id="btn-reset-filters" style="padding: 6px 14px; font-size: 0.8rem; border-color: rgba(244,63,94,0.4); color: #f43f5e;">
+                  ↺ Reset Filters
+                </button>
+              ` : ''}
+            </div>
           </div>
 
           <!-- Selectors Grid -->
@@ -1725,6 +1734,40 @@ export function renderFlashcards(containerId, initialFilter = {}) {
         isFlipped = false;
         cancelCardSpeech();
         renderView();
+      });
+    }
+
+    // Helper to generate shareable deep-link URL for current deck filter
+    function getShareableFlashcardUrl() {
+      const qParams = [];
+      if (currentSubject !== "ALL") qParams.push(`subject=${encodeURIComponent(currentSubject)}`);
+      if (currentModuleId !== "ALL") qParams.push(`moduleId=${encodeURIComponent(currentModuleId)}`);
+      if (currentLessonId !== "ALL") qParams.push(`lessonId=${encodeURIComponent(currentLessonId)}`);
+      return `#flashcards` + (qParams.length ? `?${qParams.join("&")}` : "");
+    }
+
+    // Share Flashcard Deck
+    const btnFcShare = document.getElementById("btn-fc-share");
+    if (btnFcShare) {
+      btnFcShare.addEventListener("click", () => {
+        const shareUrl = getShareableFlashcardUrl();
+        const topicName = currentModuleId !== "ALL" ? `Module ${currentModuleId}` : (currentSubject !== "ALL" ? currentSubject : "All Tracks");
+        copyShareLink(shareUrl, `Interactive Flashcards: ${topicName}`);
+      });
+    }
+
+    // Assign Flashcard Deck to LMS
+    const btnFcLmsShare = document.getElementById("btn-fc-lms-share");
+    if (btnFcLmsShare) {
+      btnFcLmsShare.addEventListener("click", () => {
+        const shareUrl = getShareableFlashcardUrl();
+        const topicName = currentModuleId !== "ALL" ? `Module ${currentModuleId}` : (currentSubject !== "ALL" ? currentSubject : "Comprehensive Science");
+        openLmsShareModal({
+          url: shareUrl,
+          title: `STEM Flashcards Deck: ${topicName}`,
+          subject: currentSubject !== "ALL" ? currentSubject : "Science",
+          description: `Interactive flashcards with Leitner Spaced Repetition mastery, publication-grade LaTeX formulas, and Text-to-Speech audio pronunciation.`
+        });
       });
     }
 

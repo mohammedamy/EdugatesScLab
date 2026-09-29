@@ -9,6 +9,7 @@ import { getLessonInteractiveSpec } from "./lesson-interactives.js";
 import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
 import { renderLatex, formatMathText, upgradeAllMath } from "../utils/math-renderer.js";
 import { copyShareLink } from "../utils/toast.js";
+import { openLmsShareModal } from "../utils/lms-share.js";
 
 /**
  * High School NGSS Standards Reference Matrix
@@ -592,6 +593,10 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
             <span>🔗 Share</span>
           </button>
 
+          <button id="btn-lp-lms-share" class="btn btn-secondary lp-btn-lms" title="Assign / Share this Lesson Plan to Google Classroom, Classera, Canvas, or Teams" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; cursor: pointer;">
+            <span>📤 Assign to LMS</span>
+          </button>
+
           <button id="btn-lp-print" class="btn btn-primary lp-btn-print" title="Print or Save as PDF (Strict 2 A4 Pages)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span>Print / Save PDF (2 Pages)</span>
@@ -637,10 +642,20 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
   document.getElementById("lp-inp-school")?.addEventListener("input", updateLiveFields);
   document.getElementById("lp-inp-period")?.addEventListener("input", updateLiveFields);
 
-  // Share Action
+  // Share Actions
   document.getElementById("btn-lp-share")?.addEventListener("click", () => {
     const planRoute = `#plan/${planData.meta.subjectCode}-M${planData.meta.moduleId}-L${planData.meta.lessonId}`;
     copyShareLink(planRoute, `${planData.meta.subject} ${planData.meta.moduleCode}: Lesson ${planData.meta.lessonId} Plan`);
+  });
+
+  document.getElementById("btn-lp-lms-share")?.addEventListener("click", () => {
+    const planRoute = `#plan/${planData.meta.subjectCode}-M${planData.meta.moduleId}-L${planData.meta.lessonId}`;
+    openLmsShareModal({
+      url: planRoute,
+      title: `${planData.meta.subject} ${planData.meta.moduleCode}: Lesson ${planData.meta.lessonId} Instructional Plan`,
+      subject: planData.meta.subject,
+      description: `Standards-aligned (NGSS 3D Learning) 2-Page Instructional Dossier with 5E Inquiry Cycle, Formative Checkpoints, and Rubric.`
+    });
   });
 
   // Print Action
