@@ -139,6 +139,27 @@ export function initSmartboardToolbar() {
         </svg>
       </button>
 
+      <!-- Calibrated Science Ruler (cm / inches) -->
+      <button class="icon-action-btn" id="sb-tool-ruler" title="Calibrated Science Ruler (Hot-key: M)" style="border-radius: 9999px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z"/>
+          <path d="m14.5 3.5 1.5 1.5"/>
+          <path d="m11.5 6.5 3 3"/>
+          <path d="m8.5 9.5 1.5 1.5"/>
+          <path d="m5.5 12.5 3 3"/>
+        </svg>
+      </button>
+
+      <!-- 180° Transparent Protractor -->
+      <button class="icon-action-btn" id="sb-tool-protractor" title="180° Transparent Protractor (Hot-key: P)" style="border-radius: 9999px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 18h18A9 9 0 0 0 3 18Z"/>
+          <path d="M12 18v-3"/>
+          <path d="m8 18 1.5-2.6"/>
+          <path d="m16 18-1.5-2.6"/>
+        </svg>
+      </button>
+
       <div class="sb-tools-divider"></div>
 
       <!-- Full Screen Presentation -->
@@ -767,6 +788,8 @@ export function initSmartboardToolbar() {
   const toolTimer = document.getElementById("sb-tool-timer");
   const toolCurtain = document.getElementById("sb-tool-curtain");
   const toolSpotlight = document.getElementById("sb-tool-spotlight");
+  const toolRuler = document.getElementById("sb-tool-ruler");
+  const toolProtractor = document.getElementById("sb-tool-protractor");
 
   // -------------------------------------------------------------------------
   // 1. Classroom Countdown Timer & Stopwatch Widget
@@ -1531,6 +1554,423 @@ export function initSmartboardToolbar() {
   });
 
   // -------------------------------------------------------------------------
+  // 3b. Interactive Calibrated Science Ruler (cm / inches)
+  // -------------------------------------------------------------------------
+  let rulerWidget = document.getElementById("sb-ruler-widget");
+  if (rulerWidget) rulerWidget.remove();
+
+  rulerWidget = document.createElement("div");
+  rulerWidget.id = "sb-ruler-widget";
+  rulerWidget.className = "sb-ruler-widget";
+  rulerWidget.style.display = "none";
+  rulerWidget.style.position = "fixed";
+  rulerWidget.style.left = "140px";
+  rulerWidget.style.top = "180px";
+  rulerWidget.style.width = "540px";
+  rulerWidget.style.height = "86px";
+  rulerWidget.style.zIndex = "99980";
+  rulerWidget.style.touchAction = "none";
+  rulerWidget.style.userSelect = "none";
+
+  let metricTicksSvg = "";
+  for (let mm = 0; mm <= 250; mm++) {
+    const x = 20 + mm * 2;
+    let tickH = 6;
+    if (mm % 10 === 0) {
+      tickH = 14;
+      const cm = mm / 10;
+      metricTicksSvg += `<text x="${x}" y="24" fill="#38bdf8" font-size="9" font-weight="800" font-family="monospace" text-anchor="middle">${cm}</text>`;
+    } else if (mm % 5 === 0) {
+      tickH = 10;
+    }
+    metricTicksSvg += `<line x1="${x}" y1="0" x2="${x}" y2="${tickH}" stroke="#38bdf8" stroke-width="${mm % 10 === 0 ? '1.5' : '1'}"/>`;
+  }
+
+  let imperialTicksSvg = "";
+  for (let sixteenth = 0; sixteenth <= 160; sixteenth++) {
+    const x = 20 + sixteenth * 3.125;
+    if (x > 520) break;
+    let tickH = 6;
+    if (sixteenth % 16 === 0) {
+      tickH = 14;
+      const inch = sixteenth / 16;
+      imperialTicksSvg += `<text x="${x}" y="70" fill="#facc15" font-size="9" font-weight="800" font-family="monospace" text-anchor="middle">${inch}</text>`;
+    } else if (sixteenth % 8 === 0) {
+      tickH = 10;
+    }
+    imperialTicksSvg += `<line x1="${x}" y1="86" x2="${x}" y2="${86 - tickH}" stroke="#facc15" stroke-width="${sixteenth % 16 === 0 ? '1.5' : '1'}"/>`;
+  }
+
+  rulerWidget.innerHTML = `
+    <div class="sb-ruler-body" id="sb-ruler-body" style="width: 100%; height: 100%; position: relative; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(14px); border: 1.5px solid rgba(56, 189, 248, 0.5); border-radius: 6px; box-shadow: 0 15px 35px rgba(0,0,0,0.6); overflow: hidden; cursor: grab;">
+      <svg width="540" height="86" viewBox="0 0 540 86" style="position: absolute; top: 0; left: 0; pointer-events: none;">
+        ${metricTicksSvg}
+        ${imperialTicksSvg}
+        <line x1="20" y1="43" x2="520" y2="43" stroke="#475569" stroke-width="1" stroke-dasharray="4 2"/>
+        <text x="270" y="47" fill="#94a3b8" font-size="9.5" font-weight="700" font-family="sans-serif" text-anchor="middle" letter-spacing="2">METRIC (cm) / IMPERIAL (in)</text>
+      </svg>
+
+      <div style="position: absolute; left: 24px; top: 32px; display: flex; align-items: center; gap: 8px; z-index: 10;">
+        <span id="sb-ruler-angle-disp" style="background: rgba(0,0,0,0.6); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; font-family: monospace; font-size: 0.78rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">0.0°</span>
+        <button id="sb-ruler-reset-rot" title="Snap to Horizontal (0°)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer;">0°</button>
+        <button id="sb-ruler-rot-90" title="Snap to Vertical (90°)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer;">90°</button>
+      </div>
+
+      <button id="sb-ruler-close-btn" title="Close Ruler (Esc)" style="position: absolute; right: 8px; top: 32px; z-index: 10; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; cursor: pointer;">✕</button>
+
+      <div id="sb-ruler-rot-handle" title="Drag to Rotate Ruler" style="position: absolute; right: 38px; top: 28px; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(56,189,248,0.6); cursor: grab; display: flex; align-items: center; justify-content: center; z-index: 10; touch-action: none;">
+        <span style="font-size: 0.8rem; color: #ffffff; user-select: none;">↻</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(rulerWidget);
+
+  let rulerAngle = 0;
+  let rulerDragging = false;
+  let rulerRotating = false;
+  let rulerStartX = 0;
+  let rulerStartY = 0;
+  let rulerStartLeft = 0;
+  let rulerStartTop = 0;
+
+  function updateRulerTransform() {
+    rulerWidget.style.transform = `rotate(${rulerAngle}deg)`;
+    const angleDisp = document.getElementById("sb-ruler-angle-disp");
+    if (angleDisp) angleDisp.textContent = `${rulerAngle.toFixed(1)}°`;
+  }
+
+  function toggleRuler(force = null) {
+    const isShowing = force !== null ? force : rulerWidget.style.display === "none";
+    rulerWidget.style.display = isShowing ? "block" : "none";
+    if (toolRuler) {
+      if (isShowing) toolRuler.classList.add("active");
+      else toolRuler.classList.remove("active");
+    }
+    if (isShowing) {
+      try { SoundFX.playClick(); } catch (e) {}
+    }
+  }
+
+  toolRuler?.addEventListener("click", () => toggleRuler());
+  document.getElementById("sb-ruler-close-btn")?.addEventListener("click", () => toggleRuler(false));
+  document.getElementById("sb-ruler-reset-rot")?.addEventListener("click", () => {
+    rulerAngle = 0;
+    updateRulerTransform();
+    try { SoundFX.playClick(); } catch (e) {}
+  });
+  document.getElementById("sb-ruler-rot-90")?.addEventListener("click", () => {
+    rulerAngle = 90;
+    updateRulerTransform();
+    try { SoundFX.playClick(); } catch (e) {}
+  });
+
+  const rulerBody = document.getElementById("sb-ruler-body");
+  rulerBody?.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button") || e.target.closest("#sb-ruler-rot-handle")) return;
+    rulerDragging = true;
+    try { rulerBody.setPointerCapture(e.pointerId); } catch (err) {}
+    rulerStartLeft = rulerWidget.offsetLeft;
+    rulerStartTop = rulerWidget.offsetTop;
+    rulerStartX = e.clientX;
+    rulerStartY = e.clientY;
+    rulerBody.style.cursor = "grabbing";
+  });
+
+  rulerBody?.addEventListener("pointermove", (e) => {
+    if (!rulerDragging) return;
+    const dx = e.clientX - rulerStartX;
+    const dy = e.clientY - rulerStartY;
+    rulerWidget.style.left = `${rulerStartLeft + dx}px`;
+    rulerWidget.style.top = `${rulerStartTop + dy}px`;
+  });
+
+  const stopRulerDrag = (e) => {
+    if (rulerDragging) {
+      rulerDragging = false;
+      try { rulerBody.releasePointerCapture(e.pointerId); } catch (err) {}
+      rulerBody.style.cursor = "grab";
+    }
+  };
+  rulerBody?.addEventListener("pointerup", stopRulerDrag);
+  rulerBody?.addEventListener("pointercancel", stopRulerDrag);
+
+  const rulerRotHandle = document.getElementById("sb-ruler-rot-handle");
+  rulerRotHandle?.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
+    rulerRotating = true;
+    try { rulerRotHandle.setPointerCapture(e.pointerId); } catch (err) {}
+    rulerRotHandle.style.cursor = "grabbing";
+  });
+
+  rulerRotHandle?.addEventListener("pointermove", (e) => {
+    if (!rulerRotating) return;
+    const rect = rulerWidget.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    let deg = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    if (deg < 0) deg += 360;
+    if (Math.abs(deg % 5) < 0.8) deg = Math.round(deg / 5) * 5;
+    rulerAngle = Math.round(deg * 10) / 10;
+    updateRulerTransform();
+  });
+
+  const stopRulerRot = (e) => {
+    if (rulerRotating) {
+      rulerRotating = false;
+      try { rulerRotHandle.releasePointerCapture(e.pointerId); } catch (err) {}
+      rulerRotHandle.style.cursor = "grab";
+    }
+  };
+  rulerRotHandle?.addEventListener("pointerup", stopRulerRot);
+  rulerRotHandle?.addEventListener("pointercancel", stopRulerRot);
+
+
+  // -------------------------------------------------------------------------
+  // 3c. Interactive 180° Transparent Science Protractor
+  // -------------------------------------------------------------------------
+  let protractorWidget = document.getElementById("sb-protractor-widget");
+  if (protractorWidget) protractorWidget.remove();
+
+  protractorWidget = document.createElement("div");
+  protractorWidget.id = "sb-protractor-widget";
+  protractorWidget.className = "sb-protractor-widget";
+  protractorWidget.style.display = "none";
+  protractorWidget.style.position = "fixed";
+  protractorWidget.style.left = "220px";
+  protractorWidget.style.top = "200px";
+  protractorWidget.style.width = "400px";
+  protractorWidget.style.height = "215px";
+  protractorWidget.style.zIndex = "99980";
+  protractorWidget.style.touchAction = "none";
+  protractorWidget.style.userSelect = "none";
+
+  let protractorTicksSvg = "";
+  const pCx = 200;
+  const pCy = 200;
+  const pR = 185;
+
+  for (let deg = 0; deg <= 180; deg++) {
+    const rad = (deg * Math.PI) / 180;
+    const cosA = Math.cos(rad);
+    const sinA = Math.sin(rad);
+
+    const xOuter = pCx - pR * cosA;
+    const yOuter = pCy - pR * sinA;
+
+    let tickLen = 6;
+    if (deg % 10 === 0) {
+      tickLen = 14;
+      const xTextOuter = pCx - (pR - 24) * cosA;
+      const yTextOuter = pCy - (pR - 24) * sinA;
+      protractorTicksSvg += `<text x="${xTextOuter}" y="${yTextOuter + 3}" fill="#38bdf8" font-size="8" font-weight="800" font-family="sans-serif" text-anchor="middle">${deg}</text>`;
+
+      const xTextInner = pCx - (pR - 38) * cosA;
+      const yTextInner = pCy - (pR - 38) * sinA;
+      protractorTicksSvg += `<text x="${xTextInner}" y="${yTextInner + 3}" fill="#facc15" font-size="7.5" font-weight="800" font-family="sans-serif" text-anchor="middle">${180 - deg}</text>`;
+    } else if (deg % 5 === 0) {
+      tickLen = 10;
+    }
+
+    const xInner = pCx - (pR - tickLen) * cosA;
+    const yInner = pCy - (pR - tickLen) * sinA;
+
+    protractorTicksSvg += `<line x1="${xOuter}" y1="${yOuter}" x2="${xInner}" y2="${yInner}" stroke="#38bdf8" stroke-width="${deg % 10 === 0 ? '1.5' : '0.8'}"/>`;
+  }
+
+  protractorWidget.innerHTML = `
+    <div class="sb-protractor-body" id="sb-protractor-body" style="width: 100%; height: 100%; position: relative; background: radial-gradient(circle at 200px 200px, rgba(2, 132, 199, 0.15), rgba(15, 23, 42, 0.92)); backdrop-filter: blur(14px); border: 2px solid rgba(56, 189, 248, 0.5); border-top-left-radius: 200px; border-top-right-radius: 200px; border-bottom: 2px solid #38bdf8; box-shadow: 0 15px 35px rgba(0,0,0,0.6); overflow: hidden; cursor: grab;">
+      <svg width="400" height="215" viewBox="0 0 400 215" style="position: absolute; top: 0; left: 0; pointer-events: none;">
+        <line x1="15" y1="200" x2="385" y2="200" stroke="#38bdf8" stroke-width="2"/>
+        <circle cx="200" cy="200" r="14" fill="none" stroke="#facc15" stroke-width="1.5"/>
+        <line x1="190" y1="200" x2="210" y2="200" stroke="#facc15" stroke-width="1.5"/>
+        <line x1="200" y1="190" x2="200" y2="205" stroke="#facc15" stroke-width="1.5"/>
+        <circle cx="200" cy="200" r="2.5" fill="#facc15"/>
+        
+        <path d="M 15 200 A 185 185 0 0 1 385 200" fill="none" stroke="#38bdf8" stroke-width="1.5"/>
+        <path d="M 55 200 A 145 145 0 0 1 345 200" fill="none" stroke="#475569" stroke-width="1" stroke-dasharray="2 2"/>
+
+        ${protractorTicksSvg}
+
+        <line id="sb-protractor-ray" x1="200" y1="200" x2="330" y2="70" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+
+      <div id="sb-protractor-needle-grip" title="Drag to Measure Angle" style="position: absolute; left: 320px; top: 60px; width: 22px; height: 22px; border-radius: 50%; background: #ef4444; border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(239,68,68,0.8); cursor: grab; z-index: 15; touch-action: none;"></div>
+
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); top: 125px; display: flex; flex-direction: column; align-items: center; gap: 4px; z-index: 10;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 700;">ANGLE θ:</span>
+          <span id="sb-protractor-val" style="background: rgba(0,0,0,0.6); border: 1px solid #ef4444; color: #f87171; font-family: monospace; font-size: 0.95rem; font-weight: 900; padding: 2px 8px; border-radius: 4px;">45.0°</span>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button id="sb-protractor-reset-rot" title="Reset Protractor Body (0°)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.7rem; cursor: pointer;">0° Body</button>
+        </div>
+      </div>
+
+      <button id="sb-protractor-close-btn" title="Close Protractor (Esc)" style="position: absolute; right: 20px; top: 40px; z-index: 10; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; cursor: pointer;">✕</button>
+
+      <div id="sb-protractor-rot-handle" title="Drag to Rotate Protractor Body" style="position: absolute; left: 16px; top: 40px; width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); border: 1.5px solid #ffffff; cursor: grab; display: flex; align-items: center; justify-content: center; z-index: 10; touch-action: none;">
+        <span style="font-size: 0.7rem; color: #ffffff; user-select: none;">↻</span>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(protractorWidget);
+
+  let protractorBodyAngle = 0;
+  let protractorMeasuredAngle = 45;
+  let protractorDragging = false;
+  let protractorRotating = false;
+  let protractorArmDragging = false;
+  let protractorStartX = 0;
+  let protractorStartY = 0;
+  let protractorStartLeft = 0;
+  let protractorStartTop = 0;
+
+  function updateProtractorTransform() {
+    protractorWidget.style.transform = `rotate(${protractorBodyAngle}deg)`;
+  }
+
+  function updateProtractorNeedle() {
+    const rad = (protractorMeasuredAngle * Math.PI) / 180;
+    const nx = pCx + Math.cos(rad) * pR;
+    const ny = pCy - Math.sin(rad) * pR;
+
+    const rayLine = document.getElementById("sb-protractor-ray");
+    if (rayLine) {
+      rayLine.setAttribute("x2", nx);
+      rayLine.setAttribute("y2", ny);
+    }
+    const grip = document.getElementById("sb-protractor-needle-grip");
+    if (grip) {
+      grip.style.left = `${nx - 11}px`;
+      grip.style.top = `${ny - 11}px`;
+    }
+    const valDisp = document.getElementById("sb-protractor-val");
+    if (valDisp) {
+      valDisp.textContent = `${protractorMeasuredAngle.toFixed(1)}°`;
+    }
+  }
+
+  function toggleProtractor(force = null) {
+    const isShowing = force !== null ? force : protractorWidget.style.display === "none";
+    protractorWidget.style.display = isShowing ? "block" : "none";
+    if (toolProtractor) {
+      if (isShowing) toolProtractor.classList.add("active");
+      else toolProtractor.classList.remove("active");
+    }
+    if (isShowing) {
+      try { SoundFX.playClick(); } catch (e) {}
+      updateProtractorNeedle();
+    }
+  }
+
+  toolProtractor?.addEventListener("click", () => toggleProtractor());
+  document.getElementById("sb-protractor-close-btn")?.addEventListener("click", () => toggleProtractor(false));
+  document.getElementById("sb-protractor-reset-rot")?.addEventListener("click", () => {
+    protractorBodyAngle = 0;
+    updateProtractorTransform();
+    try { SoundFX.playClick(); } catch (e) {}
+  });
+
+  const protractorBody = document.getElementById("sb-protractor-body");
+  protractorBody?.addEventListener("pointerdown", (e) => {
+    if (e.target.closest("button") || e.target.closest("#sb-protractor-needle-grip") || e.target.closest("#sb-protractor-rot-handle")) return;
+    protractorDragging = true;
+    try { protractorBody.setPointerCapture(e.pointerId); } catch (err) {}
+    protractorStartLeft = protractorWidget.offsetLeft;
+    protractorStartTop = protractorWidget.offsetTop;
+    protractorStartX = e.clientX;
+    protractorStartY = e.clientY;
+    protractorBody.style.cursor = "grabbing";
+  });
+
+  protractorBody?.addEventListener("pointermove", (e) => {
+    if (!protractorDragging) return;
+    const dx = e.clientX - protractorStartX;
+    const dy = e.clientY - protractorStartY;
+    protractorWidget.style.left = `${protractorStartLeft + dx}px`;
+    protractorWidget.style.top = `${protractorStartTop + dy}px`;
+  });
+
+  const stopProtractorDrag = (e) => {
+    if (protractorDragging) {
+      protractorDragging = false;
+      try { protractorBody.releasePointerCapture(e.pointerId); } catch (err) {}
+      protractorBody.style.cursor = "grab";
+    }
+  };
+  protractorBody?.addEventListener("pointerup", stopProtractorDrag);
+  protractorBody?.addEventListener("pointercancel", stopProtractorDrag);
+
+  const protractorRotHandle = document.getElementById("sb-protractor-rot-handle");
+  protractorRotHandle?.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
+    protractorRotating = true;
+    try { protractorRotHandle.setPointerCapture(e.pointerId); } catch (err) {}
+    protractorRotHandle.style.cursor = "grabbing";
+  });
+
+  protractorRotHandle?.addEventListener("pointermove", (e) => {
+    if (!protractorRotating) return;
+    const rect = protractorWidget.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height;
+    let deg = Math.atan2(e.clientY - cy, e.clientX - cx) * (180 / Math.PI);
+    if (deg < 0) deg += 360;
+    if (Math.abs(deg % 5) < 0.8) deg = Math.round(deg / 5) * 5;
+    protractorBodyAngle = Math.round(deg * 10) / 10;
+    updateProtractorTransform();
+  });
+
+  const stopProtractorRot = (e) => {
+    if (protractorRotating) {
+      protractorRotating = false;
+      try { protractorRotHandle.releasePointerCapture(e.pointerId); } catch (err) {}
+      protractorRotHandle.style.cursor = "grab";
+    }
+  };
+  protractorRotHandle?.addEventListener("pointerup", stopProtractorRot);
+  protractorRotHandle?.addEventListener("pointercancel", stopProtractorRot);
+
+  const needleGrip = document.getElementById("sb-protractor-needle-grip");
+  needleGrip?.addEventListener("pointerdown", (e) => {
+    e.stopPropagation();
+    protractorArmDragging = true;
+    try { needleGrip.setPointerCapture(e.pointerId); } catch (err) {}
+    needleGrip.style.cursor = "grabbing";
+  });
+
+  needleGrip?.addEventListener("pointermove", (e) => {
+    if (!protractorArmDragging) return;
+    const rect = protractorWidget.getBoundingClientRect();
+    const baseAngleRad = (protractorBodyAngle * Math.PI) / 180;
+    const unrotatedCx = rect.left + 200;
+    const unrotatedCy = rect.top + 200;
+
+    const dx = e.clientX - unrotatedCx;
+    const dy = e.clientY - unrotatedCy;
+
+    const localX = dx * Math.cos(-baseAngleRad) - dy * Math.sin(-baseAngleRad);
+    const localY = dx * Math.sin(-baseAngleRad) + dy * Math.cos(-baseAngleRad);
+
+    let deg = Math.atan2(-localY, localX) * (180 / Math.PI);
+    if (deg < 0) deg = 0;
+    if (deg > 180) deg = 180;
+    if (Math.abs(deg - Math.round(deg)) < 0.2) deg = Math.round(deg);
+    protractorMeasuredAngle = Math.round(deg * 10) / 10;
+    updateProtractorNeedle();
+  });
+
+  const stopNeedleDrag = (e) => {
+    if (protractorArmDragging) {
+      protractorArmDragging = false;
+      try { needleGrip.releasePointerCapture(e.pointerId); } catch (err) {}
+      needleGrip.style.cursor = "grab";
+    }
+  };
+  needleGrip?.addEventListener("pointerup", stopNeedleDrag);
+  needleGrip?.addEventListener("pointercancel", stopNeedleDrag);
+
+  // -------------------------------------------------------------------------
   // 4. Universal Classroom Keyboard Shortcuts
   // -------------------------------------------------------------------------
   document.addEventListener("keydown", (e) => {
@@ -1551,6 +1991,12 @@ export function initSmartboardToolbar() {
     } else if (e.key === "s" || e.key === "S") {
       e.preventDefault();
       toggleSpotlight();
+    } else if (e.key === "m" || e.key === "M") {
+      e.preventDefault();
+      toggleRuler();
+    } else if (e.key === "p" || e.key === "P") {
+      e.preventDefault();
+      toggleProtractor();
     } else if (e.key === " ") {
       // Spacebar: Play/Pause timer if open, otherwise trigger active lab simulation
       if (timerWidget.style.display !== "none") {
@@ -1586,7 +2032,11 @@ export function initSmartboardToolbar() {
         }
       }
     } else if (e.key === "Escape") {
-      if (spotlightOverlay.style.display !== "none") {
+      if (protractorWidget.style.display !== "none") {
+        toggleProtractor(false);
+      } else if (rulerWidget.style.display !== "none") {
+        toggleRuler(false);
+      } else if (spotlightOverlay.style.display !== "none") {
         toggleSpotlight(false);
       } else if (curtainOverlay.style.display !== "none") {
         toggleCurtain(false);

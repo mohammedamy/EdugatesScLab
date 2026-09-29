@@ -2992,6 +2992,67 @@ html, body {
     font-size: 0.95rem !important;
     color: #000000 !important;
   }
+
+  /* OMR Scantron Bubble Sheet in Print Mode */
+  .print-bubble-sheet {
+    page-break-before: always !important;
+    break-before: page !important;
+    background: #ffffff !important;
+    border: 2px solid #000000 !important;
+  }
+
+  .omr-bubble {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 17px !important;
+    height: 17px !important;
+    border-radius: 50% !important;
+    border: 1.5px solid #000000 !important;
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-two-col {
+    column-count: 2 !important;
+    column-gap: 32px !important;
+    column-rule: 1px solid #cbd5e1 !important;
+  }
+
+  .print-two-col .print-q-card {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+
+/* OMR Bubble & Paper-Saver Preview Rules (Screen Mode) */
+.omr-bubble {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #000000;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #000000;
+  background: #ffffff;
+}
+
+.print-two-col {
+  column-count: 2;
+  column-gap: 32px;
+  column-rule: 1px solid #e2e8f0;
+}
+
+.print-two-col .print-q-card {
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 

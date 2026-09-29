@@ -10,6 +10,7 @@ import { ProgressStore } from "./progress-tracker.js";
 import { formatMathText, renderMathInElement, renderLatex } from "../utils/math-renderer.js";
 import { SoundFX } from "../utils/audio-synth.js";
 import { showToast, copyShareLink } from "../utils/toast.js";
+import { generateQRSvg } from "../utils/qr-code.js";
 
 export function renderQuizEngine(containerId, initialConfig = null) {
   const container = document.getElementById(containerId);
@@ -1670,100 +1671,420 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   }
 
   // --- PRINTABLE TEST PAPER & TEACHER ANSWER KEY ---
+  let printForm = "A"; // 'A' or 'B'
+  let printLayout = "single"; // 'single' or 'two-col'
+  let printShowTest = true;
+  let printShowBubble = true;
+  let printShowKey = true;
+  let printSchoolName = "Edugates-ClipSAT Science Labs";
+  let printExamTitle = "Comprehensive STEM Examination";
+
   function renderPrintView() {
     viewState = "print";
     removePresenterKeyHandler();
 
-    container.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="print-actions-bar no-print" style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); padding: 14px 20px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
-          <button class="btn btn-secondary" id="btn-exit-print">
-            ← Exit Print View
-          </button>
-          <div style="font-size: 0.9rem; color: var(--text-muted); font-weight: 500;">
-            Scope: ${selectedLessons.size} Lessons (${activeQuestions.length} Questions)
-          </div>
-          <button class="btn btn-primary" onclick="window.print()" style="font-weight: 700;">
-            🖨 Print / Export PDF
-          </button>
-        </div>
+    function getFormQuestions(formKey) {
+      if (formKey === "A") {
+        return activeQuestions.map((q, idx) => ({ ...q, formIndex: idx + 1, formCorrectIdx: q.correctIndex }));
+      }
+      // Form B: deterministic scramble of question order and option letters for anti-cheating
+      return activeQuestions.map((q, idx) => {
+        if (!q.options || q.options.length <= 1) {
+          return { ...q, formIndex: idx + 1, formCorrectIdx: q.correctIndex, origQIndex: idx + 1 };
+        }
+        // Shift options cyclically by (idx % 3 + 1)
+        const shift = (idx % (q.options.length - 1)) + 1;
+        const newOptions = [];
+        let newCorrectIndex = q.correctIndex;
+        for (let i = 0; i < q.options.length; i++) {
+          const origIndex = (i - shift + q.options.length) % q.options.length;
+          newOptions.push(q.options[origIndex]);
+          if (origIndex === q.correctIndex) {
+            newCorrectIndex = i;
+          }
+        }
+        return {
+          ...q,
+          options: newOptions,
+          formCorrectIdx: newCorrectIndex,
+          origQIndex: idx + 1
+        };
+      }).reverse().map((q, idx) => ({
+        ...q,
+        formIndex: idx + 1
+      }));
+    }
 
-        <div class="print-test-container" style="background: #ffffff; color: #000000; padding: 40px; border-radius: 8px;">
-          <!-- Official School Header -->
-          <div class="print-header" style="border-bottom: 2px solid #000000; padding-bottom: 16px; margin-bottom: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
-              <div style="display: flex; align-items: center; gap: 16px;">
-                <img src="assets/logo.png" alt="Edugates-ClipSAT Science Labs" style="width: 58px; height: 58px; object-fit: contain; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <div>
-                  <h1 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 4px; color: #000000; letter-spacing: -0.01em;">Edugates-ClipSAT Science Labs</h1>
-                  <div style="font-size: 0.95rem; color: #1e293b; font-weight: 500;">Comprehensive STEM Examination — Standard Form</div>
+    function renderBubbleSheetHtml(questions, formKey) {
+      const colSize = Math.max(15, Math.ceil(questions.length / (questions.length > 30 ? 3 : 2)));
+      const cols = [];
+      for (let i = 0; i < questions.length; i += colSize) {
+        cols.push(questions.slice(i, i + colSize).map((q) => {
+          const qNum = q.formIndex;
+          return `
+            <div class="omr-q-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; font-family: var(--font-mono); font-size: 0.85rem;">
+              <span style="font-weight: 800; min-width: 26px; color: #000;">${qNum < 10 ? '0' + qNum : qNum}.</span>
+              <div style="display: flex; gap: 8px;">
+                <span class="omr-bubble" title="Option A">A</span>
+                <span class="omr-bubble" title="Option B">B</span>
+                <span class="omr-bubble" title="Option C">C</span>
+                <span class="omr-bubble" title="Option D">D</span>
+              </div>
+            </div>
+          `;
+        }).join(""));
+      }
+
+      return `
+        <div class="print-bubble-sheet" style="page-break-before: always; margin-top: 24px; border: 2px solid #000000; padding: 24px 30px; border-radius: 4px; background: #ffffff; color: #000000;">
+          <!-- Bubble Sheet Header -->
+          <div style="border-bottom: 2px solid #000000; padding-bottom: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #334155;">STANDARD OPTICAL MARK RECOGNITION (OMR) RESPONSE SHEET</div>
+              <h2 style="font-size: 1.35rem; font-weight: 900; margin: 2px 0 4px 0; color: #000000;">${printSchoolName}</h2>
+              <div style="font-size: 0.95rem; font-weight: 700; color: #000000;">${printExamTitle}</div>
+            </div>
+            <div style="text-align: center; border: 2px solid #000000; padding: 6px 14px; border-radius: 4px; background: #f8fafc;">
+              <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #475569;">TEST FORM</div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: #000000;">${formKey}</div>
+            </div>
+          </div>
+
+          <!-- Instructions & Grid Header -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; border-bottom: 1.5px solid #000000; padding-bottom: 16px; margin-bottom: 18px;">
+            <!-- Left: Student Info & Grids -->
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; gap: 12px; align-items: flex-end;">
+                <div style="flex: 1;">
+                  <div style="font-size: 0.78rem; font-weight: 700; color: #475569;">STUDENT FULL NAME (LAST, FIRST, M.I.)</div>
+                  <div style="border-bottom: 1.5px solid #000000; height: 26px;"></div>
+                </div>
+                <div style="width: 130px;">
+                  <div style="font-size: 0.78rem; font-weight: 700; color: #475569;">CLASS / PERIOD</div>
+                  <div style="border-bottom: 1.5px solid #000000; height: 26px;"></div>
                 </div>
               </div>
-              <div style="text-align: right; font-size: 0.85rem; color: #1e293b; min-width: 160px; font-weight: 500;">
-                <div>Date: __________________</div>
-                <div style="margin-top: 4px;">Score: _______ / ${activeQuestions.length}</div>
+
+              <div style="display: flex; gap: 12px; align-items: flex-end;">
+                <div style="flex: 1;">
+                  <div style="font-size: 0.78rem; font-weight: 700; color: #475569;">DATE OF EXAMINATION</div>
+                  <div style="border-bottom: 1.5px solid #000000; height: 26px;"></div>
+                </div>
+                <div style="width: 130px;">
+                  <div style="font-size: 0.78rem; font-weight: 700; color: #475569;">STUDENT ID</div>
+                  <div style="border-bottom: 1.5px solid #000000; height: 26px;"></div>
+                </div>
+              </div>
+
+              <!-- Marking Guidelines -->
+              <div style="font-size: 0.75rem; color: #334155; line-height: 1.4; margin-top: 4px; background: #f1f5f9; padding: 6px 10px; border-radius: 4px; border: 1px dashed #94a3b8;">
+                <strong>MARKING INSTRUCTIONS:</strong>
+                Use dark pencil (No. 2 / HB) or black ink. Completely fill in each bubble:
+                <span class="omr-bubble" style="display: inline-flex; vertical-align: middle; margin: 0 4px; background: #000000; color: #fff; width: 14px; height: 14px; font-size: 0.55rem;">●</span>
+                Make clean, dark marks. Erase cleanly any changes.
               </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; margin-top: 20px; font-size: 0.95rem; color: #000000;">
-              <div>Student Name: ____________________________________</div>
-              <div>Class / Period: _________________</div>
+            <!-- Right: Official Scoring Box (Teacher Only) -->
+            <div style="border: 1.5px solid #000000; border-radius: 4px; padding: 10px; background: #f8fafc; display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; text-align: center; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; color: #1e293b;">
+                FOR TEACHER / SCORER USE ONLY
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
+                <span style="font-size: 0.82rem; font-weight: 700;">Raw Score:</span>
+                <span style="border-bottom: 1.5px solid #000000; width: 60px; height: 18px; text-align: right; font-weight: 800;">&nbsp;/ ${questions.length}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
+                <span style="font-size: 0.82rem; font-weight: 700;">Percentage:</span>
+                <span style="border-bottom: 1.5px solid #000000; width: 60px; height: 18px; text-align: right; font-weight: 800;">&nbsp;%</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
+                <span style="font-size: 0.82rem; font-weight: 700;">Grade / Scale:</span>
+                <span style="border-bottom: 1.5px solid #000000; width: 60px; height: 18px;"></span>
+              </div>
+              <div style="border-top: 1px solid #cbd5e1; padding-top: 4px; font-size: 0.74rem;">
+                Teacher Sign: _____________________
+              </div>
             </div>
           </div>
 
-          <!-- Section I: Student Questions -->
-          <div style="display: flex; flex-direction: column; gap: 24px;">
-            ${activeQuestions.map((q, idx) => `
-              <div class="print-q-card" style="page-break-inside: avoid; margin-bottom: 18px; border-bottom: 1px solid #e2e8f0; padding-bottom: 14px; color: #000000;">
-                <div style="font-weight: 700; margin-bottom: 8px; font-size: 1.05rem; color: #000000;">
-                  ${idx + 1}. ${formatMathText(q.question)}
+          <!-- Multi-Column Bubble Grid -->
+          <div style="display: grid; grid-template-columns: repeat(${cols.length}, 1fr); gap: 24px; padding: 4px 0;">
+            ${cols.map((colHtml, colIdx) => `
+              <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 10px 14px; background: #ffffff;">
+                <div style="font-size: 0.74rem; font-weight: 800; text-align: center; border-bottom: 1px solid #000000; padding-bottom: 4px; margin-bottom: 8px; color: #475569;">
+                  SECTION ${colIdx + 1}
                 </div>
-
-                ${q.diagram ? `
-                  <div class="print-diagram-container">
-                    ${q.diagram.caption ? `<div class="print-diagram-caption">${q.diagram.caption}</div>` : ""}
-                    <div class="print-diagram-svg">${q.diagram.svg}</div>
-                  </div>
-                ` : ""}
-
-                ${q.options ? `
-                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-left: 18px; font-size: 0.95rem; color: #000000;">
-                    ${q.options.map((opt, oIdx) => `
-                      <div style="color: #000000;">
-                        <strong style="color: #000000;">(${String.fromCharCode(65 + oIdx)})</strong> <span style="color: #000000;">${formatMathText(opt)}</span>
-                      </div>
-                    `).join("")}
-                  </div>
-                ` : ""}
+                ${colHtml}
               </div>
             `).join("")}
           </div>
+        </div>
+      `;
+    }
 
-          <!-- Section II: Teacher Answer Key & Derivations (Page Break for Printing) -->
-          <div style="page-break-before: always; margin-top: 40px; border-top: 2px dashed #94a3b8; padding-top: 24px;">
-            <h2 style="font-size: 1.4rem; font-weight: 800; margin-bottom: 16px; color: #000000;">
-              Teacher Scoring Guide &amp; Detailed Solutions Key
-            </h2>
-            <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.92rem;">
-              ${activeQuestions.map((q, idx) => `
-                <div class="teacher-solution-card" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px 16px; page-break-inside: avoid; color: #000000;">
-                  <div style="display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 4px; color: #000000;">
-                    <span style="color: #000000;">Question ${idx + 1} Answer: Option (${String.fromCharCode(65 + q.correctIndex)})</span>
-                    <span style="font-size: 0.8rem; color: #475569;">${q.subject} • ${q.moduleTitle}</span>
-                  </div>
-                  <div style="color: #0f172a; line-height: 1.5;">
-                    ${formatMathText(q.explanation)}
-                  </div>
+    function renderDOM() {
+      const displayQuestions = getFormQuestions(printForm);
+      const originUrl = window.location.origin + window.location.pathname;
+      const scopeParam = Array.from(selectedLessons).join(",");
+      const qrDeepLink = `${originUrl}#quiz?scope=${encodeURIComponent(scopeParam)}&subj=${selectedSubject}`;
+      let qrSvg = "";
+      try {
+        qrSvg = generateQRSvg(qrDeepLink, { pixelSize: 3, margin: 1 });
+      } catch (err) {
+        qrSvg = `<div style="font-size: 0.65rem; color: #64748b; text-align: center; padding: 8px;">Scan URL:<br>${qrDeepLink.slice(0, 30)}...</div>`;
+      }
+
+      container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- Top Control & Customization Bar (Excluded during printing) -->
+          <div class="print-actions-bar no-print" style="display: flex; flex-direction: column; gap: 12px; background: var(--bg-card); padding: 16px 20px; border-radius: var(--radius-md); border: 1.5px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <button class="btn btn-secondary" id="btn-exit-print" style="font-weight: 700;">
+                  ← Exit Print Studio
+                </button>
+                <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-family: var(--font-mono);">
+                  ${displayQuestions.length} Questions • ${selectedLessons.size} Lessons
+                </span>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <!-- Form A vs Form B Selector -->
+                <div style="display: inline-flex; border: 1px solid var(--border-color); border-radius: var(--radius-sm); overflow: hidden; background: rgba(0,0,0,0.2);">
+                  <button class="btn ${printForm === 'A' ? 'btn-primary' : 'btn-secondary'} btn-sm" id="btn-print-form-a" style="border-radius: 0; padding: 6px 14px; font-weight: 700;">
+                    Form A (Master)
+                  </button>
+                  <button class="btn ${printForm === 'B' ? 'btn-primary' : 'btn-secondary'} btn-sm" id="btn-print-form-b" style="border-radius: 0; padding: 6px 14px; font-weight: 700;" title="Anti-cheating randomized question order and shuffled options">
+                    Form B (Anti-Cheat)
+                  </button>
                 </div>
-              `).join("")}
+
+                <!-- Layout Switcher -->
+                <div style="display: inline-flex; border: 1px solid var(--border-color); border-radius: var(--radius-sm); overflow: hidden; background: rgba(0,0,0,0.2);">
+                  <button class="btn ${printLayout === 'single' ? 'btn-primary' : 'btn-secondary'} btn-sm" id="btn-layout-single" style="border-radius: 0; padding: 6px 12px;" title="Standard 1-column layout">
+                    📄 1-Col
+                  </button>
+                  <button class="btn ${printLayout === 'two-col' ? 'btn-primary' : 'btn-secondary'} btn-sm" id="btn-layout-twocol" style="border-radius: 0; padding: 6px 12px;" title="High density 2-column paper saver layout">
+                    📰 2-Col (Paper Saver)
+                  </button>
+                </div>
+
+                <!-- Print Trigger Button -->
+                <button class="btn btn-primary" onclick="window.print()" style="font-weight: 800; padding: 7px 18px; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);">
+                  <span>🖨️</span>
+                  <span>Print / Save PDF</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Second Row: Section Toggles and Editable Header Inputs -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 0.85rem;">
+              <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <span style="font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em;">Include Sections:</span>
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                  <input type="checkbox" id="chk-print-test" ${printShowTest ? 'checked' : ''}>
+                  <span>Student Test Paper</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                  <input type="checkbox" id="chk-print-bubble" ${printShowBubble ? 'checked' : ''}>
+                  <span>Scantron OMR Bubble Sheet</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                  <input type="checkbox" id="chk-print-key" ${printShowKey ? 'checked' : ''}>
+                  <span>Teacher Solutions Key</span>
+                </label>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <input type="text" id="inp-print-school" value="${printSchoolName}" placeholder="School / Institution Name" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-main); padding: 4px 10px; border-radius: 4px; font-size: 0.82rem; min-width: 200px;">
+                <input type="text" id="inp-print-title" value="${printExamTitle}" placeholder="Exam Title" style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-main); padding: 4px 10px; border-radius: 4px; font-size: 0.82rem; min-width: 220px;">
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    `;
 
-    document.getElementById("btn-exit-print").addEventListener("click", showConfig);
-    renderMathInElement(container);
+          <!-- Printable Document Container (Pure Black on White) -->
+          <div class="print-test-container" style="background: #ffffff; color: #000000; padding: 40px; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.15);">
+            
+            ${printShowTest ? `
+              <!-- Section I: Official School & Exam Header -->
+              <div class="print-header" style="border-bottom: 2px solid #000000; padding-bottom: 16px; margin-bottom: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+                  <div style="display: flex; align-items: center; gap: 16px;">
+                    <img src="assets/logo.png" alt="Edugates-ClipSAT Science Labs" style="width: 58px; height: 58px; object-fit: contain; border-radius: 8px; border: 1px solid #cbd5e1;">
+                    <div>
+                      <h1 style="font-size: 1.55rem; font-weight: 900; margin-bottom: 2px; color: #000000; letter-spacing: -0.01em;">${printSchoolName}</h1>
+                      <div style="font-size: 0.95rem; color: #1e293b; font-weight: 600;">${printExamTitle}</div>
+                      <div style="font-size: 0.8rem; color: #475569; margin-top: 2px;">Curriculum Scope: ${selectedSubject} • ${selectedLessons.size} Modules/Lessons Tested</div>
+                    </div>
+                  </div>
+
+                  <!-- Right Header: Form Code Badge & QR Code -->
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="text-align: center; border: 2px solid #000000; padding: 6px 14px; border-radius: 4px; background: #f8fafc;">
+                      <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: #475569;">TEST FORM</div>
+                      <div style="font-size: 1.5rem; font-weight: 900; color: #000000;">${printForm}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; border: 1.5px solid #000000; border-radius: 6px; padding: 5px 8px; background: #ffffff;">
+                      <div style="width: 54px; height: 54px; flex-shrink: 0;">
+                        ${qrSvg}
+                      </div>
+                      <div style="font-size: 0.7rem; color: #000000; max-width: 105px; line-height: 1.2; font-weight: 500;">
+                        <strong>Digital Lab:</strong><br>Scan for live 3D simulations
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; margin-top: 18px; font-size: 0.92rem; color: #000000;">
+                  <div>Student Name: ____________________________________</div>
+                  <div>Class / Period: _________________</div>
+                  <div>Date: __________________</div>
+                </div>
+              </div>
+
+              <!-- Student Instructions Box -->
+              <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 10px 14px; margin-bottom: 24px; font-size: 0.85rem; color: #1e293b; line-height: 1.4;">
+                <strong>GENERAL INSTRUCTIONS:</strong> Answer all ${displayQuestions.length} multiple-choice questions. Each question has four choices (A, B, C, D). Choose the one best answer and record your response on the attached response sheet or directly in this test booklet. You may use a scientific calculator and reference data where provided.
+              </div>
+
+              <!-- Questions Container (Single or Two-Column Paper Saver Layout) -->
+              <div class="print-questions-wrapper ${printLayout === 'two-col' ? 'print-two-col' : ''}" style="${printLayout === 'two-col' ? 'column-count: 2; column-gap: 32px; column-rule: 1px solid #e2e8f0;' : 'display: flex; flex-direction: column; gap: 24px;'}">
+                ${displayQuestions.map((q) => `
+                  <div class="print-q-card" style="break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; color: #000000;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                      <span style="font-weight: 800; font-size: 1.02rem; color: #000000;">
+                        ${q.formIndex}. ${formatMathText(q.question)}
+                      </span>
+                    </div>
+
+                    ${q.diagram ? `
+                      <div class="print-diagram-container" style="margin: 10px 0; text-align: center;">
+                        ${q.diagram.caption ? `<div class="print-diagram-caption" style="font-size: 0.82rem; font-weight: 700; color: #475569; margin-bottom: 4px;">${q.diagram.caption}</div>` : ""}
+                        <div class="print-diagram-svg" style="max-height: 220px; display: inline-block;">${q.diagram.svg}</div>
+                      </div>
+                    ` : ""}
+
+                    ${q.options ? `
+                      <div style="display: grid; grid-template-columns: ${printLayout === 'two-col' ? '1fr' : '1fr 1fr'}; gap: 8px 16px; margin-left: 12px; margin-top: 8px; font-size: 0.92rem; color: #000000;">
+                        ${q.options.map((opt, oIdx) => `
+                          <div style="color: #000000; line-height: 1.35;">
+                            <strong style="color: #000000;">(${String.fromCharCode(65 + oIdx)})</strong> <span style="color: #000000;">${formatMathText(opt)}</span>
+                          </div>
+                        `).join("")}
+                      </div>
+                    ` : ""}
+                  </div>
+                `).join("")}
+              </div>
+            ` : ""}
+
+            <!-- Section II: Standard OMR Bubble Sheet -->
+            ${printShowBubble ? renderBubbleSheetHtml(displayQuestions, printForm) : ""}
+
+            <!-- Section III: Teacher Scoring Guide & Detailed Solutions Key -->
+            ${printShowKey ? `
+              <div style="page-break-before: always; margin-top: 40px; border-top: 2px dashed #000000; padding-top: 24px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000000; padding-bottom: 12px; margin-bottom: 20px;">
+                  <div>
+                    <h2 style="font-size: 1.4rem; font-weight: 900; margin: 0 0 4px 0; color: #000000;">
+                      Teacher Scoring Guide &amp; Detailed Solutions Key
+                    </h2>
+                    <div style="font-size: 0.85rem; color: #475569;">
+                      Official Solution Explanations &amp; Scientific Derivations • Form ${printForm}
+                    </div>
+                  </div>
+                  <div style="border: 2px solid #000000; padding: 4px 12px; border-radius: 4px; background: #f8fafc; font-weight: 800; font-size: 0.95rem;">
+                    KEY: FORM ${printForm}
+                  </div>
+                </div>
+
+                <!-- Answer Key Matrix Table -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 24px;">
+                  ${displayQuestions.map(q => `
+                    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-family: var(--font-mono);">
+                      <span style="font-weight: 700; color: #475569;">Q${q.formIndex}:</span>
+                      <strong style="font-size: 1.05rem; color: #000000; background: #e2e8f0; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;">
+                        ${String.fromCharCode(65 + q.formCorrectIdx)}
+                      </strong>
+                    </div>
+                  `).join("")}
+                </div>
+
+                <!-- Step-by-Step Derivations and Pedagogical Explanations -->
+                <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.9rem;">
+                  ${displayQuestions.map(q => `
+                    <div class="teacher-solution-card" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px 16px; page-break-inside: avoid; color: #000000;">
+                      <div style="display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 6px; color: #000000;">
+                        <span style="color: #000000;">
+                          Question ${q.formIndex} Correct Answer: Option (${String.fromCharCode(65 + q.formCorrectIdx)})
+                          ${q.origQIndex ? `<span style="font-size: 0.75rem; font-weight: 500; color: #64748b;">(Form A # ${q.origQIndex})</span>` : ''}
+                        </span>
+                        <span style="font-size: 0.78rem; color: #475569; font-weight: 600;">${q.subject} • ${q.moduleTitle}</span>
+                      </div>
+                      <div style="color: #0f172a; line-height: 1.5; font-size: 0.88rem;">
+                        ${formatMathText(q.explanation)}
+                      </div>
+                    </div>
+                  `).join("")}
+                </div>
+              </div>
+            ` : ""}
+
+          </div>
+        </div>
+      `;
+
+      // Event Bindings
+      document.getElementById("btn-exit-print")?.addEventListener("click", showConfig);
+
+      document.getElementById("btn-print-form-a")?.addEventListener("click", () => {
+        printForm = "A";
+        renderDOM();
+      });
+
+      document.getElementById("btn-print-form-b")?.addEventListener("click", () => {
+        printForm = "B";
+        renderDOM();
+      });
+
+      document.getElementById("btn-layout-single")?.addEventListener("click", () => {
+        printLayout = "single";
+        renderDOM();
+      });
+
+      document.getElementById("btn-layout-twocol")?.addEventListener("click", () => {
+        printLayout = "two-col";
+        renderDOM();
+      });
+
+      document.getElementById("chk-print-test")?.addEventListener("change", (e) => {
+        printShowTest = e.target.checked;
+        renderDOM();
+      });
+
+      document.getElementById("chk-print-bubble")?.addEventListener("change", (e) => {
+        printShowBubble = e.target.checked;
+        renderDOM();
+      });
+
+      document.getElementById("chk-print-key")?.addEventListener("change", (e) => {
+        printShowKey = e.target.checked;
+        renderDOM();
+      });
+
+      document.getElementById("inp-print-school")?.addEventListener("input", (e) => {
+        printSchoolName = e.target.value;
+      });
+
+      document.getElementById("inp-print-title")?.addEventListener("input", (e) => {
+        printExamTitle = e.target.value;
+      });
+
+      renderMathInElement(container);
+    }
+
+    renderDOM();
   }
 
   // Initial render
