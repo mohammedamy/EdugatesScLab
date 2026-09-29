@@ -1165,14 +1165,15 @@ export function initSmartboardToolbar() {
   // Timer Widget Interactions
   function toggleTimer(forceState) {
     SoundFX.playClick();
-    const isOpen = forceState !== undefined ? forceState : (timerWidget.style.display !== "none");
-    if (!isOpen) {
+    const shouldOpen = forceState !== undefined ? forceState : (timerWidget.style.display === "none");
+    if (shouldOpen) {
       timerWidget.style.display = "flex";
       if (toolTimer) toolTimer.classList.add("active");
       loadTimerPos();
     } else {
       timerWidget.style.display = "none";
       if (toolTimer) toolTimer.classList.remove("active");
+      timerWidget.classList.remove("sb-timer-alarm");
     }
   }
 
@@ -1183,7 +1184,10 @@ export function initSmartboardToolbar() {
     });
   }
 
-  document.getElementById("sb-timer-close-btn")?.addEventListener("click", () => toggleTimer(false));
+  document.getElementById("sb-timer-close-btn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleTimer(false);
+  });
 
   const muteBtn = document.getElementById("sb-timer-mute-btn");
   if (muteBtn) {
