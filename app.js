@@ -13,14 +13,16 @@ import { SoundFX } from "./utils/audio-synth.js";
 import { showToast, copyShareLink } from "./utils/toast.js";
 
 // Initialize Theme (Respect user preference or fallback to system color scheme)
-const userSavedTheme = localStorage.getItem("edugates_theme");
+const userSavedTheme = typeof localStorage !== "undefined" ? localStorage.getItem("edugates_theme") : null;
 const systemPrefersLight = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
 const savedTheme = userSavedTheme || (systemPrefersLight ? "day" : "night");
-document.documentElement.setAttribute("data-theme", savedTheme);
+if (typeof document !== "undefined" && document.documentElement) {
+  document.documentElement.setAttribute("data-theme", savedTheme);
+}
 
 if (typeof window !== "undefined" && window.matchMedia) {
   window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", (e) => {
-    if (!localStorage.getItem("edugates_theme")) {
+    if (typeof localStorage !== "undefined" && !localStorage.getItem("edugates_theme")) {
       setTheme(e.matches ? "day" : "night");
     }
   });
@@ -135,10 +137,12 @@ function bootApp() {
   }
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", bootApp, { once: true });
-} else {
-  bootApp();
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootApp, { once: true });
+  } else {
+    bootApp();
+  }
 }
 
 function initCustomLogoDetector() {
@@ -528,13 +532,14 @@ export function handleHashRoute() {
   const route = (segments[0] || "chem").toLowerCase();
 
   // Route 1: Main Curriculum Tabs & Hubs
-  if (["chem", "bio", "phys", "labs", "quiz", "flashcards"].includes(route)) {
+  if (["chem", "bio", "phys", "labs", "lab", "quiz", "flashcards"].includes(route)) {
     if (window.closeActiveModuleModal) window.closeActiveModuleModal();
     if (window.closeActiveLessonPlanModal) window.closeActiveLessonPlanModal();
     if (window.closeActiveProgressModal) window.closeActiveProgressModal();
 
-    if (route === "labs" && segments[1]) {
-      AppState.activeLabId = segments[1];
+    const targetTab = route === "lab" ? "labs" : route;
+    if ((route === "labs" || route === "lab") && segments[1]) {
+      AppState.activeLabId = normalizeLabId(segments[1]);
     }
     if (route === "quiz") {
       AppState.quizFilter = params;
@@ -543,7 +548,7 @@ export function handleHashRoute() {
     if (params.view) AppState.homeViewMode = params.view;
     if (params.q) AppState.searchQuery = params.q;
 
-    switchTab(route, false);
+    switchTab(targetTab, false);
     return;
   }
 
@@ -670,34 +675,36 @@ function switchTab(tabId, updateHash = true) {
 }
 
 // Global Cross-Navigation Helpers
-window.openModuleById = function(subjectCode, moduleId, lessonId) {
-  const code = (subjectCode || "").toUpperCase();
-  let curData = chemistryCurriculum;
-  let themeColor = "var(--chem-primary)";
-  let tabId = "chem";
-  if (code.startsWith("BIO")) {
-    curData = biologyCurriculum;
-    themeColor = "var(--bio-primary)";
-    tabId = "bio";
-  } else if (code.startsWith("PHYS")) {
-    curData = physicsCurriculum;
-    themeColor = "var(--phys-primary)";
-    tabId = "phys";
-  }
-  const mod = curData.modules.find(m => m.id === parseInt(moduleId, 10));
-  if (mod) {
-    openModuleModal(mod, themeColor, lessonId ? parseInt(lessonId, 10) : undefined);
-  }
-};
-
-window.switchToFlashcard = function(subjectCode, moduleId, lessonId) {
-  AppState.flashcardFilter = {
-    subject: subjectCode || "ALL",
-    moduleId: moduleId !== undefined ? moduleId : "ALL",
-    lessonId: lessonId !== undefined ? lessonId : "ALL"
+if (typeof window !== "undefined") {
+  window.openModuleById = function(subjectCode, moduleId, lessonId) {
+    const code = (subjectCode || "").toUpperCase();
+    let curData = chemistryCurriculum;
+    let themeColor = "var(--chem-primary)";
+    let tabId = "chem";
+    if (code.startsWith("BIO")) {
+      curData = biologyCurriculum;
+      themeColor = "var(--bio-primary)";
+      tabId = "bio";
+    } else if (code.startsWith("PHYS")) {
+      curData = physicsCurriculum;
+      themeColor = "var(--phys-primary)";
+      tabId = "phys";
+    }
+    const mod = curData.modules.find(m => m.id === parseInt(moduleId, 10));
+    if (mod) {
+      openModuleModal(mod, themeColor, lessonId ? parseInt(lessonId, 10) : undefined);
+    }
   };
-  switchTab("flashcards");
-};
+
+  window.switchToFlashcard = function(subjectCode, moduleId, lessonId) {
+    AppState.flashcardFilter = {
+      subject: subjectCode || "ALL",
+      moduleId: moduleId !== undefined ? moduleId : "ALL",
+      lessonId: lessonId !== undefined ? lessonId : "ALL"
+    };
+    switchTab("flashcards");
+  };
+}
 
 function renderCurrentView() {
   const container = document.getElementById("main-content-view");
@@ -752,22 +759,41 @@ function mCode(num) {
   return num < 10 ? "0" + num : "" + num;
 }
 
+export function normalizeLabId(rawId) {
+  if (!rawId) return "projectile";
+  const str = String(rawId).toLowerCase().trim().replace(/^lab[-_]?/, "");
+  if (str === "ptable" || str === "periodic-table" || str === "periodictable" || str.includes("period")) return "ptable";
+  if (str === "gaslaws" || str === "gas-laws" || str === "gaslaw" || str.includes("gas")) return "gaslaws";
+  if (str === "dnaprotein" || str === "dna-protein" || str.includes("dna") || str.includes("protein")) return "dnaprotein";
+  if (str === "punnett" || str === "punnett-square" || str.includes("punnett")) return "punnett";
+  if (str === "projectile" || str.includes("project") || str.includes("kinemat")) return "projectile";
+  if (str === "titration" || str.includes("titrat")) return "titration";
+  if (str === "microscope" || str.includes("micro")) return "microscope";
+  if (str === "circuits" || str === "circuit") return "circuits";
+  if (str === "optics" || str === "optic") return "optics";
+  if (str === "vsepr") return "vsepr";
+  if (str === "waves" || str === "wave") return "waves";
+  if (str === "photosynthesis" || str.includes("photo")) return "photosynthesis";
+  return "projectile";
+}
+
 function formatLabName(labKey) {
+  const norm = normalizeLabId(labKey);
   const map = {
-    "lab-projectile": "Kinematics & Dynamics",
-    "lab-titration": "Titration & Stoichiometry",
-    "lab-microscope": "Microscopy & Histology",
-    "lab-periodic-table": "Periodic Table & Atoms",
-    "lab-circuits": "DC Circuits & Electricity",
-    "lab-gas-laws": "Gas Kinetics & Thermal",
-    "lab-dna-protein": "DNA & Molecular Genetics",
-    "lab-punnett": "Punnett Genetics & Ecology",
-    "lab-optics": "Optics & Wave Phenomena",
-    "lab-vsepr": "VSEPR & Molecular Geometry",
-    "lab-waves": "Wave Interference & Optics",
-    "lab-photosynthesis": "Photosynthesis & Respiration"
+    "projectile": "Kinematics & Dynamics",
+    "titration": "Titration & Stoichiometry",
+    "microscope": "Microscopy & Histology",
+    "ptable": "Periodic Table & Atoms",
+    "circuits": "DC Circuits & Electricity",
+    "gaslaws": "Gas Kinetics & Thermal",
+    "dnaprotein": "DNA & Molecular Genetics",
+    "punnett": "Punnett Genetics & Ecology",
+    "optics": "Optics & Wave Phenomena",
+    "vsepr": "VSEPR & Molecular Geometry",
+    "waves": "Wave Interference & Optics",
+    "photosynthesis": "Photosynthesis & Respiration"
   };
-  return map[labKey] || "Virtual Laboratory";
+  return map[norm] || "Virtual Laboratory";
 }
 
 function getLessonIconEmoji(type) {
@@ -1012,10 +1038,10 @@ function renderSubjectView(container, curData, themeColor) {
                 </div>
 
                 <div class="module-card-footer">
-                  <div class="lab-indicator">
+                  <a href="#labs/${normalizeLabId(m.lab)}" class="lab-indicator" title="Launch ${formatLabName(m.lab)} Virtual Lab" aria-label="Launch ${formatLabName(m.lab)} Virtual Lab">
                     ${icons.microscope}
                     <span>Lab: ${formatLabName(m.lab)}</span>
-                  </div>
+                  </a>
                   <a href="#module/${m.code}" class="view-module-arrow module-explore-link" aria-label="Explore Chapter ${m.code}: ${m.title}">
                     Explore Chapter →
                   </a>
@@ -1165,7 +1191,7 @@ function renderSubjectView(container, curData, themeColor) {
   // Bind Module Card Clicks
   document.querySelectorAll(".module-card").forEach(card => {
     card.addEventListener("click", (e) => {
-      if (e.target.closest("a, button, .lesson-row-card")) return;
+      if (e.target.closest("a, button, .lesson-row-card, .lab-indicator")) return;
       const mid = parseInt(card.dataset.mid, 10);
       const mod = curData.modules.find(m => m.id === mid);
       if (mod) {
@@ -1294,8 +1320,8 @@ function renderVirtualLabsHub(container) {
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
       e.preventDefault();
       try { SoundFX.playClick(); } catch (err) {}
-      AppState.activeLabId = btn.dataset.lab;
-      window.location.hash = `#labs/${btn.dataset.lab}`;
+      AppState.activeLabId = normalizeLabId(btn.dataset.lab);
+      window.location.hash = `#labs/${AppState.activeLabId}`;
     });
   });
 
@@ -1314,24 +1340,52 @@ function mountActiveLab() {
     currentActiveLabCleanup = null;
   }
 
-  ProgressStore.recordLabLaunched(AppState.activeLabId);
+  const normId = normalizeLabId(AppState.activeLabId);
+  AppState.activeLabId = normId;
+  ProgressStore.recordLabLaunched(normId);
+
+  // Update active pill button visual state in case hash was typed directly
+  document.querySelectorAll(".lab-nav-btn").forEach(btn => {
+    const isThisLab = normalizeLabId(btn.dataset.lab) === normId;
+    btn.classList.toggle("btn-primary", isThisLab);
+    btn.classList.toggle("btn-secondary", !isThisLab);
+  });
 
   const labLoaders = {
     "projectile": () => import("./labs/phys-projectile.js").then(m => m.initProjectileLab("active-lab-mount")),
+    "lab-projectile": () => import("./labs/phys-projectile.js").then(m => m.initProjectileLab("active-lab-mount")),
     "titration": () => import("./labs/chem-titration.js").then(m => m.initTitrationLab("active-lab-mount")),
+    "lab-titration": () => import("./labs/chem-titration.js").then(m => m.initTitrationLab("active-lab-mount")),
     "microscope": () => import("./labs/bio-microscope.js").then(m => m.initMicroscopeLab("active-lab-mount")),
+    "lab-microscope": () => import("./labs/bio-microscope.js").then(m => m.initMicroscopeLab("active-lab-mount")),
     "ptable": () => import("./labs/chem-periodic-table.js").then(m => m.initPeriodicTableLab("active-lab-mount")),
+    "periodic-table": () => import("./labs/chem-periodic-table.js").then(m => m.initPeriodicTableLab("active-lab-mount")),
+    "lab-periodic-table": () => import("./labs/chem-periodic-table.js").then(m => m.initPeriodicTableLab("active-lab-mount")),
     "circuits": () => import("./labs/phys-circuits.js").then(m => m.initCircuitsLab("active-lab-mount")),
+    "circuit": () => import("./labs/phys-circuits.js").then(m => m.initCircuitsLab("active-lab-mount")),
+    "lab-circuits": () => import("./labs/phys-circuits.js").then(m => m.initCircuitsLab("active-lab-mount")),
     "gaslaws": () => import("./labs/chem-gas-laws.js").then(m => m.initGasLawsLab("active-lab-mount")),
+    "gas-laws": () => import("./labs/chem-gas-laws.js").then(m => m.initGasLawsLab("active-lab-mount")),
+    "lab-gas-laws": () => import("./labs/chem-gas-laws.js").then(m => m.initGasLawsLab("active-lab-mount")),
     "dnaprotein": () => import("./labs/bio-dna-protein.js").then(m => m.initDnaProteinLab("active-lab-mount")),
+    "dna-protein": () => import("./labs/bio-dna-protein.js").then(m => m.initDnaProteinLab("active-lab-mount")),
+    "lab-dna-protein": () => import("./labs/bio-dna-protein.js").then(m => m.initDnaProteinLab("active-lab-mount")),
     "punnett": () => import("./labs/bio-punnett-square.js").then(m => m.initPunnettLab("active-lab-mount")),
+    "punnett-square": () => import("./labs/bio-punnett-square.js").then(m => m.initPunnettLab("active-lab-mount")),
+    "lab-punnett": () => import("./labs/bio-punnett-square.js").then(m => m.initPunnettLab("active-lab-mount")),
     "optics": () => import("./labs/phys-optics.js").then(m => m.initOpticsLab("active-lab-mount")),
+    "optic": () => import("./labs/phys-optics.js").then(m => m.initOpticsLab("active-lab-mount")),
+    "lab-optics": () => import("./labs/phys-optics.js").then(m => m.initOpticsLab("active-lab-mount")),
     "vsepr": () => import("./labs/chem-vsepr.js").then(m => m.initVseprLab("active-lab-mount")),
+    "lab-vsepr": () => import("./labs/chem-vsepr.js").then(m => m.initVseprLab("active-lab-mount")),
     "waves": () => import("./labs/phys-waves.js").then(m => m.initWaveLab("active-lab-mount")),
-    "photosynthesis": () => import("./labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("active-lab-mount"))
+    "wave": () => import("./labs/phys-waves.js").then(m => m.initWaveLab("active-lab-mount")),
+    "lab-waves": () => import("./labs/phys-waves.js").then(m => m.initWaveLab("active-lab-mount")),
+    "photosynthesis": () => import("./labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("active-lab-mount")),
+    "lab-photosynthesis": () => import("./labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("active-lab-mount"))
   };
 
-  const loader = labLoaders[AppState.activeLabId] || labLoaders["projectile"];
+  const loader = labLoaders[normId] || labLoaders["projectile"];
   mount.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading 60 FPS Laboratory Workbench...</div>`;
 
   loader().then(cleanup => {

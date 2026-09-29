@@ -1464,10 +1464,32 @@ a.lesson-row-card {
   font-size: 0.8rem;
   font-weight: 600;
   color: #38bdf8;
+  text-decoration: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  transition: all 0.2s ease;
+}
+.lab-indicator:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #7dd3fc;
+  transform: translateY(-1px);
 }
 .lab-indicator svg {
   width: 16px;
   height: 16px;
+}
+[data-theme="day"] .lab-indicator {
+  color: #0369a1;
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+[data-theme="day"] .lab-indicator:hover {
+  background: #e0f2fe;
+  color: #0284c7;
+  border-color: #7dd3fc;
 }
 .view-module-arrow {
   color: var(--text-dim);
@@ -9327,92 +9349,184 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 }
 
 .lab-question-card {
-  background: rgba(10, 15, 30, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-surface-elevated, rgba(15, 23, 42, 0.9));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.12));
   border-radius: 12px;
-  padding: 16px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  transition: border-color 0.2s;
+  gap: 12px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="day"] .lab-question-card {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06) !important;
 }
 
 .lab-question-card.correct {
   border-color: rgba(16, 185, 129, 0.6);
-  background: rgba(16, 185, 129, 0.05);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+[data-theme="day"] .lab-question-card.correct {
+  border-color: #10b981 !important;
+  background: #f0fdf4 !important;
 }
 
 .lab-question-card.incorrect {
   border-color: rgba(239, 68, 68, 0.6);
-  background: rgba(239, 68, 68, 0.05);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+[data-theme="day"] .lab-question-card.incorrect {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+}
+
+.lab-question-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted, #94a3b8);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+[data-theme="day"] .lab-question-meta {
+  color: #475569 !important;
 }
 
 .lab-question-text {
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: var(--text-main, #f8fafc);
-  line-height: 1.45;
+  line-height: 1.5;
+}
+
+[data-theme="day"] .lab-question-text {
+  color: #0f172a !important;
 }
 
 .lab-options-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .lab-option-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 10px 14px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: var(--text-muted, #94a3b8);
-  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  font-size: 0.86rem;
   text-align: left;
   cursor: pointer;
   transition: all 0.15s ease;
+  line-height: 1.4;
 }
 
 .lab-option-btn:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.1);
-  border-color: rgba(56, 189, 248, 0.35);
-  color: #f8fafc;
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #38bdf8;
+  transform: translateX(2px);
+}
+
+[data-theme="day"] .lab-option-btn {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="day"] .lab-option-btn:hover:not(:disabled) {
+  background: #f0f9ff !important;
+  border-color: #0284c7 !important;
+  color: #0369a1 !important;
+  transform: translateX(2px);
 }
 
 .lab-option-btn.selected-correct {
-  background: rgba(16, 185, 129, 0.2) !important;
+  background: rgba(16, 185, 129, 0.22) !important;
   border-color: #10b981 !important;
   color: #34d399 !important;
   font-weight: 700;
 }
 
+[data-theme="day"] .lab-option-btn.selected-correct {
+  background: #dcfce7 !important;
+  border-color: #10b981 !important;
+  color: #15803d !important;
+  font-weight: 700 !important;
+}
+
 .lab-option-btn.selected-wrong {
-  background: rgba(239, 68, 68, 0.2) !important;
+  background: rgba(239, 68, 68, 0.22) !important;
   border-color: #ef4444 !important;
   color: #f87171 !important;
   font-weight: 700;
 }
 
+[data-theme="day"] .lab-option-btn.selected-wrong {
+  background: #fee2e2 !important;
+  border-color: #ef4444 !important;
+  color: #b91c1c !important;
+  font-weight: 700 !important;
+}
+
+.lab-option-btn:disabled {
+  cursor: default;
+}
+
+.lab-option-letter {
+  font-family: var(--font-mono, monospace);
+  font-weight: 800;
+  opacity: 0.9;
+}
+
 .lab-explanation-box {
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 8px;
-  font-size: 0.78rem;
-  line-height: 1.4;
-  margin-top: 4px;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin-top: 6px;
 }
 
 .lab-explanation-box.correct {
   background: rgba(16, 185, 129, 0.15);
   color: #a7f3d0;
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+[data-theme="day"] .lab-explanation-box.correct {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border: 1.5px solid #86efac !important;
 }
 
 .lab-explanation-box.incorrect {
   background: rgba(239, 68, 68, 0.15);
   color: #fca5a5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+[data-theme="day"] .lab-explanation-box.incorrect {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: 1.5px solid #fca5a5 !important;
+}
+
+[data-theme="day"] .lab-checkpoint-score-pill {
+  background: #e0f2fe !important;
+  border: 1.5px solid #0284c7 !important;
+  color: #0369a1 !important;
 }
 
 /* Printable Lab Report Dossier Modal */

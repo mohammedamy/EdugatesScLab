@@ -687,6 +687,123 @@ export const LAB_CHECKPOINTS = {
       correctIndex: 1,
       explanation: "Crossing the unknown with homozygous recessive (bb) reveals the genotype: if any recessive offspring appear (bb), the parent was heterozygous (Bb)."
     }
+  ],
+
+  vsepr: [
+    {
+      id: "q1",
+      question: "According to Valence Shell Electron Pair Repulsion (VSEPR) theory, molecular geometry is determined by:",
+      options: [
+        "Maximizing attractive electrostatic forces between core electrons",
+        "Minimizing electrostatic repulsion between valence electron pairs to attain lowest potential energy",
+        "The atomic mass of the central nucleus",
+        "The ambient temperature of the laboratory environment"
+      ],
+      correctIndex: 1,
+      explanation: "Valence electron pairs (bonding and non-bonding lone pairs) repel each other electrostatically and orient themselves as far apart as possible in 3D space."
+    },
+    {
+      id: "q2",
+      question: "A molecule with 4 electron bonding domains and 0 lone pairs on its central atom (e.g. CH₄) assumes which molecular geometry and bond angle?",
+      options: [
+        "Square planar, 90°",
+        "Tetrahedral, 109.5°",
+        "Trigonal pyramidal, 107°",
+        "Linear, 180°"
+      ],
+      correctIndex: 1,
+      explanation: "Four equivalent bonding electron pairs maximize spatial separation in three dimensions by adopting a tetrahedral geometry with bond angles of 109.5°."
+    },
+    {
+      id: "q3",
+      question: "Why does water (H₂O) have a bent molecular geometry with a bond angle of ~104.5° instead of an ideal tetrahedral 109.5°?",
+      options: [
+        "Hydrogen nuclei attract each other strongly",
+        "Unshared lone pairs are more diffuse and exert greater repulsion than bonding pairs, compressing the H-O-H angle",
+        "Oxygen forms a triple covalent bond with hydrogen",
+        "Water undergoes constant ionic dissociation into H⁺ and OH⁻"
+      ],
+      correctIndex: 1,
+      explanation: "The two unshared lone pairs on oxygen occupy more space and exert stronger electron repulsion than bonding pairs, compressing the bond angle from 109.5° down to 104.5°."
+    }
+  ],
+
+  waves: [
+    {
+      id: "q1",
+      question: "In Young's double-slit experiment, bright constructive interference fringes on a distant observation screen occur when the optical path difference Δr satisfies:",
+      options: [
+        "Δr = (m + 0.5)λ",
+        "Δr = mλ (where m = 0, ±1, ±2...)",
+        "Δr = λ / 4",
+        "Δr = 0 only"
+      ],
+      correctIndex: 1,
+      explanation: "Constructive interference occurs when wave crests align in phase, which requires an integer number of full wavelengths (path difference d sin θ = mλ)."
+    },
+    {
+      id: "q2",
+      question: "If the separation distance between the two slits (d) is decreased while light wavelength λ and screen distance L remain constant, the fringe separation Δy:",
+      options: [
+        "Decreases proportionally",
+        "Increases (fringe spacing widens: Δy = λL / d)",
+        "Remains strictly unchanged",
+        "Disappears completely"
+      ],
+      correctIndex: 1,
+      explanation: "Fringe separation is inversely proportional to slit distance (Δy = λL/d). Decreasing slit separation causes the diffraction pattern to spread out and widen."
+    },
+    {
+      id: "q3",
+      question: "Which wave phenomenon conclusively proves that light waves are transverse rather than longitudinal?",
+      options: [
+        "Refraction at an air-glass boundary",
+        "Diffraction around an obstacle",
+        "Polarization (electric field oscillations restricted to a single plane perpendicular to propagation)",
+        "Dispersion through a prism"
+      ],
+      correctIndex: 2,
+      explanation: "Polarization can only occur in transverse waves where oscillation occurs perpendicular to the direction of wave travel. Longitudinal waves cannot be polarized."
+    }
+  ],
+
+  photosynthesis: [
+    {
+      id: "q1",
+      question: "During the light-dependent reactions of photosynthesis in the thylakoid membrane, the initial electron donor that undergoes photolysis is:",
+      options: [
+        "Carbon dioxide (CO₂)",
+        "Water (H₂O, oxidized to produce O₂ gas, protons, and electrons)",
+        "Glucose (C₆H₁₂O₆)",
+        "NADPH"
+      ],
+      correctIndex: 1,
+      explanation: "In Photosystem II, photon absorption triggers water photolysis (2 H₂O → O₂ + 4 H⁺ + 4 e⁻), replacing excited P680 reaction center electrons."
+    },
+    {
+      id: "q2",
+      question: "The proton electrochemical gradient (high [H⁺] in the thylakoid lumen) drives the synthesis of ATP across the membrane via:",
+      options: [
+        "Rubisco enzyme carboxylation",
+        "ATP Synthase rotary photophosphorylation (chemiosmosis)",
+        "Passive simple diffusion through lipid bilayer",
+        "Active sodium-potassium ATPase pump"
+      ],
+      correctIndex: 1,
+      explanation: "Protons flow down their electrochemical gradient from the thylakoid lumen to the stroma through ATP Synthase, driving the rotary phosphorylation of ADP to ATP."
+    },
+    {
+      id: "q3",
+      question: "In the light-independent Calvin cycle (stroma), which enzyme catalyzes the initial carbon fixation of CO₂ onto ribulose-1,5-bisphosphate (RuBP)?",
+      options: [
+        "DNA Polymerase III",
+        "Rubisco (Ribulose-1,5-bisphosphate carboxylase-oxygenase)",
+        "Salivary Amylase",
+        "Hexokinase"
+      ],
+      correctIndex: 1,
+      explanation: "Rubisco is the primary enzyme responsible for fixing inorganic CO₂ onto RuBP to yield 3-phosphoglycerate (3-PGA) during the first stage of the Calvin cycle."
+    }
   ]
 };
 
@@ -697,7 +814,34 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const questions = LAB_CHECKPOINTS[labKey] || LAB_CHECKPOINTS.projectile;
+  let questions = null;
+  if (labKey && typeof labKey === "object") {
+    if (Array.isArray(labKey.questions)) {
+      questions = labKey.questions;
+    } else if (labKey.id) {
+      const k = String(labKey.id).replace(/-checkpoint$/, "").replace(/^lab[-_]/, "");
+      questions = LAB_CHECKPOINTS[k] || LAB_CHECKPOINTS[labKey.id];
+    }
+  }
+  if (!questions && typeof labKey === "string") {
+    const cleanKey = labKey.toLowerCase().replace(/^lab[-_]/, "").replace(/[-_]/g, "");
+    questions = LAB_CHECKPOINTS[labKey] || LAB_CHECKPOINTS[cleanKey];
+    if (!questions) {
+      if (cleanKey.includes("project") || cleanKey.includes("kinemat")) questions = LAB_CHECKPOINTS.projectile;
+      else if (cleanKey.includes("titrat")) questions = LAB_CHECKPOINTS.titration;
+      else if (cleanKey.includes("micro")) questions = LAB_CHECKPOINTS.microscope;
+      else if (cleanKey.includes("period") || cleanKey.includes("ptable")) questions = LAB_CHECKPOINTS.ptable;
+      else if (cleanKey.includes("circuit")) questions = LAB_CHECKPOINTS.circuits;
+      else if (cleanKey.includes("gas")) questions = LAB_CHECKPOINTS.gaslaws;
+      else if (cleanKey.includes("dna") || cleanKey.includes("protein")) questions = LAB_CHECKPOINTS.dnaprotein;
+      else if (cleanKey.includes("punnett")) questions = LAB_CHECKPOINTS.punnett;
+      else if (cleanKey.includes("optic")) questions = LAB_CHECKPOINTS.optics;
+      else if (cleanKey.includes("vsepr")) questions = LAB_CHECKPOINTS.vsepr;
+      else if (cleanKey.includes("wave")) questions = LAB_CHECKPOINTS.waves;
+      else if (cleanKey.includes("photo")) questions = LAB_CHECKPOINTS.photosynthesis;
+    }
+  }
+  if (!questions) questions = LAB_CHECKPOINTS.projectile;
   let userAnswers = {};
 
   function render() {
@@ -725,7 +869,7 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
 
             return `
               <div class="lab-question-card ${cardClass}" data-qidx="${qIdx}">
-                <div style="font-size: 0.72rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">
+                <div class="lab-question-meta">
                   Question ${qIdx + 1} of ${questions.length}
                 </div>
                 <div class="lab-question-text">${q.question}</div>
@@ -738,9 +882,9 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
                       else if (optIdx === chosen) optClass = "selected-wrong";
                     }
                     return `
-                      <button class="lab-option-btn ${optClass}" data-qidx="${qIdx}" data-optidx="${optIdx}" ${isAnswered ? "disabled" : ""}>
-                        <span>${["A", "B", "C", "D"][optIdx]}.</span>
-                        <span>${opt}</span>
+                      <button class="lab-option-btn ${optClass}" data-qidx="${qIdx}" data-optidx="${optIdx}" ${isAnswered ? "disabled" : ""} aria-label="Option ${["A", "B", "C", "D"][optIdx]}: ${opt}">
+                        <span class="lab-option-letter">${["A", "B", "C", "D"][optIdx]}.</span>
+                        <span class="lab-option-text">${opt}</span>
                       </button>
                     `;
                   }).join("")}

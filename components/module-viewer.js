@@ -489,7 +489,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
         <div style="display: flex; flex-direction: column; gap: 16px;">
           <!-- Top Sandbox Switcher -->
           <div class="modal-sandbox-bar">
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-muted);">Investigation Mode:</span>
               <button class="btn-sim-action ${labMode === 'module' ? 'active' : ''}" id="btn-labmode-module" style="padding: 6px 14px; font-size: 0.85rem;">
                 Full Module Virtual Lab
@@ -497,6 +497,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
               <button class="btn-sim-action ${labMode === 'lesson' ? 'active' : ''}" id="btn-labmode-lesson" style="padding: 6px 14px; font-size: 0.85rem;">
                 Lesson Interactive Mode
               </button>
+              <a href="#labs/${String(moduleData.lab || 'lab-projectile').replace(/^lab[-_]/, '')}" class="btn-sim-action" id="btn-open-dedicated-lab" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" title="Launch dedicated full-screen workbench" aria-label="Launch dedicated full-screen workbench">
+                <span>↗ Fullscreen Workbench</span>
+              </a>
             </div>
 
             ${labMode === 'lesson' ? `
@@ -548,7 +551,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     const btnOverviewPlan = document.getElementById("btn-overview-lesson-plan");
     if (btnOverviewPlan) {
       btnOverviewPlan.addEventListener("click", () => {
-        openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+        import("./lesson-plan-generator.js").then(m => {
+          m.openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+        });
       });
     }
 
@@ -557,7 +562,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const lid = parseInt(btn.dataset.lessonId, 10);
-        openLessonPlanModal(moduleData.code, moduleData.id, lid);
+        import("./lesson-plan-generator.js").then(m => {
+          m.openLessonPlanModal(moduleData.code, moduleData.id, lid);
+        });
       });
     });
   }
@@ -645,7 +652,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     const btnLp = overlay.querySelector("#btn-modal-open-lesson-plan");
     if (btnLp) {
       btnLp.addEventListener("click", () => {
-        openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+        import("./lesson-plan-generator.js").then(m => {
+          m.openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
+        });
       });
     }
   }
@@ -690,28 +699,45 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     }
 
     // Module Lab Mode
-    const labKey = moduleData.lab || "lab-projectile";
-    ProgressStore.recordLabLaunched(labKey);
+    const rawKey = moduleData.lab || "lab-projectile";
+    const cleanKey = String(rawKey).toLowerCase().replace(/^lab[-_]/, "").replace(/[-_]/g, "");
+    ProgressStore.recordLabLaunched(rawKey);
 
     const labLoaders = {
+      "projectile": () => import("../labs/phys-projectile.js").then(m => m.initProjectileLab("embedded-module-lab-mount")),
       "lab-projectile": () => import("../labs/phys-projectile.js").then(m => m.initProjectileLab("embedded-module-lab-mount")),
+      "titration": () => import("../labs/chem-titration.js").then(m => m.initTitrationLab("embedded-module-lab-mount")),
       "lab-titration": () => import("../labs/chem-titration.js").then(m => m.initTitrationLab("embedded-module-lab-mount")),
+      "microscope": () => import("../labs/bio-microscope.js").then(m => m.initMicroscopeLab("embedded-module-lab-mount")),
       "lab-microscope": () => import("../labs/bio-microscope.js").then(m => m.initMicroscopeLab("embedded-module-lab-mount")),
+      "ptable": () => import("../labs/chem-periodic-table.js").then(m => m.initPeriodicTableLab("embedded-module-lab-mount")),
+      "periodic-table": () => import("../labs/chem-periodic-table.js").then(m => m.initPeriodicTableLab("embedded-module-lab-mount")),
       "lab-periodic-table": () => import("../labs/chem-periodic-table.js").then(m => m.initPeriodicTableLab("embedded-module-lab-mount")),
+      "circuits": () => import("../labs/phys-circuits.js").then(m => m.initCircuitsLab("embedded-module-lab-mount")),
+      "circuit": () => import("../labs/phys-circuits.js").then(m => m.initCircuitsLab("embedded-module-lab-mount")),
       "lab-circuits": () => import("../labs/phys-circuits.js").then(m => m.initCircuitsLab("embedded-module-lab-mount")),
+      "gaslaws": () => import("../labs/chem-gas-laws.js").then(m => m.initGasLawsLab("embedded-module-lab-mount")),
+      "gas-laws": () => import("../labs/chem-gas-laws.js").then(m => m.initGasLawsLab("embedded-module-lab-mount")),
       "lab-gas-laws": () => import("../labs/chem-gas-laws.js").then(m => m.initGasLawsLab("embedded-module-lab-mount")),
+      "dnaprotein": () => import("../labs/bio-dna-protein.js").then(m => m.initDnaProteinLab("embedded-module-lab-mount")),
+      "dna-protein": () => import("../labs/bio-dna-protein.js").then(m => m.initDnaProteinLab("embedded-module-lab-mount")),
       "lab-dna-protein": () => import("../labs/bio-dna-protein.js").then(m => m.initDnaProteinLab("embedded-module-lab-mount")),
+      "punnett": () => import("../labs/bio-punnett-square.js").then(m => m.initPunnettLab("embedded-module-lab-mount")),
+      "punnett-square": () => import("../labs/bio-punnett-square.js").then(m => m.initPunnettLab("embedded-module-lab-mount")),
       "lab-punnett": () => import("../labs/bio-punnett-square.js").then(m => m.initPunnettLab("embedded-module-lab-mount")),
+      "optics": () => import("../labs/phys-optics.js").then(m => m.initOpticsLab("embedded-module-lab-mount")),
+      "optic": () => import("../labs/phys-optics.js").then(m => m.initOpticsLab("embedded-module-lab-mount")),
       "lab-optics": () => import("../labs/phys-optics.js").then(m => m.initOpticsLab("embedded-module-lab-mount")),
-      "lab-vsepr": () => import("../labs/chem-vsepr.js").then(m => m.initVseprLab("embedded-module-lab-mount")),
       "vsepr": () => import("../labs/chem-vsepr.js").then(m => m.initVseprLab("embedded-module-lab-mount")),
-      "lab-waves": () => import("../labs/phys-waves.js").then(m => m.initWaveLab("embedded-module-lab-mount")),
+      "lab-vsepr": () => import("../labs/chem-vsepr.js").then(m => m.initVseprLab("embedded-module-lab-mount")),
       "waves": () => import("../labs/phys-waves.js").then(m => m.initWaveLab("embedded-module-lab-mount")),
-      "lab-photosynthesis": () => import("../labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("embedded-module-lab-mount")),
-      "photosynthesis": () => import("../labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("embedded-module-lab-mount"))
+      "wave": () => import("../labs/phys-waves.js").then(m => m.initWaveLab("embedded-module-lab-mount")),
+      "lab-waves": () => import("../labs/phys-waves.js").then(m => m.initWaveLab("embedded-module-lab-mount")),
+      "photosynthesis": () => import("../labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("embedded-module-lab-mount")),
+      "lab-photosynthesis": () => import("../labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("embedded-module-lab-mount"))
     };
 
-    const loader = labLoaders[labKey] || labLoaders["lab-projectile"];
+    const loader = labLoaders[rawKey] || labLoaders[cleanKey] || labLoaders["lab-projectile"];
     loader().then(cleanup => {
       currentLabCleanup = cleanup;
     }).catch(err => {
