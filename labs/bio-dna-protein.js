@@ -643,4 +643,8 @@ export function initDnaProteinLab(containerId) {
   }
   window.addEventListener("resize", handleResize);
   handleResize();
+
+  return () => {
+    window.removeEventListener("resize", handleResize);
+  };
 }

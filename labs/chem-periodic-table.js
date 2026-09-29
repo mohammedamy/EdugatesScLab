@@ -516,4 +516,8 @@ export function initPeriodicTableLab(containerId) {
 
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("ptable-checkpoint-container", "ptable");
+
+  return () => {
+    if (animId) cancelAnimationFrame(animId);
+  };
 }

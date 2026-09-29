@@ -2856,13 +2856,45 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
  * Cleans up running simulations to prevent memory and frame leaks
  */
 export function cleanupLessonInteractive(containerId) {
-  if (activeSimulations.has(containerId)) {
-    const cancelFn = activeSimulations.get(containerId);
-    if (typeof cancelFn === "function") {
-      cancelFn();
+  if (!containerId) return;
+  const targetKeys = [
+    containerId,
+    `${containerId}-sim-mount`,
+    `${containerId}-canvas`
+  ];
+
+  // Also collect any registered key starting with containerId
+  for (const key of activeSimulations.keys()) {
+    if (key === containerId || key.startsWith(`${containerId}-`) || key.startsWith(containerId)) {
+      if (!targetKeys.includes(key)) targetKeys.push(key);
     }
-    activeSimulations.delete(containerId);
   }
+
+  targetKeys.forEach(k => {
+    if (activeSimulations.has(k)) {
+      try {
+        const cancelFn = activeSimulations.get(k);
+        if (typeof cancelFn === "function") {
+          cancelFn();
+        }
+      } catch (err) {
+        console.warn(`[AmScLab] Simulation cleanup error for ${k}:`, err);
+      }
+      activeSimulations.delete(k);
+    }
+  });
+}
+
+/**
+ * Universal emergency cleanup for all running lesson simulations
+ */
+export function cleanupAllLessonInteractives() {
+  for (const [key, cancelFn] of activeSimulations.entries()) {
+    try {
+      if (typeof cancelFn === "function") cancelFn();
+    } catch (e) {}
+  }
+  activeSimulations.clear();
 }
 
 

@@ -1112,5 +1112,9 @@ export function initTitrationLab(containerId) {
 
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("titr-checkpoint-container", "titration");
+
+  return () => {
+    if (animId) cancelAnimationFrame(animId);
+  };
 }
 

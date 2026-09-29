@@ -1441,8 +1441,9 @@ export function initPunnettLab(containerId) {
 
   // Setup ResizeObserver for seamless responsiveness
   const canvasArea = container.querySelector(".lab-canvas-area");
+  let ro = null;
   if (canvasArea && window.ResizeObserver) {
-    const ro = new ResizeObserver(() => {
+    ro = new ResizeObserver(() => {
       handleResize();
     });
     ro.observe(canvasArea);
@@ -1546,4 +1547,9 @@ export function initPunnettLab(containerId) {
   mountLabCheckpoint("punnett-checkpoint-container", "punnett");
 
   setTimeout(handleResize, 50);
+
+  return () => {
+    if (ro) ro.disconnect();
+    window.removeEventListener("resize", handleResize);
+  };
 }

@@ -37,8 +37,13 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   let currentLessonId = initialLessonId || (moduleData.lessons && moduleData.lessons.length > 0 ? moduleData.lessons[0].id : 1);
   let activeTab = initialLessonId ? "interactive" : "overview"; // 'overview', 'interactive', 'concepts', 'lab'
   let labMode = "module"; // 'module' or 'lesson'
+  let currentLabCleanup = null;
 
   function closeModal() {
+    if (typeof currentLabCleanup === "function") {
+      currentLabCleanup();
+      currentLabCleanup = null;
+    }
     cleanupLessonInteractive("overview-lesson-sim-container");
     cleanupLessonInteractive("tab-lesson-sim-container");
     cleanupLessonInteractive("lab-lesson-sim-container");
@@ -70,6 +75,10 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   document.addEventListener("keydown", handleKeydown);
 
   function renderContent() {
+    if (typeof currentLabCleanup === "function") {
+      currentLabCleanup();
+      currentLabCleanup = null;
+    }
     overlay.innerHTML = `
       <div class="modal-content-shell">
         <div class="modal-header">
@@ -671,31 +680,31 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     ProgressStore.recordLabLaunched(labKey);
 
     if (labKey === "lab-projectile") {
-      initProjectileLab("embedded-module-lab-mount");
+      currentLabCleanup = initProjectileLab("embedded-module-lab-mount");
     } else if (labKey === "lab-titration") {
-      initTitrationLab("embedded-module-lab-mount");
+      currentLabCleanup = initTitrationLab("embedded-module-lab-mount");
     } else if (labKey === "lab-microscope") {
-      initMicroscopeLab("embedded-module-lab-mount");
+      currentLabCleanup = initMicroscopeLab("embedded-module-lab-mount");
     } else if (labKey === "lab-periodic-table") {
-      initPeriodicTableLab("embedded-module-lab-mount");
+      currentLabCleanup = initPeriodicTableLab("embedded-module-lab-mount");
     } else if (labKey === "lab-circuits") {
-      initCircuitsLab("embedded-module-lab-mount");
+      currentLabCleanup = initCircuitsLab("embedded-module-lab-mount");
     } else if (labKey === "lab-gas-laws") {
-      initGasLawsLab("embedded-module-lab-mount");
+      currentLabCleanup = initGasLawsLab("embedded-module-lab-mount");
     } else if (labKey === "lab-dna-protein") {
-      initDnaProteinLab("embedded-module-lab-mount");
+      currentLabCleanup = initDnaProteinLab("embedded-module-lab-mount");
     } else if (labKey === "lab-punnett") {
-      initPunnettLab("embedded-module-lab-mount");
+      currentLabCleanup = initPunnettLab("embedded-module-lab-mount");
     } else if (labKey === "lab-optics") {
-      initOpticsLab("embedded-module-lab-mount");
+      currentLabCleanup = initOpticsLab("embedded-module-lab-mount");
     } else if (labKey === "lab-vsepr" || labKey === "vsepr") {
-      initVseprLab("embedded-module-lab-mount");
+      currentLabCleanup = initVseprLab("embedded-module-lab-mount");
     } else if (labKey === "lab-waves" || labKey === "waves") {
-      initWaveLab("embedded-module-lab-mount");
+      currentLabCleanup = initWaveLab("embedded-module-lab-mount");
     } else if (labKey === "lab-photosynthesis" || labKey === "photosynthesis") {
-      initPhotosynthesisLab("embedded-module-lab-mount");
+      currentLabCleanup = initPhotosynthesisLab("embedded-module-lab-mount");
     } else {
-      initProjectileLab("embedded-module-lab-mount");
+      currentLabCleanup = initProjectileLab("embedded-module-lab-mount");
     }
   }
 

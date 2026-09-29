@@ -990,5 +990,10 @@ export function initProjectileLab(containerId) {
 
   window.addEventListener("resize", handleResize);
   handleResize();
+
+  return () => {
+    if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("resize", handleResize);
+  };
 }
 
