@@ -398,6 +398,13 @@ let dragStartX = 0;
 let dragStartY = 0;
 let initialModalX = 0;
 let initialModalY = 0;
+let topFloatingZ = 9500;
+
+export function bringWidgetToFront(el) {
+  if (!el) return;
+  topFloatingZ += 2;
+  el.style.zIndex = String(topFloatingZ);
+}
 
 export function openScienceCalculator(initialExpr = "") {
   let modal = document.getElementById("edugates-science-calculator");
@@ -412,15 +419,20 @@ export function openScienceCalculator(initialExpr = "") {
     updateDisplay();
   }
 
+  bringWidgetToFront(modal);
   modal.style.display = "flex";
   modal.classList.remove("minimized");
   SoundFX.playPop();
 
-  // Focus trap / keyboard accessibility
-  setTimeout(() => {
-    const displayInput = document.getElementById("calc-expr-input");
-    if (displayInput) displayInput.focus();
-  }, 100);
+  // Sync toolbar active button state
+  const toolCalc = document.getElementById("sb-tool-calc");
+  if (toolCalc) toolCalc.classList.add("active");
+
+  // NOTE: On touch smartboards and mobile tablets, programmatically focusing an <input>
+  // commands the operating system to slide up the virtual on-screen keyboard,
+  // destroying the interactive laboratory experience.
+  // We intentionally do NOT auto-focus the display input. Physical keyboard keystrokes
+  // are cleanly intercepted and forwarded via document keydown listeners.
 }
 
 export function closeScienceCalculator() {
@@ -429,6 +441,9 @@ export function closeScienceCalculator() {
     modal.style.display = "none";
     SoundFX.playClick();
   }
+  // Sync toolbar active button state
+  const toolCalc = document.getElementById("sb-tool-calc");
+  if (toolCalc) toolCalc.classList.remove("active");
 }
 
 export function toggleScienceCalculator(forceState) {
@@ -441,6 +456,7 @@ export function toggleScienceCalculator(forceState) {
   } else {
     closeScienceCalculator();
   }
+  return shouldOpen;
 }
 
 function createCalculatorDOM() {
@@ -453,31 +469,34 @@ function createCalculatorDOM() {
   modal.innerHTML = `
     <!-- Modal Drag Header -->
     <div class="calc-drag-header" id="calc-drag-header">
-      <div class="calc-header-title">
-        <span class="calc-header-dot"></span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>
-        </svg>
-        <span style="font-weight: 700; font-size: 0.9rem; letter-spacing: 0.02em;">ClipSAT Science Calculator</span>
+      <!-- Tier 1: Window Title & Controls -->
+      <div class="calc-header-top-row">
+        <div class="calc-header-title">
+          <span class="calc-header-dot"></span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>
+          </svg>
+          <span class="calc-title-text">ClipSAT Calculator</span>
+        </div>
+
+        <div class="calc-header-actions">
+          <button class="calc-hdr-btn" id="calc-btn-history-toggle" title="Toggle Calculation Tape (History)" aria-label="Toggle History">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </button>
+          <button class="calc-hdr-btn" id="calc-btn-minimize" title="Minimize / Compact Floating Badge" aria-label="Minimize Calculator">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+          <button class="calc-hdr-btn calc-hdr-close" id="calc-btn-close" title="Close Calculator (Escape)" aria-label="Close Calculator">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
       </div>
 
-      <!-- Mode & Utility Navigation Tabs -->
-      <div class="calc-header-tabs">
+      <!-- Tier 2: Mode & Utility Navigation Tabs -->
+      <div class="calc-header-tabs" id="calc-header-tabs">
         <button class="calc-header-tab active" data-tab="calc" id="tab-btn-calc" title="Scientific Keypad">Calculator</button>
-        <button class="calc-header-tab" data-tab="constants" id="tab-btn-constants" title="Physical & Chemical Constants">Constants</button>
+        <button class="calc-header-tab" data-tab="constants" id="tab-btn-constants" title="Physical &amp; Chemical Constants">Constants</button>
         <button class="calc-header-tab" data-tab="formulas" id="tab-btn-formulas" title="AP/SAT STEM Reference Equations">Formulas</button>
-      </div>
-
-      <div class="calc-header-actions">
-        <button class="calc-hdr-btn" id="calc-btn-history-toggle" title="Toggle Calculation History Tape">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </button>
-        <button class="calc-hdr-btn" id="calc-btn-minimize" title="Minimize / Compact Badge">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-        <button class="calc-hdr-btn calc-hdr-close" id="calc-btn-close" title="Close Calculator (Escape)">
-          ✕
-        </button>
       </div>
     </div>
 
@@ -492,7 +511,8 @@ function createCalculatorDOM() {
             <span class="calc-history-peek" id="calc-expr-peek"></span>
           </div>
           <div class="calc-lcd-main">
-            <input type="text" class="calc-expr-input" id="calc-expr-input" placeholder="0" spellcheck="false" autocomplete="off" />
+            <!-- inputmode=none and readonly prevents virtual onscreen software keyboards from popping up on touchscreens -->
+            <input type="text" class="calc-expr-input" id="calc-expr-input" placeholder="0" spellcheck="false" autocomplete="off" inputmode="none" readonly />
             <button class="calc-copy-btn" id="calc-copy-result" title="Copy Result to Clipboard">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
             </button>
@@ -580,16 +600,23 @@ function createCalculatorDOM() {
       <!-- 2. CONSTANTS DIRECTORY VIEW -->
       <div class="calc-subview" id="subview-constants" style="display: none;">
         <div class="calc-ref-header">
-          <input type="text" class="fc-search-input" id="calc-constants-search" placeholder="Search physical & chemical constants..." style="width: 100%; margin-bottom: 12px; font-size: 0.85rem;" />
+          <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+            <input type="text" class="fc-search-input" id="calc-constants-search" placeholder="Search constants (e.g. gas, Planck)..." style="flex: 1; font-size: 0.82rem; padding: 6px 10px;" autocomplete="off" />
+            <button class="btn btn-sm btn-secondary" id="calc-constants-search-clear" title="Clear Search" style="display: none; padding: 4px 8px; font-size: 0.75rem;">✕</button>
+          </div>
+          <div class="calc-category-chips" id="calc-const-cat-chips" style="display: flex; gap: 6px; margin-bottom: 10px;">
+            <button class="calc-chip-btn active" data-cat="all">All</button>
+            <button class="calc-chip-btn" data-cat="Chemistry">Chemistry</button>
+            <button class="calc-chip-btn" data-cat="Physics">Physics</button>
+          </div>
         </div>
         <div class="calc-constants-table-wrapper">
           <table class="calc-constants-table">
             <thead>
               <tr>
-                <th>Symbol</th>
-                <th>Constant Name</th>
-                <th>Standard Value &amp; Units</th>
-                <th>Action</th>
+                <th style="width: 48%;">Constant</th>
+                <th style="width: 37%;">Standard Value</th>
+                <th style="width: 15%; text-align: right;">Action</th>
               </tr>
             </thead>
             <tbody id="calc-constants-tbody">
@@ -633,9 +660,15 @@ function bindCalculatorEvents(modal) {
   const btnClose = modal.querySelector("#calc-btn-close");
   const btnMinimize = modal.querySelector("#calc-btn-minimize");
 
+  // Bring to front on any click or touch
+  modal.addEventListener("pointerdown", () => {
+    bringWidgetToFront(modal);
+  });
+
   // Draggable logic for Smartboard & Desktop
   dragHeader.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button") || e.target.closest("input")) return;
+    bringWidgetToFront(modal);
     isDragging = true;
     dragStartX = e.clientX;
     dragStartY = e.clientY;
@@ -673,7 +706,8 @@ function bindCalculatorEvents(modal) {
     SoundFX.playClick();
   });
 
-  btnClose.addEventListener("click", () => {
+  btnClose.addEventListener("click", (e) => {
+    e.stopPropagation();
     closeScienceCalculator();
   });
 
@@ -714,10 +748,33 @@ function bindCalculatorEvents(modal) {
     });
   });
 
-  // Constants Search Filter
+  // Constants Category Filter Chips
+  let activeConstCategory = "all";
+  const catChips = modal.querySelectorAll("#calc-const-cat-chips .calc-chip-btn");
+  catChips.forEach(chip => {
+    chip.addEventListener("click", () => {
+      catChips.forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      activeConstCategory = chip.dataset.cat;
+      const searchInput = modal.querySelector("#calc-constants-search");
+      renderConstantsTable(searchInput ? searchInput.value : "", activeConstCategory);
+      SoundFX.playClick();
+    });
+  });
+
+  // Constants Search Filter & Clear
   const constantsSearch = modal.querySelector("#calc-constants-search");
+  const constantsClear = modal.querySelector("#calc-constants-search-clear");
   constantsSearch?.addEventListener("input", (e) => {
-    renderConstantsTable(e.target.value);
+    const val = e.target.value;
+    if (constantsClear) constantsClear.style.display = val ? "block" : "none";
+    renderConstantsTable(val, activeConstCategory);
+  });
+  constantsClear?.addEventListener("click", () => {
+    if (constantsSearch) constantsSearch.value = "";
+    if (constantsClear) constantsClear.style.display = "none";
+    renderConstantsTable("", activeConstCategory);
+    SoundFX.playClick();
   });
 
   // DEG / RAD Toggle
@@ -750,13 +807,40 @@ function bindCalculatorEvents(modal) {
     previewEvaluation();
   });
 
-  // Keyboard navigation & Shortcuts inside calculator
-  exprInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
+  // Physical Keyboard navigation & Shortcuts
+  // Allows hardware desktop/laptop keyboards to type numbers, operators, Enter, Backspace, Escape
+  // without needing input focus or summoning on-screen touch virtual keyboards
+  document.addEventListener("keydown", (e) => {
+    if (modal.style.display === "none") return;
+    if (e.target && e.target.tagName === "INPUT" && e.target.id !== "calc-expr-input" && e.target.id !== "calc-constants-search") {
+      return;
+    }
+    if (e.target && (e.target.tagName === "TEXTAREA" || e.target.isContentEditable)) {
+      return;
+    }
+
+    if (e.key === "Escape") {
       e.preventDefault();
-      executeEvaluation();
-    } else if (e.key === "Escape") {
       closeScienceCalculator();
+      return;
+    }
+
+    if (activeTab === "calc") {
+      if (e.key === "Enter" || e.key === "=") {
+        e.preventDefault();
+        executeEvaluation();
+        SoundFX.playClick();
+      } else if (e.key === "Backspace") {
+        e.preventDefault();
+        btnBackspace.click();
+      } else if (e.key === "Delete" || ((e.key === "c" || e.key === "C") && !e.ctrlKey && !e.metaKey)) {
+        e.preventDefault();
+        btnClear.click();
+      } else if ("0123456789+-*/().^%".includes(e.key)) {
+        e.preventDefault();
+        insertAtCursor(e.key);
+        SoundFX.playClick();
+      }
     }
   });
 
@@ -868,15 +952,17 @@ function insertAtCursor(text) {
   const input = document.getElementById("calc-expr-input");
   if (!input) return;
 
-  const start = input.selectionStart || currentExpression.length;
-  const end = input.selectionEnd || currentExpression.length;
+  const start = input.selectionStart !== null && input.selectionStart !== undefined ? input.selectionStart : currentExpression.length;
+  const end = input.selectionEnd !== null && input.selectionEnd !== undefined ? input.selectionEnd : currentExpression.length;
 
   currentExpression = currentExpression.substring(0, start) + text + currentExpression.substring(end);
   updateDisplay();
   
   const newPos = start + text.length;
-  input.setSelectionRange(newPos, newPos);
-  input.focus();
+  try {
+    input.setSelectionRange(newPos, newPos);
+  } catch (e) {}
+  // Intentionally omitting input.focus() to prevent touch screens/smartboards from popping up the virtual software keyboard
   previewEvaluation();
 }
 
@@ -976,31 +1062,37 @@ function renderHistoryTape() {
   });
 }
 
-function renderConstantsTable(query = "") {
+function renderConstantsTable(query = "", category = "all") {
   const tbody = document.getElementById("calc-constants-tbody");
   if (!tbody) return;
 
   const q = query.trim().toLowerCase();
-  const filtered = SCIENCE_CONSTANTS.filter(c => 
-    !q || c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q)
-  );
+  const filtered = SCIENCE_CONSTANTS.filter(c => {
+    const matchQuery = !q || c.symbol.toLowerCase().includes(q) || c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q);
+    const matchCat = category === "all" || c.category.toLowerCase().includes(category.toLowerCase());
+    return matchQuery && matchCat;
+  });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 18px;">No constants match "${query}"</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 18px;">No constants match criteria</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered.map(c => `
     <tr>
-      <td style="font-family: var(--font-mono); font-weight: 700; color: #38bdf8;">${c.symbol}</td>
       <td>
-        <div style="font-weight: 600; font-size: 0.85rem; color: var(--text-main);">${c.name}</div>
-        <div style="font-size: 0.72rem; color: var(--text-muted);">${c.category}</div>
+        <div style="display: flex; align-items: baseline; gap: 6px;">
+          <span style="font-family: var(--font-mono); font-weight: 800; color: #38bdf8; font-size: 0.88rem;">${c.symbol}</span>
+          <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">${c.category}</span>
+        </div>
+        <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-main); line-height: 1.2;">${c.name}</div>
       </td>
-      <td style="font-family: var(--font-mono); font-size: 0.82rem; color: #a5f3fc;">${c.display}</td>
       <td>
-        <button class="btn btn-sm btn-secondary calc-use-const-btn" data-sym="${c.symbol}" title="Insert into calculator display" style="padding: 3px 8px; font-size: 0.75rem;">
-          Insert
+        <div style="font-family: var(--font-mono); font-size: 0.76rem; color: #a5f3fc; font-weight: 600;">${c.display}</div>
+      </td>
+      <td style="text-align: right;">
+        <button class="btn btn-sm btn-secondary calc-use-const-btn" data-sym="${c.symbol}" title="Insert ${c.symbol} into active calculation" style="padding: 3px 8px; font-size: 0.72rem; border-radius: 6px; white-space: nowrap;">
+          + Use
         </button>
       </td>
     </tr>
@@ -1009,7 +1101,6 @@ function renderConstantsTable(query = "") {
   tbody.querySelectorAll(".calc-use-const-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       const sym = btn.dataset.sym;
-      // Switch back to calc tab and insert
       const calcTab = document.getElementById("tab-btn-calc");
       calcTab?.click();
       insertAtCursor(sym);
