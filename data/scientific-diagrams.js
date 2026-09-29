@@ -602,6 +602,268 @@ export const SCIENTIFIC_DIAGRAMS = {
       <polygon points="260,255 255,245 265,245" fill="#ef4444"/>
       <text x="270" y="220" fill="#ef4444" font-size="11" font-weight="800">Fg = mg = 49.0 N</text>
     </svg>`
+  },
+
+  chem_mass_spectrometry: {
+    id: "chem_mass_spectrometry",
+    subject: "CHEM",
+    moduleId: 4,
+    title: "Mass Spectrometry Isotope Distribution of Chlorine",
+    caption: "Figure 12: High-Resolution Mass Spectrum of Pure Chlorine Gas (Cl+ Monatomic Ions)",
+    svg: `<svg viewBox="0 0 540 300" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <rect width="540" height="300" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+      <!-- Grid Lines -->
+      <line x1="70" y1="240" x2="490" y2="240" stroke="#1e293b" stroke-width="1"/>
+      <line x1="70" y1="190" x2="490" y2="190" stroke="#1e293b" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="70" y1="140" x2="490" y2="140" stroke="#1e293b" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="70" y1="90" x2="490" y2="90" stroke="#1e293b" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="70" y1="40" x2="490" y2="40" stroke="#1e293b" stroke-width="1"/>
+      
+      <!-- Coordinate Axes -->
+      <line x1="70" y1="250" x2="70" y2="35" stroke="#94a3b8" stroke-width="2"/>
+      <line x1="60" y1="240" x2="500" y2="240" stroke="#94a3b8" stroke-width="2"/>
+      
+      <!-- Axis Labels -->
+      <text x="25" y="140" fill="#38bdf8" font-size="12" font-weight="700" transform="rotate(-90 25 140)" text-anchor="middle">Relative Abundance (%)</text>
+      <text x="280" y="275" fill="#38bdf8" font-size="12" font-weight="700" text-anchor="middle">Mass-to-Charge Ratio (m/z)</text>
+      
+      <!-- Y-Axis Ticks -->
+      <text x="60" y="244" fill="#94a3b8" font-size="10" text-anchor="end">0%</text>
+      <text x="60" y="194" fill="#94a3b8" font-size="10" text-anchor="end">25%</text>
+      <text x="60" y="144" fill="#94a3b8" font-size="10" text-anchor="end">50%</text>
+      <text x="60" y="94" fill="#94a3b8" font-size="10" text-anchor="end">75%</text>
+      <text x="60" y="44" fill="#94a3b8" font-size="10" text-anchor="end">100%</text>
+      
+      <!-- X-Axis Ticks -->
+      <text x="140" y="255" fill="#94a3b8" font-size="10" text-anchor="middle">32</text>
+      <text x="200" y="255" fill="#94a3b8" font-size="10" text-anchor="middle">34</text>
+      <text x="260" y="255" fill="#38bdf8" font-size="11" font-weight="800" text-anchor="middle">35</text>
+      <text x="320" y="255" fill="#94a3b8" font-size="10" text-anchor="middle">36</text>
+      <text x="380" y="255" fill="#f59e0b" font-size="11" font-weight="800" text-anchor="middle">37</text>
+      <text x="440" y="255" fill="#94a3b8" font-size="10" text-anchor="middle">38</text>
+      
+      <!-- Isotope Peak 1: 35Cl+ (75.77% -> y = 240 - (0.7577 * 200) = 88.46) -->
+      <line x1="260" y1="240" x2="260" y2="88" stroke="#38bdf8" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="260" cy="88" r="4" fill="#38bdf8"/>
+      <rect x="210" y="55" width="100" height="26" fill="#1e293b" rx="4" stroke="#38bdf8" stroke-width="1"/>
+      <text x="260" y="72" fill="#38bdf8" font-size="11" font-weight="800" text-anchor="middle">³⁵Cl⁺ (75.77%)</text>
+      
+      <!-- Isotope Peak 2: 37Cl+ (24.23% -> y = 240 - (0.2423 * 200) = 191.54) -->
+      <line x1="380" y1="240" x2="380" y2="192" stroke="#f59e0b" stroke-width="7" stroke-linecap="round"/>
+      <circle cx="380" cy="192" r="4" fill="#f59e0b"/>
+      <rect x="330" y="159" width="100" height="26" fill="#1e293b" rx="4" stroke="#f59e0b" stroke-width="1"/>
+      <text x="380" y="176" fill="#f59e0b" font-size="11" font-weight="800" text-anchor="middle">³⁷Cl⁺ (24.23%)</text>
+      
+      <!-- Inset Information Box -->
+      <rect x="340" y="35" width="170" height="50" fill="rgba(30, 41, 59, 0.9)" rx="6" stroke="#475569" stroke-width="1"/>
+      <text x="350" y="52" fill="#94a3b8" font-size="9" font-weight="700">Ionization: Electron Impact (EI)</text>
+      <text x="350" y="66" fill="#94a3b8" font-size="9" font-weight="700">Mass Defect: 34.969 vs 36.966 u</text>
+      <text x="350" y="78" fill="#10b981" font-size="9" font-weight="800">Ratio: ~3:1 Isotopic Abundance</text>
+    </svg>`
+  },
+
+  bio_pcr_thermocycling: {
+    id: "bio_pcr_thermocycling",
+    subject: "BIO",
+    moduleId: 13,
+    title: "Polymerase Chain Reaction (PCR) Three-Step Thermal Profile",
+    caption: "Figure 13: Temperature vs Time Profile per Amplification Cycle & Inset Electrophoresis Gel",
+    svg: `<svg viewBox="0 0 540 300" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <rect width="540" height="300" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+      <!-- Grid Lines -->
+      <line x1="60" y1="240" x2="420" y2="240" stroke="#1e293b" stroke-width="1"/>
+      <line x1="60" y1="175" x2="420" y2="175" stroke="#1e293b" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="60" y1="120" x2="420" y2="120" stroke="#1e293b" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="60" y1="60" x2="420" y2="60" stroke="#1e293b" stroke-width="1" stroke-dasharray="4"/>
+      
+      <!-- Coordinate Axes -->
+      <line x1="60" y1="250" x2="60" y2="40" stroke="#94a3b8" stroke-width="2"/>
+      <line x1="50" y1="240" x2="425" y2="240" stroke="#94a3b8" stroke-width="2"/>
+      
+      <!-- Y-Axis Ticks & Labels -->
+      <text x="22" y="145" fill="#38bdf8" font-size="11" font-weight="700" transform="rotate(-90 22 145)" text-anchor="middle">Temperature (°C)</text>
+      <text x="52" y="244" fill="#94a3b8" font-size="10" text-anchor="end">25°</text>
+      <text x="52" y="179" fill="#38bdf8" font-size="10" font-weight="700" text-anchor="end">55°</text>
+      <text x="52" y="124" fill="#10b981" font-size="10" font-weight="700" text-anchor="end">72°</text>
+      <text x="52" y="64" fill="#ef4444" font-size="10" font-weight="700" text-anchor="end">95°</text>
+      
+      <text x="240" y="275" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">PCR Cycle Time Progress (s)</text>
+      
+      <!-- Thermal Profile Curve -->
+      <!-- Step 1: Denaturation at 95°C -->
+      <line x1="60" y1="240" x2="90" y2="60" stroke="#ef4444" stroke-width="3"/>
+      <line x1="90" y1="60" x2="170" y2="60" stroke="#ef4444" stroke-width="4"/>
+      <circle cx="130" cy="60" r="4" fill="#ef4444"/>
+      <text x="130" y="48" fill="#ef4444" font-size="10" font-weight="800" text-anchor="middle">Step 1: Denaturation (95°C)</text>
+      <text x="130" y="80" fill="#94a3b8" font-size="8" text-anchor="middle">H-bonds break (dsDNA → ssDNA)</text>
+      
+      <!-- Step 2: Annealing at 55°C -->
+      <line x1="170" y1="60" x2="210" y2="175" stroke="#38bdf8" stroke-width="3"/>
+      <line x1="210" y1="175" x2="280" y2="175" stroke="#38bdf8" stroke-width="4"/>
+      <circle cx="245" cy="175" r="4" fill="#38bdf8"/>
+      <text x="245" y="163" fill="#38bdf8" font-size="10" font-weight="800" text-anchor="middle">Step 2: Annealing (55°C)</text>
+      <text x="245" y="195" fill="#94a3b8" font-size="8" text-anchor="middle">Primers hybridize to 3' ends</text>
+      
+      <!-- Step 3: Extension at 72°C -->
+      <line x1="280" y1="175" x2="310" y2="120" stroke="#10b981" stroke-width="3"/>
+      <line x1="310" y1="120" x2="390" y2="120" stroke="#10b981" stroke-width="4"/>
+      <line x1="390" y1="120" x2="415" y2="60" stroke="#64748b" stroke-width="2" stroke-dasharray="3"/>
+      <circle cx="350" cy="120" r="4" fill="#10b981"/>
+      <text x="350" y="108" fill="#10b981" font-size="10" font-weight="800" text-anchor="middle">Step 3: Extension (72°C)</text>
+      <text x="350" y="140" fill="#94a3b8" font-size="8" text-anchor="middle">Taq Polymerase synthesizes 5'→3'</text>
+      
+      <!-- Gel Electrophoresis Inset Box -->
+      <g transform="translate(435, 45)">
+        <rect width="90" height="210" fill="#020617" rx="6" stroke="#475569" stroke-width="1.5"/>
+        <text x="45" y="18" fill="#38bdf8" font-size="9" font-weight="800" text-anchor="middle">Agarose Gel</text>
+        <!-- Wells -->
+        <rect x="15" y="28" width="25" height="6" fill="#1e293b"/>
+        <rect x="50" y="28" width="25" height="6" fill="#1e293b"/>
+        <text x="27" y="44" fill="#94a3b8" font-size="7" text-anchor="middle">Ladder</text>
+        <text x="62" y="44" fill="#94a3b8" font-size="7" text-anchor="middle">PCR Prod</text>
+        
+        <!-- Ladder Bands -->
+        <rect x="16" y="55" width="23" height="3" fill="#64748b"/>
+        <text x="42" y="58" fill="#64748b" font-size="6">1000bp</text>
+        <rect x="16" y="85" width="23" height="3" fill="#64748b"/>
+        <text x="42" y="88" fill="#64748b" font-size="6">500bp</text>
+        <rect x="16" y="125" width="23" height="3" fill="#64748b"/>
+        <text x="42" y="128" fill="#64748b" font-size="6">250bp</text>
+        
+        <!-- Single Target Amplicon Band in Lane 2 -->
+        <rect x="51" y="85" width="23" height="4" fill="#22c55e" rx="1"/>
+        <text x="62" y="102" fill="#22c55e" font-size="7" font-weight="800" text-anchor="middle">500 bp</text>
+      </g>
+    </svg>`
+  },
+
+  phys_carnot_cycle: {
+    id: "phys_carnot_cycle",
+    subject: "PHYS",
+    moduleId: 11,
+    title: "Carnot Heat Engine Reversible Thermodynamic Cycle",
+    caption: "Figure 14: P-V Indicator Diagram for an Ideal Gas Carnot Cycle between TH = 600 K and TC = 300 K",
+    svg: `<svg viewBox="0 0 540 300" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <rect width="540" height="300" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+      <!-- Grid -->
+      <line x1="70" y1="240" x2="490" y2="240" stroke="#1e293b" stroke-width="1"/>
+      <line x1="70" y1="180" x2="490" y2="180" stroke="#1e293b" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="70" y1="110" x2="490" y2="110" stroke="#1e293b" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="70" y1="50" x2="490" y2="50" stroke="#1e293b" stroke-width="1"/>
+      
+      <!-- Coordinate Axes -->
+      <line x1="70" y1="250" x2="70" y2="35" stroke="#94a3b8" stroke-width="2"/>
+      <line x1="60" y1="240" x2="500" y2="240" stroke="#94a3b8" stroke-width="2"/>
+      
+      <!-- Labels -->
+      <text x="25" y="140" fill="#38bdf8" font-size="12" font-weight="700" transform="rotate(-90 25 140)" text-anchor="middle">Pressure P (kPa)</text>
+      <text x="280" y="275" fill="#38bdf8" font-size="12" font-weight="700" text-anchor="middle">Volume V (L)</text>
+      
+      <!-- Enclosed Shaded Work Area -->
+      <path d="M 140 60 Q 220 85 270 120 Q 340 180 380 205 Q 260 215 200 185 Q 160 120 140 60 Z" fill="rgba(56, 189, 248, 0.15)" stroke="none"/>
+      
+      <!-- Process 1 -> 2: Isothermal Expansion at TH = 600 K -->
+      <path d="M 140 60 Q 220 85 270 120" fill="none" stroke="#ef4444" stroke-width="3.5"/>
+      <polygon points="210,87 200,80 204,92" fill="#ef4444"/>
+      <text x="180" y="68" fill="#ef4444" font-size="10" font-weight="800">1→2: Isothermal (TH = 600 K, Qin)</text>
+      
+      <!-- Process 2 -> 3: Adiabatic Expansion (Q = 0) -->
+      <path d="M 270 120 Q 340 180 380 205" fill="none" stroke="#f59e0b" stroke-width="3.5"/>
+      <polygon points="330,172 320,165 328,178" fill="#f59e0b"/>
+      <text x="350" y="150" fill="#f59e0b" font-size="10" font-weight="800">2→3: Adiabatic (Q=0)</text>
+      
+      <!-- Process 3 -> 4: Isothermal Compression at TC = 300 K -->
+      <path d="M 380 205 Q 260 215 200 185" fill="none" stroke="#38bdf8" stroke-width="3.5"/>
+      <polygon points="280,210 290,215 287,203" fill="#38bdf8"/>
+      <text x="320" y="232" fill="#38bdf8" font-size="10" font-weight="800">3→4: Isothermal (TC = 300 K, Qout)</text>
+      
+      <!-- Process 4 -> 1: Adiabatic Compression (Q = 0) -->
+      <path d="M 200 185 Q 160 120 140 60" fill="none" stroke="#10b981" stroke-width="3.5"/>
+      <polygon points="163,115 160,127 170,122" fill="#10b981"/>
+      <text x="105" y="145" fill="#10b981" font-size="10" font-weight="800">4→1: Adiabatic</text>
+      
+      <!-- State Nodes -->
+      <circle cx="140" cy="60" r="5" fill="#f8fafc" stroke="#ef4444" stroke-width="2"/>
+      <text x="125" y="55" fill="#f8fafc" font-size="11" font-weight="800">1</text>
+      <circle cx="270" cy="120" r="5" fill="#f8fafc" stroke="#f59e0b" stroke-width="2"/>
+      <text x="282" y="118" fill="#f8fafc" font-size="11" font-weight="800">2</text>
+      <circle cx="380" cy="205" r="5" fill="#f8fafc" stroke="#38bdf8" stroke-width="2"/>
+      <text x="395" y="210" fill="#f8fafc" font-size="11" font-weight="800">3</text>
+      <circle cx="200" cy="185" r="5" fill="#f8fafc" stroke="#10b981" stroke-width="2"/>
+      <text x="185" y="195" fill="#f8fafc" font-size="11" font-weight="800">4</text>
+      
+      <!-- Center Work Equation Box -->
+      <rect x="215" y="135" width="115" height="38" fill="rgba(15, 23, 42, 0.85)" rx="4" stroke="#38bdf8" stroke-width="1"/>
+      <text x="272" y="150" fill="#f8fafc" font-size="10" font-weight="800" text-anchor="middle">Wnet = ∮ P dV</text>
+      <text x="272" y="164" fill="#38bdf8" font-size="9" font-weight="700" text-anchor="middle">η = 1 - TC/TH = 50%</text>
+    </svg>`
+  },
+
+  phys_double_slit_interference: {
+    id: "phys_double_slit_interference",
+    subject: "PHYS",
+    moduleId: 17,
+    title: "Young's Double-Slit Wave Interference & Intensity Distribution",
+    caption: "Figure 15: Two-Slit Optical Geometry (λ = 632.8 nm, d = 0.20 mm, L = 2.0 m) and Resulting Screen Fringes",
+    svg: `<svg viewBox="0 0 540 300" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <rect width="540" height="300" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+      
+      <!-- Laser Beam Source (Left) -->
+      <rect x="25" y="130" width="45" height="40" fill="#ef4444" rx="4"/>
+      <text x="47" y="155" fill="#ffffff" font-size="9" font-weight="800" text-anchor="middle">Laser</text>
+      <text x="47" y="185" fill="#ef4444" font-size="8" font-weight="700" text-anchor="middle">λ = 632.8 nm</text>
+      <line x1="70" y1="150" x2="130" y2="150" stroke="#ef4444" stroke-width="3" stroke-dasharray="4"/>
+      
+      <!-- Slit Barrier with 2 Slits (S1, S2) -->
+      <line x1="130" y1="35" x2="130" y2="125" stroke="#94a3b8" stroke-width="5"/>
+      <line x1="130" y1="135" x2="130" y2="165" stroke="#94a3b8" stroke-width="5"/>
+      <line x1="130" y1="175" x2="130" y2="265" stroke="#94a3b8" stroke-width="5"/>
+      
+      <!-- Slit Labels -->
+      <text x="115" y="133" fill="#38bdf8" font-size="10" font-weight="800">S1</text>
+      <text x="115" y="183" fill="#38bdf8" font-size="10" font-weight="800">S2</text>
+      <line x1="105" y1="130" x2="105" y2="170" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="95" y="153" fill="#38bdf8" font-size="9" font-weight="800" text-anchor="middle">d</text>
+      
+      <!-- Central Optical Axis -->
+      <line x1="130" y1="150" x2="410" y2="150" stroke="#475569" stroke-width="1" stroke-dasharray="4"/>
+      <text x="260" y="165" fill="#64748b" font-size="9" text-anchor="middle">Distance L = 2.00 m</text>
+      
+      <!-- Rays to Target Point P on Screen -->
+      <line x1="130" y1="130" x2="410" y2="80" stroke="#ef4444" stroke-width="2"/>
+      <line x1="130" y1="170" x2="410" y2="80" stroke="#ef4444" stroke-width="2"/>
+      <circle cx="410" cy="80" r="4" fill="#ef4444"/>
+      <text x="425" y="75" fill="#f8fafc" font-size="10" font-weight="800">P (m = +1)</text>
+      <text x="425" y="90" fill="#38bdf8" font-size="9">y = λL/d = 6.33 mm</text>
+      
+      <!-- Screen Barrier (Right) -->
+      <line x1="410" y1="35" x2="410" y2="265" stroke="#64748b" stroke-width="3"/>
+      
+      <!-- Interference Fringes Display (Right edge) -->
+      <!-- Central Max (m=0) -->
+      <rect x="420" y="140" width="30" height="20" fill="#ef4444" rx="2" opacity="1"/>
+      <text x="455" y="154" fill="#f8fafc" font-size="9" font-weight="800">m = 0 (Central Max)</text>
+      
+      <!-- m = +1 Bright Fringe -->
+      <rect x="420" y="70" width="26" height="18" fill="#ef4444" rx="2" opacity="0.85"/>
+      <text x="455" y="82" fill="#ef4444" font-size="8" font-weight="700">m = +1</text>
+      
+      <!-- m = -1 Bright Fringe -->
+      <rect x="420" y="212" width="26" height="18" fill="#ef4444" rx="2" opacity="0.85"/>
+      <text x="455" y="224" fill="#ef4444" font-size="8" font-weight="700">m = -1</text>
+      
+      <!-- Dark Minima Indicator -->
+      <line x1="420" y1="110" x2="445" y2="110" stroke="#334155" stroke-width="2"/>
+      <text x="455" y="113" fill="#64748b" font-size="8">Dark (Destructive)</text>
+      <line x1="420" y1="190" x2="445" y2="190" stroke="#334155" stroke-width="2"/>
+      <text x="455" y="193" fill="#64748b" font-size="8">Dark (Destructive)</text>
+      
+      <!-- Fringe Spacing Dimension Line -->
+      <line x1="415" y1="80" x2="415" y2="150" stroke="#38bdf8" stroke-width="1.5"/>
+      <polygon points="415,80 412,87 418,87" fill="#38bdf8"/>
+      <polygon points="415,150 412,143 418,143" fill="#38bdf8"/>
+      <text x="395" y="118" fill="#38bdf8" font-size="9" font-weight="800" text-anchor="end">Δy</text>
+    </svg>`
   }
 };
 

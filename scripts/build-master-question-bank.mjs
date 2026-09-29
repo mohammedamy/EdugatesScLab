@@ -859,6 +859,90 @@ const flagshipDiagramQuestions = [
     ],
     correctIndex: 0,
     explanation: "Resolving gravity into perpendicular and parallel axes to the inclined plane: $F_N = mg\\cos\\theta = (5.0)(9.80)\\cos(30^\\circ) = 49.0 \\times 0.8660 = 42.44\\text{ N}$. For static equilibrium along the incline ($\\Sigma F_x = 0$): $F_f = mg\\sin\\theta = (5.0)(9.80)\\sin(30^\\circ) = 49.0 \\times 0.500 = 24.5\\text{ N}$ directed up the ramp opposing downward slide."
+  }),
+  createMCQ({
+    id: "CHEM-M04-L3-DIAG",
+    subject: "CHEM",
+    moduleId: 4,
+    lessonId: 3,
+    moduleTitle: "CHEM-M04: The Structure of the Atom",
+    lessonTitle: "Lesson 4.3: How Atoms Differ",
+    difficulty: "ap_olympiad",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.chem_mass_spectrometry,
+    question: "Examine the mass spectrum of pure chlorine gas shown in **Figure 12**. Two principal monatomic ion peaks appear at $m/z = 35$ ($75.77\\%$ relative abundance) and $m/z = 37$ ($24.23\\%$ relative abundance). Based on these spectral data, what is the calculated average atomic mass of chlorine, and why does no single chlorine atom possess this mass?",
+    options: [
+      "$35.48\\text{ u}$; the calculated atomic mass is a weighted average of discrete isotopes ($0.7577 \\times 35 + 0.2423 \\times 37 = 35.48\\text{ u}$), so individual atoms possess integer nucleon masses ($35$ or $37$) rather than fractional values.",
+      "$36.00\\text{ u}$; the atomic mass is the simple unweighted arithmetic mean of $35$ and $37$.",
+      "$35.00\\text{ u}$; the mass of an element is determined exclusively by the tallest base peak in the spectrum.",
+      "$70.90\\text{ u}$; all chlorine atoms exist solely as diatomic $\\text{Cl}_2$ with equal nucleon distribution."
+    ],
+    correctIndex: 0,
+    explanation: "The standard atomic weight on the periodic table is a weighted average of isotopic masses according to their natural fractional abundances: $\\bar{M} = (0.7577)(35\\text{ u}) + (0.2423)(37\\text{ u}) = 26.52 + 8.965 = 35.485\\text{ u} \\approx 35.48\\text{ u}$. Individual atoms have whole numbers of nucleons (17 protons with either 18 or 20 neutrons) and never possess fractional mass."
+  }),
+  createMCQ({
+    id: "BIO-M13-L2-DIAG",
+    subject: "BIO",
+    moduleId: 13,
+    lessonId: 2,
+    moduleTitle: "BIO-M13: Genetics and Biotechnology",
+    lessonTitle: "Lesson 13.2: DNA Technology",
+    difficulty: "ap_olympiad",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.bio_pcr_thermocycling,
+    question: "Refer to the three-step polymerase chain reaction (PCR) thermal cycling profile and accompanying agarose gel electrophoresis result in **Figure 13**. Which of the following correctly describes the biochemical consequence if the annealing temperature during Step 2 is inadvertently raised to $75^\\circ\\text{C}$ instead of $55^\\circ\\text{C}$?",
+    options: [
+      "Oligonucleotide primers cannot hybridize to the single-stranded template DNA because thermal agitation exceeds the melting temperature ($T_m$) of the primer-template duplex, preventing amplification and resulting in no visible band on the gel.",
+      "Taq DNA polymerase becomes irreversibly denatured and precipitates out of solution.",
+      "Primer annealing occurs non-specifically across random genomic loci, producing a heavy smear of unintended bands.",
+      "The double-stranded DNA template re-anneals completely, preventing any nucleotide incorporation."
+    ],
+    correctIndex: 0,
+    explanation: "Primer annealing requires a temperature ($50\\text{–}65^\\circ\\text{C}$) below the primer melting temperature ($T_m$). If the annealing step is elevated to $75^\\circ\\text{C}$, the kinetic energy of hydrogen bonding is overwhelmed, preventing primers from annealing to template strands. Consequently, Taq polymerase has no $3'$ hydroxyl initiation terminus, yielding zero amplicon yield (no band on gel)."
+  }),
+  createMCQ({
+    id: "PHYS-M11-L2-DIAG",
+    subject: "PHYS",
+    moduleId: 11,
+    lessonId: 2,
+    moduleTitle: "PHYS-M11: Thermal Energy",
+    lessonTitle: "Lesson 11.2: Changes of State and Thermodynamics",
+    difficulty: "ap_olympiad",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.phys_carnot_cycle,
+    question: "A heat engine executes the reversible ideal gas Carnot cycle shown on the $P-V$ diagram in **Figure 14**, operating between a hot reservoir at $T_H = 600\\text{ K}$ and a cold reservoir at $T_C = 300\\text{ K}$. If the engine absorbs $Q_H = 1200\\text{ J}$ of heat during isothermal expansion $1 \\to 2$, what is the maximum theoretical thermal efficiency ($\\eta_{\\text{Carnot}}$) and the net mechanical work ($W_{\\text{net}}$) delivered per cycle?",
+    options: [
+      "$\\eta_{\\text{Carnot}} = 1 - \\frac{T_C}{T_H} = 50.0\\%$; Net Work $W_{\\text{net}} = \\eta Q_H = 600\\text{ J}$ (represented by the enclosed area on the $P-V$ diagram).",
+      "$\\eta_{\\text{Carnot}} = 100\\%$; Net Work $W_{\\text{net}} = 1200\\text{ J}$ because ideal gas cycles have zero dissipation.",
+      "$\\eta_{\\text{Carnot}} = 25.0\\%$; Net Work $W_{\\text{net}} = 300\\text{ J}$.",
+      "$\\eta_{\\text{Carnot}} = 66.7\\%$; Net Work $W_{\\text{net}} = 800\\text{ J}$."
+    ],
+    correctIndex: 0,
+    explanation: "Carnot's theorem defines the maximum theoretical efficiency between two thermal reservoirs: $\\eta = 1 - \\frac{T_C}{T_H} = 1 - \\frac{300\\text{ K}}{600\\text{ K}} = 0.500$ ($50.0\\%$). The net work done per cycle is the integral over the closed path $\\oint P\\,dV$, which equals $W_{\\text{net}} = \\eta Q_H = 0.50 \\times 1200\\text{ J} = 600\\text{ J}$, with remaining heat $Q_C = 600\\text{ J}$ exhausted to the cold reservoir."
+  }),
+  createMCQ({
+    id: "PHYS-M17-L1-DIAG",
+    subject: "PHYS",
+    moduleId: 17,
+    lessonId: 1,
+    moduleTitle: "PHYS-M17: Interference and Diffraction",
+    lessonTitle: "Lesson 17.1: Interference",
+    difficulty: "ap_olympiad",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.phys_double_slit_interference,
+    question: "In the Young's double-slit experiment illustrated in **Figure 15**, monochromatic light with wavelength $\\lambda = 632.8\\text{ nm}$ illuminates dual slits separated by $d = 0.200\\text{ mm}$, producing an interference fringe pattern on a screen located at distance $L = 2.00\\text{ m}$. What is the linear spacing ($\\Delta y$) between adjacent bright fringes on the screen, and what would happen to the fringe spacing if the entire apparatus were submerged in water ($n = 1.33$)?",
+    options: [
+      "$\\Delta y = \\frac{\\lambda L}{d} = 6.33\\text{ mm}$; when submerged in water, the wavelength decreases ($\\lambda' = \\lambda / 1.33$), causing the fringe spacing to decrease to $\\Delta y' = 4.76\\text{ mm}$.",
+      "$\\Delta y = 1.58\\text{ mm}$; when submerged in water, fringe spacing increases due to optical magnification.",
+      "$\\Delta y = 12.66\\text{ mm}$; when submerged in water, the interference pattern disappears completely.",
+      "$\\Delta y = 6.33\\text{ mm}$; the medium index has zero effect on interference fringe spacing."
+    ],
+    correctIndex: 0,
+    explanation: "For small angles $\\theta$, fringe separation is $\\Delta y = \\frac{\\lambda L}{d} = \\frac{(632.8 \\times 10^{-9}\\text{ m})(2.00\\text{ m})}{0.200 \\times 10^{-3}\\text{ m}} = 6.328 \\times 10^{-3}\\text{ m} = 6.33\\text{ mm}$. When immersed in an optical medium with refractive index $n = 1.33$, the speed of light slows and its wavelength is shortened to $\\lambda_n = \\lambda / n = 632.8 / 1.33 = 475.8\\text{ nm}$. Thus, the fringes contract to $\\Delta y' = \\frac{\\Delta y}{n} = \\frac{6.33}{1.33} = 4.76\\text{ mm}$."
   })
 ];
 
