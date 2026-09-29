@@ -617,11 +617,18 @@ export function handleHashRoute() {
     return;
   }
 
-  // Fallback default
+// Fallback default
   switchTab("chem", false);
 }
 
+let currentActiveLabCleanup = null;
+
 function switchTab(tabId, updateHash = true) {
+  if (tabId !== "labs" && typeof currentActiveLabCleanup === "function") {
+    try { currentActiveLabCleanup(); } catch (e) {}
+    currentActiveLabCleanup = null;
+  }
+
   AppState.currentTab = tabId;
   AppState.selectedUnit = "ALL";
   AppState.searchQuery = "";
@@ -1347,8 +1354,6 @@ function renderVirtualLabsHub(container) {
   // Mount the chosen lab
   mountActiveLab();
 }
-
-let currentActiveLabCleanup = null;
 
 function mountActiveLab() {
   const mount = document.getElementById("active-lab-mount");

@@ -99,16 +99,16 @@ export function initWaveLab(containerId) {
               Wave Phenomenon Configuration
             </label>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-              <button class="btn btn-secondary btn-sm ${setupMode === 'double_slit' ? 'active' : ''}" data-mode="double_slit" style="font-size: 0.76rem; padding: 6px 10px;">
+              <button class="btn btn-secondary btn-sm ${setupMode === 'double_slit' ? 'active' : ''}" data-wave-mode="double_slit" style="font-size: 0.76rem; padding: 6px 10px;">
                 <span>Double Slit (Young)</span>
               </button>
-              <button class="btn btn-secondary btn-sm ${setupMode === 'single_slit' ? 'active' : ''}" data-mode="single_slit" style="font-size: 0.76rem; padding: 6px 10px;">
+              <button class="btn btn-secondary btn-sm ${setupMode === 'single_slit' ? 'active' : ''}" data-wave-mode="single_slit" style="font-size: 0.76rem; padding: 6px 10px;">
                 <span>Single Slit Diffraction</span>
               </button>
-              <button class="btn btn-secondary btn-sm ${setupMode === 'dual_sources' ? 'active' : ''}" data-mode="dual_sources" style="font-size: 0.76rem; padding: 6px 10px;">
+              <button class="btn btn-secondary btn-sm ${setupMode === 'dual_sources' ? 'active' : ''}" data-wave-mode="dual_sources" style="font-size: 0.76rem; padding: 6px 10px;">
                 <span>Dual Point Sources</span>
               </button>
-              <button class="btn btn-secondary btn-sm ${setupMode === 'doppler' ? 'active' : ''}" data-mode="doppler" style="font-size: 0.76rem; padding: 6px 10px;">
+              <button class="btn btn-secondary btn-sm ${setupMode === 'doppler' ? 'active' : ''}" data-wave-mode="doppler" style="font-size: 0.76rem; padding: 6px 10px;">
                 <span>Doppler Effect (Mach)</span>
               </button>
             </div>
@@ -179,10 +179,39 @@ export function initWaveLab(containerId) {
   // --- 2D WAVE ENGINE SETUP ---
   const canvas = document.getElementById("ripple-tank-canvas");
   const ctx = canvas.getContext("2d");
-  const imgData = ctx.createImageData(canvas.width, canvas.height);
+
+  // High-performance offscreen render buffer (180x140 matches simulation grid)
+  const offscreenCanvas = document.createElement("canvas");
+  offscreenCanvas.width = GW;
+  offscreenCanvas.height = GH;
+  const offscreenCtx = offscreenCanvas.getContext("2d");
+  const offscreenImgData = offscreenCtx.createImageData(GW, GH);
+  const offscreenBuf = new ArrayBuffer(offscreenImgData.data.length);
+  const offscreenBuf8 = new Uint8ClampedArray(offscreenBuf);
+  const offscreenData32 = new Uint32Array(offscreenBuf);
 
   const intensityCanvas = document.getElementById("intensity-canvas");
   const ictx = intensityCanvas.getContext("2d");
+
+  // Precompute boundary sponge layer (PML) to prevent resonant wall reflections
+  const dampingMap = new Float32Array(GW * GH);
+  const spongeDepth = 14;
+  for (let y = 0; y < GH; y++) {
+    for (let x = 0; x < GW; x++) {
+      const idx = y * GW + x;
+      const distRight = (GW - 1) - x;
+      const distTop = y;
+      const distBottom = (GH - 1) - y;
+      const distLeft = x;
+      const minDist = Math.min(distRight, distTop, distBottom, distLeft < 5 ? 999 : distLeft);
+      if (minDist < spongeDepth) {
+        const factor = minDist / spongeDepth;
+        dampingMap[idx] = damping * (0.84 + 0.16 * factor);
+      } else {
+        dampingMap[idx] = damping;
+      }
+    }
+  }
 
   // Reset Grid
   function resetGrid() {
@@ -196,32 +225,37 @@ export function initWaveLab(containerId) {
     if (!isRunning) return;
 
     simStep++;
-    const t = simStep * 0.1;
-    const c2 = 0.22; // Courant stability constant < 0.5
-    const lambda = (waveSpeed / frequency) * 0.25;
+    const c2 = 0.22; // Courant stability condition (c² < 0.5)
 
     // Source coordinates
     const sourceX = 20;
     const midY = Math.floor(GH / 2);
 
-    // Continuous wave excitation based on mode
+    // Continuous wave excitation with smooth boundary tapers
     if (setupMode === "double_slit" || setupMode === "single_slit") {
-      // Plane wave driver on the left boundary
       const waveVal = Math.sin(simStep * (frequency * 0.12)) * 1.8;
-      for (let y = 10; y < GH - 10; y++) {
-        u1[y * GW + 4] = waveVal;
+      const taperDepth = 12;
+      for (let y = 8; y < GH - 8; y++) {
+        let taper = 1.0;
+        if (y < 8 + taperDepth) {
+          taper = 0.5 * (1 - Math.cos(Math.PI * (y - 8) / taperDepth));
+        } else if (y > GH - 8 - taperDepth) {
+          taper = 0.5 * (1 - Math.cos(Math.PI * (GH - 8 - y) / taperDepth));
+        }
+        u1[y * GW + 4] = waveVal * taper;
       }
     } else if (setupMode === "dual_sources") {
-      // Two point sources
       const sep = Math.floor(slitSeparation * 0.4);
       const s1 = Math.sin(simStep * (frequency * 0.12)) * 2.2;
       const s2 = Math.sin(simStep * (frequency * 0.12) + (phaseShift * Math.PI) / 180) * 2.2;
-      u1[(midY - sep) * GW + sourceX + 25] = s1;
-      u1[(midY + sep) * GW + sourceX + 25] = s2;
+      const y1 = Math.max(3, Math.min(GH - 4, midY - sep));
+      const y2 = Math.max(3, Math.min(GH - 4, midY + sep));
+      const sx = sourceX + 25;
+      u1[y1 * GW + sx] = s1;
+      u1[y2 * GW + sx] = s2;
     } else if (setupMode === "doppler") {
-      // Moving point source from left to right
       const dopSpeed = sourceVelocity * 0.75;
-      const posX = 20 + Math.floor((simStep * dopSpeed) % (GW - 40));
+      const posX = 16 + Math.floor((simStep * dopSpeed) % (GW - 36));
       const sVal = Math.sin(simStep * (frequency * 0.15)) * 2.5;
       u1[midY * GW + posX] = sVal;
     }
@@ -257,7 +291,14 @@ export function initWaveLab(containerId) {
         }
 
         const laplacian = u1[idx + 1] + u1[idx - 1] + u1[yUp + x] + u1[yDown + x] - 4 * u1[idx];
-        u2[idx] = (2 * u1[idx] - u0[idx] + c2 * laplacian) * damping;
+        let nextVal = (2 * u1[idx] - u0[idx] + c2 * laplacian) * dampingMap[idx];
+
+        // Guard against NaN or numerical oscillation divergence
+        if (!Number.isFinite(nextVal)) nextVal = 0;
+        else if (nextVal > 4.0) nextVal = 4.0;
+        else if (nextVal < -4.0) nextVal = -4.0;
+
+        u2[idx] = nextVal;
       }
     }
 
@@ -269,44 +310,37 @@ export function initWaveLab(containerId) {
   }
 
   function renderWaveCanvas() {
-    const cw = canvas.width;
-    const ch = canvas.height;
-    const scaleX = cw / GW;
-    const scaleY = ch / GH;
+    const len = GW * GH;
 
-    // Draw wavefield to ImageData
-    const data = imgData.data;
-    const barrierX = Math.floor(65 * scaleX);
-
-    for (let py = 0; py < ch; py++) {
-      const gy = Math.floor(py / scaleY);
-      const gyOffset = gy * GW;
-
-      for (let px = 0; px < cw; px++) {
-        const gx = Math.floor(px / scaleX);
-        const val = u1[gyOffset + gx];
-        const pidx = (py * cw + px) * 4;
-
-        // Color mapping for wave elevation
-        if (val > 0) {
-          // Crest (Cyan / Bright Indigo)
-          const intensity = Math.min(255, Math.floor(val * 140));
-          data[pidx] = Math.floor(intensity * 0.35); // R
-          data[pidx + 1] = Math.floor(intensity * 0.85); // G
-          data[pidx + 2] = intensity; // B
-          data[pidx + 3] = 255;
-        } else {
-          // Trough (Deep Indigo / Dark Void)
-          const intensity = Math.min(255, Math.floor(-val * 130));
-          data[pidx] = Math.floor(intensity * 0.15); // R
-          data[pidx + 1] = Math.floor(intensity * 0.1);  // G
-          data[pidx + 2] = Math.floor(intensity * 0.5);  // B
-          data[pidx + 3] = 255;
-        }
+    for (let i = 0; i < len; i++) {
+      const val = u1[i];
+      if (val > 0) {
+        // Crest (Cyan / Bright Indigo)
+        const intensity = Math.min(255, (val * 140) | 0);
+        const r = (intensity * 0.35) | 0;
+        const g = (intensity * 0.85) | 0;
+        const b = intensity;
+        offscreenData32[i] = (255 << 24) | (b << 16) | (g << 8) | r;
+      } else {
+        // Trough (Deep Indigo / Dark Void)
+        const intensity = Math.min(255, (-val * 130) | 0);
+        const r = (intensity * 0.15) | 0;
+        const g = (intensity * 0.10) | 0;
+        const b = (intensity * 0.50) | 0;
+        offscreenData32[i] = (255 << 24) | (b << 16) | (g << 8) | r;
       }
     }
 
-    ctx.putImageData(imgData, 0, 0);
+    offscreenImgData.data.set(offscreenBuf8);
+    offscreenCtx.putImageData(offscreenImgData, 0, 0);
+
+    const cw = canvas.width;
+    const ch = canvas.height;
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(offscreenCanvas, 0, 0, cw, ch);
+
+    const scaleX = cw / GW;
+    const scaleY = ch / GH;
 
     // Overlay Slit Barriers
     if (setupMode === "double_slit" || setupMode === "single_slit") {
@@ -322,22 +356,18 @@ export function initWaveLab(containerId) {
       const halfWidth = Math.max(6, slitWidth * 0.3 * scaleY);
 
       if (setupMode === "double_slit") {
-        // Barrier 1 (Top)
-        ctx.fillRect(bx, 0, bWidth, midY - halfSep - halfWidth);
-        // Barrier 2 (Middle)
-        ctx.fillRect(bx, midY - halfSep + halfWidth, bWidth, (halfSep - halfWidth) * 2);
-        // Barrier 3 (Bottom)
-        ctx.fillRect(bx, midY + halfSep + halfWidth, bWidth, ch - (midY + halfSep + halfWidth));
+        ctx.fillRect(bx, 0, bWidth, Math.max(0, midY - halfSep - halfWidth));
+        ctx.fillRect(bx, midY - halfSep + halfWidth, bWidth, Math.max(0, (halfSep - halfWidth) * 2));
+        ctx.fillRect(bx, midY + halfSep + halfWidth, bWidth, Math.max(0, ch - (midY + halfSep + halfWidth)));
       } else {
-        // Single slit: Top and Bottom
-        ctx.fillRect(bx, 0, bWidth, midY - halfWidth * 1.5);
-        ctx.fillRect(bx, midY + halfWidth * 1.5, bWidth, ch - (midY + halfWidth * 1.5));
+        ctx.fillRect(bx, 0, bWidth, Math.max(0, midY - halfWidth * 1.5));
+        ctx.fillRect(bx, midY + halfWidth * 1.5, bWidth, Math.max(0, ch - (midY + halfWidth * 1.5)));
       }
       ctx.restore();
     }
 
     // Detector screen line at x = 165
-    const detX = 165 * scaleX;
+    const detX = (165 / GW) * cw;
     ctx.save();
     ctx.strokeStyle = "rgba(245, 158, 11, 0.85)";
     ctx.lineWidth = 2;
@@ -372,7 +402,8 @@ export function initWaveLab(containerId) {
 
     for (let gy = 0; gy < GH; gy++) {
       const val = u1[gy * GW + detGx];
-      const intensity = val * val * 25; // I ~ E^2
+      const safeVal = Number.isFinite(val) ? val : 0;
+      const intensity = Math.min(iw - 15, safeVal * safeVal * 35);
       const py = (gy / GH) * ih;
       const px = Math.min(iw - 10, 15 + intensity);
 
@@ -391,47 +422,68 @@ export function initWaveLab(containerId) {
   }
 
   function updateHUD() {
-    const lambda = waveSpeed / frequency;
+    const lambda = waveSpeed / Math.max(0.1, frequency);
     const L = 350; // Distance to screen in mm
-    const deltaY = setupMode === "double_slit" ? (lambda * L) / (slitSeparation * 10) : (lambda * L) / (slitWidth * 10);
+    const deltaY = setupMode === "double_slit" 
+      ? (lambda * L) / (Math.max(1, slitSeparation) * 10) 
+      : (lambda * L) / (Math.max(1, slitWidth) * 10);
 
-    document.getElementById("hud-wave-eq").innerText = `v = f • λ = ${(frequency * lambda).toFixed(0)} mm/s`;
-    document.getElementById("hud-wavelength").innerText = `λ = ${lambda.toFixed(1)} mm`;
-    document.getElementById("hud-fringe-delta").innerText = `Δy = ${deltaY.toFixed(2)} mm`;
+    const elEq = container.querySelector("#hud-wave-eq");
+    const elWave = container.querySelector("#hud-wavelength");
+    const elDelta = container.querySelector("#hud-fringe-delta");
+    if (elEq) elEq.innerText = `v = f • λ = ${(frequency * lambda).toFixed(0)} mm/s`;
+    if (elWave) elWave.innerText = `λ = ${lambda.toFixed(1)} mm`;
+    if (elDelta) elDelta.innerText = `Δy = ${deltaY.toFixed(2)} mm`;
 
-    const summary = document.getElementById("wave-math-summary");
-    if (setupMode === "double_slit") {
-      summary.innerHTML = `Young's double-slit interference: Fringe spacing $\\Delta y = \\frac{\\lambda L}{d} = ${deltaY.toFixed(2)}\\text{ mm}$. Narrower slit spacing $d$ widens fringes.`;
-    } else if (setupMode === "single_slit") {
-      summary.innerHTML = `Single-slit diffraction minima condition: $a \\sin\\theta = m\\lambda$. Central maximum width $= \\frac{2\\lambda L}{a}$.`;
-    } else if (setupMode === "doppler") {
-      summary.innerHTML = `Doppler effect wave crowding: Ahead of source $\\lambda' = \\lambda(1 - v/c)$, frequency shifts higher: $f' = \\frac{f}{1 - v/c}$.`;
-    } else {
-      summary.innerHTML = `Coherent wave interference from dual sources: Constructive nodes appear along hyperbolic loci where path difference $\\Delta r = m\\lambda$.`;
+    const summary = container.querySelector("#wave-math-summary");
+    if (summary) {
+      if (setupMode === "double_slit") {
+        summary.innerHTML = `Young's double-slit interference: Fringe spacing $\\Delta y = \\frac{\\lambda L}{d} = ${deltaY.toFixed(2)}\\text{ mm}$. Narrower slit spacing $d$ widens fringes.`;
+      } else if (setupMode === "single_slit") {
+        summary.innerHTML = `Single-slit diffraction minima condition: $a \\sin\\theta = m\\lambda$. Central maximum width $= \\frac{2\\lambda L}{a}$.`;
+      } else if (setupMode === "doppler") {
+        summary.innerHTML = `Doppler effect wave crowding: Ahead of source $\\lambda' = \\lambda(1 - v/c)$, frequency shifts higher: $f' = \\frac{f}{1 - v/c}$.`;
+      } else {
+        summary.innerHTML = `Coherent wave interference from dual sources: Constructive nodes appear along hyperbolic loci where path difference $\\Delta r = m\\lambda$.`;
+      }
+      try {
+        renderMathInElement(summary);
+      } catch (e) {}
     }
-    renderMathInElement(summary);
   }
 
+  let isDestroyed = false;
   function loop() {
-    updateWavePhysics();
-    renderWaveCanvas();
-    if (simStep % 3 === 0) {
-      renderIntensityGraph();
+    if (isDestroyed) return;
+    try {
+      if (container.isConnected) {
+        updateWavePhysics();
+        renderWaveCanvas();
+        if (simStep % 3 === 0) {
+          renderIntensityGraph();
+        }
+      }
+    } catch (err) {
+      console.warn("Wave simulation loop recovered:", err);
     }
     animId = requestAnimationFrame(loop);
   }
   animId = requestAnimationFrame(loop);
 
-  // --- EVENT LISTENERS ---
-  document.querySelectorAll("[data-mode]").forEach(btn => {
+  // --- EVENT LISTENERS (SCOPED TO CONTAINER) ---
+  const modeButtons = container.querySelectorAll("[data-wave-mode]");
+  modeButtons.forEach(btn => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll("[data-mode]").forEach(b => b.classList.remove("active"));
+      modeButtons.forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      setupMode = btn.dataset.mode;
+      setupMode = btn.dataset.waveMode;
 
-      document.getElementById("ctrl-slit-sep").style.display = setupMode === "double_slit" ? "block" : "none";
-      document.getElementById("ctrl-slit-width").style.display = (setupMode === "double_slit" || setupMode === "single_slit") ? "block" : "none";
-      document.getElementById("ctrl-doppler-vel").style.display = setupMode === "doppler" ? "block" : "none";
+      const ctrlSlitSep = container.querySelector("#ctrl-slit-sep");
+      const ctrlSlitWidth = container.querySelector("#ctrl-slit-width");
+      const ctrlDopplerVel = container.querySelector("#ctrl-doppler-vel");
+      if (ctrlSlitSep) ctrlSlitSep.style.display = setupMode === "double_slit" ? "block" : "none";
+      if (ctrlSlitWidth) ctrlSlitWidth.style.display = (setupMode === "double_slit" || setupMode === "single_slit") ? "block" : "none";
+      if (ctrlDopplerVel) ctrlDopplerVel.style.display = setupMode === "doppler" ? "block" : "none";
 
       const titles = {
         double_slit: "Young's Double-Slit Diffraction",
@@ -439,70 +491,94 @@ export function initWaveLab(containerId) {
         dual_sources: "Dual Point Coherent Sources",
         doppler: "Doppler Wavefront Shift"
       };
-      document.getElementById("hud-setup-title").innerText = titles[setupMode] || "Wave Interference";
+      const titleEl = container.querySelector("#hud-setup-title");
+      if (titleEl) titleEl.innerText = titles[setupMode] || "Wave Interference";
 
-      SoundFX.playClick();
+      if (typeof SoundFX !== "undefined" && SoundFX.playClick) {
+        SoundFX.playClick();
+      }
       resetGrid();
       updateHUD();
     });
   });
 
-  const freqSlider = document.getElementById("slider-frequency");
-  freqSlider.addEventListener("input", (e) => {
-    frequency = parseFloat(e.target.value);
-    document.getElementById("lbl-frequency").innerText = `${frequency.toFixed(1)} Hz`;
-    updateHUD();
-  });
+  const freqSlider = container.querySelector("#slider-frequency");
+  if (freqSlider) {
+    freqSlider.addEventListener("input", (e) => {
+      frequency = parseFloat(e.target.value);
+      const lbl = container.querySelector("#lbl-frequency");
+      if (lbl) lbl.innerText = `${frequency.toFixed(1)} Hz`;
+      updateHUD();
+    });
+  }
 
-  const sepSlider = document.getElementById("slider-slit-sep");
-  sepSlider.addEventListener("input", (e) => {
-    slitSeparation = parseInt(e.target.value, 10);
-    document.getElementById("lbl-slit-sep").innerText = `${slitSeparation} mm`;
-    updateHUD();
-  });
+  const sepSlider = container.querySelector("#slider-slit-sep");
+  if (sepSlider) {
+    sepSlider.addEventListener("input", (e) => {
+      slitSeparation = parseInt(e.target.value, 10);
+      const lbl = container.querySelector("#lbl-slit-sep");
+      if (lbl) lbl.innerText = `${slitSeparation} mm`;
+      updateHUD();
+    });
+  }
 
-  const widthSlider = document.getElementById("slider-slit-width");
-  widthSlider.addEventListener("input", (e) => {
-    slitWidth = parseInt(e.target.value, 10);
-    document.getElementById("lbl-slit-width").innerText = `${slitWidth} mm`;
-    updateHUD();
-  });
+  const widthSlider = container.querySelector("#slider-slit-width");
+  if (widthSlider) {
+    widthSlider.addEventListener("input", (e) => {
+      slitWidth = parseInt(e.target.value, 10);
+      const lbl = container.querySelector("#lbl-slit-width");
+      if (lbl) lbl.innerText = `${slitWidth} mm`;
+      updateHUD();
+    });
+  }
 
-  const machSlider = document.getElementById("slider-doppler-mach");
-  machSlider.addEventListener("input", (e) => {
-    sourceVelocity = parseFloat(e.target.value);
-    document.getElementById("lbl-doppler-mach").innerText = `Mach ${sourceVelocity.toFixed(2)}`;
-  });
+  const machSlider = container.querySelector("#slider-doppler-mach");
+  if (machSlider) {
+    machSlider.addEventListener("input", (e) => {
+      sourceVelocity = parseFloat(e.target.value);
+      const lbl = container.querySelector("#lbl-doppler-mach");
+      if (lbl) lbl.innerText = `Mach ${sourceVelocity.toFixed(2)}`;
+    });
+  }
 
-  document.getElementById("btn-wave-toggle-run").addEventListener("click", (e) => {
-    isRunning = !isRunning;
-    e.currentTarget.innerText = isRunning ? "⏸ Pause Wave" : "▶ Resume Wave";
-    SoundFX.playClick();
-  });
+  const toggleBtn = container.querySelector("#btn-wave-toggle-run");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", (e) => {
+      isRunning = !isRunning;
+      e.currentTarget.innerText = isRunning ? "⏸ Pause Wave" : "▶ Resume Wave";
+      if (typeof SoundFX !== "undefined" && SoundFX.playClick) SoundFX.playClick();
+    });
+  }
 
-  document.getElementById("btn-wave-clear").addEventListener("click", () => {
-    resetGrid();
-    SoundFX.playClick();
-  });
+  const clearBtn = container.querySelector("#btn-wave-clear");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      resetGrid();
+      if (typeof SoundFX !== "undefined" && SoundFX.playClick) SoundFX.playClick();
+    });
+  }
 
   // Export Data CSV
-  document.getElementById("btn-wave-export").addEventListener("click", () => {
-    const lambda = waveSpeed / frequency;
-    const L = 350;
-    const deltaY = (lambda * L) / (slitSeparation * 10);
+  const exportBtn = container.querySelector("#btn-wave-export");
+  if (exportBtn) {
+    exportBtn.addEventListener("click", () => {
+      const lambda = waveSpeed / Math.max(0.1, frequency);
+      const L = 350;
+      const deltaY = (lambda * L) / (Math.max(1, slitSeparation) * 10);
 
-    const rows = [
-      { Parameter: "Apparatus Mode", Value: setupMode },
-      { Parameter: "Frequency (Hz)", Value: frequency },
-      { Parameter: "Wave Speed (mm/s)", Value: waveSpeed },
-      { Parameter: "Wavelength (mm)", Value: lambda.toFixed(2) },
-      { Parameter: "Slit Separation d (mm)", Value: slitSeparation },
-      { Parameter: "Slit Width a (mm)", Value: slitWidth },
-      { Parameter: "Screen Distance L (mm)", Value: L },
-      { Parameter: "Fringe Spacing Delta_y (mm)", Value: deltaY.toFixed(3) }
-    ];
-    exportLabDataCsv("wave_interference_fringe_telemetry.csv", rows);
-  });
+      const rows = [
+        { Parameter: "Apparatus Mode", Value: setupMode },
+        { Parameter: "Frequency (Hz)", Value: frequency },
+        { Parameter: "Wave Speed (mm/s)", Value: waveSpeed },
+        { Parameter: "Wavelength (mm)", Value: lambda.toFixed(2) },
+        { Parameter: "Slit Separation d (mm)", Value: slitSeparation },
+        { Parameter: "Slit Width a (mm)", Value: slitWidth },
+        { Parameter: "Screen Distance L (mm)", Value: L },
+        { Parameter: "Fringe Spacing Delta_y (mm)", Value: deltaY.toFixed(3) }
+      ];
+      exportLabDataCsv("wave_interference_fringe_telemetry.csv", rows);
+    });
+  }
 
   // Mount CER Checkpoint
   mountLabCheckpoint("wave-checkpoint-mount", {
@@ -522,6 +598,10 @@ export function initWaveLab(containerId) {
   updateHUD();
 
   return () => {
-    if (animId) cancelAnimationFrame(animId);
+    isDestroyed = true;
+    if (animId) {
+      cancelAnimationFrame(animId);
+      animId = null;
+    }
   };
 }
