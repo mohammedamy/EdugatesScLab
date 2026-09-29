@@ -30,13 +30,15 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   let presenterPolls = {}; // { qId: [countA, countB, countC, countD] }
   let presenterKeyHandler = null;
 
-  // Curriculum Scope State
+  // Curriculum Scope State (File Explorer)
   let selectedSubject = (initialConfig && initialConfig.subj) ? initialConfig.subj.toUpperCase() : "CHEM"; // 'CHEM', 'BIO', 'PHYS', 'ALL'
   if (!["CHEM", "BIO", "PHYS", "ALL"].includes(selectedSubject)) selectedSubject = "CHEM";
 
   let selectedLessons = new Set(); // Set of "SUBJECT-M{id}-L{id}"
   let lessonSearchQuery = "";
-  let collapsedModules = new Set(); // Modules explicitly collapsed by user
+  let activeFilterChip = "ALL"; // 'ALL', 'LABS', 'SELECTED', 'UNSELECTED'
+  let collapsedUnits = new Set(); // Explicitly collapsed unit keys
+  let collapsedModules = new Set(); // Explicitly collapsed module keys
 
   // Curricula registry
   const curricula = {
@@ -52,7 +54,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     }
   }
 
-  // Initialize default scope: Select all lessons in default subject or from initialConfig
+  // Initialize default scope: Start with clean EMPTY checkboxes (unless explicit scope preset is provided)
   function initDefaultScope() {
     selectedLessons.clear();
     if (initialConfig && initialConfig.scope) {
@@ -61,20 +63,8 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         const item = s.trim();
         if (item) selectedLessons.add(item);
       });
-      if (selectedLessons.size > 0) return;
     }
-
-    const activeSubjs = selectedSubject === "ALL" ? ["CHEM", "BIO", "PHYS"] : [selectedSubject];
-    activeSubjs.forEach(s => {
-      const cur = curricula[s];
-      if (cur) {
-        cur.modules.forEach(m => {
-          m.lessons.forEach(l => {
-            selectedLessons.add(`${s}-M${m.id}-L${l.id}`);
-          });
-        });
-      }
-    });
+    // Note: By user design, all checkboxes start empty so user can choose their exact scope deliberately
   }
   initDefaultScope();
 
@@ -155,52 +145,82 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             </div>
           </div>
 
-          <!-- Step 2: Granular Module & Lesson Scope Checklist -->
-          <div style="margin-bottom: 26px; background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 20px;">
+          <!-- Step 2: Hierarchical Curriculum File Explorer Scope -->
+          <div class="exam-scope-card" style="margin-bottom: 26px; background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 22px;">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
               <div>
-                <label style="font-size: 0.88rem; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
-                  <span>📋</span> Step 2: Select Exam Scope (Checklist of Lessons)
+                <label style="font-size: 0.92rem; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 1.25rem;">📂</span> Step 2: Curriculum File Explorer Scope
                 </label>
-                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">
-                  All lesson names are listed below. Use real-time search to instantly narrow down lessons:
+                <div style="font-size: 0.83rem; color: var(--text-muted); margin-top: 3px;">
+                  Browse <strong>Units</strong>, <strong>Chapters</strong>, and <strong>Lessons</strong> with empty checkboxes to customize your exam scope:
                 </div>
               </div>
 
               <!-- Quick Selection Utility Buttons -->
-              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                <button class="btn btn-secondary btn-scope-action" id="btn-scope-all" style="padding: 6px 12px; font-size: 0.8rem;">
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <button class="btn btn-secondary btn-scope-action" id="btn-scope-all" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
                   ✓ Select All
                 </button>
-                <button class="btn btn-secondary btn-scope-action" id="btn-scope-none" style="padding: 6px 12px; font-size: 0.8rem;">
-                  ✕ Deselect All
+                <button class="btn btn-secondary btn-scope-action" id="btn-scope-none" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                  ✕ Clear Selection
                 </button>
-                <button class="btn btn-secondary btn-scope-action" id="btn-scope-filtered" style="padding: 6px 12px; font-size: 0.8rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
-                  🔍 Select Filtered Only
+                <button class="btn btn-secondary btn-scope-action" id="btn-scope-labs" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700;">
+                  🔬 Labs Only
                 </button>
-                <button class="btn btn-secondary btn-scope-action" id="btn-scope-labs" style="padding: 6px 12px; font-size: 0.8rem;">
-                  🔬 Lab Modules Only
+                <button class="btn btn-secondary btn-scope-action" id="btn-scope-expand-all" style="padding: 6px 14px; font-size: 0.8rem;">
+                  📂 Expand All
                 </button>
-                <button class="btn btn-secondary btn-scope-action" id="btn-scope-toggle-expand" style="padding: 6px 12px; font-size: 0.8rem;">
-                  ⇕ Collapse/Expand All
+                <button class="btn btn-secondary btn-scope-action" id="btn-scope-collapse-all" style="padding: 6px 14px; font-size: 0.8rem;">
+                  📁 Collapse All
                 </button>
               </div>
             </div>
 
-            <!-- Real-time Search Box for Lessons with Live Counter -->
-            <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 14px; flex-wrap: wrap;">
-              <div style="position: relative; flex: 1; min-width: 260px;">
-                <input type="text" id="input-search-lessons" class="search-input" placeholder="Type lesson name, concept, or formula to narrow down..." value="${lessonSearchQuery}" style="width: 100%; padding-left: 38px; padding-right: 32px; height: 42px; font-size: 0.92rem; border-radius: 8px;">
-                <span style="position: absolute; left: 14px; top: 12px; color: var(--text-dim);">🔍</span>
-                ${lessonSearchQuery ? `<button id="btn-clear-lesson-search" style="position: absolute; right: 10px; top: 10px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 1rem;">✕</button>` : ''}
+            <!-- Deep Real-Time Search & Scope Filter Bar -->
+            <div style="margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <div style="position: relative; flex: 1; min-width: 280px;">
+                  <input type="text" id="input-search-lessons" class="search-input" placeholder="Search by lesson, concept, formula, objective (e.g., density, redox, DNA, optics, Newton)..." value="${lessonSearchQuery}" style="width: 100%; padding-left: 40px; padding-right: 36px; height: 44px; font-size: 0.92rem; border-radius: 8px;">
+                  <span style="position: absolute; left: 14px; top: 13px; color: var(--text-dim); font-size: 1.05rem;">🔍</span>
+                  ${lessonSearchQuery ? `<button id="btn-clear-lesson-search" style="position: absolute; right: 12px; top: 11px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 1.1rem; line-height: 1;">✕</button>` : ''}
+                </div>
+                <div id="scope-counter-badge" class="scope-counter-badge" style="font-family: var(--font-mono); font-size: 0.84rem; padding: 10px 16px; border-radius: 8px; white-space: nowrap; font-weight: 700;">
+                  Loading explorer...
+                </div>
               </div>
-              <div id="scope-counter-badge" style="font-family: var(--font-mono); font-size: 0.82rem; color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); padding: 8px 14px; border-radius: 8px; white-space: nowrap;">
-                Loading lessons...
+
+              <!-- Quick Scope Filter Chips & Search Action Bar -->
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div class="explorer-filter-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                  <button class="filter-chip ${activeFilterChip === 'ALL' ? 'active' : ''}" data-chip="ALL" style="cursor: pointer; padding: 4px 10px; font-size: 0.76rem; border-radius: 999px; font-weight: 700; transition: all 0.15s ease;">
+                    All Lessons
+                  </button>
+                  <button class="filter-chip ${activeFilterChip === 'LABS' ? 'active' : ''}" data-chip="LABS" style="cursor: pointer; padding: 4px 10px; font-size: 0.76rem; border-radius: 999px; font-weight: 700; transition: all 0.15s ease;">
+                    🔬 Virtual Labs Only
+                  </button>
+                  <button class="filter-chip ${activeFilterChip === 'SELECTED' ? 'active' : ''}" data-chip="SELECTED" style="cursor: pointer; padding: 4px 10px; font-size: 0.76rem; border-radius: 999px; font-weight: 700; transition: all 0.15s ease;">
+                    ✓ In Scope (<span id="chip-selected-count">${selectedLessons.size}</span>)
+                  </button>
+                  <button class="filter-chip ${activeFilterChip === 'UNSELECTED' ? 'active' : ''}" data-chip="UNSELECTED" style="cursor: pointer; padding: 4px 10px; font-size: 0.76rem; border-radius: 999px; font-weight: 700; transition: all 0.15s ease;">
+                    Empty / Excluded
+                  </button>
+                </div>
+
+                <div id="search-action-container" style="display: flex; gap: 8px; align-items: center;">
+                  <!-- Dynamic batch buttons rendered in renderCurriculumChecklist -->
+                </div>
               </div>
             </div>
 
-            <!-- Scrollable Container for Lessons Checklist -->
-            <div id="curriculum-checklist-container" style="max-height: 480px; overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: 12px;">
+            <!-- Helpful Guidance Banner when 0 items are selected -->
+            <div id="empty-scope-hint" style="display: ${selectedLessons.size === 0 ? 'flex' : 'none'}; align-items: center; gap: 10px; background: rgba(14, 165, 233, 0.08); border: 1px dashed rgba(14, 165, 233, 0.35); border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.82rem; color: #0284c7;">
+              <span style="font-size: 1.1rem;">💡</span>
+              <span><strong>All checkboxes are empty:</strong> Check any <strong>Unit</strong> folder to include its entire curriculum, check a <strong>Chapter</strong>, or pick individual <strong>Lessons</strong>.</span>
+            </div>
+
+            <!-- Scrollable File Explorer Tree Container -->
+            <div id="curriculum-checklist-container" class="curriculum-tree-container" style="max-height: 520px; overflow-y: auto; padding-right: 6px; display: flex; flex-direction: column; gap: 10px;">
               <!-- Rendered dynamically -->
             </div>
           </div>
@@ -271,14 +291,49 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     bindConfigEvents();
   }
 
-  function highlightMatches(text, query) {
-    if (!query) return text;
-    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const regex = new RegExp(`(${escaped})`, 'gi');
-    return text.replace(regex, '<mark style="background: rgba(56, 189, 248, 0.35); color: #38bdf8; padding: 1px 4px; border-radius: 3px; font-weight: 800;">$1</mark>');
+  // Group modules into Units for a subject
+  function getSubjectUnitTree(subKey) {
+    const cur = curricula[subKey];
+    if (!cur) return [];
+    const unitMap = new Map();
+    cur.modules.forEach(m => {
+      const rawUnit = m.unit || "General Unit";
+      if (!unitMap.has(rawUnit)) {
+        unitMap.set(rawUnit, {
+          title: rawUnit,
+          modules: []
+        });
+      }
+      unitMap.get(rawUnit).modules.push(m);
+    });
+
+    return Array.from(unitMap.entries()).map(([rawUnit, data], uIdx) => {
+      let cleanTitle = rawUnit;
+      if (!cleanTitle.toLowerCase().startsWith("unit ")) {
+        cleanTitle = `Unit ${uIdx + 1}: ${rawUnit}`;
+      }
+      return {
+        unitKey: `${subKey}-U${uIdx + 1}`,
+        rawUnit,
+        cleanTitle,
+        subject: subKey,
+        color: cur.color,
+        subjectTitle: cur.subject,
+        modules: data.modules
+      };
+    });
   }
 
-  // --- RENDER HIERARCHICAL MODULE & LESSON CHECKLIST ---
+  function highlightMatches(text, query) {
+    if (!query || !text) return text || "";
+    const tokens = query.trim().split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) return text;
+    const escaped = tokens.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join("|");
+    const regex = new RegExp(`(${escaped})`, 'gi');
+    return String(text).replace(regex, '<mark class="search-highlight">$1</mark>');
+  }
+
+  // --- RENDER HIERARCHICAL CURRICULUM FILE EXPLORER (UNITS -> CHAPTERS -> LESSONS) ---
   function renderCurriculumChecklist() {
     const listContainer = document.getElementById("curriculum-checklist-container");
     if (!listContainer) return;
@@ -286,77 +341,168 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     // Collect active subjects to render
     const activeSubjs = selectedSubject === "ALL" ? ["CHEM", "BIO", "PHYS"] : [selectedSubject];
     const query = lessonSearchQuery.trim().toLowerCase();
+    const tokens = query.split(/\s+/).filter(Boolean);
 
     let html = "";
     let totalVisibleLessons = 0;
     let totalPossibleLessons = 0;
+    const visibleLessonKeys = new Set();
 
     activeSubjs.forEach(subKey => {
       const cur = curricula[subKey];
       if (!cur) return;
 
-      cur.modules.forEach(m => {
-        totalPossibleLessons += m.lessons.length;
+      const units = getSubjectUnitTree(subKey);
 
-        // Filter lessons by query
-        const matchingLessons = m.lessons.filter(l => {
-          if (!query) return true;
-          return l.title.toLowerCase().includes(query) ||
-                 m.title.toLowerCase().includes(query) ||
-                 m.code.toLowerCase().includes(query);
+      units.forEach(unit => {
+        // Collect all lessons in this unit
+        const allUnitLessonKeys = [];
+        const matchingModulesInUnit = [];
+
+        unit.modules.forEach(m => {
+          totalPossibleLessons += m.lessons.length;
+
+          const matchingLessonsInMod = [];
+          m.lessons.forEach(l => {
+            const lKey = `${subKey}-M${m.id}-L${l.id}`;
+            allUnitLessonKeys.push(lKey);
+
+            // 1. Chip Filter
+            const isChecked = selectedLessons.has(lKey);
+            if (activeFilterChip === "LABS" && !m.lab) return;
+            if (activeFilterChip === "SELECTED" && !isChecked) return;
+            if (activeFilterChip === "UNSELECTED" && isChecked) return;
+
+            // 2. Deep Search Query Match across title, ID, objectives, formulas, phenomenon, bigIdea
+            if (tokens.length > 0) {
+              const searchable = [
+                l.title,
+                `lesson ${l.id}`,
+                `L${l.id}`,
+                lKey,
+                m.title,
+                m.code,
+                m.unit || "",
+                cur.subject,
+                (l.objectives || []).join(" "),
+                (m.formulas || []).join(" "),
+                m.phenomenon || "",
+                m.bigIdea || ""
+              ].join(" ").toLowerCase();
+
+              const matchesAll = tokens.every(tok => searchable.includes(tok));
+              if (!matchesAll) return;
+            }
+
+            matchingLessonsInMod.push(l);
+            visibleLessonKeys.add(lKey);
+          });
+
+          if (matchingLessonsInMod.length > 0) {
+            matchingModulesInUnit.push({
+              module: m,
+              lessons: matchingLessonsInMod
+            });
+          }
         });
 
-        if (matchingLessons.length === 0) return;
-        totalVisibleLessons += matchingLessons.length;
+        if (matchingModulesInUnit.length === 0) return;
 
-        const modKey = `${subKey}-M${m.id}`;
-        const isCollapsed = collapsedModules.has(modKey) && !query;
+        // Count visible lessons in this unit
+        const unitVisibleLessonsCount = matchingModulesInUnit.reduce((acc, item) => acc + item.lessons.length, 0);
+        totalVisibleLessons += unitVisibleLessonsCount;
 
-        // Check if all lessons in this module are selected
-        const allSelected = m.lessons.every(l => selectedLessons.has(`${subKey}-M${m.id}-L${l.id}`));
-        const someSelected = m.lessons.some(l => selectedLessons.has(`${subKey}-M${m.id}-L${l.id}`));
+        // Unit Selection State (Evaluated across ALL lessons in this unit)
+        const unitSelectedCount = allUnitLessonKeys.filter(k => selectedLessons.has(k)).length;
+        const allUnitSelected = unitSelectedCount === allUnitLessonKeys.length && allUnitLessonKeys.length > 0;
+        const someUnitSelected = unitSelectedCount > 0 && !allUnitSelected;
+
+        // Auto-expand if searching or filtering, otherwise respect user collapse
+        const isUnitAutoExpanded = tokens.length > 0 || activeFilterChip !== "ALL";
+        const isUnitCollapsed = !isUnitAutoExpanded && collapsedUnits.has(unit.unitKey);
 
         html += `
-          <div class="module-scope-group" style="background: var(--bg-surface-elevated); border: 1.5px solid ${allSelected ? 'var(--chem-primary)' : 'var(--border-color)'}; border-radius: 10px; overflow: hidden; transition: border-color 0.2s ease;">
-            <!-- Module Header Bar -->
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(0,0,0,0.03); cursor: pointer;" class="module-header-toggle" data-modkey="${modKey}">
+          <div class="tree-node-unit ${unitSelectedCount > 0 ? 'has-selected' : ''}" data-unitkey="${unit.unitKey}">
+            <!-- Level 1: Unit Header (Folder) -->
+            <div class="tree-unit-header" data-unitkey="${unit.unitKey}">
               <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                <input type="checkbox" class="mod-checkbox" data-modkey="${modKey}" data-subj="${subKey}" data-mid="${m.id}" ${allSelected ? 'checked' : ''} ${someSelected && !allSelected ? 'indeterminate' : ''} style="width: 18px; height: 18px; cursor: pointer; accent-color: #0284c7; flex-shrink: 0;">
+                <span class="unit-toggle-arrow" style="font-size: 0.75rem; color: var(--text-dim); transition: transform 0.2s ease; transform: rotate(${isUnitCollapsed ? '-90deg' : '0deg'});">▼</span>
+                <input type="checkbox" class="tree-unit-cb" data-unitkey="${unit.unitKey}" ${allUnitSelected ? 'checked' : ''} ${someUnitSelected ? 'data-indeterminate="true"' : ''} title="Select/Deselect all lessons in ${unit.cleanTitle}">
+                <span style="font-size: 1.15rem; line-height: 1;">${isUnitCollapsed ? '📁' : '📂'}</span>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <span style="font-family: var(--font-mono); font-size: 0.78rem; font-weight: 800; color: ${cur.color}; background: rgba(0,0,0,0.06); padding: 2px 7px; border-radius: 4px;">${m.code}</span>
-                  <span style="font-weight: 700; font-size: 0.94rem; color: var(--text-main);">${highlightMatches(m.title, query)}</span>
+                  ${selectedSubject === "ALL" ? `<span style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 800; color: ${unit.color}; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;">${unit.subject}</span>` : ''}
+                  <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">${highlightMatches(unit.cleanTitle, query)}</span>
                 </div>
               </div>
               <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
-                ${m.lab ? `<span style="font-size: 0.72rem; color: #10b981; background: rgba(16,185,129,0.15); padding: 2px 8px; border-radius: 4px; font-weight: 600;">🔬 Virtual Lab</span>` : ''}
-                <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono); font-weight: 600;">${matchingLessons.length} / ${m.lessons.length} Lessons</span>
-                <span class="accordion-arrow" style="font-size: 0.75rem; color: var(--text-dim); transition: transform 0.2s ease; transform: rotate(${isCollapsed ? '0deg' : '180deg'});">▼</span>
+                <span style="font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; color: ${unitSelectedCount > 0 ? '#10b981' : 'var(--text-dim)'}; background: ${unitSelectedCount > 0 ? 'rgba(16,185,129,0.15)' : 'rgba(0,0,0,0.05)'}; padding: 3px 8px; border-radius: 4px;">
+                  ${unitSelectedCount} / ${allUnitLessonKeys.length} Selected
+                </span>
+                <span style="font-size: 0.74rem; color: var(--text-dim); font-family: var(--font-mono);">
+                  ${matchingModulesInUnit.length} ${matchingModulesInUnit.length === 1 ? 'Chapter' : 'Chapters'}
+                </span>
               </div>
             </div>
 
-            <!-- Lessons List Body: Directly Visible -->
-            <div class="module-lessons-list" style="display: ${isCollapsed ? 'none' : 'block'}; padding: 10px 14px 14px 20px; border-top: 1px solid var(--border-color); background: var(--bg-surface);">
-              <div style="display: flex; flex-direction: column; gap: 6px;">
-                ${matchingLessons.map(l => {
-                  const lessonKey = `${subKey}-M${m.id}-L${l.id}`;
-                  const isChecked = selectedLessons.has(lessonKey);
-                  return `
-                    <label class="lesson-checkbox-label" data-lessonkey="${lessonKey}" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; cursor: pointer; font-size: 0.88rem; color: ${isChecked ? 'var(--text-main)' : 'var(--text-muted)'}; padding: 8px 12px; border-radius: 6px; background: ${isChecked ? 'rgba(56, 189, 248, 0.12)' : 'transparent'}; border: 1px solid ${isChecked ? 'rgba(56, 189, 248, 0.35)' : 'transparent'}; transition: all 0.15s ease;">
-                      <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
-                        <input type="checkbox" class="lesson-checkbox" data-lessonkey="${lessonKey}" ${isChecked ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer; accent-color: #10b981; flex-shrink: 0;">
-                        <span style="font-family: var(--font-mono); font-size: 0.76rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">Lesson ${l.id}</span>
-                        <span class="lesson-title-text" style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${highlightMatches(l.title, query)}</span>
+            <!-- Level 2: Unit Body (Contains Chapters / Modules) -->
+            <div class="tree-unit-body" style="display: ${isUnitCollapsed ? 'none' : 'flex'};">
+              ${matchingModulesInUnit.map(({ module: m, lessons: matchingLessonsInMod }) => {
+                const modKey = `${subKey}-M${m.id}`;
+                const allModLessonKeys = m.lessons.map(l => `${subKey}-M${m.id}-L${l.id}`);
+                const modSelectedCount = allModLessonKeys.filter(k => selectedLessons.has(k)).length;
+                const allModSelected = modSelectedCount === allModLessonKeys.length && allModLessonKeys.length > 0;
+                const someModSelected = modSelectedCount > 0 && !allModSelected;
+
+                const isModAutoExpanded = tokens.length > 0 || activeFilterChip !== "ALL";
+                const isModCollapsed = !isModAutoExpanded && collapsedModules.has(modKey);
+
+                return `
+                  <div class="tree-node-module ${modSelectedCount > 0 ? 'has-selected' : ''}" data-modkey="${modKey}">
+                    <!-- Level 2: Chapter / Module Header -->
+                    <div class="tree-module-header" data-modkey="${modKey}">
+                      <div style="display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0;">
+                        <span class="mod-toggle-arrow" style="font-size: 0.7rem; color: var(--text-dim); transition: transform 0.2s ease; transform: rotate(${isModCollapsed ? '-90deg' : '0deg'});">▼</span>
+                        <input type="checkbox" class="tree-mod-cb" data-modkey="${modKey}" data-subj="${subKey}" data-mid="${m.id}" ${allModSelected ? 'checked' : ''} ${someModSelected ? 'data-indeterminate="true"' : ''} title="Select/Deselect all lessons in ${m.code}">
+                        <span style="font-size: 1rem; line-height: 1;">📑</span>
+                        <span style="font-family: var(--font-mono); font-size: 0.76rem; font-weight: 800; color: ${cur.color}; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;">${m.code}</span>
+                        <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${highlightMatches(m.title, query)}</span>
                       </div>
                       <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                        ${l.objectives ? `<span style="font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono);">${l.objectives.length} obj</span>` : ''}
-                        <span class="lesson-status-tag" style="font-size: 0.72rem; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: ${isChecked ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)'}; color: ${isChecked ? '#34d399' : 'var(--text-dim)'};">
-                          ${isChecked ? '✓ Selected' : 'Excluded'}
+                        ${m.lab ? `<span style="font-size: 0.7rem; color: #10b981; background: rgba(16,185,129,0.15); padding: 2px 7px; border-radius: 4px; font-weight: 700;">🔬 Lab</span>` : ''}
+                        <span style="font-size: 0.74rem; font-family: var(--font-mono); font-weight: 700; color: ${modSelectedCount > 0 ? '#10b981' : 'var(--text-dim)'};">
+                          ${modSelectedCount} / ${allModLessonKeys.length} Selected
                         </span>
                       </div>
-                    </label>
-                  `;
-                }).join("")}
-              </div>
+                    </div>
+
+                    <!-- Level 3: Lessons Container -->
+                    <div class="tree-module-body" style="display: ${isModCollapsed ? 'none' : 'flex'};">
+                      ${matchingLessonsInMod.map(l => {
+                        const lessonKey = `${subKey}-M${m.id}-L${l.id}`;
+                        const isChecked = selectedLessons.has(lessonKey);
+                        const objTitle = (l.objectives || []).map((o, idx) => `${idx + 1}. ${o}`).join("\n");
+
+                        return `
+                          <div class="tree-node-lesson ${isChecked ? 'is-checked' : ''}" data-lessonkey="${lessonKey}">
+                            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                              <input type="checkbox" class="tree-lesson-cb" data-lessonkey="${lessonKey}" ${isChecked ? 'checked' : ''}>
+                              <span style="font-size: 0.95rem; line-height: 1;">📄</span>
+                              <span style="font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700; color: #0284c7; background: rgba(2,132,199,0.12); padding: 2px 6px; border-radius: 4px; flex-shrink: 0;">L${l.id}</span>
+                              <span style="font-weight: 600; font-size: 0.86rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${l.title}">${highlightMatches(l.title, query)}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                              ${l.objectives ? `<span style="font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono); background: rgba(0,0,0,0.04); padding: 2px 6px; border-radius: 4px;" title="${objTitle}">${l.objectives.length} obj</span>` : ''}
+                              <span style="font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; font-family: var(--font-mono); background: ${isChecked ? 'rgba(16, 185, 129, 0.2)' : 'rgba(0,0,0,0.04)'}; color: ${isChecked ? '#047857' : 'var(--text-dim)'};">
+                                ${isChecked ? '✓ In Scope' : 'Empty'}
+                              </span>
+                            </div>
+                          </div>
+                        `;
+                      }).join("")}
+                    </div>
+                  </div>
+                `;
+              }).join("")}
             </div>
           </div>
         `;
@@ -364,32 +510,61 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     });
 
     if (totalVisibleLessons === 0) {
-      html = `<div style="text-align: center; color: var(--text-muted); padding: 32px 16px; font-size: 0.95rem; background: var(--bg-surface-elevated); border-radius: 8px; border: 1px dashed var(--border-color);">
-        <div style="font-size: 1.6rem; margin-bottom: 8px;">🔍</div>
-        <div>No lesson names matched "<strong>${lessonSearchQuery}</strong>".</div>
-        <div style="color: var(--text-dim); font-size: 0.82rem; margin-top: 4px;">Try searching by scientific concept (e.g. "density", "kinetics", "mitosis", "circuits") or clear the search.</div>
-      </div>`;
+      html = `
+        <div style="text-align: center; color: var(--text-muted); padding: 36px 16px; font-size: 0.95rem; background: var(--bg-surface-elevated); border-radius: 8px; border: 1px dashed var(--border-color);">
+          <div style="font-size: 1.8rem; margin-bottom: 8px;">🔍</div>
+          <div style="font-weight: 700; font-size: 1rem; color: var(--text-main);">No lessons match your search / filter criteria</div>
+          <div style="color: var(--text-dim); font-size: 0.84rem; margin-top: 6px; max-width: 440px; margin-left: auto; margin-right: auto;">
+            No items matched "<strong>${lessonSearchQuery}</strong>". Try searching by scientific term (e.g. "redox", "entropy", "mitosis", "refraction") or reset the filter.
+          </div>
+          <button class="btn btn-secondary" id="btn-reset-empty-search" style="margin-top: 14px; padding: 6px 16px; font-size: 0.82rem; font-weight: 700;">
+            ✕ Reset Search &amp; Filters
+          </button>
+        </div>
+      `;
     }
 
     listContainer.innerHTML = html;
 
-    // Update indeterminate properties on checkboxes
-    document.querySelectorAll(".mod-checkbox").forEach(cb => {
-      if (cb.hasAttribute("indeterminate")) {
-        cb.indeterminate = true;
-      }
+    // Apply indeterminate properties to tri-state checkboxes
+    document.querySelectorAll("[data-indeterminate='true']").forEach(cb => {
+      cb.indeterminate = true;
     });
 
-    // Update live counter badge & status indicators
+    // Update Counter Badges & Status
     const counterBadge = document.getElementById("scope-counter-badge");
     if (counterBadge) {
-      counterBadge.innerHTML = `Showing <strong>${totalVisibleLessons}</strong> of ${totalPossibleLessons} lessons • <strong style="color: #10b981;">${selectedLessons.size}</strong> selected`;
+      counterBadge.innerHTML = `Showing <strong>${totalVisibleLessons}</strong> of ${totalPossibleLessons} lessons • <strong style="color: #10b981;">${selectedLessons.size}</strong> in scope`;
     }
+
+    const chipSelectedCount = document.getElementById("chip-selected-count");
+    if (chipSelectedCount) chipSelectedCount.innerText = selectedLessons.size;
 
     const statusPill = document.getElementById("scope-status-pill");
     if (statusPill) statusPill.innerText = `Selected Scope: ${selectedLessons.size} Lessons`;
+
     const scopeCountEl = document.getElementById("summary-scope-count");
     if (scopeCountEl) scopeCountEl.innerText = `${selectedLessons.size} selected lessons`;
+
+    const emptyHint = document.getElementById("empty-scope-hint");
+    if (emptyHint) emptyHint.style.display = selectedLessons.size === 0 ? "flex" : "none";
+
+    // Dynamic Filtered Action Buttons
+    const searchActionContainer = document.getElementById("search-action-container");
+    if (searchActionContainer) {
+      if (tokens.length > 0 || activeFilterChip !== "ALL") {
+        searchActionContainer.innerHTML = `
+          <button class="btn btn-secondary btn-scope-action" id="btn-scope-select-filtered" style="padding: 4px 10px; font-size: 0.76rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 700;">
+            ✓ Select Filtered (${totalVisibleLessons})
+          </button>
+          <button class="btn btn-secondary btn-scope-action" id="btn-scope-clear-filtered" style="padding: 4px 10px; font-size: 0.76rem;">
+            ✕ Deselect Filtered
+          </button>
+        `;
+      } else {
+        searchActionContainer.innerHTML = "";
+      }
+    }
   }
 
   // --- BIND CONFIG EVENTS ---
@@ -403,13 +578,21 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     });
 
-    // Search lessons input
+    // Search lessons input with debounce & Escape shortcut
     const searchInp = document.getElementById("input-search-lessons");
     if (searchInp) {
       searchInp.addEventListener("input", (e) => {
         lessonSearchQuery = e.target.value;
         renderCurriculumChecklist();
         bindChecklistEvents();
+      });
+      searchInp.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          lessonSearchQuery = "";
+          searchInp.value = "";
+          renderCurriculumChecklist();
+          bindChecklistEvents();
+        }
       });
     }
 
@@ -425,44 +608,17 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     }
 
-    // Select Filtered Lessons
-    const btnFiltered = document.getElementById("btn-scope-filtered");
-    if (btnFiltered) {
-      btnFiltered.addEventListener("click", () => {
-        const activeSubjs = selectedSubject === "ALL" ? ["CHEM", "BIO", "PHYS"] : [selectedSubject];
-        const query = lessonSearchQuery.trim().toLowerCase();
-        activeSubjs.forEach(s => {
-          curricula[s].modules.forEach(m => {
-            m.lessons.forEach(l => {
-              if (!query || l.title.toLowerCase().includes(query) || m.title.toLowerCase().includes(query) || m.code.toLowerCase().includes(query)) {
-                selectedLessons.add(`${s}-M${m.id}-L${l.id}`);
-              }
-            });
-          });
+    // Filter Chips
+    document.querySelectorAll(".filter-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        activeFilterChip = chip.dataset.chip;
+        document.querySelectorAll(".filter-chip").forEach(c => {
+          c.classList.toggle("active", c.dataset.chip === activeFilterChip);
         });
         renderCurriculumChecklist();
         bindChecklistEvents();
       });
-    }
-
-    // Collapse / Expand All
-    const btnToggleExpand = document.getElementById("btn-scope-toggle-expand");
-    if (btnToggleExpand) {
-      btnToggleExpand.addEventListener("click", () => {
-        if (collapsedModules.size > 0) {
-          collapsedModules.clear();
-        } else {
-          const activeSubjs = selectedSubject === "ALL" ? ["CHEM", "BIO", "PHYS"] : [selectedSubject];
-          activeSubjs.forEach(s => {
-            curricula[s].modules.forEach(m => {
-              collapsedModules.add(`${s}-M${m.id}`);
-            });
-          });
-        }
-        renderCurriculumChecklist();
-        bindChecklistEvents();
-      });
-    }
+    });
 
     // Bulk buttons
     const btnAll = document.getElementById("btn-scope-all");
@@ -502,6 +658,33 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 selectedLessons.add(`${s}-M${m.id}-L${l.id}`);
               });
             }
+          });
+        });
+        renderCurriculumChecklist();
+        bindChecklistEvents();
+      });
+    }
+
+    // Expand All / Collapse All
+    const btnExpandAll = document.getElementById("btn-scope-expand-all");
+    if (btnExpandAll) {
+      btnExpandAll.addEventListener("click", () => {
+        collapsedUnits.clear();
+        collapsedModules.clear();
+        renderCurriculumChecklist();
+        bindChecklistEvents();
+      });
+    }
+
+    const btnCollapseAll = document.getElementById("btn-scope-collapse-all");
+    if (btnCollapseAll) {
+      btnCollapseAll.addEventListener("click", () => {
+        const activeSubjs = selectedSubject === "ALL" ? ["CHEM", "BIO", "PHYS"] : [selectedSubject];
+        activeSubjs.forEach(s => {
+          const units = getSubjectUnitTree(s);
+          units.forEach(u => {
+            collapsedUnits.add(u.unitKey);
+            u.modules.forEach(m => collapsedModules.add(`${s}-M${m.id}`));
           });
         });
         renderCurriculumChecklist();
@@ -557,24 +740,49 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   }
 
   function bindChecklistEvents() {
-    // Module Accordion Toggle
-    document.querySelectorAll(".module-header-toggle").forEach(header => {
+    // 1. Unit Checkbox Change (Cascades to all lessons in unit)
+    document.querySelectorAll(".tree-unit-cb").forEach(cb => {
+      cb.addEventListener("change", (e) => {
+        e.stopPropagation();
+        const unitKey = cb.dataset.unitkey;
+        const [subKey] = unitKey.split("-");
+        const units = getSubjectUnitTree(subKey);
+        const unit = units.find(u => u.unitKey === unitKey);
+        if (!unit) return;
+
+        unit.modules.forEach(m => {
+          m.lessons.forEach(l => {
+            const lKey = `${subKey}-M${m.id}-L${l.id}`;
+            if (cb.checked) {
+              selectedLessons.add(lKey);
+            } else {
+              selectedLessons.delete(lKey);
+            }
+          });
+        });
+
+        renderCurriculumChecklist();
+        bindChecklistEvents();
+      });
+    });
+
+    // 2. Unit Header Toggle (Expand / Collapse)
+    document.querySelectorAll(".tree-unit-header").forEach(header => {
       header.addEventListener("click", (e) => {
-        // Prevent toggle if clicking checkbox directly
-        if (e.target.classList.contains("mod-checkbox")) return;
-        const modKey = header.dataset.modkey;
-        if (collapsedModules.has(modKey)) {
-          collapsedModules.delete(modKey);
+        if (e.target.closest(".tree-unit-cb")) return;
+        const unitKey = header.dataset.unitkey;
+        if (collapsedUnits.has(unitKey)) {
+          collapsedUnits.delete(unitKey);
         } else {
-          collapsedModules.add(modKey);
+          collapsedUnits.add(unitKey);
         }
         renderCurriculumChecklist();
         bindChecklistEvents();
       });
     });
 
-    // Module Checkbox click (selects/deselects all lessons in module)
-    document.querySelectorAll(".mod-checkbox").forEach(cb => {
+    // 3. Module Checkbox Change (Cascades to all lessons in module)
+    document.querySelectorAll(".tree-mod-cb").forEach(cb => {
       cb.addEventListener("change", (e) => {
         e.stopPropagation();
         const subKey = cb.dataset.subj;
@@ -598,20 +806,81 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     });
 
-    // Lesson Checkbox click
-    document.querySelectorAll(".lesson-checkbox").forEach(cb => {
-      cb.addEventListener("change", (e) => {
-        e.stopPropagation();
-        const lKey = cb.dataset.lessonkey;
-        if (cb.checked) {
-          selectedLessons.add(lKey);
+    // 4. Module Header Toggle (Expand / Collapse)
+    document.querySelectorAll(".tree-module-header").forEach(header => {
+      header.addEventListener("click", (e) => {
+        if (e.target.closest(".tree-mod-cb")) return;
+        const modKey = header.dataset.modkey;
+        if (collapsedModules.has(modKey)) {
+          collapsedModules.delete(modKey);
         } else {
-          selectedLessons.delete(lKey);
+          collapsedModules.add(modKey);
         }
         renderCurriculumChecklist();
         bindChecklistEvents();
       });
     });
+
+    // 5. Lesson Row / Checkbox Click
+    document.querySelectorAll(".tree-node-lesson").forEach(row => {
+      row.addEventListener("click", (e) => {
+        const lKey = row.dataset.lessonkey;
+        const cb = row.querySelector(".tree-lesson-cb");
+        if (e.target !== cb) {
+          if (selectedLessons.has(lKey)) {
+            selectedLessons.delete(lKey);
+          } else {
+            selectedLessons.add(lKey);
+          }
+        } else {
+          if (cb.checked) {
+            selectedLessons.add(lKey);
+          } else {
+            selectedLessons.delete(lKey);
+          }
+        }
+        renderCurriculumChecklist();
+        bindChecklistEvents();
+      });
+    });
+
+    // 6. Reset Empty Search Button (if visible)
+    const btnResetSearch = document.getElementById("btn-reset-empty-search");
+    if (btnResetSearch) {
+      btnResetSearch.addEventListener("click", () => {
+        lessonSearchQuery = "";
+        activeFilterChip = "ALL";
+        const inp = document.getElementById("input-search-lessons");
+        if (inp) inp.value = "";
+        renderCurriculumChecklist();
+        bindChecklistEvents();
+      });
+    }
+
+    // 7. Dynamic Filtered Action Buttons
+    const btnSelectFiltered = document.getElementById("btn-scope-select-filtered");
+    if (btnSelectFiltered) {
+      btnSelectFiltered.addEventListener("click", () => {
+        document.querySelectorAll(".tree-node-lesson").forEach(row => {
+          const lKey = row.dataset.lessonkey;
+          if (lKey) selectedLessons.add(lKey);
+        });
+        renderCurriculumChecklist();
+        bindChecklistEvents();
+      });
+    }
+
+    const btnClearFiltered = document.getElementById("btn-scope-clear-filtered");
+    if (btnClearFiltered) {
+      btnClearFiltered.addEventListener("click", () => {
+        document.querySelectorAll(".tree-node-lesson").forEach(row => {
+          const lKey = row.dataset.lessonkey;
+          if (lKey) selectedLessons.delete(lKey);
+        });
+        renderCurriculumChecklist();
+        bindChecklistEvents();
+      });
+    }
   }
 
   // --- DYNAMIC QUESTION GENERATION & POOL RESOLUTION ---

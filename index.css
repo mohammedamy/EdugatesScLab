@@ -9139,3 +9139,281 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
     padding: 0 !important;
   }
 }
+
+/* =========================================================================
+   CURRICULUM SCOPE FILE EXPLORER (Step 2 Assessment Customizer)
+   ========================================================================= */
+
+.exam-scope-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+[data-theme="day"] .exam-scope-card {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+.scope-counter-badge {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  padding: 10px 16px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+[data-theme="day"] .scope-counter-badge {
+  color: #0284c7;
+  background: #f0f9ff;
+  border-color: #bae6fd;
+}
+
+.filter-chip {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+.filter-chip:hover {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.filter-chip.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+}
+
+[data-theme="day"] .filter-chip {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+[data-theme="day"] .filter-chip:hover {
+  background: #f0f9ff;
+  border-color: #0284c7;
+  color: #0284c7;
+}
+
+[data-theme="day"] .filter-chip.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+}
+
+/* Tree Structure Nodes */
+.curriculum-tree-container {
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.curriculum-tree-container::-webkit-scrollbar {
+  width: 6px;
+}
+.curriculum-tree-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+.curriculum-tree-container::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 4px;
+}
+[data-theme="day"] .curriculum-tree-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+/* Level 1: Unit Node */
+.tree-node-unit {
+  background: var(--bg-surface-elevated);
+  border: 1.5px solid var(--border-color);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tree-node-unit.has-selected {
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+[data-theme="day"] .tree-node-unit {
+  background: #ffffff;
+  border-color: #cbd5e1;
+}
+
+[data-theme="day"] .tree-node-unit.has-selected {
+  border-color: #10b981;
+}
+
+.tree-unit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 16px;
+  background: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.tree-unit-header:hover {
+  background: rgba(56, 189, 248, 0.08);
+}
+
+[data-theme="day"] .tree-unit-header {
+  background: #f8fafc;
+}
+
+[data-theme="day"] .tree-unit-header:hover {
+  background: #f1f5f9;
+}
+
+.tree-unit-body {
+  padding: 10px 14px 14px 18px;
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+[data-theme="day"] .tree-unit-body {
+  background: #fafafa;
+  border-color: #e2e8f0;
+}
+
+/* Level 2: Chapter / Module Node */
+.tree-node-module {
+  position: relative;
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-left: 12px;
+  transition: all 0.15s ease;
+}
+
+.tree-node-module.has-selected {
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+[data-theme="day"] .tree-node-module {
+  background: #ffffff;
+  border-color: #e2e8f0;
+}
+
+[data-theme="day"] .tree-node-module.has-selected {
+  border-color: #34d399;
+}
+
+.tree-module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.tree-module-header:hover {
+  background: rgba(56, 189, 248, 0.06);
+}
+
+[data-theme="day"] .tree-module-header:hover {
+  background: #f8fafc;
+}
+
+.tree-module-body {
+  padding: 8px 12px 10px 16px;
+  border-top: 1px solid var(--border-color);
+  background: rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+[data-theme="day"] .tree-module-body {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+/* Level 3: Lesson Node */
+.tree-node-lesson {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+  margin-left: 8px;
+  position: relative;
+}
+
+.tree-node-lesson:hover {
+  background: rgba(56, 189, 248, 0.08);
+}
+
+[data-theme="day"] .tree-node-lesson:hover {
+  background: #f1f5f9;
+}
+
+.tree-node-lesson.is-checked {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+[data-theme="day"] .tree-node-lesson.is-checked {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+/* Checkboxes in Tree */
+.tree-unit-cb,
+.tree-mod-cb,
+.tree-lesson-cb {
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  accent-color: #0284c7;
+  flex-shrink: 0;
+}
+
+[data-theme="day"] .tree-unit-cb,
+[data-theme="day"] .tree-mod-cb,
+[data-theme="day"] .tree-lesson-cb {
+  accent-color: #0284c7;
+}
+
+/* Search Highlights */
+mark.search-highlight {
+  background: rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 800;
+}
+
+[data-theme="day"] mark.search-highlight {
+  background: #bae6fd;
+  color: #0369a1;
+}
