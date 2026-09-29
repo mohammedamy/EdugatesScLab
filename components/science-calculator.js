@@ -388,9 +388,11 @@ function evaluateRPN(rpn, angleMode) {
 let currentExpression = "";
 let currentDisplayResult = "0";
 let lastAnswer = 0;
+let memoryAccumulator = 0;
 let angleMode = "DEG"; // 'DEG' or 'RAD'
+let notationMode = "STD"; // 'STD' or 'SCI'
 let is2ndMode = false; // toggles inverse trig & alternative functions
-let activeTab = "calc"; // 'calc', 'constants', 'formulas'
+let activeTab = "calc"; // 'calc', 'history', 'constants', 'formulas'
 let activeFormulaSubject = "chem"; // 'chem', 'phys', 'bio'
 let calcHistory = [];
 let isDragging = false;
@@ -417,6 +419,7 @@ export function openScienceCalculator(initialExpr = "") {
   if (initialExpr) {
     currentExpression = initialExpr;
     updateDisplay();
+    previewEvaluation();
   }
 
   bringWidgetToFront(modal);
@@ -427,12 +430,6 @@ export function openScienceCalculator(initialExpr = "") {
   // Sync toolbar active button state
   const toolCalc = document.getElementById("sb-tool-calc");
   if (toolCalc) toolCalc.classList.add("active");
-
-  // NOTE: On touch smartboards and mobile tablets, programmatically focusing an <input>
-  // commands the operating system to slide up the virtual on-screen keyboard,
-  // destroying the interactive laboratory experience.
-  // We intentionally do NOT auto-focus the display input. Physical keyboard keystrokes
-  // are cleanly intercepted and forwarded via document keydown listeners.
 }
 
 export function closeScienceCalculator() {
@@ -459,6 +456,26 @@ export function toggleScienceCalculator(forceState) {
   return shouldOpen;
 }
 
+function formatCalcDisplay(num) {
+  if (isNaN(num)) return "Error";
+  if (!isFinite(num)) return num > 0 ? "Infinity" : "-Infinity";
+  if (notationMode === "SCI") {
+    return num.toExponential(6).replace(/e\+?/, "e");
+  }
+  return formatCalcNumber(num);
+}
+
+function updateMemoryStatus() {
+  const lamp = document.getElementById("calc-lamp-mem");
+  if (lamp) {
+    lamp.classList.toggle("active", memoryAccumulator !== 0);
+  }
+  const btnMr = document.getElementById("btn-mem-mr");
+  if (btnMr) {
+    btnMr.title = `Memory Recall (Current: ${formatCalcNumber(memoryAccumulator)})`;
+  }
+}
+
 function createCalculatorDOM() {
   const modal = document.createElement("div");
   modal.id = "edugates-science-calculator";
@@ -472,15 +489,23 @@ function createCalculatorDOM() {
       <!-- Tier 1: Window Title & Controls -->
       <div class="calc-header-top-row">
         <div class="calc-header-title">
-          <span class="calc-header-dot"></span>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>
-          </svg>
-          <span class="calc-title-text">ClipSAT Calculator</span>
+          <div class="calc-header-emblem">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/>
+            </svg>
+          </div>
+          <span class="calc-title-text">ClipSAT Scientific</span>
+          <span class="calc-header-badge-tag">AP/SAT</span>
+        </div>
+
+        <!-- Minimized HUD Preview (Shown only when minimized) -->
+        <div class="calc-minimized-hud" id="calc-minimized-hud" title="Click to Expand Full Calculator">
+          <span class="calc-min-badge">CALC</span>
+          <span class="calc-min-result" id="calc-min-result">= 0</span>
         </div>
 
         <div class="calc-header-actions">
-          <button class="calc-hdr-btn" id="calc-btn-minimize" title="Minimize / Compact Floating Badge" aria-label="Minimize Calculator">
+          <button class="calc-hdr-btn" id="calc-btn-minimize" title="Minimize to Floating Pill" aria-label="Minimize Calculator">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
           <button class="calc-hdr-btn calc-hdr-close" id="calc-btn-close" title="Close Calculator (Escape)" aria-label="Close Calculator">
@@ -489,12 +514,20 @@ function createCalculatorDOM() {
         </div>
       </div>
 
-      <!-- Tier 2: Mode & Utility Navigation Tabs -->
+      <!-- Tier 2: Segmented Navigation Tabs -->
       <div class="calc-header-tabs" id="calc-header-tabs">
-        <button class="calc-header-tab active" data-tab="calc" id="tab-btn-calc" title="Scientific Keypad">Calculator</button>
-        <button class="calc-header-tab" data-tab="history" id="tab-btn-history" title="Calculation Tape & History">History</button>
-        <button class="calc-header-tab" data-tab="constants" id="tab-btn-constants" title="Physical &amp; Chemical Constants">Constants</button>
-        <button class="calc-header-tab" data-tab="formulas" id="tab-btn-formulas" title="AP/SAT STEM Reference Equations">Formulas</button>
+        <button class="calc-header-tab active" data-tab="calc" id="tab-btn-calc" title="Scientific Keypad">
+          <span>🧮</span><span>Keypad</span>
+        </button>
+        <button class="calc-header-tab" data-tab="history" id="tab-btn-history" title="Calculation Tape & History">
+          <span>📜</span><span>Tape</span><span class="calc-tab-count-badge" id="calc-history-badge">0</span>
+        </button>
+        <button class="calc-header-tab" data-tab="constants" id="tab-btn-constants" title="Physical & Chemical Constants">
+          <span>⚛</span><span>Constants</span>
+        </button>
+        <button class="calc-header-tab" data-tab="formulas" id="tab-btn-formulas" title="AP/SAT STEM Reference Equations">
+          <span>📐</span><span>Formulas</span>
+        </button>
       </div>
     </div>
 
@@ -502,10 +535,15 @@ function createCalculatorDOM() {
     <div class="calc-viewport" id="calc-viewport">
       <!-- 1. CALCULATOR VIEW -->
       <div class="calc-subview active" id="subview-calc">
-        <!-- Dual Row LCD Screen -->
+        <!-- Dual Row Matrix OLED Screen -->
         <div class="calc-lcd-screen">
           <div class="calc-lcd-top">
-            <span class="calc-badge-mode" id="calc-angle-indicator">DEG</span>
+            <div class="calc-lcd-status-pills">
+              <span class="calc-badge-mode" id="calc-angle-indicator" title="Click to toggle Degrees / Radians">DEG</span>
+              <span class="calc-lamp-indicator calc-lamp-2nd" id="calc-lamp-2nd">2ND</span>
+              <span class="calc-lamp-indicator calc-lamp-mem" id="calc-lamp-mem">M</span>
+              <span class="calc-badge-mode" id="calc-format-indicator" title="Click to toggle Standard / Scientific notation">STD</span>
+            </div>
             <span class="calc-history-peek" id="calc-expr-peek"></span>
           </div>
           <div class="calc-lcd-main">
@@ -516,70 +554,78 @@ function createCalculatorDOM() {
             </button>
           </div>
           <div class="calc-lcd-bottom">
+            <span class="calc-lcd-meta-info" id="calc-meta-info">Precision: 10-dec</span>
             <span class="calc-eval-status" id="calc-eval-status">= 0</span>
           </div>
         </div>
 
-        <!-- Quick Science Constants Bar -->
-        <div class="calc-quick-constants-bar">
-          <span class="calc-quick-lbl">Constants:</span>
-          <button class="calc-chip-btn" data-insert="c" title="Speed of light: 2.998 × 10⁸ m/s">c</button>
-          <button class="calc-chip-btn" data-insert="h" title="Planck's const: 6.626 × 10⁻³⁴ J·s">h</button>
-          <button class="calc-chip-btn" data-insert="N_A" title="Avogadro: 6.022 × 10²³ mol⁻¹">N_A</button>
-          <button class="calc-chip-btn" data-insert="R" title="Gas const (SI): 8.314 J/(mol·K)">R</button>
-          <button class="calc-chip-btn" data-insert="R_atm" title="Gas const (atm): 0.08206 L·atm/(mol·K)">R_atm</button>
-          <button class="calc-chip-btn" data-insert="g" title="Standard gravity: 9.807 m/s²">g</button>
-          <button class="calc-chip-btn" data-insert="q_e" title="Elementary charge: 1.602 × 10⁻¹⁹ C">q_e</button>
-          <button class="calc-chip-btn" data-insert="k_e" title="Coulomb const: 8.988 × 10⁹ N·m²/C²">k_e</button>
+        <!-- Quick Science Constants & Memory Bar -->
+        <div class="calc-ribbon-bar">
+          <div class="calc-ribbon-group">
+            <button class="calc-ribbon-btn" id="btn-mem-mc" title="Memory Clear (MC)">MC</button>
+            <button class="calc-ribbon-btn" id="btn-mem-mr" title="Memory Recall (MR)">MR</button>
+            <button class="calc-ribbon-btn" id="btn-mem-mplus" title="Memory Add (M+)">M+</button>
+            <button class="calc-ribbon-btn" id="btn-mem-mminus" title="Memory Subtract (M−)">M−</button>
+          </div>
+          <div class="calc-ribbon-divider"></div>
+          <div class="calc-ribbon-group">
+            <button class="calc-ribbon-chip" data-insert="c" title="Speed of light: 2.998 × 10⁸ m/s">c</button>
+            <button class="calc-ribbon-chip" data-insert="h" title="Planck's const: 6.626 × 10⁻³⁴ J·s">h</button>
+            <button class="calc-ribbon-chip" data-insert="N_A" title="Avogadro: 6.022 × 10²³ mol⁻¹">N<sub>A</sub></button>
+            <button class="calc-ribbon-chip" data-insert="R" title="Gas const: 8.314 J/(mol·K)">R</button>
+            <button class="calc-ribbon-chip" data-insert="g" title="Standard gravity: 9.807 m/s²">g</button>
+            <button class="calc-ribbon-chip" data-insert="q_e" title="Elementary charge: 1.602 × 10⁻¹⁹ C">e</button>
+            <button class="calc-ribbon-chip" data-insert="k_e" title="Coulomb const: 8.988 × 10⁹ N·m²/C²">k<sub>e</sub></button>
+          </div>
         </div>
 
-        <!-- Keypad Grid -->
+        <!-- Keypad Grid (6 columns x 6 rows) -->
         <div class="calc-keypad-grid">
-          <!-- Row 1: Modes & Controls -->
-          <button class="calc-key calc-key-mode" id="btn-toggle-deg-rad" title="Toggle Degrees / Radians">DEG</button>
-          <button class="calc-key calc-key-fn" id="btn-toggle-2nd" title="Toggle Inverse / 2nd Functions">2nd</button>
-          <button class="calc-key calc-key-fn" data-insert="(">(</button>
-          <button class="calc-key calc-key-fn" data-insert=")">)</button>
+          <!-- Row 1: 2nd, DEG/RAD, sin, cos, tan, Backspace -->
+          <button class="calc-key calc-key-ctrl" id="btn-toggle-2nd" title="Toggle 2nd / Inverse Functions">2nd</button>
+          <button class="calc-key calc-key-ctrl" id="btn-toggle-deg-rad" title="Toggle Degrees / Radians">DEG</button>
+          <button class="calc-key calc-key-fn" data-fn="sin" id="btn-fn-sin" title="Sine">sin</button>
+          <button class="calc-key calc-key-fn" data-fn="cos" id="btn-fn-cos" title="Cosine">cos</button>
+          <button class="calc-key calc-key-fn" data-fn="tan" id="btn-fn-tan" title="Tangent">tan</button>
           <button class="calc-key calc-key-ctrl" id="btn-calc-backspace" title="Backspace (Delete single character)">⌫</button>
-          <button class="calc-key calc-key-clear" id="btn-calc-clear" title="Clear All (C)">C</button>
 
-          <!-- Row 2: Trig & Logs -->
-          <button class="calc-key calc-key-fn" data-fn="sin" id="btn-fn-sin">sin</button>
-          <button class="calc-key calc-key-fn" data-fn="cos" id="btn-fn-cos">cos</button>
-          <button class="calc-key calc-key-fn" data-fn="tan" id="btn-fn-tan">tan</button>
-          <button class="calc-key calc-key-fn" data-fn="ln">ln</button>
-          <button class="calc-key calc-key-fn" data-fn="log">log</button>
-          <button class="calc-key calc-key-op" data-insert="/">÷</button>
+          <!-- Row 2: Powers, Roots, Logs, All Clear -->
+          <button class="calc-key calc-key-fn" id="btn-fn-sqr" data-insert="^2" title="Square (x²)">x²</button>
+          <button class="calc-key calc-key-fn" id="btn-fn-pow" data-insert="^" title="Power (xʸ)">xʸ</button>
+          <button class="calc-key calc-key-fn" data-fn="sqrt" id="btn-fn-sqrt" title="Square Root (√x)">√x</button>
+          <button class="calc-key calc-key-fn" data-fn="ln" id="btn-fn-ln" title="Natural Logarithm (ln)">ln</button>
+          <button class="calc-key calc-key-fn" data-fn="log" id="btn-fn-log" title="Base-10 Logarithm (log)">log</button>
+          <button class="calc-key calc-key-clear" id="btn-calc-clear" title="Clear All (AC)">AC</button>
 
-          <!-- Row 3: Powers, Roots, Pi & 7,8,9 -->
-          <button class="calc-key calc-key-fn" data-fn="sqrt" id="btn-fn-sqrt">√x</button>
-          <button class="calc-key calc-key-fn" data-insert="^">xʸ</button>
+          <!-- Row 3: Parentheses & 7, 8, 9, ÷ -->
+          <button class="calc-key calc-key-ctrl" data-insert="(" title="Open Parenthesis">(</button>
+          <button class="calc-key calc-key-ctrl" data-insert=")" title="Close Parenthesis">)</button>
           <button class="calc-key calc-key-num" data-insert="7">7</button>
           <button class="calc-key calc-key-num" data-insert="8">8</button>
           <button class="calc-key calc-key-num" data-insert="9">9</button>
-          <button class="calc-key calc-key-op" data-insert="*">×</button>
+          <button class="calc-key calc-key-op" data-insert="/" title="Division (÷)">÷</button>
 
-          <!-- Row 4: Exp, Pi, & 4,5,6 -->
-          <button class="calc-key calc-key-fn" data-insert="*10^" title="Scientific Notation Exp (×10ⁿ)">EE</button>
+          <!-- Row 4: Constants & 4, 5, 6, × -->
           <button class="calc-key calc-key-fn" data-insert="pi" title="Pi (3.14159...)">π</button>
+          <button class="calc-key calc-key-fn" data-insert="*10^" title="Scientific Notation Exp (×10ⁿ)">EE</button>
           <button class="calc-key calc-key-num" data-insert="4">4</button>
           <button class="calc-key calc-key-num" data-insert="5">5</button>
           <button class="calc-key calc-key-num" data-insert="6">6</button>
-          <button class="calc-key calc-key-op" data-insert="-">−</button>
+          <button class="calc-key calc-key-op" data-insert="*" title="Multiplication (×)">×</button>
 
-          <!-- Row 5: 1/x, %, & 1,2,3 -->
+          <!-- Row 5: Reciprocal, Negate & 1, 2, 3, − -->
           <button class="calc-key calc-key-fn" id="btn-fn-reciprocal" title="Reciprocal (1/x)">1/x</button>
           <button class="calc-key calc-key-fn" id="btn-fn-negate" title="Negate (±)">±</button>
           <button class="calc-key calc-key-num" data-insert="1">1</button>
           <button class="calc-key calc-key-num" data-insert="2">2</button>
           <button class="calc-key calc-key-num" data-insert="3">3</button>
-          <button class="calc-key calc-key-op" data-insert="+">+</button>
+          <button class="calc-key calc-key-op" data-insert="-" title="Subtraction (−)">−</button>
 
-          <!-- Row 6: 0, ., Ans, Equal -->
-          <button class="calc-key calc-key-fn" id="btn-fn-ans" title="Last Calculated Answer">ANS</button>
+          <!-- Row 6: ANS, %, 0, ., Equals (=) -->
+          <button class="calc-key calc-key-ctrl" id="btn-fn-ans" title="Previous Answer">ANS</button>
+          <button class="calc-key calc-key-fn" id="btn-fn-percent" data-insert="%" title="Percentage (%)">%</button>
           <button class="calc-key calc-key-num" data-insert="0">0</button>
           <button class="calc-key calc-key-num" data-insert=".">.</button>
-          <button class="calc-key calc-key-fn" data-insert="%">%</button>
           <button class="calc-key calc-key-equal" id="btn-calc-equal" style="grid-column: span 2;" title="Calculate Result (Enter)">=</button>
         </div>
       </div>
@@ -587,8 +633,8 @@ function createCalculatorDOM() {
       <!-- 2. CALCULATION TAPE / HISTORY VIEW -->
       <div class="calc-subview" id="subview-history" style="display: none;">
         <div class="calc-history-view-hdr">
-          <span>Calculation Tape &amp; Recall</span>
-          <button class="btn btn-sm btn-secondary" id="btn-clear-history-view" style="padding: 3px 10px; font-size: 0.72rem; border-radius: 4px;">Clear Tape</button>
+          <span>📜 Calculation Tape</span>
+          <button class="btn btn-sm btn-secondary" id="btn-clear-history-view" style="padding: 3px 10px; font-size: 0.72rem; border-radius: 6px;">Clear Tape</button>
         </div>
         <div class="calc-history-list" id="calc-history-list">
           <div class="calc-history-empty" style="padding: 28px 14px; text-align: center; color: var(--text-muted); font-size: 0.82rem;">No previous calculations recorded</div>
@@ -599,7 +645,7 @@ function createCalculatorDOM() {
       <div class="calc-subview" id="subview-constants" style="display: none;">
         <div class="calc-ref-header">
           <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-            <input type="text" class="fc-search-input" id="calc-constants-search" placeholder="Search constants (e.g. gas, Planck)..." style="flex: 1; font-size: 0.82rem; padding: 6px 10px;" autocomplete="off" />
+            <input type="text" class="fc-search-input" id="calc-constants-search" placeholder="Search physical constants (e.g. gas, Planck)..." style="flex: 1; font-size: 0.82rem; padding: 7px 12px; border-radius: 8px;" autocomplete="off" />
             <button class="btn btn-sm btn-secondary" id="calc-constants-search-clear" title="Clear Search" style="display: none; padding: 4px 8px; font-size: 0.75rem;">✕</button>
           </div>
           <div class="calc-category-chips" id="calc-const-cat-chips" style="display: flex; gap: 6px; margin-bottom: 10px;">
@@ -624,7 +670,7 @@ function createCalculatorDOM() {
         </div>
       </div>
 
-      <!-- 3. AP/SAT STEM FORMULAS VIEW -->
+      <!-- 4. AP/SAT STEM FORMULAS VIEW -->
       <div class="calc-subview" id="subview-formulas" style="display: none;">
         <div class="calc-formula-subnav">
           <button class="btn btn-sm btn-secondary active" data-sub="chem" id="btn-sub-chem">Inspire Chemistry</button>
@@ -646,6 +692,8 @@ function bindCalculatorEvents(modal) {
   const exprInput = modal.querySelector("#calc-expr-input");
   const evalStatus = modal.querySelector("#calc-eval-status");
   const angleIndicator = modal.querySelector("#calc-angle-indicator");
+  const formatIndicator = modal.querySelector("#calc-format-indicator");
+  const lamp2nd = modal.querySelector("#calc-lamp-2nd");
   const btnDegRad = modal.querySelector("#btn-toggle-deg-rad");
   const btn2nd = modal.querySelector("#btn-toggle-2nd");
   const btnEqual = modal.querySelector("#btn-calc-equal");
@@ -655,13 +703,14 @@ function bindCalculatorEvents(modal) {
   const btnClearHistory = modal.querySelector("#btn-clear-history-view");
   const btnClose = modal.querySelector("#calc-btn-close");
   const btnMinimize = modal.querySelector("#calc-btn-minimize");
+  const minimizedHud = modal.querySelector("#calc-minimized-hud");
 
   // Bring to front on any click or touch
   modal.addEventListener("pointerdown", () => {
     bringWidgetToFront(modal);
   });
 
-  // Draggable logic for Smartboard & Desktop
+  // Draggable logic with viewport bounds protection
   dragHeader.addEventListener("pointerdown", (e) => {
     if (e.target.closest("button") || e.target.closest("input")) return;
     bringWidgetToFront(modal);
@@ -683,8 +732,10 @@ function bindCalculatorEvents(modal) {
     if (!isDragging) return;
     const dx = e.clientX - dragStartX;
     const dy = e.clientY - dragStartY;
-    const newX = Math.max(10, Math.min(window.innerWidth - 380, initialModalX + dx));
-    const newY = Math.max(10, Math.min(window.innerHeight - 200, initialModalY + dy));
+    const modalW = modal.offsetWidth || 380;
+    const modalH = modal.offsetHeight || 500;
+    const newX = Math.max(10, Math.min(window.innerWidth - modalW - 10, initialModalX + dx));
+    const newY = Math.max(10, Math.min(window.innerHeight - 80, initialModalY + dy));
     modal.style.left = `${newX}px`;
     modal.style.top = `${newY}px`;
   });
@@ -696,10 +747,15 @@ function bindCalculatorEvents(modal) {
     }
   });
 
-  // Minimize / Expand
+  // Minimize / Expand Floating Pill
   btnMinimize.addEventListener("click", () => {
     modal.classList.toggle("minimized");
-    SoundFX.playClick();
+    SoundFX.playPop();
+  });
+
+  minimizedHud?.addEventListener("click", () => {
+    modal.classList.remove("minimized");
+    SoundFX.playPop();
   });
 
   btnClose.addEventListener("click", (e) => {
@@ -776,38 +832,118 @@ function bindCalculatorEvents(modal) {
   });
 
   // DEG / RAD Toggle
-  btnDegRad.addEventListener("click", () => {
+  const toggleAngleMode = () => {
     angleMode = angleMode === "DEG" ? "RAD" : "DEG";
     btnDegRad.innerText = angleMode;
     angleIndicator.innerText = angleMode;
     SoundFX.playSwitchSnap();
     previewEvaluation();
-  });
+  };
+  btnDegRad.addEventListener("click", toggleAngleMode);
+  angleIndicator.addEventListener("click", toggleAngleMode);
 
-  // 2nd / Inverse Mode Toggle
-  btn2nd.addEventListener("click", () => {
-    is2ndMode = !is2ndMode;
-    btn2nd.classList.toggle("active", is2ndMode);
-    modal.querySelector("#btn-fn-sin").innerText = is2ndMode ? "sin⁻¹" : "sin";
-    modal.querySelector("#btn-fn-sin").dataset.fn = is2ndMode ? "asin" : "sin";
-    modal.querySelector("#btn-fn-cos").innerText = is2ndMode ? "cos⁻¹" : "cos";
-    modal.querySelector("#btn-fn-cos").dataset.fn = is2ndMode ? "acos" : "cos";
-    modal.querySelector("#btn-fn-tan").innerText = is2ndMode ? "tan⁻¹" : "tan";
-    modal.querySelector("#btn-fn-tan").dataset.fn = is2ndMode ? "atan" : "tan";
-    modal.querySelector("#btn-fn-sqrt").innerText = is2ndMode ? "∛x" : "√x";
-    modal.querySelector("#btn-fn-sqrt").dataset.fn = is2ndMode ? "cbrt" : "sqrt";
+  // Scientific Notation Toggle (STD / SCI)
+  formatIndicator?.addEventListener("click", () => {
+    notationMode = notationMode === "STD" ? "SCI" : "STD";
+    formatIndicator.innerText = notationMode;
     SoundFX.playSwitchSnap();
-  });
-
-  // Input typing listener
-  exprInput.addEventListener("input", (e) => {
-    currentExpression = e.target.value;
     previewEvaluation();
   });
 
+  // Memory Operations
+  modal.querySelector("#btn-mem-mc")?.addEventListener("click", () => {
+    memoryAccumulator = 0;
+    updateMemoryStatus();
+    showToast("Memory Cleared", "M = 0", "info");
+    SoundFX.playClick();
+  });
+
+  modal.querySelector("#btn-mem-mr")?.addEventListener("click", () => {
+    insertAtCursor(String(memoryAccumulator));
+    SoundFX.playClick();
+  });
+
+  modal.querySelector("#btn-mem-mplus")?.addEventListener("click", () => {
+    const val = parseFloat(currentDisplayResult) || 0;
+    memoryAccumulator += val;
+    updateMemoryStatus();
+    showToast("Memory Add (M+)", `M = ${formatCalcNumber(memoryAccumulator)}`, "success");
+    SoundFX.playScorePip();
+  });
+
+  modal.querySelector("#btn-mem-mminus")?.addEventListener("click", () => {
+    const val = parseFloat(currentDisplayResult) || 0;
+    memoryAccumulator -= val;
+    updateMemoryStatus();
+    showToast("Memory Subtract (M−)", `M = ${formatCalcNumber(memoryAccumulator)}`, "success");
+    SoundFX.playScorePip();
+  });
+
+  // 2nd / Inverse Mode Toggle with Functional Button Mapping
+  btn2nd.addEventListener("click", () => {
+    is2ndMode = !is2ndMode;
+    btn2nd.classList.toggle("active", is2ndMode);
+    lamp2nd?.classList.toggle("active", is2ndMode);
+
+    const btnSin = modal.querySelector("#btn-fn-sin");
+    const btnCos = modal.querySelector("#btn-fn-cos");
+    const btnTan = modal.querySelector("#btn-fn-tan");
+    const btnSqrt = modal.querySelector("#btn-fn-sqrt");
+    const btnSqr = modal.querySelector("#btn-fn-sqr");
+    const btnLn = modal.querySelector("#btn-fn-ln");
+    const btnLog = modal.querySelector("#btn-fn-log");
+    const btnRecip = modal.querySelector("#btn-fn-reciprocal");
+    const btnPercent = modal.querySelector("#btn-fn-percent");
+    const btnAns = modal.querySelector("#btn-fn-ans");
+
+    if (btnSin) {
+      btnSin.innerText = is2ndMode ? "sin⁻¹" : "sin";
+      btnSin.dataset.fn = is2ndMode ? "asin" : "sin";
+    }
+    if (btnCos) {
+      btnCos.innerText = is2ndMode ? "cos⁻¹" : "cos";
+      btnCos.dataset.fn = is2ndMode ? "acos" : "cos";
+    }
+    if (btnTan) {
+      btnTan.innerText = is2ndMode ? "tan⁻¹" : "tan";
+      btnTan.dataset.fn = is2ndMode ? "atan" : "tan";
+    }
+    if (btnSqrt) {
+      btnSqrt.innerText = is2ndMode ? "∛x" : "√x";
+      btnSqrt.dataset.fn = is2ndMode ? "cbrt" : "sqrt";
+    }
+    if (btnSqr) {
+      btnSqr.innerText = is2ndMode ? "x³" : "x²";
+      btnSqr.dataset.insert = is2ndMode ? "^3" : "^2";
+    }
+    if (btnLn) {
+      btnLn.innerText = is2ndMode ? "eˣ" : "ln";
+      btnLn.dataset.fn = is2ndMode ? "exp" : "ln";
+    }
+    if (btnLog) {
+      btnLog.innerText = is2ndMode ? "10ˣ" : "log";
+      if (is2ndMode) {
+        delete btnLog.dataset.fn;
+        btnLog.dataset.insert = "10^";
+      } else {
+        delete btnLog.dataset.insert;
+        btnLog.dataset.fn = "log";
+      }
+    }
+    if (btnRecip) {
+      btnRecip.innerText = is2ndMode ? "n!" : "1/x";
+    }
+    if (btnPercent) {
+      btnPercent.innerText = is2ndMode ? "|x|" : "%";
+    }
+    if (btnAns) {
+      btnAns.innerText = is2ndMode ? "RND" : "ANS";
+    }
+
+    SoundFX.playSwitchSnap();
+  });
+
   // Physical Keyboard navigation & Shortcuts
-  // Allows hardware desktop/laptop keyboards to type numbers, operators, Enter, Backspace, Escape
-  // without needing input focus or summoning on-screen touch virtual keyboards
   document.addEventListener("keydown", (e) => {
     if (modal.style.display === "none") return;
     if (e.target && e.target.tagName === "INPUT" && e.target.id !== "calc-expr-input" && e.target.id !== "calc-constants-search") {
@@ -827,7 +963,6 @@ function bindCalculatorEvents(modal) {
       if (e.key === "Enter" || e.key === "=") {
         e.preventDefault();
         executeEvaluation();
-        SoundFX.playClick();
       } else if (e.key === "Backspace") {
         e.preventDefault();
         btnBackspace.click();
@@ -860,15 +995,21 @@ function bindCalculatorEvents(modal) {
     });
   });
 
-  // Reciprocal button (1/x)
+  // Reciprocal / Factorial button
   modal.querySelector("#btn-fn-reciprocal").addEventListener("click", () => {
-    if (currentExpression) {
-      currentExpression = `1/(${currentExpression})`;
+    if (is2ndMode) {
+      // Factorial (!)
+      insertAtCursor("!");
     } else {
-      currentExpression = "1/";
+      // Reciprocal (1/x)
+      if (currentExpression) {
+        currentExpression = `1/(${currentExpression})`;
+      } else {
+        currentExpression = "1/";
+      }
+      updateDisplay();
+      previewEvaluation();
     }
-    updateDisplay();
-    previewEvaluation();
     SoundFX.playClick();
   });
 
@@ -886,9 +1027,25 @@ function bindCalculatorEvents(modal) {
     SoundFX.playClick();
   });
 
-  // ANS button
+  // ANS / Random button
   modal.querySelector("#btn-fn-ans").addEventListener("click", () => {
-    insertAtCursor(String(lastAnswer));
+    if (is2ndMode) {
+      // Random float between 0 and 1
+      const randVal = (Math.random()).toFixed(4);
+      insertAtCursor(String(randVal));
+    } else {
+      insertAtCursor(String(lastAnswer));
+    }
+    SoundFX.playClick();
+  });
+
+  // Percent / Abs button
+  modal.querySelector("#btn-fn-percent").addEventListener("click", () => {
+    if (is2ndMode) {
+      insertFunction("abs");
+    } else {
+      insertAtCursor("%");
+    }
     SoundFX.playClick();
   });
 
@@ -900,6 +1057,8 @@ function bindCalculatorEvents(modal) {
     updateDisplay();
     evalStatus.innerText = "= 0";
     evalStatus.classList.remove("error");
+    const minRes = modal.querySelector("#calc-min-result");
+    if (minRes) minRes.innerText = "= 0";
     SoundFX.playClick();
   });
 
@@ -934,6 +1093,7 @@ function bindCalculatorEvents(modal) {
   btnClearHistory?.addEventListener("click", () => {
     calcHistory = [];
     renderHistoryTape();
+    updateHistoryBadge();
     SoundFX.playClick();
   });
 }
@@ -947,12 +1107,12 @@ function insertAtCursor(text) {
 
   currentExpression = currentExpression.substring(0, start) + text + currentExpression.substring(end);
   updateDisplay();
-  
+
   const newPos = start + text.length;
   try {
     input.setSelectionRange(newPos, newPos);
   } catch (e) {}
-  // Intentionally omitting input.focus() to prevent touch screens/smartboards from popping up the virtual software keyboard
+
   previewEvaluation();
 }
 
@@ -964,23 +1124,29 @@ function updateDisplay() {
   const input = document.getElementById("calc-expr-input");
   if (input) {
     input.value = currentExpression;
+    // Auto-scroll input to the right so latest typed character is always visible
+    input.scrollLeft = input.scrollWidth;
   }
 }
 
 function previewEvaluation() {
   const evalStatus = document.getElementById("calc-eval-status");
+  const minResult = document.getElementById("calc-min-result");
   if (!evalStatus || !currentExpression.trim()) {
     if (evalStatus) {
       evalStatus.innerText = "= 0";
       evalStatus.classList.remove("error");
     }
+    if (minResult) minResult.innerText = "= 0";
     return;
   }
 
   const evalRes = evaluateScienceExpression(currentExpression, angleMode);
   if (evalRes.success) {
-    evalStatus.innerText = `= ${evalRes.text}`;
+    const formatted = formatCalcDisplay(evalRes.result);
+    evalStatus.innerText = `= ${formatted}`;
     evalStatus.classList.remove("error");
+    if (minResult) minResult.innerText = `= ${formatted}`;
   } else {
     evalStatus.innerText = `...`;
     evalStatus.classList.remove("error");
@@ -988,9 +1154,9 @@ function previewEvaluation() {
 }
 
 function executeEvaluation() {
-  const input = document.getElementById("calc-expr-input");
   const evalStatus = document.getElementById("calc-eval-status");
   const exprPeek = document.getElementById("calc-expr-peek");
+  const minResult = document.getElementById("calc-min-result");
 
   if (!currentExpression.trim()) return;
 
@@ -998,22 +1164,24 @@ function executeEvaluation() {
   if (evalRes.success) {
     const prevExpr = currentExpression;
     lastAnswer = evalRes.result;
-    currentDisplayResult = evalRes.text;
+    currentDisplayResult = formatCalcDisplay(evalRes.result);
 
     // Record in history tape
     calcHistory.unshift({
       expr: prevExpr,
-      result: evalRes.text,
+      result: currentDisplayResult,
       timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })
     });
-    if (calcHistory.length > 30) calcHistory.pop();
+    if (calcHistory.length > 50) calcHistory.pop();
     renderHistoryTape();
+    updateHistoryBadge();
 
     if (exprPeek) exprPeek.innerText = `${prevExpr} =`;
-    currentExpression = evalRes.text;
+    currentExpression = currentDisplayResult;
     updateDisplay();
-    evalStatus.innerText = `= ${evalRes.text}`;
+    evalStatus.innerText = `= ${currentDisplayResult}`;
     evalStatus.classList.remove("error");
+    if (minResult) minResult.innerText = `= ${currentDisplayResult}`;
 
     SoundFX.playScorePip();
   } else {
@@ -1023,26 +1191,31 @@ function executeEvaluation() {
   }
 }
 
+function updateHistoryBadge() {
+  const badge = document.getElementById("calc-history-badge");
+  if (badge) badge.innerText = String(calcHistory.length);
+}
+
 function renderHistoryTape() {
   const list = document.getElementById("calc-history-list");
   if (!list) return;
 
   if (calcHistory.length === 0) {
-    list.innerHTML = `<div class="calc-history-empty" style="padding: 28px 14px; text-align: center; color: var(--text-muted); font-size: 0.82rem;">No previous calculations recorded</div>`;
+    list.innerHTML = `<div class="calc-history-empty" style="padding: 32px 14px; text-align: center; color: var(--text-muted); font-size: 0.84rem;">No previous calculations recorded</div>`;
     return;
   }
 
   list.innerHTML = calcHistory.map((item, idx) => `
-    <div class="calc-history-item" data-idx="${idx}" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 8px 12px; margin-bottom: 8px; transition: border-color 0.15s ease;">
+    <div class="calc-history-item" data-idx="${idx}">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
         <span class="calc-history-time" style="font-size: 0.7rem; color: #64748b;">${item.timestamp}</span>
         <div style="display: flex; gap: 4px;">
-          <button class="btn btn-sm btn-secondary btn-reuse-expr" data-idx="${idx}" title="Load expression into calculator input" style="padding: 1px 6px; font-size: 0.68rem; border-radius: 4px;">↺ Expr</button>
-          <button class="btn btn-sm btn-primary btn-insert-ans" data-idx="${idx}" title="Insert answer into calculator" style="padding: 1px 6px; font-size: 0.68rem; border-radius: 4px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8;">+ Ans</button>
+          <button class="btn btn-sm btn-secondary btn-reuse-expr" data-idx="${idx}" title="Load expression into calculator input" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px;">↺ Edit</button>
+          <button class="btn btn-sm btn-primary btn-insert-ans" data-idx="${idx}" title="Insert answer into calculator" style="padding: 2px 7px; font-size: 0.68rem; border-radius: 4px; background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8;">+ Ans</button>
         </div>
       </div>
-      <div class="calc-history-expr" style="font-family: var(--font-mono); font-size: 0.82rem; color: #cbd5e1; margin-bottom: 2px;">${item.expr}</div>
-      <div class="calc-history-ans" style="font-family: var(--font-mono); font-size: 0.95rem; color: #38bdf8; font-weight: 800; text-align: right;">= ${item.result}</div>
+      <div class="calc-history-expr" style="font-family: var(--font-mono); font-size: 0.85rem; color: #cbd5e1; margin-bottom: 2px;">${item.expr}</div>
+      <div class="calc-history-ans" style="font-family: var(--font-mono); font-size: 1.05rem; color: #22d3ee; font-weight: 800; text-align: right;">= ${item.result}</div>
     </div>
   `).join("");
 
@@ -1109,16 +1282,16 @@ function renderConstantsTable(query = "", category = "all") {
     <tr>
       <td>
         <div style="display: flex; align-items: baseline; gap: 6px;">
-          <span style="font-family: var(--font-mono); font-weight: 800; color: #38bdf8; font-size: 0.88rem;">${c.symbol}</span>
-          <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">${c.category}</span>
+          <span style="font-family: var(--font-mono); font-weight: 800; color: #38bdf8; font-size: 0.92rem;">${c.symbol}</span>
+          <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">${c.category}</span>
         </div>
-        <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-main); line-height: 1.2;">${c.name}</div>
+        <div style="font-weight: 600; font-size: 0.82rem; color: var(--text-main); line-height: 1.25;">${c.name}</div>
       </td>
       <td>
-        <div style="font-family: var(--font-mono); font-size: 0.76rem; color: #a5f3fc; font-weight: 600;">${c.display}</div>
+        <div style="font-family: var(--font-mono); font-size: 0.78rem; color: #a5f3fc; font-weight: 600;">${c.display}</div>
       </td>
       <td style="text-align: right;">
-        <button class="btn btn-sm btn-secondary calc-use-const-btn" data-sym="${c.symbol}" title="Insert ${c.symbol} into active calculation" style="padding: 3px 8px; font-size: 0.72rem; border-radius: 6px; white-space: nowrap;">
+        <button class="btn btn-sm btn-secondary calc-use-const-btn" data-sym="${c.symbol}" title="Insert ${c.symbol} into active calculation" style="padding: 3px 9px; font-size: 0.72rem; border-radius: 6px; white-space: nowrap;">
           + Use
         </button>
       </td>
@@ -1132,6 +1305,7 @@ function renderConstantsTable(query = "", category = "all") {
       calcTab?.click();
       insertAtCursor(sym);
       showToast("Constant Inserted", `${sym} inserted into active calculation`, "info");
+      SoundFX.playScorePip();
     });
   });
 }
@@ -1145,7 +1319,7 @@ function renderFormulasView() {
     <div class="calc-formula-card">
       <div class="calc-formula-card-top">
         <span class="calc-formula-title">${item.title}</span>
-        <button class="btn btn-sm btn-secondary calc-insert-formula-btn" data-formula="${item.formula}" title="Insert formula template into calculator" style="padding: 2px 7px; font-size: 0.72rem;">
+        <button class="btn btn-sm btn-secondary calc-insert-formula-btn" data-formula="${item.formula}" title="Insert formula template into calculator" style="padding: 2px 8px; font-size: 0.72rem;">
           Use
         </button>
       </div>
@@ -1165,6 +1339,8 @@ function renderFormulasView() {
       calcTab?.click();
       insertAtCursor(rawFormula);
       showToast("Formula Loaded", rawFormula, "info");
+      SoundFX.playScorePip();
     });
   });
 }
+
