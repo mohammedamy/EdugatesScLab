@@ -38,6 +38,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   let lessonSearchQuery = "";
   let activeFilterChip = "ALL"; // 'ALL', 'LABS', 'SELECTED', 'UNSELECTED'
   let collapsedUnits = new Set(); // Explicitly collapsed unit keys
+  let expandedModules = new Set(); // Explicitly expanded module keys
   let collapsedModules = new Set(); // Explicitly collapsed module keys
 
   // Curricula registry
@@ -57,11 +58,20 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   // Initialize default scope: Start with clean EMPTY checkboxes (unless explicit scope preset is provided)
   function initDefaultScope() {
     selectedLessons.clear();
+    expandedModules.clear();
+    collapsedModules.clear();
+    collapsedUnits.clear();
     if (initialConfig && initialConfig.scope) {
       const scopeItems = initialConfig.scope.split(",");
       scopeItems.forEach(s => {
         const item = s.trim();
-        if (item) selectedLessons.add(item);
+        if (item) {
+          selectedLessons.add(item);
+          const parts = item.split("-");
+          if (parts.length >= 2) {
+            expandedModules.add(`${parts[0]}-${parts[1]}`);
+          }
+        }
       });
     }
     // Note: By user design, all checkboxes start empty so user can choose their exact scope deliberately
@@ -220,7 +230,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             </div>
 
             <!-- Scrollable File Explorer Tree Container -->
-            <div id="curriculum-checklist-container" class="curriculum-tree-container" style="max-height: 520px; overflow-y: auto; padding-right: 6px; display: flex; flex-direction: column; gap: 10px;">
+            <div id="curriculum-checklist-container" class="curriculum-tree-container" style="max-height: 540px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; display: flex; flex-direction: column; gap: 10px;">
               <!-- Rendered dynamically -->
             </div>
           </div>
@@ -339,6 +349,8 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     const listContainer = document.getElementById("curriculum-checklist-container");
     if (!listContainer) return;
 
+    const prevScrollTop = listContainer.scrollTop;
+
     // Collect active subjects to render
     const activeSubjs = selectedSubject === "ALL" ? ["CHEM", "BIO", "PHYS"] : [selectedSubject];
     const query = lessonSearchQuery.trim().toLowerCase();
@@ -429,7 +441,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
                 <span class="unit-toggle-arrow" style="font-size: 0.75rem; color: var(--text-dim); transition: transform 0.2s ease; transform: rotate(${isUnitCollapsed ? '-90deg' : '0deg'});">▼</span>
                 <input type="checkbox" class="tree-unit-cb" data-unitkey="${unit.unitKey}" ${allUnitSelected ? 'checked' : ''} ${someUnitSelected ? 'data-indeterminate="true"' : ''} title="Select/Deselect all lessons in ${unit.cleanTitle}">
-                <span style="font-size: 1.15rem; line-height: 1;">${isUnitCollapsed ? '📁' : '📂'}</span>
+                <span class="unit-folder-icon" style="font-size: 1.15rem; line-height: 1;">${isUnitCollapsed ? '📁' : '📂'}</span>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   ${selectedSubject === "ALL" ? `<span style="font-family: var(--font-mono); font-size: 0.72rem; font-weight: 800; color: ${unit.color}; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;">${unit.subject}</span>` : ''}
                   <span style="font-weight: 800; font-size: 0.95rem; color: var(--text-main);">${highlightMatches(unit.cleanTitle, query)}</span>
@@ -455,29 +467,41 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 const someModSelected = modSelectedCount > 0 && !allModSelected;
 
                 const isModAutoExpanded = tokens.length > 0 || activeFilterChip !== "ALL";
-                const isModCollapsed = !isModAutoExpanded && collapsedModules.has(modKey);
+                const isModExplicitlyExpanded = expandedModules.has(modKey);
+                const isModExplicitlyCollapsed = collapsedModules.has(modKey);
+
+                let isModExpanded = false;
+                if (isModAutoExpanded) {
+                  isModExpanded = !isModExplicitlyCollapsed;
+                } else if (isModExplicitlyExpanded) {
+                  isModExpanded = true;
+                } else if (isModExplicitlyCollapsed) {
+                  isModExpanded = false;
+                } else {
+                  isModExpanded = modSelectedCount > 0;
+                }
 
                 return `
                   <div class="tree-node-module ${modSelectedCount > 0 ? 'has-selected' : ''}" data-modkey="${modKey}">
                     <!-- Level 2: Chapter / Module Header -->
                     <div class="tree-module-header" data-modkey="${modKey}">
                       <div style="display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0;">
-                        <span class="mod-toggle-arrow" style="font-size: 0.7rem; color: var(--text-dim); transition: transform 0.2s ease; transform: rotate(${isModCollapsed ? '-90deg' : '0deg'});">▼</span>
+                        <span class="mod-toggle-arrow" style="font-size: 0.72rem; color: #38bdf8; transition: transform 0.2s ease; display: inline-block; transform: rotate(${isModExpanded ? '0deg' : '-90deg'});">▼</span>
                         <input type="checkbox" class="tree-mod-cb" data-modkey="${modKey}" data-subj="${subKey}" data-mid="${m.id}" ${allModSelected ? 'checked' : ''} ${someModSelected ? 'data-indeterminate="true"' : ''} title="Select/Deselect all lessons in ${m.code}">
-                        <span style="font-size: 1rem; line-height: 1;">📑</span>
+                        <span class="mod-folder-icon" style="font-size: 1rem; line-height: 1;">${isModExpanded ? '📖' : '📑'}</span>
                         <span style="font-family: var(--font-mono); font-size: 0.76rem; font-weight: 800; color: ${cur.color}; background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 4px;">${m.code}</span>
                         <span style="font-weight: 700; font-size: 0.9rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${highlightMatches(m.title, query)}</span>
                       </div>
                       <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                         ${m.lab ? `<span style="font-size: 0.7rem; color: #10b981; background: rgba(16,185,129,0.15); padding: 2px 7px; border-radius: 4px; font-weight: 700;">🔬 Lab</span>` : ''}
                         <span style="font-size: 0.74rem; font-family: var(--font-mono); font-weight: 700; color: ${modSelectedCount > 0 ? '#10b981' : 'var(--text-dim)'};">
-                          ${modSelectedCount} / ${allModLessonKeys.length} Selected
+                          ${modSelectedCount > 0 ? `${modSelectedCount} / ${allModLessonKeys.length} Selected` : `${allModLessonKeys.length} Lessons`}
                         </span>
                       </div>
                     </div>
 
                     <!-- Level 3: Lessons Container -->
-                    <div class="tree-module-body" style="display: ${isModCollapsed ? 'none' : 'flex'};">
+                    <div class="tree-module-body" style="display: ${isModExpanded ? 'flex' : 'none'};">
                       ${matchingLessonsInMod.map(l => {
                         const lessonKey = `${subKey}-M${m.id}-L${l.id}`;
                         const isChecked = selectedLessons.has(lessonKey);
@@ -526,6 +550,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     }
 
     listContainer.innerHTML = html;
+    listContainer.scrollTop = prevScrollTop;
 
     // Apply indeterminate properties to tri-state checkboxes
     document.querySelectorAll("[data-indeterminate='true']").forEach(cb => {
@@ -672,6 +697,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       btnExpandAll.addEventListener("click", () => {
         collapsedUnits.clear();
         collapsedModules.clear();
+        const activeSubjs = selectedSubject === "ALL" ? ["CHEM", "BIO", "PHYS"] : [selectedSubject];
+        activeSubjs.forEach(s => {
+          curricula[s].modules.forEach(m => {
+            expandedModules.add(`${s}-M${m.id}`);
+          });
+        });
         renderCurriculumChecklist();
         bindChecklistEvents();
       });
@@ -680,6 +711,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     const btnCollapseAll = document.getElementById("btn-scope-collapse-all");
     if (btnCollapseAll) {
       btnCollapseAll.addEventListener("click", () => {
+        expandedModules.clear();
         const activeSubjs = selectedSubject === "ALL" ? ["CHEM", "BIO", "PHYS"] : [selectedSubject];
         activeSubjs.forEach(s => {
           const units = getSubjectUnitTree(s);
@@ -751,6 +783,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         const unit = units.find(u => u.unitKey === unitKey);
         if (!unit) return;
 
+        if (cb.checked) {
+          collapsedUnits.delete(unitKey);
+        }
+
         unit.modules.forEach(m => {
           m.lessons.forEach(l => {
             const lKey = `${subKey}-M${m.id}-L${l.id}`;
@@ -772,13 +808,24 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       header.addEventListener("click", (e) => {
         if (e.target.closest(".tree-unit-cb")) return;
         const unitKey = header.dataset.unitkey;
-        if (collapsedUnits.has(unitKey)) {
-          collapsedUnits.delete(unitKey);
-        } else {
+        const unitNode = header.closest(".tree-node-unit");
+        const unitBody = unitNode ? unitNode.querySelector(".tree-unit-body") : null;
+        const arrow = header.querySelector(".unit-toggle-arrow");
+        const icon = header.querySelector(".unit-folder-icon");
+
+        const isCurrentlyOpen = unitBody && unitBody.style.display !== "none";
+
+        if (isCurrentlyOpen) {
+          if (unitBody) unitBody.style.display = "none";
+          if (arrow) arrow.style.transform = "rotate(-90deg)";
+          if (icon) icon.innerText = "📁";
           collapsedUnits.add(unitKey);
+        } else {
+          if (unitBody) unitBody.style.display = "flex";
+          if (arrow) arrow.style.transform = "rotate(0deg)";
+          if (icon) icon.innerText = "📂";
+          collapsedUnits.delete(unitKey);
         }
-        renderCurriculumChecklist();
-        bindChecklistEvents();
       });
     });
 
@@ -788,10 +835,16 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         e.stopPropagation();
         const subKey = cb.dataset.subj;
         const mid = parseInt(cb.dataset.mid, 10);
+        const modKey = cb.dataset.modkey;
         const cur = curricula[subKey];
         if (!cur) return;
         const mod = cur.modules.find(m => m.id === mid);
         if (!mod) return;
+
+        if (cb.checked && modKey) {
+          expandedModules.add(modKey);
+          collapsedModules.delete(modKey);
+        }
 
         mod.lessons.forEach(l => {
           const lKey = `${subKey}-M${mid}-L${l.id}`;
@@ -812,13 +865,26 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       header.addEventListener("click", (e) => {
         if (e.target.closest(".tree-mod-cb")) return;
         const modKey = header.dataset.modkey;
-        if (collapsedModules.has(modKey)) {
-          collapsedModules.delete(modKey);
-        } else {
+        const moduleNode = header.closest(".tree-node-module");
+        const moduleBody = moduleNode ? moduleNode.querySelector(".tree-module-body") : null;
+        const arrow = header.querySelector(".mod-toggle-arrow");
+        const icon = header.querySelector(".mod-folder-icon");
+
+        const isCurrentlyOpen = moduleBody && moduleBody.style.display !== "none";
+
+        if (isCurrentlyOpen) {
+          if (moduleBody) moduleBody.style.display = "none";
+          if (arrow) arrow.style.transform = "rotate(-90deg)";
+          if (icon) icon.innerText = "📑";
+          expandedModules.delete(modKey);
           collapsedModules.add(modKey);
+        } else {
+          if (moduleBody) moduleBody.style.display = "flex";
+          if (arrow) arrow.style.transform = "rotate(0deg)";
+          if (icon) icon.innerText = "📖";
+          collapsedModules.delete(modKey);
+          expandedModules.add(modKey);
         }
-        renderCurriculumChecklist();
-        bindChecklistEvents();
       });
     });
 

@@ -9216,12 +9216,18 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 
 /* Tree Structure Nodes */
 .curriculum-tree-container {
-  max-height: 520px;
-  overflow-y: auto;
+  max-height: 540px;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   padding-right: 6px;
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
   gap: 10px;
+}
+
+.curriculum-tree-container > * {
+  flex-shrink: 0 !important;
+  min-height: fit-content !important;
 }
 
 .curriculum-tree-container::-webkit-scrollbar {
@@ -9241,10 +9247,13 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 
 /* Level 1: Unit Node */
 .tree-node-unit {
+  flex-shrink: 0 !important;
+  min-height: fit-content !important;
+  height: auto !important;
   background: var(--bg-surface-elevated);
   border: 1.5px solid var(--border-color);
   border-radius: 10px;
-  overflow: hidden;
+  overflow: visible;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -9269,6 +9278,7 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   background: rgba(0, 0, 0, 0.04);
   cursor: pointer;
   user-select: none;
+  border-radius: 9px;
   transition: background 0.15s ease;
 }
 
@@ -9285,27 +9295,42 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 }
 
 .tree-unit-body {
-  padding: 10px 14px 14px 18px;
+  flex-shrink: 0 !important;
+  min-height: fit-content !important;
+  height: auto !important;
+  padding: 10px 14px 14px 16px;
   background: var(--bg-surface);
   border-top: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: column !important;
   gap: 8px;
+  border-bottom-left-radius: 9px;
+  border-bottom-right-radius: 9px;
+  border-left: 3px solid rgba(56, 189, 248, 0.35);
+  margin: 0;
+}
+
+.tree-unit-body > * {
+  flex-shrink: 0 !important;
+  min-height: fit-content !important;
 }
 
 [data-theme="day"] .tree-unit-body {
   background: #fafafa;
   border-color: #e2e8f0;
+  border-left-color: rgba(2, 132, 199, 0.35);
 }
 
 /* Level 2: Chapter / Module Node */
 .tree-node-module {
+  flex-shrink: 0 !important;
+  min-height: fit-content !important;
+  height: auto !important;
   position: relative;
   background: rgba(15, 23, 42, 0.4);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  overflow: hidden;
-  margin-left: 12px;
+  overflow: visible;
   transition: all 0.15s ease;
 }
 
@@ -9329,11 +9354,12 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   padding: 9px 14px;
   cursor: pointer;
   user-select: none;
+  border-radius: 7px;
   transition: background 0.15s ease;
 }
 
 .tree-module-header:hover {
-  background: rgba(56, 189, 248, 0.06);
+  background: rgba(56, 189, 248, 0.08);
 }
 
 [data-theme="day"] .tree-module-header:hover {
@@ -9341,21 +9367,37 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 }
 
 .tree-module-body {
-  padding: 8px 12px 10px 16px;
+  flex-shrink: 0 !important;
+  min-height: fit-content !important;
+  height: auto !important;
+  padding: 8px 12px 10px 14px;
   border-top: 1px solid var(--border-color);
-  background: rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
+  background: rgba(0, 0, 0, 0.12);
+  display: flex !important;
+  flex-direction: column !important;
   gap: 6px;
+  border-bottom-left-radius: 7px;
+  border-bottom-right-radius: 7px;
+  border-left: 3px solid rgba(16, 185, 129, 0.4);
+  margin: 0;
+}
+
+.tree-module-body > * {
+  flex-shrink: 0 !important;
+  min-height: fit-content !important;
 }
 
 [data-theme="day"] .tree-module-body {
   background: #f8fafc;
   border-color: #e2e8f0;
+  border-left-color: rgba(16, 185, 129, 0.4);
 }
 
 /* Level 3: Lesson Node */
 .tree-node-lesson {
+  flex-shrink: 0 !important;
+  min-height: 38px !important;
+  height: auto !important;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -9365,7 +9407,7 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   user-select: none;
   border: 1px solid transparent;
   transition: all 0.15s ease;
-  margin-left: 8px;
+  margin-left: 4px;
   position: relative;
 }
 
