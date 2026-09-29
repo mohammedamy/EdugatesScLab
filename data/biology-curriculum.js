@@ -139,7 +139,7 @@ export const biologyCurriculum = {
         { id: 3, title: "Cellular Respiration", objectives: ["Glycolysis in cytoplasm", "Krebs citric acid cycle in mitochondrial matrix", "Electron transport chain and chemiosmotic oxidative phosphorylation", "Fermentation: lactic acid vs alcoholic"] }
       ],
       formulas: ["6CO_2 + 6H_2O \\xrightarrow{\\text{light}} C_6H_{12}O_6 + 6O_2", "C_6H_{12}O_6 + 6O_2 \\rightarrow 6CO_2 + 6H_2O + 36-38\\text{ ATP}"],
-      lab: "lab-microscope"
+      lab: "lab-photosynthesis"
     },
     {
       id: 9,

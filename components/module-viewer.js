@@ -10,6 +10,9 @@ import { initGasLawsLab } from "../labs/chem-gas-laws.js";
 import { initDnaProteinLab } from "../labs/bio-dna-protein.js";
 import { initPunnettLab } from "../labs/bio-punnett-square.js";
 import { initOpticsLab } from "../labs/phys-optics.js";
+import { initVseprLab } from "../labs/chem-vsepr.js";
+import { initWaveLab } from "../labs/phys-waves.js";
+import { initPhotosynthesisLab } from "../labs/bio-photosynthesis.js";
 import { ProgressStore } from "./progress-tracker.js";
 import { renderLatex, renderMathInElement } from "../utils/math-renderer.js";
 import { mountLessonInteractive, cleanupLessonInteractive, getLessonInteractiveSpec } from "./lesson-interactives.js";
@@ -675,6 +678,12 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
       initPunnettLab("embedded-module-lab-mount");
     } else if (labKey === "lab-optics") {
       initOpticsLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-vsepr" || labKey === "vsepr") {
+      initVseprLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-waves" || labKey === "waves") {
+      initWaveLab("embedded-module-lab-mount");
+    } else if (labKey === "lab-photosynthesis" || labKey === "photosynthesis") {
+      initPhotosynthesisLab("embedded-module-lab-mount");
     } else {
       initProjectileLab("embedded-module-lab-mount");
     }

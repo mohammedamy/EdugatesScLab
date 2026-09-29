@@ -118,7 +118,7 @@ export const chemistryCurriculum = {
         { id: 5, title: "Electronegativity and Polarity", objectives: ["Nonpolar covalent, polar covalent, ionic boundaries", "Molecular dipole moments and solubility"] }
       ],
       formulas: ["\\Delta \\text{EN} = |\\chi_A - \\chi_B|", "\\vec{\\mu} = q \\times \\vec{r}"],
-      lab: "lab-periodic-table"
+      lab: "lab-vsepr"
     },
     {
       id: 8,

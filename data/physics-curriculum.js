@@ -219,7 +219,7 @@ export const physicsCurriculum = {
         { id: 3, title: "Wave Behavior", objectives: ["Reflection at fixed vs free boundaries", "Superposition principle and constructive/destructive interference", "Standing waves, nodes, and antinodes"] }
       ],
       formulas: ["T_{\\text{pendulum}} = 2\\pi \\sqrt{\\frac{L}{g}}", "v = f \\lambda", "f = \\frac{1}{T}"],
-      lab: "lab-optics"
+      lab: "lab-waves"
     },
     {
       id: 14,
@@ -277,7 +277,7 @@ export const physicsCurriculum = {
         { id: 2, title: "Diffraction", objectives: ["Single-slit diffraction minima (w sin θ = mλ)", "Diffraction gratings in spectrophotometry", "Rayleigh's criterion for optical resolution limit"] }
       ],
       formulas: ["d \\sin\\theta = m\\lambda", "x_m = \\frac{m\\lambda L}{d}", "\\theta_{\\text{min}} = 1.22 \\frac{\\lambda}{D}"],
-      lab: "lab-optics"
+      lab: "lab-waves"
     },
 
     // UNIT 5: ELECTRICITY AND MAGNETISM
