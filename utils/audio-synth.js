@@ -287,9 +287,99 @@ class SoundEffectEngine {
       noise.stop(now + 0.48);
     } catch (e) {}
   }
+
+  /**
+   * Snappy bubble pop sound for opening modals, toggles, or floating chips
+   */
+  playPop() {
+    if (this._muted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(340, now);
+      osc.frequency.exponentialRampToValueAtTime(820, now + 0.05);
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.07);
+    } catch (e) {}
+  }
+
+  /**
+   * Harmonious level-up / success fanfare for copying, submitting, or mastering
+   */
+  playLevelUp() {
+    this.playSuccess();
+  }
+
+  /**
+   * Brief micro-pip for counters, copied alerts, or progress pips
+   */
+  playScorePip() {
+    if (this._muted) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(987.77, now); // B5
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.06);
+    } catch (e) {}
+  }
+
+  /**
+   * Soft error buzz for invalid input or failure
+   */
+  playError() {
+    this.playIncorrect();
+  }
 }
 
-export const SoundFX = new SoundEffectEngine();
+const rawSoundEngine = new SoundEffectEngine();
+
+// Resilient Proxy ensures that ANY SoundFX method call never throws TypeError if invoked
+export const SoundFX = new Proxy(rawSoundEngine, {
+  get(target, prop, receiver) {
+    if (prop in target) {
+      const val = Reflect.get(target, prop, receiver);
+      if (typeof val === "function") {
+        return (...args) => {
+          try {
+            return val.apply(target, args);
+          } catch (err) {
+            console.warn(`[SoundFX] Safe execution caught error on ${String(prop)}:`, err);
+          }
+        };
+      }
+      return val;
+    }
+    // Fallback handler for any future or unmapped method
+    if (typeof prop === "string") {
+      return (...args) => {
+        try {
+          if (prop.startsWith("play")) {
+            target.playClick();
+          }
+        } catch (e) {}
+      };
+    }
+    return undefined;
+  }
+});
+
 export { SoundFX as AudioSynth };
 
 if (typeof window !== "undefined") {

@@ -779,12 +779,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         const qtypeVal = document.getElementById("cfg-qtype")?.value || initialQType;
         const modeVal = document.getElementById("cfg-mode")?.value || examMode;
         const scopeStr = [...selectedLessons].join(",");
-        const hash = `#quiz?subj=${selectedSubject}&mode=${modeVal}&count=${countVal}&diff=${diffVal}&qtype=${qtypeVal}&scope=${encodeURIComponent(scopeStr)}`;
+        const lessonCountText = `${selectedLessons.size} ${selectedLessons.size === 1 ? 'Lesson' : 'Lessons'}`;
         openLmsShareModal({
           url: hash,
-          title: `${selectedSubject} Custom Assessment (${selectedLessons.size} Lessons)`,
+          title: `${selectedSubject} Custom Assessment (${lessonCountText})`,
           subject: selectedSubject,
-          description: `Custom STEM assessment with ${selectedLessons.size} lessons selected (${countVal} questions). Instant self-grading and explanations.`
+          description: `Custom STEM assessment with ${lessonCountText} selected (${countVal} questions). Instant self-grading and explanations.`
         });
       });
     }

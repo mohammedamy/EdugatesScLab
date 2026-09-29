@@ -69,6 +69,24 @@ assert(planUrl.includes("#plan/CHEM-M08-L2"), `Lesson plan route correctly forma
 const fcUrl = getAbsoluteShareUrl("#flashcards?subject=CHEM&moduleId=4");
 assert(fcUrl.includes("#flashcards?subject=CHEM&moduleId=4"), `Flashcard filtered deck preserved: ${fcUrl}`);
 
+// 7. Clipboard and Audio Synth Resilience
+import { safeCopyTextToClipboard } from "../utils/lms-share.js";
+import { SoundFX } from "../utils/audio-synth.js";
+
+assert(typeof safeCopyTextToClipboard === "function", "safeCopyTextToClipboard helper exists");
+assert(typeof SoundFX.playPop === "function", "SoundFX.playPop method is present");
+assert(typeof SoundFX.playLevelUp === "function", "SoundFX.playLevelUp method is present");
+assert(typeof SoundFX.playScorePip === "function", "SoundFX.playScorePip method is present");
+assert(typeof SoundFX.playError === "function", "SoundFX.playError method is present");
+
+let threwOnUnknown = false;
+try {
+  SoundFX.anyNonExistentMethodCalledRandomly();
+} catch (e) {
+  threwOnUnknown = true;
+}
+assert(!threwOnUnknown, "SoundFX resilient Proxy prevents unhandled TypeError crashes");
+
 console.log("\n========================================================");
 console.log(`📊 LMS Share Tests: ${passed} Passed, ${failed} Failed`);
 console.log("========================================================\n");

@@ -11,6 +11,48 @@ import { SoundFX } from "./audio-synth.js";
 import { generateQRSvg } from "./qr-code.js";
 
 /**
+ * Resilient cross-browser clipboard copy with fallback to document.execCommand
+ */
+export async function safeCopyTextToClipboard(text) {
+  if (typeof text !== "string") text = String(text || "");
+
+  // 1. Try modern async Clipboard API
+  if (typeof navigator !== "undefined" && navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      console.warn("[LMS Share] navigator.clipboard rejected, falling back:", err);
+    }
+  }
+
+  // 2. Synchronous hidden textarea fallback
+  if (typeof document !== "undefined") {
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.top = "-9999px";
+      textarea.style.left = "-9999px";
+      textarea.style.opacity = "0";
+      textarea.setAttribute("readonly", "");
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      textarea.setSelectionRange(0, 99999);
+      const success = document.execCommand("copy");
+      document.body.removeChild(textarea);
+      return success;
+    } catch (fallbackErr) {
+      console.error("[LMS Share] Fallback execCommand copy failed:", fallbackErr);
+      return false;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Normalizes a route or URL to a fully qualified HTTPS URL.
  */
 export function getAbsoluteShareUrl(routeOrHash = "") {
@@ -53,18 +95,25 @@ export function shareToGoogleClassroom(options = {}) {
   const left = Math.max(0, (window.screen.width - width) / 2);
   const top = Math.max(0, (window.screen.height - height) / 2);
 
-  window.open(
-    shareEndpoint,
-    "google_classroom_share",
-    `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
-  );
+  try {
+    const pop = window.open(
+      shareEndpoint,
+      "google_classroom_share",
+      `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
+    );
+    if (!pop || pop.closed || typeof pop.closed === "undefined") {
+      window.open(shareEndpoint, "_blank");
+    }
+  } catch (err) {
+    window.open(shareEndpoint, "_blank");
+  }
 
   showToast("Opening Google Classroom", `Assigning "${title}" to your class`, "success");
   try { SoundFX.playScorePip(); } catch (e) {}
 }
 
 /**
- * Formats and packages a learning activity for Classera (كلاسيra) LMS
+ * Formats and packages a learning activity for Classera (كلاسيرا) LMS
  * Copies structured activity text to clipboard and opens Classera portal.
  */
 export async function shareToClassera(options = {}) {
@@ -92,13 +141,7 @@ export async function shareToClassera(options = {}) {
   formattedText += `\n📝 Student Instructions:\n${instructions}\n`;
   formattedText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(formattedText);
-    }
-  } catch (err) {
-    console.warn("Clipboard write failed, opening portal:", err);
-  }
+  await safeCopyTextToClipboard(formattedText);
 
   // Open Classera Portal
   window.open("https://me.classera.com/", "_blank");
@@ -445,28 +488,89 @@ export function openLmsShareModal(shareData = {}) {
     </div>
   `;
 
+  // Remove any pre-existing modal before mounting
+  const existingOverlay = document.getElementById("lms-share-modal-overlay");
+  if (existingOverlay) {
+    try { existingOverlay.remove(); } catch (e) {}
+  }
+
   document.body.appendChild(overlay);
-  SoundFX.playPop();
 
   // Bind Event Listeners
-  const closeModal = () => {
-    overlay.remove();
-    document.removeEventListener("keydown", handleEscape);
-    SoundFX.playClick();
+  const closeModal = (e) => {
+    if (e && typeof e.preventDefault === "function") {
+      try { e.preventDefault(); e.stopPropagation(); } catch (err) {}
+    }
+    try {
+      document.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("popstate", closeModal);
+      window.removeEventListener("hashchange", closeModal);
+      delete window.closeActiveLmsModal;
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      } else if (overlay) {
+        overlay.remove();
+      }
+    } catch (err) {
+      console.warn("Failed to remove LMS modal:", err);
+    }
+    try { SoundFX.playClick(); } catch (e) {}
   };
 
   const handleEscape = (e) => {
-    if (e.key === "Escape") closeModal();
+    if (e.key === "Escape" || e.keyCode === 27) {
+      closeModal(e);
+    }
   };
   document.addEventListener("keydown", handleEscape);
+  window.addEventListener("popstate", closeModal, { once: true });
+  window.addEventListener("hashchange", closeModal, { once: true });
+  window.closeActiveLmsModal = closeModal;
 
-  overlay.querySelector("#btn-close-lms-modal").addEventListener("click", closeModal);
+  try { SoundFX.playPop(); } catch (e) {}
+
+  // 1. Close Button ('X')
+  const closeBtn = overlay.querySelector("#btn-close-lms-modal");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeModal);
+    closeBtn.addEventListener("touchend", closeModal);
+  }
+
+  // 2. Backdrop Click to Close
   overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) closeModal();
+    if (e.target === overlay || e.target.id === "lms-share-modal-overlay") {
+      closeModal(e);
+    }
   });
 
+  // 3. Stop clicks inside modal shell from propagating to overlay
+  const modalShell = overlay.querySelector(".lms-share-modal-shell");
+  if (modalShell) {
+    modalShell.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+  }
+
+  // Helper for in-place button visual confirmation
+  function flashButtonSuccess(btn, successLabel, duration = 2000) {
+    if (!btn) return;
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = `<span>${successLabel}</span> ✓`;
+    btn.style.borderColor = "#10b981";
+    btn.style.color = "#34d399";
+    setTimeout(() => {
+      try {
+        btn.innerHTML = originalHtml;
+        btn.style.borderColor = "";
+        btn.style.color = "";
+      } catch (e) {}
+    }, duration);
+  }
+
   // Action: Google Classroom
-  overlay.querySelector("#btn-action-gclassroom").addEventListener("click", () => {
+  const btnGClass = overlay.querySelector("#btn-action-gclassroom");
+  btnGClass?.addEventListener("click", (e) => {
+    e.preventDefault();
     shareToGoogleClassroom({
       url: fullUrl,
       title: `${subject}: ${title}`,
@@ -476,8 +580,11 @@ export function openLmsShareModal(shareData = {}) {
   });
 
   // Action: Classera
-  overlay.querySelector("#btn-action-classera").addEventListener("click", () => {
-    shareToClassera({
+  const btnClassera = overlay.querySelector("#btn-action-classera");
+  btnClassera?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    flashButtonSuccess(btnClassera, "Post Copied & Opening...");
+    await shareToClassera({
       url: fullUrl,
       title: title,
       subject: subject,
@@ -488,56 +595,73 @@ export function openLmsShareModal(shareData = {}) {
   });
 
   // Action: Copy Classera Text Only
-  overlay.querySelector("#btn-copy-classera-text").addEventListener("click", async () => {
+  const btnCopyClasseraText = overlay.querySelector("#btn-copy-classera-text");
+  btnCopyClasseraText?.addEventListener("click", async (e) => {
+    e.preventDefault();
     let formattedText = `🎓 Edugates-ClipSAT Science Labs | Classera Learning Assignment\n`;
+    formattedText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
     formattedText += `🔬 Activity: ${title}\n`;
     formattedText += `📚 Subject: ${subject}${moduleCode ? ` (${moduleCode})` : ""}\n`;
     if (objectives && objectives.length > 0) {
       formattedText += `🎯 Objectives:\n• ` + objectives.join("\n• ") + `\n`;
     }
     formattedText += `🔗 Direct Link:\n${fullUrl}\n`;
+    formattedText += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
 
-    try {
-      await navigator.clipboard.writeText(formattedText);
+    const ok = await safeCopyTextToClipboard(formattedText);
+    if (ok) {
+      flashButtonSuccess(btnCopyClasseraText, "Copied to Clipboard!");
       showToast("Classera Text Copied", "Paste into Classera Course Material", "success");
-      SoundFX.playLevelUp();
-    } catch (err) {
+      try { SoundFX.playLevelUp(); } catch (e) {}
+    } else {
       showToast("Copy Failed", "Please copy manually", "error");
     }
   });
 
   // Action: Copy Raw URL
-  overlay.querySelector("#btn-copy-raw-link").addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(fullUrl);
+  const btnCopyRaw = overlay.querySelector("#btn-copy-raw-link");
+  btnCopyRaw?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const ok = await safeCopyTextToClipboard(fullUrl);
+    if (ok) {
+      flashButtonSuccess(btnCopyRaw, "URL Copied!");
       showToast("Link Copied!", fullUrl, "success");
-      SoundFX.playLevelUp();
-    } catch (e) {
+      try { SoundFX.playLevelUp(); } catch (e) {}
+    } else {
       showToast("Share Link", fullUrl, "info");
     }
   });
 
   // Action: Copy Embed Code
-  overlay.querySelector("#btn-copy-embed").addEventListener("click", async () => {
+  const btnCopyEmbed = overlay.querySelector("#btn-copy-embed");
+  btnCopyEmbed?.addEventListener("click", async (e) => {
+    e.preventDefault();
     const embedHtml = generateLmsEmbedCode(fullUrl, title);
-    try {
-      await navigator.clipboard.writeText(embedHtml);
+    const ok = await safeCopyTextToClipboard(embedHtml);
+    if (ok) {
+      flashButtonSuccess(btnCopyEmbed, "Embed Code Copied!");
       showToast("Embed Code Copied!", "Responsive <iframe> ready for Classera / Google Sites", "success");
-      SoundFX.playLevelUp();
-    } catch (e) {
+      try { SoundFX.playLevelUp(); } catch (e) {}
+    } else {
       showToast("Embed Code", embedHtml, "info");
     }
   });
 
   // Action: WhatsApp Share
-  overlay.querySelector("#btn-share-whatsapp").addEventListener("click", () => {
+  const btnWhatsapp = overlay.querySelector("#btn-share-whatsapp");
+  btnWhatsapp?.addEventListener("click", (e) => {
+    e.preventDefault();
     const text = encodeURIComponent(`🧪 ${subject} - ${title}\nExplore interactive virtual lab:\n${fullUrl}`);
     window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+    try { SoundFX.playScorePip(); } catch (e) {}
   });
 
   // Action: MS Teams Share
-  overlay.querySelector("#btn-share-teams").addEventListener("click", () => {
+  const btnTeams = overlay.querySelector("#btn-share-teams");
+  btnTeams?.addEventListener("click", (e) => {
+    e.preventDefault();
     const teamsUrl = `https://teams.microsoft.com/share?href=${encodeURIComponent(fullUrl)}&msgText=${encodeURIComponent(`Science Lab: ${title}`)}`;
     window.open(teamsUrl, "_blank", "width=680,height=580");
+    try { SoundFX.playScorePip(); } catch (e) {}
   });
 }
