@@ -3,7 +3,7 @@
 // Young's Double-Slit Interference, Single-Slit Diffraction, Coherent Wave Superposition,
 // Doppler Effect from Subsonic/Supersonic Sources, and Live Intensity Cross-Section Graphing.
 
-import { renderLatex, formatMathText } from "../utils/math-renderer.js";
+import { renderLatex, formatMathText, renderMathInElement } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 import { SoundFX } from "../utils/audio-synth.js";
 

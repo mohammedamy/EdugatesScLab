@@ -814,32 +814,36 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
   const container = document.getElementById(containerId);
   if (!container) return;
 
+  const resolveKey = (raw) => {
+    if (!raw) return null;
+    const clean = String(raw).toLowerCase().replace(/-checkpoint$/, "").replace(/^lab[-_]/, "").replace(/[-_]/g, "");
+    if (LAB_CHECKPOINTS[raw]) return LAB_CHECKPOINTS[raw];
+    if (LAB_CHECKPOINTS[clean]) return LAB_CHECKPOINTS[clean];
+    if (LAB_CHECKPOINTS[clean + "s"]) return LAB_CHECKPOINTS[clean + "s"];
+    if (clean.includes("project") || clean.includes("kinemat")) return LAB_CHECKPOINTS.projectile;
+    if (clean.includes("titrat")) return LAB_CHECKPOINTS.titration;
+    if (clean.includes("micro")) return LAB_CHECKPOINTS.microscope;
+    if (clean.includes("period") || clean.includes("ptable")) return LAB_CHECKPOINTS.ptable;
+    if (clean.includes("circuit")) return LAB_CHECKPOINTS.circuits;
+    if (clean.includes("gas")) return LAB_CHECKPOINTS.gaslaws;
+    if (clean.includes("dna") || clean.includes("protein")) return LAB_CHECKPOINTS.dnaprotein;
+    if (clean.includes("punnett")) return LAB_CHECKPOINTS.punnett;
+    if (clean.includes("optic")) return LAB_CHECKPOINTS.optics;
+    if (clean.includes("vsepr")) return LAB_CHECKPOINTS.vsepr;
+    if (clean.includes("wave")) return LAB_CHECKPOINTS.waves;
+    if (clean.includes("photo") || clean.includes("resp")) return LAB_CHECKPOINTS.photosynthesis;
+    return null;
+  };
+
   let questions = null;
   if (labKey && typeof labKey === "object") {
     if (Array.isArray(labKey.questions)) {
       questions = labKey.questions;
-    } else if (labKey.id) {
-      const k = String(labKey.id).replace(/-checkpoint$/, "").replace(/^lab[-_]/, "");
-      questions = LAB_CHECKPOINTS[k] || LAB_CHECKPOINTS[labKey.id];
+    } else {
+      questions = resolveKey(labKey.id || labKey.labId || labKey.key || labKey.labTitle);
     }
-  }
-  if (!questions && typeof labKey === "string") {
-    const cleanKey = labKey.toLowerCase().replace(/^lab[-_]/, "").replace(/[-_]/g, "");
-    questions = LAB_CHECKPOINTS[labKey] || LAB_CHECKPOINTS[cleanKey];
-    if (!questions) {
-      if (cleanKey.includes("project") || cleanKey.includes("kinemat")) questions = LAB_CHECKPOINTS.projectile;
-      else if (cleanKey.includes("titrat")) questions = LAB_CHECKPOINTS.titration;
-      else if (cleanKey.includes("micro")) questions = LAB_CHECKPOINTS.microscope;
-      else if (cleanKey.includes("period") || cleanKey.includes("ptable")) questions = LAB_CHECKPOINTS.ptable;
-      else if (cleanKey.includes("circuit")) questions = LAB_CHECKPOINTS.circuits;
-      else if (cleanKey.includes("gas")) questions = LAB_CHECKPOINTS.gaslaws;
-      else if (cleanKey.includes("dna") || cleanKey.includes("protein")) questions = LAB_CHECKPOINTS.dnaprotein;
-      else if (cleanKey.includes("punnett")) questions = LAB_CHECKPOINTS.punnett;
-      else if (cleanKey.includes("optic")) questions = LAB_CHECKPOINTS.optics;
-      else if (cleanKey.includes("vsepr")) questions = LAB_CHECKPOINTS.vsepr;
-      else if (cleanKey.includes("wave")) questions = LAB_CHECKPOINTS.waves;
-      else if (cleanKey.includes("photo")) questions = LAB_CHECKPOINTS.photosynthesis;
-    }
+  } else if (typeof labKey === "string") {
+    questions = resolveKey(labKey);
   }
   if (!questions) questions = LAB_CHECKPOINTS.projectile;
   let userAnswers = {};

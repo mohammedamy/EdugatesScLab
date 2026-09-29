@@ -544,9 +544,10 @@ export function upgradeAllMath(root = (typeof document !== "undefined" ? documen
  * Utility to batch render all math formulas inside a specific DOM container.
  */
 export function renderMathInElement(container) {
-  if (!container) return;
+  if (!container || typeof document === "undefined" || !document.createTreeWalker) return;
 
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null, false);
+  const showText = typeof NodeFilter !== "undefined" && NodeFilter.SHOW_TEXT !== undefined ? NodeFilter.SHOW_TEXT : 4;
+  const walker = document.createTreeWalker(container, showText, null, false);
   const nodesToReplace = [];
 
   let node;

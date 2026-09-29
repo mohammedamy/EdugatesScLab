@@ -1,27 +1,76 @@
 // Edugates-ClipSAT Science Labs - Unit Test Suite for Laboratory Deep-Links & Checkpoint Integrity
 // Validates that all curriculum modules map to valid laboratory suites,
 // that normalizeLabId resolves all canonical and alias forms,
-// and that all 12 laboratories contain verified competency checkpoint questions.
+// that all 12 laboratories contain verified competency checkpoint questions,
+// and that all 12 virtual lab modules initialize cleanly without runtime errors.
 
-if (typeof globalThis.window === "undefined") {
-  globalThis.window = {
-    location: { href: "https://mohammedamy.github.io/EdugtesScLab/", hash: "" },
-    addEventListener: () => {}
+globalThis.Image = class Image {
+  constructor() {
+    setTimeout(() => { if (this.onload) this.onload(); }, 0);
+  }
+};
+
+const ctxProxy = new Proxy({
+  createImageData: () => ({ data: new Uint8ClampedArray(400) }),
+  measureText: () => ({ width: 50 }),
+  createLinearGradient: () => ({ addColorStop: () => {} }),
+  createRadialGradient: () => ({ addColorStop: () => {} })
+}, {
+  get: (target, prop) => {
+    if (prop in target) return target[prop];
+    return () => {};
+  }
+});
+
+const elements = {};
+function createMockEl(id) {
+  return {
+    id: id || "",
+    innerHTML: "",
+    innerText: "",
+    style: { setProperty: () => {}, removeProperty: () => {} },
+    classList: { add: () => {}, remove: () => {}, toggle: () => {}, contains: () => false },
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    querySelectorAll: () => [],
+    querySelector: () => null,
+    appendChild: () => {},
+    removeChild: () => {},
+    getBoundingClientRect: () => ({ width: 600, height: 500, left: 0, top: 0, right: 600, bottom: 500 }),
+    getContext: () => ctxProxy,
+    width: 600,
+    height: 500,
+    dataset: {}
   };
 }
-if (typeof globalThis.document === "undefined") {
-  globalThis.document = {
-    documentElement: { setAttribute: () => {} },
-    getElementById: () => null,
-    querySelectorAll: () => []
-  };
-}
-if (typeof globalThis.localStorage === "undefined") {
-  globalThis.localStorage = {
-    getItem: () => null,
-    setItem: () => {}
-  };
-}
+
+globalThis.window = {
+  location: { href: "https://mohammedamy.github.io/EdugtesScLab/", hash: "" },
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  requestAnimationFrame: () => 1,
+  cancelAnimationFrame: () => {},
+  scrollTo: () => {}
+};
+globalThis.requestAnimationFrame = () => 1;
+globalThis.cancelAnimationFrame = () => {};
+
+globalThis.document = {
+  documentElement: { setAttribute: () => {} },
+  getElementById: (id) => {
+    if (!elements[id]) elements[id] = createMockEl(id);
+    return elements[id];
+  },
+  querySelectorAll: () => [],
+  querySelector: () => null,
+  addEventListener: () => {},
+  createElement: (tag) => createMockEl(tag)
+};
+
+globalThis.localStorage = {
+  getItem: () => null,
+  setItem: () => {}
+};
 
 import { normalizeLabId } from "../app.js";
 import { chemistryCurriculum } from "../data/chemistry-curriculum.js";
@@ -137,6 +186,34 @@ Object.entries(LAB_CHECKPOINTS).forEach(([labKey, qList]) => {
   });
 });
 assert(questionsValid, "All lab checkpoint questions contain valid prompts, 4 options, answer keys, and pedagogical explanations");
+
+// 5. Virtual Laboratory Workbench Runtime Loaders
+const labLoaders = [
+  { name: "projectile", loader: () => import("../labs/phys-projectile.js").then(m => m.initProjectileLab("test-mount")) },
+  { name: "titration", loader: () => import("../labs/chem-titration.js").then(m => m.initTitrationLab("test-mount")) },
+  { name: "microscope", loader: () => import("../labs/bio-microscope.js").then(m => m.initMicroscopeLab("test-mount")) },
+  { name: "ptable", loader: () => import("../labs/chem-periodic-table.js").then(m => m.initPeriodicTableLab("test-mount")) },
+  { name: "circuits", loader: () => import("../labs/phys-circuits.js").then(m => m.initCircuitsLab("test-mount")) },
+  { name: "gaslaws", loader: () => import("../labs/chem-gas-laws.js").then(m => m.initGasLawsLab("test-mount")) },
+  { name: "dnaprotein", loader: () => import("../labs/bio-dna-protein.js").then(m => m.initDnaProteinLab("test-mount")) },
+  { name: "punnett", loader: () => import("../labs/bio-punnett-square.js").then(m => m.initPunnettLab("test-mount")) },
+  { name: "optics", loader: () => import("../labs/phys-optics.js").then(m => m.initOpticsLab("test-mount")) },
+  { name: "vsepr", loader: () => import("../labs/chem-vsepr.js").then(m => m.initVseprLab("test-mount")) },
+  { name: "waves", loader: () => import("../labs/phys-waves.js").then(m => m.initWaveLab("test-mount")) },
+  { name: "photosynthesis", loader: () => import("../labs/bio-photosynthesis.js").then(m => m.initPhotosynthesisLab("test-mount")) }
+];
+
+let allLabsInitCleanly = true;
+for (const lab of labLoaders) {
+  try {
+    const cleanup = await lab.loader();
+    if (typeof cleanup === "function") cleanup();
+  } catch (err) {
+    allLabsInitCleanly = false;
+    console.error(`Error initializing lab "${lab.name}":`, err);
+  }
+}
+assert(allLabsInitCleanly, "All 12 virtual laboratory workbenches initialize without runtime errors");
 
 console.log("\n========================================================");
 console.log(`📊 Lab Links Tests: ${passed} Passed, ${failed} Failed`);
