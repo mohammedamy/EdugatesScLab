@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg-grad-phys" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b" />
+      <stop offset="50%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#31104b" />
+    </linearGradient>
+    <linearGradient id="atom-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8" />
+      <stop offset="100%" stop-color="#c084fc" />
+    </linearGradient>
+    <pattern id="grid-phys" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(129, 140, 248, 0.08)" stroke-width="1"/>
+    </pattern>
+  </defs>
+  
+  <rect width="400" height="200" fill="url(#bg-grad-phys)"/>
+  <rect width="400" height="200" fill="url(#grid-phys)"/>
+  
+  <circle cx="200" cy="85" r="70" fill="#818cf8" opacity="0.12" filter="blur(20px)"/>
+  
+  <!-- Stylized Atom / Orbitals -->
+  <g transform="translate(200, 85)">
+    <!-- Central nucleus -->
+    <circle cx="0" cy="0" r="10" fill="url(#atom-glow)"/>
+    <circle cx="-3" cy="-3" r="3" fill="#ffffff" opacity="0.8"/>
+    
+    <!-- Orbital 1 (horizontal) -->
+    <ellipse cx="0" cy="0" rx="55" ry="18" fill="none" stroke="url(#atom-glow)" stroke-width="2" opacity="0.85"/>
+    <circle cx="48" cy="8" r="4" fill="#38bdf8"/>
+    
+    <!-- Orbital 2 (+60 deg) -->
+    <ellipse cx="0" cy="0" rx="55" ry="18" fill="none" stroke="url(#atom-glow)" stroke-width="2" opacity="0.85" transform="rotate(60)"/>
+    <circle cx="-25" cy="45" r="4" fill="#c084fc"/>
+    
+    <!-- Orbital 3 (-60 deg) -->
+    <ellipse cx="0" cy="0" rx="55" ry="18" fill="none" stroke="url(#atom-glow)" stroke-width="2" opacity="0.85" transform="rotate(-60)"/>
+    <circle cx="-35" cy="-35" r="4" fill="#34d399"/>
+  </g>
+  
+  <text x="200" y="162" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="700" fill="#818cf8" letter-spacing="1.5">PHYSICS &amp; MECHANICS</text>
+  <text x="200" y="180" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" fill="rgba(255, 255, 255, 0.6)" letter-spacing="0.5">Classical Mechanics &amp; Modern Physics</text>
+</svg>

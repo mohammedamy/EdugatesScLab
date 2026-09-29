@@ -3,10 +3,52 @@
 
 import { ProgressStore } from "./progress-tracker.js";
 import { renderLatex, renderMathInElement } from "../utils/math-renderer.js";
-import { mountLessonInteractive, cleanupLessonInteractive, getLessonInteractiveSpec } from "./lesson-interactives.js";
+import { getLessonInteractiveSpec } from "../data/lesson-interactive-specs.js";
 import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
 import { SoundFX } from "../utils/audio-synth.js";
 import { copyShareLink } from "../utils/toast.js";
+
+// Dynamic on-demand loader for heavy lesson-interactives (60 FPS canvas & physics engines)
+let _interactivesEnginePromise = null;
+function getInteractivesEngine() {
+  if (!_interactivesEnginePromise) {
+    _interactivesEnginePromise = import("./lesson-interactives.js");
+  }
+  return _interactivesEnginePromise;
+}
+
+function mountLessonInteractive(containerId, subjectCode, moduleId, lessonId) {
+  const container = document.getElementById(containerId);
+  if (container) {
+    container.innerHTML = `
+      <div class="interactive-loading-state" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:48px 24px; min-height:260px; gap:16px;">
+        <div class="spinner-ring" style="width:40px; height:40px; border:3px solid rgba(56,189,248,0.2); border-top-color:#38bdf8; border-radius:50%; animation:spin 0.8s linear infinite;"></div>
+        <div style="font-size:0.95rem; font-weight:700; color:var(--text-main, #f8fafc);">Loading Interactive Laboratory Simulation...</div>
+        <div style="font-size:0.8rem; color:var(--text-muted, #94a3b8);">Preparing 60 FPS physics engine &amp; interactive controls</div>
+      </div>
+    `;
+  }
+  getInteractivesEngine().then(mod => {
+    mod.mountLessonInteractive(containerId, subjectCode, moduleId, lessonId);
+  }).catch(err => {
+    console.error("Simulation load error:", err);
+    if (container) {
+      container.innerHTML = `
+        <div style="padding: 24px; text-align: center; color: #ef4444;">
+          <p>⚠️ Simulation currently unavailable. Please reload.</p>
+        </div>
+      `;
+    }
+  });
+}
+
+function cleanupLessonInteractive(containerId) {
+  if (_interactivesEnginePromise) {
+    _interactivesEnginePromise.then(mod => {
+      mod.cleanupLessonInteractive(containerId);
+    }).catch(() => {});
+  }
+}
 
 export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   ProgressStore.recordModuleExplored(moduleData.code);
@@ -19,6 +61,15 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   }
   overlay.style.display = "flex";
   document.body.style.overflow = "hidden";
+  document.body.classList.add("modal-open");
+
+  // Auto-dock smartboard pen toolbar so it never overlays modal content
+  const penBar = document.getElementById("smartboard-pen-bar");
+  let toolbarWasVisible = false;
+  if (penBar && (penBar.classList.contains("visible") || (typeof window !== "undefined" && window.getComputedStyle && window.getComputedStyle(penBar).opacity === "1"))) {
+    toolbarWasVisible = true;
+    penBar.classList.add("sb-modal-docked");
+  }
 
   // Active state
   let currentLessonId = initialLessonId || (moduleData.lessons && moduleData.lessons.length > 0 ? moduleData.lessons[0].id : 1);
@@ -37,6 +88,13 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     cleanupLessonInteractive("embedded-module-lab-mount");
     document.removeEventListener("keydown", handleKeydown);
     document.body.style.overflow = "";
+    document.body.classList.remove("modal-open");
+
+    // Restore toolbar state cleanly if it was docked
+    if (penBar && toolbarWasVisible) {
+      penBar.classList.remove("sb-modal-docked");
+    }
+
     if (overlay && overlay.parentNode) {
       overlay.parentNode.removeChild(overlay);
     }

@@ -8,7 +8,7 @@ import { icons } from "./assets/icons.js";
 import { openModuleModal } from "./components/module-viewer.js";
 import { openProgressModal, ProgressStore } from "./components/progress-tracker.js";
 import { renderMathInElement, renderLatex } from "./utils/math-renderer.js";
-import { getLessonInteractiveSpec } from "./components/lesson-interactives.js";
+import { getLessonInteractiveSpec } from "./data/lesson-interactive-specs.js";
 import { SoundFX } from "./utils/audio-synth.js";
 import { showToast, copyShareLink } from "./utils/toast.js";
 
@@ -759,6 +759,12 @@ function mCode(num) {
   return num < 10 ? "0" + num : "" + num;
 }
 
+function getSubjectPlaceholderSvg(code) {
+  if (code === "BIO") return "assets/placeholder-dna.svg";
+  if (code === "PHYS") return "assets/placeholder-atom.svg";
+  return "assets/placeholder-flask.svg";
+}
+
 export function normalizeLabId(rawId) {
   if (!rawId) return "projectile";
   const str = String(rawId).toLowerCase().trim().replace(/^lab[-_]?/, "");
@@ -937,7 +943,11 @@ function renderSubjectView(container, curData, themeColor) {
         </div>
         <div class="continue-learning-actions">
           <div class="continue-learning-meta">
-            <span>${stats.modulesExplored.length} chapter${stats.modulesExplored.length === 1 ? '' : 's'} explored • ${stats.labsLaunched.length} lab${stats.labsLaunched.length === 1 ? '' : 's'} launched</span>
+            ${stats.modulesExplored.length === 0 && stats.labsLaunched.length === 0 ? `
+              <span class="empty-journey-guide">✨ Welcome! Select Chapter 1 below or click Start Chapter to begin</span>
+            ` : `
+              <span>${stats.modulesExplored.length} chapter${stats.modulesExplored.length === 1 ? '' : 's'} explored • ${stats.labsLaunched.length} lab${stats.labsLaunched.length === 1 ? '' : 's'} launched</span>
+            `}
           </div>
           <a href="#module/${lastMod.code}" class="btn-continue-resume" aria-label="${isResuming ? 'Resume' : 'Start'} Chapter ${lastMod.code}">
             <span>${isResuming ? 'Resume Chapter' : 'Start Chapter'}</span>
@@ -951,7 +961,8 @@ function renderSubjectView(container, curData, themeColor) {
     <div class="filter-search-row">
       <div class="search-box-wrapper">
         <div class="search-icon-inside">${icons.search}</div>
-        <input type="text" class="search-input" id="search-modules-input" placeholder="Search chapters, lessons, concepts, or phenomena... (Press Ctrl+K or /)" value="${AppState.searchQuery}" aria-label="Search chapters, lessons, concepts, or phenomena">
+        <input type="text" class="search-input" id="search-modules-input" placeholder="Search chapters, lessons, concepts..." value="${AppState.searchQuery}" aria-label="Search chapters, lessons, concepts, or phenomena">
+        <kbd class="search-kbd-hint" title="Press Ctrl+K or / to search">Ctrl K</kbd>
       </div>
 
       <!-- View Switcher: Chapters vs Individual Lesson Cards -->
@@ -981,15 +992,19 @@ function renderSubjectView(container, curData, themeColor) {
       <div class="modules-grid" id="modules-cards-container">
         ${filtered.map((m, mIdx) => {
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
-          const isTopPriority = mIdx < 3;
+          const fallbackSvg = getSubjectPlaceholderSvg(curData.code);
+          const isTopPriority = mIdx < 4;
           return `
             <div class="module-card" data-mid="${m.id}" style="--card-accent: ${themeColor};">
-              <!-- Textbook Chapter Opener Photo Banner -->
-              <div class="module-card-banner">
+              <!-- Textbook Chapter Opener Photo Banner with Skeleton & Robust Fallback -->
+              <div class="module-card-banner is-loading">
+                <div class="module-banner-skeleton" aria-hidden="true"></div>
                 <div class="module-banner-fallback-icon" aria-hidden="true">
                   ${curData.code === 'CHEM' ? icons.chemistry : (curData.code === 'BIO' ? icons.biology : icons.physics)}
                 </div>
-                <img src="${imgPath}" alt="${m.title}" class="module-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.style.opacity='0'; this.parentElement.classList.add('has-fallback-pattern');">
+                <img src="${imgPath}" alt="${m.title}" class="module-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}"
+                  onload="this.classList.add('loaded'); this.parentElement.classList.remove('is-loading');"
+                  onerror="if (!this.dataset.errored) { this.dataset.errored = '1'; this.src = '${fallbackSvg}'; this.alt = 'Chapter image unavailable'; } else { this.style.display='none'; } this.parentElement.classList.remove('is-loading'); this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="module-banner-overlay"></div>
               </div>
 
@@ -1058,14 +1073,18 @@ function renderSubjectView(container, curData, themeColor) {
           const spec = getLessonInteractiveSpec(curData.code, m.id, l.id);
           const iconEmoji = getLessonIconEmoji(spec.type);
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
+          const fallbackSvg = getSubjectPlaceholderSvg(curData.code);
           const isTopPriority = idx < 4;
           return `
             <div class="lesson-card-full" data-mid="${m.id}" data-lid="${l.id}" style="--card-accent: ${themeColor};">
-              <div class="lesson-card-banner">
+              <div class="lesson-card-banner is-loading">
+                <div class="module-banner-skeleton" aria-hidden="true"></div>
                 <div class="module-banner-fallback-icon" aria-hidden="true">
                   ${curData.code === 'CHEM' ? icons.chemistry : (curData.code === 'BIO' ? icons.biology : icons.physics)}
                 </div>
-                <img src="${imgPath}" alt="${l.title}" class="lesson-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}" onerror="this.style.opacity='0'; this.parentElement.classList.add('has-fallback-pattern');">
+                <img src="${imgPath}" alt="${l.title}" class="lesson-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}"
+                  onload="this.classList.add('loaded'); this.parentElement.classList.remove('is-loading');"
+                  onerror="if (!this.dataset.errored) { this.dataset.errored = '1'; this.src = '${fallbackSvg}'; this.alt = 'Lesson image unavailable'; } else { this.style.display='none'; } this.parentElement.classList.remove('is-loading'); this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="lesson-banner-overlay"></div>
                 <div class="lesson-card-pic-circle" title="${spec.title}">
                   ${iconEmoji}

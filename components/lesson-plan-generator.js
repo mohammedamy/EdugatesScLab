@@ -5,7 +5,7 @@
 import { chemistryCurriculum } from "../data/chemistry-curriculum.js";
 import { biologyCurriculum } from "../data/biology-curriculum.js";
 import { physicsCurriculum } from "../data/physics-curriculum.js";
-import { getLessonInteractiveSpec } from "./lesson-interactives.js";
+import { getLessonInteractiveSpec } from "../data/lesson-interactive-specs.js";
 import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
 import { renderLatex, formatMathText, upgradeAllMath } from "../utils/math-renderer.js";
 import { copyShareLink } from "../utils/toast.js";

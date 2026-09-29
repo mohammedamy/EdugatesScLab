@@ -7,7 +7,7 @@ import { formatMathText, renderMathInElement } from "../utils/math-renderer.js";
 import { chemistryCurriculum } from "../data/chemistry-curriculum.js";
 import { biologyCurriculum } from "../data/biology-curriculum.js";
 import { physicsCurriculum } from "../data/physics-curriculum.js";
-import { getLessonInteractiveSpec } from "./lesson-interactives.js";
+import { getLessonInteractiveSpec } from "../data/lesson-interactive-specs.js";
 import { SoundFX } from "../utils/audio-synth.js";
 import { showToast, copyShareLink } from "../utils/toast.js";
 import { openLmsShareModal } from "../utils/lms-share.js";

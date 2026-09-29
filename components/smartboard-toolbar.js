@@ -2302,4 +2302,23 @@ export function initSmartboardToolbar() {
   syncSizeUI();
   updateMiniBadge();
   loadToolbarState();
+
+  // Expose lifecycle and docking controls for modals & responsive viewport management
+  window.smartboardToolbar = {
+    isBarVisible: () => bar.classList.contains("visible") && !bar.classList.contains("sb-hidden"),
+    hideForModal: () => {
+      if (bar.classList.contains("visible") && !bar.classList.contains("sb-hidden")) {
+        bar.classList.add("sb-modal-docked");
+      }
+    },
+    restoreFromModal: () => {
+      bar.classList.remove("sb-modal-docked");
+    },
+    setMinimizedState: (val) => setMinimizedState(val),
+    hideBar: () => {
+      bar.classList.remove("visible");
+      bar.classList.add("sb-hidden");
+      if (toggleBtn) toggleBtn.classList.remove("active");
+    }
+  };
 }
