@@ -32,6 +32,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     document.body.appendChild(overlay);
   }
   overlay.style.display = "flex";
+  document.body.style.overflow = "hidden";
 
   // Active state
   let currentLessonId = initialLessonId || (moduleData.lessons && moduleData.lessons.length > 0 ? moduleData.lessons[0].id : 1);
@@ -49,6 +50,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     cleanupLessonInteractive("lab-lesson-sim-container");
     cleanupLessonInteractive("embedded-module-lab-mount");
     document.removeEventListener("keydown", handleKeydown);
+    document.body.style.overflow = "";
     if (overlay && overlay.parentNode) {
       overlay.parentNode.removeChild(overlay);
     }
@@ -70,29 +72,56 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   function handleKeydown(e) {
     if (e.key === "Escape") {
       closeModal();
+      return;
+    }
+    if (e.key === "Tab") {
+      const focusables = overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusables || focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
   }
   document.addEventListener("keydown", handleKeydown);
+
+  // Backdrop click to close modal
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) {
+      closeModal();
+    }
+  });
 
   function renderContent() {
     if (typeof currentLabCleanup === "function") {
       currentLabCleanup();
       currentLabCleanup = null;
     }
+    const curTabId = moduleData.code.startsWith("CHEM") ? "chem" : (moduleData.code.startsWith("BIO") ? "bio" : "phys");
+    const curSubName = moduleData.code.startsWith("CHEM") ? "Chemistry" : (moduleData.code.startsWith("BIO") ? "Biology" : "Physics");
+
     overlay.innerHTML = `
-      <div class="modal-content-shell">
+      <div class="modal-content-shell" role="dialog" aria-modal="true" aria-labelledby="modal-chapter-title">
         <div class="modal-header">
           <div class="modal-header-titles">
-            <div class="modal-category-badge" style="color: ${subjectColor}; border-color: ${subjectColor}44; background: ${subjectColor}15;">
-              ${moduleData.code} • ${moduleData.unit || 'Core Module'}
-            </div>
-            <div class="modal-title">${moduleData.title}</div>
+            <nav class="modal-breadcrumbs" aria-label="Breadcrumbs" style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 4px;">
+              <a href="#${curTabId}" class="breadcrumb-link" style="color: inherit; text-decoration: none;">${curSubName}</a>
+              <span aria-hidden="true" style="opacity: 0.4;">/</span>
+              <span style="color: ${subjectColor}; font-weight: 700;">${moduleData.code}</span>
+              ${activeTab === 'interactive' ? `<span aria-hidden="true" style="opacity: 0.4;">/</span><span style="color: var(--text-main);">Lesson ${currentLessonId}</span>` : ''}
+            </nav>
+            <div class="modal-title" id="modal-chapter-title">${moduleData.title}</div>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button class="btn btn-secondary btn-header-share" id="btn-header-share-modal" title="Share to Google Classroom, Classera, or Copy Link" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
+            <button class="btn btn-secondary btn-header-share" id="btn-header-share-modal" title="Share to Google Classroom, Classera, or Copy Link" aria-label="Share to LMS or copy deep link" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
               <span>📤 Share to LMS</span>
             </button>
-            <button class="btn btn-secondary btn-header-lesson-plan" id="btn-header-lesson-plan" title="Open 2-Page A4 Teacher Lesson Plan &amp; Export PDF" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
+            <button class="btn btn-secondary btn-header-lesson-plan" id="btn-header-lesson-plan" title="Open 2-Page A4 Teacher Lesson Plan &amp; Export PDF" aria-label="Open 2-Page A4 Teacher Lesson Plan" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
               <span>📄 Lesson Plan (A4)</span>
             </button>
             <button class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">✕</button>
@@ -152,13 +181,6 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
         openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
       });
     }
-
-    // Backdrop click to close modal
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay) {
-        closeModal();
-      }
-    });
 
     // Tab Switchers
     overlay.querySelectorAll(".modal-tab-btn").forEach(btn => {

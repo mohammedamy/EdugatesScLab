@@ -102,6 +102,9 @@ export function openProgressModal() {
     document.body.appendChild(overlay);
   }
 
+  overlay.style.display = "flex";
+  document.body.style.overflow = "hidden";
+
   const stats = ProgressStore.getStats();
   const accuracy = stats.questionsAnswered > 0 
     ? Math.round((stats.correctAnswers / stats.questionsAnswered) * 100) 
@@ -152,15 +155,15 @@ export function openProgressModal() {
   ];
 
   overlay.innerHTML = `
-    <div class="modal-content-shell" style="max-width: 820px;">
+    <div class="modal-content-shell" role="dialog" aria-modal="true" aria-labelledby="modal-mastery-title" style="max-width: 820px;">
       <div class="modal-header">
         <div class="modal-header-titles">
           <div class="modal-category-badge" style="color: #f59e0b;">
             Learning Analytics & Competency Tracking
           </div>
-          <div class="modal-title">Student STEM Mastery Dashboard</div>
+          <div class="modal-title" id="modal-mastery-title">Student STEM Mastery Dashboard</div>
         </div>
-        <button class="modal-close-btn" id="btn-close-progress">✕</button>
+        <button class="modal-close-btn" id="btn-close-progress" aria-label="Close mastery dashboard">✕</button>
       </div>
 
       <div class="modal-body" style="display: flex; flex-direction: column; gap: 24px;">
@@ -289,6 +292,8 @@ export function openProgressModal() {
 
   function closeModal() {
     overlay.style.display = "none";
+    document.body.style.overflow = "";
+    document.removeEventListener("keydown", keyHandler);
     if (window.closeActiveProgressModal === closeModal) {
       window.closeActiveProgressModal = null;
     }
@@ -299,27 +304,37 @@ export function openProgressModal() {
 
   window.closeActiveProgressModal = closeModal;
 
-  document.getElementById("btn-close-progress").addEventListener("click", closeModal);
+  document.getElementById("btn-close-progress")?.addEventListener("click", closeModal);
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) closeModal();
   });
 
-  const escHandler = (e) => {
-    if (e.key === "Escape" && overlay.style.display === "flex") {
+  const keyHandler = (e) => {
+    if (overlay.style.display !== "flex") return;
+    if (e.key === "Escape") {
       closeModal();
-      document.removeEventListener("keydown", escHandler);
+    } else if (e.key === "Tab") {
+      const focusables = overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusables || focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
   };
-  document.addEventListener("keydown", escHandler);
+  document.addEventListener("keydown", keyHandler);
 
-  document.getElementById("btn-reset-stats").addEventListener("click", () => {
+  document.getElementById("btn-reset-stats")?.addEventListener("click", () => {
     if (confirm("Are you sure you want to reset your learning stats and mastered cards?")) {
       ProgressStore.resetAll();
       showToast("Progress Reset", "All local learning metrics and badges have been cleared.", "info");
       openProgressModal();
     }
   });
-
-  overlay.style.display = "flex";
 }
 

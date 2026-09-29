@@ -22,7 +22,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="AmScLab">
+  <meta name="apple-mobile-web-app-title" content="Edugates-ClipSAT">
 
   <!-- Preconnect & DNS-Prefetch for Fast CDN and Font Loading on Slow Smartboard Networks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -45,14 +45,11 @@
   <script>
     (function() {
       try {
-        var w = window.innerWidth || (window.screen ? window.screen.width : 1920);
-        var isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
-        var isLowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
         var ua = navigator.userAgent || "";
-        var isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel|CrOS/i.test(ua);
+        var isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel/i.test(ua);
         var savedMode = localStorage.getItem("edugates_device_mode");
-        // Automatically activate smartboard 60FPS turbo profile on interactive panels, large touchscreens, or low-core hardware
-        if (savedMode === "smartboard" || (!savedMode && (isSmartboardUA || w >= 1600 || (isTouch && w >= 1024) || isLowCpu))) {
+        // Only activate smartboard mode if explicitly chosen by teacher or detected on dedicated interactive flat panel
+        if (savedMode === "smartboard" || (!savedMode && isSmartboardUA)) {
           document.documentElement.setAttribute("data-mode", "smartboard");
           document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
         }
@@ -62,6 +59,9 @@
 </head>
 
 <body>
+  <!-- Accessibility Skip Navigation Link -->
+  <a href="#main-content-view" class="skip-link">Skip to main content</a>
+
   <!-- Semantic Application Shell Mount Point -->
   <div id="app-root">
     <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; color: #94a3b8;">

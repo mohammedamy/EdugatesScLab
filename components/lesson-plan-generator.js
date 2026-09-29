@@ -702,19 +702,33 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
 
   window.closeActiveLessonPlanModal = closeModal;
 
+  document.getElementById("btn-lp-close")?.setAttribute("aria-label", "Close lesson plan preview");
   document.getElementById("btn-lp-close")?.addEventListener("click", closeModal);
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) closeModal();
   });
 
-  // Escape key handler
-  const escHandler = (e) => {
-    if (e.key === "Escape" && overlay.style.display === "flex") {
+  // Keyboard navigation & Escape handler
+  const keyHandler = (e) => {
+    if (overlay.style.display !== "flex") return;
+    if (e.key === "Escape") {
       closeModal();
-      document.removeEventListener("keydown", escHandler);
+      document.removeEventListener("keydown", keyHandler);
+    } else if (e.key === "Tab") {
+      const focusables = overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusables || focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
   };
-  document.addEventListener("keydown", escHandler);
+  document.addEventListener("keydown", keyHandler);
 }
 
 /**

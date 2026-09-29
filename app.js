@@ -30,9 +30,19 @@ import { initVseprLab } from "./labs/chem-vsepr.js";
 import { initWaveLab } from "./labs/phys-waves.js";
 import { initPhotosynthesisLab } from "./labs/bio-photosynthesis.js";
 
-// Initialize Theme
-const savedTheme = localStorage.getItem("edugates_theme") || "night";
+// Initialize Theme (Respect user preference or fallback to system color scheme)
+const userSavedTheme = localStorage.getItem("edugates_theme");
+const systemPrefersLight = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+const savedTheme = userSavedTheme || (systemPrefersLight ? "day" : "night");
 document.documentElement.setAttribute("data-theme", savedTheme);
+
+if (typeof window !== "undefined" && window.matchMedia) {
+  window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", (e) => {
+    if (!localStorage.getItem("edugates_theme")) {
+      setTheme(e.matches ? "day" : "night");
+    }
+  });
+}
 
 // Global Application State
 const AppState = {
@@ -149,17 +159,16 @@ function initCustomLogoDetector() {
 }
 
 function setupDeviceDetection() {
-  const w = window.innerWidth || (window.screen ? window.screen.width : 1920);
-  const isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
-  const isLowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
   const ua = navigator.userAgent || "";
-  const isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel|CrOS/i.test(ua);
+  const isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel/i.test(ua);
   const savedMode = localStorage.getItem("edugates_device_mode");
 
   if (savedMode) {
     setDeviceMode(savedMode);
-  } else if (isSmartboardUA || w >= 1600 || (isTouch && w >= 1024) || isLowCpu) {
+  } else if (isSmartboardUA) {
     setDeviceMode("smartboard");
+  } else {
+    setDeviceMode("auto");
   }
 }
 
@@ -185,12 +194,9 @@ function setDeviceMode(mode) {
     document.documentElement.setAttribute("data-mode", "mobile");
   } else {
     // Auto Mode: evaluate hardware profile
-    const w = window.innerWidth || 1920;
-    const isTouch = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
-    const isLowCpu = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
     const ua = navigator.userAgent || "";
-    const isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel|CrOS/i.test(ua);
-    if (isSmartboardUA || w >= 1600 || (isTouch && w >= 1024) || isLowCpu) {
+    const isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel/i.test(ua);
+    if (isSmartboardUA) {
       document.body.classList.add("mode-smartboard", "fast-smartboard-mode");
       document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
       document.documentElement.setAttribute("data-mode", "smartboard");
@@ -220,7 +226,7 @@ function renderAppShell() {
     <!-- Navigation Header -->
     <header class="app-navbar">
       <!-- Brand & Title -->
-      <div class="brand-section" id="nav-brand-home" title="Edugates-ClipSAT Science Labs - Home">
+      <a href="#chem" class="brand-section" id="nav-brand-home" title="Edugates-ClipSAT Science Labs - Home" aria-label="Edugates-ClipSAT Science Labs Home" style="text-decoration: none; color: inherit;">
         <div class="brand-logo-box" id="brand-logo-wrapper">
           <img src="assets/logo.png" alt="Edugates-ClipSAT Science Labs Logo" class="brand-logo-img" id="brand-logo-img" onerror="this.style.display='none'; document.getElementById('brand-logo-fallback').style.display='flex';">
           <div id="brand-logo-fallback" class="brand-logo-icon" style="display: none;">
@@ -231,86 +237,90 @@ function renderAppShell() {
           <h1><span class="brand-title-prefix">Edugates-ClipSAT</span> <span class="logo-highlight">Science Labs</span></h1>
           <div class="brand-tagline">Virtual Labs &amp; STEM Curriculum • Chemistry • Biology • Physics</div>
         </div>
-      </div>
+      </a>
 
-      <!-- Navigation Subject Dropdown Menu -->
-      <div class="nav-dropdown-wrapper" id="nav-dropdown-wrapper">
-        <button class="nav-dropdown-trigger ${curSub.themeClass}" id="nav-dropdown-trigger" 
-                aria-haspopup="true" aria-expanded="false" 
-                title="Select Subject or Area (Chemistry, Biology, Physics, Labs, Quiz, Flashcards)">
-          <div class="nav-dropdown-trigger-icon" id="nav-dropdown-current-icon">
-            ${curSub.icon}
-          </div>
-          <div class="nav-dropdown-trigger-info">
-            <span class="nav-dropdown-current-label">Curriculum / Area</span>
-            <div class="nav-dropdown-current-row">
-              <span class="nav-dropdown-current-title" id="nav-dropdown-current-title">${curSub.name}</span>
-              <span class="nav-dropdown-current-badge" id="nav-dropdown-current-badge">${curSub.badge}</span>
+      <!-- Semantic Main Navigation Landmark -->
+      <nav class="app-nav-container" aria-label="Main Navigation">
+        <!-- Navigation Subject Dropdown Menu -->
+        <div class="nav-dropdown-wrapper" id="nav-dropdown-wrapper">
+          <button class="nav-dropdown-trigger ${curSub.themeClass}" id="nav-dropdown-trigger" 
+                  aria-haspopup="true" aria-expanded="false" 
+                  aria-label="Select Subject or Area (Current: ${curSub.name})"
+                  title="Select Subject or Area (Chemistry, Biology, Physics, Labs, Quiz, Flashcards)">
+            <div class="nav-dropdown-trigger-icon" id="nav-dropdown-current-icon">
+              ${curSub.icon}
             </div>
-          </div>
-          <div class="nav-dropdown-chevron" id="nav-dropdown-chevron">
-            ${icons.chevronDown}
-          </div>
-        </button>
+            <div class="nav-dropdown-trigger-info">
+              <span class="nav-dropdown-current-label">Curriculum / Area</span>
+              <div class="nav-dropdown-current-row">
+                <span class="nav-dropdown-current-title" id="nav-dropdown-current-title">${curSub.name}</span>
+                <span class="nav-dropdown-current-badge" id="nav-dropdown-current-badge">${curSub.badge}</span>
+              </div>
+            </div>
+            <div class="nav-dropdown-chevron" id="nav-dropdown-chevron" aria-hidden="true">
+              ${icons.chevronDown}
+            </div>
+          </button>
 
-        <!-- Dropdown Menu Panel -->
-        <div class="nav-dropdown-menu" id="nav-dropdown-menu" role="menu" aria-label="Curriculum and Laboratories Menu">
-          <div class="nav-dropdown-header">
-            <span class="nav-dropdown-header-title">Select Curriculum or Lab</span>
-            <span class="nav-dropdown-header-count">6 Available</span>
-          </div>
-          <div class="nav-dropdown-list">
-            ${NAV_SUBJECTS.map(sub => `
-              <button class="nav-dropdown-item ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
-                      data-tab="${sub.id}" role="menuitem" tabindex="-1">
-                <div class="nav-item-icon-box">
-                  ${sub.icon}
-                </div>
-                <div class="nav-item-content">
-                  <div class="nav-item-top">
-                    <span class="nav-item-title">${sub.name}</span>
-                    <span class="nav-item-badge">${sub.badge}</span>
+          <!-- Dropdown Menu Panel -->
+          <div class="nav-dropdown-menu" id="nav-dropdown-menu" role="menu" aria-label="Curriculum and Laboratories Menu">
+            <div class="nav-dropdown-header">
+              <span class="nav-dropdown-header-title">Select Curriculum or Lab</span>
+              <span class="nav-dropdown-header-count">6 Available</span>
+            </div>
+            <div class="nav-dropdown-list">
+              ${NAV_SUBJECTS.map(sub => `
+                <a href="#${sub.id}" class="nav-dropdown-item ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
+                        data-tab="${sub.id}" role="menuitem" aria-label="${sub.name}: ${sub.tagline}" style="text-decoration: none; color: inherit;">
+                  <div class="nav-item-icon-box">
+                    ${sub.icon}
                   </div>
-                  <span class="nav-item-tagline">${sub.tagline}</span>
-                </div>
-                <div class="nav-item-check" aria-hidden="true">
-                  ${icons.check}
-                </div>
-              </button>
-            `).join('')}
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Controls & Device Mode -->
-      <div class="nav-right-controls">
-        <!-- Day / Night Mode Toggle Switch -->
-        <button class="theme-toggle-btn" id="btn-theme-toggle" title="Switch Day/Night Mode (Light/Dark)" aria-label="Toggle Day/Night Mode">
-          <div class="theme-toggle-track">
-            <div class="theme-toggle-thumb">
-              <span class="icon-sun">☀️</span>
-              <span class="icon-moon">🌙</span>
+                  <div class="nav-item-content">
+                    <div class="nav-item-top">
+                      <span class="nav-item-title">${sub.name}</span>
+                      <span class="nav-item-badge">${sub.badge}</span>
+                    </div>
+                    <span class="nav-item-tagline">${sub.tagline}</span>
+                  </div>
+                  <div class="nav-item-check" aria-hidden="true">
+                    ${icons.check}
+                  </div>
+                </a>
+              `).join('')}
             </div>
           </div>
-          <span class="theme-toggle-text">${AppState.theme === 'day' ? 'Day' : 'Night'}</span>
-        </button>
-
-        <button class="btn btn-secondary" id="btn-open-progress" title="Student STEM Mastery Telemetry" style="padding: 6px 12px; font-size: 0.85rem; gap: 6px;">
-          ${icons.trophy}
-          <span>Mastery</span>
-        </button>
-
-        <div class="device-mode-toggle" title="Screen Optimization &amp; Hardware Profile">
-          <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto">Auto</button>
-          <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" title="Smartboard 60 FPS Turbo Profile (Zero-Blur, Hardware Accelerated)">⚡ Smartboard Turbo</button>
-          <button class="device-btn ${AppState.deviceMode === 'tablet' ? 'active' : ''}" data-mode="tablet" title="Tablet Mode">Tablet</button>
-          <button class="device-btn ${AppState.deviceMode === 'mobile' ? 'active' : ''}" data-mode="mobile" title="Mobile Mode">Mobile</button>
         </div>
-      </div>
+
+        <!-- Right Controls & Device Mode -->
+        <div class="nav-right-controls">
+          <!-- Day / Night Mode Toggle Switch -->
+          <button class="theme-toggle-btn" id="btn-theme-toggle" title="Switch Day/Night Mode (Light/Dark)" aria-label="Toggle Day or Night theme">
+            <div class="theme-toggle-track">
+              <div class="theme-toggle-thumb">
+                <span class="icon-sun">☀️</span>
+                <span class="icon-moon">🌙</span>
+              </div>
+            </div>
+            <span class="theme-toggle-text">${AppState.theme === 'day' ? 'Day' : 'Night'}</span>
+          </button>
+
+          <button class="btn btn-secondary" id="btn-open-progress" title="Student STEM Mastery Telemetry" aria-label="Student STEM Mastery telemetry and progress" style="padding: 6px 12px; font-size: 0.85rem; gap: 6px;">
+            ${icons.trophy}
+            <span>Mastery</span>
+          </button>
+
+          <div class="device-mode-toggle" role="group" aria-label="Screen Optimization &amp; Hardware Profile" title="Screen Optimization &amp; Hardware Profile">
+            <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto" aria-label="Auto hardware profile">Auto</button>
+            <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" aria-label="Smartboard 60 FPS Turbo Profile" title="Smartboard 60 FPS Turbo Profile (Zero-Blur, Hardware Accelerated)">⚡ Smartboard Turbo</button>
+            <button class="device-btn ${AppState.deviceMode === 'tablet' ? 'active' : ''}" data-mode="tablet" aria-label="Tablet Profile" title="Tablet Mode">Tablet</button>
+            <button class="device-btn ${AppState.deviceMode === 'mobile' ? 'active' : ''}" data-mode="mobile" aria-label="Mobile Profile" title="Mobile Mode">Mobile</button>
+          </div>
+        </div>
+      </nav>
     </header>
 
     <!-- Main Viewport Area -->
-    <main class="app-main" id="main-content-view"></main>
+    <main class="app-main" id="main-content-view" tabindex="-1"></main>
   `;
 }
 
@@ -368,8 +378,9 @@ function bindGlobalEvents() {
   }
 
   // Brand Home
-  document.getElementById("nav-brand-home").addEventListener("click", () => {
-    try { SoundFX.playClick(); } catch (e) {}
+  document.getElementById("nav-brand-home")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    try { SoundFX.playClick(); } catch (err) {}
     window.location.hash = "chem";
   });
 
@@ -386,6 +397,7 @@ function bindGlobalEvents() {
   // Dropdown Menu Item Switchers
   document.querySelectorAll(".nav-dropdown-item").forEach(item => {
     item.addEventListener("click", (e) => {
+      e.preventDefault();
       e.stopPropagation();
       try { SoundFX.playClick(); } catch (e) {}
       switchTab(item.dataset.tab, true);
@@ -438,6 +450,25 @@ function bindGlobalEvents() {
       window.location.hash = "mastery";
     });
   }
+
+  // Instant Client-Side Search Shortcut (Ctrl+K, Cmd+K, or / when not typing)
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      const inp = document.getElementById("search-modules-input");
+      if (inp) {
+        inp.focus();
+        inp.select();
+      }
+    } else if (e.key === "/" && !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
+      const inp = document.getElementById("search-modules-input");
+      if (inp) {
+        e.preventDefault();
+        inp.focus();
+        inp.select();
+      }
+    }
+  });
 }
 
 export function findModuleByCode(rawCode) {
@@ -814,16 +845,16 @@ function renderSubjectView(container, curData, themeColor) {
     <div class="filter-search-row">
       <div class="search-box-wrapper">
         <div class="search-icon-inside">${icons.search}</div>
-        <input type="text" class="search-input" id="search-modules-input" placeholder="Search chapters, lessons, concepts, or phenomena..." value="${AppState.searchQuery}">
+        <input type="text" class="search-input" id="search-modules-input" placeholder="Search chapters, lessons, concepts, or phenomena... (Press Ctrl+K or /)" value="${AppState.searchQuery}" aria-label="Search chapters, lessons, concepts, or phenomena">
       </div>
 
       <!-- View Switcher: Chapters vs Individual Lesson Cards -->
       <div class="view-mode-toggle-group" title="Toggle between Chapter Cards and Lesson Cards">
-        <button class="view-mode-btn ${!isLessonsView ? 'active' : ''}" data-view="chapters">
+        <button class="view-mode-btn ${!isLessonsView ? 'active' : ''}" data-view="chapters" aria-label="Chapter Cards view (${filtered.length} chapters)">
           <span>📖</span>
           <span>Chapter Cards (${filtered.length})</span>
         </button>
-        <button class="view-mode-btn ${isLessonsView ? 'active' : ''}" data-view="lessons">
+        <button class="view-mode-btn ${isLessonsView ? 'active' : ''}" data-view="lessons" aria-label="Lesson Cards view (${totalLessonsCount} lessons)">
           <span>🔬</span>
           <span>Lesson Cards (${totalLessonsCount})</span>
         </button>
@@ -831,7 +862,7 @@ function renderSubjectView(container, curData, themeColor) {
 
       <div class="unit-filters-scroll">
         ${units.map(u => `
-          <button class="unit-filter-chip ${AppState.selectedUnit === u ? 'active' : ''}" data-unit="${u}">
+          <button class="unit-filter-chip ${AppState.selectedUnit === u ? 'active' : ''}" data-unit="${u}" aria-label="Filter curriculum by unit: ${u === 'ALL' ? 'All Units' : u}">
             ${u === 'ALL' ? 'All Units' : u}
           </button>
         `).join("")}
@@ -862,7 +893,9 @@ function renderSubjectView(container, curData, themeColor) {
                     <span class="module-code-badge">${m.code}</span>
                     <span class="module-unit-tag">${m.unit || 'Core Module'}</span>
                   </div>
-                  <h3 class="module-title">${m.title}</h3>
+                  <h3 class="module-title">
+                    <a href="#module/${m.code}" class="module-title-link" aria-label="Open Chapter ${m.code}: ${m.title}">${m.title}</a>
+                  </h3>
                   <div class="module-phenomenon">
                     <span class="phenomenon-label">Encounter Phenomenon</span>
                     <div class="phenomenon-text">"${m.phenomenon}"</div>
@@ -880,7 +913,7 @@ function renderSubjectView(container, curData, themeColor) {
                       const spec = getLessonInteractiveSpec(curData.code, m.id, l.id);
                       const iconEmoji = getLessonIconEmoji(spec.type);
                       return `
-                        <div class="lesson-row-card" data-mid="${m.id}" data-lid="${l.id}" title="Click to launch Lesson ${l.id} Interactive: ${l.title}">
+                        <a href="#lesson/${m.code}-L${l.id}" class="lesson-row-card" data-mid="${m.id}" data-lid="${l.id}" title="Click to launch Lesson ${l.id} Interactive: ${l.title}" aria-label="Lesson ${l.id}: ${l.title} - Launch Interactive Simulation">
                           <div class="lesson-row-pic" title="${spec.title}">
                             <span class="lesson-row-icon">${iconEmoji}</span>
                           </div>
@@ -892,7 +925,7 @@ function renderSubjectView(container, curData, themeColor) {
                             <span class="interactive-tag-mini">Sim</span>
                             <span class="play-arrow">▶</span>
                           </div>
-                        </div>
+                        </a>
                       `;
                     }).join("")}
                   </div>
@@ -903,9 +936,9 @@ function renderSubjectView(container, curData, themeColor) {
                     ${icons.microscope}
                     <span>Lab: ${formatLabName(m.lab)}</span>
                   </div>
-                  <div class="view-module-arrow">
+                  <a href="#module/${m.code}" class="view-module-arrow module-explore-link" aria-label="Explore Chapter ${m.code}: ${m.title}">
                     Explore Chapter →
-                  </div>
+                  </a>
                 </div>
               </div>
             </div>
@@ -940,7 +973,9 @@ function renderSubjectView(container, curData, themeColor) {
                     <span class="lesson-card-lbadge">Lesson ${l.id}</span>
                   </div>
                   <div class="lesson-card-chapter">${m.title}</div>
-                  <h4 class="lesson-card-title">${l.title}</h4>
+                  <h4 class="lesson-card-title">
+                    <a href="#lesson/${m.code}-L${l.id}" class="lesson-title-link" aria-label="Open Lesson ${l.id}: ${l.title}">${l.title}</a>
+                  </h4>
                 </div>
 
                 <div class="lesson-card-formula">
@@ -952,13 +987,13 @@ function renderSubjectView(container, curData, themeColor) {
                 </div>
 
                 <div class="lesson-card-footer" style="display: flex; gap: 8px;">
-                  <button class="btn-launch-lesson-sim" data-mid="${m.id}" data-lid="${l.id}" style="flex: 1;">
+                  <a href="#lesson/${m.code}-L${l.id}" class="btn-launch-lesson-sim" data-mid="${m.id}" data-lid="${l.id}" style="flex: 1; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px;" aria-label="Launch Interactive Simulation for Lesson ${l.id}">
                     <span>Launch Interactive</span>
                     <span class="play-icon">▶</span>
-                  </button>
-                  <button class="btn-launch-lesson-plan" data-mid="${m.id}" data-lid="${l.id}" title="Open 2-Page A4 Teacher Lesson Plan &amp; PDF Export" style="padding: 0 12px; height: 38px; font-size: 0.82rem; font-weight: 700; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface-elevated); color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; transition: all 0.2s ease;">
+                  </a>
+                  <a href="#plan/${curData.code}-M${m.id}-L${l.id}" class="btn-launch-lesson-plan" data-mid="${m.id}" data-lid="${l.id}" title="Open 2-Page A4 Teacher Lesson Plan &amp; PDF Export" aria-label="Open Lesson Plan for Lesson ${l.id}" style="padding: 0 12px; height: 38px; font-size: 0.82rem; font-weight: 700; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-surface-elevated); color: var(--text-main); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; text-decoration: none; transition: all 0.2s ease;">
                     <span>📄 Plan</span>
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
@@ -1001,6 +1036,8 @@ function renderSubjectView(container, curData, themeColor) {
   // Bind Lesson Row Clicks to launch that lesson's interactive directly
   document.querySelectorAll(".lesson-row-card").forEach(pill => {
     pill.addEventListener("click", (e) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
       e.stopPropagation();
       const mid = parseInt(pill.dataset.mid, 10);
       const lid = parseInt(pill.dataset.lid, 10);
@@ -1013,7 +1050,8 @@ function renderSubjectView(container, curData, themeColor) {
 
   // Bind Standalone Lesson Card Clicks
   document.querySelectorAll(".lesson-card-full").forEach(card => {
-    card.addEventListener("click", () => {
+    card.addEventListener("click", (e) => {
+      if (e.target.closest("a, button")) return;
       const mid = parseInt(card.dataset.mid, 10);
       const lid = parseInt(card.dataset.lid, 10);
       const mod = curData.modules.find(m => m.id === mid);
@@ -1026,6 +1064,8 @@ function renderSubjectView(container, curData, themeColor) {
   // Bind Lesson Plan Button Clicks on Standalone Cards
   document.querySelectorAll(".btn-launch-lesson-plan").forEach(btn => {
     btn.addEventListener("click", (e) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
       e.stopPropagation();
       const mid = parseInt(btn.dataset.mid, 10);
       const lid = parseInt(btn.dataset.lid, 10);
@@ -1035,13 +1075,25 @@ function renderSubjectView(container, curData, themeColor) {
 
   // Bind Module Card Clicks
   document.querySelectorAll(".module-card").forEach(card => {
-    card.addEventListener("click", () => {
+    card.addEventListener("click", (e) => {
+      if (e.target.closest("a, button, .lesson-row-card")) return;
       const mid = parseInt(card.dataset.mid, 10);
       const mod = curData.modules.find(m => m.id === mid);
       if (mod) {
         window.location.hash = `#module/${mod.code}`;
       }
     });
+  });
+
+  // Prefetch chapter assets on hover / focus for instant transitions
+  document.querySelectorAll(".module-card, .lesson-row-card").forEach(el => {
+    el.addEventListener("mouseenter", () => {
+      const mid = el.dataset.mid;
+      if (mid) {
+        const nextImg = new Image();
+        nextImg.src = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(parseInt(mid, 10))}.jpg`;
+      }
+    }, { once: true, passive: true });
   });
 
   renderMathInElement(container);
@@ -1057,10 +1109,10 @@ function renderVirtualLabsHub(container) {
             Interactive Simulation Workbenches (60 FPS)
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button class="btn btn-secondary" id="btn-lms-share-active-lab" title="Assign this laboratory workbench to Google Classroom, Classera, Canvas, or Teams" style="padding: 6px 14px; font-size: 0.85rem; font-weight: 700; gap: 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+            <button class="btn btn-secondary" id="btn-lms-share-active-lab" title="Assign this laboratory workbench to Google Classroom, Classera, Canvas, or Teams" aria-label="Assign this laboratory workbench to LMS" style="padding: 6px 14px; font-size: 0.85rem; font-weight: 700; gap: 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
               <span>📤 Assign to LMS</span>
             </button>
-            <button class="btn btn-secondary btn-share-link" id="btn-share-active-lab" title="Share deep-link to this laboratory workbench">
+            <button class="btn btn-secondary btn-share-link" id="btn-share-active-lab" title="Share deep-link to this laboratory workbench" aria-label="Share deep-link to this laboratory workbench">
               <span>🔗 Share Workbench</span>
             </button>
           </div>
@@ -1072,54 +1124,54 @@ function renderVirtualLabsHub(container) {
 
         <!-- 12 Lab Selector Tabs -->
         <div class="lab-nav-pills-container">
-          <button class="btn ${AppState.activeLabId === 'projectile' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="projectile">
+          <a href="#labs/projectile" class="btn ${AppState.activeLabId === 'projectile' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="projectile" aria-label="Kinematics and Projectiles Virtual Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.projectile}</span>
             <span class="lab-btn-title">Kinematics &amp; Projectiles</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'titration' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="titration">
+          </a>
+          <a href="#labs/titration" class="btn ${AppState.activeLabId === 'titration' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="titration" aria-label="Acid-Base Titration Virtual Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.titration}</span>
             <span class="lab-btn-title">Acid-Base Titration</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'microscope' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="microscope">
+          </a>
+          <a href="#labs/microscope" class="btn ${AppState.activeLabId === 'microscope' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="microscope" aria-label="Ultra-HD Microscope Virtual Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.microscope}</span>
             <span class="lab-btn-title">Ultra-HD Microscope</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'ptable' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="ptable">
+          </a>
+          <a href="#labs/ptable" class="btn ${AppState.activeLabId === 'ptable' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="ptable" aria-label="Interactive Periodic Table Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.periodicTable}</span>
             <span class="lab-btn-title">Interactive Periodic Table</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'circuits' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="circuits">
+          </a>
+          <a href="#labs/circuits" class="btn ${AppState.activeLabId === 'circuits' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="circuits" aria-label="DC Circuits and Ohm's Law Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.circuit}</span>
             <span class="lab-btn-title">DC Circuits &amp; Ohm's Law</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'gaslaws' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="gaslaws">
+          </a>
+          <a href="#labs/gaslaws" class="btn ${AppState.activeLabId === 'gaslaws' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="gaslaws" aria-label="Gas Laws and Kinetic Theory Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.gasLaws}</span>
             <span class="lab-btn-title">Gas Laws &amp; Kinetic Theory</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'dnaprotein' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="dnaprotein">
+          </a>
+          <a href="#labs/dnaprotein" class="btn ${AppState.activeLabId === 'dnaprotein' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="dnaprotein" aria-label="DNA and Protein Synthesis Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.dna}</span>
             <span class="lab-btn-title">DNA &amp; Protein Synthesis</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'punnett' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="punnett">
+          </a>
+          <a href="#labs/punnett" class="btn ${AppState.activeLabId === 'punnett' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="punnett" aria-label="Punnett Genetics Cross Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.punnett}</span>
             <span class="lab-btn-title">Punnett Genetics Cross</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'optics' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="optics">
+          </a>
+          <a href="#labs/optics" class="btn ${AppState.activeLabId === 'optics' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="optics" aria-label="Geometric Optics Ray Tracing Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.optics}</span>
             <span class="lab-btn-title">Geometric Optics Ray Tracing</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'vsepr' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="vsepr">
+          </a>
+          <a href="#labs/vsepr" class="btn ${AppState.activeLabId === 'vsepr' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="vsepr" aria-label="VSEPR 3D Modeler Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.vsepr}</span>
             <span class="lab-btn-title">VSEPR 3D Modeler</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'waves' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="waves">
+          </a>
+          <a href="#labs/waves" class="btn ${AppState.activeLabId === 'waves' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="waves" aria-label="Wave Interference and Slits Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.waveInterference}</span>
             <span class="lab-btn-title">Wave Interference &amp; Slits</span>
-          </button>
-          <button class="btn ${AppState.activeLabId === 'photosynthesis' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="photosynthesis">
+          </a>
+          <a href="#labs/photosynthesis" class="btn ${AppState.activeLabId === 'photosynthesis' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="photosynthesis" aria-label="Photosynthesis and Respirometer Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.photosynthesis}</span>
             <span class="lab-btn-title">Photosynthesis &amp; Respirometer</span>
-          </button>
+          </a>
         </div>
       </div>
 
@@ -1145,8 +1197,10 @@ function renderVirtualLabsHub(container) {
 
   // Bind Lab Selector Buttons
   document.querySelectorAll(".lab-nav-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      try { SoundFX.playClick(); } catch (e) {}
+    btn.addEventListener("click", (e) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      try { SoundFX.playClick(); } catch (err) {}
       AppState.activeLabId = btn.dataset.lab;
       window.location.hash = `#labs/${btn.dataset.lab}`;
     });

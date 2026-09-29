@@ -270,6 +270,70 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Accessibility: Skip to Main Content Link */
+.skip-link {
+  position: absolute;
+  top: -120px;
+  left: 16px;
+  background: #0284c7;
+  color: #ffffff !important;
+  padding: 10px 20px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  border-radius: var(--radius-sm, 8px);
+  z-index: 999999;
+  text-decoration: none;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), 0 0 12px rgba(56, 189, 248, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: top 0.2s ease-in-out;
+}
+.skip-link:focus {
+  top: 16px;
+  outline: 3px solid #38bdf8;
+  outline-offset: 3px;
+}
+
+/* Accessibility: Semantic Link Styling for Cards & Navigation */
+.module-title-link,
+.lesson-title-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.module-title-link:hover,
+.lesson-title-link:hover {
+  color: #38bdf8;
+  text-decoration: underline;
+}
+.module-explore-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+.module-explore-link:hover {
+  color: #7dd3fc;
+  text-decoration: underline;
+  transform: translateX(3px);
+}
+a.lesson-row-card {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* User Accessibility: Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Background Atmospheric Glow */
 .bg-glow-container {
   position: fixed;
@@ -1249,6 +1313,21 @@ html, body {
   border-color: rgba(56, 189, 248, 0.4);
 }
 
+@media (max-width: 768px) {
+  .unit-filters-scroll {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    gap: 8px;
+    padding-bottom: 6px;
+  }
+  .unit-filter-chip {
+    white-space: normal;
+    text-align: center;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+  }
+}
+
 /* Modules Grid */
 .modules-grid {
   display: grid;
@@ -1796,30 +1875,76 @@ html, body {
   z-index: 199999 !important;
 }
 
-/* Floating Smartboard Pen Bar */
+/* Floating Smartboard Pen Bar - Collapsible / Auto-Hide */
 .smartboard-pen-bar {
   position: fixed;
   bottom: 24px;
   right: 24px;
   z-index: 200050 !important;
-  background: rgba(15, 23, 42, 0.92);
+  background: rgba(15, 23, 42, 0.94);
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 2px solid rgba(56, 189, 248, 0.4);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-full, 9999px);
   padding: 8px 14px;
   display: flex;
   align-items: center;
   gap: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
-  animation: bounceIn 0.4s ease;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  transform: translateY(140%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-@keyframes bounceIn {
-  from { transform: scale(0.8) translateY(20px); opacity: 0; }
-  to { transform: scale(1) translateY(0); opacity: 1; }
+
+/* Pen Bar Visible State */
+.smartboard-pen-bar.visible,
+body.mode-smartboard .smartboard-pen-bar:not(.sb-hidden),
+.fast-smartboard-mode .smartboard-pen-bar:not(.sb-hidden) {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Explicitly Dismissed / Hidden Toolbar */
+.smartboard-pen-bar.sb-hidden {
+  transform: translateY(140%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Floating Smartboard Toggle Button */
+.sb-toolbar-toggle {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 200040;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0284c7, #0ea5e9);
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 14px rgba(14, 165, 233, 0.4);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background 0.2s ease;
+}
+.sb-toolbar-toggle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 20px rgba(14, 165, 233, 0.6);
+}
+.sb-toolbar-toggle:active {
+  transform: scale(0.95);
+}
+.sb-toolbar-toggle.active {
+  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), 0 0 14px rgba(16, 185, 129, 0.4);
 }
 
 /* Floating Dragging State */
@@ -2080,6 +2205,20 @@ html, body {
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     justify-content: flex-start;
+    transform: translateY(140%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+  .smartboard-pen-bar.visible {
+    transform: translateY(0) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+  .sb-toolbar-toggle {
+    bottom: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
   }
   .smartboard-pen-bar::-webkit-scrollbar {
     display: none;
@@ -2152,7 +2291,7 @@ html, body {
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: 12px;
   animation: popoverFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -3234,6 +3373,37 @@ html, body {
 }
 
 @media (max-width: 600px) {
+  .app-navbar {
+    height: auto;
+    min-height: 56px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .brand-section {
+    gap: 10px;
+    max-width: 100%;
+  }
+  .brand-logo-box {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  .brand-text h1 {
+    font-size: 0.96rem;
+    line-height: 1.25;
+    white-space: normal;
+  }
+  .app-nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 6px;
+  }
+  .device-mode-toggle {
+    display: none;
+  }
   .nav-dropdown-wrapper {
     position: static;
   }
@@ -5532,9 +5702,13 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-main);
-  white-space: nowrap;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .lesson-row-action {

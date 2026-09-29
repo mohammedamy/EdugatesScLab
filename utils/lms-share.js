@@ -512,6 +512,7 @@ export function openLmsShareModal(shareData = {}) {
   }
 
   document.body.appendChild(overlay);
+  document.body.style.overflow = "hidden";
 
   // Bind Event Listeners
   const closeModal = (e) => {
@@ -519,7 +520,8 @@ export function openLmsShareModal(shareData = {}) {
       try { e.preventDefault(); e.stopPropagation(); } catch (err) {}
     }
     try {
-      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", handleKeydown);
       window.removeEventListener("popstate", closeModal);
       window.removeEventListener("hashchange", closeModal);
       delete window.closeActiveLmsModal;
@@ -534,12 +536,26 @@ export function openLmsShareModal(shareData = {}) {
     try { SoundFX.playClick(); } catch (e) {}
   };
 
-  const handleEscape = (e) => {
+  const handleKeydown = (e) => {
     if (e.key === "Escape" || e.keyCode === 27) {
       closeModal(e);
+      return;
+    }
+    if (e.key === "Tab") {
+      const focusables = overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      if (!focusables || focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
   };
-  document.addEventListener("keydown", handleEscape);
+  document.addEventListener("keydown", handleKeydown);
   window.addEventListener("popstate", closeModal, { once: true });
   window.addEventListener("hashchange", closeModal, { once: true });
   window.closeActiveLmsModal = closeModal;

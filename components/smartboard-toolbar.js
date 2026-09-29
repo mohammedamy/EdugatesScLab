@@ -33,17 +33,17 @@ export function initSmartboardToolbar() {
       </div>
 
       <!-- Mouse Pointer -->
-      <button class="icon-action-btn" id="sb-tool-pointer" title="Mouse Pointer Mode" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-pointer" title="Mouse Pointer Mode" aria-label="Mouse pointer mode" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 8-3L3 3Z"/></svg>
       </button>
 
       <!-- Drawing Pen -->
-      <button class="icon-action-btn active" id="sb-tool-pen" title="Drawing Pen" style="border-radius: 9999px;">
+      <button class="icon-action-btn active" id="sb-tool-pen" title="Drawing Pen" aria-label="Drawing pen tool" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
       </button>
 
       <!-- Bright Fluorescent Highlighter -->
-      <button class="icon-action-btn" id="sb-tool-highlighter" title="Bright Fluorescent Highlighter" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-highlighter" title="Bright Fluorescent Highlighter" aria-label="Fluorescent highlighter tool" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m9 11-6 6v3h3l6-6"/>
           <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/>
@@ -53,7 +53,7 @@ export function initSmartboardToolbar() {
 
       <!-- Stroke Width Resizer Button & Popover -->
       <div style="position: relative; display: inline-flex; align-items: center;">
-        <button class="icon-action-btn" id="sb-tool-size" title="Adjust Stroke Width" style="border-radius: 9999px; position: relative;">
+        <button class="icon-action-btn" id="sb-tool-size" title="Adjust Stroke Width" aria-label="Adjust stroke width" style="border-radius: 9999px; position: relative;">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-dasharray="2 2"/>
             <circle id="sb-size-btn-dot" cx="12" cy="12" r="3.5" fill="currentColor"/>
@@ -71,36 +71,36 @@ export function initSmartboardToolbar() {
             <div id="sb-size-preview-dot" style="width: 5px; height: 5px; border-radius: 50%; background: #facc15; transition: all 0.15s ease;"></div>
           </div>
 
-          <input type="range" id="sb-size-slider" min="1" max="40" value="5" class="custom-slider" style="margin: 4px 0; width: 100%;">
+          <input type="range" id="sb-size-slider" min="1" max="40" value="5" class="custom-slider" aria-label="Stroke width slider" style="margin: 4px 0; width: 100%;">
 
           <div class="sb-size-presets">
-            <button class="sb-preset-btn" data-size="2" title="Fine (2px)">2px</button>
-            <button class="sb-preset-btn active" data-size="5" title="Medium (5px)">5px</button>
-            <button class="sb-preset-btn" data-size="10" title="Thick (10px)">10px</button>
-            <button class="sb-preset-btn" data-size="20" title="Bold (20px)">20px</button>
-            <button class="sb-preset-btn" data-size="32" title="Chisel (32px)">32px</button>
+            <button class="sb-preset-btn" data-size="2" title="Fine (2px)" aria-label="Fine stroke 2px">2px</button>
+            <button class="sb-preset-btn active" data-size="5" title="Medium (5px)" aria-label="Medium stroke 5px">5px</button>
+            <button class="sb-preset-btn" data-size="10" title="Thick (10px)" aria-label="Thick stroke 10px">10px</button>
+            <button class="sb-preset-btn" data-size="20" title="Bold (20px)" aria-label="Bold stroke 20px">20px</button>
+            <button class="sb-preset-btn" data-size="32" title="Chisel (32px)" aria-label="Chisel stroke 32px">32px</button>
           </div>
         </div>
       </div>
 
       <!-- Color Pickers (Original 4 + 3 New Colors = 7 Vibrant Scientific Colors) -->
       <div class="sb-colors-container" style="display: flex; align-items: center; gap: 6px; padding: 0 8px; border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);">
-        <button class="sb-color-btn active" data-color="#facc15" title="Fluorescent Yellow" style="background: #facc15;"></button>
-        <button class="sb-color-btn" data-color="#f97316" title="Bright Orange" style="background: #f97316;"></button>
-        <button class="sb-color-btn" data-color="#ef4444" title="Crimson Red" style="background: #ef4444;"></button>
-        <button class="sb-color-btn" data-color="#ec4899" title="Neon Pink" style="background: #ec4899;"></button>
-        <button class="sb-color-btn" data-color="#a855f7" title="Electric Purple" style="background: #a855f7;"></button>
-        <button class="sb-color-btn" data-color="#38bdf8" title="Sky Cyan" style="background: #38bdf8;"></button>
-        <button class="sb-color-btn" data-color="#10b981" title="Emerald Green" style="background: #10b981;"></button>
+        <button class="sb-color-btn active" data-color="#facc15" title="Fluorescent Yellow" aria-label="Fluorescent yellow ink" style="background: #facc15;"></button>
+        <button class="sb-color-btn" data-color="#f97316" title="Bright Orange" aria-label="Bright orange ink" style="background: #f97316;"></button>
+        <button class="sb-color-btn" data-color="#ef4444" title="Crimson Red" aria-label="Crimson red ink" style="background: #ef4444;"></button>
+        <button class="sb-color-btn" data-color="#ec4899" title="Neon Pink" aria-label="Neon pink ink" style="background: #ec4899;"></button>
+        <button class="sb-color-btn" data-color="#a855f7" title="Electric Purple" aria-label="Electric purple ink" style="background: #a855f7;"></button>
+        <button class="sb-color-btn" data-color="#38bdf8" title="Sky Cyan" aria-label="Sky cyan ink" style="background: #38bdf8;"></button>
+        <button class="sb-color-btn" data-color="#10b981" title="Emerald Green" aria-label="Emerald green ink" style="background: #10b981;"></button>
       </div>
 
       <!-- Eraser -->
-      <button class="icon-action-btn" id="sb-tool-eraser" title="Eraser" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-eraser" title="Eraser" aria-label="Eraser tool" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg>
       </button>
 
       <!-- Clear Canvas -->
-      <button class="icon-action-btn" id="sb-tool-clear" title="Clear Canvas" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-clear" title="Clear Canvas" aria-label="Clear all canvas drawings" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
       </button>
 
@@ -108,7 +108,7 @@ export function initSmartboardToolbar() {
       <div class="sb-tools-divider"></div>
 
       <!-- Classroom Countdown Timer & Stopwatch -->
-      <button class="icon-action-btn" id="sb-tool-timer" title="Classroom Timer & Stopwatch (Hot-key: T)" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-timer" title="Classroom Timer & Stopwatch (Hot-key: T)" aria-label="Classroom countdown timer and stopwatch" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="13" r="8"/>
           <line x1="12" y1="2" x2="12" y2="5"/>
@@ -118,7 +118,7 @@ export function initSmartboardToolbar() {
       </button>
 
       <!-- Screen Reveal Curtain -->
-      <button class="icon-action-btn" id="sb-tool-curtain" title="Screen Reveal Curtain / Shade (Hot-key: C)" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-curtain" title="Screen Reveal Curtain / Shade (Hot-key: C)" aria-label="Screen reveal curtain tool" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="18" height="18" rx="2"/>
           <line x1="3" y1="9" x2="21" y2="9"/>
@@ -128,7 +128,7 @@ export function initSmartboardToolbar() {
       </button>
 
       <!-- Spotlight Focus Mode -->
-      <button class="icon-action-btn" id="sb-tool-spotlight" title="Spotlight Focus Mode (Hot-key: S)" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-spotlight" title="Spotlight Focus Mode (Hot-key: S)" aria-label="Spotlight focus tool" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="9"/>
           <circle cx="12" cy="12" r="3" fill="currentColor"/>
@@ -140,7 +140,7 @@ export function initSmartboardToolbar() {
       </button>
 
       <!-- Calibrated Science Ruler (cm / inches) -->
-      <button class="icon-action-btn" id="sb-tool-ruler" title="Calibrated Science Ruler (Hot-key: M)" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-ruler" title="Calibrated Science Ruler (Hot-key: M)" aria-label="Calibrated science ruler" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z"/>
           <path d="m14.5 3.5 1.5 1.5"/>
@@ -151,7 +151,7 @@ export function initSmartboardToolbar() {
       </button>
 
       <!-- 180° Transparent Protractor -->
-      <button class="icon-action-btn" id="sb-tool-protractor" title="180° Transparent Protractor (Hot-key: P)" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-protractor" title="180° Transparent Protractor (Hot-key: P)" aria-label="180 degree transparent protractor" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 18h18A9 9 0 0 0 3 18Z"/>
           <path d="M12 18v-3"/>
@@ -161,7 +161,7 @@ export function initSmartboardToolbar() {
       </button>
 
       <!-- Scientific Pocket Calculator & Constants -->
-      <button class="icon-action-btn" id="sb-tool-calc" title="Scientific Pocket Calculator &amp; Constants (Hot-key: K)" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-calc" title="Scientific Pocket Calculator &amp; Constants (Hot-key: K)" aria-label="Scientific pocket calculator and constants" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="4" y="2" width="16" height="20" rx="2"/>
           <line x1="8" y1="6" x2="16" y2="6"/>
@@ -171,7 +171,7 @@ export function initSmartboardToolbar() {
       </button>
 
       <!-- Classroom LMS Share & Student Join QR -->
-      <button class="icon-action-btn" id="sb-tool-share" title="Classroom LMS Share &amp; Student Join QR (Hot-key: Q)" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-share" title="Classroom LMS Share &amp; Student Join QR (Hot-key: Q)" aria-label="Classroom LMS share and student join QR" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7" rx="1"/>
           <rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -184,19 +184,24 @@ export function initSmartboardToolbar() {
       <div class="sb-tools-divider"></div>
 
       <!-- Full Screen Presentation -->
-      <button class="icon-action-btn" id="sb-tool-fullscreen" title="Full Screen Presentation (Hot-key: F)" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-fullscreen" title="Full Screen Presentation (Hot-key: F)" aria-label="Full screen presentation" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
       </button>
 
       <!-- Minimize Button -->
-      <button class="icon-action-btn sb-btn-minimize" id="sb-tool-minimize" title="Minimize / Float Compact Bubble" style="border-radius: 9999px;">
+      <button class="icon-action-btn sb-btn-minimize" id="sb-tool-minimize" title="Minimize / Float Compact Bubble" aria-label="Minimize toolbar to compact floating bubble" style="border-radius: 9999px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+
+      <!-- Close / Hide Toolbar Button -->
+      <button class="icon-action-btn" id="sb-tool-close-bar" title="Close Toolbar (Esc)" aria-label="Close smartboard toolbar" style="border-radius: 9999px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
 
     <!-- Minimized Compact Floating Bubble -->
     <div class="sb-mini-content" id="sb-mini-content" style="display: none;" title="Smartboard Annotation Toolbar (Click to Expand, Drag to Reposition)">
-      <div class="sb-mini-drag-grip" id="sb-mini-drag-grip" style="cursor: grab; display: flex; align-items: center; touch-action: none;">
+      <div class="sb-mini-drag-grip" id="sb-mini-drag-grip" title="Drag minimized toolbar" aria-label="Drag minimized toolbar" style="cursor: grab; display: flex; align-items: center; touch-action: none;">
         <svg width="10" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <circle cx="8" cy="6" r="1.5" fill="currentColor"/>
           <circle cx="16" cy="6" r="1.5" fill="currentColor"/>
@@ -211,7 +216,7 @@ export function initSmartboardToolbar() {
         <span class="sb-mini-color-dot" id="sb-mini-color-dot" style="background: #facc15;"></span>
       </div>
       <span class="sb-mini-label">Draw</span>
-      <button class="sb-mini-expand-btn" id="sb-mini-expand-btn" title="Expand Toolbar">
+      <button class="sb-mini-expand-btn" id="sb-mini-expand-btn" title="Expand Toolbar" aria-label="Expand smartboard toolbar">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
       </button>
     </div>
@@ -566,6 +571,71 @@ export function initSmartboardToolbar() {
       setMinimizedState(true);
     });
   }
+
+  const toolCloseBar = document.getElementById("sb-tool-close-bar");
+  if (toolCloseBar) {
+    toolCloseBar.addEventListener("click", (e) => {
+      e.stopPropagation();
+      SoundFX.playClick();
+      bar.classList.remove("visible");
+      bar.classList.add("sb-hidden");
+      if (toggleBtn) toggleBtn.classList.remove("active");
+      closeSizePopover();
+    });
+  }
+
+  // Floating Toggle Button for Smartboard Tools
+  let toggleBtn = document.getElementById("sb-toolbar-toggle");
+  if (!toggleBtn) {
+    toggleBtn = document.createElement("button");
+    toggleBtn.id = "sb-toolbar-toggle";
+    toggleBtn.className = "sb-toolbar-toggle";
+    toggleBtn.setAttribute("aria-label", "Toggle Smartboard Drawing Tools");
+    toggleBtn.setAttribute("title", "Toggle Smartboard Tools & Annotation (Click to Show/Hide)");
+    toggleBtn.innerHTML = `
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+        <path d="m15 5 4 4"/>
+      </svg>
+    `;
+    document.body.appendChild(toggleBtn);
+  }
+
+  toggleBtn.addEventListener("click", () => {
+    SoundFX.playClick();
+    const isCurrentlyVisible = bar.classList.contains("visible") || (document.body.classList.contains("mode-smartboard") && !bar.classList.contains("sb-hidden"));
+    if (isCurrentlyVisible) {
+      bar.classList.remove("visible");
+      bar.classList.add("sb-hidden");
+      toggleBtn.classList.remove("active");
+      closeSizePopover();
+    } else {
+      bar.classList.remove("sb-hidden");
+      bar.classList.add("visible");
+      toggleBtn.classList.add("active");
+      if (currentTool !== "pointer") {
+        canvas.style.display = "block";
+      }
+    }
+  });
+
+  function syncToolbarVisibility() {
+    const isSBMode = document.body.classList.contains("mode-smartboard") || document.documentElement.classList.contains("mode-smartboard");
+    const isMobile = window.innerWidth <= 768;
+    if (isSBMode && !isMobile && !bar.classList.contains("sb-hidden")) {
+      bar.classList.add("visible");
+      if (toggleBtn) toggleBtn.classList.add("active");
+    } else if (!bar.classList.contains("visible")) {
+      bar.classList.remove("visible");
+      if (toggleBtn) toggleBtn.classList.remove("active");
+    }
+  }
+  syncToolbarVisibility();
+  try {
+    const modeObserver = new MutationObserver(() => syncToolbarVisibility());
+    modeObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    modeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+  } catch (e) {}
 
   if (miniExpandBtn) {
     miniExpandBtn.addEventListener("click", (e) => {
@@ -1278,13 +1348,13 @@ export function initSmartboardToolbar() {
           <div class="sb-curtain-ridge"></div>
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
-          <button id="sb-curtain-dir-btn" class="sb-curtain-btn" title="Cycle Reveal Direction">
+          <button id="sb-curtain-dir-btn" class="sb-curtain-btn" title="Cycle Reveal Direction" aria-label="Cycle reveal direction">
             ↕ <span id="sb-curtain-dir-label">Top</span>
           </button>
-          <button id="sb-curtain-opac-btn" class="sb-curtain-btn" title="Cycle Shade Opacity">
+          <button id="sb-curtain-opac-btn" class="sb-curtain-btn" title="Cycle Shade Opacity" aria-label="Cycle shade opacity">
             👁 <span id="sb-curtain-opac-label">100%</span>
           </button>
-          <button id="sb-curtain-close-btn" class="sb-curtain-btn sb-curtain-close-btn" title="Close Curtain (Esc)">
+          <button id="sb-curtain-close-btn" class="sb-curtain-btn sb-curtain-close-btn" title="Close Curtain (Esc)" aria-label="Close screen curtain">
             ✕
           </button>
         </div>
@@ -1469,11 +1539,11 @@ export function initSmartboardToolbar() {
     <div id="sb-spotlight-hud" class="sb-spotlight-hud">
       <span class="sb-spotlight-title">🔦 Spotlight Mode</span>
       <div class="sb-spotlight-presets">
-        <button class="sb-spotlight-preset" data-r="120">Small</button>
-        <button class="sb-spotlight-preset active" data-r="200">Medium</button>
-        <button class="sb-spotlight-preset" data-r="320">Large</button>
+        <button class="sb-spotlight-preset" data-r="120" aria-label="Small spotlight">Small</button>
+        <button class="sb-spotlight-preset active" data-r="200" aria-label="Medium spotlight">Medium</button>
+        <button class="sb-spotlight-preset" data-r="320" aria-label="Large spotlight">Large</button>
       </div>
-      <button id="sb-spotlight-exit-btn" class="sb-spotlight-exit-btn" title="Exit Spotlight (Esc)">✕ Exit</button>
+      <button id="sb-spotlight-exit-btn" class="sb-spotlight-exit-btn" title="Exit Spotlight (Esc)" aria-label="Exit spotlight mode">✕ Exit</button>
     </div>
   `;
   document.body.appendChild(spotlightOverlay);
@@ -1645,11 +1715,11 @@ export function initSmartboardToolbar() {
 
       <div style="position: absolute; left: 24px; top: 32px; display: flex; align-items: center; gap: 8px; z-index: 10;">
         <span id="sb-ruler-angle-disp" style="background: rgba(0,0,0,0.6); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; font-family: monospace; font-size: 0.78rem; font-weight: 800; padding: 2px 8px; border-radius: 4px;">0.0°</span>
-        <button id="sb-ruler-reset-rot" title="Snap to Horizontal (0°)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer;">0°</button>
-        <button id="sb-ruler-rot-90" title="Snap to Vertical (90°)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer;">90°</button>
+        <button id="sb-ruler-reset-rot" title="Snap to Horizontal (0°)" aria-label="Snap ruler to 0 degrees" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer;">0°</button>
+        <button id="sb-ruler-rot-90" title="Snap to Vertical (90°)" aria-label="Snap ruler to 90 degrees" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer;">90°</button>
       </div>
 
-      <button id="sb-ruler-close-btn" title="Close Ruler (Esc)" style="position: absolute; right: 8px; top: 32px; z-index: 10; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; cursor: pointer;">✕</button>
+      <button id="sb-ruler-close-btn" title="Close Ruler (Esc)" aria-label="Close ruler" style="position: absolute; right: 8px; top: 32px; z-index: 10; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800; cursor: pointer;">✕</button>
 
       <div id="sb-ruler-rot-handle" title="Drag to Rotate Ruler (or Scroll Wheel)" style="position: absolute; right: 38px; top: 28px; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); border: 2px solid #ffffff; box-shadow: 0 0 10px rgba(56,189,248,0.6); cursor: grab; display: flex; align-items: center; justify-content: center; z-index: 10; touch-action: none;">
         <span style="font-size: 0.8rem; color: #ffffff; user-select: none;">↻</span>
@@ -1870,16 +1940,16 @@ export function initSmartboardToolbar() {
           </div>
         </div>
         <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: center;">
-          <button id="sb-protractor-rot-n15" title="Rotate Body -15°" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">↺ -15°</button>
-          <button id="sb-protractor-reset-rot" title="Reset Protractor Body (0° Horizontal)" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer; font-weight: 700;">0° Base</button>
-          <button id="sb-protractor-rot-45" title="Rotate Body to 45°" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">45°</button>
-          <button id="sb-protractor-rot-90" title="Rotate Body to 90° (Vertical)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">90°</button>
-          <button id="sb-protractor-rot-180" title="Rotate Body to 180°" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">180°</button>
-          <button id="sb-protractor-rot-p15" title="Rotate Body +15°" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">↻ +15°</button>
+          <button id="sb-protractor-rot-n15" title="Rotate Body -15°" aria-label="Rotate protractor body counter-clockwise 15 degrees" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">↺ -15°</button>
+          <button id="sb-protractor-reset-rot" title="Reset Protractor Body (0° Horizontal)" aria-label="Reset protractor body to 0 degrees" style="background: rgba(56, 189, 248, 0.2); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer; font-weight: 700;">0° Base</button>
+          <button id="sb-protractor-rot-45" title="Rotate Body to 45°" aria-label="Rotate protractor body to 45 degrees" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">45°</button>
+          <button id="sb-protractor-rot-90" title="Rotate Body to 90° (Vertical)" aria-label="Rotate protractor body to 90 degrees" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">90°</button>
+          <button id="sb-protractor-rot-180" title="Rotate Body to 180°" aria-label="Rotate protractor body to 180 degrees" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">180°</button>
+          <button id="sb-protractor-rot-p15" title="Rotate Body +15°" aria-label="Rotate protractor body clockwise 15 degrees" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 3px; padding: 1px 6px; font-size: 0.68rem; cursor: pointer;">↻ +15°</button>
         </div>
       </div>
 
-      <button id="sb-protractor-close-btn" title="Close Protractor (Esc)" style="position: absolute; right: 18px; top: 38px; z-index: 10; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; cursor: pointer;">✕</button>
+      <button id="sb-protractor-close-btn" title="Close Protractor (Esc)" aria-label="Close protractor" style="position: absolute; right: 18px; top: 38px; z-index: 10; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; border-radius: 4px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800; cursor: pointer;">✕</button>
 
       <div id="sb-protractor-rot-handle" title="Drag to Rotate Protractor Body (or Scroll Wheel)" style="position: absolute; left: 16px; top: 36px; width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, #0284c7, #38bdf8); border: 2px solid #ffffff; box-shadow: 0 0 12px rgba(56,189,248,0.7); cursor: grab; display: flex; align-items: center; justify-content: center; z-index: 10; touch-action: none;">
         <span style="font-size: 0.85rem; color: #ffffff; user-select: none; line-height: 1;">↻</span>
@@ -2217,8 +2287,12 @@ export function initSmartboardToolbar() {
         toggleCurtain(false);
       } else if (timerWidget.style.display !== "none") {
         toggleTimer(false);
-      } else {
+      } else if (sizePopover.style.display !== "none") {
         closeSizePopover();
+      } else if (bar.classList.contains("visible")) {
+        bar.classList.remove("visible");
+        bar.classList.add("sb-hidden");
+        if (toggleBtn) toggleBtn.classList.remove("active");
       }
     }
   });
