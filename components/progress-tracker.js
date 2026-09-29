@@ -2,7 +2,12 @@ import { showToast } from "../utils/toast.js";
 
 export const ProgressStore = {
   getStats() {
-    const raw = localStorage.getItem("clipsat_mastery_stats");
+    let raw = null;
+    try {
+      if (typeof localStorage !== "undefined") {
+        raw = localStorage.getItem("clipsat_mastery_stats");
+      }
+    } catch (e) {}
     let stats = {
       modulesExplored: [],
       labsLaunched: [],

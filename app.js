@@ -120,6 +120,7 @@ function bootApp() {
 
   // Bind URL Hash Routing and process initial URL
   window.addEventListener("hashchange", handleHashRoute);
+  window.addEventListener("popstate", handleHashRoute);
   if (window.location.hash) {
     handleHashRoute();
   } else {
@@ -561,7 +562,9 @@ export function handleHashRoute() {
     const res = findModuleByCode(modCode);
     if (res) {
       const tabId = res.curr.code.toLowerCase();
-      switchTab(tabId, false);
+      if (AppState.currentTab !== tabId) {
+        switchTab(tabId, false);
+      }
       const themeColor = `var(--${tabId}-primary)`;
       openModuleModal(res.mod, themeColor, lid);
     } else {
@@ -582,7 +585,9 @@ export function handleHashRoute() {
     const res = findModuleByCode(modCode);
     if (res) {
       const tabId = res.curr.code.toLowerCase();
-      switchTab(tabId, false);
+      if (AppState.currentTab !== tabId) {
+        switchTab(tabId, false);
+      }
       const themeColor = `var(--${tabId}-primary)`;
       openModuleModal(res.mod, themeColor, lid || 1);
     } else {
@@ -603,7 +608,9 @@ export function handleHashRoute() {
     const res = findModuleByCode(modCode);
     if (res) {
       const tabId = res.curr.code.toLowerCase();
-      switchTab(tabId, false);
+      if (AppState.currentTab !== tabId) {
+        switchTab(tabId, false);
+      }
       import("./components/lesson-plan-generator.js").then(m => {
         m.openLessonPlanModal(res.curr.code, res.mod.id, lid);
       });
@@ -1190,54 +1197,153 @@ function renderSubjectView(container, curData, themeColor) {
     });
   });
 
-  // Bind Lesson Row Clicks to launch that lesson's interactive directly
-  document.querySelectorAll(".lesson-row-card").forEach(pill => {
+  // Direct launchers to bypass hash desync, duplicate hash suppression, or dropped clicks
+  const launchLessonInteractive = (mid, lid) => {
+    const mod = curData.modules.find(m => m.id === mid);
+    if (!mod) return;
+    const tabId = curData.code.toLowerCase();
+    const themeColor = `var(--${tabId}-primary)`;
+    openModuleModal(mod, themeColor, lid);
+    const targetHash = `#lesson/${mod.code}-L${lid}`;
+    if (window.location.hash !== targetHash) {
+      try {
+        history.pushState(null, "", targetHash);
+      } catch (err) {
+        window.location.hash = targetHash;
+      }
+    }
+  };
+
+  const launchModuleChapter = (mid) => {
+    const mod = curData.modules.find(m => m.id === mid);
+    if (!mod) return;
+    const tabId = curData.code.toLowerCase();
+    const themeColor = `var(--${tabId}-primary)`;
+    openModuleModal(mod, themeColor);
+    const targetHash = `#module/${mod.code}`;
+    if (window.location.hash !== targetHash) {
+      try {
+        history.pushState(null, "", targetHash);
+      } catch (err) {
+        window.location.hash = targetHash;
+      }
+    }
+  };
+
+  const launchLessonPlan = (mid, lid) => {
+    import("./components/lesson-plan-generator.js").then(m => {
+      m.openLessonPlanModal(curData.code, mid, lid);
+    });
+    const targetHash = `#plan/${curData.code}-M${mid}-L${lid}`;
+    if (window.location.hash !== targetHash) {
+      try {
+        history.pushState(null, "", targetHash);
+      } catch (err) {
+        window.location.hash = targetHash;
+      }
+    }
+  };
+
+  // Bind Lesson Row Clicks (Chapter cards view)
+  container.querySelectorAll(".lesson-row-card").forEach(pill => {
     pill.addEventListener("click", (e) => {
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
       e.preventDefault();
       e.stopPropagation();
       const mid = parseInt(pill.dataset.mid, 10);
       const lid = parseInt(pill.dataset.lid, 10);
-      const mod = curData.modules.find(m => m.id === mid);
-      if (mod) {
-        window.location.hash = `#lesson/${mod.code}-L${lid}`;
-      }
+      launchLessonInteractive(mid, lid);
     });
   });
 
-  // Bind Standalone Lesson Card Clicks
-  document.querySelectorAll(".lesson-card-full").forEach(card => {
+  // Bind Standalone Lesson Card Clicks (Lessons view)
+  container.querySelectorAll(".lesson-card-full").forEach(card => {
     card.addEventListener("click", (e) => {
-      if (e.target.closest("a, button")) return;
+      if (e.target.closest(".btn-launch-lesson-plan")) return;
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      e.stopPropagation();
       const mid = parseInt(card.dataset.mid, 10);
       const lid = parseInt(card.dataset.lid, 10);
-      const mod = curData.modules.find(m => m.id === mid);
-      if (mod) {
-        window.location.hash = `#lesson/${mod.code}-L${lid}`;
-      }
+      launchLessonInteractive(mid, lid);
     });
   });
 
-  // Bind Lesson Plan Button Clicks on Standalone Cards
-  document.querySelectorAll(".btn-launch-lesson-plan").forEach(btn => {
+  // Bind direct Launch Interactive buttons on Standalone Lesson Cards
+  container.querySelectorAll(".btn-launch-lesson-sim").forEach(btn => {
     btn.addEventListener("click", (e) => {
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
       e.preventDefault();
       e.stopPropagation();
       const mid = parseInt(btn.dataset.mid, 10);
       const lid = parseInt(btn.dataset.lid, 10);
-      window.location.hash = `#plan/${curData.code}-M${mid}-L${lid}`;
+      launchLessonInteractive(mid, lid);
     });
   });
 
-  // Bind Module Card Clicks
-  document.querySelectorAll(".module-card").forEach(card => {
+  // Bind direct Title links on Standalone Lesson Cards
+  container.querySelectorAll(".lesson-title-link").forEach(link => {
+    link.addEventListener("click", (e) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const card = link.closest(".lesson-card-full");
+      if (card) {
+        const mid = parseInt(card.dataset.mid, 10);
+        const lid = parseInt(card.dataset.lid, 10);
+        launchLessonInteractive(mid, lid);
+      }
+    });
+  });
+
+  // Bind Lesson Plan Button Clicks on Standalone Cards
+  container.querySelectorAll(".btn-launch-lesson-plan").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const mid = parseInt(btn.dataset.mid, 10);
+      const lid = parseInt(btn.dataset.lid, 10);
+      launchLessonPlan(mid, lid);
+    });
+  });
+
+  // Bind Module Card Clicks (Chapter view)
+  container.querySelectorAll(".module-card").forEach(card => {
     card.addEventListener("click", (e) => {
       if (e.target.closest("a, button, .lesson-row-card, .lab-indicator")) return;
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      e.stopPropagation();
       const mid = parseInt(card.dataset.mid, 10);
-      const mod = curData.modules.find(m => m.id === mid);
-      if (mod) {
-        window.location.hash = `#module/${mod.code}`;
+      launchModuleChapter(mid);
+    });
+  });
+
+  // Bind Module Explore Links ("Explore Chapter →")
+  container.querySelectorAll(".module-explore-link").forEach(link => {
+    link.addEventListener("click", (e) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const card = link.closest(".module-card");
+      if (card) {
+        const mid = parseInt(card.dataset.mid, 10);
+        launchModuleChapter(mid);
+      }
+    });
+  });
+
+  // Bind Module Title Links
+  container.querySelectorAll(".module-title-link").forEach(link => {
+    link.addEventListener("click", (e) => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const card = link.closest(".module-card");
+      if (card) {
+        const mid = parseInt(card.dataset.mid, 10);
+        launchModuleChapter(mid);
       }
     });
   });

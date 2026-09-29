@@ -51,6 +51,9 @@ function cleanupLessonInteractive(containerId) {
 }
 
 export function openModuleModal(moduleData, subjectColor, initialLessonId) {
+  if (typeof window.closeActiveModuleModal === "function") {
+    try { window.closeActiveModuleModal(); } catch (err) {}
+  }
   ProgressStore.recordModuleExplored(moduleData.code);
   let overlay = document.getElementById("module-modal-overlay");
   if (!overlay) {
@@ -585,14 +588,32 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     // Mount initial lesson interactive
     mountLessonInteractive("overview-lesson-sim-container", moduleData, currentLessonId);
 
-    // Bind card clicks
+    // Bind card and button clicks to load simulator and switch to interactive view
     overlay.querySelectorAll(".lesson-card-item").forEach(card => {
-      card.addEventListener("click", () => {
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".btn-item-lesson-plan")) return;
         const lid = parseInt(card.dataset.lessonId, 10);
-        if (lid !== currentLessonId) {
-          currentLessonId = lid;
-          renderContent();
-        }
+        currentLessonId = lid;
+        activeTab = "interactive";
+        try { SoundFX.playClick(); } catch (err) {}
+        renderContent();
+        try {
+          history.replaceState(null, "", `#lesson/${moduleData.code}-L${currentLessonId}`);
+        } catch (err) {}
+      });
+    });
+
+    overlay.querySelectorAll(".btn-select-lesson-interactive").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const lid = parseInt(btn.dataset.lessonId, 10);
+        currentLessonId = lid;
+        activeTab = "interactive";
+        try { SoundFX.playClick(); } catch (err) {}
+        renderContent();
+        try {
+          history.replaceState(null, "", `#lesson/${moduleData.code}-L${currentLessonId}`);
+        } catch (err) {}
       });
     });
 
@@ -665,6 +686,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
           currentLessonId = lid;
           updateNavControls();
           mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);
+          try {
+            history.replaceState(null, "", `#lesson/${moduleData.code}-L${currentLessonId}`);
+          } catch (err) {}
         }
       });
     }
@@ -678,6 +702,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
           currentLessonId = moduleData.lessons[idx - 1].id;
           updateNavControls();
           mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);
+          try {
+            history.replaceState(null, "", `#lesson/${moduleData.code}-L${currentLessonId}`);
+          } catch (err) {}
         }
       });
     }
@@ -691,6 +718,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
           currentLessonId = moduleData.lessons[idx + 1].id;
           updateNavControls();
           mountLessonInteractive("tab-lesson-sim-container", moduleData, currentLessonId);
+          try {
+            history.replaceState(null, "", `#lesson/${moduleData.code}-L${currentLessonId}`);
+          } catch (err) {}
         }
       });
     }
