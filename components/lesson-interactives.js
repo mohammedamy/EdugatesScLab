@@ -5888,6 +5888,7 @@ function buildOsmosisInteractive(mountId, params) {
 
   function loop() {
     cellPhase += 0.04;
+    updateOsmosisTheme();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const cx = canvas.width / 2;
@@ -6098,6 +6099,9 @@ function buildOsmosisInteractive(mountId, params) {
   animId = requestAnimationFrame(loop);
   activeSimulations.set(mountId, () => cancelAnimationFrame(animId));
 
+  let lastTonicity = null;
+  let lastTheme = null;
+
   function updateOsmosisTheme() {
     const isDay = document.documentElement.getAttribute("data-theme") === "day";
     const desc = document.getElementById(`${mountId}-osmosis-desc`);
@@ -6110,7 +6114,9 @@ function buildOsmosisInteractive(mountId, params) {
       desc.style.color = isDay ? "#0f172a" : "#f8fafc";
     }
 
-    if (pill) {
+    if (pill && (lastTonicity !== tonicity || lastTheme !== isDay)) {
+      lastTonicity = tonicity;
+      lastTheme = isDay;
       if (tonicity === "hypotonic") {
         pill.innerText = "Cytology: Hypotonic (0.0% Pure H₂O • Spherocyte Swelling & Lysis)";
         pill.style.background = isDay ? "#f0f9ff" : "rgba(56, 189, 248, 0.15)";

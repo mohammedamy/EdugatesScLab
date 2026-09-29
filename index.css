@@ -6041,6 +6041,10 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 
 /* Telemetry Boxes, Live Calculation Strips & Formula Readouts in Day Mode */
 [data-theme="day"] .sim-telemetry-box,
+[data-theme="day"] div.sim-telemetry-box,
+[data-theme="day"] [id$="-osmosis-desc"],
+[data-theme="day"] [id$="-denature-box"],
+[data-theme="day"] [id$="-stage-desc"],
 [data-theme="day"] .sim-data-strip,
 [data-theme="day"] .sim-formula-box,
 [data-theme="day"] .sim-controls-panel .sim-telemetry-box,
