@@ -1242,6 +1242,14 @@ function renderSubjectView(container, curData, themeColor) {
     });
   });
 
+  // Immediate check for already loaded / browser-cached chapter banner images
+  container.querySelectorAll(".module-banner-img, .lesson-banner-img").forEach(img => {
+    if (img.complete && img.naturalWidth > 0) {
+      img.classList.add("loaded");
+      img.parentElement?.classList.remove("is-loading");
+    }
+  });
+
   // Prefetch chapter assets on hover / focus for instant transitions
   document.querySelectorAll(".module-card, .lesson-row-card").forEach(el => {
     el.addEventListener("mouseenter", () => {
@@ -1252,6 +1260,18 @@ function renderSubjectView(container, curData, themeColor) {
       }
     }, { once: true, passive: true });
   });
+
+  // Background idle pre-fetch for remaining chapters (chapters 5+) so fast scrolling never encounters blank images
+  const scheduleIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 120));
+  if (curData && Array.isArray(curData.modules) && curData.modules.length > 4) {
+    const remaining = curData.modules.slice(4);
+    remaining.forEach((m, idx) => {
+      scheduleIdle(() => {
+        const preImg = new Image();
+        preImg.src = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
+      }, { timeout: 1500 + idx * 180 });
+    });
+  }
 
   renderMathInElement(container);
 }

@@ -188,6 +188,14 @@ export function initSmartboardToolbar() {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
       </button>
 
+      <!-- Dock to Bottom / Float Toggle -->
+      <button class="icon-action-btn sb-btn-dock" id="sb-tool-dock" title="Dock to Bottom (Push Content) / Float" aria-label="Toggle docking toolbar to bottom" style="border-radius: 9999px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="14" width="18" height="7" rx="1"/>
+          <path d="M12 3v8M8 8l4 4 4-4"/>
+        </svg>
+      </button>
+
       <!-- Minimize Button -->
       <button class="icon-action-btn sb-btn-minimize" id="sb-tool-minimize" title="Minimize / Float Compact Bubble" aria-label="Minimize toolbar to compact floating bubble" style="border-radius: 9999px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -268,13 +276,15 @@ export function initSmartboardToolbar() {
 
   const fullContent = document.getElementById("sb-full-content");
   const miniContent = document.getElementById("sb-mini-content");
+  const toolDock = document.getElementById("sb-tool-dock");
   const toolMinimize = document.getElementById("sb-tool-minimize");
   const miniExpandBtn = document.getElementById("sb-mini-expand-btn");
   const miniIconWrapper = document.getElementById("sb-mini-icon-wrapper");
   const miniColorDot = document.getElementById("sb-mini-color-dot");
   const miniLabel = bar.querySelector(".sb-mini-label");
 
-  // Floating Position & Minimize State
+  // Floating Position, Docking & Minimize State
+  let isDocked = false;
   let isMinimized = false;
   let isDragging = false;
   let hasMovedFar = false;
@@ -412,6 +422,14 @@ export function initSmartboardToolbar() {
 
   // Clamping and Coordinate Application
   function clampAndApply(targetX, targetY) {
+    if (isDocked && !isMinimized) {
+      bar.style.left = "";
+      bar.style.top = "";
+      bar.style.right = "";
+      bar.style.bottom = "";
+      return { x: 0, y: window.innerHeight - 56 };
+    }
+
     const barWidth = bar.offsetWidth || 300;
     const barHeight = bar.offsetHeight || 50;
     const padding = 8;
@@ -440,13 +458,64 @@ export function initSmartboardToolbar() {
     return { x: clampedX, y: clampedY };
   }
 
+  function setDockedState(docked, save = true) {
+    isDocked = !!docked;
+    if (isDocked) {
+      bar.classList.add("sb-is-docked");
+      bar.style.left = "";
+      bar.style.top = "";
+      bar.style.right = "";
+      bar.style.bottom = "";
+      const isVisible = bar.classList.contains("visible") && !bar.classList.contains("sb-hidden");
+      if (isVisible && !isMinimized) {
+        document.body.classList.add("sb-docked-active");
+      }
+      if (toolDock) {
+        toolDock.classList.add("active");
+        toolDock.title = "Float Toolbar Freely (Drag anywhere)";
+        toolDock.setAttribute("aria-label", "Float toolbar freely");
+        toolDock.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="14" width="18" height="7" rx="1"/>
+            <path d="M12 11V3M8 6l4-4 4 4"/>
+          </svg>
+        `;
+      }
+    } else {
+      bar.classList.remove("sb-is-docked");
+      document.body.classList.remove("sb-docked-active");
+      if (toolDock) {
+        toolDock.classList.remove("active");
+        toolDock.title = "Dock to Bottom (Push Content)";
+        toolDock.setAttribute("aria-label", "Dock toolbar to bottom and push content");
+        toolDock.innerHTML = `
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="14" width="18" height="7" rx="1"/>
+            <path d="M12 3v8M8 8l4 4 4-4"/>
+          </svg>
+        `;
+      }
+      requestAnimationFrame(() => {
+        const rect = bar.getBoundingClientRect();
+        clampAndApply(rect.left, rect.top);
+      });
+    }
+
+    if (save) {
+      try {
+        localStorage.setItem("sb_toolbar_docked", isDocked ? "1" : "0");
+      } catch (e) {}
+    }
+  }
+
   function saveToolbarState() {
     try {
       const rect = bar.getBoundingClientRect();
       const state = {
         x: Math.round(rect.left),
         y: Math.round(rect.top),
-        minimized: isMinimized
+        minimized: isMinimized,
+        docked: isDocked
       };
       localStorage.setItem("sb_toolbar_pos", JSON.stringify(state));
     } catch (e) {}
@@ -456,6 +525,7 @@ export function initSmartboardToolbar() {
     isMinimized = !!minimized;
     closeSizePopover();
     if (isMinimized) {
+      document.body.classList.remove("sb-docked-active");
       if (fullContent) fullContent.style.display = "none";
       if (miniContent) miniContent.style.display = "flex";
       bar.classList.add("sb-minimized");
@@ -464,6 +534,9 @@ export function initSmartboardToolbar() {
       if (fullContent) fullContent.style.display = "flex";
       if (miniContent) miniContent.style.display = "none";
       bar.classList.remove("sb-minimized");
+      if (isDocked && bar.classList.contains("visible") && !bar.classList.contains("sb-hidden")) {
+        document.body.classList.add("sb-docked-active");
+      }
     }
 
     requestAnimationFrame(() => {
@@ -474,11 +547,18 @@ export function initSmartboardToolbar() {
   }
 
   function loadToolbarState() {
+    const isMobile = window.innerWidth <= 768;
     try {
+      const savedDocked = localStorage.getItem("sb_toolbar_docked");
+      const shouldDock = savedDocked === "1" || (savedDocked === null && isMobile);
+      if (shouldDock) {
+        setDockedState(true, false);
+      }
+
       const saved = localStorage.getItem("sb_toolbar_pos");
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (typeof parsed.x === "number" && typeof parsed.y === "number") {
+        if (!shouldDock && typeof parsed.x === "number" && typeof parsed.y === "number") {
           clampAndApply(parsed.x, parsed.y);
         }
         if (parsed.minimized) {
@@ -488,11 +568,13 @@ export function initSmartboardToolbar() {
       }
     } catch (e) {}
 
-    // Default positioning when no state saved
-    requestAnimationFrame(() => {
-      const rect = bar.getBoundingClientRect();
-      clampAndApply(rect.left, rect.top);
-    });
+    // Default positioning when not docked
+    if (!isDocked) {
+      requestAnimationFrame(() => {
+        const rect = bar.getBoundingClientRect();
+        clampAndApply(rect.left, rect.top);
+      });
+    }
   }
 
   // Pointer drag handling for floating movement
@@ -506,6 +588,11 @@ export function initSmartboardToolbar() {
 
     if (isControl && !isHandle) {
       return;
+    }
+
+    // If dragging while docked, smoothly undock into floating mode
+    if (isDocked) {
+      setDockedState(false, true);
     }
 
     activePointerId = e.pointerId;
@@ -564,6 +651,15 @@ export function initSmartboardToolbar() {
   bar.addEventListener("pointerup", endPointerDrag);
   bar.addEventListener("pointercancel", endPointerDrag);
 
+  // Dock Button Toggle
+  if (toolDock) {
+    toolDock.addEventListener("click", (e) => {
+      e.stopPropagation();
+      SoundFX.playClick();
+      setDockedState(!isDocked);
+    });
+  }
+
   // Minimize / Expand button interactions
   if (toolMinimize) {
     toolMinimize.addEventListener("click", (e) => {
@@ -579,6 +675,7 @@ export function initSmartboardToolbar() {
       SoundFX.playClick();
       bar.classList.remove("visible");
       bar.classList.add("sb-hidden");
+      document.body.classList.remove("sb-docked-active");
       if (toggleBtn) toggleBtn.classList.remove("active");
       closeSizePopover();
     });
@@ -608,11 +705,15 @@ export function initSmartboardToolbar() {
       bar.classList.remove("visible");
       bar.classList.add("sb-hidden");
       toggleBtn.classList.remove("active");
+      document.body.classList.remove("sb-docked-active");
       closeSizePopover();
     } else {
       bar.classList.remove("sb-hidden");
       bar.classList.add("visible");
       toggleBtn.classList.add("active");
+      if (isDocked && !isMinimized) {
+        document.body.classList.add("sb-docked-active");
+      }
       if (currentTool !== "pointer") {
         canvas.style.display = "block";
       }
@@ -625,9 +726,13 @@ export function initSmartboardToolbar() {
     if (isSBMode && !isMobile && !bar.classList.contains("sb-hidden")) {
       bar.classList.add("visible");
       if (toggleBtn) toggleBtn.classList.add("active");
+      if (isDocked && !isMinimized) {
+        document.body.classList.add("sb-docked-active");
+      }
     } else if (!bar.classList.contains("visible")) {
       bar.classList.remove("visible");
       if (toggleBtn) toggleBtn.classList.remove("active");
+      document.body.classList.remove("sb-docked-active");
     }
   }
   syncToolbarVisibility();
@@ -2306,6 +2411,8 @@ export function initSmartboardToolbar() {
   // Expose lifecycle and docking controls for modals & responsive viewport management
   window.smartboardToolbar = {
     isBarVisible: () => bar.classList.contains("visible") && !bar.classList.contains("sb-hidden"),
+    isDocked: () => isDocked,
+    setDockedState: (val) => setDockedState(val),
     hideForModal: () => {
       if (bar.classList.contains("visible") && !bar.classList.contains("sb-hidden")) {
         bar.classList.add("sb-modal-docked");
@@ -2318,6 +2425,7 @@ export function initSmartboardToolbar() {
     hideBar: () => {
       bar.classList.remove("visible");
       bar.classList.add("sb-hidden");
+      document.body.classList.remove("sb-docked-active");
       if (toggleBtn) toggleBtn.classList.remove("active");
     }
   };
