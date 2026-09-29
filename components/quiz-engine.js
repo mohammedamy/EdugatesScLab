@@ -256,6 +256,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 <label class="control-label"><span>Question Type Filter</span></label>
                 <select id="cfg-qtype" class="select-input">
                   <option value="ALL" ${initialQType === 'ALL' ? 'selected' : ''}>All Question Types (Mixed)</option>
+                  <option value="diagram" ${initialQType === 'diagram' ? 'selected' : ''}>📊 Diagram &amp; Visual Models</option>
                   <option value="mcq" ${initialQType === 'mcq' ? 'selected' : ''}>Multiple Choice Concepts</option>
                   <option value="numerical" ${initialQType === 'numerical' ? 'selected' : ''}>Numerical / Formula Calculations</option>
                   <option value="cer" ${initialQType === 'cer' ? 'selected' : ''}>Scientific Inquiry &amp; CER Analysis</option>
@@ -924,11 +925,24 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         ? selectedLessonKeys.has(qLessonKey) 
         : selectedModIds.has(`${q.subject}-${q.moduleId}`);
       const matchDiff = difficulty === "ALL" || q.difficulty === difficulty;
-      const matchType = qTypeVal === "ALL" || q.type === qTypeVal;
+      const matchType = qTypeVal === "ALL" 
+        || (qTypeVal === "diagram" ? (q.type === "diagram" || q.hasDiagram || Boolean(q.diagram)) : q.type === qTypeVal);
       return matchScope && matchDiff && matchType;
     });
 
     // If pool is empty due to ultra-restrictive difficulty/type combination, relax filter to ensure valid assessment
+    if (pool.length === 0) {
+      pool = questionBank.filter(q => {
+        const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
+        const matchScope = q.lessonId 
+          ? selectedLessonKeys.has(qLessonKey) 
+          : selectedModIds.has(`${q.subject}-${q.moduleId}`);
+        const matchType = qTypeVal === "ALL" 
+          || (qTypeVal === "diagram" ? (q.type === "diagram" || q.hasDiagram || Boolean(q.diagram)) : q.type === qTypeVal);
+        return matchScope && matchType;
+      });
+    }
+
     if (pool.length === 0) {
       pool = questionBank.filter(q => {
         const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
@@ -1136,6 +1150,13 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           ${formatMathText(q.question)}
         </div>
 
+        ${q.diagram ? `
+          <div class="q-diagram-container">
+            ${q.diagram.caption ? `<div class="q-diagram-caption">${q.diagram.caption}</div>` : ""}
+            <div class="q-diagram-svg">${q.diagram.svg}</div>
+          </div>
+        ` : ""}
+
         ${q.options ? `
           <div class="q-options-grid" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
             ${q.options.map((opt, oIdx) => {
@@ -1253,6 +1274,13 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             ${formatMathText(q.question)}
           </div>
         </div>
+
+        ${q.diagram ? `
+          <div class="presenter-diagram-container">
+            ${q.diagram.caption ? `<div class="presenter-diagram-caption">${q.diagram.caption}</div>` : ""}
+            <div class="presenter-diagram-svg">${q.diagram.svg}</div>
+          </div>
+        ` : ""}
 
         <!-- Large Touch Option Tiles -->
         ${q.options ? `
@@ -1624,6 +1652,13 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 <div style="font-weight: 700; margin-bottom: 8px; font-size: 1.05rem; color: #000000;">
                   ${idx + 1}. ${formatMathText(q.question)}
                 </div>
+
+                ${q.diagram ? `
+                  <div class="print-diagram-container">
+                    ${q.diagram.caption ? `<div class="print-diagram-caption">${q.diagram.caption}</div>` : ""}
+                    <div class="print-diagram-svg">${q.diagram.svg}</div>
+                  </div>
+                ` : ""}
 
                 ${q.options ? `
                   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-left: 18px; font-size: 0.95rem; color: #000000;">

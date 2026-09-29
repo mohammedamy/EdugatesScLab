@@ -9417,3 +9417,148 @@ mark.search-highlight {
   background: #bae6fd;
   color: #0369a1;
 }
+
+/* ==========================================================================
+   Scientific Diagram & Visual Model Questions
+   ========================================================================== */
+
+/* 1. Interactive Assessment View */
+.q-diagram-container {
+  margin: 14px 0;
+  text-align: center;
+  background: #0f172a;
+  border-radius: 10px;
+  border: 1px solid var(--border-color, #334155);
+  padding: 14px;
+  overflow-x: auto;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.2s ease;
+}
+
+.q-diagram-container:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+[data-theme="day"] .q-diagram-container {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.q-diagram-caption {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="day"] .q-diagram-caption {
+  color: #0284c7;
+}
+
+.q-diagram-svg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.q-diagram-svg svg {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+/* 2. Smartboard Presenter View */
+.presenter-diagram-container {
+  margin: 14px auto 22px auto;
+  text-align: center;
+  background: rgba(15, 23, 42, 0.85);
+  border-radius: 12px;
+  border: 1.5px solid var(--border-color, #334155);
+  padding: 18px;
+  max-width: 820px;
+  width: 100%;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="day"] .presenter-diagram-container {
+  background: #ffffff;
+  border-color: #94a3b8;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.presenter-diagram-caption {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #38bdf8;
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="day"] .presenter-diagram-caption {
+  color: #0369a1;
+}
+
+.presenter-diagram-svg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.presenter-diagram-svg svg {
+  max-width: 100%;
+  max-height: 420px;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+/* 3. Printable Test Paper View */
+.print-diagram-container {
+  margin: 12px 0 16px 0;
+  text-align: center;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 10px;
+  background: #ffffff;
+  page-break-inside: avoid;
+}
+
+.print-diagram-caption {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
+}
+
+.print-diagram-svg {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.print-diagram-svg svg {
+  max-width: 480px;
+  max-height: 240px;
+  width: 100%;
+  height: auto;
+}
+
+@media print {
+  .print-diagram-container {
+    border: 1px solid #64748b !important;
+    background: #ffffff !important;
+    page-break-inside: avoid !important;
+  }
+  .print-diagram-caption {
+    color: #000000 !important;
+  }
+  .print-diagram-svg svg {
+    max-width: 420px !important;
+    max-height: 220px !important;
+  }
+}
+

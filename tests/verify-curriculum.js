@@ -129,15 +129,15 @@ assert(Array.isArray(questionBank) && questionBank.length >= 3630, `Question ban
 let qBankValid = true;
 questionBank.forEach((q, idx) => {
   const promptText = q.prompt || q.question;
-  const hasValidType = ["mcq", "numerical", "cer"].includes(q.type);
+  const hasValidType = ["mcq", "numerical", "cer", "diagram"].includes(q.type);
   if (!q.id || !promptText || !hasValidType) {
     qBankValid = false;
     console.error(`Invalid question at index ${idx}:`, q);
   }
-  if (q.type === "mcq" || q.type === "numerical") {
+  if (q.type === "mcq" || q.type === "numerical" || q.type === "diagram") {
     if (!Array.isArray(q.options) || q.correctIndex === undefined) {
       qBankValid = false;
-      console.error(`MCQ question at index ${idx} missing options or correctIndex:`, q);
+      console.error(`MCQ/Diagram question at index ${idx} missing options or correctIndex:`, q);
     }
   } else if (q.type === "cer") {
     if (!q.explanation || !q.rubricCER) {

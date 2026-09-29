@@ -8,8 +8,12 @@ import { fileURLToPath } from "url";
 import { chemistryCurriculum } from "../data/chemistry-curriculum.js";
 import { biologyCurriculum } from "../data/biology-curriculum.js";
 import { physicsCurriculum } from "../data/physics-curriculum.js";
-import { questionBank as originalSeeded } from "../data/question-bank.js";
+import { questionBank } from "../data/question-bank.js";
 import { createMCQ, createNumerical, createCER } from "./question-generator-utils.mjs";
+import { getOrGenerateDiagram } from "./diagram-svg-generator.mjs";
+import { SCIENTIFIC_DIAGRAMS } from "../data/scientific-diagrams.js";
+
+const originalSeeded = questionBank.filter(q => /^(CHEM|BIO|PHYS)-Q0[1-6]$/.test(q.id));
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -289,7 +293,8 @@ function generateQuestionsForLesson(curriculum, module, lesson) {
     explanation: `Step 1: Identify given parameters: $A = ${numVal1.toFixed(1)}$, $B = ${numVal2.toFixed(1)}$.\nStep 2: Apply relation: $$X = \\frac{A}{B} = \\frac{${numVal1.toFixed(1)}}{${numVal2.toFixed(1)}} = ${calcAns1}\\text{ ${p.calc1.unit}}$$.\nStep 3: Significant figures verify $${calcAns1}\\text{ ${p.calc1.unit}}$.`
   }));
 
-  // --- ANGLE 4: Graphical & Data Interpretation (MCQ - Honors) ---
+  // --- ANGLE 4: Graphical & Data Interpretation with Visual Scientific Diagram (Diagram / MCQ - Honors) ---
+  const lessonDiag = getOrGenerateDiagram(subKey, m, l, p);
   questions.push(createMCQ({
     id: `${lKey}-Q04`,
     subject: subKey,
@@ -298,16 +303,18 @@ function generateQuestionsForLesson(curriculum, module, lesson) {
     moduleTitle: `${m.code}: ${m.title}`,
     lessonTitle: `Lesson ${m.id}.${l.id}: ${l.title}`,
     difficulty: "honors",
+    type: "diagram",
     angle: "graphical",
-    question: `When experimental data for "${l.title}" is plotted on coordinate axes, what does the key geometric feature of the resulting graph represent?`,
+    diagram: lessonDiag,
+    question: `Refer to the scientific diagram illustrated in **${lessonDiag.caption || 'the figure above'}** for "${l.title}". When analyzing the experimental curves, slopes, and coordinate features, what does the key geometric or state feature represent?`,
     options: [
-      `The graph exhibits ${p.graph}, where the slope or plateau reflects the underlying rate, constant, or phase equilibrium.`,
+      `The graph exhibits ${p.graph}, where the slope, plateau, or intersection reflects the underlying rate constant, latent heat, or dynamic equilibrium.`,
       `The graph always yields a flat horizontal line at zero regardless of the independent variable magnitude.`,
-      `The area under the curve is always undefined because physical dimensions cannot be integrated.`,
+      `The area under the curve is physically meaningless and represents random instrumental noise.`,
       `Data points scatter purely randomly because physical systems lack functional dependencies.`
     ],
     correctIndex: 0,
-    explanation: `In laboratory analysis of ${l.title}, graphing reveals ${p.graph}. The slope ($\\Delta y / \\Delta x$) and area represent physically meaningful derivatives and integrals.`
+    explanation: `In scientific laboratory analysis of ${l.title} (referencing ${lessonDiag.caption || 'the figure'}), graphing reveals ${p.graph}. Coordinate slopes ($\\Delta y / \\Delta x$) and integrated areas represent fundamental physical rates, work, or equilibrium states.`
   }));
 
   // --- ANGLE 5: Controlled Experimental Design (MCQ - Honors) ---
@@ -618,6 +625,247 @@ originalSeeded.forEach(sq => {
     const lKey = `${mapInfo.sub}-M${mapInfo.m}-L${mapInfo.l}`;
     lessonQuestionCounts.set(lKey, (lessonQuestionCounts.get(lKey) || 0) + 1);
   }
+});
+
+// 5. Add Dedicated High-Precision Flagship Diagram Questions
+const flagshipDiagramQuestions = [
+  createMCQ({
+    id: "CHEM-M02-L2-DIAG",
+    subject: "CHEM",
+    moduleId: 2,
+    lessonId: 2,
+    moduleTitle: "CHEM-M02: Matter—Properties and Changes",
+    lessonTitle: "Lesson 2.2: Changes in Matter",
+    difficulty: "honors",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.chem_heating_curve,
+    question: "Refer to the heating curve illustrated in **Figure 1** for pure Substance X heated at a constant rate of $500\\text{ W}$. Which of the following statements correctly explains the physical phenomenon occurring along **Segment II** (from Point B to Point C), and why does the temperature remain constant at $0^\\circ\\text{C}$ despite continuous heat input?",
+    options: [
+      "The absorbed thermal energy is consumed as latent heat of fusion ($\\Delta H_{\\text{fus}}$) to disrupt intermolecular attractive forces in the crystal lattice rather than increasing particle kinetic energy.",
+      "The substance has reached thermal saturation where specific heat capacity drops to zero, stopping molecular motion.",
+      "Thermal energy is lost by radiation to the environment at a rate faster than the heater can supply it.",
+      "Chemical covalent bonds within the molecules are breaking, transforming the substance into a new compound."
+    ],
+    correctIndex: 0,
+    explanation: "Along horizontal plateau Segment II (from Point B to Point C), Substance X undergoes a solid-to-liquid phase transition at its melting point ($T_m = 0^\\circ\\text{C}$). The added thermal energy ($q = m\\Delta H_{\\text{fus}}$) does not increase molecular kinetic energy (so temperature remains strictly constant); instead, it provides the latent heat needed to overcome intermolecular potential energy barriers."
+  }),
+  createMCQ({
+    id: "CHEM-M17-L2-DIAG",
+    subject: "CHEM",
+    moduleId: 17,
+    lessonId: 2,
+    moduleTitle: "CHEM-M17: Acids and Bases",
+    lessonTitle: "Lesson 17.2: Strengths of Acids and Bases",
+    difficulty: "ap_olympiad",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.chem_titration_curve,
+    question: "Examine the titration curve in **Figure 2** showing the titration of $25.0\\text{ mL}$ of $0.100\\text{ M}$ acetic acid ($\\text{CH}_3\\text{COOH}$) with $0.100\\text{ M } \\text{NaOH}$. Based on the curve, what chemical condition exists at **Point B** ($V_{\\text{NaOH}} = 12.5\\text{ mL}$), and what explains the basic pH at **Point C** ($V_{\\text{NaOH}} = 25.0\\text{ mL}$)?",
+    options: [
+      "Point B is the half-equivalence point where $[\\text{CH}_3\\text{COOH}] = [\\text{CH}_3\\text{COO}^-]$ and $\\text{pH} = \\text{p}K_a = 4.76$; Point C is basic ($\\text{pH} = 8.72$) because conjugate acetate ions undergo base hydrolysis.",
+      "Point B is the neutral point with equal concentrations of $\\text{H}^+$ and $\\text{OH}^-$; Point C contains unreacted excess strong acid.",
+      "Point B represents precipitation of sodium acetate; Point C is basic due to complete destruction of acetate ions.",
+      "Point B and Point C both represent buffer equilibria where pH cannot change regardless of titrant addition."
+    ],
+    correctIndex: 0,
+    explanation: "At Point B ($12.5\\text{ mL}$), exactly half of the weak acid has been neutralized, so $[\\text{HA}] = [\\text{A}^-]$ and according to the Henderson-Hasselbalch equation $\\text{pH} = \\text{p}K_a + \\log(1) = \\text{p}K_a = 4.76$. At equivalence Point C ($25.0\\text{ mL}$), all acetic acid is converted to sodium acetate, which hydrolyzes: $\\text{CH}_3\\text{COO}^- + \\text{H}_2\\text{O} \\rightleftharpoons \\text{CH}_3\\text{COOH} + \\text{OH}^-$, producing excess hydroxide and a basic pH."
+  }),
+  createMCQ({
+    id: "CHEM-M15-L2-DIAG",
+    subject: "CHEM",
+    moduleId: 15,
+    lessonId: 2,
+    moduleTitle: "CHEM-M15: Reaction Rates",
+    lessonTitle: "Lesson 15.2: Factors Affecting Reaction Rates",
+    difficulty: "honors",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.chem_energy_diagram,
+    question: "Refer to the reaction coordinate potential energy profile shown in **Figure 3**. How does the presence of the catalyst affect the forward activation energy ($E_a$) and the overall reaction enthalpy change ($\\Delta H$)?",
+    options: [
+      "The catalyst lowers the activation energy from $E_{a,\\text{uncat}} = 130\\text{ kJ/mol}$ to $E_{a,\\text{cat}} = 60\\text{ kJ/mol}$ by providing an alternate reaction pathway, while leaving $\\Delta H = -80\\text{ kJ/mol}$ completely unchanged.",
+      "The catalyst lowers both the activation energy $E_a$ and the reaction enthalpy $\\Delta H$, making the reaction more exothermic.",
+      "The catalyst shifts the position of equilibrium by increasing the potential energy of the products.",
+      "The catalyst increases the kinetic energy of the reactants so they can overcome the uncatalyzed barrier."
+    ],
+    correctIndex: 0,
+    explanation: "Catalysts accelerate reactions by providing an alternative mechanism with a lower transition-state activation barrier ($E_{a,\\text{cat}} < E_{a,\\text{uncat}}$). Because enthalpy $\\Delta H = H_{\\text{products}} - H_{\\text{reactants}}$ is a thermodynamic state function depending solely on initial and final states, $\\Delta H$ remains invariant."
+  }),
+  createMCQ({
+    id: "CHEM-M19-L1-DIAG",
+    subject: "CHEM",
+    moduleId: 19,
+    lessonId: 1,
+    moduleTitle: "CHEM-M19: Electrochemistry",
+    lessonTitle: "Lesson 19.1: Voltaic Cells",
+    difficulty: "honors",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.chem_galvanic_cell,
+    question: "Examine the standard zinc-copper galvanic cell illustrated in **Figure 4** ($E^\\circ_{\\text{cell}} = +1.10\\text{ V}$). What is the direction of electron flow through the external wire, and what is the role of the nitrate anions ($\\text{NO}_3^-$) in the salt bridge?",
+    options: [
+      "Electrons flow from the zinc anode (-) to the copper cathode (+); $\\text{NO}_3^-$ anions migrate into the anode beaker to neutralize the accumulating $\\text{Zn}^{2+}$ positive charges.",
+      "Electrons flow from copper to zinc; $\\text{NO}_3^-$ anions migrate to the cathode to donate electrons to copper ions.",
+      "Electrons flow through the salt bridge; the external wire carries positive ions between the beakers.",
+      "Both electrons and ions flow clockwise, causing the voltmeter to read zero at equilibrium."
+    ],
+    correctIndex: 0,
+    explanation: "Oxidation occurs at the zinc anode ($\\text{Zn} \\to \\text{Zn}^{2+} + 2e^-$), releasing electrons through the external circuit toward the copper cathode where reduction occurs ($\\text{Cu}^{2+} + 2e^- \\to \\text{Cu}$). To maintain electrical neutrality without charge polarization, negative $\\text{NO}_3^-$ ions from the salt bridge flow into the anode compartment while positive $\\text{K}^+$ ions flow into the cathode compartment."
+  }),
+  createMCQ({
+    id: "BIO-M10-L2-DIAG",
+    subject: "BIO",
+    moduleId: 10,
+    lessonId: 2,
+    moduleTitle: "BIO-M10: Sexual Reproduction and Genetics",
+    lessonTitle: "Lesson 10.2: Mendelian Genetics",
+    difficulty: "honors",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.bio_pedigree_chart,
+    question: "In the human pedigree chart shown in **Figure 5**, squares represent males, circles represent females, and shaded red symbols indicate individuals exhibiting a rare genetic disorder. Assuming complete penetrance, what is the most probable mode of inheritance, and what is the obligate genotype of Individual II-3?",
+    options: [
+      "Autosomal recessive (or X-linked recessive); Individual II-3 is an obligate heterozygous carrier ($Aa$ or $X^A X^a$) because she has an affected child (III-1) despite being unaffected herself.",
+      "Autosomal dominant; Individual II-3 must be homozygous dominant ($AA$) to transmit the trait.",
+      "Y-linked inheritance; Individual II-3 inherited the condition from her unaffected father.",
+      "Mitochondrial maternal inheritance; all offspring of affected males inherit the condition."
+    ],
+    correctIndex: 0,
+    explanation: "The pedigree displays the hallmark of recessive inheritance: the trait skips generations (unaffected parents I-1 and I-2 produce affected child II-2; unaffected parents II-3 and II-4 produce affected child III-1). Because Individual II-3 is phenotypically normal but gives birth to an affected child (III-1), she must possess a recessive allele and is an obligate heterozygous carrier."
+  }),
+  createMCQ({
+    id: "BIO-M07-L4-DIAG",
+    subject: "BIO",
+    moduleId: 7,
+    lessonId: 4,
+    moduleTitle: "BIO-M07: Cellular Structure and Function",
+    lessonTitle: "Lesson 7.4: Cellular Transport",
+    difficulty: "honors",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.bio_membrane_fluid_mosaic,
+    question: "Refer to the plasma membrane fluid mosaic model cross-section in **Figure 6**. Which of the following correctly identifies the structural role of the hydrophobic fatty acid core and the function of Channel X?",
+    options: [
+      "The nonpolar fatty acid core prevents passive diffusion of polar and charged ions ($\\text{Na}^+, \\text{K}^+, \\text{Cl}^-$), necessitating specialized transmembrane proteins like Channel X for facilitated diffusion or active transport.",
+      "The fatty acid core is water-soluble, allowing ions to freely dissolve through the membrane without protein channels.",
+      "Channel X functions to produce ATP directly from fatty acid oxidation inside the extracellular fluid.",
+      "The polar phosphate heads form an impermeable wall that blocks oxygen and carbon dioxide gases from entering."
+    ],
+    correctIndex: 0,
+    explanation: "The hydrophobic interior formed by fatty acid tails creates an energetic barrier preventing polar, hydrophilic, or charged molecules from crossing by simple diffusion. Transmembrane integral proteins (like Channel X) provide hydrophilic aqueous pores that allow selective facilitated passage of ions down electrochemical gradients."
+  }),
+  createMCQ({
+    id: "BIO-M23-L1-DIAG",
+    subject: "BIO",
+    moduleId: 23,
+    lessonId: 1,
+    moduleTitle: "BIO-M23: Introduction to Animals and Organ Systems",
+    lessonTitle: "Lesson 23.1: Structure of the Nervous System",
+    difficulty: "ap_olympiad",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.bio_action_potential,
+    question: "Examine the axonal action potential membrane potential trace in **Figure 7**. What molecular ion channel events occur during Phase 1 (Depolarization from $-55\\text{ mV}$ to $+35\\text{ mV}$) and Phase 2 (Repolarization from $+35\\text{ mV}$ to $-70\\text{ mV}$)?",
+    options: [
+      "Phase 1: Rapid opening of voltage-gated $\\text{Na}^+$ channels causing massive sodium influx; Phase 2: Inactivation of $\\text{Na}^+$ channels and opening of voltage-gated $\\text{K}^+$ channels causing potassium efflux.",
+      "Phase 1: Potassium ions rush into the cell; Phase 2: Sodium ions are actively pumped out by simple diffusion.",
+      "Phase 1: Chloride ions leave the axon; Phase 2: Calcium channels pump electrons across the myelin sheath.",
+      "Phase 1 and Phase 2 both involve passive leakage of water molecules through aquaporins."
+    ],
+    correctIndex: 0,
+    explanation: "Reaching the threshold potential ($-55\\text{ mV}$) triggers activation gates of voltage-gated $\\text{Na}^+$ channels, producing rapid depolarization to $+35\\text{ mV}$. At the peak, sodium channel inactivation gates close while delayed-rectifier voltage-gated $\\text{K}^+$ channels open, driving repolarization via potassium efflux."
+  }),
+  createMCQ({
+    id: "PHYS-M03-L1-DIAG",
+    subject: "PHYS",
+    moduleId: 3,
+    lessonId: 1,
+    moduleTitle: "PHYS-M03: Accelerated Motion",
+    lessonTitle: "Lesson 3.1: Acceleration",
+    difficulty: "honors",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.phys_velocity_time_graph,
+    question: "Based on the velocity-time graph of the cart in **Figure 8**, what is the cart's acceleration during Segment OA ($t = 0\\text{ to } 4\\text{ s}$), and what is the total displacement covered by the cart over the entire $10\\text{ s}$ motion?",
+    options: [
+      "Acceleration $a = +5.0\\text{ m/s}^2$; Total Displacement $\\Delta x = 130\\text{ m}$ (calculated as the area of the trapezoid: $\\frac{1}{2}(10 + 3) \\times 20$).",
+      "Acceleration $a = +20\\text{ m/s}^2$; Total Displacement $\\Delta x = 200\\text{ m}$.",
+      "Acceleration $a = +2.5\\text{ m/s}^2$; Total Displacement $\\Delta x = 80\\text{ m}$.",
+      "Acceleration $a = 0\\text{ m/s}^2$; Total Displacement $\\Delta x = 65\\text{ m}$."
+    ],
+    correctIndex: 0,
+    explanation: "In a velocity-time graph, acceleration equals the slope: $a = \\frac{\\Delta v}{\\Delta t} = \\frac{20 - 0}{4} = 5.0\\text{ m/s}^2$. Displacement equals the area beneath the curve: Area of trapezoid with parallel bases $b_1 = 10\\text{ s}$ and $b_2 = (7 - 4) = 3\\text{ s}$ and height $h = 20\\text{ m/s}$: $\\Delta x = \\frac{1}{2}(10 + 3) \\times 20 = 130\\text{ m}$."
+  }),
+  createMCQ({
+    id: "PHYS-M20-L2-DIAG",
+    subject: "PHYS",
+    moduleId: 20,
+    lessonId: 2,
+    moduleTitle: "PHYS-M20: Electric Current and Circuits",
+    lessonTitle: "Lesson 20.2: Series and Parallel Circuits",
+    difficulty: "honors",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.phys_circuit_resistors,
+    question: "In the DC circuit network illustrated in **Figure 9** ($V = 24.0\\text{ V}$), resistor $R_1 = 6.0\\;\\Omega$ is connected in series with a parallel combination of $R_2 = 12.0\\;\\Omega$ and $R_3 = 24.0\\;\\Omega$. What is the total current ($I_{\\text{total}}$) delivered by the battery, and what is the electric potential difference ($V_{AB}$) between Node A and Node B?",
+    options: [
+      "$I_{\\text{total}} = 1.71\\text{ A}$ (equivalent resistance $R_{\\text{eq}} = 14.0\\;\\Omega$) and $V_{AB} = 13.7\\text{ V}$.",
+      "$I_{\\text{total}} = 0.57\\text{ A}$ and $V_{AB} = 24.0\\text{ V}$.",
+      "$I_{\\text{total}} = 2.40\\text{ A}$ and $V_{AB} = 6.0\\text{ V}$.",
+      "$I_{\\text{total}} = 4.00\\text{ A}$ and $V_{AB} = 12.0\\text{ V}$."
+    ],
+    correctIndex: 0,
+    explanation: "Step 1: Parallel branch equivalent resistance: $\\frac{1}{R_p} = \\frac{1}{12} + \\frac{1}{24} = \\frac{3}{24} = \\frac{1}{8\\;\\Omega} \\implies R_p = 8.0\\;\\Omega$. Step 2: Total equivalent resistance: $R_{\\text{eq}} = R_1 + R_p = 6.0 + 8.0 = 14.0\\;\\Omega$. Step 3: Total current: $I = \\frac{V}{R_{\\text{eq}}} = \\frac{24.0}{14.0} \\approx 1.714\\text{ A}$. Step 4: Voltage across parallel branch: $V_{AB} = I \\times R_p = 1.714 \\times 8.0 = 13.71\\text{ V}$."
+  }),
+  createMCQ({
+    id: "PHYS-M16-L2-DIAG",
+    subject: "PHYS",
+    moduleId: 16,
+    lessonId: 2,
+    moduleTitle: "PHYS-M16: Fundamentals of Light",
+    lessonTitle: "Lesson 16.2: Refraction and Snell's Law",
+    difficulty: "honors",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.phys_ray_refraction,
+    question: "Examine the optical refraction diagram in **Figure 10**. A light ray in Medium 1 ($n_1 = 1.00$) strikes the boundary with Medium 2 ($n_2 = 1.52$) at an incident angle of $\\theta_1 = 50.0^\\circ$. What is the angle of refraction $\\theta_2$ in Medium 2, and why does the ray bend toward the normal?",
+    options: [
+      "$\\theta_2 = 30.3^\\circ$; the ray bends toward the normal because the wave speed decreases in the optically denser medium ($v_2 = c / n_2 < v_1$), causing the wavefront to pivot.",
+      "$\\theta_2 = 50.0^\\circ$; the angle of refraction always equals the angle of incidence regardless of medium index.",
+      "$\\theta_2 = 65.2^\\circ$; the ray bends away from the normal because light accelerates in glass.",
+      "$\\theta_2 = 0^\\circ$; light cannot enter Medium 2 because the critical angle is exceeded."
+    ],
+    correctIndex: 0,
+    explanation: "Apply Snell's Law: $n_1 \\sin\\theta_1 = n_2 \\sin\\theta_2 \\implies \\sin\\theta_2 = \\frac{1.00 \\times \\sin(50.0^\\circ)}{1.52} = \\frac{0.7660}{1.52} \\approx 0.5040 \\implies \\theta_2 = \\arcsin(0.5040) \\approx 30.26^\\circ \\approx 30.3^\\circ$. As light slows in the higher-index medium, wavefronts decelerate and pivot toward the normal."
+  }),
+  createMCQ({
+    id: "PHYS-M05-L2-DIAG",
+    subject: "PHYS",
+    moduleId: 5,
+    lessonId: 2,
+    moduleTitle: "PHYS-M05: Displacement and Force in Two Dimensions",
+    lessonTitle: "Lesson 5.2: Friction and Inclines",
+    difficulty: "honors",
+    type: "diagram",
+    angle: "flagship_diagram",
+    diagram: SCIENTIFIC_DIAGRAMS.phys_free_body_incline,
+    question: "Refer to the free-body diagram in **Figure 11** for a $m = 5.0\\text{ kg}$ block resting on an incline at angle $\\theta = 30^\\circ$ ($g = 9.80\\text{ m/s}^2$). If the block remains stationary at rest in static equilibrium, what are the magnitudes of the normal force ($F_N$) and the static friction force ($F_f$)?",
+    options: [
+      "$F_N = mg\\cos 30^\\circ = 42.4\\text{ N}$ perpendicular to the ramp; $F_f = mg\\sin 30^\\circ = 24.5\\text{ N}$ directed up the ramp.",
+      "$F_N = 49.0\\text{ N}$ and $F_f = 49.0\\text{ N}$.",
+      "$F_N = 24.5\\text{ N}$ and $F_f = 42.4\\text{ N}$.",
+      "$F_N = 0\\text{ N}$ because gravity acts only vertically."
+    ],
+    correctIndex: 0,
+    explanation: "Resolving gravity into perpendicular and parallel axes to the inclined plane: $F_N = mg\\cos\\theta = (5.0)(9.80)\\cos(30^\\circ) = 49.0 \\times 0.8660 = 42.44\\text{ N}$. For static equilibrium along the incline ($\\Sigma F_x = 0$): $F_f = mg\\sin\\theta = (5.0)(9.80)\\sin(30^\\circ) = 49.0 \\times 0.500 = 24.5\\text{ N}$ directed up the ramp opposing downward slide."
+  })
+];
+
+flagshipDiagramQuestions.forEach(dq => {
+  allQuestions.unshift(dq);
+  const lKey = `${dq.subject}-M${dq.moduleId}-L${dq.lessonId}`;
+  lessonQuestionCounts.set(lKey, (lessonQuestionCounts.get(lKey) || 0) + 1);
 });
 
 console.log(`\n✅ Generated total questions: ${allQuestions.length}`);

@@ -28,11 +28,13 @@ export function createMCQ({
   moduleTitle,
   lessonTitle,
   difficulty = "honors",
+  type = "mcq",
   angle,
   question,
   options,
   correctIndex = 0,
-  explanation
+  explanation,
+  diagram = null
 }) {
   const shuffled = shuffleOptions(options, correctIndex);
   return {
@@ -42,14 +44,16 @@ export function createMCQ({
     lessonId,
     moduleTitle,
     lessonTitle,
-    type: "mcq",
+    type,
     difficulty,
     angle,
     question,
     options: shuffled.options,
     correctIndex: shuffled.correctIndex,
     explanation,
-    rubricCER: null
+    rubricCER: null,
+    hasDiagram: Boolean(diagram),
+    diagram: diagram || null
   };
 }
 
