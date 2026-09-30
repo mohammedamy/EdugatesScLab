@@ -43,7 +43,15 @@ assert(toolbarSrc.includes('document.getElementById("sb-timer-close-btn")?.addEv
 assert(toolbarSrc.includes('} else if (timerWidget.style.display !== "none") {\n        toggleTimer(false);'),
   "Escape key handler properly closes timer when visible");
 
-// 4. Verify functional behavioral emulation
+// 4. Verify Stopwatch Disconnect Guard & 30 FPS Pacing
+assert(toolbarSrc.includes("!timerWidget || !timerWidget.isConnected"),
+  "tickStopwatch defends against detached timerWidget container");
+assert(toolbarSrc.includes("const interval = isSmart ? 33 : 16;") || toolbarSrc.includes("isSmart ? 33 : 16"),
+  "tickStopwatch paces stopwatch frame redraws to 30 FPS on Smartboards");
+assert(toolbarSrc.includes('disp && timerWidget.style.display !== "none"'),
+  "tickStopwatch skips DOM updates when widget display is hidden");
+
+// 5. Verify functional behavioral emulation
 let display = "none";
 let activeClass = false;
 
