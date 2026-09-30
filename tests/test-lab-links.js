@@ -1,8 +1,8 @@
 // Edugates-ClipSAT Science Labs - Unit Test Suite for Laboratory Deep-Links & Checkpoint Integrity
 // Validates that all curriculum modules map to valid laboratory suites,
 // that normalizeLabId resolves all canonical and alias forms,
-// that all 12 laboratories contain verified competency checkpoint questions,
-// and that all 12 virtual lab modules initialize cleanly without runtime errors.
+// that all 30 laboratories contain verified competency checkpoint questions,
+// and that all 30 virtual lab modules initialize cleanly without runtime errors.
 
 globalThis.Image = class Image {
   constructor() {
@@ -294,6 +294,15 @@ for (const lab of labLoaders) {
   }
 }
 assert(allLabsInitCleanly, `All ${labLoaders.length} virtual laboratory workbenches initialize without runtime errors`);
+
+// 6. Navigation Header Tab Badge & Tagline Accuracy
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const appJsContent = fs.readFileSync(path.join(__dirname, "../app.js"), "utf-8");
+assert(/badge:\s*"30 Labs"/.test(appJsContent), 'Virtual Labs navigation tab badge displays "30 Labs"');
+assert(/tagline:\s*"30 Interactive STEM Workbenches"/.test(appJsContent), 'Virtual Labs navigation tab tagline displays "30 Interactive STEM Workbenches"');
 
 console.log("\n========================================================");
 console.log(`📊 Lab Links Tests: ${passed} Passed, ${failed} Failed`);

@@ -74,8 +74,8 @@ export const NAV_SUBJECTS = [
   {
     id: "labs",
     name: "Virtual Labs",
-    badge: "20 Labs",
-    tagline: "20 Interactive STEM Workbenches",
+    badge: "30 Labs",
+    tagline: "30 Interactive STEM Workbenches",
     icon: icons.microscope,
     themeClass: "tab-labs",
     color: "#38bdf8"
@@ -1425,7 +1425,7 @@ function renderVirtualLabsHub(container) {
           High-performance physics, chemistry, and biological simulations with live numerical data telemetry, variable control inputs, real-time calculus, and interactive laboratory apparatus.
         </p>
 
-        <!-- 20 Lab Selector Tabs -->
+        <!-- 30 Lab Selector Tabs -->
         <div class="lab-nav-pills-container">
           <a href="#labs/projectile" class="btn ${AppState.activeLabId === 'projectile' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="projectile" aria-label="Kinematics and Projectiles Virtual Lab" style="text-decoration: none;">
             <span class="lab-btn-icon-wrapper">${icons.projectile}</span>
