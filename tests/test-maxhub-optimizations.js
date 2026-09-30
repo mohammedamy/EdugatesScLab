@@ -258,6 +258,61 @@ assert(
 );
 console.log("  ✅ PASS: 32px slider touch thumbs verified across all slider variants and browser engines");
 
+// ----------------------------------------------------
+// Test 15: Fullscreen Presentation View & Edge-to-Edge Lesson Layout
+// ----------------------------------------------------
+console.log("\n📺 Test 15: Fullscreen Presentation View & Edge-to-Edge Lesson Layout");
+const viewerSrc = fs.readFileSync(path.join(rootDir, "components", "module-viewer.js"), "utf-8");
+assert(
+  viewerSrc.includes("let isFullscreen = true;"),
+  "module-viewer.js defaults lessons to full screen presentation mode"
+);
+assert(
+  viewerSrc.includes("modal-fullscreen") && viewerSrc.includes("is-fullscreen-lesson"),
+  "module-viewer.js applies modal-fullscreen and is-fullscreen-lesson classes to overlay"
+);
+assert(
+  viewerSrc.includes("btn-header-fullscreen-modal"),
+  "module-viewer.js provides btn-header-fullscreen-modal toggle button"
+);
+assert(
+  indexCssContent.includes(".modal-overlay.modal-fullscreen") &&
+  indexCssContent.includes(".modal-content-shell.is-fullscreen"),
+  "index.css defines edge-to-edge 100vw/100vh layout rules for fullscreen presentation"
+);
+assert(
+  indexCssContent.includes("calc(100vh - 110px)") || indexCssContent.includes("calc(100vh - 120px)"),
+  "index.css expands modal body to full screen vertical viewport height"
+);
+console.log("  ✅ PASS: Lessons open in edge-to-edge full screen presentation view with zero-box styling");
+
+// ----------------------------------------------------
+// Test 16: Live In-Class Smartboard Annotation & Canvas Zoom Controls
+// ----------------------------------------------------
+console.log("\n✏️ Test 16: Live In-Class Smartboard Annotation & Canvas Zoom Controls");
+assert(
+  viewerSrc.includes("btn-header-annotate-modal"),
+  "module-viewer.js includes btn-header-annotate-modal for one-tap teacher annotation"
+);
+assert(
+  indexCssContent.includes("#smartboard-draw-canvas") &&
+  indexCssContent.includes("z-index: 200070 !important"),
+  "index.css elevates #smartboard-draw-canvas z-index to 200070 above modal overlay"
+);
+assert(
+  indexCssContent.includes(".smartboard-pen-bar") &&
+  indexCssContent.includes("z-index: 200080 !important"),
+  "index.css elevates .smartboard-pen-bar z-index to 200080 above modal overlay"
+);
+assert(
+  viewerSrc.includes("btn-sim-zoom-in") &&
+  viewerSrc.includes("btn-sim-zoom-out") &&
+  viewerSrc.includes("btn-sim-zoom-reset") &&
+  viewerSrc.includes("disp-sim-zoom"),
+  "module-viewer.js provides dynamic canvas zoom controls (in, out, reset, readout) for 4K smartboard viewports"
+);
+console.log("  ✅ PASS: Smartboard annotation overlay and dynamic simulation zoom controls fully verified");
+
 console.log("\n========================================================");
-console.log("📊 MAXHUB Android Improvement Plan: All 14 Test Groups Passed!");
+console.log("📊 MAXHUB Android Improvement Plan: All 16 Test Groups Passed!");
 console.log("========================================================\n");

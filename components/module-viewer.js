@@ -59,26 +59,24 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   if (!overlay) {
     overlay = document.createElement("div");
     overlay.id = "module-modal-overlay";
-    overlay.className = "modal-overlay";
     document.body.appendChild(overlay);
   }
+  // Default to Fullscreen presentation mode: lessons open edge-to-edge, eliminating the cramped box
+  let isFullscreen = true;
+  overlay.className = isFullscreen ? "modal-overlay modal-fullscreen is-fullscreen-lesson" : "modal-overlay";
   overlay.style.display = "flex";
   document.body.style.overflow = "hidden";
   document.body.classList.add("modal-open");
 
-  // Auto-dock smartboard pen toolbar so it never overlays modal content
+  // Keep pen toolbar accessible at high z-index for in-class smartboard annotations
   const penBar = document.getElementById("smartboard-pen-bar");
-  let toolbarWasVisible = false;
-  if (penBar && (penBar.classList.contains("visible") || (typeof window !== "undefined" && window.getComputedStyle && window.getComputedStyle(penBar).opacity === "1"))) {
-    toolbarWasVisible = true;
-    penBar.classList.add("sb-modal-docked");
-  }
 
   // Active state
   let currentLessonId = initialLessonId || (moduleData.lessons && moduleData.lessons.length > 0 ? moduleData.lessons[0].id : 1);
   let activeTab = initialLessonId ? "interactive" : "overview"; // 'overview', 'interactive', 'concepts', 'lab'
   let labMode = "module"; // 'module' or 'lesson'
   let currentLabCleanup = null;
+  let currentSimZoom = 1.0;
 
   function closeModal() {
     if (typeof currentLabCleanup === "function") {
@@ -93,9 +91,8 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     document.body.style.overflow = "";
     document.body.classList.remove("modal-open");
 
-    // Restore toolbar state cleanly if it was docked
-    if (penBar && toolbarWasVisible) {
-      penBar.classList.remove("sb-modal-docked");
+    if (typeof document !== "undefined" && document.fullscreenElement && document.exitFullscreen) {
+      try { document.exitFullscreen(); } catch (err) {}
     }
 
     if (overlay && overlay.parentNode) {
@@ -153,7 +150,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     const curSubName = moduleData.code.startsWith("CHEM") ? "Chemistry" : (moduleData.code.startsWith("BIO") ? "Biology" : "Physics");
 
     overlay.innerHTML = `
-      <div class="modal-content-shell" role="dialog" aria-modal="true" aria-labelledby="modal-chapter-title">
+      <div class="modal-content-shell ${isFullscreen ? 'is-fullscreen' : ''}" role="dialog" aria-modal="true" aria-labelledby="modal-chapter-title">
         <div class="modal-header">
           <div class="modal-header-titles">
             <nav class="modal-breadcrumbs" aria-label="Breadcrumbs" style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 4px;">
@@ -164,12 +161,19 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
             </nav>
             <div class="modal-title" id="modal-chapter-title">${moduleData.title}</div>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-header-annotate" id="btn-header-annotate-modal" title="Toggle Smartboard Drawing Pen &amp; Highlighter over simulation" aria-label="Toggle In-Class Annotation" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; cursor: pointer;">
+              <span>✏️ Annotate</span>
+            </button>
+            <button class="btn btn-secondary btn-header-fullscreen" id="btn-header-fullscreen-modal" title="Toggle Fullscreen Presentation View" aria-label="Toggle Fullscreen View" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
+              <span id="btn-fs-icon">${isFullscreen ? '🗗' : '⛶'}</span>
+              <span id="btn-fs-label">${isFullscreen ? 'Standard' : 'Fullscreen'}</span>
+            </button>
             <button class="btn btn-secondary btn-header-share" id="btn-header-share-modal" title="Share to Google Classroom, Classera, or Copy Link" aria-label="Share to LMS or copy deep link" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
-              <span>📤 Share to LMS</span>
+              <span>📤 Share</span>
             </button>
             <button class="btn btn-secondary btn-header-lesson-plan" id="btn-header-lesson-plan" title="Open 2-Page A4 Teacher Lesson Plan &amp; Export PDF" aria-label="Open 2-Page A4 Teacher Lesson Plan" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
-              <span>📄 Lesson Plan (A4)</span>
+              <span>📄 A4 Plan</span>
             </button>
             <button class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">✕</button>
           </div>
@@ -200,6 +204,58 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     // Modal Close Button
     const btnClose = document.getElementById("btn-close-modal");
     if (btnClose) btnClose.addEventListener("click", closeModal);
+
+    // Fullscreen Toggle Button
+    const btnFs = document.getElementById("btn-header-fullscreen-modal");
+    if (btnFs) {
+      btnFs.addEventListener("click", () => {
+        try { SoundFX.playClick(); } catch (e) {}
+        isFullscreen = !isFullscreen;
+        overlay.classList.toggle("modal-fullscreen", isFullscreen);
+        overlay.classList.toggle("is-fullscreen-lesson", isFullscreen);
+        const shell = overlay.querySelector(".modal-content-shell");
+        if (shell) shell.classList.toggle("is-fullscreen", isFullscreen);
+        const icon = document.getElementById("btn-fs-icon");
+        const label = document.getElementById("btn-fs-label");
+        if (icon) icon.textContent = isFullscreen ? '🗗' : '⛶';
+        if (label) label.textContent = isFullscreen ? 'Standard' : 'Fullscreen';
+
+        if (isFullscreen) {
+          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen().catch(() => {});
+          }
+        } else {
+          if (document.fullscreenElement && document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          }
+        }
+        setTimeout(() => {
+          window.dispatchEvent(new Event("resize"));
+        }, 80);
+      });
+    }
+
+    // Annotate Button (Smartboard Toolbar)
+    const btnAnnotate = document.getElementById("btn-header-annotate-modal");
+    if (btnAnnotate) {
+      btnAnnotate.addEventListener("click", () => {
+        try { SoundFX.playPop(); } catch (e) {}
+        const pBar = document.getElementById("smartboard-pen-bar");
+        if (pBar) {
+          pBar.classList.remove("sb-modal-docked");
+          pBar.classList.remove("sb-hidden");
+          pBar.classList.add("visible");
+          pBar.style.transform = "translateY(0)";
+          pBar.style.opacity = "1";
+          pBar.style.pointerEvents = "auto";
+        }
+        const penBtn = document.getElementById("sb-tool-pen");
+        if (penBtn) penBtn.click();
+        import("../utils/toast.js").then(m => {
+          m.showToast("✏️ Smartboard Pen active — Draw or highlight anywhere on the lesson", "info", 2600);
+        });
+      });
+    }
 
     // Share Button
     const btnShare = document.getElementById("btn-header-share-modal");
@@ -385,6 +441,12 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
 
             <!-- Quick Prev/Next + Flashcard Action -->
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap;">
+              <div class="interactive-zoom-controls" style="display: inline-flex; align-items: center; background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); border-radius: 6px; padding: 2px 4px; gap: 4px;">
+                <button class="btn btn-secondary" id="btn-sim-zoom-out" style="padding: 3px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; color: var(--text-main); font-weight: 700;" title="Zoom Out Simulation Canvas" aria-label="Zoom out simulation">−</button>
+                <span id="disp-sim-zoom" style="font-size: 0.75rem; font-family: var(--font-mono); font-weight: 700; padding: 0 4px; color: var(--text-muted); min-width: 38px; text-align: center;">${Math.round(currentSimZoom * 100)}%</span>
+                <button class="btn btn-secondary" id="btn-sim-zoom-in" style="padding: 3px 8px; font-size: 0.75rem; border: none; background: transparent; cursor: pointer; color: var(--text-main); font-weight: 700;" title="Zoom In Simulation Canvas" aria-label="Zoom in simulation">+</button>
+                <button class="btn btn-secondary" id="btn-sim-zoom-reset" style="padding: 3px 6px; font-size: 0.72rem; border: none; background: transparent; cursor: pointer; color: #38bdf8;" title="Reset Zoom to 100%" aria-label="Reset zoom">⟲</button>
+              </div>
               <button class="btn btn-secondary btn-lesson-step" id="btn-modal-prev-lesson" style="padding: 6px 12px; font-size: 0.82rem;" title="Previous Lesson">
                 ← Prev
               </button>
@@ -743,6 +805,42 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
         import("./lesson-plan-generator.js").then(m => {
           m.openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
         });
+      });
+    }
+
+    // Simulation Canvas Zoom controls
+    const btnZoomIn = overlay.querySelector("#btn-sim-zoom-in");
+    const btnZoomOut = overlay.querySelector("#btn-sim-zoom-out");
+    const btnZoomReset = overlay.querySelector("#btn-sim-zoom-reset");
+    const dispZoom = overlay.querySelector("#disp-sim-zoom");
+    const simMount = overlay.querySelector("#tab-lesson-sim-container");
+
+    function applyZoom(z) {
+      currentSimZoom = Math.min(Math.max(z, 0.6), 2.5);
+      if (simMount) {
+        simMount.style.transform = currentSimZoom === 1.0 ? "" : `scale(${currentSimZoom})`;
+        simMount.style.transformOrigin = "top center";
+        simMount.style.transition = "transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)";
+      }
+      if (dispZoom) dispZoom.textContent = `${Math.round(currentSimZoom * 100)}%`;
+    }
+
+    if (btnZoomIn) {
+      btnZoomIn.addEventListener("click", () => {
+        try { SoundFX.playClick(); } catch (e) {}
+        applyZoom(currentSimZoom + 0.15);
+      });
+    }
+    if (btnZoomOut) {
+      btnZoomOut.addEventListener("click", () => {
+        try { SoundFX.playClick(); } catch (e) {}
+        applyZoom(currentSimZoom - 0.15);
+      });
+    }
+    if (btnZoomReset) {
+      btnZoomReset.addEventListener("click", () => {
+        try { SoundFX.playClick(); } catch (e) {}
+        applyZoom(1.0);
       });
     }
   }

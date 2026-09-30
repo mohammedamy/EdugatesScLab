@@ -1748,6 +1748,30 @@ a.lesson-row-card {
   to { opacity: 1; }
 }
 
+/* Fullscreen Lesson Presentation Mode (Edge-to-Edge Fullscreen View) */
+.modal-overlay.modal-fullscreen,
+.modal-overlay.is-fullscreen-lesson,
+[data-mode="smartboard"] .modal-overlay,
+body.mode-smartboard .modal-overlay,
+.fast-smartboard-mode .modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: 100vw !important;
+  max-height: 100vh !important;
+  border-radius: 0 !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  background: var(--bg-surface, #070b15) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: hidden !important;
+  z-index: 200060 !important;
+}
+
 .modal-content-shell {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
@@ -1765,6 +1789,98 @@ a.lesson-row-card {
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-content-shell.is-fullscreen,
+[data-mode="smartboard"] .modal-content-shell,
+body.mode-smartboard .modal-content-shell,
+.fast-smartboard-mode .modal-content-shell {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  animation: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: var(--bg-surface, #0f172a) !important;
+}
+
+.modal-content-shell.is-fullscreen .modal-header,
+[data-mode="smartboard"] .modal-content-shell .modal-header,
+body.mode-smartboard .modal-content-shell .modal-header,
+.fast-smartboard-mode .modal-content-shell .modal-header {
+  padding: 10px 24px !important;
+  border-radius: 0 !important;
+  border-bottom: 1.5px solid var(--border-color, rgba(255, 255, 255, 0.12)) !important;
+  background: rgba(15, 23, 42, 0.97) !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+.modal-content-shell.is-fullscreen .modal-tabs-header,
+[data-mode="smartboard"] .modal-content-shell .modal-tabs-header,
+body.mode-smartboard .modal-content-shell .modal-tabs-header,
+.fast-smartboard-mode .modal-content-shell .modal-tabs-header {
+  padding: 0 24px !important;
+  flex-shrink: 0 !important;
+  background: rgba(10, 16, 30, 0.92) !important;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)) !important;
+}
+
+.modal-content-shell.is-fullscreen .modal-body,
+[data-mode="smartboard"] .modal-content-shell .modal-body,
+body.mode-smartboard .modal-content-shell .modal-body,
+.fast-smartboard-mode .modal-content-shell .modal-body {
+  flex: 1 1 auto !important;
+  max-height: none !important;
+  height: calc(100vh - 110px) !important;
+  padding: 16px 24px 28px 24px !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.modal-content-shell.is-fullscreen #tab-lesson-sim-container,
+[data-mode="smartboard"] .modal-content-shell #tab-lesson-sim-container,
+body.mode-smartboard .modal-content-shell #tab-lesson-sim-container,
+.fast-smartboard-mode .modal-content-shell #tab-lesson-sim-container {
+  min-height: calc(100vh - 180px) !important;
+  width: 100% !important;
+}
+
+/* Day Mode High-Contrast Fullscreen Overrides */
+[data-theme="day"] .modal-overlay.modal-fullscreen,
+[data-theme="day"] .modal-overlay.is-fullscreen-lesson,
+[data-theme="day"][data-mode="smartboard"] .modal-overlay,
+body.mode-smartboard[data-theme="day"] .modal-overlay {
+  background: #ffffff !important;
+}
+
+[data-theme="day"] .modal-content-shell.is-fullscreen,
+[data-theme="day"][data-mode="smartboard"] .modal-content-shell,
+body.mode-smartboard[data-theme="day"] .modal-content-shell {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .modal-content-shell.is-fullscreen .modal-header,
+[data-theme="day"][data-mode="smartboard"] .modal-content-shell .modal-header,
+body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-header {
+  background: #ffffff !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .modal-content-shell.is-fullscreen .modal-tabs-header,
+[data-theme="day"][data-mode="smartboard"] .modal-content-shell .modal-tabs-header,
+body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header {
+  background: #f8fafc !important;
+  border-bottom: 1.5px solid #cbd5e1 !important;
 }
 
 .modal-header {
@@ -2127,12 +2243,12 @@ a.lesson-row-card {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 999;
+  z-index: 200070 !important;
 }
 #smartboard-draw-canvas.drawing-active {
   pointer-events: auto;
   cursor: crosshair;
-  z-index: 199999 !important;
+  z-index: 200090 !important;
 }
 
 /* Floating Smartboard Pen Bar - Collapsible / Auto-Hide */
@@ -2140,7 +2256,7 @@ a.lesson-row-card {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 200050 !important;
+  z-index: 200080 !important;
   background: rgba(15, 23, 42, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -2198,7 +2314,7 @@ body.mode-smartboard .smartboard-pen-bar:not(.sb-hidden),
   background: rgba(15, 23, 42, 0.97) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
-  z-index: 200050 !important;
+  z-index: 200080 !important;
 }
 
 [data-theme="day"] .smartboard-pen-bar.sb-is-docked {
@@ -2227,8 +2343,8 @@ body.sb-docked-active .module-modal-content {
 }
 
 body.modal-open .sb-toolbar-toggle {
-  opacity: 0.3 !important;
-  pointer-events: none !important;
+  opacity: 0.9 !important;
+  pointer-events: auto !important;
 }
 
 /* Floating Smartboard Toggle Button */
@@ -2236,7 +2352,7 @@ body.modal-open .sb-toolbar-toggle {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 200040;
+  z-index: 200075 !important;
   width: 48px;
   height: 48px;
   border-radius: 50%;
