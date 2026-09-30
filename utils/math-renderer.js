@@ -494,7 +494,7 @@ export function upgradeAllMath(root = (typeof document !== "undefined" ? documen
       });
       if (html && !html.includes("katex-error")) {
         const rawEsc = escapeHtmlAttr(raw);
-        const fullSpan = `<span class="math-katex-wrapper ${isDisplay ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${isDisplay}">${html}</span>`;
+        const fullSpan = `<span class="math-katex-wrapper katex-upgraded ${isDisplay ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${isDisplay}">${html}</span>`;
         mathCache.set(cacheKey, fullSpan);
         el.outerHTML = fullSpan;
       } else {

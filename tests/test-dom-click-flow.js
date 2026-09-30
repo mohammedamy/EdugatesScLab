@@ -293,6 +293,15 @@ assert(modalOpenedWith && modalOpenedWith.initialLessonId === 3,
 assert(window.location.hash === "#lesson/CHEM-M01-L3",
   "window.location.hash updated to #lesson/CHEM-M01-L3");
 
+// TEST 4: Verify smartboard toolbar file contains re-entrancy and mode change guards
+const smartboardToolbarCode = fs.readFileSync(path.join(process.cwd(), "components/smartboard-toolbar.js"), "utf-8");
+assert(smartboardToolbarCode.includes("let isSyncing = false;") && smartboardToolbarCode.includes("let lastSBMode = null;"),
+  "smartboard-toolbar.js has isSyncing re-entrancy lock and lastSBMode tracking");
+assert(smartboardToolbarCode.includes("if (currentSBMode !== lastSBMode)") && smartboardToolbarCode.includes("lastSBMode = currentSBMode;"),
+  "smartboard-toolbar.js guards MutationObserver to only fire sync when smartboard mode actually toggles");
+assert(smartboardToolbarCode.includes("if (document.body.classList.contains(\"sb-docked-active\"))"),
+  "smartboard-toolbar.js guards classList.remove to prevent redundant DOM attribute mutations");
+
 console.log("\n========================================================");
 console.log(`📊 Live DOM Simulation Tests: ${passed} Passed, ${failed} Failed`);
 console.log("========================================================\n");

@@ -720,24 +720,43 @@ export function initSmartboardToolbar() {
     }
   });
 
+  let isSyncing = false;
+  let lastSBMode = null;
+
   function syncToolbarVisibility() {
-    const isSBMode = document.body.classList.contains("mode-smartboard") || document.documentElement.classList.contains("mode-smartboard");
-    const isMobile = window.innerWidth <= 768;
-    if (isSBMode && !isMobile && !bar.classList.contains("sb-hidden")) {
-      bar.classList.add("visible");
-      if (toggleBtn) toggleBtn.classList.add("active");
-      if (isDocked && !isMinimized) {
-        document.body.classList.add("sb-docked-active");
+    if (isSyncing) return;
+    isSyncing = true;
+    try {
+      const isSBMode = document.body.classList.contains("mode-smartboard") || document.documentElement.classList.contains("mode-smartboard");
+      const isMobile = window.innerWidth <= 768;
+      if (isSBMode && !isMobile && !bar.classList.contains("sb-hidden")) {
+        if (!bar.classList.contains("visible")) bar.classList.add("visible");
+        if (toggleBtn && !toggleBtn.classList.contains("active")) toggleBtn.classList.add("active");
+        if (isDocked && !isMinimized && !document.body.classList.contains("sb-docked-active")) {
+          document.body.classList.add("sb-docked-active");
+        }
+      } else {
+        if (bar.classList.contains("visible")) bar.classList.remove("visible");
+        if (toggleBtn && toggleBtn.classList.contains("active")) toggleBtn.classList.remove("active");
+        if (document.body.classList.contains("sb-docked-active")) {
+          document.body.classList.remove("sb-docked-active");
+        }
       }
-    } else if (!bar.classList.contains("visible")) {
-      bar.classList.remove("visible");
-      if (toggleBtn) toggleBtn.classList.remove("active");
-      document.body.classList.remove("sb-docked-active");
+    } finally {
+      isSyncing = false;
     }
   }
+
   syncToolbarVisibility();
   try {
-    const modeObserver = new MutationObserver(() => syncToolbarVisibility());
+    const modeObserver = new MutationObserver(() => {
+      const currentSBMode = document.body.classList.contains("mode-smartboard") || document.documentElement.classList.contains("mode-smartboard");
+      if (currentSBMode !== lastSBMode) {
+        lastSBMode = currentSBMode;
+        syncToolbarVisibility();
+      }
+    });
+    lastSBMode = document.body.classList.contains("mode-smartboard") || document.documentElement.classList.contains("mode-smartboard");
     modeObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     modeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
   } catch (e) {}
