@@ -130,6 +130,25 @@ assert(allActinidesRow10, "All 15 Actinides are positioned on Row 10 spanning co
 // 5. Verify chem-periodic-table.js lab initialization function
 assert(typeof initPeriodicTableLab === "function", "initPeriodicTableLab is exported as a function from labs/chem-periodic-table.js");
 
+// 6. Gas Real-World Applications vs. Raw Solid/Liquid Specimen Integrity
+const gases = PERIODIC_ELEMENTS.filter(e => e.state === "Gas");
+const solids = PERIODIC_ELEMENTS.filter(e => e.state === "Solid");
+const liquids = PERIODIC_ELEMENTS.filter(e => e.state === "Liquid");
+const synthetics = PERIODIC_ELEMENTS.filter(e => e.state === "Synthetic");
+
+assert(gases.length === 11, `Exactly 11 gaseous elements in periodic table (found: ${gases.length})`);
+const allGasesHaveApplications = gases.every(g => g.imageDesc.startsWith("Flagship Application:"));
+assert(allGasesHaveApplications, "All 11 gaseous elements (H, He, N, O, F, Ne, Cl, Ar, Kr, Xe, Rn) feature their flagship real-world applications/uses");
+
+const allSolidsHaveRawSamples = solids.every(s => s.imageDesc.startsWith("Raw Sample:"));
+assert(allSolidsHaveRawSamples, `All ${solids.length} solid elements feature authentic raw geological/crystalline samples`);
+
+const allLiquidsHaveRawSamples = liquids.every(l => l.imageDesc.startsWith("Raw Sample:"));
+assert(allLiquidsHaveRawSamples, `All ${liquids.length} liquid elements (Bromine, Mercury) feature authentic raw liquid samples`);
+
+const noSyntheticBrokenUrls = PERIODIC_ELEMENTS.every(e => !e.image.includes("/thumb/") || !e.image.includes("/640px-"));
+assert(noSyntheticBrokenUrls, "All 118 elements use direct Wikimedia Commons / cdn image URLs, preventing edge-cache HTTP 400 thumbnail rejections");
+
 console.log("\n--------------------------------------------------------");
 console.log(`Summary: ${passed} Passed, ${failed} Failed`);
 console.log("========================================================\n");

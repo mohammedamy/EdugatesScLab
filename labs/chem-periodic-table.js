@@ -26,16 +26,22 @@ export function initPeriodicTableLab(containerId) {
   function generateElementSpecimenSvg(el) {
     const cat = CATEGORY_METADATA[el.cat] || { color: "#38bdf8", name: el.cat };
     const color = cat.color;
+    const isGas = el.state === "Gas";
 
     let bgGrad;
     let motif = "🧊";
-    if (el.state === "Gas") {
+    let typeLabel = "AUTHENTIC RAW MINERAL SPECIMEN";
+    let subLabel = `Natural Solid • ${cat.name}`;
+
+    if (isGas) {
       bgGrad = `<radialGradient id="g_${el.z}" cx="50%" cy="50%" r="60%">
         <stop offset="0%" stop-color="${color}" stop-opacity="0.85"/>
         <stop offset="55%" stop-color="#0f172a" stop-opacity="0.95"/>
         <stop offset="100%" stop-color="#020617" stop-opacity="1"/>
       </radialGradient>`;
-      motif = "💨";
+      motif = "🚀";
+      typeLabel = "FLAGSHIP GAS APPLICATION";
+      subLabel = `Real-World Technology: ${el.uses.split(',')[0].slice(0, 34)}...`;
     } else if (el.state === "Liquid") {
       bgGrad = `<linearGradient id="g_${el.z}" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stop-color="${color}" stop-opacity="0.7"/>
@@ -43,6 +49,8 @@ export function initPeriodicTableLab(containerId) {
         <stop offset="100%" stop-color="#020617" stop-opacity="1"/>
       </linearGradient>`;
       motif = "💧";
+      typeLabel = "RAW ELEMENTAL LIQUID";
+      subLabel = `Pure Elemental Liquid • ${cat.name}`;
     } else if (el.state === "Synthetic") {
       bgGrad = `<linearGradient id="g_${el.z}" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stop-color="${color}" stop-opacity="0.6"/>
@@ -50,13 +58,17 @@ export function initPeriodicTableLab(containerId) {
         <stop offset="100%" stop-color="#020617" stop-opacity="1"/>
       </linearGradient>`;
       motif = "⚛️";
+      typeLabel = "SYNTHESIS APPARATUS / TARGET";
+      subLabel = `Superheavy Accelerator Element`;
     } else {
       bgGrad = `<linearGradient id="g_${el.z}" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stop-color="${color}" stop-opacity="0.45"/>
         <stop offset="50%" stop-color="#1e293b" stop-opacity="0.95"/>
         <stop offset="100%" stop-color="#0b1329" stop-opacity="1"/>
       </linearGradient>`;
-      motif = "🧊";
+      motif = "💎";
+      typeLabel = "AUTHENTIC RAW SPECIMEN";
+      subLabel = `Natural Mineral Crystal • ${cat.name}`;
     }
 
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 360" width="100%" height="100%">
@@ -71,10 +83,11 @@ export function initPeriodicTableLab(containerId) {
       <circle cx="300" cy="180" r="130" fill="none" stroke="${color}" stroke-opacity="0.25" stroke-dasharray="6 6" stroke-width="2"/>
       <circle cx="300" cy="180" r="90" fill="none" stroke="${color}" stroke-opacity="0.35" stroke-width="1.5"/>
       <circle cx="300" cy="180" r="48" fill="${color}" fill-opacity="0.15"/>
-      <text x="300" y="198" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="#ffffff" text-anchor="middle" letter-spacing="1">${el.s}</text>
-      <text x="300" y="112" font-family="monospace" font-weight="700" font-size="20" fill="${color}" text-anchor="middle">Z = ${el.z} • ${el.m} u</text>
-      <text x="300" y="248" font-family="system-ui, sans-serif" font-weight="700" font-size="24" fill="#f8fafc" text-anchor="middle">${el.n}</text>
-      <text x="300" y="282" font-family="system-ui, sans-serif" font-weight="600" font-size="14" fill="#94a3b8" text-anchor="middle">${motif} Standard State: ${el.state} • ${cat.name}</text>
+      <text x="300" y="80" font-family="monospace" font-weight="800" font-size="13" fill="${color}" text-anchor="middle" letter-spacing="2">[ ${typeLabel} ]</text>
+      <text x="300" y="194" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="82" fill="#ffffff" text-anchor="middle" letter-spacing="1">${el.s}</text>
+      <text x="300" y="118" font-family="monospace" font-weight="700" font-size="18" fill="#e2e8f0" text-anchor="middle">Z = ${el.z} • ${el.m} u</text>
+      <text x="300" y="244" font-family="system-ui, sans-serif" font-weight="700" font-size="24" fill="#f8fafc" text-anchor="middle">${el.n}</text>
+      <text x="300" y="278" font-family="system-ui, sans-serif" font-weight="600" font-size="13" fill="#94a3b8" text-anchor="middle">${motif} ${subLabel}</text>
       <rect x="16" y="16" width="568" height="328" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1" rx="10"/>
     </svg>`;
     return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
@@ -191,40 +204,43 @@ export function initPeriodicTableLab(containerId) {
 
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button class="btn btn-secondary specimen-btn" data-sym="Au" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #eab308; color: #facc15;">
-                Native Gold (Au)
+                💎 Native Gold (Au)
               </button>
               <button class="btn btn-secondary specimen-btn" data-sym="Cu" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #f97316; color: #fb923c;">
-                Native Copper (Cu)
+                💎 Native Copper (Cu)
               </button>
               <button class="btn btn-secondary specimen-btn" data-sym="C" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #94a3b8; color: #f1f5f9;">
-                Diamond Carbon (C)
-              </button>
-              <button class="btn btn-secondary specimen-btn" data-sym="Si" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #10b981; color: #34d399;">
-                Silicon Ingot (Si)
-              </button>
-              <button class="btn btn-secondary specimen-btn" data-sym="Ti" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #3b82f6; color: #60a5fa;">
-                Aerospace Titanium (Ti)
-              </button>
-              <button class="btn btn-secondary specimen-btn" data-sym="Fe" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #f59e0b; color: #fbbf24;">
-                Meteoric Iron (Fe)
-              </button>
-              <button class="btn btn-secondary specimen-btn" data-sym="Ag" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #e2e8f0; color: #ffffff;">
-                Crystalline Silver (Ag)
+                💎 Diamond & Graphite (C)
               </button>
               <button class="btn btn-secondary specimen-btn" data-sym="Bi" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #06b6d4; color: #22d3ee;">
-                Hopper Bismuth (Bi)
-              </button>
-              <button class="btn btn-secondary specimen-btn" data-sym="U" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #ec4899; color: #f472b6;">
-                Uranium Mineral (U)
-              </button>
-              <button class="btn btn-secondary specimen-btn" data-sym="Ne" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #8b5cf6; color: #c084fc;">
-                Neon Plasma (Ne)
+                💎 Hopper Bismuth (Bi)
               </button>
               <button class="btn btn-secondary specimen-btn" data-sym="S" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #84cc16; color: #a3e635;">
-                Rhombic Sulfur (S)
+                💎 Rhombic Sulfur (S)
               </button>
-              <button class="btn btn-secondary specimen-btn" data-sym="Nd" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #d946ef; color: #e879f9;">
-                Neodymium Magnet (Nd)
+              <button class="btn btn-secondary specimen-btn" data-sym="Si" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #10b981; color: #34d399;">
+                💎 Silicon Ingot (Si)
+              </button>
+              <button class="btn btn-secondary specimen-btn" data-sym="Ti" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #3b82f6; color: #60a5fa;">
+                💎 Titanium Crystal (Ti)
+              </button>
+              <button class="btn btn-secondary specimen-btn" data-sym="Hg" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #38bdf8; color: #38bdf8;">
+                💧 Liquid Mercury (Hg)
+              </button>
+              <button class="btn btn-secondary specimen-btn" data-sym="H" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #60a5fa; color: #93c5fd;">
+                🚀 Rocket Cryo (H)
+              </button>
+              <button class="btn btn-secondary specimen-btn" data-sym="He" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #f472b6; color: #f472b6;">
+                🚀 MRI Cryogenics (He)
+              </button>
+              <button class="btn btn-secondary specimen-btn" data-sym="N" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #a855f7; color: #c084fc;">
+                🚀 Liquid N₂ Cryo (N)
+              </button>
+              <button class="btn btn-secondary specimen-btn" data-sym="Ne" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #f97316; color: #fb923c;">
+                🚀 Neon Signs (Ne)
+              </button>
+              <button class="btn btn-secondary specimen-btn" data-sym="Xe" style="padding: 4px 10px; font-size: 0.75rem; background: rgba(15, 23, 42, 0.85); border-color: #38bdf8; color: #38bdf8;">
+                🚀 Ion Thruster (Xe)
               </button>
             </div>
           </div>
@@ -258,7 +274,7 @@ export function initPeriodicTableLab(containerId) {
           <!-- Dual-View Inspector Tabs Navigation -->
           <div style="display: flex; gap: 6px; background: rgba(2, 6, 23, 0.7); padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
             <button id="tab-btn-specimen" class="btn" style="flex: 1; padding: 6px 4px; font-size: 0.75rem; font-weight: 700; border: none; border-radius: 6px; background: #0284c7; color: #ffffff; transition: all 0.2s;">
-              📸 4K Specimen & Uses
+              📸 4K Specimen / Uses
             </button>
             <button id="tab-btn-bohr" class="btn" style="flex: 1; padding: 6px 4px; font-size: 0.75rem; font-weight: 700; border: none; border-radius: 6px; background: transparent; color: #94a3b8; transition: all 0.2s;">
               ⚛️ Bohr Orbitals
@@ -275,8 +291,13 @@ export function initPeriodicTableLab(containerId) {
               <img id="elem-specimen-img" src="" alt="Element Specimen" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;" />
               <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%);"></div>
 
+              <!-- Floating Type Badge: Raw Sample vs Gas Application -->
+              <div id="specimen-type-badge" style="position: absolute; top: 8px; left: 8px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 6px; padding: 3px 8px; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; gap: 4px; z-index: 2;">
+                <span>💎</span> Authentic Raw Sample
+              </div>
+
               <!-- Fullscreen button -->
-              <button id="btn-fullscreen-specimen" style="position: absolute; top: 8px; right: 8px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.2); color: #ffffff; border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+              <button id="btn-fullscreen-specimen" style="position: absolute; top: 8px; right: 8px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.2); color: #ffffff; border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; cursor: pointer; display: flex; align-items: center; gap: 4px; z-index: 2;">
                 <span>⛶</span> Full 4K
               </button>
 
@@ -675,6 +696,52 @@ export function initPeriodicTableLab(containerId) {
     const elemMass = document.getElementById("elem-mass");
     if (elemMass) elemMass.innerText = `${el.m} amu (u)`;
 
+    // Tab 1: Specimen Type Badge & Tab Button Dynamic Label
+    const typeBadge = document.getElementById("specimen-type-badge");
+    const tabBtnSpecimen = document.getElementById("tab-btn-specimen");
+
+    if (el.state === "Gas") {
+      if (typeBadge) {
+        typeBadge.innerHTML = `<span>🚀</span> Flagship Gas Application`;
+        typeBadge.style.color = "#38bdf8";
+        typeBadge.style.background = "rgba(14, 165, 233, 0.25)";
+        typeBadge.style.borderColor = "rgba(56, 189, 248, 0.6)";
+      }
+      if (tabBtnSpecimen) {
+        tabBtnSpecimen.innerText = "🚀 4K Gas Application";
+      }
+    } else if (el.state === "Synthetic") {
+      if (typeBadge) {
+        typeBadge.innerHTML = `<span>⚛️</span> Synthesis Apparatus / Target`;
+        typeBadge.style.color = "#f472b6";
+        typeBadge.style.background = "rgba(236, 72, 153, 0.25)";
+        typeBadge.style.borderColor = "rgba(236, 72, 153, 0.6)";
+      }
+      if (tabBtnSpecimen) {
+        tabBtnSpecimen.innerText = "⚛️ 4K Accelerator Target";
+      }
+    } else if (el.state === "Liquid") {
+      if (typeBadge) {
+        typeBadge.innerHTML = `<span>💧</span> Authentic Raw Liquid Sample`;
+        typeBadge.style.color = "#34d399";
+        typeBadge.style.background = "rgba(16, 185, 129, 0.25)";
+        typeBadge.style.borderColor = "rgba(52, 211, 153, 0.6)";
+      }
+      if (tabBtnSpecimen) {
+        tabBtnSpecimen.innerText = "💧 4K Raw Liquid";
+      }
+    } else {
+      if (typeBadge) {
+        typeBadge.innerHTML = `<span>💎</span> Authentic Raw Mineral Sample`;
+        typeBadge.style.color = "#34d399";
+        typeBadge.style.background = "rgba(16, 185, 129, 0.25)";
+        typeBadge.style.borderColor = "rgba(52, 211, 153, 0.6)";
+      }
+      if (tabBtnSpecimen) {
+        tabBtnSpecimen.innerText = "💎 4K Raw Specimen";
+      }
+    }
+
     // Tab 1: Specimen & Occurrence
     const specimenImg = document.getElementById("elem-specimen-img");
     if (specimenImg) {
@@ -914,12 +981,22 @@ export function initPeriodicTableLab(containerId) {
 
     const el = selectedElem;
     const cat = CATEGORY_METADATA[el.cat] || { name: el.cat, color: "#38bdf8" };
+    const isGas = el.state === "Gas";
+    const isSynthetic = el.state === "Synthetic" || el.z > 94;
+
+    const modalMotif = document.getElementById("modal-motif");
+    if (modalMotif) {
+      modalMotif.innerText = isGas ? "🚀" : (isSynthetic ? "⚛️" : (el.state === "Liquid" ? "💧" : "💎"));
+    }
 
     const modalTitle = document.getElementById("modal-elem-title");
-    if (modalTitle) modalTitle.innerText = `${el.n} (${el.s}) • 4K Specimen`;
+    if (modalTitle) {
+      const typeLabel = isGas ? "Flagship Real-World Application" : (isSynthetic ? "Laboratory Synthesis & Target" : (el.state === "Liquid" ? "Authentic Raw Liquid Sample" : "Authentic Raw Mineral Specimen"));
+      modalTitle.innerText = `${el.n} (${el.s}) • ${typeLabel}`;
+    }
 
     const modalMeta = document.getElementById("modal-elem-meta");
-    if (modalMeta) modalMeta.innerText = `Z = ${el.z} • ${cat.name} • Group ${el.group}, Period ${el.period} • Mass ${el.m} u`;
+    if (modalMeta) modalMeta.innerText = `Z = ${el.z} • ${cat.name} • State: ${el.state} • Group ${el.group}, Period ${el.period} • Mass ${el.m} u`;
 
     const modalImg = document.getElementById("modal-specimen-img");
     if (modalImg) {
@@ -931,7 +1008,7 @@ export function initPeriodicTableLab(containerId) {
     }
 
     const modalCap = document.getElementById("modal-img-caption");
-    if (modalCap) modalCap.innerText = el.imageDesc || "Specimen photograph.";
+    if (modalCap) modalCap.innerText = el.imageDesc || (isGas ? "Flagship practical application." : "Authentic raw geological specimen.");
 
     const modalOcc = document.getElementById("modal-occurrence-text");
     if (modalOcc) modalOcc.innerText = el.occurrence;

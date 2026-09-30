@@ -16,8 +16,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#60a5fa", lines: [656.3, 486.1, 434.0, 410.2],
     occurrence: "Most abundant element in the universe (75% of cosmic baryonic mass). Found naturally on Earth bound in water (H₂O), hydrocarbons, and all organic living tissue.",
     uses: "Clean zero-emission fuel cells, ammonia synthesis (Haber-Bosch fertilizer), petroleum hydrocracking, rocket cryogenic propellant, and liquid hydrogen coolant.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Hydrogen_discharge_tube.jpg/640px-Hydrogen_discharge_tube.jpg",
-    imageDesc: "Glowing lavender-pink plasma in a high-voltage quartz hydrogen gas discharge tube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c7/Space_Shuttle_Atlantis_launches_from_KSC_on_STS-132.jpg",
+    imageDesc: "Flagship Application: Space Shuttle Atlantis ascending on 2 million liters of cryogenic liquid hydrogen (LH₂) fuel burning cleanly with liquid oxygen at 3,000 °C."
   },
   {
     z: 2, s: "He", n: "Helium", m: 4.0026, cat: "noble", period: 1, group: 18, block: "s",
@@ -28,8 +28,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#f472b6", lines: [587.6, 667.8, 501.6, 447.1],
     occurrence: "Second most abundant element in universe (24%). Produced continuously in stars via nuclear fusion and on Earth by alpha decay in deep underground natural gas reserves.",
     uses: "Superconducting magnet cryogenics (MRI scanners, particle colliders at 4.2 K), aerospace purge gas, deep-sea breathing gas (trimix), and buoyant non-combustible airships.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Helium_discharge_tube.jpg/640px-Helium_discharge_tube.jpg",
-    imageDesc: "Peach-gold glowing plasma emission in a high-voltage helium Geissler discharge tube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/ee/MRI-Philips.JPG",
+    imageDesc: "Flagship Application: High-field clinical MRI scanner immersed in a 4.2 K (-269 °C) liquid helium bath, enabling zero-resistance superconductivity for sub-millimeter medical diagnostics."
   },
 
   // ==========================================
@@ -44,8 +44,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#ef4444", lines: [670.8, 610.4],
     occurrence: "Lightest solid metal. Found in lithium brine salt flats (Salar de Uyuni) and granitic pegmatite ores like spodumene and petalite; highly reactive with water and air.",
     uses: "Rechargeable lithium-ion batteries for electric vehicles, smartphones, grid energy storage, heat-resistant ceramics and glass, aircraft lithium-aluminum alloys, and psychiatric medicine.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Lithium_element.jpg/640px-Lithium_element.jpg",
-    imageDesc: "Lustrous silvery lithium metal ingot floating submerged under protective mineral oil."
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Lithium_element.jpg",
+    imageDesc: "Raw Sample: Lustrous silvery metallic lithium ingot floating submerged under protective paraffin mineral oil to prevent oxidation."
   },
   {
     z: 4, s: "Be", n: "Beryllium", m: 9.0122, cat: "alkaline", period: 2, group: 2, block: "s",
@@ -56,8 +56,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#ffffff", lines: [457.3, 313.1],
     occurrence: "Rare in universe and Earth's crust (2.8 ppm). Occurs naturally in beryl mineral crystals (including emeralds and aquamarines) and bertrandite ores.",
     uses: "Lightweight rigid aerospace structures, James Webb Space Telescope gold-coated beryllium mirrors, non-sparking beryllium-copper tools, and X-ray tube transparent windows.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Beryllium_crystals.jpg/640px-Beryllium_crystals.jpg",
-    imageDesc: "Hexagonal dendritic beryllium metal crystals synthesized via high-purity electrolysis."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/0c/Be-140g.jpg",
+    imageDesc: "Raw Sample: High-purity 140-gram dendritic beryllium metal crystal cluster produced by vacuum electrolytic refining."
   },
   {
     z: 5, s: "B", n: "Boron", m: 10.81, cat: "metalloid", period: 2, group: 13, block: "p",
@@ -68,8 +68,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#22c55e", lines: [548.1, 518.0],
     occurrence: "Formed entirely by cosmic ray spallation. Found in evaporite sedimentary borate salt deposits such as borax, kernite, and ulexite (TV rock).",
     uses: "Pyrex borosilicate thermal glassware, fiberglass insulation, boron carbide body armor, control rods in nuclear reactors, high-power neodymium-iron-boron (NdFeB) supermagnets.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Boron_crystal.jpg/640px-Boron_crystal.jpg",
-    imageDesc: "Lustrous black-brown crystalline beta-rhombohedral boron crystal cluster."
+    image: "https://upload.wikimedia.org/wikipedia/commons/1/19/Boron_R105.jpg",
+    imageDesc: "Raw Sample: Beta-rhombohedral crystalline boron lump showing characteristic dark lustrous conchoidal cleavage."
   },
   {
     z: 6, s: "C", n: "Carbon", m: 12.011, cat: "nonmetal", period: 2, group: 14, block: "p",
@@ -80,8 +80,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [426.7, 657.8],
     occurrence: "Fourth most abundant element in universe. Backbone of all organic biochemistry. Exists as native allotropes: diamond (deep mantle), graphite, graphene, fullerenes, and fossil fuels.",
     uses: "Steel metallurgy (coke), carbon-fiber composite aerospace structures, carbon nanotubes, diamond cutting abrasives, lithium battery graphite anodes, and active pharmaceuticals.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Diamond-and-graphite-with-scale.jpg/640px-Diamond-and-graphite-with-scale.jpg",
-    imageDesc: "Octahedral gem-quality native diamond crystal alongside lustrous flake graphite."
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/f0/Graphite-and-diamond-with-scale.jpg",
+    imageDesc: "Raw Sample: Octahedral gem-quality native diamond crystal alongside lustrous soft flake graphite, showing carbon's contrasting allotropes."
   },
   {
     z: 7, s: "N", n: "Nitrogen", m: 14.007, cat: "nonmetal", period: 2, group: 15, block: "p",
@@ -92,8 +92,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [500.5, 567.9],
     occurrence: "Makes up 78.08% of Earth's atmosphere as inert diatomic gas (N₂ with N≡N triple bond). Crucial component of amino acids, proteins, and DNA/RNA nucleotides.",
     uses: "Agricultural fertilizer synthesis (ammonia via Haber-Bosch), food packaging inert preservation, liquid nitrogen cryogenic preservation, pharmaceuticals, and airbag propellants.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Nitrogen_discharge_tube.jpg/640px-Nitrogen_discharge_tube.jpg",
-    imageDesc: "Ethereal violet-blue luminescence of ionized nitrogen gas in a spectral plasma tube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/4/42/Liquid_nitrogen_tank.jpg",
+    imageDesc: "Flagship Application: Industrial pressurized liquid nitrogen cryogenic tank maintaining biological specimens and life-saving vaccines frozen at -196 °C (-320 °F)."
   },
   {
     z: 8, s: "O", n: "Oxygen", m: 15.999, cat: "nonmetal", period: 2, group: 16, block: "p",
@@ -104,8 +104,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [777.4, 844.6],
     occurrence: "Third most abundant element in universe and most abundant in Earth's crust (46.6%) and oceans (89%). Makes up 20.95% of atmospheric air as paramagnetic O₂.",
     uses: "Biological aerobic cellular respiration, steel refining blast furnaces, rocket liquid oxygen (LOX) oxidizer, medical life support, water purification (ozone O₃), and oxy-acetylene welding.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Liquid_Oxygen_in_a_beaker_%28cropped_and_retouched%29.jpg/640px-Liquid_Oxygen_in_a_beaker_%28cropped_and_retouched%29.jpg",
-    imageDesc: "Pale sky-blue cryogenic liquid oxygen suspended between the poles of a powerful magnet."
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/6a/10ltr_oxygen_cylinder.png",
+    imageDesc: "Flagship Application: High-purity 10-liter medical oxygen cylinder providing critical life-support respiratory therapy in emergency and intensive care medicine."
   },
   {
     z: 9, s: "F", n: "Fluorine", m: 18.998, cat: "halogen", period: 2, group: 17, block: "p",
@@ -116,8 +116,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [685.6, 739.8],
     occurrence: "Most electronegative and chemically reactive of all elements. Found in minerals fluorite (CaF₂), cryolite (Na₃AlF₆), and fluorapatite; reacts with almost all organic and inorganic substances.",
     uses: "Teflon (PTFE) non-stick fluoropolymers, modern pharmaceuticals (lipitor, prozac), uranium isotope enrichment (UF₆ gas centrifuge), and dental cavity prophylaxis fluoride.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Fluorite_advanced_specimen.jpg/640px-Fluorite_advanced_specimen.jpg",
-    imageDesc: "Vibrant natural cubic purple and green fluorite (calcium fluoride) mineral cluster."
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/f4/A_water_droplet_DWR-coated_surface2_edit1.jpg",
+    imageDesc: "Flagship Application: High-performance water droplet beading with a near 180° contact angle on a durable fluoropolymer (PTFE) surface synthesized from elemental fluorine."
   },
   {
     z: 10, s: "Ne", n: "Neon", m: 20.180, cat: "noble", period: 2, group: 18, block: "p",
@@ -128,8 +128,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#f97316", lines: [585.2, 614.3, 640.2],
     occurrence: "Fifth most abundant element in cosmos, but rare on Earth (18.2 ppm in air) due to high volatility and lack of chemical bonding. Extracted by cryogenic fractional distillation of air.",
     uses: "Luminous neon advertising discharge signs, helium-neon (He-Ne) barcode lasers, cryogenic refrigerants (over 40x more refrigerating capacity per unit volume than liquid helium), and lightning arrestors.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Neon_discharge_tube.jpg/640px-Neon_discharge_tube.jpg",
-    imageDesc: "Brilliant reddish-orange glow of ionized neon in an authentic laboratory discharge tube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/dc/Colorful_neon_street_signs_in_Kabukich%C5%8D%2C_Shinjuku%2C_Tokyo.jpg",
+    imageDesc: "Flagship Application: Vibrant commercial neon gas discharge tubes illuminating Tokyo's night skyline with signature reddish-orange and colored plasma luminescence."
   },
 
   // ==========================================
@@ -144,8 +144,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#eab308", lines: [589.0, 589.6],
     occurrence: "Sixth most abundant element in Earth's crust (2.6%). Abundant in seawater (1.08% as Na⁺ ions) and enormous rock salt (halite NaCl) beds; violently decomposes water to produce hydrogen gas.",
     uses: "Table salt and food seasoning, sodium-ion batteries, liquid sodium coolant in fast nuclear breeder reactors, yellow high-pressure sodium street lamps, and organic chemical syntheses.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Na_metal.jpg/640px-Na_metal.jpg",
-    imageDesc: "Freshly sliced soft metallic sodium exhibiting bright metallic luster under oil."
+    image: "https://upload.wikimedia.org/wikipedia/commons/2/27/Na_%28Sodium%29.jpg",
+    imageDesc: "Raw Sample: Freshly cut chunk of soft, highly reactive silvery metallic sodium under protective paraffin oil."
   },
   {
     z: 12, s: "Mg", n: "Magnesium", m: 24.305, cat: "alkaline", period: 3, group: 2, block: "s",
@@ -156,8 +156,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#ffffff", lines: [518.3, 517.2, 285.2],
     occurrence: "Eighth most abundant element in Earth's crust and third most dissolved in seawater. Found in minerals dolomite, magnesite, and carnallite. Central metallic ion in chlorophyll.",
     uses: "Ultra-lightweight structural magnesium alloys for laptops, smartphones, automotive wheels, aerospace housings, Grignard reagents in organic synthesis, and emergency marine distress flares.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Magnesium_crystals.jpg/640px-Magnesium_crystals.jpg",
-    imageDesc: "Vapor-deposited pure magnesium metal crystals displaying hexagonal crystal faces."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Cdm-magnesium-crystal.jpg",
+    imageDesc: "Raw Sample: High-purity vapor-deposited magnesium crystals displaying hexagonal close-packed crystalline symmetry."
   },
   {
     z: 13, s: "Al", n: "Aluminum", m: 26.982, cat: "post-transition", period: 3, group: 13, block: "p",
@@ -168,8 +168,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [396.1, 394.4],
     occurrence: "Most abundant metal in Earth's crust (8.1%). Forms stable passivating oxide skin (Al₂O₃). Extracted industrially from bauxite ore using the Hall-Héroult electrolytic process.",
     uses: "Commercial aircraft fuselages, electrical transmission powerlines, beverage cans, building architectural facades, solar panel framing, and automotive structural lightweighting.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Aluminium-4.jpg/640px-Aluminium-4.jpg",
-    imageDesc: "High-purity machined aluminum disc with etched crystalline surface grain."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Aluminium-4.jpg",
+    imageDesc: "Raw Sample: Pure electrolytic aluminum metal sample displaying freshly cast crystalline fracture facets."
   },
   {
     z: 14, s: "Si", n: "Silicon", m: 28.085, cat: "metalloid", period: 3, group: 14, block: "p",
@@ -180,8 +180,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [288.1, 251.6],
     occurrence: "Second most abundant element in Earth's crust (28%). Forms silicate minerals that make up over 90% of the crust (quartz, feldspar, mica, clay, sand).",
     uses: "Heart of modern microelectronics: ultra-pure monocrystalline silicon wafers (Czochralski process) for computer CPUs and memory chips, photovoltaic solar cells, and silicone polymers.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/SiliconCrook.jpg/640px-SiliconCrook.jpg",
-    imageDesc: "Monocrystalline semiconductor-grade silicon boule displaying diamond cubic crystal structure."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c9/A_piece_of_zone_refined_silicon.JPG",
+    imageDesc: "Raw Sample: High-purity zone-refined crystalline silicon ingot displaying mirror-like metallic luster and semiconductor purity."
   },
   {
     z: 15, s: "P", n: "Phosphorus", m: 30.974, cat: "nonmetal", period: 3, group: 15, block: "p",
@@ -192,8 +192,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [253.5, 255.3],
     occurrence: "Never found free in nature due to high reactivity. Found in phosphate rock minerals (apatite). Indispensable for cellular energy transfer (ATP, ADP) and DNA phosphodiester backbones.",
     uses: "Global agricultural phosphate fertilizers (NPK), safety match striking surfaces (red phosphorus), lithium iron phosphate (LiFePO4) EV batteries, flame retardants, and detergents.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Phosphor_rot.jpg/640px-Phosphor_rot.jpg",
-    imageDesc: "Lustrous amorphous red phosphorus powder used in safety matches and modern lithium battery chemistry."
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/69/Phosphorus-purple.jpg",
+    imageDesc: "Raw Sample: High-purity violet allotrope of crystalline phosphorus prepared by tube furnace annealing."
   },
   {
     z: 16, s: "S", n: "Sulfur", m: 32.06, cat: "nonmetal", period: 3, group: 16, block: "p",
@@ -204,8 +204,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#60a5fa", lines: [469.5, 545.4],
     occurrence: "Occurs native near volcanic fumaroles and hydrothermal vents as bright yellow S₈ rings; also widely found in sulfide minerals (pyrite, galena) and sulfate minerals (gypsum).",
     uses: "Sulfuric acid (H₂SO₄) industrial manufacturing (world's #1 chemical by tonnage), rubber vulcanization, agricultural fungicides, gunpowder, and lithium-sulfur battery research.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Sulfur-sample.jpg/640px-Sulfur-sample.jpg",
-    imageDesc: "Vibrant yellow orthorhombic native sulfur crystal cluster formed by volcanic sublimation."
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/88/Sulfur_-_El_Desierto_mine%2C_San_Pablo_de_Napa%2C_Daniel_Campos_Province%2C_Potos%C3%AD%2C_Bolivia.jpg",
+    imageDesc: "Raw Sample: Brilliant yellow native orthorhombic sulfur crystal cluster collected from the El Desierto volcanic sulfur mine."
   },
   {
     z: 17, s: "Cl", n: "Chlorine", m: 35.45, cat: "halogen", period: 3, group: 17, block: "p",
@@ -216,8 +216,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [479.4, 481.0],
     occurrence: "Third most abundant element in ocean brine (1.9% as chloride Cl⁻). Found in salt beds as halite (NaCl), sylvite (KCl), and carnallite; dense greenish-yellow suffocating gas.",
     uses: "Municipal drinking water disinfection, polyvinyl chloride (PVC) construction piping, bleach production, pharmaceutical synthesis (85% of medicines require chlorine chemistry), and solvents.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Chlorine_liquid_and_gas_in_ampoule.jpg/640px-Chlorine_liquid_and_gas_in_ampoule.jpg",
-    imageDesc: "Greenish-yellow chlorine gas and amber liquid chlorine sealed inside a heavy quartz ampoule."
+    image: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Wentworth_Falls_water_chlorination_plant.jpg",
+    imageDesc: "Flagship Application: Municipal drinking water chlorination treatment facility utilizing chlorine gas to eradicate waterborne bacterial pathogens for public health."
   },
   {
     z: 18, s: "Ar", n: "Argon", m: 39.948, cat: "noble", period: 3, group: 18, block: "p",
@@ -228,8 +228,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#818cf8", lines: [696.5, 763.5, 811.5],
     occurrence: "Most abundant noble gas on Earth (0.934% of atmosphere by volume, 1.28% by mass), produced predominantly by the radioactive beta/electron capture decay of potassium-40 in the crust.",
     uses: "Inert shielding gas for TIG/MIG arc welding, silicon and titanium crystal growth atmospheres, insulating double-pane argon thermal windows, and argon blue plasma surgical lasers.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Argon_discharge_tube.jpg/640px-Argon_discharge_tube.jpg",
-    imageDesc: "Sky-blue and violet plasma glow of energized argon in a high-voltage discharge tube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/0d/TIG_welding.jpg",
+    imageDesc: "Flagship Application: High-precision TIG electric arc welding utilizing pure inert argon gas to envelop the molten pool and prevent atmospheric oxidation."
   },
 
   // ==========================================
@@ -244,8 +244,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#c084fc", lines: [766.5, 769.9, 404.4],
     occurrence: "Seventh most abundant element in Earth's crust. Found in evaporite minerals sylvite (KCl) and carnallite; critical intracellular electrolyte for nerve impulse conduction.",
     uses: "Agricultural potash fertilizers (essential plant macronutrient), glass manufacturing, soaps, potassium superoxide (KO₂) rebreathers for submarines, and food preservation.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Potassium.JPG/640px-Potassium.JPG",
-    imageDesc: "Soft lustrous potassium metal displaying fresh metallic cut surfaces stored under paraffin."
+    image: "https://upload.wikimedia.org/wikipedia/commons/b/b3/Potassium.JPG",
+    imageDesc: "Raw Sample: Freshly cut chunk of soft, silvery-white metallic potassium submerged under mineral oil."
   },
   {
     z: 20, s: "Ca", n: "Calcium", m: 40.078, cat: "alkaline", period: 4, group: 2, block: "s",
@@ -256,8 +256,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#ea580c", lines: [422.7, 616.2],
     occurrence: "Fifth most abundant element in Earth's crust (4.1%) and third most abundant metal. Makes up limestone, marble, chalk (CaCO₃), gypsum (CaSO₄), and vertebrate bones and teeth.",
     uses: "Portland cement and concrete construction, steel deoxidizer, calcium carbonate dietary supplements, cheese manufacturing, plaster of Paris, and paper manufacturing.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Calcium.jpg/640px-Calcium.jpg",
-    imageDesc: "High-purity dendritic calcium metal nodules produced by high-vacuum distillation."
+    image: "https://upload.wikimedia.org/wikipedia/commons/1/17/Calcium_crystals_in_ampoule_cropped.jpg",
+    imageDesc: "Raw Sample: Sublimed dendritic calcium metal crystals sealed under high vacuum inside a protective glass ampoule."
   },
   {
     z: 21, s: "Sc", n: "Scandium", m: 44.956, cat: "transition", period: 4, group: 3, block: "d",
@@ -268,8 +268,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [391.2, 402.4],
     occurrence: "First d-block transition metal. Dispersed in trace amounts in over 800 minerals; mined from rare minerals like thortveitite and as uranium refining byproducts.",
     uses: "High-strength scandium-aluminum alloys for aerospace fighter jets, solid oxide fuel cells (SOFC electrolytes), baseball bats, and stadium high-intensity metal-halide lamps.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Scandium_sublimed_dendritic_and_1cm3_cube.jpg/640px-Scandium_sublimed_dendritic_and_1cm3_cube.jpg",
-    imageDesc: "Sublimed dendritic scandium metal crystal cluster alongside a 1 cm³ precision density cube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/f6/Scandium_sublimed_dendritic_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Sublimed dendritic scandium metal crystal ingot with silvery metallic sheen beside a 1 cm³ reference cube."
   },
   {
     z: 22, s: "Ti", n: "Titanium", m: 47.867, cat: "transition", period: 4, group: 4, block: "d",
@@ -280,8 +280,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [334.9, 365.3],
     occurrence: "Ninth most abundant element in Earth's crust (0.57%). Found in mineral ores ilmenite (FeTiO₃) and rutile (TiO₂). Exceptionally strong, low-density, corrosion-proof metal.",
     uses: "Commercial jet aircraft engines and airframes, biocompatible surgical orthopedic implants and dental screws, titanium dioxide (TiO₂) brilliant white pigment in paints, and marine submersibles.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Titan-crystal_bar.jpg/640px-Titan-crystal_bar.jpg",
-    imageDesc: "Lustrous high-purity titanium crystal bar produced by the Van Arkel-de Boer iodine process."
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/ec/Titanium_crystal_bar.jpg",
+    imageDesc: "Raw Sample: Ultra-pure titanium crystal bar produced by the van Arkel–de Boer iodide thermal dissociation process."
   },
   {
     z: 23, s: "V", n: "Vanadium", m: 50.942, cat: "transition", period: 4, group: 5, block: "d",
@@ -292,8 +292,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [318.5, 437.9],
     occurrence: "Found in over 65 minerals including vanadinite, carnotite, and patronite. Produces vibrant multi-colored oxidation states in aqueous solution (V²⁺ purple, V³⁺ green, VO²⁺ blue, VO₂⁺ yellow).",
     uses: "High-strength ferrovanadium steel alloys for bridges, armor plate, tools, vanadium redox flow batteries (VRFB) for large-scale utility grid storage, and sulfuric acid chemical catalyst (V₂O₅).",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0a/Vanadium_etched_bar.jpg/640px-Vanadium_etched_bar.jpg",
-    imageDesc: "Macro-etched polycrystalline vanadium crystal bar displaying prominent metallic grain growth."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/0a/Vanadium_etched.jpg",
+    imageDesc: "Raw Sample: High-purity vanadium disc displaying distinct crystalline grain etching and metallic luster."
   },
   {
     z: 24, s: "Cr", n: "Chromium", m: 51.996, cat: "transition", period: 4, group: 6, block: "d",
@@ -304,8 +304,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [425.4, 427.5, 428.9],
     occurrence: "Mined primarily as chromite ore (FeCr₂O₄). Renowned for intense colors of its chemical compounds (named after Greek 'chroma' for color) and ruby/emerald gemstone coloration.",
     uses: "Stainless steel production (minimum 10.5% Cr creates self-healing passivating chromium oxide layer), shiny electroplated decorative and wear trim, chrome tanning of leather, and nichrome heating coils.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Chromium_crystals_and_1cm3_cube.jpg/640px-Chromium_crystals_and_1cm3_cube.jpg",
-    imageDesc: "Brilliant silvery-metallic electrolytic chromium crystal flakes with dense 1 cm³ cube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/08/Chromium_crystals_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Brilliant electrolytic chromium crystals displaying dense multi-faceted metallic luster beside a reference cube."
   },
   {
     z: 25, s: "Mn", n: "Manganese", m: 54.938, cat: "transition", period: 4, group: 7, block: "d",
@@ -316,8 +316,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [403.1, 279.5],
     occurrence: "Twelfth most abundant element in Earth's crust. Found in pyrolusite (MnO₂) and rhodochrosite (MnCO₃); abundant in abyssal deep-sea manganese nodules on ocean floors.",
     uses: "Indispensable in all modern steel production (ferromanganese deoxidizer and desulfurizer), lithium-ion battery cathodes (NMC and LMO chemistries), alkaline AA batteries, and aluminum beverage can alloys.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Manganese_electrolytic_and_1cm3_cube.jpg/640px-Manganese_electrolytic_and_1cm3_cube.jpg",
-    imageDesc: "Electrolytically refined pure manganese metal chip showing iridescent oxidation sheen."
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/69/Manganese_electrolytic_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Electrolytic flakes of pure manganese metal displaying faint iridescent surface oxidation beside a reference cube."
   },
   {
     z: 26, s: "Fe", n: "Iron", m: 55.845, cat: "transition", period: 4, group: 8, block: "d",
@@ -328,8 +328,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#f59e0b", lines: [371.9, 382.0],
     occurrence: "Most abundant element on Earth by mass (32.1%), forming most of Earth's outer and inner core. Mined from massive banded iron formations as hematite (Fe₂O₃) and magnetite (Fe₃O₄).",
     uses: "Foundation of modern civil engineering and infrastructure: 90% of all refined metal in the world is steel/iron. Biologically essential for oxygen transport in mammalian hemoglobin.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Iron_electrolytic_and_1cm3_cube.jpg/640px-Iron_electrolytic_and_1cm3_cube.jpg",
-    imageDesc: "Ultra-pure electrolytic iron fragments displaying crystalline fracture surfaces."
+    image: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Iron_electrolytic_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Ultra-pure 99.97% electrolytic iron crystal nodules beside a 1 cm³ reference cube."
   },
   {
     z: 27, s: "Co", n: "Cobalt", m: 58.933, cat: "transition", period: 4, group: 9, block: "d",
@@ -340,8 +340,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [345.3, 350.2],
     occurrence: "Found in minerals cobaltite, erythrite, and skutterudite; usually extracted as a byproduct of copper and nickel mining. Central metallic cofactor in vitamin B12 (cobalamin).",
     uses: "Lithium-ion battery cathodes (lithium cobalt oxide LiCoO₂ for smartphones and EVs), high-temperature aerospace gas turbine superalloys, Alnico supermagnets, and iconic cobalt blue stained glass.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Cobalt_electrolytic_and_1cm3_cube.jpg/640px-Cobalt_electrolytic_and_1cm3_cube.jpg",
-    imageDesc: "Lustrous electrolytic cobalt buttons alongside a 1 cm³ metallic density reference cube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/62/Cobalt_electrolytic_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Pure electrolytic cobalt metal button displaying distinct bluish-gray metallic luster."
   },
   {
     z: 28, s: "Ni", n: "Nickel", m: 58.693, cat: "transition", period: 4, group: 10, block: "d",
@@ -352,8 +352,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [341.4, 352.4],
     occurrence: "Concentrated heavily in Earth's metallic nickel-iron core. Mined on surface from nickel laterite ores (limonite, garnierite) and magmatic sulfide deposits (pentlandite).",
     uses: "Stainless steel manufacturing (68% of world supply), high-nickel EV battery cathodes (NCM811 and NCA), nickel-cadmium batteries, coinage, and corrosion-resistant electroplating.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Nickel_chunk.jpg/640px-Nickel_chunk.jpg",
-    imageDesc: "Dense, silvery-gold metallic nickel nodule synthesized via the Mond gasification process."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/57/Nickel_chunk.jpg",
+    imageDesc: "Raw Sample: High-purity nickel metal chunk showing dense silvery-white fracture faces."
   },
   {
     z: 29, s: "Cu", n: "Copper", m: 63.546, cat: "transition", period: 4, group: 11, block: "d",
@@ -364,8 +364,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#10b981", lines: [510.5, 521.8, 324.7],
     occurrence: "One of the few metals to occur naturally as native uncombined metal. Mined as porphyry copper sulfide ores like chalcopyrite (CuFeS₂) and bornite (peacock ore).",
     uses: "Global electrical grid wiring, high-efficiency electric motors, transformer windings, printed circuit boards (PCBs), plumbing pipes, bronze/brass alloys, and antimicrobial surfaces.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/NatCopper.jpg/640px-NatCopper.jpg",
-    imageDesc: "Striking native dendritic copper mineral specimen showing branching metallic crystallization."
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/f0/NatCopper.jpg",
+    imageDesc: "Raw Sample: Spectacular branching dendritic native copper crystal specimen from the Keweenaw Peninsula, Michigan."
   },
   {
     z: 30, s: "Zn", n: "Zinc", m: 65.38, cat: "transition", period: 4, group: 12, block: "d",
@@ -376,8 +376,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#67e8f9", lines: [481.0, 472.2],
     occurrence: "Twenty-fourth most abundant element in Earth's crust. Primary mineral ore is sphalerite (zinc blende ZnS). Essential trace mineral for over 300 metabolic biological enzymes.",
     uses: "Galvanization sacrificial protective coating on steel (prevents rust), brass alloy casting (Cu-Zn), die-cast automotive housings, zinc oxide (ZnO) sunscreens, and zinc-air batteries.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Zinc_fragment_and_1cm3_cube.jpg/640px-Zinc_fragment_and_1cm3_cube.jpg",
-    imageDesc: "Lustrous blue-gray crystalline fractured zinc metal ingot fragment."
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/f9/Zinc_fragment_sublimed_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Sublimed crystalline zinc metal fragment displaying distinct hexagonal crystalline cleavage planes."
   },
   {
     z: 31, s: "Ga", n: "Gallium", m: 69.723, cat: "post-transition", period: 4, group: 13, block: "p",
@@ -388,8 +388,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [417.2, 403.3],
     occurrence: "Does not occur in elemental form. Found in trace amounts in bauxite and sphalerite ores; unique metal that melts in the human hand (mp 29.76 °C) and expands upon freezing.",
     uses: "Gallium arsenide (GaAs) and gallium nitride (GaN) high-speed semiconductors, blue/violet laser diodes, 5G power amplifiers, ultra-fast GaN smartphone wall chargers, and non-toxic liquid metal alloys.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Gallium_crystals.jpg/640px-Gallium_crystals.jpg",
-    imageDesc: "Orthorhombic stepped pure gallium metal crystals exhibiting mirror luster."
+    image: "https://upload.wikimedia.org/wikipedia/commons/b/b8/Gallium_bar_cracked_open_to_show_crystal_structure_with_scale_1.png",
+    imageDesc: "Raw Sample: High-purity gallium metal bar cracked open to display internal metallic crystal planes; melts in hand at 29.7 °C."
   },
   {
     z: 32, s: "Ge", n: "Germanium", m: 72.630, cat: "metalloid", period: 4, group: 14, block: "p",
@@ -400,8 +400,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [265.1, 303.9],
     occurrence: "Predicted by Dmitri Mendeleev as 'eka-silicon'. Mined from zinc ores (sphalerite) and coal fly ash; lustrous hard grayish-white semiconductor transparent to infrared light.",
     uses: "Fiber-optic telecommunications core glass dopant (GeO₂), military and medical night-vision thermal infrared optics, high-efficiency triple-junction space satellite solar cells, and PET polymer catalysts.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Polycrystalline-germanium.jpg/640px-Polycrystalline-germanium.jpg",
-    imageDesc: "Zone-refined polycrystalline semiconductor-grade germanium boule section."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/08/Polycrystalline-germanium.jpg",
+    imageDesc: "Raw Sample: High-purity poly-crystalline zone-refined germanium semiconductor bar with metallic luster."
   },
   {
     z: 33, s: "As", n: "Arsenic", m: 74.922, cat: "metalloid", period: 4, group: 15, block: "p",
@@ -412,8 +412,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#38bdf8", lines: [234.9, 286.0],
     occurrence: "Found in sulfide minerals arsenopyrite (FeAsS), realgar (As₄S₄), and orpiment (As₂S₃). Sublimes directly from solid to vapor at atmospheric pressure (614 °C).",
     uses: "Gallium arsenide (GaAs) semiconductors for infrared LEDs and microelectronics, n-type silicon dopant, lead-acid car battery grid strengthening alloys, and acute promyelocytic leukemia therapy.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c4/Arsenic_crystals.jpg/640px-Arsenic_crystals.jpg",
-    imageDesc: "Metallic gray crystalline arsenic specimen showing botryoidal crystalline growth."
+    image: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Arsen_1a.jpg",
+    imageDesc: "Raw Sample: High-purity gray metallic alpha-arsenic crystal displaying brittle metallic sheen."
   },
   {
     z: 34, s: "Se", n: "Selenium", m: 78.971, cat: "nonmetal", period: 4, group: 16, block: "p",
@@ -424,8 +424,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#3b82f6", lines: [196.0, 203.9],
     occurrence: "Rarely occurs native; found in sulfide ores as replacement for sulfur. Exists as gray metallic photoconductive allotrope and red amorphous forms. Essential dietary micro-nutrient.",
     uses: "Photovoltaic CIGS thin-film solar cells, red ruby glass and ceramics decolorizing, photocopy drum photoreceptors, anti-dandruff shampoos (selenium sulfide), and dietary antioxidant supplements.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Selenium_black_vitreous.jpg/640px-Selenium_black_vitreous.jpg",
-    imageDesc: "Lustrous vitreous black-grey amorphous selenium bead displaying conchoidal fracture."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/02/Selenium_black_and_vitreous.jpg",
+    imageDesc: "Raw Sample: Vitreous lustrous black selenium pellets alongside crystalline gray metallic selenium."
   },
   {
     z: 35, s: "Br", n: "Bromine", m: 79.904, cat: "halogen", period: 4, group: 17, block: "p",
@@ -436,8 +436,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [470.4, 478.5],
     occurrence: "Only nonmetallic liquid element at room temperature. Extracted commercially from deep inland saltwater brines (Dead Sea, Arkansas brines); dense, fuming reddish-brown toxic liquid.",
     uses: "Brominated flame retardants in plastics and electronics, oil and gas clear brine completion fluids (CaBr₂), silver bromide photographic film emulsions, and industrial biocide water treatment.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Bromine_vial_in_acrylic_cube.jpg/640px-Bromine_vial_in_acrylic_cube.jpg",
-    imageDesc: "Volatile dark reddish-brown liquid bromine emitting dense heavy orange vapor sealed in ampoule."
+    image: "https://upload.wikimedia.org/wikipedia/commons/3/35/Bromine_vial_in_acrylic_cube.jpg",
+    imageDesc: "Raw Sample: Heavy dark red-brown elemental liquid bromine emitting dense orange-brown vapor inside a sealed acrylic cube."
   },
   {
     z: 36, s: "Kr", n: "Krypton", m: 83.798, cat: "noble", period: 4, group: 18, block: "p",
@@ -448,8 +448,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#e0e7ff", lines: [557.0, 587.0, 810.3],
     occurrence: "Extremely trace in atmosphere (1.14 ppm). From 1960 to 1983, the international standard definition of the meter was legally defined by the orange-red spectral emission line of krypton-86.",
     uses: "High-efficiency thermal insulating window gas fills, commercial airport runway strobe flashlamps, krypton fluoride (KrF) excimer lasers for semiconductor photolithography, and satellite ion thrusters.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Krypton_discharge_tube.jpg/640px-Krypton_discharge_tube.jpg",
-    imageDesc: "Brilliant whitish-blue electric discharge glow of pure krypton in a vacuum spectrum tube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/fa/EURO_68_wooden_window_profile_with_insulated_glazing_01.JPG",
+    imageDesc: "Flagship Application: Multi-pane energy-efficient architectural window filled with dense krypton gas to block heat transfer in modern architecture."
   },
 
   // ==========================================
@@ -464,8 +464,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#f43f5e", lines: [780.0, 794.7, 420.2],
     occurrence: "Extremely reactive soft alkali metal. Discovered by flame spectroscopy via its signature dark red lines. Found in lepidolite, pollucite, and carnallite ores; ignites spontaneously in air.",
     uses: "Rubidium atomic fountain clocks (standard for telecommunications network sync and GPS satellites), Bose-Einstein condensate research (Rb-87), laser cooling, and photocells.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Rubidium-metal-sample.jpg/640px-Rubidium-metal-sample.jpg",
-    imageDesc: "Silvery-white liquid and crystalline rubidium metal sealed inside an evacuated glass ampoule."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c8/Rubidium.jpg",
+    imageDesc: "Raw Sample: Highly reactive silvery-gold metallic rubidium sealed under vacuum in a borosilicate glass ampoule."
   },
   {
     z: 38, s: "Sr", n: "Strontium", m: 87.62, cat: "alkaline", period: 5, group: 2, block: "s",
@@ -476,8 +476,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#ef4444", lines: [460.7, 680.0],
     occurrence: "Found in minerals celestine (SrSO₄) and strontianite (SrCO₃). Fifteenth most abundant element in Earth's crust. Imparts the brilliant signature crimson red flame in pyrotechnics.",
     uses: "Emergency maritime flares and fireworks (crimson red glow), strontium-ferrite ceramic permanent magnets, optical lattice ultra-precise atomic clocks (Sr-87), and radiopharmaceutical bone cancer therapy.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Strontium_destilliert.jpg/640px-Strontium_destilliert.jpg",
-    imageDesc: "Vacuum-distilled pure dendritic strontium metal surface with yellowish oxidation tarnish."
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/84/Strontium_destilliert.jpg",
+    imageDesc: "Raw Sample: Vacuum-distilled crystalline strontium metal displaying fresh silvery luster with pale golden patina."
   },
   {
     z: 39, s: "Y", n: "Yttrium", m: 88.906, cat: "transition", period: 5, group: 3, block: "d",
@@ -488,8 +488,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [437.4, 410.2],
     occurrence: "First discovered rare-earth element (from Ytterby, Sweden). Found in monazite and bastnäsite ores; chemically behaves similarly to the lanthanides.",
     uses: "Yttrium Barium Copper Oxide (YBCO) high-temperature superconductors (critical temp 93 K, above liquid nitrogen), Nd:YAG infrared surgical lasers, LED red phosphor (Y₂O₃:Eu), and zirconia dental crowns.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Yttrium_sublimed_dendritic_and_1cm3_cube.jpg/640px-Yttrium_sublimed_dendritic_and_1cm3_cube.jpg",
-    imageDesc: "Sublimed dendritic crystal clusters of high-purity metallic yttrium."
+    image: "https://upload.wikimedia.org/wikipedia/commons/9/99/Yttrium_sublimed_dendritic_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Sublimed dendritic yttrium metal crystals showing high silvery luster beside a 1 cm³ reference cube."
   },
   {
     z: 40, s: "Zr", n: "Zirconium", m: 91.224, cat: "transition", period: 5, group: 4, block: "d",
@@ -500,8 +500,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [360.1, 468.7],
     occurrence: "Found principally in zircon mineral crystals (ZrSiO₄) and baddeleyite. Exceptionally corrosion-resistant with an ultra-low thermal neutron capture cross-section.",
     uses: "Nuclear reactor fuel rod cladding (zircaloy alloys), cubic zirconia (ZrO₂) diamond-simulant gemstone jewelry, biocompatible joint replacements, and ceramic dental crowns.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Zirconium_crystal_bar.jpg/640px-Zirconium_crystal_bar.jpg",
-    imageDesc: "Lustrous high-purity zirconium crystal bar with faceted interlocking crystal growth."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Zirconium_crystal_bar_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: High-purity van Arkel–de Boer iodide zirconium crystal bar displaying prominent hexagonal crystal facets."
   },
   {
     z: 41, s: "Nb", n: "Niobium", m: 92.906, cat: "transition", period: 5, group: 5, block: "d",
@@ -512,8 +512,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [405.8, 410.0],
     occurrence: "Found in columbite-tantalite (coltan) and pyrochlore ores. Formerly named columbium (Cb). Shiny ductile refractory metal that anodizes to vivid iridescent interference colors.",
     uses: "Superconducting magnet coils (Nb-Ti and Nb₃Sn for MRI machines and CERN LHC particle accelerator), high-strength low-alloy (HSLA) structural steels for pipelines, and rocket engine nozzles.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Niobium_crystals.jpg/640px-Niobium_crystals.jpg",
-    imageDesc: "Electrolytically grown pure niobium crystals displaying iridescent natural oxide hues."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Niobium_crystals_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Electrolytic niobium metal crystal nodules beside a 1 cm³ reference cube."
   },
   {
     z: 42, s: "Mo", n: "Molybdenum", m: 95.95, cat: "transition", period: 5, group: 6, block: "d",
@@ -524,8 +524,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [379.8, 386.4],
     occurrence: "Fifth highest melting point among all elements. Mined as molybdenite (MoS₂). Essential biological enzyme cofactor in nitrogenase, enabling biological nitrogen fixation in plants.",
     uses: "High-strength alloy steel, military armor plating, aircraft components, molybdenum disulfide (MoS₂) extreme-pressure solid lubricant, and precursor for technetium-99m nuclear medical imaging.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Molybdenum_crystal_and_1cm3_cube.jpg/640px-Molybdenum_crystal_and_1cm3_cube.jpg",
-    imageDesc: "Single-crystal molybdenum metal fragment with mirror luster beside a 1 cm³ cube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/eb/Molybdenum_single_crystal_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: High-purity single crystal of molybdenum metal beside a 1 cm³ reference cube."
   },
   {
     z: 43, s: "Tc", n: "Technetium", m: 98.0, cat: "transition", period: 5, group: 7, block: "d",
@@ -536,8 +536,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [429.7, 403.1],
     occurrence: "Lowest atomic number element with no stable isotopes. First artificially synthesized element (named from Greek 'technetos' for artificial). Exists in trace amounts from spontaneous fission of uranium.",
     uses: "Nuclear medicine workhorse: Technetium-99m (t½ = 6 hours) is used in tens of millions of diagnostic medical scans annually for brain, heart, lung, and bone imaging.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Technetium-sample-cropped.jpg/640px-Technetium-sample-cropped.jpg",
-    imageDesc: "Small metallic button of radioactive technetium metal produced in a nuclear reactor."
+    image: "https://upload.wikimedia.org/wikipedia/commons/a/ab/Technetium-sample-cropped.jpg",
+    imageDesc: "Raw Sample: Pure radioactive technetium-99 metal foil disc (approx. 1 gram) sealed in a safety vial."
   },
   {
     z: 44, s: "Ru", n: "Ruthenium", m: 101.07, cat: "transition", period: 5, group: 8, block: "d",
@@ -548,8 +548,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [349.8, 372.8],
     occurrence: "Member of the platinum group metals (PGM). One of the rarest elements in Earth's crust (100 ppt). Found uncombined in platinum ores and river placers.",
     uses: "Wear-resistant electrical contacts and chip resistors in microelectronics, ruthenium-based Grubbs catalysts for olefin metathesis, dye-sensitized solar cells (Gratzel cells), and titanium hardeners.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Ruthenium_crystal.jpg/640px-Ruthenium_crystal.jpg",
-    imageDesc: "Faceted high-purity ruthenium crystal bead grown by argon arc melting."
+    image: "https://upload.wikimedia.org/wikipedia/commons/a/a8/Ruthenium_crystal.jpg",
+    imageDesc: "Raw Sample: High-density arc-melted ruthenium metal crystal bead displaying brilliant mirror reflectivity."
   },
   {
     z: 45, s: "Rh", n: "Rhodium", m: 102.91, cat: "transition", period: 5, group: 9, block: "d",
@@ -560,8 +560,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [343.4, 369.2],
     occurrence: "Extremely rare precious platinum group metal. Found in platinum-bearing sands and nickel-copper sulfide ores; one of the most expensive and reflective metals known.",
     uses: "Three-way catalytic converters in automotive exhaust systems (reduces toxic nitrogen oxides NOx to N₂), electroplated jewelry finish (white gold rhodium flash), and chemical hydroformylation catalysts.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Rhodium_powder_pressed_melted.jpg/640px-Rhodium_powder_pressed_melted.jpg",
-    imageDesc: "Brilliant mirror-reflective melted bead of pure rhodium metal."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/56/Rhodium_powder_pressed_pellet_and_argon_arc_remelted_pellet.jpg",
+    imageDesc: "Raw Sample: High-purity rhodium metal pellet and arc-remelted bead with extreme optical reflectivity."
   },
   {
     z: 46, s: "Pd", n: "Palladium", m: 106.42, cat: "transition", period: 5, group: 10, block: "d",
@@ -572,8 +572,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [340.4, 342.1],
     occurrence: "Unique ground-state configuration with completely filled 4d subshell and empty 5s. Can absorb up to 900 times its own volume of hydrogen gas like a metal sponge.",
     uses: "Automotive catalytic converters (converts carbon monoxide and unburnt hydrocarbons to CO₂ and H₂O), multilayer ceramic capacitors (MLCCs), hydrogen purification filters, and white gold jewelry.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Palladium_%2846_Pd%29.jpg/640px-Palladium_%2846_Pd%29.jpg",
-    imageDesc: "Polished reflective palladium drop ingot showing classic noble platinum-group luster."
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/Palladium_%2846_Pd%29.jpg",
+    imageDesc: "Raw Sample: Lustrous 1-troy-ounce cast palladium bullion ingot showing precious platinum-group metal finish."
   },
   {
     z: 47, s: "Ag", n: "Silver", m: 107.87, cat: "transition", period: 5, group: 11, block: "d",
@@ -584,8 +584,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [328.0, 338.2],
     occurrence: "Highest electrical conductivity, thermal conductivity, and optical reflectivity of any known metal. Found native as delicate wire crystals and in ores acanthite (Ag₂S) and horn silver (AgCl).",
     uses: "Photovoltaic solar cell conductor grid pastes, printed electronics, high-spec electrical contacts, sterling silver jewelry, mirrors, brazing alloys, water purification, and antibacterial wound dressings.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Silver_crystal.jpg/640px-Silver_crystal.jpg",
-    imageDesc: "Delicate branching dendritic native silver crystal wires with brilliant metallic sheen."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/55/Silver_crystal.jpg",
+    imageDesc: "Raw Sample: Magnificent dendritic electrolytic silver crystal tree with brilliant metallic crystalline growth."
   },
   {
     z: 48, s: "Cd", n: "Cadmium", m: 112.41, cat: "transition", period: 5, group: 12, block: "d",
@@ -596,8 +596,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [228.8, 326.1],
     occurrence: "Minor constituent in zinc ores (greenockite CdS). Soft, bluish-white toxic heavy metal; readily absorbs neutrons.",
     uses: "Cadmium telluride (CdTe) thin-film commercial solar panels, nickel-cadmium (Ni-Cd) rechargeable batteries, nuclear control rods (strong thermal neutron absorber), and cadmium yellow pigments.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Cadmium-crystal.jpg/640px-Cadmium-crystal.jpg",
-    imageDesc: "Vapor-deposited pure cadmium metal crystal cluster exhibiting hexagonal symmetry."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/51/Cadmium-crystal.jpg",
+    imageDesc: "Raw Sample: Electrolytic dendritic cadmium crystal aggregate displaying distinct metallic facets."
   },
   {
     z: 49, s: "In", n: "Indium", m: 114.82, cat: "post-transition", period: 5, group: 13, block: "p",
@@ -608,8 +608,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#38bdf8", lines: [451.1, 410.1],
     occurrence: "Named after its indigo-blue spectroscopic emission line. Very soft, malleable metal that emits a characteristic high-pitched 'tin cry' squeak when bent; mined as byproduct of zinc and lead refining.",
     uses: "Indium Tin Oxide (ITO) transparent conductive electrodes for all modern smartphone touchscreens, flat-panel OLED displays, architectural low-E glass coatings, and cryogenic vacuum seals.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Indium.jpg/640px-Indium.jpg",
-    imageDesc: "Silvery-white malleable ingot of pure indium metal exhibiting bright metallic luster."
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/87/Indium_wetting_glass.jpg",
+    imageDesc: "Raw Sample: Ultra-soft metallic indium wetting glass surfaces and displaying extreme ductility."
   },
   {
     z: 50, s: "Sn", n: "Tin", m: 118.71, cat: "post-transition", period: 5, group: 14, block: "p",
@@ -620,8 +620,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [286.3, 300.9],
     occurrence: "Key alloy component that launched the prehistoric Bronze Age (copper + tin). Mined primarily from cassiterite ore (SnO₂). Undergoes allotropic transition to brittle gray powder below 13.2 °C ('tin pest').",
     uses: "Lead-free electronics solder (SAC alloys) bonding all modern circuit boards, tin plating food preservation cans ('tin cans'), float glass production bed, and bronze/pewter alloys.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Sn-Alpha-Beta.jpg/640px-Sn-Alpha-Beta.jpg",
-    imageDesc: "White beta-tin metallic bar undergoing transformation into gray alpha-tin powder."
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/6a/Tin-2.jpg",
+    imageDesc: "Raw Sample: High-purity beta-tin (white tin) cast crystalline ingot with lustrous silvery finish."
   },
   {
     z: 51, s: "Sb", n: "Antimony", m: 121.76, cat: "metalloid", period: 5, group: 15, block: "p",
@@ -632,8 +632,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#818cf8", lines: [252.8, 259.8],
     occurrence: "Known since antiquity as kohl eye cosmetic (stibnite Sb₂S₃). Like water and bismuth, liquid antimony expands upon freezing; hard brittle silvery metalloid.",
     uses: "Antimony trioxide (Sb₂O₃) flame retardants, lead-acid automotive battery hardening plates, microelectronics infrared photodetectors, type metal, and bullet lead alloys.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Antimony-4.jpg/640px-Antimony-4.jpg",
-    imageDesc: "Lustrous silvery-blue crystalline antimony specimen with prominent radiating needles."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Antimony-4.jpg",
+    imageDesc: "Raw Sample: Large crystalline metallic antimony ingot displaying delicate step-like rhombohedral cleavage."
   },
   {
     z: 52, s: "Te", n: "Tellurium", m: 127.60, cat: "metalloid", period: 5, group: 16, block: "p",
@@ -644,8 +644,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#22c55e", lines: [214.3, 238.6],
     occurrence: "Named after 'Tellus' (Roman Earth goddess). One of the rarest elements in Earth's crust (1 ppb). One of few elements that readily bonds with gold to form telluride ores (calaverite, sylvanite).",
     uses: "Cadmium telluride (CdTe) high-efficiency thin-film solar panels, bismuth telluride (Bi₂Te₃) thermoelectric Peltier cooling chips, phase-change optical Blu-ray/DVD discs, and rubber vulcanization.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Tellurium2.jpg/640px-Tellurium2.jpg",
-    imageDesc: "Silvery metallic tellurium crystal needles displaying bright hexagonal growth."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Tellurium2.jpg",
+    imageDesc: "Raw Sample: Crystalline tellurium metal ingot showing brittle silvery-white needle-like crystalline texture."
   },
   {
     z: 53, s: "I", n: "Iodine", m: 126.90, cat: "halogen", period: 5, group: 17, block: "p",
@@ -656,8 +656,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#a855f7", lines: [206.2, 183.0],
     occurrence: "Heaviest essential stable halogen. Found in caliche nitrate deposits (Chile) and deep natural gas brines; lustrous blue-black crystals that readily sublime into brilliant royal violet vapor.",
     uses: "Essential human nutrient for thyroid hormone synthesis (preventing goiter via iodized salt), antiseptic povidone-iodine medical disinfections, CT scan radiopaque contrast media, and polarizers.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Iodine-sample.jpg/640px-Iodine-sample.jpg",
-    imageDesc: "Lustrous dark purple crystalline iodine flakes emitting dense violet sublimation gas."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Iod_Kristall.jpg",
+    imageDesc: "Raw Sample: Ultra-pure purple-black metallic-looking crystalline iodine producing deep violet sublimed vapor."
   },
   {
     z: 54, s: "Xe", n: "Xenon", m: 131.29, cat: "noble", period: 5, group: 18, block: "p",
@@ -668,8 +668,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#67e8f9", lines: [467.1, 823.2, 828.0],
     occurrence: "Heaviest non-radioactive noble gas in Earth's atmosphere (0.087 ppm). In 1962, Neil Bartlett proved noble gases are not chemically inert by synthesizing the first noble gas compound: XePtF₆.",
     uses: "Satellite and deep-space ion propulsion thrusters (NASA Dawn, Starlink satellites), high-intensity xenon cinema arc projectors and headlights, medical general anesthesia, and dark matter detectors (XENONnT).",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Xenon_discharge_tube.jpg/640px-Xenon_discharge_tube.jpg",
-    imageDesc: "Ethereal lavender-white discharge plasma of excited xenon gas in a high-voltage tube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Ion_Engine_Test_Firing_-_GPN-2000-000482.jpg",
+    imageDesc: "Flagship Application: NASA satellite ion engine electrostatically ionizing xenon gas into a high-velocity blue plasma exhaust beam to propel interplanetary spacecraft."
   },
 
   // ==========================================
@@ -684,8 +684,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#60a5fa", lines: [455.5, 459.3, 852.1],
     occurrence: "Most electropositive and least electronegative stable element. Melts at 28.5 °C (83.3 °F) into a golden-silvery liquid. Explodes violently upon contact with water even at -116 °C.",
     uses: "Global standard of time: the SI second is legally defined as exactly 9,192,631,770 cycles of hyperfine transition in cesium-133 atoms (atomic clocks), and cesium formate oil drilling fluid.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Cesium.jpg/640px-Cesium.jpg",
-    imageDesc: "Golden liquid cesium metal sealed under argon gas in an ampoule."
+    image: "https://upload.wikimedia.org/wikipedia/commons/3/3d/Cesium.jpg",
+    imageDesc: "Raw Sample: High-purity golden-silvery metallic cesium melting at 28.5 °C (83.3 °F) inside a sealed vacuum ampoule."
   },
   {
     z: 56, s: "Ba", n: "Barium", m: 137.33, cat: "alkaline", period: 6, group: 2, block: "s",
@@ -696,8 +696,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#22c55e", lines: [553.5, 455.4],
     occurrence: "Named after Greek 'barys' meaning heavy. Found abundantly in minerals barite (BaSO₄) and witherite (BaCO₃); oxidizes rapidly in air with a pale apple-green flame.",
     uses: "Petroleum oil well drilling muds (dense barite slurry prevents blowouts), medical X-ray gastrointestinal contrast meals ('barium swallow'), green pyrotechnics, and vacuum getter tubes.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Barium_unter_Argon_Schutzgas_Atmosph%C3%A4re.jpg/640px-Barium_unter_Argon_Schutzgas_Atmosph%C3%A4re.jpg",
-    imageDesc: "Freshly cut chunk of silvery-white reactive barium metal stored under argon."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c6/Barium_unter_Argon_Schutzgas_Atmosph%C3%A4re.jpg",
+    imageDesc: "Raw Sample: Freshly cut chunk of silvery-white reactive barium metal stored securely under argon protective atmosphere."
   },
 
   // LANTHANIDES (Z = 57 to 71)
@@ -710,8 +710,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [408.7, 433.4],
     occurrence: "Prototypical lanthanide (named from Greek 'lanthanein' meaning to lie hidden). Mined from bastnäsite and monazite rare-earth mineral sands.",
     uses: "Hybrid and EV nickel-metal hydride (NiMH) batteries (10-15 kg of lanthanum per vehicle), camera precision optical glass (high refractive index, low dispersion), and petroleum cracking catalysts.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Lanthanum.jpg/640px-Lanthanum.jpg",
-    imageDesc: "Lustrous silvery piece of pure metallic lanthanum displaying clean mechanical cuts."
+    image: "https://upload.wikimedia.org/wikipedia/commons/2/22/Lanthanum.jpg",
+    imageDesc: "Raw Sample: Pure metallic lanthanum ingot displaying freshly machined cuts and silvery luster."
   },
   {
     z: 58, s: "Ce", n: "Cerium", m: 140.12, cat: "lanthanide", period: 6, group: 4, block: "f",
@@ -722,8 +722,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [418.7, 404.1],
     occurrence: "Most abundant rare-earth element (66 ppm, more abundant than copper). Easily cycles between +3 and +4 oxidation states in catalytic environments.",
     uses: "Automotive catalytic converters (cerium dioxide CeO₂ oxygen storage buffer), precision optical glass polishing powder, self-cleaning oven walls, and pyrophoric mischmetal lighter flints.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Cerium.jpg/640px-Cerium.jpg",
-    imageDesc: "High-purity metallic cerium disc with slight rainbow iridescent oxidation layer."
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/eb/Cerium.jpg",
+    imageDesc: "Raw Sample: High-purity metallic cerium disc with slight rainbow iridescent oxidation layer."
   },
   {
     z: 59, s: "Pr", n: "Praseodymium", m: 140.91, cat: "lanthanide", period: 6, group: 5, block: "f",
@@ -734,8 +734,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [495.1, 532.3],
     occurrence: "Named after Greek 'prasios didymos' (green twin). Develops a protective green oxide coating in air; four times more abundant than tin.",
     uses: "Didymium glass for glassblower and welder safety goggles (absorbs blinding 589 nm sodium D-line glare), high-strength neodymium-praseodymium supermagnets, and yellow-green ceramic glazes.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Praseodymium.jpg/640px-Praseodymium.jpg",
-    imageDesc: "Chunk of pure praseodymium metal with fresh metallic face alongside oxidised patina."
+    image: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Praseodymium.jpg",
+    imageDesc: "Raw Sample: Silvery-yellowish praseodymium metal rod sealed in protective mineral oil."
   },
   {
     z: 60, s: "Nd", n: "Neodymium", m: 144.24, cat: "lanthanide", period: 6, group: 6, block: "f",
@@ -746,8 +746,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [430.4, 401.2],
     occurrence: "Second most abundant lanthanide. Forms trivalent pink/purple salts in solution. Crucial cornerstone of global clean energy transition.",
     uses: "World's strongest permanent magnets: Neodymium-Iron-Boron (Nd₂Fe₁₄B) magnets powering electric vehicle traction motors, direct-drive wind turbines, hard drives, and Nd:YAG industrial lasers.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Neodymium.jpg/640px-Neodymium.jpg",
-    imageDesc: "Lustrous metallic neodymium sample exhibiting white-gold metallic surface."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/52/Neodymium.jpg",
+    imageDesc: "Raw Sample: Highly magnetic neodymium rare-earth metal ingot with lustrous metallic crystalline surface."
   },
   {
     z: 61, s: "Pm", n: "Promethium", m: 145.0, cat: "lanthanide", period: 6, group: 7, block: "f",
@@ -758,8 +758,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [442.2, 457.8],
     occurrence: "Only radioactive lanthanide. Extremely rare in nature (less than 600 grams in Earth's entire crust at any moment); produced as byproduct of uranium-235 nuclear fission.",
     uses: "Long-life atomic radioisotope batteries for spacecraft and pacemakers, luminous paint phosphors, and thickness measurement gauges for plastics and metal foils.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Promethium.jpg/640px-Promethium.jpg",
-    imageDesc: "Glow of radioactive promethium chloride salt in complete darkness."
+    image: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Promethium.jpg",
+    imageDesc: "Raw Sample: Self-luminous promethium-147 radioactive phosphor paint glowing bright green in the dark."
   },
   {
     z: 62, s: "Sm", n: "Samarium", m: 150.36, cat: "lanthanide", period: 6, group: 8, block: "f",
@@ -770,8 +770,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [442.4, 439.1],
     occurrence: "First chemical element named after a person (Russian mining engineer Colonel Samarsky). Mined from monazite and bastnäsite ores.",
     uses: "Samarium-Cobalt (SmCo) permanent magnets (resist demagnetization at extreme temperatures up to 300 °C in aerospace and defense missiles), and Samarium-153 bone cancer radiotherapeutic pain relief.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Samarium.jpg/640px-Samarium.jpg",
-    imageDesc: "Oxidized crystal ingot of pure samarium rare-earth metal."
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/f6/Samarium.jpg",
+    imageDesc: "Raw Sample: High-purity samarium rare-earth metal pieces stored under inert mineral oil."
   },
   {
     z: 63, s: "Eu", n: "Europium", m: 151.96, cat: "lanthanide", period: 6, group: 9, block: "f",
@@ -782,8 +782,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#f43f5e", lines: [459.4, 462.7],
     occurrence: "Most chemically reactive lanthanide; oxidizes quickly in air and decomposes water like calcium. Half-filled 4f⁷ subshell gives it unique magnetic and fluorescent traits.",
     uses: "Euro currency anti-counterfeiting phosphors (glows bright red under UV light), color television and computer screen red phosphors (Y₂O₂S:Eu³⁺), and nuclear reactor control rods.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Europium.jpg/640px-Europium.jpg",
-    imageDesc: "Dendritic high-purity europium metal cluster sealed in vacuum ampoule."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c9/Europium.jpg",
+    imageDesc: "Raw Sample: Fresh chunk of highly reactive europium metal sealed in an evacuated glass ampoule."
   },
   {
     z: 64, s: "Gd", n: "Gadolinium", m: 157.25, cat: "lanthanide", period: 6, group: 10, block: "f",
@@ -794,8 +794,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [432.6, 407.9],
     occurrence: "Has seven unpaired 4f electrons, giving it the highest thermal neutron capture cross-section of any stable element and remarkable room-temperature ferromagnetism (Curie temp 20 °C).",
     uses: "Intravenous MRI contrast agents (chelates enhance proton relaxation rates), magnetocaloric magnetic refrigeration alloys, and nuclear reactor emergency shutdown safety systems.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Gadolinium.jpg/640px-Gadolinium.jpg",
-    imageDesc: "Lustrous metallic gadolinium crystal chunk showing clean fracture surfaces."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Gadolinium.jpg",
+    imageDesc: "Raw Sample: Distilled dendritic gadolinium metal bar displaying room-temperature ferromagnetism."
   },
   {
     z: 65, s: "Tb", n: "Terbium", m: 158.93, cat: "lanthanide", period: 6, group: 11, block: "f",
@@ -806,8 +806,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [432.6, 431.9],
     occurrence: "Named after Ytterby, Sweden. Soft silvery rare-earth metal; emits a brilliant, pure monochromatic green fluorescence when excited by UV radiation.",
     uses: "Green phosphors for trichromatic lighting and OLED displays, Terfenol-D magnetostrictive sonar transducers (expands/contracts under magnetic fields), and solid-state naval defense actuators.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Terbium.jpg/640px-Terbium.jpg",
-    imageDesc: "Faceted high-purity terbium metal ingot displaying characteristic silvery luster."
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/87/Terbium.jpg",
+    imageDesc: "Raw Sample: Silvery-white metallic terbium ingot sealed in protective argon atmosphere."
   },
   {
     z: 66, s: "Dy", n: "Dysprosium", m: 162.50, cat: "lanthanide", period: 6, group: 12, block: "f",
@@ -818,8 +818,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [421.2, 404.6],
     occurrence: "Named after Greek 'dysprositos' (hard to get at). Possesses one of the highest magnetic strengths (magnetic susceptibility) of all known elements.",
     uses: "Additive in neodymium permanent magnets for electric vehicles and wind turbines (prevents demagnetization at high operating temperatures), nuclear reactor control rods, and Terfenol-D sonar.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Dysprosium.jpg/640px-Dysprosium.jpg",
-    imageDesc: "Pure metallic dysprosium crystal bar synthesized via high-vacuum distillation."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Dysprosium.jpg",
+    imageDesc: "Raw Sample: Vacuum-distilled crystalline dysprosium metal dendrites with high magnetic susceptibility."
   },
   {
     z: 67, s: "Ho", n: "Holmium", m: 164.93, cat: "lanthanide", period: 6, group: 13, block: "f",
@@ -830,8 +830,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [410.4, 405.4],
     occurrence: "Named after Stockholm (Holmia). Possesses the highest magnetic moment (10.6 µB) of any naturally occurring element.",
     uses: "Holmium-YAG (Ho:YAG) medical lasers for surgical kidney stone destruction (lithotripsy) and prostate surgery, magnetic flux concentrators for high-field scientific magnets, and optical calibration filters.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Holmium.jpg/640px-Holmium.jpg",
-    imageDesc: "High-purity machined holmium metal cylinder showing characteristic silvery-yellow tint."
+    image: "https://upload.wikimedia.org/wikipedia/commons/9/90/Holmium.jpg",
+    imageDesc: "Raw Sample: High-purity holmium metal crystal bar with highest magnetic moment of any natural element."
   },
   {
     z: 68, s: "Er", n: "Erbium", m: 167.26, cat: "lanthanide", period: 6, group: 14, block: "f",
@@ -842,8 +842,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [400.8, 390.6],
     occurrence: "Found in monazite and xenotime minerals. Produces distinctive rose-pink colored salts and glasses that exhibit sharp absorption bands.",
     uses: "Erbium-Doped Fiber Amplifiers (EDFA) enabling long-distance transatlantic internet fiber-optic communications (amplifies optical signals without electronic conversion), and Er:YAG dermatological lasers.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Erbium.jpg/640px-Erbium.jpg",
-    imageDesc: "Lustrous chunk of pure metallic erbium displaying clean metallic grain boundaries."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Erbium.jpg",
+    imageDesc: "Raw Sample: Pure metallic erbium ingot with subtle pale pinkish oxide hue."
   },
   {
     z: 69, s: "Tm", n: "Thulium", m: 168.93, cat: "lanthanide", period: 6, group: 15, block: "f",
@@ -854,8 +854,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [371.8, 410.6],
     occurrence: "Second rarest naturally occurring lanthanide (named after mythical Thule, the far North). Bright silvery metal that can be cut with a knife.",
     uses: "Portable military and dental X-ray devices (Thulium-170 radioisotope produces diagnostic X-rays without electrical power), high-efficiency surgical lasers, and anti-counterfeiting Euro banknotes.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Thulium.jpg/640px-Thulium.jpg",
-    imageDesc: "Crystalline thulium metal pieces showing high-vacuum dendritic crystal growth."
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/87/Thulium.jpg",
+    imageDesc: "Raw Sample: Silvery-bright thulium metal pieces produced by high-temperature sublimation."
   },
   {
     z: 70, s: "Yb", n: "Ytterbium", m: 173.05, cat: "lanthanide", period: 6, group: 17, block: "f",
@@ -866,8 +866,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#22c55e", lines: [398.8, 346.4],
     occurrence: "Has completely filled 4f¹⁴ electron subshell. Soft, ductile silvery metal that reacts slowly with cold water; mined from monazite beach sands.",
     uses: "Ytterbium optical lattice atomic clocks (accurate to within 1 second in 15 billion years), high-power industrial fiber lasers for cutting steel, stainless steel stress gauges, and portable radiography.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Ytterbium.jpg/640px-Ytterbium.jpg",
-    imageDesc: "Fresh silvery-white dendritic crystal clump of distilled ytterbium metal."
+    image: "https://upload.wikimedia.org/wikipedia/commons/7/77/Ytterbium.jpg",
+    imageDesc: "Raw Sample: Pure crystalline ytterbium metal ingots displaying metallic silvery luster."
   },
   {
     z: 71, s: "Lu", n: "Lutetium", m: 174.97, cat: "lanthanide", period: 6, group: 18, block: "d",
@@ -878,8 +878,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [451.9, 465.8],
     occurrence: "Final element in lanthanide series; hardest and densest rare-earth metal. Named after Lutetia (ancient Roman name for Paris).",
     uses: "Lutetium-177 targeted radionuclide cancer therapy (PRRT for neuroendocrine and prostate tumors), positron emission tomography (PET) scanner detectors (LSO crystals), and petroleum refinery cracking.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Lutetium.jpg/640px-Lutetium.jpg",
-    imageDesc: "Sublimed crystalline lutetium metal showing dense silvery crystalline structure."
+    image: "https://upload.wikimedia.org/wikipedia/commons/3/30/Lutetium.jpg",
+    imageDesc: "Raw Sample: Dense sublimed crystalline lutetium metal showing sharp crystalline growth."
   },
 
   // PERIOD 6 CONTINUED (Z = 72 to 86)
@@ -892,8 +892,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [307.3, 343.8],
     occurrence: "Discovered in Copenhagen (Hafnia). Always occurs naturally mixed with zirconium in minerals like zircon; extraordinarily high neutron capture cross-section (600x zirconium).",
     uses: "Nuclear control rods for naval submarine nuclear propulsion reactors, high-k dielectric gate insulators in Intel computer microprocessors (HfO₂), and plasma torch cutting tips.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Hafnium_crystal_bar.jpg/640px-Hafnium_crystal_bar.jpg",
-    imageDesc: "Lustrous high-density hafnium crystal bar produced by the iodide crystal growth method."
+    image: "https://upload.wikimedia.org/wikipedia/commons/3/38/Hf-crystal_bar.jpg",
+    imageDesc: "Raw Sample: Lustrous high-density hafnium crystal bar produced by the van Arkel–de Boer iodide thermal process."
   },
   {
     z: 73, s: "Ta", n: "Tantalum", m: 180.95, cat: "transition", period: 6, group: 5, block: "d",
@@ -904,8 +904,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [296.5, 331.1],
     occurrence: "Named after Greek mythological King Tantalus. Immune to chemical attack below 150 °C (resists even aqua regia); mined from columbite-tantalite (coltan) pegmatite ores.",
     uses: "Miniaturized high-capacitance tantalum capacitors found in all smartphones, laptops, and automotive ECUs, surgical bone pins and mesh implants (completely inert in body tissue), and turbine blades.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Tantalum_single_crystal_and_1cm3_cube.jpg/640px-Tantalum_single_crystal_and_1cm3_cube.jpg",
-    imageDesc: "Ultra-pure single crystal of tantalum metal beside a 1 cm³ reference cube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Tantalum_single_crystal_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Ultra-pure single crystal of tantalum metal beside a 1 cm³ reference cube."
   },
   {
     z: 74, s: "W", n: "Tungsten", m: 183.84, cat: "transition", period: 6, group: 6, block: "d",
@@ -916,8 +916,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [400.9, 429.5],
     occurrence: "Highest melting point of all elements (3,422 °C, 6,192 °F) and highest tensile strength at 1650 °C. Mined from wolframite ((Fe,Mn)WO₄) and scheelite (CaWO₄).",
     uses: "Tungsten carbide (WC) heavy-duty industrial cutting tools and mining drill bits, incandescent and halogen lamp filaments, TIG welding electrodes, rocket engine nozzles, and armor-piercing kinetic penetrators.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Tungsten_crystal_and_1cm3_cube.jpg/640px-Tungsten_crystal_and_1cm3_cube.jpg",
-    imageDesc: "Zone-melted pure tungsten crystal nodule beside a precision 1 cm³ tungsten cube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Tungsten_crystal_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Dense crystalline tungsten metal fragment with extreme melting point (3422 °C) beside a reference cube."
   },
   {
     z: 75, s: "Re", n: "Rhenium", m: 186.21, cat: "transition", period: 6, group: 7, block: "d",
@@ -928,8 +928,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [346.0, 346.5],
     occurrence: "One of the rarest elements in Earth's crust (1 ppb). Last stable, non-radioactive element discovered in nature (named after Rhine river). Third highest melting point of all elements.",
     uses: "Nickel-based single-crystal turbine blades for jet engines (allows jet turbines to operate above alloy melting temperatures without creep failure), and lead-free high-octane gasoline platinum-rhenium catalysts.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Rhenium_single_crystal_bar_and_1cm3_cube.jpg/640px-Rhenium_single_crystal_bar_and_1cm3_cube.jpg",
-    imageDesc: "Single crystal bar of ultra-pure metallic rhenium beside a 1 cm³ density cube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d6/Rhenium_single_crystal_bar_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: High-density arc-melted rhenium single crystal bar beside a 1 cm³ reference cube."
   },
   {
     z: 76, s: "Os", n: "Osmium", m: 190.23, cat: "transition", period: 6, group: 8, block: "d",
@@ -940,8 +940,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [290.9, 305.9],
     occurrence: "Densest naturally occurring element (density 22.59 g/cm³, twice as dense as lead). Named from Greek 'osme' (smell) due to volatile, pungent toxic osmium tetroxide (OsO₄).",
     uses: "Wear-resistant fountain pen tips, electrical instrument pivots and compass bearings, transmission electron microscopy (TEM) biological tissue staining (OsO₄), and organic dihydroxylation catalysts.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Osmium_crystal.jpg/640px-Osmium_crystal.jpg",
-    imageDesc: "Brilliant bluish-silver faceted crystal of pure osmium, the densest element on Earth."
+    image: "https://upload.wikimedia.org/wikipedia/commons/1/11/Osmium_crystal.jpg",
+    imageDesc: "Raw Sample: Ultra-dense bluish-white osmium crystal pellet (density 22.59 g/cm³, the densest natural element)."
   },
   {
     z: 77, s: "Ir", n: "Iridium", m: 192.22, cat: "transition", period: 6, group: 9, block: "d",
@@ -952,8 +952,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [351.4, 380.0],
     occurrence: "Most corrosion-resistant metal known. Rare in crust but abundant in asteroids; the global 'Iridium Anomaly' layer in 66-million-year-old rock strata marks the dinosaur-extinction asteroid impact.",
     uses: "Crucibles for growing single-crystal laser garnets and semiconductor boules, aviation spark plug tips, green and red phosphorescent emitter dopants in OLED smartphone displays, and chemical catalysts.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Iridium-clean.jpg/640px-Iridium-clean.jpg",
-    imageDesc: "Arc-melted pellet of pure crystalline metallic iridium displaying mirror luster."
+    image: "https://upload.wikimedia.org/wikipedia/commons/a/a8/Iridium-clean.jpg",
+    imageDesc: "Raw Sample: Pure corrosion-proof iridium metal button with brilliant metallic reflection."
   },
   {
     z: 78, s: "Pt", n: "Platinum", m: 195.08, cat: "transition", period: 6, group: 10, block: "d",
@@ -964,8 +964,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [306.5, 265.9],
     occurrence: "Extremely unreactive noble metal. Found native in alluvial gravels and mined in the Bushveld Igneous Complex (South Africa); remarkable catalytic activity for hydrogenation and oxidation.",
     uses: "Automotive emissions catalytic converters, platinum-based chemotherapy drugs (cisplatin, carboplatin) curing 90% of testicular cancers, hydrogen fuel cell proton-exchange membrane catalysts, and fine jewelry.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Platinum_crystals.jpg/640px-Platinum_crystals.jpg",
-    imageDesc: "Lustrous cubic crystals of native platinum metal with brilliant silvery-white sheen."
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/68/Platinum_crystals.jpg",
+    imageDesc: "Raw Sample: Pure platinum crystal cluster displaying dense silvery metallic luster."
   },
   {
     z: 79, s: "Au", n: "Gold", m: 196.97, cat: "transition", period: 6, group: 11, block: "d",
@@ -976,8 +976,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [267.6, 312.3],
     occurrence: "Most malleable and ductile metal: 1 gram can be beaten into a 1 m² sheet (gold leaf) or drawn into 2.5 km of wire. Yellow color arises from relativistic contraction of 6s electrons.",
     uses: "Corrosion-proof wire bonding in computer microchips, infrared space telescope reflective coatings (James Webb Space Telescope), central bank financial reserves, high-reliability electronics, and jewelry.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Gold-crystals.jpg/640px-Gold-crystals.jpg",
-    imageDesc: "Museum-grade specimen of native crystalline gold dendritic arborescence."
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/Gold-crystals.jpg",
+    imageDesc: "Raw Sample: Magnificent museum-grade native gold crystals displaying hopper cubic and octahedral facets."
   },
   {
     z: 80, s: "Hg", n: "Mercury", m: 200.59, cat: "transition", period: 6, group: 12, block: "d",
@@ -988,8 +988,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [253.7, 435.8, 546.1],
     occurrence: "Only metallic element liquid at standard conditions (freezes at -38.83 °C). Mined from bright red cinnabar ore (HgS). Relativistic 6s electron stabilization prevents metallic bond formation.",
     uses: "Fluorescent lighting mercury vapor discharge, precision barometers and tilt switches, historical amalgam dental fillings, and gold mining amalgam extraction.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Pouring_liquid_mercury_b设定.jpg/640px-Pouring_liquid_mercury_b设定.jpg",
-    imageDesc: "Mirror-surfaced droplets of heavy liquid elemental mercury flowing with high surface tension."
+    image: "https://upload.wikimedia.org/wikipedia/commons/2/23/Liquid_mercury_in_a_beaker.jpg",
+    imageDesc: "Raw Sample: Pure liquid elemental mercury in a glass beaker displaying its famous convex meniscus and metallic sheen."
   },
   {
     z: 81, s: "Tl", n: "Thallium", m: 204.38, cat: "post-transition", period: 6, group: 13, block: "p",
@@ -1000,8 +1000,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#22c55e", lines: [535.0, 377.6],
     occurrence: "Named after Greek 'thallos' (green shoot/twig) for its brilliant bright green flame spectral line. Very soft malleable heavy metal; highly toxic due to mimicry of potassium ions in cells.",
     uses: "Low-melting infrared transmitting optical glasses for night vision, Thallium-201 nuclear cardiology stress tests (myocardial perfusion imaging), and high-temperature superconductors.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Thallium_pieces_in_ampoule.jpg/640px-Thallium_pieces_in_ampoule.jpg",
-    imageDesc: "Lustrous cut pieces of soft metallic thallium sealed under water in an ampoule."
+    image: "https://upload.wikimedia.org/wikipedia/commons/3/30/Thallium_pieces_in_ampoule.jpg",
+    imageDesc: "Raw Sample: Soft silvery-gray thallium metal pieces sealed in a glass ampoule to prevent toxic oxidation."
   },
   {
     z: 82, s: "Pb", n: "Lead", m: 207.2, cat: "post-transition", period: 6, group: 14, block: "p",
@@ -1012,8 +1012,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [405.8, 283.3],
     occurrence: "End product of natural decay chains of uranium, actinium, and thorium. Heaviest stable non-radioactive element. Mined from lustrous cubic galena ore (PbS).",
     uses: "12V lead-acid automotive batteries (85% of global demand), medical X-ray and gamma radiation shielding aprons and castle bricks, submarine ballast, and stained glass windows.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Lead_electrolytic_and_1cm3_cube.jpg/640px-Lead_electrolytic_and_1cm3_cube.jpg",
-    imageDesc: "Electrolytically grown pure lead crystal nodules alongside a 1 cm³ reference cube."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Lead_electrolytic_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: High-purity electrolytic lead crystal nodules beside a 1 cm³ reference cube."
   },
   {
     z: 83, s: "Bi", n: "Bismuth", m: 208.98, cat: "post-transition", period: 6, group: 15, block: "p",
@@ -1024,8 +1024,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#67e8f9", lines: [306.8, 472.2],
     occurrence: "Most diamagnetic metal known (strongly repelled by magnetic fields). Extremely weak radioactive decay (half-life of 2.01 × 10¹⁹ years, over a billion times the age of the universe).",
     uses: "Non-toxic lead replacement in ammunition and plumbing fixtures, Pepto-Bismol stomach soothing medicine (bismuth subsalicylate), automatic fire sprinkler low-melting plugs, and cosmetics.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Bi-crystal.jpg/640px-Bi-crystal.jpg",
-    imageDesc: "Spectacular stepped hopper crystal of pure bismuth exhibiting iridescent rainbow oxide interference."
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Bismuth_crystals_and_1cm3_cube.jpg",
+    imageDesc: "Raw Sample: Spectacular iridescent rainbow hopper crystal of pure bismuth beside a 1 cm³ reference cube."
   },
   {
     z: 84, s: "Po", n: "Polonium", m: 209.0, cat: "post-transition", period: 6, group: 16, block: "p",
@@ -1036,8 +1036,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [417.0, 300.3],
     occurrence: "Named after Poland by Marie Curie. Intensely radioactive alpha emitter; 1 gram of Polonium-210 generates 140 watts of thermal energy and glows with an eerie cyan aura.",
     uses: "Radioisotope thermoelectric generators (RTG heat source in Soviet Lunokhod lunar rovers), industrial antistatic ionizing brushes, and historical neutron initiator trigger (beryllium + polonium).",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Polonium.jpg/640px-Polonium.jpg",
-    imageDesc: "Cyan luminescence of radioactive polonium-210 ionizing surrounding air molecules."
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/65/Polonium.jpg",
+    imageDesc: "Raw Sample: Radioactive polonium-210 heat source disc in protective radiation capsule."
   },
   {
     z: 85, s: "At", n: "Astatine", m: 210.0, cat: "halogen", period: 6, group: 17, block: "p",
@@ -1048,8 +1048,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [224.4, 216.2],
     occurrence: "Rarest naturally occurring element in Earth's crust (estimated less than 30 grams present across the entire planet at any time). Named from Greek 'astatos' (unstable).",
     uses: "Targeted Alpha Therapy (TAT) cancer oncology: Astatine-211 bound to monoclonal antibodies delivers lethal, localized alpha particle radiation directly to malignant cancer cells.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Astatine.jpg/640px-Astatine.jpg",
-    imageDesc: "Theoretical dark metallic luster of solid astatine halogen."
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Astatine.jpg",
+    imageDesc: "Raw Sample: Microgram sample of astatine-211 synthesized by alpha bombardment in a cyclotron."
   },
   {
     z: 86, s: "Rn", n: "Radon", m: 222.0, cat: "noble", period: 6, group: 18, block: "p",
@@ -1060,8 +1060,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [435.0, 705.5],
     occurrence: "Colorless, odorless, chemically inert radioactive noble gas. Produced continuously by natural alpha decay of radium in granite soils and bedrock; seeps into home basements.",
     uses: "Historical radiotherapy seed implants for malignant tumors, hydrological groundwater tracing, and earthquake fault line seismic precursor monitoring.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Radon_discharge_tube.jpg/640px-Radon_discharge_tube.jpg",
-    imageDesc: "Luminous red discharge glow of energized radioactive radon gas."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c1/Connecticut_Radon_Mitigation.jpg",
+    imageDesc: "Flagship Application: Active sub-slab depressurization radon mitigation suction pipe and U-tube manometer continuously venting radioactive soil gas from building foundations."
   },
 
   // ==========================================
@@ -1076,8 +1076,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [718.0, 817.0],
     occurrence: "Second rarest natural element (about 20-30 grams in Earth's crust). Discovered at Curie Institute; all isotopes decay rapidly (longest-lived Fr-223 has t½ = 22 minutes).",
     uses: "Laser magneto-optical trapping (MOT) research exploring atomic parity non-conservation, electroweak nuclear physics, and testing the Standard Model of particle physics.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Francium.jpg/640px-Francium.jpg",
-    imageDesc: "Fluorescent optical trap laser glow of trapped francium atoms in high vacuum."
+    image: "https://upload.wikimedia.org/wikipedia/commons/7/77/Francium.jpg",
+    imageDesc: "Raw Sample: Magneto-optical laser trap holding cold neutral francium atoms produced by heavy-ion fusion."
   },
   {
     z: 88, s: "Ra", n: "Radium", m: 226.0, cat: "alkaline", period: 7, group: 2, block: "s",
@@ -1088,8 +1088,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#dc2626", lines: [482.6, 468.2],
     occurrence: "Discovered in pitchblende uranium ore. Intense radioactivity causes pure radium to emit faint blue luminescence in air and generate decay heat.",
     uses: "Historical self-luminous wristwatch dials (radium girls), early brachytherapy cancer treatment, and modern Radium-223 dichloride (Xofigo) targeted alpha therapy for prostate bone metastases.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Radium226.jpg/640px-Radium226.jpg",
-    imageDesc: "Eerie pale blue radioluminescence glow of pure radium salt sealed in an ampoule."
+    image: "https://upload.wikimedia.org/wikipedia/commons/4/41/Radium226.jpg",
+    imageDesc: "Raw Sample: Luminous radium-226 watch dial glowing from radioluminescence with zinc sulfide phosphor."
   },
 
   // ACTINIDES (Z = 89 to 103)
@@ -1102,8 +1102,8 @@ export const PERIODIC_ELEMENTS = [
     flame: "#60a5fa", lines: [418.0, 419.4],
     occurrence: "Name derives from Greek 'aktis' meaning ray. Powerful alpha/beta emitter; found in trace quantities in uranium ores; glows with a vivid pale blue light in the dark.",
     uses: "Actinium-225 targeted alpha therapy (TAT) in precision oncology (destroys metastatic prostate cancer while sparing adjacent healthy tissue), and neutron sources.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Actinium.jpg/640px-Actinium.jpg",
-    imageDesc: "Blue luminescence of intensely radioactive actinium metal sample."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Actinium.jpg",
+    imageDesc: "Raw Sample: Radioactive actinium-225 targeted alpha therapy isotope in nuclear medicine lead shielding."
   },
   {
     z: 90, s: "Th", n: "Thorium", m: 232.04, cat: "actinide", period: 7, group: 4, block: "f",
@@ -1114,8 +1114,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [401.9, 408.6],
     occurrence: "Named after Norse god Thor. Three to four times more abundant than uranium in Earth's crust; mined from dense golden monazite beach sand deposits.",
     uses: "Thorium nuclear fuel cycle (LFTR molten salt reactors breeding fissile U-233 with zero weapons-grade plutonium waste), high-index optical lenses, and TIG welding electrodes.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Thorium_metal_wire.jpg/640px-Thorium_metal_wire.jpg",
-    imageDesc: "Silvery metallic wire and machined foil of pure thorium actinide metal."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/52/Thorium_metal_wire.jpg",
+    imageDesc: "Raw Sample: Metallic thorium wire specimen with natural protective gray oxide coating."
   },
   {
     z: 91, s: "Pa", n: "Protactinium", m: 231.04, cat: "actinide", period: 7, group: 6, block: "f",
@@ -1126,8 +1126,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [395.2, 396.1],
     occurrence: "Parent of actinium. Rare intermediate decay product of uranium-235; dense silvery actinide metal that becomes superconducting below 1.4 K.",
     uses: "Paleo-oceanography radiometric dating (measuring Pa-231 to Th-230 ratios in marine sediments reconstructs historical ocean circulation) and nuclear research.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Protactinium.jpg/640px-Protactinium.jpg",
-    imageDesc: "Oxidized bead of pure protactinium metal prepared for fundamental radiochemistry research."
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d7/Protactinium.jpg",
+    imageDesc: "Raw Sample: High-purity protactinium-231 metal button in inert argon container."
   },
   {
     z: 92, s: "U", n: "Uranium", m: 238.03, cat: "actinide", period: 7, group: 7, block: "f",
@@ -1138,8 +1138,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [385.9, 409.0],
     occurrence: "Heaviest primordial element. Mined as uraninite (pitchblende U₃O₈). Naturally consists of 99.27% U-238 and 0.72% fissile U-235; radioactive decay fuels Earth's geothermal mantle heat.",
     uses: "Nuclear power plants producing clean low-carbon baseload electricity, medical radioisotope production, naval nuclear submarine reactors, and depleted uranium kinetic armor.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/Uranium_glass.jpg/640px-Uranium_glass.jpg",
-    imageDesc: "Luminous green fluorescence of vintage uranium glass under ultraviolet blacklight."
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d8/Uranium_glass.jpg",
+    imageDesc: "Raw Sample: Natural uranium mineral ore and historic uranium glass fluorescing brilliant green under UV light."
   },
   {
     z: 93, s: "Np", n: "Neptunium", m: 237.0, cat: "actinide", period: 7, group: 8, block: "f",
@@ -1150,8 +1150,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [410.8, 399.9],
     occurrence: "First synthetic transuranic element produced in a cyclotron (neutron capture by U-238 followed by beta decay). Named after planet Neptune.",
     uses: "Precursor target material irradiated in nuclear reactors to synthesize pure Plutonium-238 for NASA deep-space radioisotope thermoelectric generators (RTG space probes).",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Neptunium.jpg/640px-Neptunium.jpg",
-    imageDesc: "Silvery metallic specimen of pure neptunium metal."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Neptunium.jpg",
+    imageDesc: "Raw Sample: Metallic neptunium-237 button produced in nuclear reactor chemical reprocessing."
   },
   {
     z: 94, s: "Pu", n: "Plutonium", m: 244.0, cat: "actinide", period: 7, group: 9, block: "f",
@@ -1162,8 +1162,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [300.0, 390.7],
     occurrence: "Fissile actinide synthesized by neutron capture in nuclear reactors. Exhibits six allotropic crystal phases at atmospheric pressure with anomalous thermal contraction.",
     uses: "Plutonium-238 atomic space battery RTG power sources (NASA Voyager 1 & 2, Curiosity and Perseverance Mars rovers, New Horizons Pluto probe), and nuclear energy fuel (MOX).",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Plutonium_pellet.jpg/640px-Plutonium_pellet.jpg",
-    imageDesc: "Glowing red-hot Plutonium-238 dioxide pellet heated by its own intense radioactive alpha decay."
+    image: "https://upload.wikimedia.org/wikipedia/commons/a/a1/Plutonium_pellet.jpg",
+    imageDesc: "Raw Sample: Plutonium-238 dioxide pellet glowing orange-hot from self-induced radioactive alpha decay heat for spacecraft RTGs."
   },
   {
     z: 95, s: "Am", n: "Americium", m: 243.0, cat: "actinide", period: 7, group: 10, block: "f",
@@ -1174,8 +1174,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [457.5, 466.2],
     occurrence: "Synthesized during the Manhattan Project by successive neutron capture in plutonium-239. Radioactive silvery metal with a half-life of 432.2 years for Am-241.",
     uses: "Commercial ionization smoke detectors in millions of homes worldwide (0.28 micrograms of Am-241 ionizes air to detect smoke particles), and industrial thickness gauges.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Americium_microscope.jpg/640px-Americium_microscope.jpg",
-    imageDesc: "Button of pure americium actinide metal synthesized at Oak Ridge National Laboratory."
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d2/Americium_microscope.jpg",
+    imageDesc: "Raw Sample: Americium-241 alpha ionization foil button harvested from a commercial smoke detector."
   },
   {
     z: 96, s: "Cm", n: "Curium", m: 247.0, cat: "actinide", period: 7, group: 11, block: "f",
@@ -1186,8 +1186,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [420.7, 425.2],
     occurrence: "Named in honor of Marie and Pierre Curie. Synthesized by bombarding plutonium-239 with alpha particles; intensely radioactive, glowing purple-pink in the dark.",
     uses: "Alpha Particle X-ray Spectrometers (APXS) mounted on the robotic arms of Mars rovers (Sojourner, Spirit, Opportunity, Curiosity) to analyze rock chemical compositions.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Curium.jpg/640px-Curium.jpg",
-    imageDesc: "Purple luminescence glow of radioactive curium metal pellet in darkness."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/05/Curium.jpg",
+    imageDesc: "Raw Sample: Curium-244 compound glowing with vivid purple-red light in the dark from intense alpha radiation."
   },
   {
     z: 97, s: "Bk", n: "Berkelium", m: 247.0, cat: "actinide", period: 7, group: 12, block: "f",
@@ -1198,8 +1198,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [375.0, 390.0],
     occurrence: "Synthesized at UC Berkeley by alpha particle bombardment of americium-241. Only tiny milligram quantities are produced annually at High Flux Isotope Reactor (HFIR).",
     uses: "Essential target isotope (Berkelium-249) used to synthesize Tennessine (element 117) via high-energy collision with calcium-48 ion beams.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Berkelium.jpg/640px-Berkelium.jpg",
-    imageDesc: "Purified berkelium metal sample prepared for transuranic collision experiments."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Berkelium.jpg",
+    imageDesc: "Raw Sample: Microgram quantity of berkelium-249 compound synthesized at Oak Ridge National Laboratory."
   },
   {
     z: 98, s: "Cf", n: "Californium", m: 251.0, cat: "actinide", period: 7, group: 13, block: "f",
@@ -1210,8 +1210,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [375.5, 380.2],
     occurrence: "Named after state and University of California. Extremely powerful neutron emitter (1 microgram of Cf-252 spontaneously emits 2.314 million neutrons per second).",
     uses: "Neutron startup source for commercial nuclear reactors, neutron activation analysis of airport baggage and cargo containers for concealed explosives, and cervical cancer brachytherapy.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Californium.jpg/640px-Californium.jpg",
-    imageDesc: "Californium-252 micro-capsule mounted inside an industrial neutron inspection emitter."
+    image: "https://upload.wikimedia.org/wikipedia/commons/3/30/Californium.jpg",
+    imageDesc: "Raw Sample: Microgram sample of californium-252 intensive neutron emitter inside protective shielding."
   },
   {
     z: 99, s: "Es", n: "Einsteinium", m: 252.0, cat: "actinide", period: 7, group: 14, block: "f",
@@ -1222,8 +1222,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [360.0, 395.0],
     occurrence: "Discovered in radioactive debris fallout of the 'Ivy Mike' thermonuclear hydrogen bomb test on Enewetak Atoll. Named in honor of Albert Einstein.",
     uses: "Fundamental actinide chemistry research, exploring bond distances and coordination chemistry at the outer edge of the periodic table, and synthesizing mendelevium.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Einsteinium.jpg/640px-Einsteinium.jpg",
-    imageDesc: "Luminescent self-induced glow of synthetic microgram einsteinium sample."
+    image: "https://upload.wikimedia.org/wikipedia/commons/4/4b/Einsteinium.jpg",
+    imageDesc: "Raw Sample: Microgram quantity of einsteinium-253 glowing with visible radioactive heat."
   },
   {
     z: 100, s: "Fm", n: "Fermium", m: 257.0, cat: "actinide", period: 7, group: 15, block: "f",
@@ -1234,8 +1234,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [380.0],
     occurrence: "Heaviest element that can be formed by successive neutron capture in a nuclear reactor. Named in honor of nuclear pioneer Enrico Fermi.",
     uses: "Pure scientific research investigating spontaneous fission systematics and nuclear shell models.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Fermium.jpg/640px-Fermium.jpg",
-    imageDesc: "Conceptual representation of cyclotron heavy-ion synthesized fermium atoms."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/05/Fermium.jpg",
+    imageDesc: "Synthetic Target: High Flux Isotope Reactor beamline target rod utilized in synthesizing fermium-257."
   },
   {
     z: 101, s: "Md", n: "Mendelevium", m: 258.0, cat: "actinide", period: 7, group: 16, block: "f",
@@ -1246,8 +1246,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named in honor of Dmitri Mendeleev, father of the Periodic Table. First element produced 'one atom at a time' by bombarding einsteinium-253 with alpha particles.",
     uses: "Pioneering single-atom chemical separation techniques and testing actinide-lanthanide homology.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Mendelevium.jpg/640px-Mendelevium.jpg",
-    imageDesc: "Artistic render of single-atom ionization chamber for mendelevium detection."
+    image: "https://upload.wikimedia.org/wikipedia/commons/a/a8/Mendelevium.jpg",
+    imageDesc: "Synthetic Target: Recoil capture target assembly utilized in the discovery of mendelevium at Berkeley."
   },
   {
     z: 102, s: "No", n: "Nobelium", m: 259.0, cat: "actinide", period: 7, group: 17, block: "f",
@@ -1258,8 +1258,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named in honor of Alfred Nobel. Unusually stable +2 oxidation state in aqueous solution due to its completely filled 5f¹⁴ electronic subshell.",
     uses: "Fundamental studies of relativistic heavy-element orbital effects and electrochemical potential measurement.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Nobelium.jpg/640px-Nobelium.jpg",
-    imageDesc: "Vacuum beamline target chamber used for synthesizing nobelium isotopes."
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Nobelium.jpg",
+    imageDesc: "Synthetic Apparatus: Gas-filled recoil separator detecting single nobelium fusion reaction products."
   },
   {
     z: 103, s: "Lr", n: "Lawrencium", m: 266.0, cat: "actinide", period: 7, group: 18, block: "d",
@@ -1270,8 +1270,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Final element in actinide series. Named in honor of Ernest O. Lawrence (inventor of the cyclotron). Unusually low ionization energy (4.96 eV) due to relativistic 7p1/2 orbital stabilization.",
     uses: "Gas-phase chromatographic adsorption studies confirming lawrencium acts as a p-block-like heavy actinide.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Lawrencium.jpg/640px-Lawrencium.jpg",
-    imageDesc: "Heavy ion linear accelerator (HILAC) experimental setup for lawrencium synthesis."
+    image: "https://upload.wikimedia.org/wikipedia/commons/2/25/Lawrencium.jpg",
+    imageDesc: "Synthetic Apparatus: Rotating wheel catcher and silicon surface barrier detector system for lawrencium."
   },
 
   // SUPERHEAVY TRANSITION & POST-TRANSITION (Z = 104 to 118)
@@ -1284,8 +1284,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "First transactinide superheavy element. Named after Ernest Rutherford. Produced by heavy-ion bombardment of californium-249 with carbon-12 ions.",
     uses: "Gas-phase volatile chloride (RfCl₄) chemical experiments confirming group 4 chemical periodicity alongside hafnium and zirconium.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/Rutherfordium.jpg/640px-Rutherfordium.jpg",
-    imageDesc: "Gas-filled recoil separator detector array used to identify rutherfordium alpha decays."
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/e5/Rutherfordium.jpg",
+    imageDesc: "Synthetic Apparatus: Target chamber of the 88-Inch Cyclotron where rutherfordium was synthesized."
   },
   {
     z: 105, s: "Db", n: "Dubnium", m: 268.0, cat: "transition", period: 7, group: 5, block: "d",
@@ -1296,8 +1296,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named after Dubna, Russia, home of the Joint Institute for Nuclear Research. Produced by colliding americium-243 with neon-22 beams.",
     uses: "Aqueous and gas-phase chemical partition experiments investigating group 5 tantalum-like coordination complexes.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Dubnium.jpg/640px-Dubnium.jpg",
-    imageDesc: "U-400 cyclotron vacuum chamber at Dubna used for dubnium isotope synthesis."
+    image: "https://upload.wikimedia.org/wikipedia/commons/1/12/Dubnium.jpg",
+    imageDesc: "Synthetic Apparatus: Heavy-ion fusion gas-jet transport capillary used in dubnium automated chemical studies."
   },
   {
     z: 106, s: "Sg", n: "Seaborgium", m: 269.0, cat: "transition", period: 7, group: 6, block: "d",
@@ -1308,8 +1308,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "First element named after a living person at the time of naming (Glenn T. Seaborg). Produced by bombarding californium-249 with oxygen-18 ions.",
     uses: "Volatile hexacarbonyl compound Sg(CO)₆ synthesis demonstrating octahedral d-block organometallic bonding identical to tungsten hexacarbonyl.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Seaborgium.jpg/640px-Seaborgium.jpg",
-    imageDesc: "Automated rapid chemistry apparatus (OLGA) used to synthesize seaborgium hexacarbonyl."
+    image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Seaborgium.jpg",
+    imageDesc: "Synthetic Apparatus: Cryogenic detector array measuring the chemical volatility of seaborgium hexacarbonyl."
   },
   {
     z: 107, s: "Bh", n: "Bohrium", m: 270.0, cat: "transition", period: 7, group: 7, block: "d",
@@ -1320,8 +1320,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named in honor of Danish quantum physicist Niels Bohr. Produced via 'cold fusion' reactions by bombarding bismuth-209 with chromium-54 ions.",
     uses: "Gas-phase thermochromatography experiments synthesizing volatile oxychloride BhO₃Cl, confirming rhenium-like group 7 behavior.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Bohrium.jpg/640px-Bohrium.jpg",
-    imageDesc: "GSI Darmstadt UNILAC heavy-ion linear accelerator experimental hall."
+    image: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Bohrium.jpg",
+    imageDesc: "Synthetic Apparatus: Transactinide gas chromatography apparatus used to study volatile bohrium oxychloride."
   },
   {
     z: 108, s: "Hs", n: "Hassium", m: 277.0, cat: "transition", period: 7, group: 8, block: "d",
@@ -1332,8 +1332,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named after German state of Hesse (Hassia). Theoretical calculations predict hassium is the densest element in the periodic table (~41 g/cm³).",
     uses: "Gas-phase synthesis of volatile hassium tetroxide (HsO₄) condensing at -44 °C on cryodetectors, proving osmium-like behavior.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Hassium.jpg/640px-Hassium.jpg",
-    imageDesc: "Cryogenic silicon detector array used to measure hassium tetroxide alpha decay."
+    image: "https://upload.wikimedia.org/wikipedia/commons/c/cf/Hassium.jpg",
+    imageDesc: "Synthetic Apparatus: Automated thermochromatography cryo-detector array registering single hassium tetroxide molecules."
   },
   {
     z: 109, s: "Mt", n: "Meitnerium", m: 278.0, cat: "transition", period: 7, group: 9, block: "d",
@@ -1344,8 +1344,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named in honor of Austrian physicist Lise Meitner (co-discoverer of nuclear fission). Produced by bombarding bismuth-209 with iron-58 projectile ions.",
     uses: "Testing quantum electrodynamic (QED) relativistic contraction models in superheavy elements.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Meitnerium.jpg/640px-Meitnerium.jpg",
-    imageDesc: "SHIP velocity separator at GSI used to isolate single meitnerium fusion recoil atoms."
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/67/Meitnerium.jpg",
+    imageDesc: "Synthetic Apparatus: Velocity separator SHIP at GSI Helmholtz Centre where meitnerium was first identified."
   },
   {
     z: 110, s: "Ds", n: "Darmstadtium", m: 281.0, cat: "transition", period: 7, group: 10, block: "d",
@@ -1356,8 +1356,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named after Darmstadt, Germany, where it was discovered by fusing lead-208 with nickel-62 ions in a heavy ion accelerator.",
     uses: "Nuclear physics research mapping the alpha decay pathways leading toward the predicted 'Island of Stability'.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Darmstadtium.jpg/640px-Darmstadtium.jpg",
-    imageDesc: "Multi-wire proportional counter chamber used in identifying darmstadtium fusion events."
+    image: "https://upload.wikimedia.org/wikipedia/commons/5/52/Darmstadtium.jpg",
+    imageDesc: "Synthetic Apparatus: UNILAC linear accelerator beamline focal point where darmstadtium fusion was achieved."
   },
   {
     z: 111, s: "Rg", n: "Roentgenium", m: 282.0, cat: "transition", period: 7, group: 11, block: "d",
@@ -1368,8 +1368,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named in honor of Wilhelm Conrad Röntgen (discoverer of X-rays). Superheavy homologue of gold; produced by bombarding bismuth-209 with nickel-64.",
     uses: "Relativistic theoretical chemistry verifying s-electron stabilization in group 11 superheavy coinage metals.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Roentgenium.jpg/640px-Roentgenium.jpg",
-    imageDesc: "Rotating wheel target assembly utilized in roentgenium fusion experiments."
+    image: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Roentgenium.jpg",
+    imageDesc: "Synthetic Apparatus: High-current rotating target wheel used to synthesize superheavy roentgenium atoms."
   },
   {
     z: 112, s: "Cn", n: "Copernicium", m: 285.0, cat: "transition", period: 7, group: 12, block: "d",
@@ -1380,8 +1380,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named in honor of astronomer Nicolaus Copernicus. Extremely volatile superheavy element; strong relativistic 7s² shell closure causes it to behave almost like a noble gas.",
     uses: "Single-atom thermochromatography on gold surfaces measuring adsorption enthalpy, confirming high volatility.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Copernicium.jpg/640px-Copernicium.jpg",
-    imageDesc: "Cryo-online detector for copernicium noble-metal adsorption experiments."
+    image: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Copernicium.jpg",
+    imageDesc: "Synthetic Apparatus: Cryo-online gold-coated semiconductor detector used in copernicium thermochromatography."
   },
   {
     z: 113, s: "Nh", n: "Nihonium", m: 286.0, cat: "post-transition", period: 7, group: 13, block: "p",
@@ -1392,8 +1392,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "First chemical element discovered in an Asian country (named after 'Nihon', the Japanese name for Japan). Produced by fusing bismuth-209 with zinc-70 at the RIKEN linear accelerator.",
     uses: "Fundamental nuclear physics mapping decay chains terminating at dubnium and mendelevium.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Nihonium.jpg/640px-Nihonium.jpg",
-    imageDesc: "GARIS gas-filled recoil separator at RIKEN used to discover nihonium."
+    image: "https://upload.wikimedia.org/wikipedia/commons/2/25/Nihonium.jpg",
+    imageDesc: "Synthetic Apparatus: RIKEN GARIS gas-filled recoil separator focal plane where nihonium events were registered."
   },
   {
     z: 114, s: "Fl", n: "Flerovium", m: 289.0, cat: "post-transition", period: 7, group: 14, block: "p",
@@ -1404,8 +1404,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named after Flerov Laboratory of Nuclear Reactions. Positioned near the center of the theoretical 'Island of Stability' due to spherical nuclear shell closures (Z=114, N=184).",
     uses: "Gas-phase adsorption chromatography exploring relativistic spin-orbit splitting of 7p1/2 and 7p3/2 orbitals.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Flerovium.jpg/640px-Flerovium.jpg",
-    imageDesc: "Dubna gas-filled recoil separator target chamber during flerovium synthesis."
+    image: "https://upload.wikimedia.org/wikipedia/commons/a/a2/Flerovium.jpg",
+    imageDesc: "Synthetic Apparatus: Flerov Laboratory TASCA gas-filled separator used to evaluate flerovium noble-gas volatility."
   },
   {
     z: 115, s: "Mc", n: "Moscovium", m: 290.0, cat: "post-transition", period: 7, group: 15, block: "p",
@@ -1416,8 +1416,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named in honor of Moscow Oblast. Synthesized by bombarding americium-243 targets with high-intensity calcium-48 ion beams.",
     uses: "Synthesis precursor for nihonium via alpha decay; investigating heavy pnictogen group 15 periodicity.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Moscovium.jpg/640px-Moscovium.jpg",
-    imageDesc: "Beamline focal plane silicon semiconductor detector detecting moscovium implantation."
+    image: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Moscovium.jpg",
+    imageDesc: "Synthetic Apparatus: Beamline silicon semiconductor detector recording moscovium implantation and alpha decay chains."
   },
   {
     z: 116, s: "Lv", n: "Livermorium", m: 293.0, cat: "post-transition", period: 7, group: 16, block: "p",
@@ -1428,8 +1428,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Named in honor of Lawrence Livermore National Laboratory and city of Livermore, California. Produced by fusing curium-248 with calcium-48.",
     uses: "Nuclear structure physics investigating multi-step alpha decay chains terminating in lead and bismuth isotopes.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Livermorium.jpg/640px-Livermorium.jpg",
-    imageDesc: "Heavy-ion beam extraction port utilized in livermorium collaborative experiments."
+    image: "https://upload.wikimedia.org/wikipedia/commons/9/90/Livermorium.jpg",
+    imageDesc: "Synthetic Apparatus: Collaborative heavy-ion beam extraction port utilized in livermorium synthesis at Dubna."
   },
   {
     z: 117, s: "Ts", n: "Tennessine", m: 294.0, cat: "halogen", period: 7, group: 17, block: "p",
@@ -1440,8 +1440,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Second-heaviest known element. Named after state of Tennessee (home to Oak Ridge, Vanderbilt, and UT Knoxville). Synthesized by bombarding rare berkelium-249 with calcium-48.",
     uses: "Testing relativistic spin-orbit effects on halogen chemical behavior; predicted to be a volatile metalloid rather than a reactive halogen.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Tennessine.jpg/640px-Tennessine.jpg",
-    imageDesc: "High Flux Isotope Reactor (HFIR) at Oak Ridge National Laboratory where berkelium target was synthesized."
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/05/Tennessine.jpg",
+    imageDesc: "Synthetic Apparatus: High Flux Isotope Reactor (HFIR) at Oak Ridge National Laboratory where berkelium target was prepared."
   },
   {
     z: 118, s: "Og", n: "Oganesson", m: 294.0, cat: "noble", period: 7, group: 18, block: "p",
@@ -1452,8 +1452,8 @@ export const PERIODIC_ELEMENTS = [
     flame: null, lines: [],
     occurrence: "Heaviest element in the periodic table (Z = 118). Named in honor of Russian nuclear physicist Yuri Oganessian. Relativistic electron smearing causes outer electrons to form a uniform Fermi gas.",
     uses: "Exploring the ultimate limits of the periodic table, nuclear binding energies, and the relativistic transition from noble gas to semiconductor solid at room temperature.",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Oganesson.jpg/640px-Oganesson.jpg",
-    imageDesc: "Cyclotron experimental hall at Flerov Laboratory where oganesson atoms were synthesized."
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/87/Oganesson.jpg",
+    imageDesc: "Synthetic Apparatus: Cyclotron experimental hall at Flerov Laboratory of Nuclear Reactions where oganesson was synthesized."
   }
 ];
 
