@@ -390,11 +390,39 @@ export function initRotationalDynamicsLab(containerId) {
     if (rotWB > 40) chartCtx.fillText(`${rotPctB.toFixed(1)}% Rot`, 40 + transWB + 10, 138);
   }
 
-  function loop() {
+  let lastRotTime = 0;
+  let needsRedraw = true;
+
+  function loop(now) {
     if (!isRunning) return;
-    stepRace();
-    drawRampAndRacers();
-    drawEnergyChart();
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const photoEl = container.querySelector("#rot-photo-overlay");
+    const isPhotoOverlay = photoEl && photoEl.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (isRacing) {
+        if (!now || now - lastRotTime >= interval) {
+          lastRotTime = now || performance.now();
+          stepRace();
+          drawRampAndRacers();
+          drawEnergyChart();
+        }
+      } else if (needsRedraw) {
+        drawRampAndRacers();
+        drawEnergyChart();
+        needsRedraw = false;
+      }
+    }
     animId = requestAnimationFrame(loop);
   }
 
@@ -416,27 +444,32 @@ export function initRotationalDynamicsLab(containerId) {
     distB = 0.0;
     finishTimeA = null;
     finishTimeB = null;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#select-rot-shape-a")?.addEventListener("change", (e) => {
     shapeAKey = e.target.value;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#select-rot-shape-b")?.addEventListener("change", (e) => {
     shapeBKey = e.target.value;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#slider-rot-angle")?.addEventListener("input", (e) => {
     inclineAngleDeg = parseFloat(e.target.value);
     container.querySelector("#lbl-rot-angle").innerText = `${inclineAngleDeg.toFixed(1)}°`;
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-rot-length")?.addEventListener("input", (e) => {
     trackLengthM = parseFloat(e.target.value);
     container.querySelector("#lbl-rot-length").innerText = `${trackLengthM.toFixed(2)} m`;
+    needsRedraw = true;
   });
 
   container.querySelector("#btn-rot-export")?.addEventListener("click", () => {

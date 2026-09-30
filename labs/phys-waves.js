@@ -248,6 +248,7 @@ export function initWaveLab(containerId) {
     u1.fill(0);
     u2.fill(0);
     simStep = 0;
+    needsRedraw = true;
   }
 
   function updateWavePhysics() {
@@ -479,17 +480,43 @@ export function initWaveLab(containerId) {
         renderMathInElement(summary);
       } catch (e) {}
     }
+    needsRedraw = true;
   }
 
   let isDestroyed = false;
-  function loop() {
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
+  function loop(now) {
     if (isDestroyed) return;
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
     try {
-      if (container.isConnected) {
-        updateWavePhysics();
-        renderWaveCanvas();
-        if (simStep % 3 === 0) {
+      const photoEl = container.querySelector("#waves-photo-overlay");
+      const isPhotoOverlay = photoEl && photoEl.style.display === "block";
+
+      if (!isPhotoOverlay) {
+        if (isRunning) {
+          if (!now || now - lastFrameTime >= interval) {
+            lastFrameTime = now || performance.now();
+            updateWavePhysics();
+            renderWaveCanvas();
+            if (simStep % 3 === 0) {
+              renderIntensityGraph();
+            }
+          }
+        } else if (needsRedraw) {
+          renderWaveCanvas();
           renderIntensityGraph();
+          needsRedraw = false;
         }
       }
     } catch (err) {
@@ -579,6 +606,7 @@ export function initWaveLab(containerId) {
     toggleBtn.addEventListener("click", (e) => {
       isRunning = !isRunning;
       e.currentTarget.innerText = isRunning ? "⏸ Pause Wave" : "▶ Resume Wave";
+      needsRedraw = true;
       if (typeof SoundFX !== "undefined" && SoundFX.playClick) SoundFX.playClick();
     });
   }
@@ -624,6 +652,7 @@ export function initWaveLab(containerId) {
     btnModePhoto.classList.remove("active");
     btnModePhoto.style.background = "transparent";
     if (photoOverlay) photoOverlay.style.display = "none";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
