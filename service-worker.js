@@ -45,6 +45,8 @@ const CORE_APP_SHELL = [
   "./components/smartboard-toolbar.js",
   "./components/science-calculator.js",
   "./components/flashcards.js",
+  "./components/worked-example-solver.js",
+  "./components/offline-diagnostics.js",
   "./labs/lab-telemetry-exporter.js"
 ];
 

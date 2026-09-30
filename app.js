@@ -156,6 +156,9 @@ function bootApp() {
     // Mark application as successfully booted
     if (typeof window !== "undefined") {
       window.__APP_BOOTED__ = true;
+      window.openOfflineDiagnosticsModal = () => {
+        import("./components/offline-diagnostics.js").then(m => m.openOfflineDiagnosticsModal());
+      };
     }
 
     // Defer floating smartboard pen bar canvas initialization slightly so first paint is instantaneous
@@ -437,6 +440,12 @@ function renderAppShell() {
             <span>Mastery</span>
           </button>
 
+          <!-- Offline Readiness & Storage Diagnostics Button -->
+          <button class="btn btn-secondary" id="btn-open-offline-diag" title="Offline Readiness, Cache Diagnostics &amp; Storage Quota (Hot-key: O)" aria-label="Offline diagnostics and storage quota" style="padding: 6px 12px; font-size: 0.85rem; gap: 6px;">
+            <span>📡</span>
+            <span>Offline</span>
+          </button>
+
           <!-- Focus Presentation Mode Toggle Button -->
           <button class="btn btn-secondary" id="btn-toggle-focus-mode" title="Focus Presentation Mode (Hide Navigation Chrome, Shift+F)" aria-label="Toggle Focus Presentation Mode" style="padding: 6px 12px; font-size: 0.85rem; gap: 6px;">
             <span>🎯</span>
@@ -588,6 +597,14 @@ function bindGlobalEvents() {
   if (progressBtn) {
     progressBtn.addEventListener("click", () => {
       window.location.hash = "mastery";
+    });
+  }
+
+  // Offline Diagnostics Modal
+  const diagBtn = document.getElementById("btn-open-offline-diag");
+  if (diagBtn) {
+    diagBtn.addEventListener("click", () => {
+      import("./components/offline-diagnostics.js").then(m => m.openOfflineDiagnosticsModal());
     });
   }
 

@@ -181,6 +181,16 @@ export function initSmartboardToolbar() {
         </svg>
       </button>
 
+      <!-- Offline Diagnostics & Storage Quota -->
+      <button class="icon-action-btn" id="sb-tool-offline" title="Offline Diagnostics & Storage Quota (Hot-key: O)" aria-label="Offline diagnostics and storage quota" style="border-radius: 9999px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+          <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+          <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+          <line x1="12" y1="20" x2="12.01" y2="20"/>
+        </svg>
+      </button>
+
       <div class="sb-tools-divider"></div>
 
       <!-- Full Screen Presentation -->
@@ -2345,6 +2355,14 @@ export function initSmartboardToolbar() {
   });
 
   // -------------------------------------------------------------------------
+  // 3d. Offline Diagnostics & Storage Quota Panel
+  // -------------------------------------------------------------------------
+  const toolOffline = document.getElementById("sb-tool-offline");
+  toolOffline?.addEventListener("click", () => {
+    import("./offline-diagnostics.js").then(m => m.openOfflineDiagnosticsModal());
+  });
+
+  // -------------------------------------------------------------------------
   // 4. Universal Classroom Keyboard Shortcuts
   // -------------------------------------------------------------------------
   document.addEventListener("keydown", (e) => {
@@ -2374,6 +2392,9 @@ export function initSmartboardToolbar() {
     } else if (e.key === "q" || e.key === "Q") {
       e.preventDefault();
       toolShare?.click();
+    } else if (e.key === "o" || e.key === "O") {
+      e.preventDefault();
+      import("./offline-diagnostics.js").then(m => m.openOfflineDiagnosticsModal());
     } else if (e.key === "k" || e.key === "K") {
       e.preventDefault();
       const isShowing = toggleScienceCalculator();

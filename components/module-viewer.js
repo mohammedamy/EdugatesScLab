@@ -7,6 +7,7 @@ import { getLessonInteractiveSpec } from "../data/lesson-interactive-specs.js";
 import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
 import { SoundFX } from "../utils/audio-synth.js";
 import { copyShareLink } from "../utils/toast.js";
+import { renderWorkedExampleHTML, initWorkedExampleListeners } from "./worked-example-solver.js";
 
 // Dynamic on-demand loader for heavy lesson-interactives (60 FPS canvas & physics engines)
 let _interactivesEnginePromise = null;
@@ -319,6 +320,11 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
           });
         });
       }
+      const weRoot = overlay.querySelector("#worked-example-root");
+      const theory = getLessonComprehensiveTheory(moduleData.code, currentLessonId);
+      if (weRoot && theory && theory.workedExample) {
+        initWorkedExampleListeners(weRoot, theory.workedExample);
+      }
     }
   }
 
@@ -548,30 +554,10 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
             </div>
           </div>
 
-          <!-- Step-by-Step Quantitative Worked Example -->
+          <!-- Step-by-Step Quantitative Worked Example (Dual Mode: Reference & Interactive Step Solver) -->
           ${theory.workedExample ? `
-            <div class="modal-worked-example">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-                <span style="color: #0284c7; font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                  <span>🧮</span> Step-by-Step Quantitative Worked Example
-                </span>
-                <span style="font-size: 0.75rem; color: ${theory.isVerified ? '#10b981' : '#f59e0b'}; font-family: var(--font-mono); font-weight: 700; background: ${theory.isVerified ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)'}; padding: 3px 10px; border-radius: 4px; border: 1px solid ${theory.isVerified ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'};">
-                  ${theory.workedExample.status || (theory.isVerified ? "Specialist Verified Solution" : "Curriculum Standard Reference Solution (Under Specialist Review)")}
-                </span>
-              </div>
-              <div class="worked-example-prob">
-                <strong>Problem:</strong> ${theory.workedExample.problem}
-              </div>
-              <div class="worked-example-given">
-                <strong>Given Data:</strong> ${renderLatex(theory.workedExample.given, false)}
-              </div>
-              <div class="worked-example-steps">
-                ${theory.workedExample.steps.map(s => `<div>${s}</div>`).join("")}
-              </div>
-              <div class="worked-example-result">
-                <span class="worked-example-result-label">Final Calculated Result:</span>
-                <span class="worked-example-result-val">${renderLatex(theory.workedExample.answer, false)}</span>
-              </div>
+            <div id="module-worked-example-container" style="margin-top: 8px;">
+              ${renderWorkedExampleHTML(theory.workedExample, theory.isVerified, "reference")}
             </div>
           ` : ''}
 

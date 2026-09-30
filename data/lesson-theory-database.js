@@ -72,7 +72,49 @@ The scientific methodology is a rigorous cycle of reproducible empirical observa
         "3. Evaluate buoyancy in mercury: Since $\\rho_{\\text{alloy}} = 9.00\\text{ g/cm}^3 < \\rho_{\\text{Hg}} = 13.6\\text{ g/cm}^3$, the alloy will float on liquid mercury with a submerged fraction of $\\frac{9.00}{13.6} \\approx 66.2\\%$.",
         "4. Calculate percent error: $\\% \\text{ Error} = \\frac{|9.00 - 9.15|}{9.15} \\times 100\\% = \\frac{0.15}{9.15} \\times 100\\% \\approx 1.64\\%$."
       ],
-      answer: "\\rho = 9.00\\text{ g/cm}^3 \\quad (\\text{Floats in Mercury}, \\%\\text{ Error} = 1.64\\%)"
+      answer: "\\rho = 9.00\\text{ g/cm}^3 \\quad (\\text{Floats in Mercury}, \\%\\text{ Error} = 1.64\\%)",
+      solverSteps: [
+        {
+          title: "Determine Displaced Volume (ΔV)",
+          prompt: "Calculate the volume of water displaced by the submerged alloy (V₂ - V₁):",
+          formula: "\\Delta V = V_2 - V_1",
+          hint: "Subtract initial volume (35.0 mL) from final volume (51.5 mL).",
+          expected: "16.5",
+          unit: "mL",
+          tolerance: 0.02,
+          derivation: "\\Delta V = 51.5\\text{ mL} - 35.0\\text{ mL} = 16.5\\text{ mL} = 16.5\\text{ cm}^3"
+        },
+        {
+          title: "Compute Experimental Density (ρ)",
+          prompt: "Calculate the experimental density of the alloy sample (m / ΔV):",
+          formula: "\\rho = \\frac{m}{\\Delta V}",
+          hint: "Divide mass (148.5 g) by displaced volume (16.5 cm³).",
+          expected: "9.00",
+          unit: "g/cm³",
+          tolerance: 0.02,
+          derivation: "\\rho = \\frac{148.5\\text{ g}}{16.5\\text{ cm}^3} = 9.00\\text{ g/cm}^3"
+        },
+        {
+          title: "Evaluate Submerged Buoyancy Fraction in Mercury",
+          prompt: "Calculate the percentage submerged when floating in liquid mercury (density = 13.6 g/cm³):",
+          formula: "f = \\frac{\\rho_{\\text{alloy}}}{\\rho_{\\text{Hg}}} \\times 100\\%",
+          hint: "Divide alloy density (9.00) by mercury density (13.6) and multiply by 100.",
+          expected: "66.2",
+          unit: "%",
+          tolerance: 0.03,
+          derivation: "f = \\frac{9.00}{13.6} \\times 100\\% \\approx 66.2\\% \\quad (\\text{Floats})"
+        },
+        {
+          title: "Calculate Percent Error",
+          prompt: "Compute the experimental percent error relative to accepted density (9.15 g/cm³):",
+          formula: "\\%\\text{ Error} = \\frac{|\\text{Exp} - \\text{Acc}|}{\\text{Acc}} \\times 100\\%",
+          hint: "Subtract 9.00 from 9.15, divide by 9.15, and multiply by 100.",
+          expected: "1.64",
+          unit: "%",
+          tolerance: 0.05,
+          derivation: "\\% \\text{ Error} = \\frac{|9.00 - 9.15|}{9.15} \\times 100\\% \\approx 1.64\\%"
+        }
+      ]
     },
     applications: [
       "Aerospace Material Selection: Lightweight titanium and carbon-fiber composites with high strength-to-weight ratios are selected for orbital fuselages to minimize fuel mass.",
@@ -111,7 +153,49 @@ During any physical change (melting, vaporization, condensation, freezing, subli
         "3. Heat liquid water from 0°C to 60.0°C: $q_3 = m c_{\\text{water}} \\Delta T = (50.0)(4.184)(60.0 - 0) = (50.0)(4.184)(60.0) = 12,552\\text{ J}$.",
         "4. Sum total energy: $q_{\\text{total}} = q_1 + q_2 + q_3 = 1,567.5 + 16,700 + 12,552 = 30,819.5\\text{ J} \\approx 30.82\\text{ kJ}$."
       ],
-      answer: "q_{\\text{total}} = 30.8\\text{ kJ}"
+      answer: "q_{\\text{total}} = 30.8\\text{ kJ}",
+      solverSteps: [
+        {
+          title: "Heat Solid Ice (-15°C to 0°C)",
+          prompt: "Calculate sensible heat required to warm ice from -15.0°C to melting point (0.0°C):",
+          formula: "q_1 = m c_{\\text{ice}} \\Delta T",
+          hint: "Multiply mass (50.0 g) × c_ice (2.09 J/g°C) × ΔT (15.0°C).",
+          expected: "1567.5",
+          unit: "J",
+          tolerance: 0.02,
+          derivation: "q_1 = (50.0)(2.09)(15.0) = 1,567.5\\text{ J}"
+        },
+        {
+          title: "Melt Ice to Water at 0°C",
+          prompt: "Calculate latent heat of fusion required to melt the ice:",
+          formula: "q_2 = m \\Delta H_{\\text{fus}}",
+          hint: "Multiply mass (50.0 g) × ΔH_fus (334 J/g).",
+          expected: "16700",
+          unit: "J",
+          tolerance: 0.02,
+          derivation: "q_2 = (50.0\\text{ g})(334\\text{ J/g}) = 16,700\\text{ J}"
+        },
+        {
+          title: "Heat Liquid Water (0°C to 60°C)",
+          prompt: "Calculate sensible heat required to warm liquid water from 0.0°C to 60.0°C:",
+          formula: "q_3 = m c_{\\text{water}} \\Delta T",
+          hint: "Multiply mass (50.0 g) × c_water (4.184 J/g°C) × ΔT (60.0°C).",
+          expected: "12552",
+          unit: "J",
+          tolerance: 0.02,
+          derivation: "q_3 = (50.0)(4.184)(60.0) = 12,552\\text{ J}"
+        },
+        {
+          title: "Compute Total Enthalpy in kJ",
+          prompt: "Sum the energy components and convert total heat to kilojoules (kJ):",
+          formula: "q_{\\text{total}} = \\frac{q_1 + q_2 + q_3}{1000}",
+          hint: "Add 1567.5 + 16700 + 12552 and divide by 1000.",
+          expected: "30.82",
+          unit: "kJ",
+          tolerance: 0.02,
+          derivation: "q_{\\text{total}} = \\frac{30,819.5\\text{ J}}{1000} \\approx 30.82\\text{ kJ}"
+        }
+      ]
     },
     applications: [
       "Cryogenic Biological Storage: Liquid nitrogen at -196°C freezes human cellular and reproductive tissue without crystal shearing via flash vitrification.",
@@ -190,7 +274,29 @@ Velocity ($\\vec{v} = \\frac{d\\vec{x}}{dt}$) is the instantaneous rate of chang
         "3. Solve for displacement: $\\Delta x = \\frac{5,184}{4.80} = 1,080\\text{ m} = 1.08\\text{ km}$.",
         "4. Calculate elapsed braking time: $v = v_0 + at \\implies 0 = 72.0 + (-2.40)t \\implies t = \\frac{72.0}{2.40} = 30.0\\text{ s}$."
       ],
-      answer: "\\Delta x = 1,080\\text{ m} \\quad (1.08\\text{ km}), \\quad t = 30.0\\text{ s}"
+      answer: "\\Delta x = 1,080\\text{ m} \\quad (1.08\\text{ km}), \\quad t = 30.0\\text{ s}",
+      solverSteps: [
+        {
+          title: "Calculate Stopping Distance (Δx)",
+          prompt: "Using the time-independent equation v² = v₀² + 2aΔx, solve for stopping distance in meters:",
+          formula: "\\Delta x = \\frac{-v_0^2}{2a}",
+          hint: "Compute (72.0)² / (2 × 2.40) = 5184 / 4.80.",
+          expected: "1080",
+          unit: "m",
+          tolerance: 0.02,
+          derivation: "\\Delta x = \\frac{5,184}{4.80} = 1,080\\text{ m} = 1.08\\text{ km}"
+        },
+        {
+          title: "Calculate Elapsed Braking Time (t)",
+          prompt: "Using v = v₀ + at, calculate the time in seconds to decelerate to rest:",
+          formula: "t = \\frac{-v_0}{a}",
+          hint: "Divide initial velocity (72.0 m/s) by deceleration (2.40 m/s²).",
+          expected: "30.0",
+          unit: "s",
+          tolerance: 0.02,
+          derivation: "t = \\frac{72.0}{2.40} = 30.0\\text{ s}"
+        }
+      ]
     },
     applications: [
       "Autonomous Vehicle Collision Avoidance: LiDAR sensors compute instantaneous range rate ($dr/dt = v$) and trigger emergency automated braking calibrated against road friction deceleration limits.",
@@ -228,7 +334,29 @@ The Cell Theory represents one of the foundational unifying frameworks of modern
         "2. Substitute numerical values: $P = (1.20 \\times 10^{-15}\\text{ mol/s}) \\times (5.00 \\times 10^4\\text{ J/mol}) = 6.00 \\times 10^{-11}\\text{ J/s} = 6.00 \\times 10^{-11}\\text{ W}$.",
         "3. Convert Watts to picowatts ($1\\text{ pW} = 10^{-12}\\text{ W}$): $P = \\frac{6.00 \\times 10^{-11}\\text{ W}}{10^{-12}\\text{ W/pW}} = 60.0\\text{ pW}$."
       ],
-      answer: "P = 60.0\\text{ pW} \\quad (6.00 \\times 10^{-11}\\text{ Watts})"
+      answer: "P = 60.0\\text{ pW} \\quad (6.00 \\times 10^{-11}\\text{ Watts})",
+      solverSteps: [
+        {
+          title: "Calculate Power Dissipation in Watts",
+          prompt: "Calculate the cellular power in Watts (n_rate × |ΔG|):",
+          formula: "P = n_{\\text{rate}} \\times |\\Delta G|",
+          hint: "Multiply (1.20 × 10⁻¹⁵ mol/s) by (5.00 × 10⁴ J/mol).",
+          expected: "6.00e-11",
+          unit: "W",
+          tolerance: 0.03,
+          derivation: "P = (1.20 \\times 10^{-15})(5.00 \\times 10^4) = 6.00 \\times 10^{-11}\\text{ W}"
+        },
+        {
+          title: "Convert to Picowatts (pW)",
+          prompt: "Convert the calculated power from Watts to picowatts (1 pW = 10⁻¹² W):",
+          formula: "P_{\\text{pW}} = \\frac{P}{10^{-12}}",
+          hint: "Divide 6.00 × 10⁻¹¹ by 10⁻¹².",
+          expected: "60.0",
+          unit: "pW",
+          tolerance: 0.02,
+          derivation: "P = \\frac{6.00 \\times 10^{-11}}{10^{-12}} = 60.0\\text{ pW}"
+        }
+      ]
     },
     applications: [
       "Cryopreservation of Stem Cells: Biologists use trehalose-mimicking vitrification agents derived from tardigrade cryobiology to freeze cord blood and organoids without ice crystallization damage.",
@@ -876,12 +1004,18 @@ export function getLessonComprehensiveTheory(subjectCode, moduleId, lessonId, le
     if (code.includes("-")) {
       const parts = code.split("-");
       code = parts[0];
-      if (!moduleId && parts[1]) {
+      if (parts[1]) {
         mId = parseInt(parts[1].replace(/\D/g, ""), 10);
       }
+      if (lessonId === undefined && moduleId !== undefined) {
+        lId = parseInt(moduleId, 10) || 1;
+      } else if (lessonId !== undefined) {
+        lId = parseInt(lessonId, 10) || 1;
+      }
+    } else {
+      mId = parseInt(moduleId, 10) || 1;
+      lId = parseInt(lessonId, 10) || 1;
     }
-    mId = parseInt(moduleId, 10) || mId || 1;
-    lId = parseInt(lessonId, 10) || 1;
   }
 
   const padM = mId < 10 ? '0' + mId : '' + mId;
