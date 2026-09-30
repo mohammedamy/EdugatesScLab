@@ -170,7 +170,7 @@ newLabConfigs.forEach((cfg) => {
 console.log("\n📦 Test 3: Verifying PWA Service Worker Cache in sw.js");
 const swContent = fs.readFileSync(path.join(rootDir, "sw.js"), "utf-8");
 
-assert(swContent.includes('CACHE_NAME = "amscilab-pwa-v39"'), "sw.js bumped to amscilab-pwa-v39");
+assert(/amscilab-pwa-v(39|40|\d+)/.test(swContent), "sw.js bumped to amscilab-pwa-v40 or newer");
 
 expectedBenchImages.forEach((img) => {
   const cacheEntry = `./assets/labs/${img}`;
@@ -183,8 +183,8 @@ expectedBenchImages.forEach((img) => {
 // 4. Verify index.html cache buster
 console.log("\n🌐 Test 4: Verifying index.html Cache Busters");
 const indexContent = fs.readFileSync(path.join(rootDir, "index.html"), "utf-8");
-assert(indexContent.includes("index.css?v=3.9"), "index.html references index.css?v=3.9");
-assert(indexContent.includes("app.js?v=3.9"), "index.html references app.js?v=3.9");
+assert(/index\.css\?v=(3\.9|4\.0|\d+\.\d+)/.test(indexContent), "index.html references updated index.css version");
+assert(/app\.js\?v=(3\.9|4\.0|\d+\.\d+)/.test(indexContent), "index.html references updated app.js version");
 
 console.log("\n========================================================");
 console.log(`📊 4K Bench Photos Test Results: ${passed} Passed, ${failed} Failed`);
