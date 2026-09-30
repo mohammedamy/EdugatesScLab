@@ -5,7 +5,17 @@
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
+let _currentCircuitsCleanup = null;
+
+export function cleanupCircuitsLab() {
+  if (typeof _currentCircuitsCleanup === "function") {
+    try { _currentCircuitsCleanup(); } catch (e) {}
+    _currentCircuitsCleanup = null;
+  }
+}
+
 export function initCircuitsLab(containerId) {
+  cleanupCircuitsLab();
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -294,7 +304,7 @@ export function initCircuitsLab(containerId) {
     }
   }
 
-  function drawCircuit() {
+  function drawCircuit(dtFactor = 1.0) {
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = canvas.width / dpr;
     const h = canvas.height / dpr;
@@ -422,9 +432,9 @@ export function initCircuitsLab(containerId) {
     // Spark Particles
     for (let i = sparks.length - 1; i >= 0; i--) {
       const sp = sparks[i];
-      sp.x += sp.vx;
-      sp.y += sp.vy;
-      sp.life -= 0.05;
+      sp.x += sp.vx * dtFactor;
+      sp.y += sp.vy * dtFactor;
+      sp.life -= 0.05 * dtFactor;
       if (sp.life <= 0) {
         sparks.splice(i, 1);
         continue;
@@ -534,7 +544,7 @@ export function initCircuitsLab(containerId) {
 
     // 7. Animated Glowing Electron Dots
     if (switchClosed && current > 0) {
-      electronOffset = (electronOffset + current * 1.8) % 40;
+      electronOffset = (electronOffset + current * 1.8 * dtFactor) % 40;
       ctx.fillStyle = "#38bdf8";
       if (!isSmart) {
         ctx.shadowColor = "#38bdf8";
@@ -642,12 +652,15 @@ export function initCircuitsLab(containerId) {
                     document.documentElement.classList.contains("fast-smartboard-mode") ||
                     /Android|MAXHUB/i.test(navigator.userAgent);
     const interval = isSmart ? 33 : 16;
-    if (!now || now - lastFrameTime >= interval) {
-      lastFrameTime = now || performance.now();
+    const currentTime = now || performance.now();
+    if (!lastFrameTime || currentTime - lastFrameTime >= interval) {
+      const elapsed = lastFrameTime ? Math.min((currentTime - lastFrameTime) / 1000, 0.1) : (interval / 1000);
+      lastFrameTime = currentTime;
+      const dtFactor = Math.min(Math.max(elapsed * 60, 0.5), 3.0);
       needsRedraw = false;
       const photoEl = container.querySelector("#circuit-photo-overlay");
       if (!photoEl || photoEl.style.display !== "block") {
-        drawCircuit();
+        drawCircuit(dtFactor);
       }
     }
     animId = requestAnimationFrame(renderLoop);
@@ -861,9 +874,11 @@ export function initCircuitsLab(containerId) {
   window.addEventListener("resize", handleResize);
   handleResize();
 
-  return () => {
+  const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("resize", handleResize);
   };
+  _currentCircuitsCleanup = cleanup;
+  return cleanup;
 }
 

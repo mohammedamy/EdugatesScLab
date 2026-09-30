@@ -5,7 +5,17 @@
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
+let _currentProjectileCleanup = null;
+
+export function cleanupProjectileLab() {
+  if (typeof _currentProjectileCleanup === "function") {
+    try { _currentProjectileCleanup(); } catch (e) {}
+    _currentProjectileCleanup = null;
+  }
+}
+
 export function initProjectileLab(containerId) {
+  cleanupProjectileLab();
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -733,13 +743,16 @@ export function initProjectileLab(containerId) {
                       /Android|MAXHUB/i.test(navigator.userAgent);
       const interval = isSmart ? 33.3 : 16.0;
 
-      if (now && now - lastStepTime < interval) {
+      const currentTime = now || performance.now();
+      if (lastStepTime && currentTime - lastStepTime < interval) {
         if (isFlying) animId = requestAnimationFrame(step);
         return;
       }
-      lastStepTime = now || performance.now();
+      const elapsed = lastStepTime ? Math.min((currentTime - lastStepTime) / 1000, 0.1) : (interval / 1000);
+      lastStepTime = currentTime;
 
-      const dt = (isSlowMo ? 0.016 : 0.045) * (interval / 16.0);
+      const dtFactor = Math.min(Math.max(elapsed * 60, 0.5), 3.0);
+      const dt = (isSlowMo ? 0.016 : 0.045) * dtFactor;
       t += dt;
 
       const rad = angle * Math.PI / 180;
@@ -1011,9 +1024,11 @@ export function initProjectileLab(containerId) {
   window.addEventListener("resize", handleResize);
   handleResize();
 
-  return () => {
+  const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("resize", handleResize);
   };
+  _currentProjectileCleanup = cleanup;
+  return cleanup;
 }
 

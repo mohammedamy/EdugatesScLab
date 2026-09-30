@@ -168,6 +168,15 @@ assert(gasLawsContent.includes("this.vx * dtFactor"), "chem-gas-laws.js moves pa
 const vseprContent = fs.readFileSync(path.join(rootDir, "labs", "chem-vsepr.js"), "utf-8");
 assert(vseprContent.includes("export function cleanupVseprLab()"), "chem-vsepr.js exports cleanupVseprLab()");
 assert(vseprContent.includes("rotY += 0.008 * dtFactor;"), "chem-vsepr.js scales auto-rotation angular velocity with dtFactor");
+
+const projContent = fs.readFileSync(path.join(rootDir, "labs", "phys-projectile.js"), "utf-8");
+assert(projContent.includes("export function cleanupProjectileLab()"), "phys-projectile.js exports cleanupProjectileLab()");
+assert(projContent.includes("dtFactor"), "phys-projectile.js scales kinematic flight with dtFactor");
+
+const circuitsContent = fs.readFileSync(path.join(rootDir, "labs", "phys-circuits.js"), "utf-8");
+assert(circuitsContent.includes("export function cleanupCircuitsLab()"), "phys-circuits.js exports cleanupCircuitsLab()");
+assert(circuitsContent.includes("electronOffset + current * 1.8 * dtFactor"), "phys-circuits.js decouples electron drift velocity with dtFactor");
+
 console.log("  ✅ PASS: Simulations implement dt physics decoupling, lifecycle cleanup, 30 FPS smartboard pacing, and DPR capping");
 
 // ----------------------------------------------------
