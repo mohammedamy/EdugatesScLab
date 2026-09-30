@@ -654,7 +654,7 @@ export function initPunnettLab(containerId) {
 
   // --- DRAW PUNNETT GRID ---
   function drawGrid() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = canvas.width / dpr;
     const h = canvas.height / dpr;
 
@@ -1066,7 +1066,7 @@ export function initPunnettLab(containerId) {
   // --- STOCHASTIC DISTRIBUTION BAR CHART ---
   function drawStochasticChart(phenotypeCounts, totalCells) {
     if (!chartCanvas || !chartCtx) return;
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const cw = chartCanvas.width / dpr;
     const ch = chartCanvas.height / dpr;
 
@@ -1496,7 +1496,7 @@ export function initPunnettLab(containerId) {
       window.removeEventListener("resize", handleResize);
       return;
     }
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const rect = canvas.getBoundingClientRect();
     const canvasW = rect.width > 0 ? rect.width : 600;
     const canvasH = 540;

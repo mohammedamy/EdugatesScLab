@@ -264,7 +264,7 @@ export function initDnaProteinLab(containerId) {
   }
 
   function draw() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = canvas.width / dpr;
     const h = canvas.height / dpr;
 
@@ -645,7 +645,7 @@ export function initDnaProteinLab(containerId) {
       return;
     }
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     canvas.width = rect.width * dpr;
     canvas.height = 490 * dpr;
     draw();

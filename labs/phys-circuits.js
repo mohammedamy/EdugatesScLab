@@ -687,7 +687,7 @@ export function initCircuitsLab(containerId) {
     playClickSound();
 
     if (switchClosed) {
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
       const w = canvas.width / dpr;
       const switchX = w / 2;
       for (let k = 0; k < 12; k++) {

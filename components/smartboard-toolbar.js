@@ -1282,12 +1282,27 @@ export function initSmartboardToolbar() {
     return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}.${c < 10 ? '0' : ''}${c}`;
   }
 
-  function tickStopwatch() {
+  let lastStopwatchTime = 0;
+  function tickStopwatch(now) {
     if (!stopwatchRunning) return;
-    const now = performance.now();
-    stopwatchElapsed = now - stopwatchStartTime;
-    const disp = document.getElementById("sb-stopwatch-disp");
-    if (disp) disp.textContent = fmtMs(stopwatchElapsed);
+    if (!timerWidget || !timerWidget.isConnected) {
+      stopwatchRunning = false;
+      if (stopwatchAnimId) cancelAnimationFrame(stopwatchAnimId);
+      return;
+    }
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33 : 16;
+    if (!now || now - lastStopwatchTime >= interval) {
+      lastStopwatchTime = now || performance.now();
+      const currentNow = performance.now();
+      stopwatchElapsed = currentNow - stopwatchStartTime;
+      const disp = document.getElementById("sb-stopwatch-disp");
+      if (disp && timerWidget.style.display !== "none") {
+        disp.textContent = fmtMs(stopwatchElapsed);
+      }
+    }
     stopwatchAnimId = requestAnimationFrame(tickStopwatch);
   }
 

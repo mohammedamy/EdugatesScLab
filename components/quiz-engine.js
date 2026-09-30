@@ -1198,6 +1198,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     if (examMode === "timed") {
       timeRemaining = activeQuestions.length * 90; // 90 seconds per question
       timerInterval = setInterval(() => {
+        if (!container || !container.isConnected) {
+          clearInterval(timerInterval);
+          return;
+        }
         timeRemaining--;
         const timerElem = document.getElementById("exam-timer");
         if (timerElem) {
