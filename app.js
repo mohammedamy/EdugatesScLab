@@ -1347,16 +1347,32 @@ function renderSubjectView(container, curData, themeColor) {
     });
   }
 
-  // Bind Search Input
+  // Bind Search Input with Debounce (150ms) to prevent Android MAXHUB layout thrashing
+  let searchDebounceTimer = null;
   const searchInput = document.getElementById("search-modules-input");
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
       AppState.searchQuery = e.target.value;
-      renderSubjectView(container, curData, themeColor);
-      const newInp = document.getElementById("search-modules-input");
-      if (newInp) {
-        newInp.focus();
-        newInp.selectionStart = newInp.selectionEnd = newInp.value.length;
+      if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+      searchDebounceTimer = setTimeout(() => {
+        renderSubjectView(container, curData, themeColor);
+        const newInp = document.getElementById("search-modules-input");
+        if (newInp) {
+          newInp.focus();
+          newInp.selectionStart = newInp.selectionEnd = newInp.value.length;
+        }
+      }, 150);
+    });
+
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (AppState.searchQuery) {
+          AppState.searchQuery = "";
+          searchInput.value = "";
+          renderSubjectView(container, curData, themeColor);
+        } else {
+          searchInput.blur();
+        }
       }
     });
   }

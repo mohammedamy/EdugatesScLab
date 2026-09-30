@@ -2,7 +2,26 @@
 // Granular Curriculum Scope Checklist: Subject Track Selection, Module & Lesson Multi-Select,
 // Live Question Synthesis, KaTeX Mathematical Typesetting, Smartboard Classroom Presenter, and Print/PDF Exporter.
 
-import { questionBank } from "../data/question-bank.js";
+let loadedQuestionBank = null;
+let loadingBankPromise = null;
+
+export async function getQuestionBank() {
+  if (loadedQuestionBank) return loadedQuestionBank;
+  if (!loadingBankPromise) {
+    loadingBankPromise = import("../data/question-bank.js")
+      .then(m => {
+        loadedQuestionBank = m.questionBank;
+        return loadedQuestionBank;
+      })
+      .catch(err => {
+        console.error("[Quiz Engine] Failed to load question bank:", err);
+        loadingBankPromise = null;
+        return [];
+      });
+  }
+  return loadingBankPromise;
+}
+
 import { chemistryCurriculum } from "../data/chemistry-curriculum.js";
 import { biologyCurriculum } from "../data/biology-curriculum.js";
 import { physicsCurriculum } from "../data/physics-curriculum.js";
@@ -79,8 +98,16 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     }
     // Note: By user design, all checkboxes start empty so user can choose their exact scope deliberately
-  }
   initDefaultScope();
+
+  // Non-blocking background prefetch of question bank so it is warm by the time teacher clicks Generate
+  if (typeof window !== "undefined") {
+    if (typeof requestIdleCallback === "function") {
+      requestIdleCallback(() => getQuestionBank(), { timeout: 2500 });
+    } else {
+      setTimeout(() => getQuestionBank(), 800);
+    }
+  }
 
   function showConfig() {
     viewState = "config";
@@ -978,16 +1005,36 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   }
 
   // --- DYNAMIC QUESTION GENERATION & POOL RESOLUTION ---
-  function generateExam() {
+  async function generateExam() {
     if (selectedLessons.size === 0) {
       showToast("Scope Required", "Please select at least one lesson to establish the assessment scope.", "warning");
       return;
+    }
+
+    const btnGen = document.getElementById("btn-generate-exam");
+    const origText = btnGen ? btnGen.innerText : "";
+    if (btnGen) {
+      btnGen.disabled = true;
+      btnGen.innerText = "⏳ Loading Question Bank...";
     }
 
     const difficulty = document.getElementById("cfg-difficulty").value;
     const countVal = document.getElementById("cfg-count").value;
     const qTypeVal = document.getElementById("cfg-qtype").value;
     examMode = document.getElementById("cfg-mode").value;
+
+    let bank;
+    try {
+      bank = await getQuestionBank();
+    } catch (err) {
+      console.error("[Quiz Engine] Error loading question bank:", err);
+      bank = [];
+    } finally {
+      if (btnGen) {
+        btnGen.disabled = false;
+        btnGen.innerText = origText;
+      }
+    }
 
     // Parse selected lessons into structured objects
     const scopeLessons = [];
@@ -1012,7 +1059,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     const selectedLessonKeys = new Set(scopeLessons.map(sl => `${sl.subj}-M${sl.mid}-L${sl.lid}`));
     const selectedModIds = new Set(scopeLessons.map(sl => `${sl.subj}-${sl.mid}`));
 
-    let pool = questionBank.filter(q => {
+    let pool = bank.filter(q => {
       const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
       const matchScope = q.lessonId 
         ? selectedLessonKeys.has(qLessonKey) 
@@ -1025,7 +1072,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
     // If pool is empty due to ultra-restrictive difficulty/type combination, relax filter to ensure valid assessment
     if (pool.length === 0) {
-      pool = questionBank.filter(q => {
+      pool = bank.filter(q => {
         const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
         const matchScope = q.lessonId 
           ? selectedLessonKeys.has(qLessonKey) 
@@ -1037,7 +1084,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     }
 
     if (pool.length === 0) {
-      pool = questionBank.filter(q => {
+      pool = bank.filter(q => {
         const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
         return q.lessonId 
           ? selectedLessonKeys.has(qLessonKey) 

@@ -5,7 +5,7 @@
 
 const CACHE_NAME = "amscilab-pwa-v42";
 
-const CORE_ASSETS = [
+const CORE_APP_SHELL = [
   "./",
   "./index.html",
   "./index.css",
@@ -36,7 +36,6 @@ const CORE_ASSETS = [
   "./data/periodic-table-data.js",
   "./data/lesson-theory-database.js",
   "./data/lesson-interactive-specs.js",
-  "./data/question-bank.js",
   "./data/scientific-diagrams.js",
   "./components/module-viewer.js",
   "./components/lesson-interactives.js",
@@ -46,7 +45,11 @@ const CORE_ASSETS = [
   "./components/smartboard-toolbar.js",
   "./components/science-calculator.js",
   "./components/flashcards.js",
-  "./labs/lab-telemetry-exporter.js",
+  "./labs/lab-telemetry-exporter.js"
+];
+
+const SECONDARY_ASSETS = [
+  "./data/question-bank.js",
   "./labs/phys-projectile.js",
   "./labs/chem-titration.js",
   "./labs/bio-microscope.js",
@@ -109,13 +112,23 @@ const CORE_ASSETS = [
   "./assets/labs/waves_bench.jpg"
 ];
 
-// Install: Pre-cache all core laboratory workbench assets
+const CORE_ASSETS = [...CORE_APP_SHELL, ...SECONDARY_ASSETS];
+
+// Install: Pre-cache core shell first, then stream secondary lab modules non-blockingly
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(CORE_ASSETS).catch((err) => {
-        console.warn("[AmScLab PWA] Pre-cache non-fatal warning:", err);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Stage 1: Critical App Shell (immediate completion)
+      await cache.addAll(CORE_APP_SHELL).catch((err) => {
+        console.warn("[AmScLab PWA] Core shell precache non-fatal warning:", err);
       });
+      // Stage 2: Secondary Lab Benches & Media (Non-blocking resilient caching)
+      const secondaryPromises = SECONDARY_ASSETS.map((assetUrl) =>
+        cache.add(assetUrl).catch((err) => {
+          console.warn("[AmScLab PWA] Secondary asset background cache deferred for:", assetUrl, err?.message);
+        })
+      );
+      await Promise.allSettled(secondaryPromises);
     }).then(() => self.skipWaiting())
   );
 });
@@ -126,7 +139,7 @@ self.addEventListener("activate", (event) => {
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
+          if (key.startsWith("amscilab-pwa-") && key !== CACHE_NAME) {
             console.log("[AmScLab PWA] Purging outdated cache store:", key);
             return caches.delete(key);
           }

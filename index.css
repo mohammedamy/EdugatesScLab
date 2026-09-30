@@ -347,6 +347,67 @@ body.mode-smartboard .module-card {
   font-size: 1.1rem;
 }
 
+[data-mode="smartboard"] .unit-filter-chip,
+body.mode-smartboard .unit-filter-chip,
+.fast-smartboard-mode .unit-filter-chip {
+  min-height: 52px;
+  padding: 12px 20px;
+  font-size: 1.05rem;
+}
+
+[data-mode="smartboard"] .view-mode-btn,
+body.mode-smartboard .view-mode-btn,
+.fast-smartboard-mode .view-mode-btn {
+  min-height: 52px;
+  padding: 12px 22px;
+  font-size: 1.05rem;
+}
+
+[data-mode="smartboard"] .search-input,
+body.mode-smartboard .search-input,
+.fast-smartboard-mode .search-input {
+  min-height: 58px;
+  font-size: 1.15rem;
+  padding-left: 52px;
+}
+
+[data-mode="smartboard"] .lab-nav-btn,
+body.mode-smartboard .lab-nav-btn,
+.fast-smartboard-mode .lab-nav-btn {
+  min-height: 56px;
+  padding: 12px 20px;
+  font-size: 1.05rem;
+}
+
+[data-mode="smartboard"] select,
+body.mode-smartboard select,
+.fast-smartboard-mode select {
+  min-height: 54px;
+  font-size: 1.1rem;
+  padding: 10px 16px;
+}
+
+[data-mode="smartboard"] .range-slider,
+body.mode-smartboard .range-slider,
+.fast-smartboard-mode .range-slider {
+  height: 12px;
+}
+
+[data-mode="smartboard"] .range-slider::-webkit-slider-thumb,
+body.mode-smartboard .range-slider::-webkit-slider-thumb,
+.fast-smartboard-mode .range-slider::-webkit-slider-thumb {
+  width: 28px;
+  height: 28px;
+}
+
+[data-mode="smartboard"] .btn-sim-action,
+body.mode-smartboard .btn-sim-action,
+.fast-smartboard-mode .btn-sim-action {
+  min-height: 52px;
+  padding: 12px 20px;
+  font-size: 1.05rem;
+}
+
 /* Reset & Base Styles */
 *, *::before, *::after {
   box-sizing: border-box;

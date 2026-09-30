@@ -281,9 +281,11 @@ export function initHarmonicLab(containerId) {
   const photoPeriod = container.querySelector("#photo-disp-period");
   const photoParams = container.querySelector("#photo-disp-params");
 
+  let needsRedraw = true;
+
   // HiDPI / Retina Canvas Initialization
   function setupHiDPICanvas() {
-    const dpr = typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
     const rect = canvas.getBoundingClientRect();
     if (rect.width > 0) {
       canvas.width = rect.width * dpr;
@@ -298,6 +300,7 @@ export function initHarmonicLab(containerId) {
       graphCtx.resetTransform();
       graphCtx.scale(dpr, dpr);
     }
+    needsRedraw = true;
   }
   setupHiDPICanvas();
   window.addEventListener("resize", setupHiDPICanvas);
@@ -312,8 +315,9 @@ export function initHarmonicLab(containerId) {
     historyV.length = 0;
     historyKE.length = 0;
     historyPE.length = 0;
+    needsRedraw = true;
+    updateDisplayMetrics();
   }
-  resetOscillator();
 
   // Theoretical Period & Freq
   function getPeriod() {
@@ -339,6 +343,60 @@ export function initHarmonicLab(containerId) {
       return { pe, ke, total: pe + ke };
     }
   }
+
+  function updateDisplayMetrics() {
+    const { pe, ke, total } = calculateEnergy();
+    const T = getPeriod();
+    const f = T === Infinity ? 0 : 1 / T;
+    const omega = 2 * Math.PI * f;
+
+    if (dispPeriod) dispPeriod.innerText = T === Infinity ? "T = ∞ (Zero-G)" : `T = ${T.toFixed(3)} s`;
+    if (dispFreq) dispFreq.innerText = `f = ${f.toFixed(3)} Hz • ω = ${omega.toFixed(2)} rad/s`;
+    
+    if (dispPos) {
+      if (oscillatorType === "spring") {
+        dispPos.innerText = `x = ${x >= 0 ? "+" : ""}${x.toFixed(3)} m`;
+      } else {
+        const deg = (x * 180 / Math.PI).toFixed(1);
+        dispPos.innerText = `θ = ${x >= 0 ? "+" : ""}${deg}° (${x.toFixed(3)} rad)`;
+      }
+    }
+
+    if (dispVel) {
+      if (oscillatorType === "spring") {
+        dispVel.innerText = `v = ${v.toFixed(2)} m/s • a = ${a.toFixed(1)} m/s²`;
+      } else {
+        const tangV = lengthL * v;
+        dispVel.innerText = `v_t = ${tangV.toFixed(2)} m/s • ω = ${v.toFixed(2)} rad/s`;
+      }
+    }
+
+    if (dispEnergy) {
+      dispEnergy.innerText = `${total.toFixed(2)} J (KE: ${ke.toFixed(2)}J, PE: ${pe.toFixed(2)}J)`;
+    }
+
+    if (dispStatus) {
+      if (Math.abs(v) < 0.08) {
+        dispStatus.innerText = "⚡ Extreme Turning Point: Speed ≈ 0, PE = Max, Restoring Force Max";
+      } else if (Math.abs(x) < 0.04) {
+        dispStatus.innerText = "⚡ Equilibrium Center: Speed v = Max, KE = Max, Potential Energy Min";
+      } else {
+        dispStatus.innerText = "🔄 Dynamic Oscillation: Harmonic Exchange between KE and PE";
+      }
+    }
+
+    if (photoPeriod) {
+      photoPeriod.innerText = T === Infinity ? "Period T = ∞ (Zero-G)" : `Period T = ${T.toFixed(4)} s ± 0.1 ms`;
+    }
+    if (photoParams) {
+      if (oscillatorType === "spring") {
+        photoParams.innerText = `k = ${springK.toFixed(1)} N/m • m = ${mass.toFixed(3)} kg`;
+      } else {
+        photoParams.innerText = `L = ${lengthL.toFixed(2)} m • g = ${gravity.toFixed(2)} m/s²`;
+      }
+    }
+  }
+  resetOscillator();
 
   // 60 FPS HTML5 Simulation Apparatus Renderer
   function renderApparatus() {
@@ -825,8 +883,9 @@ export function initHarmonicLab(containerId) {
     }
   }
 
-  // Physics Euler-Cromer Integration Loop (60 FPS with DOM Throttle & Disconnect Protection)
-  let lastTime = performance.now();
+  // Physics Euler-Cromer Integration Loop (60/30 FPS Paced with DOM Throttle & Disconnect Protection)
+  let lastPhysicsTime = performance.now();
+  let lastDrawTime = 0;
   let frameCount = 0;
 
   function loop(currentTime) {
@@ -834,10 +893,15 @@ export function initHarmonicLab(containerId) {
       if (animId) cancelAnimationFrame(animId);
       return;
     }
-    const dt = Math.min(0.033, (currentTime - lastTime) / 1000);
-    lastTime = currentTime;
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const targetDrawInterval = isSmart ? 33.3 : 16.0; // 30 FPS pacing on MAXHUB / Smartboard
 
     if (isRunning && !isDragging) {
+      const dt = Math.min(0.04, (currentTime - lastPhysicsTime) / 1000);
+      lastPhysicsTime = currentTime;
       elapsedSeconds += dt;
 
       // Integration: F = -kx - bv => a = (-kx - bv) / m
@@ -870,67 +934,31 @@ export function initHarmonicLab(containerId) {
         historyKE.shift();
       }
 
-      const { total } = calculateEnergy();
-      const T = getPeriod();
-      const f = T === Infinity ? 0 : 1 / T;
-      const omega = 2 * Math.PI * f;
-
       frameCount++;
-      // Throttle DOM text updates to ~15 Hz (every 4th frame) to prevent layout thrashing on Android MAXHUB
-      if (frameCount % 4 === 0) {
-        if (dispPeriod) dispPeriod.innerText = T === Infinity ? "T = ∞ (Zero-G)" : `T = ${T.toFixed(3)} s`;
-        if (dispFreq) dispFreq.innerText = `f = ${f.toFixed(3)} Hz • ω = ${omega.toFixed(2)} rad/s`;
-        
-        if (dispPos) {
-          if (oscillatorType === "spring") {
-            dispPos.innerText = `x = ${x >= 0 ? "+" : ""}${x.toFixed(3)} m`;
-          } else {
-            const deg = (x * 180 / Math.PI).toFixed(1);
-            dispPos.innerText = `θ = ${x >= 0 ? "+" : ""}${deg}° (${x.toFixed(3)} rad)`;
-          }
-        }
-
-        if (dispVel) {
-          if (oscillatorType === "spring") {
-            dispVel.innerText = `v = ${v.toFixed(2)} m/s • a = ${a.toFixed(1)} m/s²`;
-          } else {
-            const tangV = lengthL * v;
-            dispVel.innerText = `v_t = ${tangV.toFixed(2)} m/s • ω = ${v.toFixed(2)} rad/s`;
-          }
-        }
-
-        if (dispEnergy) {
-          dispEnergy.innerText = `${total.toFixed(2)} J (KE: ${ke.toFixed(2)}J, PE: ${pe.toFixed(2)}J)`;
-        }
-
-        if (dispStatus) {
-          if (Math.abs(v) < 0.08) {
-            dispStatus.innerText = "⚡ Extreme Turning Point: Speed ≈ 0, PE = Max, Restoring Force Max";
-          } else if (Math.abs(x) < 0.04) {
-            dispStatus.innerText = "⚡ Equilibrium Center: Speed v = Max, KE = Max, Potential Energy Min";
-          } else {
-            dispStatus.innerText = "🔄 Dynamic Oscillation: Harmonic Exchange between KE and PE";
-          }
-        }
-
-        if (photoPeriod) {
-          photoPeriod.innerText = T === Infinity ? "Period T = ∞ (Zero-G)" : `Period T = ${T.toFixed(4)} s ± 0.1 ms`;
-        }
-        if (photoParams) {
-          if (oscillatorType === "spring") {
-            photoParams.innerText = `k = ${springK.toFixed(1)} N/m • m = ${mass.toFixed(3)} kg`;
-          } else {
-            photoParams.innerText = `L = ${lengthL.toFixed(2)} m • g = ${gravity.toFixed(2)} m/s²`;
-          }
-        }
+      // Throttle DOM text updates to ~15 Hz (every 4th frame at 60fps, every 2nd frame at 30fps) to prevent layout thrashing on Android MAXHUB
+      const domThrottle = isSmart ? 2 : 4;
+      if (frameCount % domThrottle === 0) {
+        updateDisplayMetrics();
       }
+      needsRedraw = true;
+    } else {
+      // Synchronize physics time clock while paused/dragging so unpausing doesn't jump
+      lastPhysicsTime = currentTime;
     }
 
-    // Render Canvas Views
+    // Render Canvas Views with Smartboard Pacing & Zero-Cost Idle Protection
     const photoEl = container.querySelector("#harmonic-photo-overlay");
-    if (!photoEl || photoEl.style.display !== "block") {
-      renderApparatus();
-      renderGraph();
+    const isPhotoOverlay = photoEl && photoEl.style.display === "block";
+
+    if (!isPhotoOverlay && (needsRedraw || isDragging)) {
+      if (!currentTime || currentTime - lastDrawTime >= targetDrawInterval) {
+        lastDrawTime = currentTime || performance.now();
+        renderApparatus();
+        renderGraph();
+        if (!isRunning && !isDragging) {
+          needsRedraw = false;
+        }
+      }
     }
     animId = requestAnimationFrame(loop);
   }
@@ -1007,6 +1035,8 @@ export function initHarmonicLab(containerId) {
       x = Math.max(-Math.PI / 2.5, Math.min(Math.PI / 2.5, angle));
       v = 0;
     }
+    needsRedraw = true;
+    updateDisplayMetrics();
   }
 
   function handlePointerUp() {
@@ -1014,6 +1044,8 @@ export function initHarmonicLab(containerId) {
       isDragging = false;
       canvas.style.cursor = "grab";
       v = 0; // Release from rest at new displacement
+      needsRedraw = true;
+      updateDisplayMetrics();
       SoundFX.playPop();
     }
   }
@@ -1033,6 +1065,7 @@ export function initHarmonicLab(containerId) {
     btnPhoto.classList.remove("active");
     btnPhoto.style.background = "transparent";
     if (photoOverlay) photoOverlay.style.display = "none";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -1048,6 +1081,7 @@ export function initHarmonicLab(containerId) {
   container.querySelector("#btn-shm-toggle-run")?.addEventListener("click", (e) => {
     isRunning = !isRunning;
     e.currentTarget.innerText = isRunning ? "⏸ Pause" : "▶ Resume";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -1091,6 +1125,8 @@ export function initHarmonicLab(containerId) {
       gravityName = btn.dataset.name;
       const lbl = container.querySelector("#lbl-shm-gravity");
       if (lbl) lbl.innerText = `${gravity.toFixed(2)} m/s² (${gravityName})`;
+      needsRedraw = true;
+      updateDisplayMetrics();
       SoundFX.playClick();
     });
   });
@@ -1122,6 +1158,7 @@ export function initHarmonicLab(containerId) {
       btnEnergy.style.background = "";
       if (lblGraphTitle) lblGraphTitle.innerText = "Mechanical Energy Conservation: KE + PE = E_tot";
     }
+    needsRedraw = true;
     SoundFX.playClick();
   }
 
@@ -1134,24 +1171,32 @@ export function initHarmonicLab(containerId) {
     mass = parseFloat(e.target.value);
     e.target.setAttribute("aria-valuenow", mass);
     container.querySelector("#lbl-shm-mass").innerText = `${mass.toFixed(2)} kg`;
+    needsRedraw = true;
+    updateDisplayMetrics();
   });
 
   container.querySelector("#slider-shm-k")?.addEventListener("input", (e) => {
     springK = parseFloat(e.target.value);
     e.target.setAttribute("aria-valuenow", springK);
     container.querySelector("#lbl-shm-k").innerText = `${springK.toFixed(1)} N/m`;
+    needsRedraw = true;
+    updateDisplayMetrics();
   });
 
   container.querySelector("#slider-shm-l")?.addEventListener("input", (e) => {
     lengthL = parseFloat(e.target.value);
     e.target.setAttribute("aria-valuenow", lengthL);
     container.querySelector("#lbl-shm-l").innerText = `${lengthL.toFixed(2)} m`;
+    needsRedraw = true;
+    updateDisplayMetrics();
   });
 
   container.querySelector("#slider-shm-damping")?.addEventListener("input", (e) => {
     dampingB = parseFloat(e.target.value);
     e.target.setAttribute("aria-valuenow", dampingB);
     container.querySelector("#lbl-shm-damping").innerText = `${dampingB.toFixed(2)} N·s/m`;
+    needsRedraw = true;
+    updateDisplayMetrics();
   });
 
   // Record Trial
