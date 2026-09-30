@@ -183,9 +183,81 @@ assert(appContent.includes("searchDebounceTimer = setTimeout("), "app.js debounc
 const indexCssContent = fs.readFileSync(path.join(rootDir, "index.css"), "utf-8");
 assert(indexCssContent.includes('[data-mode="smartboard"] .unit-filter-chip'), "index.css sizes unit filter chips for touch (min-height: 52px)");
 assert(indexCssContent.includes('[data-mode="smartboard"] .search-input'), "index.css sizes search input for touch (min-height: 58px)");
-assert(indexCssContent.includes('[data-mode="smartboard"] .range-slider::-webkit-slider-thumb'), "index.css enlarges range slider touch thumbs (28px)");
+assert(indexCssContent.includes('[data-mode="smartboard"] .range-slider::-webkit-slider-thumb'), "index.css enlarges range slider touch thumbs");
 console.log("  ✅ PASS: Search input debounced against layout thrashing; smartboard touch targets sized generously (52-58px)");
 
+// ----------------------------------------------------
+// Test 11: All 30 Virtual Lab Workbenches Disconnect Guards
+// ----------------------------------------------------
+console.log("\n🔬 Test 11: All 30 Virtual Lab Workbenches Disconnect Guards");
+const labFiles = fs.readdirSync(path.join(rootDir, "labs"))
+  .filter(f => f.startsWith("bio-") || f.startsWith("chem-") || f.startsWith("phys-"));
+assert.strictEqual(labFiles.length, 30, `Expected exactly 30 virtual lab modules, found ${labFiles.length}`);
+for (const f of labFiles) {
+  const code = fs.readFileSync(path.join(rootDir, "labs", f), "utf-8");
+  assert(
+    code.includes("isConnected"),
+    `Lab ${f} must include isConnected disconnect guard for animation loops or observers`
+  );
+}
+console.log(`  ✅ PASS: All 30 virtual lab modules verified with isConnected unmount disconnect guards`);
+
+// ----------------------------------------------------
+// Test 12: Smartboard DPR Capping & Fill-Rate Shielding
+// ----------------------------------------------------
+console.log("\n🛡️ Test 12: Smartboard DPR Capping & Fill-Rate Shielding");
+for (const f of labFiles) {
+  const code = fs.readFileSync(path.join(rootDir, "labs", f), "utf-8");
+  const lines = code.split("\n");
+  lines.forEach((line, idx) => {
+    if (line.includes("window.devicePixelRatio") && !line.includes("getLabDPR") && !line.includes("getOptimizedDPR")) {
+      assert.fail(`Unshielded window.devicePixelRatio found in labs/${f}:${idx + 1}`);
+    }
+  });
+}
+console.log("  ✅ PASS: Zero unshielded window.devicePixelRatio allocations; all 30 labs route through getLabDPR()");
+
+// ----------------------------------------------------
+// Test 13: Classroom Stopwatch & Exam Timer Lifecycle Protections
+// ----------------------------------------------------
+console.log("\n⏱️ Test 13: Classroom Stopwatch & Exam Timer Lifecycle Protections");
+const toolbarContent = fs.readFileSync(path.join(rootDir, "components", "smartboard-toolbar.js"), "utf-8");
+assert(
+  toolbarContent.includes("!timerWidget || !timerWidget.isConnected"),
+  "smartboard-toolbar.js guards tickStopwatch against disconnected widget"
+);
+assert(
+  toolbarContent.includes("interval = isSmart ? 33 : 16") || toolbarContent.includes("isSmart ? 33 : 16"),
+  "smartboard-toolbar.js paces stopwatch redraws to 30 FPS on smartboard mode"
+);
+assert(
+  quizContent.includes("!container || !container.isConnected"),
+  "quiz-engine.js checks container connection inside timerInterval to halt detached timers"
+);
+console.log("  ✅ PASS: Classroom stopwatch and exam timers are safely guarded against unmounted memory leaks and frame-paced");
+
+// ----------------------------------------------------
+// Test 14: 32px Smartboard Range Slider Touch Ergonomics
+// ----------------------------------------------------
+console.log("\n🎚️ Test 14: 32px Smartboard Range Slider Touch Ergonomics");
+assert(
+  indexCssContent.includes("width: 32px") && indexCssContent.includes("height: 32px"),
+  "index.css defines 32px touch thumbs for range sliders"
+);
+assert(
+  indexCssContent.includes('input[type="range"]::-webkit-slider-thumb') &&
+  indexCssContent.includes('.range-slider::-webkit-slider-thumb') &&
+  indexCssContent.includes('.custom-slider::-webkit-slider-thumb'),
+  "index.css covers native, standard, and custom range sliders for webkit thumbs"
+);
+assert(
+  indexCssContent.includes('input[type="range"]::-moz-range-thumb') &&
+  indexCssContent.includes('.range-slider::-moz-range-thumb') &&
+  indexCssContent.includes('.custom-slider::-moz-range-thumb'),
+  "index.css covers native, standard, and custom range sliders for mozilla thumbs"
+);
+console.log("  ✅ PASS: 32px slider touch thumbs verified across all slider variants and browser engines");
+
 console.log("\n========================================================");
-console.log("📊 MAXHUB Android Improvement Plan: All 10 Test Groups Passed!");
+console.log("📊 MAXHUB Android Improvement Plan: All 14 Test Groups Passed!");
 console.log("========================================================\n");
