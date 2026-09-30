@@ -1116,6 +1116,396 @@ export const LAB_CHECKPOINTS = {
       correctIndex: 1,
       explanation: "In the absence of oxygen, yeast decarboxylates pyruvate to acetaldehyde releasing CO₂, then reduces acetaldehyde to ethanol to regenerate NAD⁺ so glycolysis can continue generating 2 ATP per glucose."
     }
+  ],
+
+  beerlambert: [
+    {
+      id: "q1",
+      question: "According to the Beer-Lambert Law (A = ε·b·c), what is the mathematical relationship between optical absorbance A and molar concentration c?",
+      options: [
+        "Inversely proportional (hyperbolic)",
+        "Directly proportional (linear relationship with zero intercept)",
+        "Exponential decay",
+        "Logarithmic saturation"
+      ],
+      correctIndex: 1,
+      explanation: "The Beer-Lambert Law states A = ε·b·c. Absorbance is directly proportional to both path length (b) and molar concentration (c), yielding a linear calibration plot with slope = ε·b."
+    },
+    {
+      id: "q2",
+      question: "If a chemical solution transmits exactly 10% of incident light (T = 0.10) in a spectrophotometer cuvette, what is its optical absorbance A?",
+      options: [
+        "A = 0.100",
+        "A = 1.000",
+        "A = 2.000",
+        "A = 0.000"
+      ],
+      correctIndex: 1,
+      explanation: "Absorbance is defined as A = -log₁₀(T). For T = 0.10 (10% transmittance), A = -log₁₀(0.10) = 1.000."
+    },
+    {
+      id: "q3",
+      question: "Why are spectrophotometric absorbance measurements performed at λ_max (the analytical peak absorption wavelength of the solute)?",
+      options: [
+        "Because light travels fastest at that wavelength",
+        "To maximize analytical sensitivity and minimize error from slight wavelength calibration drift",
+        "To prevent photochemical decomposition of the solvent",
+        "Because molar absorptivity ε is at its minimum at λ_max"
+      ],
+      correctIndex: 1,
+      explanation: "At λ_max, molar absorptivity ε reaches its peak value. This yields the greatest change in absorbance per unit concentration (maximum sensitivity) and ensures that minor instrumental wavelength drift produces negligible error."
+    }
+  ],
+
+  decay: [
+    {
+      id: "q1",
+      question: "Which type of nuclear decay radiation possesses the highest ionizing power but can be completely arrested by a single sheet of paper or human epidermis?",
+      options: [
+        "Gamma rays (γ photons)",
+        "Beta-minus (β⁻ electrons)",
+        "Alpha particles (α, helium-4 nuclei ⁴₂He²⁺)",
+        "Neutron radiation"
+      ],
+      correctIndex: 2,
+      explanation: "Alpha particles consist of two protons and two neutrons (⁴₂He²⁺). Due to their high mass and +2 charge, they interact strongly with matter and have high ionizing power but extremely short penetration depths."
+    },
+    {
+      id: "q2",
+      question: "A radioisotope with a half-life of 8.0 days exhibits an initial activity of 800 CPM. What will its measured activity be after 24.0 days?",
+      options: [
+        "400 CPM",
+        "200 CPM",
+        "100 CPM",
+        "50 CPM"
+      ],
+      correctIndex: 2,
+      explanation: "24.0 days corresponds to exactly 3 half-lives (24 / 8 = 3). After 3 half-lives, activity drops to (1/2)³ = 1/8 of original: 800 / 8 = 100 CPM."
+    },
+    {
+      id: "q3",
+      question: "In nuclear beta-minus (β⁻) emission, what fundamental subatomic nucleon transformation takes place within the radioactive nucleus?",
+      options: [
+        "A proton converts into an alpha particle",
+        "A neutron transforms into a proton, emitting an electron and an electron antineutrino",
+        "An electron is captured by the nucleus",
+        "Two protons fuse into a deuteron"
+      ],
+      correctIndex: 1,
+      explanation: "In β⁻ decay, weak interaction converts a down quark to an up quark: n → p + e⁻ + ν̄_e. The mass number A remains constant while atomic number Z increases by 1."
+    }
+  ],
+
+  colligative: [
+    {
+      id: "q1",
+      question: "Why does a 1.0 m aqueous solution of CaCl₂ produce approximately 1.5 times the freezing point depression of a 1.0 m solution of NaCl?",
+      options: [
+        "Calcium is heavier than sodium",
+        "CaCl₂ dissociates into 3 ions (Ca²⁺ + 2 Cl⁻, i ≈ 3) while NaCl yields 2 ions (Na⁺ + Cl⁻, i ≈ 2)",
+        "CaCl₂ has a higher heat capacity",
+        "Water molecules bind more tightly to chloride than sodium"
+      ],
+      correctIndex: 1,
+      explanation: "Colligative properties depend on the total number of dissolved solute particles. CaCl₂ releases 3 particles per formula unit (van 't Hoff i ≈ 3), producing 1.5× the colligative effect of NaCl (i ≈ 2)."
+    },
+    {
+      id: "q2",
+      question: "During the cooling curve of a pure liquid solvent, why does the temperature plateau (remain constant) at the freezing point despite continuous heat extraction?",
+      options: [
+        "Specific heat capacity suddenly drops to zero",
+        "Latent heat of fusion is released as solvent molecules organize into the crystalline solid lattice",
+        "The cryogenic bath stops cooling",
+        "Molecular kinetic energy increases"
+      ],
+      correctIndex: 1,
+      explanation: "Phase transitions occur at constant temperature. As liquid transitions to solid, latent heat of fusion (ΔH_fus) is liberated, balancing external heat extraction until crystallization is complete."
+    },
+    {
+      id: "q3",
+      question: "Colligative properties of a solution (ΔT_f, ΔT_b, osmotic pressure Π) depend strictly upon:",
+      options: [
+        "The chemical reactivity and color of the solute",
+        "The ratio of the number of solute particles to the number of solvent molecules, independent of chemical identity",
+        "The atmospheric pressure alone",
+        "The acidity (pH) of the solution"
+      ],
+      correctIndex: 1,
+      explanation: "By definition, colligative properties depend only on the concentration of solute particles (ions or molecules) in a given mass or volume of solvent, not on the identity or chemical properties of the solute."
+    }
+  ],
+
+  organic: [
+    {
+      id: "q1",
+      question: "In an S_N2 nucleophilic substitution reaction on a chiral electrophilic carbon center, what stereochemical outcome is observed?",
+      options: [
+        "Complete retention of configuration",
+        "Racemization (50% retention, 50% inversion)",
+        "Complete inversion of configuration via backside attack (Walden inversion)",
+        "Formation of a meso compound"
+      ],
+      correctIndex: 2,
+      explanation: "S_N2 is a concerted, single-step bimolecular mechanism where the nucleophile attacks the carbon atom from the side opposite to the leaving group (backside attack), inverting the stereocenter like an umbrella in high wind."
+    },
+    {
+      id: "q2",
+      question: "Why do tertiary alkyl halides (3°) predominantly undergo substitution via the S_N1 mechanism rather than S_N2?",
+      options: [
+        "Steric hindrance prevents backside nucleophilic attack, and the tertiary carbocation intermediate is highly stabilized by hyperconjugation and inductive effects",
+        "Tertiary alkyl halides are nonpolar and cannot react with nucleophiles",
+        "S_N1 reactions do not require a leaving group",
+        "Primary carbocations are more stable than tertiary carbocations"
+      ],
+      correctIndex: 0,
+      explanation: "Bulky alkyl groups sterically shield the α-carbon from S_N2 backside attack. Concurrently, hyperconjugation and alkyl electron-donation stabilize the 3° carbocation intermediate formed in the rate-determining S_N1 step."
+    },
+    {
+      id: "q3",
+      question: "In a reaction coordinate diagram (Gibbs free energy vs. reaction progress), what physical state corresponds to the maximum peak of the energy curve (ΔG‡)?",
+      options: [
+        "A long-lived reaction intermediate",
+        "The activated transition state, featuring partially formed and partially broken bonds",
+        "The ground-state product",
+        "The catalyst-inhibitor complex"
+      ],
+      correctIndex: 1,
+      explanation: "The energy peak corresponds to the transition state (‡), a transient molecular geometry with highest potential energy containing partially broken and partially formed bonds."
+    }
+  ],
+
+  electrophoresis: [
+    {
+      id: "q1",
+      question: "Why do DNA and RNA nucleic acid fragments migrate toward the positive anode (+) during agarose gel electrophoresis?",
+      options: [
+        "Because nitrogenous bases carry positive charges",
+        "Because the repeating phosphodiester sugar-phosphate backbone confers a uniform negative charge at physiological pH",
+        "Because of magnetic attraction by the electrodes",
+        "Because agarose gel pushes nucleic acids toward the bottom"
+      ],
+      correctIndex: 1,
+      explanation: "The phosphate groups in DNA's backbone are fully ionized and negatively charged at neutral/basic running buffer pH (8.0-8.3). Therefore, DNA experiences an electrostatic force pulling it toward the positive electrode (anode)."
+    },
+    {
+      id: "q2",
+      question: "In a standard agarose sieving matrix, how does DNA fragment length (in base pairs) correlate with migration distance from the wells?",
+      options: [
+        "Longer fragments migrate further because they have more charge",
+        "Migration distance is inversely proportional to the logarithm of base-pair length (D ∝ 1/log₁₀(bp))",
+        "All fragments migrate at identical speeds regardless of size",
+        "Migration distance is directly proportional to DNA mass"
+      ],
+      correctIndex: 1,
+      explanation: "Because the charge-to-mass ratio of DNA is constant, migration through the gel is governed strictly by molecular sieving: smaller fragments maneuver through agarose pores more easily, migrating inversely to log₁₀(bp)."
+    },
+    {
+      id: "q3",
+      question: "When resolving small DNA PCR fragments between 100 bp and 600 bp, which agarose gel concentration provides the highest analytical resolution?",
+      options: [
+        "0.7% agarose gel (large pores)",
+        "2.0% agarose gel (dense polymer matrix with fine pores)",
+        "0.2% agarose gel",
+        "Pure water without agarose"
+      ],
+      correctIndex: 1,
+      explanation: "Higher agarose concentrations (e.g. 1.8% - 2.0%) create smaller pores in the polymeric gel matrix, which increases friction and separation resolution for low-molecular-weight DNA fragments."
+    }
+  ],
+
+  ecology: [
+    {
+      id: "q1",
+      question: "In the Lotka-Volterra predator-prey model, why does the predator population curve exhibit an oscillatory time lag behind the prey population curve?",
+      options: [
+        "Predators migrate away from the ecosystem in summer",
+        "Predator reproductive growth depends on consuming prey; abundant prey increases predator births, which later overconsume prey and cause a collapse",
+        "Prey reproduce only after predators die",
+        "Solar cycles dictate predator birth rates"
+      ],
+      correctIndex: 1,
+      explanation: "Prey abundance fuels predator nutrition and reproduction with a biological delay (gestation/maturation). As predator numbers surge, predation pressure drives prey down, leading to food scarcity and subsequent predator decline."
+    },
+    {
+      id: "q2",
+      question: "How does the introduction of a finite carrying capacity K modify exponential population growth in logistic ecological models?",
+      options: [
+        "It forces the population to zero immediately",
+        "Per-capita population growth rate declines linearly as population size N approaches K, stabilizing at an equilibrium plateau",
+        "It eliminates natural mortality",
+        "It doubles the intrinsic growth rate r"
+      ],
+      correctIndex: 1,
+      explanation: "The logistic term (1 - N/K) reflects density-dependent environmental resistance (resource limitation, territory, disease). As N approaches carrying capacity K, net population growth dN/dt slows to zero."
+    },
+    {
+      id: "q3",
+      question: "What ecological phenomenon often occurs when an apex keystone predator is extirpated (completely removed) from a balanced ecosystem?",
+      options: [
+        "Total biodiversity immediately multiplies",
+        "Trophic cascade with secondary prey irruption, overconsumption of primary vegetation, and eventual biodiversity collapse",
+        "Prey species voluntarily stop reproducing",
+        "Plants become carnivores"
+      ],
+      correctIndex: 1,
+      explanation: "Removing a keystone predator triggers a top-down trophic cascade: herbivore prey populations irrupt unchecked, overgrazing primary producers and devastating habitat architecture and overall biodiversity."
+    }
+  ],
+
+  actionpotential: [
+    {
+      id: "q1",
+      question: "What biophysical mechanism triggers the rapid rising phase (depolarization) of an action potential once the threshold potential (-55 mV) is reached?",
+      options: [
+        "Massive outflow of potassium ions (K⁺)",
+        "Synchronous opening of the m-activation gates of voltage-gated Na⁺ channels, causing massive inward Na⁺ current down its electrochemical gradient",
+        "Pumping of calcium into the mitochondria",
+        "Closure of all leak channels"
+      ],
+      correctIndex: 1,
+      explanation: "Reaching threshold voltage induces a conformational change in voltage-gated Na⁺ channels: their activation (m) gates rapidly open, generating a regenerative inward positive feedback loop of Na⁺ influx."
+    },
+    {
+      id: "q2",
+      question: "How does the neurotoxin Tetrodotoxin (TTX, from pufferfish) affect electrophysiological action potentials in nerve axons?",
+      options: [
+        "It enhances neurotransmitter release indefinitely",
+        "It selectively plugs the extracellular pore of voltage-gated Na⁺ channels, completely abolishing the depolarization phase of action potentials",
+        "It blocks K⁺ channels, prolonging the action potential",
+        "It increases resting membrane potential to +50 mV"
+      ],
+      correctIndex: 1,
+      explanation: "TTX binds with high affinity to the outer vestibule of voltage-gated Na⁺ channels, blocking Na⁺ conductance and completely inhibiting action potential generation without directly affecting resting K⁺ channels."
+    },
+    {
+      id: "q3",
+      question: "During the absolute refractory period of a neuron, why is it physiologically impossible to evoke a second action potential regardless of stimulus magnitude?",
+      options: [
+        "The neuron has run out of intracellular ATP",
+        "Voltage-gated Na⁺ channels are locked in their closed inactivation (h-gate) conformation and cannot reopen until the membrane repolarizes",
+        "The axon membrane has ruptured",
+        "Extracellular Na⁺ has been completely depleted"
+      ],
+      correctIndex: 1,
+      explanation: "Following peak depolarization, voltage-gated Na⁺ channels undergo inactivation gate (h-gate) closure. Until the membrane potential repolarizes sufficiently to relieve inactivation, no amount of stimulus current can open them."
+    }
+  ],
+
+  rotational: [
+    {
+      id: "q1",
+      question: "A solid sphere (I = 2/5 MR²) and a hollow hoop (I = MR²) of identical mass M and radius R race down an inclined plane from rest without slipping. Which reaches the bottom first?",
+      options: [
+        "The hollow hoop, because its mass is concentrated at the rim",
+        "The solid sphere, because a lower fraction of its potential energy is allocated to rotational kinetic energy, leaving more for translational velocity",
+        "Both arrive at the exact same instant",
+        "The object with greater diameter"
+      ],
+      correctIndex: 1,
+      explanation: "Linear acceleration down an incline is a = (g·sinθ) / (1 + I/(MR²)). For the sphere, I/(MR²) = 0.40, giving a = 0.714 g·sinθ. For the hoop, I/(MR²) = 1.00, giving a = 0.500 g·sinθ. The sphere accelerates faster and wins the race."
+    },
+    {
+      id: "q2",
+      question: "For a rigid cylinder rolling down an incline without slipping, what force exerts the net torque about the center of mass that produces angular acceleration?",
+      options: [
+        "The normal force perpendicular to the incline",
+        "Static friction directed up the ramp at the contact point",
+        "Gravitational pull acting at the center of mass",
+        "Air resistance"
+      ],
+      correctIndex: 1,
+      explanation: "Normal force and gravity act through the center of mass, producing zero torque. Static friction acts at the contact point at radius R, producing the net torque τ = f_s·R = I·α necessary for rolling without slipping."
+    },
+    {
+      id: "q3",
+      question: "A rotating figure skater pulls their outstretched arms inward toward their rotation axis. If net external torque is zero, what happens to their angular momentum L and rotational kinetic energy?",
+      options: [
+        "Both angular momentum and kinetic energy decrease",
+        "Angular momentum L remains strictly conserved, while rotational kinetic energy increases because work was done to pull arms inward",
+        "Angular momentum increases while angular velocity decreases",
+        "Moment of inertia increases"
+      ],
+      correctIndex: 1,
+      explanation: "With zero external torque, L = I·ω is conserved. Pulling mass inward reduces I, increasing ω. Because KE_rot = L² / (2I), reducing I increases kinetic energy; the extra energy comes from mechanical work done by skater muscles."
+    }
+  ],
+
+  conduction: [
+    {
+      id: "q1",
+      question: "According to Fourier's Law of 1D Heat Conduction (dQ/dt = k·A·ΔT / L), doubling the thickness (length L) of an insulating slab while keeping surface temperatures fixed will:",
+      options: [
+        "Double the rate of heat transfer",
+        "Halve the rate of heat transfer (dQ/dt)",
+        "Leave the heat transfer rate unchanged",
+        "Quadruple the thermal conductivity k"
+      ],
+      correctIndex: 1,
+      explanation: "Heat conduction rate dQ/dt is inversely proportional to rod/wall thickness L. Doubling L doubles thermal resistance R_th = L / (k·A), reducing conductive heat flux by 50%."
+    },
+    {
+      id: "q2",
+      question: "Why do metallic conductors such as copper (k ≈ 398 W/m·K) exhibit thermal conductivities hundreds of times higher than wood or glass?",
+      options: [
+        "Metals are denser and absorb more photons",
+        "Metals possess a sea of highly mobile free conduction electrons that rapidly transport thermal kinetic energy through the crystal lattice",
+        "Wood and glass are at absolute zero",
+        "Metals do not vibrate when heated"
+      ],
+      correctIndex: 1,
+      explanation: "In non-metals, heat conducts solely via lattice vibrations (phonons). In metals, both phonons and high-velocity delocalized valence electrons transfer kinetic energy, resulting in extraordinarily high thermal conductivity."
+    },
+    {
+      id: "q3",
+      question: "Under steady-state 1D heat conduction through a uniform cylindrical metal rod with insulated lateral sides connecting hot and cold reservoirs, the temperature gradient (dT/dx) along the rod is:",
+      options: [
+        "Parabolic with a maximum in the center",
+        "Strictly constant, producing a linear decline in temperature from T_hot to T_cold",
+        "Exponential decay",
+        "Fluctuating sinusoidally"
+      ],
+      correctIndex: 1,
+      explanation: "Under steady-state conditions without internal heat generation and with insulated walls, heat flux dQ/dt must be uniform across every cross section: dQ/dt = -k·A·(dT/dx) = const. Therefore, dT/dx is constant, yielding a linear profile."
+    }
+  ],
+
+  fluids: [
+    {
+      id: "q1",
+      question: "According to Archimedes' Principle, the magnitude of the buoyant force (F_b) exerted on a completely or partially submerged object equals:",
+      options: [
+        "The total weight of the submerged solid object",
+        "The weight of the fluid volume displaced by the submerged portion of the object (F_b = ρ_fluid · V_disp · g)",
+        "The atmospheric pressure on the fluid surface",
+        "The surface tension of the fluid"
+      ],
+      correctIndex: 1,
+      explanation: "Archimedes' Principle states that any body immersed in fluid experiences an upward buoyant force equal to the weight of fluid it displaces: F_b = m_disp · g = ρ_fluid · V_disp · g."
+    },
+    {
+      id: "q2",
+      question: "In a horizontal Venturi flow tube, as an incompressible fluid flows from a wide section into a narrow throat constriction, what happens to flow velocity v and static pressure P?",
+      options: [
+        "Velocity decreases and pressure increases",
+        "Velocity increases by continuity (A₁v₁ = A₂v₂), causing static pressure P to decrease according to Bernoulli's principle",
+        "Both velocity and pressure remain constant",
+        "Both velocity and pressure increase"
+      ],
+      correctIndex: 1,
+      explanation: "By mass continuity, fluid must accelerate in the constricted area (v₂ > v₁). By Bernoulli's equation (P + ½ρv² = const), an increase in kinetic energy density requires a corresponding drop in static pressure (P₂ < P₁)."
+    },
+    {
+      id: "q3",
+      question: "A solid metal block of volume 2.0 L (0.002 m³) and mass 5.0 kg is completely submerged in pure water (ρ = 1000 kg/m³). What is its apparent weight measured by a submerged spring scale?",
+      options: [
+        "49.05 N",
+        "19.62 N",
+        "29.43 N",
+        "0.00 N (it floats)"
+      ],
+      correctIndex: 2,
+      explanation: "True weight W = m·g = 5.0 kg × 9.81 m/s² = 49.05 N. Buoyant force F_b = ρ·V·g = 1000 kg/m³ × 0.002 m³ × 9.81 m/s² = 19.62 N. Apparent weight W_app = W - F_b = 49.05 N - 19.62 N = 29.43 N."
+    }
   ]
 };
 
@@ -1132,6 +1522,16 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
     if (LAB_CHECKPOINTS[raw]) return LAB_CHECKPOINTS[raw];
     if (LAB_CHECKPOINTS[clean]) return LAB_CHECKPOINTS[clean];
     if (LAB_CHECKPOINTS[clean + "s"]) return LAB_CHECKPOINTS[clean + "s"];
+    if (clean.includes("beer") || clean.includes("lambert") || clean.includes("spectro")) return LAB_CHECKPOINTS.beerlambert;
+    if (clean.includes("decay") || clean.includes("nuclear") || clean.includes("radioact")) return LAB_CHECKPOINTS.decay;
+    if (clean.includes("collig") || clean.includes("freez") || clean.includes("boil")) return LAB_CHECKPOINTS.colligative;
+    if (clean.includes("organ") || clean.includes("sn1") || clean.includes("sn2")) return LAB_CHECKPOINTS.organic;
+    if (clean.includes("electrophor") || clean.includes("gel") || clean.includes("agarose")) return LAB_CHECKPOINTS.electrophoresis;
+    if (clean.includes("ecol") || clean.includes("populat") || clean.includes("lotka") || clean.includes("predat")) return LAB_CHECKPOINTS.ecology;
+    if (clean.includes("action") || clean.includes("potent") || clean.includes("neuron") || clean.includes("patch")) return LAB_CHECKPOINTS.actionpotential;
+    if (clean.includes("rotat") || clean.includes("torque") || clean.includes("inertia")) return LAB_CHECKPOINTS.rotational;
+    if (clean.includes("conduct") || clean.includes("fourier") || clean.includes("heat")) return LAB_CHECKPOINTS.conduction;
+    if (clean.includes("fluid") || clean.includes("buoy") || clean.includes("archimed") || clean.includes("bernoulli")) return LAB_CHECKPOINTS.fluids;
     if (clean.includes("project") || clean.includes("kinemat")) return LAB_CHECKPOINTS.projectile;
     if (clean.includes("titrat")) return LAB_CHECKPOINTS.titration;
     if (clean.includes("micro")) return LAB_CHECKPOINTS.microscope;

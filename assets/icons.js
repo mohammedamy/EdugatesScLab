@@ -1098,6 +1098,85 @@ export const icons = {
     <path d="M8 14h.01"/>
     <path d="M12 18h.01"/>
     <path d="M8 18h.01"/>
+  </svg>`,
+
+  beerLambert: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="7" y="3" width="10" height="18" rx="2" stroke="#06b6d4" fill="rgba(6, 182, 212, 0.2)"/>
+    <line x1="2" y1="12" x2="7" y2="12" stroke="#f43f5e" stroke-width="2.5"/>
+    <line x1="17" y1="12" x2="22" y2="12" stroke="#f43f5e" stroke-width="1.2" stroke-dasharray="2 2"/>
+    <circle cx="12" cy="12" r="1.5" fill="#06b6d4"/>
+  </svg>`,
+
+  nuclearDecay: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="2.5" fill="#facc15" stroke="#eab308"/>
+    <path d="M12 9.5V2" stroke="#facc15"/>
+    <path d="M9.8 13.3L3.3 17" stroke="#facc15"/>
+    <path d="M14.2 13.3L20.7 17" stroke="#facc15"/>
+    <path d="M8.5 4.5a8 8 0 0 1 7 0" stroke="#facc15"/>
+    <path d="M2.5 15a8 8 0 0 1 3.5-6" stroke="#facc15"/>
+    <path d="M18 9a8 8 0 0 1 3.5 6" stroke="#facc15"/>
+  </svg>`,
+
+  colligative: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z" stroke="#38bdf8"/>
+    <path d="M12 12v6" stroke="#ef4444" stroke-width="2"/>
+    <circle cx="12" cy="18" r="2" fill="#ef4444"/>
+    <path d="M18 5l2 2m0-2l-2 2" stroke="#c084fc"/>
+    <path d="M6 7l2 2m0-2l-2 2" stroke="#c084fc"/>
+  </svg>`,
+
+  organicReactions: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polygon points="12,3 19.8,7.5 19.8,16.5 12,21 4.2,16.5 4.2,7.5" stroke="#a855f7" fill="rgba(168, 85, 247, 0.15)"/>
+    <circle cx="12" cy="12" r="4.5" stroke="#c084fc" stroke-dasharray="3 3"/>
+    <line x1="12" y1="3" x2="12" y2="7.5" stroke="#a855f7"/>
+  </svg>`,
+
+  gelElectrophoresis: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="3" width="16" height="18" rx="2" stroke="#10b981" fill="rgba(16, 185, 129, 0.12)"/>
+    <rect x="7" y="5" width="2" height="2" fill="#34d399"/>
+    <rect x="11" y="5" width="2" height="2" fill="#34d399"/>
+    <rect x="15" y="5" width="2" height="2" fill="#34d399"/>
+    <line x1="7" y1="9" x2="9" y2="9" stroke="#34d399" stroke-width="2"/>
+    <line x1="7" y1="13" x2="9" y2="13" stroke="#34d399" stroke-width="2"/>
+    <line x1="7" y1="17" x2="9" y2="17" stroke="#34d399" stroke-width="2"/>
+    <line x1="11" y1="11" x2="13" y2="11" stroke="#34d399" stroke-width="2"/>
+    <line x1="15" y1="14" x2="17" y2="14" stroke="#34d399" stroke-width="2"/>
+  </svg>`,
+
+  populationEcology: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 18l5-6 4 3 7-8" stroke="#10b981" stroke-width="2.2"/>
+    <path d="M4 14l5 4 4-7 7 4" stroke="#f59e0b" stroke-width="2.2"/>
+    <circle cx="20" cy="7" r="2" fill="#10b981"/>
+    <circle cx="20" cy="15" r="2" fill="#f59e0b"/>
+  </svg>`,
+
+  actionPotential: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M2 14h5l2-9 4 15 3-9 2 4h4" stroke="#c084fc" stroke-width="2.2"/>
+    <circle cx="11" cy="5" r="1.5" fill="#f43f5e"/>
+    <circle cx="16" cy="19" r="1.5" fill="#38bdf8"/>
+  </svg>`,
+
+  rotationalDynamics: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 19h18L3 9z" stroke="#64748b" fill="rgba(100, 116, 139, 0.2)"/>
+    <circle cx="12" cy="11" r="4.5" stroke="#f59e0b" stroke-width="2" fill="rgba(245, 158, 11, 0.25)"/>
+    <path d="M12 9a2 2 0 1 1-1.5 3.3" stroke="#fbbf24"/>
+  </svg>`,
+
+  thermalConduction: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5" y="9" width="14" height="6" rx="1" stroke="#fb923c" fill="rgba(249, 115, 22, 0.2)"/>
+    <circle cx="3" cy="12" r="2" fill="#ef4444"/>
+    <circle cx="21" cy="12" r="2" fill="#38bdf8"/>
+    <path d="M8 12h8" stroke="#ffffff" stroke-dasharray="2 2"/>
+    <path d="M14 10l2 2-2 2" stroke="#ffffff"/>
+  </svg>`,
+
+  fluidsBuoyancy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="5" width="8" height="8" rx="1" stroke="#38bdf8" fill="rgba(56, 189, 248, 0.25)"/>
+    <path d="M2 17c3-1.5 6 1.5 10 0s7 1.5 10 0" stroke="#06b6d4" stroke-width="2"/>
+    <path d="M2 20c3-1.5 6 1.5 10 0s7 1.5 10 0" stroke="#0284c7" stroke-width="2"/>
+    <line x1="12" y1="10" x2="12" y2="3" stroke="#10b981" stroke-width="2"/>
+    <polyline points="10,5 12,3 14,5" stroke="#10b981" stroke-width="2"/>
   </svg>`
 };
+
 

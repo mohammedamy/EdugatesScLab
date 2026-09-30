@@ -155,7 +155,37 @@ const testCases = [
   { input: "enzymes", expected: "enzymes" },
   { input: "lab-respiration", expected: "respiration" },
   { input: "respirometer", expected: "respiration" },
-  { input: "respiration", expected: "respiration" }
+  { input: "respiration", expected: "respiration" },
+  { input: "lab-beer-lambert", expected: "beerlambert" },
+  { input: "beerlambert", expected: "beerlambert" },
+  { input: "spectrophotometry", expected: "beerlambert" },
+  { input: "lab-decay", expected: "decay" },
+  { input: "nuclear-decay", expected: "decay" },
+  { input: "decay", expected: "decay" },
+  { input: "lab-colligative", expected: "colligative" },
+  { input: "colligative", expected: "colligative" },
+  { input: "freezing-point", expected: "colligative" },
+  { input: "lab-organic", expected: "organic" },
+  { input: "organic-reactions", expected: "organic" },
+  { input: "sn2", expected: "organic" },
+  { input: "lab-electrophoresis", expected: "electrophoresis" },
+  { input: "gel-electrophoresis", expected: "electrophoresis" },
+  { input: "agarose", expected: "electrophoresis" },
+  { input: "lab-ecology", expected: "ecology" },
+  { input: "population-ecology", expected: "ecology" },
+  { input: "lotka-volterra", expected: "ecology" },
+  { input: "lab-action-potential", expected: "actionpotential" },
+  { input: "actionpotential", expected: "actionpotential" },
+  { input: "patch-clamp", expected: "actionpotential" },
+  { input: "lab-rotational", expected: "rotational" },
+  { input: "rotational-dynamics", expected: "rotational" },
+  { input: "moment-of-inertia", expected: "rotational" },
+  { input: "lab-conduction", expected: "conduction" },
+  { input: "thermal-conduction", expected: "conduction" },
+  { input: "fourier-heat", expected: "conduction" },
+  { input: "lab-fluids", expected: "fluids" },
+  { input: "fluids-buoyancy", expected: "fluids" },
+  { input: "archimedes", expected: "fluids" }
 ];
 
 let allNormalized = true;
@@ -174,7 +204,10 @@ const expectedLabIds = [
   "circuits", "gaslaws", "dnaprotein", "punnett",
   "optics", "vsepr", "waves", "photosynthesis",
   "calorimetry", "equilibrium", "electrochem", "harmonic",
-  "photoelectric", "magnetism", "enzymes", "respiration"
+  "photoelectric", "magnetism", "enzymes", "respiration",
+  "beerlambert", "decay", "colligative", "organic",
+  "electrophoresis", "ecology", "actionpotential", "rotational",
+  "conduction", "fluids"
 ];
 
 let allModulesMapValid = true;
@@ -191,7 +224,7 @@ allModules.forEach(m => {
     console.error(`Module ${m.code} has unmapped lab: "${m.lab}" -> "${labNorm}"`);
   }
 });
-assert(allModulesMapValid && allModules.length === 74, `All 74 curriculum modules map to one of 20 verified lab suites (Total: ${allModules.length})`);
+assert(allModulesMapValid && allModules.length === 74, `All 74 curriculum modules map to one of 30 verified lab suites (Total: ${allModules.length})`);
 
 // 3. Competency Checkpoint Questions Coverage
 let allCheckpointsPresent = true;
@@ -202,7 +235,7 @@ expectedLabIds.forEach(id => {
     console.error(`Missing or incomplete checkpoint questions for lab: ${id}`);
   }
 });
-assert(allCheckpointsPresent, "All 20 virtual laboratory suites contain at least 3 validated checkpoint questions");
+assert(allCheckpointsPresent, `All ${expectedLabIds.length} virtual laboratory suites contain at least 3 validated checkpoint questions`);
 
 // 4. Checkpoint Question Structure & Rubric Quality
 let questionsValid = true;
@@ -237,7 +270,17 @@ const labLoaders = [
   { name: "photoelectric", loader: () => import("../labs/phys-photoelectric.js").then(m => m.initPhotoelectricLab("test-mount")) },
   { name: "magnetism", loader: () => import("../labs/phys-magnetism.js").then(m => m.initMagnetismLab("test-mount")) },
   { name: "enzymes", loader: () => import("../labs/bio-enzyme-kinetics.js").then(m => m.initEnzymeLab("test-mount")) },
-  { name: "respiration", loader: () => import("../labs/bio-respiration.js").then(m => m.initRespirationLab("test-mount")) }
+  { name: "respiration", loader: () => import("../labs/bio-respiration.js").then(m => m.initRespirationLab("test-mount")) },
+  { name: "beerlambert", loader: () => import("../labs/chem-beer-lambert.js").then(m => m.initBeerLambertLab("test-mount")) },
+  { name: "decay", loader: () => import("../labs/chem-nuclear-decay.js").then(m => m.initNuclearDecayLab("test-mount")) },
+  { name: "colligative", loader: () => import("../labs/chem-colligative.js").then(m => m.initColligativeLab("test-mount")) },
+  { name: "organic", loader: () => import("../labs/chem-organic-reactions.js").then(m => m.initOrganicReactionsLab("test-mount")) },
+  { name: "electrophoresis", loader: () => import("../labs/bio-gel-electrophoresis.js").then(m => m.initGelElectrophoresisLab("test-mount")) },
+  { name: "ecology", loader: () => import("../labs/bio-population-ecology.js").then(m => m.initPopulationEcologyLab("test-mount")) },
+  { name: "actionpotential", loader: () => import("../labs/bio-action-potential.js").then(m => m.initActionPotentialLab("test-mount")) },
+  { name: "rotational", loader: () => import("../labs/phys-rotational-dynamics.js").then(m => m.initRotationalDynamicsLab("test-mount")) },
+  { name: "conduction", loader: () => import("../labs/phys-thermal-conduction.js").then(m => m.initThermalConductionLab("test-mount")) },
+  { name: "fluids", loader: () => import("../labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("test-mount")) }
 ];
 
 let allLabsInitCleanly = true;
@@ -250,7 +293,7 @@ for (const lab of labLoaders) {
     console.error(`Error initializing lab "${lab.name}":`, err);
   }
 }
-assert(allLabsInitCleanly, "All 20 virtual laboratory workbenches initialize without runtime errors");
+assert(allLabsInitCleanly, `All ${labLoaders.length} virtual laboratory workbenches initialize without runtime errors`);
 
 console.log("\n========================================================");
 console.log(`📊 Lab Links Tests: ${passed} Passed, ${failed} Failed`);

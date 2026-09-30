@@ -782,6 +782,16 @@ function getSubjectPlaceholderSvg(code) {
 export function normalizeLabId(rawId) {
   if (!rawId) return "projectile";
   const str = String(rawId).toLowerCase().trim().replace(/^lab[-_]?/, "");
+  if (str === "beerlambert" || str.includes("beer") || str.includes("lambert") || str.includes("spectro")) return "beerlambert";
+  if (str === "decay" || str.includes("decay") || str.includes("nuclear") || str.includes("radioact")) return "decay";
+  if (str === "colligative" || str.includes("collig") || str.includes("freez") || str.includes("boil")) return "colligative";
+  if (str === "organic" || str.includes("organ") || str.includes("sn1") || str.includes("sn2")) return "organic";
+  if (str === "electrophoresis" || str.includes("electrophor") || str.includes("gel") || str.includes("agarose")) return "electrophoresis";
+  if (str === "ecology" || str.includes("ecol") || str.includes("populat") || str.includes("lotka") || str.includes("predat")) return "ecology";
+  if (str === "actionpotential" || str.includes("action") || str.includes("potent") || str.includes("neuron") || str.includes("patch")) return "actionpotential";
+  if (str === "rotational" || str.includes("rotat") || str.includes("torque") || str.includes("inertia")) return "rotational";
+  if (str === "conduction" || str.includes("conduct") || str.includes("fourier") || str.includes("heat")) return "conduction";
+  if (str === "fluids" || str.includes("fluid") || str.includes("buoy") || str.includes("archimed") || str.includes("bernoulli")) return "fluids";
   if (str === "calorimetry" || str.includes("calorim")) return "calorimetry";
   if (str === "equilibrium" || str.includes("equilib") || str.includes("chatelier")) return "equilibrium";
   if (str === "electrochem" || str.includes("electro") || str.includes("galvan") || str.includes("voltaic")) return "electrochem";
@@ -827,7 +837,17 @@ function formatLabName(labKey) {
     "photoelectric": "Photoelectric Effect & Quantum Physics",
     "magnetism": "Magnetic Fields & Lorentz Force",
     "enzymes": "Enzyme Kinetics & Catalysis",
-    "respiration": "Cellular Respiration & Respirometer"
+    "respiration": "Cellular Respiration & Respirometer",
+    "beerlambert": "Spectrophotometry & Beer-Lambert Law",
+    "decay": "Radioactive Decay & Nuclear Kinetics",
+    "colligative": "Colligative Properties & Phase Transition",
+    "organic": "Organic Reaction Mechanisms & Stereochemistry",
+    "electrophoresis": "Agarose Gel Electrophoresis & DNA Migration",
+    "ecology": "Population Ecology & Lotka-Volterra",
+    "actionpotential": "Neurobiology & Action Potential Patch Clamp",
+    "rotational": "Rotational Dynamics & Moment of Inertia",
+    "conduction": "Thermal Conduction & Fourier's Law",
+    "fluids": "Fluid Dynamics, Buoyancy & Bernoulli"
   };
   return map[norm] || "Virtual Laboratory";
 }
@@ -1487,6 +1507,46 @@ function renderVirtualLabsHub(container) {
             <span class="lab-btn-icon-wrapper">${icons.respiration}</span>
             <span class="lab-btn-title">Cellular Respiration</span>
           </a>
+          <a href="#labs/beerlambert" class="btn ${AppState.activeLabId === 'beerlambert' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="beerlambert" aria-label="Spectrophotometry and Beer-Lambert Law Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.beerLambert}</span>
+            <span class="lab-btn-title">Beer-Lambert Law</span>
+          </a>
+          <a href="#labs/decay" class="btn ${AppState.activeLabId === 'decay' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="decay" aria-label="Radioactive Decay and Nuclear Kinetics Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.nuclearDecay}</span>
+            <span class="lab-btn-title">Nuclear Decay &amp; Kinetics</span>
+          </a>
+          <a href="#labs/colligative" class="btn ${AppState.activeLabId === 'colligative' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="colligative" aria-label="Colligative Properties and Freezing Point Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.colligative}</span>
+            <span class="lab-btn-title">Colligative Properties</span>
+          </a>
+          <a href="#labs/organic" class="btn ${AppState.activeLabId === 'organic' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="organic" aria-label="Organic Reaction Mechanisms Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.organicReactions}</span>
+            <span class="lab-btn-title">Organic Mechanisms</span>
+          </a>
+          <a href="#labs/electrophoresis" class="btn ${AppState.activeLabId === 'electrophoresis' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="electrophoresis" aria-label="Agarose Gel Electrophoresis Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.gelElectrophoresis}</span>
+            <span class="lab-btn-title">Gel Electrophoresis</span>
+          </a>
+          <a href="#labs/ecology" class="btn ${AppState.activeLabId === 'ecology' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="ecology" aria-label="Population Ecology and Lotka-Volterra Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.populationEcology}</span>
+            <span class="lab-btn-title">Population Ecology</span>
+          </a>
+          <a href="#labs/actionpotential" class="btn ${AppState.activeLabId === 'actionpotential' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="actionpotential" aria-label="Neurobiology and Action Potential Patch Clamp Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.actionPotential}</span>
+            <span class="lab-btn-title">Action Potential Patch Clamp</span>
+          </a>
+          <a href="#labs/rotational" class="btn ${AppState.activeLabId === 'rotational' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="rotational" aria-label="Rotational Dynamics and Moment of Inertia Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.rotationalDynamics}</span>
+            <span class="lab-btn-title">Rotational Dynamics</span>
+          </a>
+          <a href="#labs/conduction" class="btn ${AppState.activeLabId === 'conduction' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="conduction" aria-label="Thermal Conduction and Fourier Law Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.thermalConduction}</span>
+            <span class="lab-btn-title">Thermal Conduction</span>
+          </a>
+          <a href="#labs/fluids" class="btn ${AppState.activeLabId === 'fluids' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="fluids" aria-label="Fluid Dynamics and Buoyancy Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">${icons.fluidsBuoyancy}</span>
+            <span class="lab-btn-title">Fluid Dynamics &amp; Buoyancy</span>
+          </a>
         </div>
       </div>
 
@@ -1596,7 +1656,27 @@ function mountActiveLab() {
     "enzymes": () => import("./labs/bio-enzyme-kinetics.js").then(m => m.initEnzymeLab("active-lab-mount")),
     "lab-enzymes": () => import("./labs/bio-enzyme-kinetics.js").then(m => m.initEnzymeLab("active-lab-mount")),
     "respiration": () => import("./labs/bio-respiration.js").then(m => m.initRespirationLab("active-lab-mount")),
-    "lab-respiration": () => import("./labs/bio-respiration.js").then(m => m.initRespirationLab("active-lab-mount"))
+    "lab-respiration": () => import("./labs/bio-respiration.js").then(m => m.initRespirationLab("active-lab-mount")),
+    "beerlambert": () => import("./labs/chem-beer-lambert.js").then(m => m.initBeerLambertLab("active-lab-mount")),
+    "lab-beerlambert": () => import("./labs/chem-beer-lambert.js").then(m => m.initBeerLambertLab("active-lab-mount")),
+    "decay": () => import("./labs/chem-nuclear-decay.js").then(m => m.initNuclearDecayLab("active-lab-mount")),
+    "lab-decay": () => import("./labs/chem-nuclear-decay.js").then(m => m.initNuclearDecayLab("active-lab-mount")),
+    "colligative": () => import("./labs/chem-colligative.js").then(m => m.initColligativeLab("active-lab-mount")),
+    "lab-colligative": () => import("./labs/chem-colligative.js").then(m => m.initColligativeLab("active-lab-mount")),
+    "organic": () => import("./labs/chem-organic-reactions.js").then(m => m.initOrganicReactionsLab("active-lab-mount")),
+    "lab-organic": () => import("./labs/chem-organic-reactions.js").then(m => m.initOrganicReactionsLab("active-lab-mount")),
+    "electrophoresis": () => import("./labs/bio-gel-electrophoresis.js").then(m => m.initGelElectrophoresisLab("active-lab-mount")),
+    "lab-electrophoresis": () => import("./labs/bio-gel-electrophoresis.js").then(m => m.initGelElectrophoresisLab("active-lab-mount")),
+    "ecology": () => import("./labs/bio-population-ecology.js").then(m => m.initPopulationEcologyLab("active-lab-mount")),
+    "lab-ecology": () => import("./labs/bio-population-ecology.js").then(m => m.initPopulationEcologyLab("active-lab-mount")),
+    "actionpotential": () => import("./labs/bio-action-potential.js").then(m => m.initActionPotentialLab("active-lab-mount")),
+    "lab-actionpotential": () => import("./labs/bio-action-potential.js").then(m => m.initActionPotentialLab("active-lab-mount")),
+    "rotational": () => import("./labs/phys-rotational-dynamics.js").then(m => m.initRotationalDynamicsLab("active-lab-mount")),
+    "lab-rotational": () => import("./labs/phys-rotational-dynamics.js").then(m => m.initRotationalDynamicsLab("active-lab-mount")),
+    "conduction": () => import("./labs/phys-thermal-conduction.js").then(m => m.initThermalConductionLab("active-lab-mount")),
+    "lab-conduction": () => import("./labs/phys-thermal-conduction.js").then(m => m.initThermalConductionLab("active-lab-mount")),
+    "fluids": () => import("./labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("active-lab-mount")),
+    "lab-fluids": () => import("./labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("active-lab-mount"))
   };
 
   const loader = labLoaders[normId] || labLoaders["projectile"];

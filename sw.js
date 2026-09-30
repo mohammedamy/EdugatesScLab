@@ -2,7 +2,7 @@
 // Network-First with Cache Fallback for dynamic local scripts & styles,
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts).
 
-const CACHE_NAME = "amscilab-pwa-v36";
+const CACHE_NAME = "amscilab-pwa-v38";
 
 const CORE_ASSETS = [
   "./",
@@ -57,6 +57,16 @@ const CORE_ASSETS = [
   "./labs/phys-magnetism.js",
   "./labs/bio-enzyme-kinetics.js",
   "./labs/bio-respiration.js",
+  "./labs/chem-beer-lambert.js",
+  "./labs/chem-nuclear-decay.js",
+  "./labs/chem-colligative.js",
+  "./labs/chem-organic-reactions.js",
+  "./labs/bio-gel-electrophoresis.js",
+  "./labs/bio-population-ecology.js",
+  "./labs/bio-action-potential.js",
+  "./labs/phys-rotational-dynamics.js",
+  "./labs/phys-thermal-conduction.js",
+  "./labs/phys-fluids-buoyancy.js",
   "./assets/labs/calorimetry_bench.jpg",
   "./assets/labs/circuits_bench.jpg",
   "./assets/labs/dna_structure.jpg",
