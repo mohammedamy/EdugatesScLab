@@ -290,7 +290,7 @@ export function initGasLawsLab(containerId) {
 
   let particles = [];
   function initParticles() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = chamberCanvas.width / dpr;
     const h = chamberCanvas.height / dpr;
     const topY = getPistonY(h);
@@ -310,7 +310,7 @@ export function initGasLawsLab(containerId) {
   }
 
   function drawChamber() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = chamberCanvas.width / dpr;
     const h = chamberCanvas.height / dpr;
 
@@ -498,7 +498,7 @@ export function initGasLawsLab(containerId) {
 
   // Draw Maxwell-Boltzmann Distribution Curve
   function drawBoltzmann() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = bzCanvas.width / dpr;
     const h = bzCanvas.height / dpr;
 
@@ -608,9 +608,24 @@ export function initGasLawsLab(containerId) {
     }
   }
 
-  function renderLoop() {
-    drawChamber();
-    drawBoltzmann();
+  let lastFrameTime = 0;
+  function renderLoop(now) {
+    if (!container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33 : 16;
+    if (!now || now - lastFrameTime >= interval) {
+      lastFrameTime = now || performance.now();
+      const photoEl = container.querySelector("#gas-photo-overlay");
+      if (!photoEl || photoEl.style.display !== "block") {
+        drawChamber();
+        drawBoltzmann();
+      }
+    }
     animId = requestAnimationFrame(renderLoop);
   }
 
@@ -804,7 +819,7 @@ export function initGasLawsLab(containerId) {
   function handleResize() {
     const rect1 = chamberCanvas.getBoundingClientRect();
     const rect2 = bzCanvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     chamberCanvas.width = rect1.width * dpr;
     chamberCanvas.height = 520 * dpr;
     bzCanvas.width = rect2.width * dpr;

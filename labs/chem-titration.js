@@ -361,7 +361,7 @@ export function initTitrationLab(containerId) {
 
   // Draw Apparatus Bench
   function drawApparatus() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = appCanvas.width / dpr;
     const h = appCanvas.height / dpr;
 
@@ -711,7 +711,7 @@ export function initTitrationLab(containerId) {
 
   // Draw Titration Curve Graph & Derivative Peak
   function drawCurve() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = curveCanvas.width / dpr;
     const h = curveCanvas.height / dpr;
 
@@ -918,7 +918,14 @@ export function initTitrationLab(containerId) {
       drawCurve();
     }
 
-    drawApparatus();
+    if (!container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+    const photoEl = container.querySelector("#titr-photo-overlay");
+    if (!photoEl || photoEl.style.display !== "block") {
+      drawApparatus();
+    }
     animId = requestAnimationFrame(animate);
   }
 

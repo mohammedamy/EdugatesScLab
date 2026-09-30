@@ -152,14 +152,34 @@ function initCustomLogoDetector() {
   // Official brand asset is assets/logo.png
 }
 
+export function getOptimizedDPR() {
+  const isSmart = (typeof document !== "undefined" && document.documentElement && (
+    document.documentElement.getAttribute("data-mode") === "smartboard" ||
+    document.documentElement.classList.contains("fast-smartboard-mode")
+  )) || (typeof navigator !== "undefined" && /Android|MAXHUB|CVTE|seewo|SmartBoard/i.test(navigator.userAgent));
+  return isSmart ? 1.0 : Math.min((typeof window !== "undefined" && window.devicePixelRatio) || 1, 2.0);
+}
+if (typeof window !== "undefined") {
+  window.getLabDPR = getOptimizedDPR;
+}
+
+function isMaxhubOrSmartboardDevice() {
+  const ua = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+  const isNamedSmartboard = /MAXHUB|CVTE|seewo|SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel|Horion|Huawei.*IdeaHub|Hikvision|HHT|IFP|InteractiveWhiteboard/i.test(ua);
+  const isAndroidLargeScreen = /Android/i.test(ua) && (
+    (typeof window !== "undefined" && window.screen && (window.screen.width >= 1024 || window.screen.height >= 720)) ||
+    (typeof window !== "undefined" && window.innerWidth >= 1024)
+  ) && ((typeof navigator !== "undefined" && navigator.maxTouchPoints > 0) || (typeof window !== "undefined" && 'ontouchstart' in window));
+  return isNamedSmartboard || isAndroidLargeScreen;
+}
+
 function setupDeviceDetection() {
-  const ua = navigator.userAgent || "";
-  const isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel/i.test(ua);
-  const savedMode = localStorage.getItem("edugates_device_mode");
+  const savedMode = typeof localStorage !== "undefined" ? localStorage.getItem("edugates_device_mode") : null;
+  const isSmartboard = isMaxhubOrSmartboardDevice();
 
   if (savedMode) {
     setDeviceMode(savedMode);
-  } else if (isSmartboardUA) {
+  } else if (isSmartboard) {
     setDeviceMode("smartboard");
   } else {
     setDeviceMode("auto");
@@ -173,12 +193,12 @@ function setDeviceMode(mode) {
     SoundFX.playClick();
   } catch (e) {}
 
-  document.body.classList.remove("mode-smartboard", "mode-tablet", "mode-mobile", "fast-smartboard-mode");
-  document.documentElement.classList.remove("mode-smartboard", "fast-smartboard-mode");
+  document.body.classList.remove("mode-smartboard", "mode-tablet", "mode-mobile", "fast-smartboard-mode", "is-smartboard");
+  document.documentElement.classList.remove("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
 
   if (mode === "smartboard") {
-    document.body.classList.add("mode-smartboard", "fast-smartboard-mode");
-    document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
+    document.body.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
+    document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
     document.documentElement.setAttribute("data-mode", "smartboard");
   } else if (mode === "tablet") {
     document.body.classList.add("mode-tablet");
@@ -188,11 +208,9 @@ function setDeviceMode(mode) {
     document.documentElement.setAttribute("data-mode", "mobile");
   } else {
     // Auto Mode: evaluate hardware profile
-    const ua = navigator.userAgent || "";
-    const isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel/i.test(ua);
-    if (isSmartboardUA) {
-      document.body.classList.add("mode-smartboard", "fast-smartboard-mode");
-      document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
+    if (isMaxhubOrSmartboardDevice()) {
+      document.body.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
+      document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
       document.documentElement.setAttribute("data-mode", "smartboard");
     } else {
       document.documentElement.removeAttribute("data-mode");
@@ -311,7 +329,7 @@ function renderAppShell() {
 
           <div class="device-mode-toggle" role="group" aria-label="Screen Optimization &amp; Hardware Profile" title="Screen Optimization &amp; Hardware Profile">
             <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto" aria-label="Auto hardware profile">Auto</button>
-            <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" aria-label="Smartboard 60 FPS Turbo Profile" title="Smartboard 60 FPS Turbo Profile (Zero-Blur, Hardware Accelerated)">⚡ Smartboard Turbo</button>
+            <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" aria-label="MAXHUB &amp; Smartboard 60 FPS Turbo Profile" title="MAXHUB &amp; Smartboard 60 FPS Turbo Profile (Zero-Blur, Opaque, Hardware Accelerated)">⚡ MAXHUB Turbo</button>
             <button class="device-btn ${AppState.deviceMode === 'tablet' ? 'active' : ''}" data-mode="tablet" aria-label="Tablet Profile" title="Tablet Mode">Tablet</button>
             <button class="device-btn ${AppState.deviceMode === 'mobile' ? 'active' : ''}" data-mode="mobile" aria-label="Mobile Profile" title="Mobile Mode">Mobile</button>
           </div>

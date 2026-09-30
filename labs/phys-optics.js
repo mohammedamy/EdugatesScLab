@@ -251,7 +251,7 @@ export function initOpticsLab(containerId) {
   }
 
   function draw() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = canvas.width / dpr;
     const h = canvas.height / dpr;
 
@@ -608,8 +608,23 @@ export function initOpticsLab(containerId) {
     }
   }
 
-  function renderLoop() {
-    draw();
+  let lastFrameTime = 0;
+  function renderLoop(now) {
+    if (!container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33 : 16;
+    if (!now || now - lastFrameTime >= interval) {
+      lastFrameTime = now || performance.now();
+      const photoEl = container.querySelector("#optics-photo-overlay");
+      if (!photoEl || photoEl.style.display !== "block") {
+        draw();
+      }
+    }
     animId = requestAnimationFrame(renderLoop);
   }
   renderLoop();
@@ -811,7 +826,7 @@ export function initOpticsLab(containerId) {
 
   function handleResize() {
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     canvas.width = rect.width * dpr;
     canvas.height = 490 * dpr;
   }

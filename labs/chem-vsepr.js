@@ -734,12 +734,29 @@ export function initVseprLab(containerId) {
     }
   }
 
-  // Animation Loop (60 FPS)
-  function animate() {
-    if (autoRotate && !isDragging) {
-      rotY += 0.008;
+  // Animation Loop (60 FPS with Smartboard Pacing & Overdraw Protection)
+  let lastVseprTime = 0;
+  function animate(now) {
+    if (!container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
     }
-    render3D();
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33 : 16;
+    if (!now || now - lastVseprTime >= interval) {
+      lastVseprTime = now || performance.now();
+      const photoEl = container.querySelector("#vsepr-photo-overlay");
+      if (!photoEl || photoEl.style.display !== "block") {
+        if (autoRotate && !isDragging) {
+          rotY += 0.008;
+          render3D();
+        } else if (isDragging) {
+          render3D();
+        }
+      }
+    }
     animId = requestAnimationFrame(animate);
   }
   animId = requestAnimationFrame(animate);

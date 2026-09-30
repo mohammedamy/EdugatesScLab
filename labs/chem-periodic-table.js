@@ -849,7 +849,7 @@ export function initPeriodicTableLab(containerId) {
   function drawBohr() {
     if (!bohrCanvas || !bohrCtx) return;
 
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = bohrCanvas.width / dpr;
     const h = bohrCanvas.height / dpr;
 
@@ -919,10 +919,17 @@ export function initPeriodicTableLab(containerId) {
   }
 
   function loop() {
+    if (!container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      animId = null;
+      return;
+    }
     if (activeTab === "bohr") {
       drawBohr();
+      animId = requestAnimationFrame(loop);
+    } else {
+      animId = null;
     }
-    animId = requestAnimationFrame(loop);
   }
 
   // Switch Active Tab
@@ -951,6 +958,13 @@ export function initPeriodicTableLab(containerId) {
     if (btnSpectra) {
       btnSpectra.style.background = (tab === "spectra" ? "#0284c7" : "transparent");
       btnSpectra.style.color = (tab === "spectra" ? "#ffffff" : "#94a3b8");
+    }
+
+    if (tab === "bohr" && !animId) {
+      animId = requestAnimationFrame(loop);
+    } else if (tab !== "bohr" && animId) {
+      cancelAnimationFrame(animId);
+      animId = null;
     }
   }
 

@@ -699,7 +699,7 @@ export function initMicroscopeLab(containerId) {
   }
 
   function drawView() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = canvas.width / dpr;
     const h = canvas.height / dpr;
 
@@ -825,8 +825,21 @@ export function initMicroscopeLab(containerId) {
     document.getElementById("scale-text").innerText = `Scale: ${scaleMap[objectivePower] || "50 µm"}`;
   }
 
-  function renderLoop() {
-    drawView();
+  let lastFrameTime = 0;
+  function renderLoop(now) {
+    if (!container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+    // Cap to 30 FPS on Smartboard/Android to eliminate GPU stalls and prevent browser halts
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33 : 16;
+    if (!now || now - lastFrameTime >= interval) {
+      lastFrameTime = now || performance.now();
+      drawView();
+    }
     animId = requestAnimationFrame(renderLoop);
   }
   renderLoop();
@@ -1045,7 +1058,7 @@ export function initMicroscopeLab(containerId) {
   // Resize Handling
   function handleResize() {
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     canvas.width = rect.width * dpr;
     canvas.height = 530 * dpr;
   }

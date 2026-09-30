@@ -417,10 +417,15 @@ export function initHarmonicLab(containerId) {
     graphCtx.fillText("0", padL - 4, midY + 3);
   }
 
-  // Physics Euler-Cromer Integration Loop (60 FPS)
+  // Physics Euler-Cromer Integration Loop (60 FPS with DOM Throttle & Disconnect Protection)
   let lastTime = performance.now();
+  let frameCount = 0;
   function loop(currentTime) {
-    const dt = Math.min(0.03, (currentTime - lastTime) / 1000);
+    if (!container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+    const dt = Math.min(0.033, (currentTime - lastTime) / 1000);
     lastTime = currentTime;
 
     if (isRunning) {
@@ -455,23 +460,33 @@ export function initHarmonicLab(containerId) {
       const f = 1 / T;
       const omega = 2 * Math.PI * f;
 
-      dispPeriod.innerText = `T = ${T.toFixed(3)} s`;
-      dispFreq.innerText = `f = ${f.toFixed(3)} Hz • ω = ${omega.toFixed(2)} rad/s`;
-      dispPos.innerText = `x = ${x >= 0 ? "+" : ""}${x.toFixed(3)} m`;
-      dispVel.innerText = `v = ${v.toFixed(2)} m/s • a = ${a.toFixed(1)} m/s²`;
-      dispEnergy.innerText = `${E_tot.toFixed(2)} J (KE: ${KE.toFixed(2)}J, PE: ${PE.toFixed(2)}J)`;
+      frameCount++;
+      // Throttle DOM text updates to ~15 Hz (every 4th frame) to prevent main-thread layout thrashing on Android MAXHUB
+      if (frameCount % 4 === 0) {
+        if (dispPeriod) dispPeriod.innerText = `T = ${T.toFixed(3)} s`;
+        if (dispFreq) dispFreq.innerText = `f = ${f.toFixed(3)} Hz • ω = ${omega.toFixed(2)} rad/s`;
+        if (dispPos) dispPos.innerText = `x = ${x >= 0 ? "+" : ""}${x.toFixed(3)} m`;
+        if (dispVel) dispVel.innerText = `v = ${v.toFixed(2)} m/s • a = ${a.toFixed(1)} m/s²`;
+        if (dispEnergy) dispEnergy.innerText = `${E_tot.toFixed(2)} J (KE: ${KE.toFixed(2)}J, PE: ${PE.toFixed(2)}J)`;
 
-      if (Math.abs(v) < 0.08) {
-        dispStatus.innerText = "⚡ Extreme Turning Point: v ≈ 0, PE = Max, Restoring Force Max";
-      } else if (Math.abs(x) < 0.04) {
-        dispStatus.innerText = "⚡ Equilibrium Point (x ≈ 0): PE = 0, Speed v = Max, KE = Max";
-      } else {
-        dispStatus.innerText = "🔄 Dynamic Oscillation: Harmonic Exchange between KE and PE";
+        if (dispStatus) {
+          if (Math.abs(v) < 0.08) {
+            dispStatus.innerText = "⚡ Extreme Turning Point: v ≈ 0, PE = Max, Restoring Force Max";
+          } else if (Math.abs(x) < 0.04) {
+            dispStatus.innerText = "⚡ Equilibrium Point (x ≈ 0): PE = 0, Speed v = Max, KE = Max";
+          } else {
+            dispStatus.innerText = "🔄 Dynamic Oscillation: Harmonic Exchange between KE and PE";
+          }
+        }
       }
     }
 
-    renderApparatus();
-    renderGraph();
+    // Only render canvas when simulator is active (skip wasteful GPU overdraw if photo overlay is open)
+    const photoEl = container.querySelector("#harmonic-photo-overlay");
+    if (!photoEl || photoEl.style.display !== "block") {
+      renderApparatus();
+      renderGraph();
+    }
     animId = requestAnimationFrame(loop);
   }
   animId = requestAnimationFrame(loop);

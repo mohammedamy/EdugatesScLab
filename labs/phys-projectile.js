@@ -345,7 +345,7 @@ export function initProjectileLab(containerId) {
   }
 
   function metersToPixels(x, y) {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = canvas.width / dpr;
     const h = canvas.height / dpr;
     const scale = (w - 120) / 280;
@@ -359,7 +359,7 @@ export function initProjectileLab(containerId) {
   }
 
   function drawScene() {
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const width = canvas.width / dpr;
     const heightPx = canvas.height / dpr;
 
@@ -793,7 +793,9 @@ export function initProjectileLab(containerId) {
         return;
       }
 
-      animId = requestAnimationFrame(step);
+      if (isFlying) {
+        animId = requestAnimationFrame(step);
+      }
     }
 
     animId = requestAnimationFrame(step);
@@ -982,7 +984,7 @@ export function initProjectileLab(containerId) {
 
   function handleResize() {
     const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     canvas.width = rect.width * dpr;
     canvas.height = 520 * dpr;
     drawScene();

@@ -38,21 +38,41 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" onload="if (window.upgradeAllMath) window.upgradeAllMath();"></script>
 
   <!-- Preload Core Stylesheet -->
-  <link rel="preload" href="index.css?v=4.0" as="style">
-  <link rel="stylesheet" href="index.css?v=4.0">
+  <link rel="preload" href="index.css?v=4.1" as="style">
+  <link rel="stylesheet" href="index.css?v=4.1">
 
-  <!-- Instant Hardware & Smartboard Processor Optimizer (Executes before first paint) -->
+  <!-- Instant Hardware, MAXHUB & Smartboard Processor Optimizer (Executes before first paint) -->
   <script>
     (function() {
       try {
         var ua = navigator.userAgent || "";
-        var isSmartboardUA = /SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel/i.test(ua);
+        var isMaxhubOrSmartboard = /MAXHUB|CVTE|seewo|SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel|Horion|Huawei.*IdeaHub|Hikvision|HHT|IFP|InteractiveWhiteboard/i.test(ua);
+        var isAndroidLargeScreen = /Android/i.test(ua) && ((window.screen && (window.screen.width >= 1024 || window.screen.height >= 720)) || (window.innerWidth >= 1024)) && (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
+        var isAndroid = /Android/i.test(ua);
         var savedMode = localStorage.getItem("edugates_device_mode");
-        // Only activate smartboard mode if explicitly chosen by teacher or detected on dedicated interactive flat panel
-        if (savedMode === "smartboard" || (!savedMode && isSmartboardUA)) {
-          document.documentElement.setAttribute("data-mode", "smartboard");
-          document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode");
+
+        if (isAndroid) {
+          document.documentElement.classList.add("is-android");
         }
+
+        // Auto-activate Smartboard Turbo Profile if MAXHUB, Android IFP, or explicitly selected
+        if (savedMode === "smartboard" || (!savedMode && (isMaxhubOrSmartboard || isAndroidLargeScreen))) {
+          document.documentElement.setAttribute("data-mode", "smartboard");
+          document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
+          try {
+            if (!savedMode && (isMaxhubOrSmartboard || isAndroidLargeScreen)) {
+              localStorage.setItem("edugates_device_mode", "smartboard");
+            }
+          } catch (e) {}
+        }
+
+        // Centralized DPR Manager to prevent 4K Canvas OOM / VRAM Thrashing on embedded ARM Mali GPUs
+        window.getLabDPR = function() {
+          var isSmart = document.documentElement.getAttribute("data-mode") === "smartboard" ||
+                        document.documentElement.classList.contains("fast-smartboard-mode") ||
+                        /Android|MAXHUB|CVTE|seewo|SmartBoard/i.test(navigator.userAgent);
+          return isSmart ? 1.0 : Math.min(window.devicePixelRatio || 1, 2.0);
+        };
       } catch (e) {}
     })();
   </script>
@@ -70,6 +90,6 @@
   </div>
 
   <!-- Main Modular Application Script -->
-  <script type="module" src="app.js?v=4.0"></script>
+  <script type="module" src="app.js?v=4.1"></script>
 </body>
 </html>
