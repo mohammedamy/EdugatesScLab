@@ -486,12 +486,35 @@ export function initColligativeLab(containerId) {
   }
 
   // Animation Loop
-  function loop() {
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
+  function loop(now) {
     if (!isRunning) return;
-    stepPhysics();
-    updateHUD();
-    drawBeakerAndApparatus();
-    drawChart();
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const photoOverlay = container.querySelector("#collig-photo-overlay");
+    const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (!now || now - lastFrameTime >= interval) {
+        lastFrameTime = now || performance.now();
+        stepPhysics();
+        updateHUD();
+        drawBeakerAndApparatus();
+        drawChart();
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
 
@@ -501,6 +524,7 @@ export function initColligativeLab(containerId) {
     coolingHistory.length = 0;
     simTime = 0;
     solutionTemp = 20.0;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -509,23 +533,27 @@ export function initColligativeLab(containerId) {
     coolingHistory.length = 0;
     simTime = 0;
     solutionTemp = 20.0;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#slider-collig-molality")?.addEventListener("input", (e) => {
     molality = parseFloat(e.target.value);
     container.querySelector("#lbl-collig-molality").innerText = `${molality.toFixed(2)} mol/kg`;
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-collig-bath")?.addEventListener("input", (e) => {
     bathTemp = parseFloat(e.target.value);
     container.querySelector("#lbl-collig-bath").innerText = `${bathTemp.toFixed(1)} °C`;
+    needsRedraw = true;
   });
 
   container.querySelector("#btn-collig-reset")?.addEventListener("click", () => {
     coolingHistory.length = 0;
     simTime = 0;
     solutionTemp = 20.0;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 

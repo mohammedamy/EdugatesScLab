@@ -719,9 +719,27 @@ export function initProjectileLab(containerId) {
     let maxRecordedH = height;
     let apexPoint = null;
     let lastStrobeT = 0;
+    let lastStepTime = 0;
 
-    function step() {
-      const dt = (isSlowMo ? 0.016 : 0.045);
+    function step(now) {
+      if (!container || !container.isConnected) {
+        isFlying = false;
+        if (animId) cancelAnimationFrame(animId);
+        return;
+      }
+
+      const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                      document.documentElement.classList.contains("fast-smartboard-mode") ||
+                      /Android|MAXHUB/i.test(navigator.userAgent);
+      const interval = isSmart ? 33.3 : 16.0;
+
+      if (now && now - lastStepTime < interval) {
+        if (isFlying) animId = requestAnimationFrame(step);
+        return;
+      }
+      lastStepTime = now || performance.now();
+
+      const dt = (isSlowMo ? 0.016 : 0.045) * (interval / 16.0);
       t += dt;
 
       const rad = angle * Math.PI / 180;

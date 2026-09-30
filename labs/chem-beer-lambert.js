@@ -184,7 +184,27 @@ export function initBeerLambertLab(containerId) {
     return { A, T, I, effectiveEpsilon };
   }
 
+  let needsRedraw = false;
+  function requestRender() {
+    if (!needsRedraw) {
+      needsRedraw = true;
+      animId = requestAnimationFrame(renderSimulation);
+    }
+  }
+
   function renderSimulation() {
+    needsRedraw = false;
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const photoOverlay = container.querySelector("#beer-photo-overlay");
+    if (photoOverlay && photoOverlay.style.display === "block") {
+      return;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const { A, T, I } = getCalculatedAbsorbance();
 
@@ -302,7 +322,6 @@ export function initBeerLambertLab(containerId) {
     if (hudI) hudI.innerText = `I = ${I.toFixed(2)} mW/cm²`;
 
     renderCalibrationPlot();
-    if (isRunning) animId = requestAnimationFrame(renderSimulation);
   }
 
   function renderCalibrationPlot() {
@@ -408,6 +427,7 @@ export function initBeerLambertLab(containerId) {
     sliderC.step = s.maxC / 50;
     sliderC.value = concentration;
     container.querySelector("#lbl-beer-conc").innerText = `${concentration.toFixed(3)} ${s.unit}`;
+    requestRender();
     SoundFX.playClick();
   });
 
@@ -415,11 +435,13 @@ export function initBeerLambertLab(containerId) {
     concentration = parseFloat(e.target.value);
     const s = SOLUTES[currentSoluteKey];
     container.querySelector("#lbl-beer-conc").innerText = `${concentration.toFixed(3)} ${s.unit}`;
+    requestRender();
   });
 
   container.querySelector("#slider-beer-path")?.addEventListener("input", (e) => {
     pathLengthCm = parseFloat(e.target.value);
     container.querySelector("#lbl-beer-path").innerText = `${pathLengthCm.toFixed(2)} cm`;
+    requestRender();
   });
 
   container.querySelector("#slider-beer-wave")?.addEventListener("input", (e) => {
@@ -427,18 +449,21 @@ export function initBeerLambertLab(containerId) {
     const s = SOLUTES[currentSoluteKey];
     const isPeak = wavelengthNm === s.peakWavelength;
     container.querySelector("#lbl-beer-wave").innerText = `${wavelengthNm} nm${isPeak ? " (Peak)" : ""}`;
+    requestRender();
   });
 
   container.querySelector("#btn-beer-record-point")?.addEventListener("click", () => {
     const { A } = getCalculatedAbsorbance();
     calibrationPoints.push({ c: concentration, a: A });
     LabTrialStore.addTrial("beerlambert", { concentration, absorbance: A, pathLengthCm, wavelengthNm });
+    requestRender();
     SoundFX.playScorePip();
   });
 
   container.querySelector("#btn-beer-reset")?.addEventListener("click", () => {
     calibrationPoints.length = 0;
     LabTrialStore.clearTrials("beerlambert");
+    requestRender();
     SoundFX.playClick();
   });
 
@@ -473,6 +498,7 @@ export function initBeerLambertLab(containerId) {
     btnBeerPhoto.classList.remove("active");
     btnBeerPhoto.style.background = "transparent";
     if (beerPhotoOverlay) beerPhotoOverlay.style.display = "none";
+    requestRender();
     SoundFX.playClick();
   });
 
@@ -489,7 +515,7 @@ export function initBeerLambertLab(containerId) {
   mountLabCheckpoint("beer-checkpoint-container", "beerlambert");
 
   // Kickoff simulation
-  renderSimulation();
+  requestRender();
 
   return () => {
     isRunning = false;

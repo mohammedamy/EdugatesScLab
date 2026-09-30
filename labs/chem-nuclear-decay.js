@@ -215,7 +215,7 @@ export function initNuclearDecayLab(containerId) {
     return 1.0;
   }
 
-  function renderSimulation() {
+  function renderFrame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const iso = ISOTOPES[currentIsoKey];
 
@@ -376,6 +376,35 @@ export function initNuclearDecayLab(containerId) {
     if (lblHalf) lblHalf.innerText = `${elapsedTime.toFixed(2)} t½ elapsed`;
 
     renderDecayPlot();
+  }
+
+  let lastFrameTime = 0;
+  function renderSimulation(now) {
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const decayPhotoOverlay = container.querySelector("#decay-photo-overlay");
+    const isPhotoOverlay = decayPhotoOverlay && decayPhotoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (isRunning) {
+        if (!now || now - lastFrameTime >= interval) {
+          lastFrameTime = now || performance.now();
+          renderFrame();
+        }
+      } else {
+        renderFrame();
+      }
+    }
+
     if (isRunning) animId = requestAnimationFrame(renderSimulation);
   }
 

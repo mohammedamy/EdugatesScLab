@@ -428,11 +428,34 @@ export function initActionPotentialLab(containerId) {
     }
   }
 
-  function loop() {
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
+  function loop(now) {
     if (!isRunning) return;
-    stepNeuron();
-    drawNeuronMembrane();
-    drawOscilloscope();
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const neuroPhotoOverlay = container.querySelector("#neuro-photo-overlay");
+    const isPhotoOverlay = neuroPhotoOverlay && neuroPhotoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (!now || now - lastFrameTime >= interval) {
+        lastFrameTime = now || performance.now();
+        stepNeuron();
+        drawNeuronMembrane();
+        drawOscilloscope();
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
 
@@ -440,6 +463,7 @@ export function initActionPotentialLab(containerId) {
   container.querySelector("#btn-neuro-stim")?.addEventListener("click", () => {
     isStimulating = true;
     stimTimer = stimDuration;
+    needsRedraw = true;
     SoundFX.playScorePip();
   });
 
@@ -450,17 +474,20 @@ export function initActionPotentialLab(containerId) {
     nGate = 0.32;
     oscilloscopeTrace.length = 0;
     simTimeMs = 0.0;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#select-neuro-toxin")?.addEventListener("change", (e) => {
     activeToxinKey = e.target.value;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#slider-neuro-stim")?.addEventListener("input", (e) => {
     stimCurrent = parseFloat(e.target.value);
     container.querySelector("#lbl-neuro-stim").innerText = `${stimCurrent.toFixed(1)} μA/cm²`;
+    needsRedraw = true;
   });
 
   container.querySelector("#btn-neuro-export")?.addEventListener("click", () => {

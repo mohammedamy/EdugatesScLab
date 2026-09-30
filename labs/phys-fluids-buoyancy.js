@@ -484,21 +484,59 @@ export function initFluidsBuoyancyLab(containerId) {
     const px = 40 + (curVolL / maxVolL) * (chartCanvas.width - 65);
     const py = (chartCanvas.height - 25) - (fbN / maxFb) * (chartCanvas.height - 45);
 
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+
     chartCtx.beginPath();
     chartCtx.arc(px, py, 5, 0, Math.PI * 2);
     chartCtx.fillStyle = "#facc15";
-    chartCtx.shadowColor = "#facc15";
-    chartCtx.shadowBlur = 8;
+    if (!isSmart) {
+      chartCtx.shadowColor = "#facc15";
+      chartCtx.shadowBlur = 8;
+    }
     chartCtx.fill();
-    chartCtx.shadowBlur = 0;
+    if (!isSmart) {
+      chartCtx.shadowBlur = 0;
+    }
   }
 
-  function loop() {
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
+  function loop(now) {
     if (!isRunning) return;
-    simTime += 0.03;
-    updateHUD();
-    drawBuoyancyApparatus();
-    drawAnalyticalChart();
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const fluidsPhotoOverlay = container.querySelector("#fluids-photo-overlay");
+    const isPhotoOverlay = fluidsPhotoOverlay && fluidsPhotoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (apparatusMode === "venturi") {
+        if (!now || now - lastFrameTime >= interval) {
+          lastFrameTime = now || performance.now();
+          simTime += (interval / 1000);
+          updateHUD();
+          drawBuoyancyApparatus();
+          drawAnalyticalChart();
+        }
+      } else if (needsRedraw) {
+        updateHUD();
+        drawBuoyancyApparatus();
+        drawAnalyticalChart();
+        needsRedraw = false;
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
 
@@ -509,27 +547,32 @@ export function initFluidsBuoyancyLab(containerId) {
     if (btn) {
       btn.innerText = apparatusMode === "buoyancy" ? "🔀 Switch to Venturi Tube" : "🔀 Switch to Archimedes Tank";
     }
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#select-fluids-fluid")?.addEventListener("change", (e) => {
     fluidKey = e.target.value;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#select-fluids-material")?.addEventListener("change", (e) => {
     materialKey = e.target.value;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#slider-fluids-submersion")?.addEventListener("input", (e) => {
     submersionPercent = parseFloat(e.target.value);
     container.querySelector("#lbl-fluids-submersion").innerText = `${submersionPercent.toFixed(0)}%`;
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-fluids-vol")?.addEventListener("input", (e) => {
     blockVolumeLiters = parseFloat(e.target.value);
     container.querySelector("#lbl-fluids-vol").innerText = `${blockVolumeLiters.toFixed(2)} L (${(blockVolumeLiters * 1000).toFixed(0)} cm³)`;
+    needsRedraw = true;
   });
 
   container.querySelector("#btn-fluid-reset")?.addEventListener("click", () => {
@@ -537,6 +580,7 @@ export function initFluidsBuoyancyLab(containerId) {
     blockVolumeLiters = 1.0;
     container.querySelector("#slider-fluids-submersion").value = 100;
     container.querySelector("#slider-fluids-vol").value = 1.0;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 

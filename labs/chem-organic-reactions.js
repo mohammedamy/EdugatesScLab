@@ -516,14 +516,22 @@ export function initOrganicReactionsLab(containerId) {
     }
     chartCtx.stroke();
 
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+
     // Draw active reaction progress ball on curve
     chartCtx.beginPath();
     chartCtx.arc(currentCoordX, currentEnergyY, 6, 0, Math.PI * 2);
     chartCtx.fillStyle = "#facc15";
-    chartCtx.shadowColor = "#facc15";
-    chartCtx.shadowBlur = 8;
+    if (!isSmart) {
+      chartCtx.shadowColor = "#facc15";
+      chartCtx.shadowBlur = 8;
+    }
     chartCtx.fill();
-    chartCtx.shadowBlur = 0;
+    if (!isSmart) {
+      chartCtx.shadowBlur = 0;
+    }
 
     // Transition State Annotations
     chartCtx.fillStyle = "#ffffff";
@@ -552,11 +560,41 @@ export function initOrganicReactionsLab(containerId) {
     }
   }
 
-  function loop() {
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
+  function loop(now) {
     if (!isRunning) return;
-    step();
-    renderMolecularApparatus();
-    renderEnergyChart();
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const orgPhotoOverlay = container.querySelector("#org-photo-overlay");
+    const isPhotoOverlay = orgPhotoOverlay && orgPhotoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (isAutoPlaying) {
+        if (!now || now - lastFrameTime >= interval) {
+          lastFrameTime = now || performance.now();
+          step();
+          renderMolecularApparatus();
+          renderEnergyChart();
+        }
+      } else if (needsRedraw) {
+        step();
+        renderMolecularApparatus();
+        renderEnergyChart();
+        needsRedraw = false;
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
 
@@ -568,6 +606,7 @@ export function initOrganicReactionsLab(containerId) {
     container.querySelector("#hud-org-ea").innerText = `E_a = ${m.ea.toFixed(1)} kJ/mol`;
     container.querySelector("#info-org-ratelaw").innerText = m.rateLaw;
     container.querySelector("#info-org-deltah").innerText = `${m.deltaH.toFixed(1)} kJ/mol`;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -577,17 +616,20 @@ export function initOrganicReactionsLab(containerId) {
     isAutoPlaying = false;
     const btn = container.querySelector("#btn-org-playpause");
     if (btn) btn.innerText = "▶ Resume Animation";
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-org-temp")?.addEventListener("input", (e) => {
     tempKelvin = parseInt(e.target.value, 10);
     container.querySelector("#lbl-org-temp").innerText = `${tempKelvin} K (${tempKelvin - 273}°C)`;
+    needsRedraw = true;
   });
 
   container.querySelector("#btn-org-playpause")?.addEventListener("click", () => {
     isAutoPlaying = !isAutoPlaying;
     const btn = container.querySelector("#btn-org-playpause");
     if (btn) btn.innerText = isAutoPlaying ? "⏸ Pause Animation" : "▶ Resume Animation";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -596,6 +638,7 @@ export function initOrganicReactionsLab(containerId) {
     isAutoPlaying = true;
     const btn = container.querySelector("#btn-org-playpause");
     if (btn) btn.innerText = "⏸ Pause Animation";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 

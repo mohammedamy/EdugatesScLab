@@ -554,20 +554,50 @@ export function initPhotosynthesisLab(containerId) {
     document.getElementById("hud-o2-total").innerText = `${o2ProducedTotal.toFixed(2)} mL Total`;
   }
 
-  function loop() {
-    if (isRunning) {
-      elapsedSeconds += 0.016;
-      if (Math.floor(elapsedSeconds * 60) % 30 === 0) {
-        document.getElementById("hud-elapsed-time").innerText = `Elapsed: ${Math.floor(elapsedSeconds)}s`;
-      }
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
+  function loop(now) {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
     }
 
-    if (apparatusMode === "photosynthesis") {
-      renderPhotosynthesisChamber();
-    } else {
-      renderRespirationChamber();
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const photoOverlay = document.getElementById("photosynthesis-photo-overlay");
+    const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (isRunning) {
+        if (!now || now - lastFrameTime >= interval) {
+          lastFrameTime = now || performance.now();
+          elapsedSeconds += (interval / 1000);
+          if (Math.floor(elapsedSeconds * 60) % 30 === 0) {
+            const timeEl = document.getElementById("hud-elapsed-time");
+            if (timeEl) timeEl.innerText = `Elapsed: ${Math.floor(elapsedSeconds)}s`;
+          }
+
+          if (apparatusMode === "photosynthesis") {
+            renderPhotosynthesisChamber();
+          } else {
+            renderRespirationChamber();
+          }
+          renderSpectrumGraph();
+        }
+      } else if (needsRedraw) {
+        if (apparatusMode === "photosynthesis") {
+          renderPhotosynthesisChamber();
+        } else {
+          renderRespirationChamber();
+        }
+        renderSpectrumGraph();
+        needsRedraw = false;
+      }
     }
-    renderSpectrumGraph();
 
     animId = requestAnimationFrame(loop);
   }
@@ -591,6 +621,7 @@ export function initPhotosynthesisLab(containerId) {
     document.getElementById("photo-controls-block").style.display = "flex";
     document.getElementById("resp-controls-block").style.display = "none";
     document.getElementById("chart-title").innerText = "Chlorophyll a & b Absorption Spectrum";
+    needsRedraw = true;
     SoundFX.playClick();
     updateHUD();
   });
@@ -609,6 +640,7 @@ export function initPhotosynthesisLab(containerId) {
     document.getElementById("photo-controls-block").style.display = "none";
     document.getElementById("resp-controls-block").style.display = "flex";
     document.getElementById("chart-title").innerText = "Manometric Respiration Kinetics";
+    needsRedraw = true;
     SoundFX.playClick();
     updateHUD();
   });
@@ -630,6 +662,7 @@ export function initPhotosynthesisLab(containerId) {
       document.querySelectorAll("[data-filter]").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       wavelengthFilter = btn.dataset.filter;
+      needsRedraw = true;
       SoundFX.playSwitchSnap();
       updateHUD();
     });
@@ -641,6 +674,7 @@ export function initPhotosynthesisLab(containerId) {
       document.querySelectorAll("[data-pea]").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       peaState = btn.dataset.pea;
+      needsRedraw = true;
       SoundFX.playSwitchSnap();
       updateHUD();
     });
@@ -650,24 +684,28 @@ export function initPhotosynthesisLab(containerId) {
   document.getElementById("slider-light").addEventListener("input", (e) => {
     lightIntensity = parseInt(e.target.value, 10);
     document.getElementById("lbl-light-intensity").innerText = `${lightIntensity} lux`;
+    needsRedraw = true;
     updateHUD();
   });
 
   document.getElementById("slider-co2").addEventListener("input", (e) => {
     co2Concentration = parseInt(e.target.value, 10);
     document.getElementById("lbl-co2-conc").innerText = `${co2Concentration} ppm`;
+    needsRedraw = true;
     updateHUD();
   });
 
   document.getElementById("slider-temp").addEventListener("input", (e) => {
     temperature = parseInt(e.target.value, 10);
     document.getElementById("lbl-temp").innerText = `${temperature} °C`;
+    needsRedraw = true;
     updateHUD();
   });
 
   document.getElementById("btn-photo-toggle-run").addEventListener("click", (e) => {
     isRunning = !isRunning;
     e.currentTarget.innerText = isRunning ? "⏸ Pause" : "▶ Resume";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 

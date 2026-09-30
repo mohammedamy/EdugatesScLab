@@ -454,11 +454,40 @@ export function initGelElectrophoresisLab(containerId) {
     }
   }
 
-  function loop() {
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
+  function loop(now) {
     if (!isRunning) return;
-    step();
-    drawElectrophoresisRig();
-    drawSemilogChart();
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const gelPhotoOverlay = container.querySelector("#gel-photo-overlay");
+    const isPhotoOverlay = gelPhotoOverlay && gelPhotoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (isElectrophoresisRunning) {
+        if (!now || now - lastFrameTime >= interval) {
+          lastFrameTime = now || performance.now();
+          step();
+          drawElectrophoresisRig();
+          drawSemilogChart();
+        }
+      } else if (needsRedraw) {
+        drawElectrophoresisRig();
+        drawSemilogChart();
+        needsRedraw = false;
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
 
@@ -471,6 +500,7 @@ export function initGelElectrophoresisLab(containerId) {
       btn.classList.toggle("btn-primary", !isElectrophoresisRunning);
       btn.classList.toggle("btn-danger", isElectrophoresisRunning);
     }
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -484,6 +514,7 @@ export function initGelElectrophoresisLab(containerId) {
     if (hudMode) {
       hudMode.innerText = uvLightEnabled ? "UV Fluorescence (GelGreen)" : "Visible Light (Dye Front)";
     }
+    needsRedraw = true;
     SoundFX.playScorePip();
   });
 
@@ -496,17 +527,20 @@ export function initGelElectrophoresisLab(containerId) {
       btn.innerText = "⚡ Start Power Supply";
       btn.className = "btn btn-primary btn-sm";
     }
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#select-gel-agarose")?.addEventListener("change", (e) => {
     agarosePercent = parseFloat(e.target.value);
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#slider-gel-voltage")?.addEventListener("input", (e) => {
     voltage = parseInt(e.target.value, 10);
     container.querySelector("#lbl-gel-voltage").innerText = `${voltage} V`;
+    needsRedraw = true;
   });
 
   container.querySelector("#btn-gel-export")?.addEventListener("click", () => {

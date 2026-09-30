@@ -468,41 +468,68 @@ export function initRespirationLab(containerId) {
 
   // Animation Loop
   let lastTime = performance.now();
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
   function loop(currentTime) {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
     const dt = Math.min(0.05, (currentTime - lastTime) / 1000);
     lastTime = currentTime;
 
-    if (isRunning) {
-      // Speed up clock so 1 real second = 0.2 experimental minutes
-      const deltaMinutes = dt * 0.2;
-      elapsedMinutes += deltaMinutes;
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
 
-      const rate = getRate();
-      const deltaO2 = rate * deltaMinutes;
-      o2ConsumedTotal += deltaO2;
-      manometerShift += deltaO2 * 28.5; // mm of fluid
+    const photoOverlay = container.querySelector("#respiration-photo-overlay");
+    const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
 
-      if (timeSeries.length === 0 || elapsedMinutes - timeSeries[timeSeries.length - 1].t >= 0.1) {
-        timeSeries.push({ t: elapsedMinutes, val: o2ConsumedTotal });
-        if (timeSeries.length > 180) timeSeries.shift();
-      }
+    if (!isPhotoOverlay) {
+      if (isRunning) {
+        if (!currentTime || currentTime - lastFrameTime >= interval) {
+          lastFrameTime = currentTime;
 
-      dispRate.innerText = `${rate.toFixed(3)} mL O₂ / min`;
-      dispAccum.innerText = `Total: ${o2ConsumedTotal.toFixed(3)} mL O₂ consumed`;
-      dispShift.innerText = `Δh = ${manometerShift.toFixed(1)} mm`;
-      dispTemp.innerText = `${temperature.toFixed(1)} °C`;
+          // Speed up clock so 1 real second = 0.2 experimental minutes
+          const deltaMinutes = dt * 0.2;
+          elapsedMinutes += deltaMinutes;
 
-      if (!kohActive && activeSpecimen.type === "aerobic") {
-        dispStatus.innerText = "⚠️ Zero Net Volume Change: KOH absent! CO₂ released equals O₂ consumed (RQ = 1.0).";
-      } else if (activeSpecimen.type === "control") {
-        dispStatus.innerText = "⚪ Inert Control: Zero metabolism, zero fluid displacement.";
-      } else {
-        dispStatus.innerText = `⚡ Active Respiration: Gas contraction rate = ${rate.toFixed(3)} mL/min.`;
+          const rate = getRate();
+          const deltaO2 = rate * deltaMinutes;
+          o2ConsumedTotal += deltaO2;
+          manometerShift += deltaO2 * 28.5; // mm of fluid
+
+          if (timeSeries.length === 0 || elapsedMinutes - timeSeries[timeSeries.length - 1].t >= 0.1) {
+            timeSeries.push({ t: elapsedMinutes, val: o2ConsumedTotal });
+            if (timeSeries.length > 180) timeSeries.shift();
+          }
+
+          dispRate.innerText = `${rate.toFixed(3)} mL O₂ / min`;
+          dispAccum.innerText = `Total: ${o2ConsumedTotal.toFixed(3)} mL O₂ consumed`;
+          dispShift.innerText = `Δh = ${manometerShift.toFixed(1)} mm`;
+          dispTemp.innerText = `${temperature.toFixed(1)} °C`;
+
+          if (!kohActive && activeSpecimen.type === "aerobic") {
+            dispStatus.innerText = "⚠️ Zero Net Volume Change: KOH absent! CO₂ released equals O₂ consumed (RQ = 1.0).";
+          } else if (activeSpecimen.type === "control") {
+            dispStatus.innerText = "⚪ Inert Control: Zero metabolism, zero fluid displacement.";
+          } else {
+            dispStatus.innerText = `⚡ Active Respiration: Gas contraction rate = ${rate.toFixed(3)} mL/min.`;
+          }
+
+          renderApparatus();
+          renderChart();
+        }
+      } else if (needsRedraw) {
+        renderApparatus();
+        renderChart();
+        needsRedraw = false;
       }
     }
 
-    renderApparatus();
-    renderChart();
     animId = requestAnimationFrame(loop);
   }
   animId = requestAnimationFrame(loop);
@@ -518,6 +545,7 @@ export function initRespirationLab(containerId) {
     btnPhoto.classList.remove("active");
     btnPhoto.style.background = "transparent";
     if (photoOverlay) photoOverlay.style.display = "none";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -533,11 +561,13 @@ export function initRespirationLab(containerId) {
   container.querySelector("#btn-resp-toggle-run")?.addEventListener("click", (e) => {
     isRunning = !isRunning;
     e.currentTarget.innerText = isRunning ? "⏸ Pause" : "▶ Resume";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#btn-resp-reset")?.addEventListener("click", () => {
     resetAssay();
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -558,10 +588,12 @@ export function initRespirationLab(containerId) {
   container.querySelector("#slider-resp-temp")?.addEventListener("input", (e) => {
     temperature = parseInt(e.target.value, 10);
     container.querySelector("#lbl-resp-temp").innerText = `${temperature} °C`;
+    needsRedraw = true;
   });
 
   container.querySelector("#chk-koh-active")?.addEventListener("change", (e) => {
     kohActive = e.target.checked;
+    needsRedraw = true;
     SoundFX.playSwitchSnap();
   });
 

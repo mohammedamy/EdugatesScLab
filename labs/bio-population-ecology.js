@@ -382,11 +382,40 @@ export function initPopulationEcologyLab(containerId) {
     }
   }
 
-  function loop() {
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
+  function loop(now) {
     if (!isRunning) return;
-    stepEcosystem();
-    drawEcosystemArena();
-    drawTimeSeriesChart();
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const ecoPhotoOverlay = container.querySelector("#eco-photo-overlay");
+    const isPhotoOverlay = ecoPhotoOverlay && ecoPhotoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (!isPaused) {
+        if (!now || now - lastFrameTime >= interval) {
+          lastFrameTime = now || performance.now();
+          stepEcosystem();
+          drawEcosystemArena();
+          drawTimeSeriesChart();
+        }
+      } else if (needsRedraw) {
+        drawEcosystemArena();
+        drawTimeSeriesChart();
+        needsRedraw = false;
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
 
@@ -395,6 +424,7 @@ export function initPopulationEcologyLab(containerId) {
     isPaused = !isPaused;
     const btn = container.querySelector("#btn-eco-pause");
     if (btn) btn.innerText = isPaused ? "▶ Resume" : "⏸ Pause";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -403,6 +433,7 @@ export function initPopulationEcologyLab(containerId) {
     preyPop = Math.max(10, preyPop * 0.5);
     container.querySelector("#slider-eco-k").value = carryingCapacityK;
     container.querySelector("#lbl-eco-k").innerText = carryingCapacityK;
+    needsRedraw = true;
     SoundFX.playFailureTone();
   });
 
@@ -414,27 +445,32 @@ export function initPopulationEcologyLab(containerId) {
     simTime = 0.0;
     container.querySelector("#slider-eco-k").value = 400;
     container.querySelector("#lbl-eco-k").innerText = "400";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#slider-eco-alpha")?.addEventListener("input", (e) => {
     alphaPreyBirth = parseFloat(e.target.value);
     container.querySelector("#lbl-eco-alpha").innerText = alphaPreyBirth.toFixed(2);
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-eco-beta")?.addEventListener("input", (e) => {
     betaPredation = parseFloat(e.target.value);
     container.querySelector("#lbl-eco-beta").innerText = betaPredation.toFixed(3);
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-eco-gamma")?.addEventListener("input", (e) => {
     gammaPredDeath = parseFloat(e.target.value);
     container.querySelector("#lbl-eco-gamma").innerText = gammaPredDeath.toFixed(2);
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-eco-k")?.addEventListener("input", (e) => {
     carryingCapacityK = parseInt(e.target.value, 10);
     container.querySelector("#lbl-eco-k").innerText = carryingCapacityK;
+    needsRedraw = true;
   });
 
   container.querySelector("#btn-eco-export")?.addEventListener("click", () => {

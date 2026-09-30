@@ -439,44 +439,87 @@ export function initPhotoelectricLab(containerId) {
 
   // Animation Step
   let lastTime = performance.now();
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+  let graphNeedsRedraw = true;
+
   function loop(currentTime) {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
     const dt = Math.min(0.05, (currentTime - lastTime) / 1000);
     lastTime = currentTime;
-    elapsedSeconds += dt;
 
-    // Physics calculations
-    const E_photon = hc_eVnm / wavelength;
-    const freq_Hz = c / (wavelength * 1e-9);
-    const KE_max = Math.max(0, E_photon - activeMetal.workFunction);
-    const V_stop = KE_max; // since e * V_stop = KE_max (in eV and V)
-    const isEmitting = E_photon >= activeMetal.workFunction && lightIntensity > 0;
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
 
-    let current_nA = 0;
-    if (isEmitting) {
-      if (batteryVoltage >= -V_stop) {
-        // Current increases with accelerating voltage up to saturation
-        const satCurrent = (lightIntensity / 100) * 3.5;
-        const normV = (batteryVoltage + V_stop) / Math.max(0.1, V_stop + 1.0);
-        current_nA = Math.min(satCurrent, satCurrent * Math.sqrt(Math.max(0, normV)));
+    const photoOverlay = container.querySelector("#photoelectric-photo-overlay");
+    const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      // Physics calculations
+      const E_photon = hc_eVnm / wavelength;
+      const freq_Hz = c / (wavelength * 1e-9);
+      const KE_max = Math.max(0, E_photon - activeMetal.workFunction);
+      const V_stop = KE_max; // since e * V_stop = KE_max (in eV and V)
+      const isEmitting = E_photon >= activeMetal.workFunction && lightIntensity > 0;
+
+      let current_nA = 0;
+      if (isEmitting) {
+        if (batteryVoltage >= -V_stop) {
+          // Current increases with accelerating voltage up to saturation
+          const satCurrent = (lightIntensity / 100) * 3.5;
+          const normV = (batteryVoltage + V_stop) / Math.max(0.1, V_stop + 1.0);
+          current_nA = Math.min(satCurrent, satCurrent * Math.sqrt(Math.max(0, normV)));
+        }
+      }
+
+      const isCurrentFlowing = isEmitting && batteryVoltage > -V_stop;
+
+      if (isCurrentFlowing) {
+        if (!currentTime || currentTime - lastFrameTime >= interval) {
+          lastFrameTime = currentTime;
+          elapsedSeconds += dt;
+
+          dispEnergy.innerText = `E = ${E_photon.toFixed(3)} eV`;
+          dispFreq.innerText = `f = ${(freq_Hz / 1e14).toFixed(2)} × 10¹⁴ Hz`;
+          dispKE.innerText = `KE_max = ${KE_max.toFixed(3)} eV`;
+          dispVstop.innerText = `Stopping V_stop = ${V_stop.toFixed(3)} V`;
+          dispCurrent.innerText = `${current_nA.toFixed(2)} nA`;
+          dispStatus.innerText = `⚡ Photoemission Active: Ejected electrons bridge cathode to anode (I = ${current_nA.toFixed(2)} nA).`;
+
+          renderApparatus();
+          if (graphNeedsRedraw) {
+            renderGraph();
+            graphNeedsRedraw = false;
+          }
+        }
+      } else if (needsRedraw) {
+        dispEnergy.innerText = `E = ${E_photon.toFixed(3)} eV`;
+        dispFreq.innerText = `f = ${(freq_Hz / 1e14).toFixed(2)} × 10¹⁴ Hz`;
+        dispKE.innerText = `KE_max = ${KE_max.toFixed(3)} eV`;
+        dispVstop.innerText = `Stopping V_stop = ${V_stop.toFixed(3)} V`;
+        dispCurrent.innerText = `${current_nA.toFixed(2)} nA`;
+
+        if (!isEmitting) {
+          dispStatus.innerText = "🛑 No Emission: Photon energy hf is below work function Φ. Zero electrons ejected.";
+        } else if (batteryVoltage <= -V_stop) {
+          dispStatus.innerText = "⛔ Stopping Potential Reached: Retarding field halts all ejected photoelectrons.";
+        } else {
+          dispStatus.innerText = `⚡ Photoemission Active: Ejected electrons bridge cathode to anode (I = ${current_nA.toFixed(2)} nA).`;
+        }
+
+        renderApparatus();
+        renderGraph();
+        needsRedraw = false;
+        graphNeedsRedraw = false;
       }
     }
 
-    dispEnergy.innerText = `E = ${E_photon.toFixed(3)} eV`;
-    dispFreq.innerText = `f = ${(freq_Hz / 1e14).toFixed(2)} × 10¹⁴ Hz`;
-    dispKE.innerText = `KE_max = ${KE_max.toFixed(3)} eV`;
-    dispVstop.innerText = `Stopping V_stop = ${V_stop.toFixed(3)} V`;
-    dispCurrent.innerText = `${current_nA.toFixed(2)} nA`;
-
-    if (!isEmitting) {
-      dispStatus.innerText = "🛑 No Emission: Photon energy hf is below work function Φ. Zero electrons ejected.";
-    } else if (batteryVoltage <= -V_stop) {
-      dispStatus.innerText = "⛔ Stopping Potential Reached: Retarding field halts all ejected photoelectrons.";
-    } else {
-      dispStatus.innerText = `⚡ Photoemission Active: Ejected electrons bridge cathode to anode (I = ${current_nA.toFixed(2)} nA).`;
-    }
-
-    renderApparatus();
-    renderGraph();
     animId = requestAnimationFrame(loop);
   }
   animId = requestAnimationFrame(loop);
@@ -492,6 +535,8 @@ export function initPhotoelectricLab(containerId) {
     btnPhoto.classList.remove("active");
     btnPhoto.style.background = "transparent";
     if (photoOverlay) photoOverlay.style.display = "none";
+    needsRedraw = true;
+    graphNeedsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -511,6 +556,8 @@ export function initPhotoelectricLab(containerId) {
     batteryVoltage = -KE_max;
     container.querySelector("#slider-pe-voltage").value = batteryVoltage;
     container.querySelector("#lbl-pe-voltage").innerText = `${batteryVoltage.toFixed(2)} V`;
+    needsRedraw = true;
+    graphNeedsRedraw = true;
     SoundFX.playSwitchSnap();
   });
 
@@ -522,6 +569,8 @@ export function initPhotoelectricLab(containerId) {
       currentMetalKey = btn.dataset.metal;
       activeMetal = METALS[currentMetalKey];
       container.querySelector("#disp-metal-desc").innerText = activeMetal.desc;
+      needsRedraw = true;
+      graphNeedsRedraw = true;
       SoundFX.playClick();
     });
   });
@@ -530,16 +579,21 @@ export function initPhotoelectricLab(containerId) {
   container.querySelector("#slider-pe-wavelength")?.addEventListener("input", (e) => {
     wavelength = parseInt(e.target.value, 10);
     container.querySelector("#lbl-pe-wavelength").innerText = `${wavelength} nm`;
+    needsRedraw = true;
+    graphNeedsRedraw = true;
   });
 
   container.querySelector("#slider-pe-intensity")?.addEventListener("input", (e) => {
     lightIntensity = parseInt(e.target.value, 10);
     container.querySelector("#lbl-pe-intensity").innerText = `${lightIntensity}%`;
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-pe-voltage")?.addEventListener("input", (e) => {
     batteryVoltage = parseFloat(e.target.value);
     container.querySelector("#lbl-pe-voltage").innerText = `${batteryVoltage.toFixed(2)} V`;
+    needsRedraw = true;
+    graphNeedsRedraw = true;
   });
 
   // Export CSV

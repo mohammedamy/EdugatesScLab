@@ -918,14 +918,23 @@ export function initPeriodicTableLab(containerId) {
     bohrCtx.restore();
   }
 
-  function loop() {
-    if (!container.isConnected) {
+  let lastFrameTime = 0;
+  function loop(now) {
+    if (!container || !container.isConnected) {
       if (animId) cancelAnimationFrame(animId);
       animId = null;
       return;
     }
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
     if (activeTab === "bohr") {
-      drawBohr();
+      if (!now || now - lastFrameTime >= interval) {
+        lastFrameTime = now || performance.now();
+        drawBohr();
+      }
       animId = requestAnimationFrame(loop);
     } else {
       animId = null;

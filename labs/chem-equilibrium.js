@@ -448,33 +448,81 @@ export function initEquilibriumLab(containerId) {
     const targetProduct = (effectiveKc / (1 + effectiveKc)) * 1.5;
     const targetReactant = 1.5 - targetProduct;
 
-    // Relax toward equilibrium at rate proportional to difference
-    reactantConc += (targetReactant - reactantConc) * 0.08;
-    productConc += (targetProduct - productConc) * 0.08;
+    const diffR = targetReactant - reactantConc;
+    const diffP = targetProduct - productConc;
+    const isRelaxing = Math.abs(diffR) > 0.0005 || Math.abs(diffP) > 0.0005;
 
-    const currentQ = productConc / Math.max(0.001, reactantConc);
-    const absVal = Math.min(1.8, productConc * 0.85);
-
-    // Telemetry updates
-    dispQ.innerText = `Q = ${currentQ.toFixed(4)} • K_c = ${Kc.toFixed(4)}`;
-    dispAbs.innerText = `${absVal.toFixed(3)} AU`;
-    dispTemp.innerText = `${temperature.toFixed(1)} °C`;
-
-    if (Math.abs(currentQ - Kc) / Kc < 0.08) {
-      dispEqStatus.innerText = "⚖️ Dynamic Equilibrium Reached (Q ≈ K_c)";
-      dispShift.innerText = "➡️ Equilibrium Shift: Stationary (Forward Rate = Reverse Rate)";
-    } else if (currentQ < Kc) {
-      dispEqStatus.innerText = "➡️ Forward Reaction Driving (Q < K_c)";
-      dispShift.innerText = "➡️ Shifting Right toward Products (Producing Color)";
-    } else {
-      dispEqStatus.innerText = "⬅️ Reverse Reaction Driving (Q > K_c)";
-      dispShift.innerText = "⬅️ Shifting Left toward Reactants (Reversing Color)";
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
     }
 
-    renderCell();
-    renderChart();
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const photoOverlay = container.querySelector("#equilibrium-photo-overlay");
+    const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (isRelaxing) {
+        if (!currentTime || currentTime - lastFrameTime >= interval) {
+          lastFrameTime = currentTime || performance.now();
+          reactantConc += diffR * 0.08;
+          productConc += diffP * 0.08;
+
+          const currentQ = productConc / Math.max(0.001, reactantConc);
+          const absVal = Math.min(1.8, productConc * 0.85);
+
+          // Telemetry updates
+          dispQ.innerText = `Q = ${currentQ.toFixed(4)} • K_c = ${Kc.toFixed(4)}`;
+          dispAbs.innerText = `${absVal.toFixed(3)} AU`;
+          dispTemp.innerText = `${temperature.toFixed(1)} °C`;
+
+          if (Math.abs(currentQ - Kc) / Kc < 0.08) {
+            dispEqStatus.innerText = "⚖️ Dynamic Equilibrium Reached (Q ≈ K_c)";
+            dispShift.innerText = "➡️ Equilibrium Shift: Stationary (Forward Rate = Reverse Rate)";
+          } else if (currentQ < Kc) {
+            dispEqStatus.innerText = "➡️ Forward Reaction Driving (Q < K_c)";
+            dispShift.innerText = "➡️ Shifting Right toward Products (Producing Color)";
+          } else {
+            dispEqStatus.innerText = "⬅️ Reverse Reaction Driving (Q > K_c)";
+            dispShift.innerText = "⬅️ Shifting Left toward Reactants (Reversing Color)";
+          }
+
+          renderCell();
+          renderChart();
+        }
+      } else if (needsRedraw) {
+        const currentQ = productConc / Math.max(0.001, reactantConc);
+        const absVal = Math.min(1.8, productConc * 0.85);
+
+        dispQ.innerText = `Q = ${currentQ.toFixed(4)} • K_c = ${Kc.toFixed(4)}`;
+        dispAbs.innerText = `${absVal.toFixed(3)} AU`;
+        dispTemp.innerText = `${temperature.toFixed(1)} °C`;
+
+        if (Math.abs(currentQ - Kc) / Kc < 0.08) {
+          dispEqStatus.innerText = "⚖️ Dynamic Equilibrium Reached (Q ≈ K_c)";
+          dispShift.innerText = "➡️ Equilibrium Shift: Stationary (Forward Rate = Reverse Rate)";
+        } else if (currentQ < Kc) {
+          dispEqStatus.innerText = "➡️ Forward Reaction Driving (Q < K_c)";
+          dispShift.innerText = "➡️ Shifting Right toward Products (Producing Color)";
+        } else {
+          dispEqStatus.innerText = "⬅️ Reverse Reaction Driving (Q > K_c)";
+          dispShift.innerText = "⬅️ Shifting Left toward Reactants (Reversing Color)";
+        }
+
+        renderCell();
+        renderChart();
+        needsRedraw = false;
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
+  let lastFrameTime = 0;
+  let needsRedraw = true;
   animId = requestAnimationFrame(loop);
 
   // --- EVENT LISTENERS ---
@@ -488,6 +536,7 @@ export function initEquilibriumLab(containerId) {
     btnPhoto.classList.remove("active");
     btnPhoto.style.background = "transparent";
     if (photoOverlay) photoOverlay.style.display = "none";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -509,6 +558,7 @@ export function initEquilibriumLab(containerId) {
       container.querySelector("#slider-eq-volume").value = 1.0;
       container.querySelector("#lbl-volume").innerText = "1.00× (P = 1.00 atm)";
     }
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -522,6 +572,7 @@ export function initEquilibriumLab(containerId) {
       container.querySelector("#block-volume-slider").style.display = activeSys.phase === "gas" ? "block" : "none";
       reactantConc = 1.0;
       productConc = 0.2;
+      needsRedraw = true;
       SoundFX.playClick();
     });
   });
@@ -530,27 +581,32 @@ export function initEquilibriumLab(containerId) {
   container.querySelector("#slider-eq-temp")?.addEventListener("input", (e) => {
     temperature = parseFloat(e.target.value);
     container.querySelector("#lbl-temp").innerText = `${temperature} °C`;
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-eq-volume")?.addEventListener("input", (e) => {
     syringeVolume = parseFloat(e.target.value);
     container.querySelector("#lbl-volume").innerText = `${syringeVolume.toFixed(2)}× (P = ${(1/syringeVolume).toFixed(2)} atm)`;
+    needsRedraw = true;
   });
 
   // Stress Buttons
   container.querySelector("#btn-add-reactant")?.addEventListener("click", () => {
     reactantConc += 0.8;
+    needsRedraw = true;
     SoundFX.playSwitchSnap();
   });
 
   container.querySelector("#btn-add-product")?.addEventListener("click", () => {
     productConc += 0.8;
+    needsRedraw = true;
     SoundFX.playSwitchSnap();
   });
 
   container.querySelector("#btn-remove-stress")?.addEventListener("click", () => {
     reactantConc = 1.0;
     productConc = 0.5;
+    needsRedraw = true;
     SoundFX.playClick();
   });
 

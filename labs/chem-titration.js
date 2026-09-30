@@ -914,35 +914,58 @@ export function initTitrationLab(containerId) {
     drawCurve();
   }
 
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
   // Animation Loop for Continuous Flow & Drops
-  function animate() {
-    if (flowRate > 0 && vTitrant < 50.0) {
-      const stepVol = flowRate * 0.03;
-      vTitrant = Math.min(50.0, vTitrant + stepVol);
-      const ph = calculatePH(vTitrant);
-      dataPoints.push({ v: vTitrant, ph });
-
-      // Spawn drops periodically
-      if (Math.random() < 0.7) {
-        const standX = 110;
-        const buretX = standX + 100;
-        const stopcockY = 35 + 240;
-        drops.push({ x: buretX, y: stopcockY + 38, speed: 3 });
-      }
-
-      updateTelemetry();
-      drawCurve();
-    }
-
-    if (!container.isConnected) {
+  function animate(now) {
+    if (!container || !container.isConnected) {
       stopAutoTitrate();
       if (animId) cancelAnimationFrame(animId);
       return;
     }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
     const photoEl = container.querySelector("#titr-photo-overlay");
-    if (!photoEl || photoEl.style.display !== "block") {
-      drawApparatus();
+    const isPhotoOverlay = photoEl && photoEl.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      const isFlowing = (flowRate > 0 && vTitrant < 50.0) || drops.length > 0;
+      if (isFlowing) {
+        if (!now || now - lastFrameTime >= interval) {
+          lastFrameTime = now || performance.now();
+
+          if (flowRate > 0 && vTitrant < 50.0) {
+            const stepVol = flowRate * (interval / 1000);
+            vTitrant = Math.min(50.0, vTitrant + stepVol);
+            const ph = calculatePH(vTitrant);
+            dataPoints.push({ v: vTitrant, ph });
+
+            // Spawn drops periodically
+            if (Math.random() < 0.7) {
+              const standX = 110;
+              const buretX = standX + 100;
+              const stopcockY = 35 + 240;
+              drops.push({ x: buretX, y: stopcockY + 38, speed: 3 });
+            }
+
+            updateTelemetry();
+            drawCurve();
+          }
+
+          drawApparatus();
+        }
+      } else if (needsRedraw) {
+        drawApparatus();
+        drawCurve();
+        needsRedraw = false;
+      }
     }
+
     animId = requestAnimationFrame(animate);
   }
 

@@ -405,43 +405,75 @@ export function initThermalConductionLab(containerId) {
     chartCtx.fill();
   }
 
-  function loop() {
+  let lastFrameTime = 0;
+  let chartNeedsRedraw = true;
+
+  function loop(now) {
     if (!isRunning) return;
-    simClock += 0.02;
-    updateHUD();
-    drawApparatus();
-    drawProfileChart();
+    if (!container || !container.isConnected) {
+      isRunning = false;
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const condPhotoOverlay = container.querySelector("#cond-photo-overlay");
+    const isPhotoOverlay = condPhotoOverlay && condPhotoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (!now || now - lastFrameTime >= interval) {
+        lastFrameTime = now || performance.now();
+        simClock += (interval / 1000);
+        updateHUD();
+        drawApparatus();
+        if (chartNeedsRedraw) {
+          drawProfileChart();
+          chartNeedsRedraw = false;
+        }
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
 
   // Event Listeners
   container.querySelector("#select-cond-material")?.addEventListener("change", (e) => {
     materialKey = e.target.value;
+    chartNeedsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#slider-cond-thot")?.addEventListener("input", (e) => {
     tHot = parseFloat(e.target.value);
     container.querySelector("#lbl-cond-thot").innerText = `${tHot.toFixed(1)} °C`;
+    chartNeedsRedraw = true;
   });
 
   container.querySelector("#slider-cond-tcold")?.addEventListener("input", (e) => {
     tCold = parseFloat(e.target.value);
     container.querySelector("#lbl-cond-tcold").innerText = `${tCold.toFixed(1)} °C`;
+    chartNeedsRedraw = true;
   });
 
   container.querySelector("#slider-cond-length")?.addEventListener("input", (e) => {
     rodLengthM = parseFloat(e.target.value);
     container.querySelector("#lbl-cond-length").innerText = `${rodLengthM.toFixed(2)} m`;
+    chartNeedsRedraw = true;
   });
 
   container.querySelector("#slider-cond-area")?.addEventListener("input", (e) => {
     rodAreaCm2 = parseFloat(e.target.value);
     container.querySelector("#lbl-cond-area").innerText = `${rodAreaCm2.toFixed(1)} cm²`;
+    chartNeedsRedraw = true;
   });
 
   container.querySelector("#btn-cond-reset")?.addEventListener("click", () => {
     resetTemperatures();
+    chartNeedsRedraw = true;
     SoundFX.playClick();
   });
 

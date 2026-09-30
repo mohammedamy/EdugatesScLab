@@ -468,13 +468,41 @@ export function initElectrochemLab(containerId) {
 
   // Animation Loop
   let lastTime = performance.now();
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
   function loop(currentTime) {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
     const dt = Math.min(0.05, (currentTime - lastTime) / 1000);
     lastTime = currentTime;
-    elapsedSeconds += dt;
 
-    updateTelemetry();
-    renderApparatus();
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const photoOverlay = container.querySelector("#electrochem-photo-overlay");
+    const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (isClosedCircuit) {
+        if (!currentTime || currentTime - lastFrameTime >= interval) {
+          lastFrameTime = currentTime;
+          elapsedSeconds += dt;
+          updateTelemetry();
+          renderApparatus();
+        }
+      } else if (needsRedraw) {
+        updateTelemetry();
+        renderApparatus();
+        needsRedraw = false;
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
   animId = requestAnimationFrame(loop);
@@ -490,6 +518,7 @@ export function initElectrochemLab(containerId) {
     btnPhoto.classList.remove("active");
     btnPhoto.style.background = "transparent";
     if (photoOverlay) photoOverlay.style.display = "none";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -505,6 +534,7 @@ export function initElectrochemLab(containerId) {
   container.querySelector("#btn-ec-switch-circuit")?.addEventListener("click", (e) => {
     isClosedCircuit = !isClosedCircuit;
     e.currentTarget.innerText = isClosedCircuit ? "⚡ Open Switch" : "🔌 Close Switch";
+    needsRedraw = true;
     SoundFX.playSwitchSnap();
   });
 
@@ -524,6 +554,7 @@ export function initElectrochemLab(containerId) {
       container.querySelector("#slider-cathode-conc").value = 1.0;
       container.querySelector("#lbl-anode-conc").innerText = "1.00 M";
       container.querySelector("#lbl-cathode-conc").innerText = "1.00 M";
+      needsRedraw = true;
       SoundFX.playClick();
     });
   });
@@ -532,11 +563,13 @@ export function initElectrochemLab(containerId) {
   container.querySelector("#slider-anode-conc")?.addEventListener("input", (e) => {
     anodeConc = parseFloat(e.target.value);
     container.querySelector("#lbl-anode-conc").innerText = `${anodeConc.toFixed(2)} M`;
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-cathode-conc")?.addEventListener("input", (e) => {
     cathodeConc = parseFloat(e.target.value);
     container.querySelector("#lbl-cathode-conc").innerText = `${cathodeConc.toFixed(2)} M`;
+    needsRedraw = true;
   });
 
   // Presets
@@ -547,6 +580,7 @@ export function initElectrochemLab(containerId) {
     container.querySelector("#slider-cathode-conc").value = 1.0;
     container.querySelector("#lbl-anode-conc").innerText = "1.00 M";
     container.querySelector("#lbl-cathode-conc").innerText = "1.00 M";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -557,6 +591,7 @@ export function initElectrochemLab(containerId) {
     container.querySelector("#slider-cathode-conc").value = 2.0;
     container.querySelector("#lbl-anode-conc").innerText = "0.01 M";
     container.querySelector("#lbl-cathode-conc").innerText = "2.00 M";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -567,6 +602,7 @@ export function initElectrochemLab(containerId) {
     container.querySelector("#slider-cathode-conc").value = 0.01;
     container.querySelector("#lbl-anode-conc").innerText = "2.00 M";
     container.querySelector("#lbl-cathode-conc").innerText = "0.01 M";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 

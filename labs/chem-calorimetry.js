@@ -523,39 +523,65 @@ export function initCalorimetryLab(containerId) {
 
   // Physics Simulation Step
   let lastTime = performance.now();
+  let lastFrameTime = 0;
+  let needsRedraw = true;
+
   function loop(currentTime) {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
     const dt = Math.min(0.05, (currentTime - lastTime) / 1000);
     lastTime = currentTime;
 
-    if (isRunning) {
-      elapsedSeconds += dt;
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
 
-      if (reactionTriggered && reactionProgress < 1.0) {
-        reactionProgress = Math.min(1.0, reactionProgress + dt * 0.15);
-        // Target temp based on theoretical deltaH
-        const totalHeatCap = (activeSystem.defaultMass * activeSystem.c_spec) + c_calorimeter;
-        const totalQ_kJ = -activeSystem.deltaH_theo * activeSystem.moles;
-        const expectedDeltaT = (totalQ_kJ * 1000) / totalHeatCap;
-        const targetTemp = initialTemp + expectedDeltaT;
+    const photoOverlay = container.querySelector("#calorimetry-photo-overlay");
+    const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
 
-        currentTemp = initialTemp + expectedDeltaT * (1 - Math.exp(-reactionProgress * 4));
-        if (currentTemp > maxTemp) maxTemp = currentTemp;
-      } else if (reactionProgress >= 1.0) {
-        // Newton's Law of Cooling
-        currentTemp += (initialTemp - currentTemp) * coolingConstant;
+    if (!isPhotoOverlay) {
+      const isDynamic = reactionTriggered && (reactionProgress < 1.0 || Math.abs(currentTemp - initialTemp) > 0.05);
+      if (isRunning && (isDynamic || stirrerSpeed > 0)) {
+        if (!currentTime || currentTime - lastFrameTime >= interval) {
+          lastFrameTime = currentTime;
+          elapsedSeconds += dt;
+
+          if (reactionTriggered && reactionProgress < 1.0) {
+            reactionProgress = Math.min(1.0, reactionProgress + dt * 0.15);
+            // Target temp based on theoretical deltaH
+            const totalHeatCap = (activeSystem.defaultMass * activeSystem.c_spec) + c_calorimeter;
+            const totalQ_kJ = -activeSystem.deltaH_theo * activeSystem.moles;
+            const expectedDeltaT = (totalQ_kJ * 1000) / totalHeatCap;
+
+            currentTemp = initialTemp + expectedDeltaT * (1 - Math.exp(-reactionProgress * 4));
+            if (currentTemp > maxTemp) maxTemp = currentTemp;
+          } else if (reactionProgress >= 1.0) {
+            // Newton's Law of Cooling
+            currentTemp += (initialTemp - currentTemp) * coolingConstant;
+          }
+
+          // Record History (10Hz)
+          if (timeSeries.length === 0 || elapsedSeconds - timeSeries[timeSeries.length - 1].t >= 0.25) {
+            timeSeries.push({ t: elapsedSeconds, temp: currentTemp });
+            if (timeSeries.length > 200) timeSeries.shift();
+          }
+
+          updateTelemetry();
+          renderApparatus();
+          renderChart();
+        }
+      } else if (needsRedraw) {
+        updateTelemetry();
+        renderApparatus();
+        renderChart();
+        needsRedraw = false;
       }
-
-      // Record History (10Hz)
-      if (timeSeries.length === 0 || elapsedSeconds - timeSeries[timeSeries.length - 1].t >= 0.25) {
-        timeSeries.push({ t: elapsedSeconds, temp: currentTemp });
-        if (timeSeries.length > 200) timeSeries.shift();
-      }
-
-      updateTelemetry();
     }
 
-    renderApparatus();
-    renderChart();
     animId = requestAnimationFrame(loop);
   }
   animId = requestAnimationFrame(loop);
@@ -571,6 +597,7 @@ export function initCalorimetryLab(containerId) {
     btnPhoto.classList.remove("active");
     btnPhoto.style.background = "transparent";
     if (photoOverlay) photoOverlay.style.display = "none";
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -583,9 +610,14 @@ export function initCalorimetryLab(containerId) {
     SoundFX.playClick();
   });
 
-  container.querySelector("#btn-cal-start-rxn")?.addEventListener("click", triggerReaction);
+  container.querySelector("#btn-cal-start-rxn")?.addEventListener("click", () => {
+    triggerReaction();
+    needsRedraw = true;
+  });
+
   container.querySelector("#btn-cal-reset")?.addEventListener("click", () => {
     resetCell();
+    needsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -598,6 +630,7 @@ export function initCalorimetryLab(containerId) {
       activeSystem = SYSTEMS[currentSystemKey];
       container.querySelector("#disp-rxn-desc").innerText = activeSystem.desc;
       resetCell();
+      needsRedraw = true;
       SoundFX.playClick();
     });
   });
@@ -606,6 +639,7 @@ export function initCalorimetryLab(containerId) {
   container.querySelector("#slider-c-cal")?.addEventListener("input", (e) => {
     c_calorimeter = parseFloat(e.target.value);
     container.querySelector("#lbl-c-cal").innerText = `${c_calorimeter} J/°C`;
+    needsRedraw = true;
     updateTelemetry();
   });
 
@@ -613,6 +647,7 @@ export function initCalorimetryLab(containerId) {
     stirrerSpeed = parseInt(e.target.value, 10);
     container.querySelector("#lbl-stirrer").innerText = `${stirrerSpeed} RPM`;
     dispStirrer.innerText = `${stirrerSpeed} RPM`;
+    needsRedraw = true;
   });
 
   container.querySelector("#slider-init-temp")?.addEventListener("input", (e) => {
@@ -622,6 +657,7 @@ export function initCalorimetryLab(containerId) {
       currentTemp = initialTemp;
       updateTelemetry();
     }
+    needsRedraw = true;
   });
 
   // Export CSV

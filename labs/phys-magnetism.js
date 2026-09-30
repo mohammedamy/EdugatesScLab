@@ -295,14 +295,22 @@ export function initMagnetismLab(containerId) {
     ctx.stroke();
 
     // Core Electron Beam (Sharp Neon Green Helium Discharge)
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+
     ctx.strokeStyle = "#4ade80";
     ctx.lineWidth = 3;
-    ctx.shadowColor = "#22c55e";
-    ctx.shadowBlur = 12;
+    if (!isSmart) {
+      ctx.shadowColor = "#22c55e";
+      ctx.shadowBlur = 12;
+    }
     ctx.beginPath();
     ctx.arc(circleCenterX, circleCenterY, pixelRadius, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.shadowBlur = 0; // reset
+    if (!isSmart) {
+      ctx.shadowBlur = 0; // reset
+    }
 
     // Animated Electron Packet circulating around beam
     const orbitAngle = -(elapsedSeconds * 6) % (Math.PI * 2);
@@ -337,13 +345,34 @@ export function initMagnetismLab(containerId) {
 
   // Animation Loop
   let lastTime = performance.now();
+  let lastFrameTime = 0;
+
   function loop(currentTime) {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
     const dt = Math.min(0.05, (currentTime - lastTime) / 1000);
     lastTime = currentTime;
-    elapsedSeconds += dt;
 
-    updateTelemetry();
-    renderApparatus();
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const photoOverlay = container.querySelector("#magnetism-photo-overlay");
+    const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (!currentTime || currentTime - lastFrameTime >= interval) {
+        lastFrameTime = currentTime;
+        elapsedSeconds += dt;
+        updateTelemetry();
+        renderApparatus();
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
   animId = requestAnimationFrame(loop);

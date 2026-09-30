@@ -506,14 +506,40 @@ export function initEnzymeLab(containerId) {
 
   // Animation Loop
   let lastTime = performance.now();
+  let lastFrameTime = 0;
+  let graphNeedsRedraw = true;
+
   function loop(currentTime) {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
     const dt = Math.min(0.05, (currentTime - lastTime) / 1000);
     lastTime = currentTime;
-    elapsedSeconds += dt;
 
-    updateTelemetry();
-    renderApparatus();
-    renderGraph();
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    const photoOverlay = container.querySelector("#enzyme-photo-overlay");
+    const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
+
+    if (!isPhotoOverlay) {
+      if (!currentTime || currentTime - lastFrameTime >= interval) {
+        lastFrameTime = currentTime;
+        elapsedSeconds += dt;
+        renderApparatus();
+
+        if (graphNeedsRedraw) {
+          updateTelemetry();
+          renderGraph();
+          graphNeedsRedraw = false;
+        }
+      }
+    }
+
     animId = requestAnimationFrame(loop);
   }
   animId = requestAnimationFrame(loop);
@@ -529,6 +555,7 @@ export function initEnzymeLab(containerId) {
     btnPhoto.classList.remove("active");
     btnPhoto.style.background = "transparent";
     if (photoOverlay) photoOverlay.style.display = "none";
+    graphNeedsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -554,6 +581,7 @@ export function initEnzymeLab(containerId) {
       container.querySelector("#slider-enz-ph").value = pH;
       container.querySelector("#lbl-enz-temp").innerText = `${temperature} °C`;
       container.querySelector("#lbl-enz-ph").innerText = `${pH.toFixed(1)}`;
+      graphNeedsRedraw = true;
       SoundFX.playClick();
     });
   });
@@ -564,6 +592,7 @@ export function initEnzymeLab(containerId) {
     container.querySelector("#btn-plot-mm").classList.add("active");
     container.querySelector("#btn-plot-lb").classList.remove("active");
     container.querySelector("#lbl-chart-title").innerText = "Michaelis-Menten: V_0 vs [S]";
+    graphNeedsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -572,6 +601,7 @@ export function initEnzymeLab(containerId) {
     container.querySelector("#btn-plot-lb").classList.add("active");
     container.querySelector("#btn-plot-mm").classList.remove("active");
     container.querySelector("#lbl-chart-title").innerText = "Lineweaver-Burk: 1/V_0 vs 1/[S]";
+    graphNeedsRedraw = true;
     SoundFX.playClick();
   });
 
@@ -579,16 +609,19 @@ export function initEnzymeLab(containerId) {
   container.querySelector("#slider-enz-substrate")?.addEventListener("input", (e) => {
     substrateConc = parseFloat(e.target.value);
     container.querySelector("#lbl-enz-substrate").innerText = `${substrateConc.toFixed(2)} mM`;
+    graphNeedsRedraw = true;
   });
 
   container.querySelector("#slider-enz-temp")?.addEventListener("input", (e) => {
     temperature = parseInt(e.target.value, 10);
     container.querySelector("#lbl-enz-temp").innerText = `${temperature} °C`;
+    graphNeedsRedraw = true;
   });
 
   container.querySelector("#slider-enz-ph")?.addEventListener("input", (e) => {
     pH = parseFloat(e.target.value);
     container.querySelector("#lbl-enz-ph").innerText = `${pH.toFixed(1)}`;
+    graphNeedsRedraw = true;
   });
 
   // Inhibitors
@@ -599,6 +632,7 @@ export function initEnzymeLab(containerId) {
       inhibitorType = btn.dataset.inhib;
       inhibitorConc = inhibitorType === "none" ? 0.0 : 2.0;
       container.querySelector("#lbl-enz-inhibitor").innerText = inhibitorType.toUpperCase();
+      graphNeedsRedraw = true;
       SoundFX.playClick();
     });
   });
