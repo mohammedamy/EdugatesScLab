@@ -154,6 +154,7 @@ console.log("  ✅ PASS: Generic fallbacks replaced with authentic calculations;
 // ----------------------------------------------------
 console.log("\n⚡ Test 7: Simulation Frame Pacing, Delta-t Decoupling & Lifecycle Cleanup");
 const harmonicContent = fs.readFileSync(path.join(rootDir, "labs", "phys-harmonic.js"), "utf-8");
+assert(harmonicContent.includes("export function cleanupHarmonicLab()"), "phys-harmonic.js exports cleanupHarmonicLab()");
 assert(harmonicContent.includes("let needsRedraw = true;"), "phys-harmonic.js defines needsRedraw dirty-flag tracker");
 assert(harmonicContent.includes("targetDrawInterval = isSmart ? 33.3 : 16.0;"), "phys-harmonic.js paces frame drawing to 30 FPS on MAXHUB / Smartboard");
 assert(harmonicContent.includes("needsRedraw = false;"), "phys-harmonic.js halts unnecessary recurring redraws when simulation is paused");

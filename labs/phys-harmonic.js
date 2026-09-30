@@ -10,7 +10,17 @@ import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint
 import { SoundFX } from "../utils/audio-synth.js";
 import { showToast } from "../utils/toast.js";
 
+let _currentHarmonicCleanup = null;
+
+export function cleanupHarmonicLab() {
+  if (typeof _currentHarmonicCleanup === "function") {
+    try { _currentHarmonicCleanup(); } catch (e) {}
+    _currentHarmonicCleanup = null;
+  }
+}
+
 export function initHarmonicLab(containerId) {
+  cleanupHarmonicLab();
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -1004,6 +1014,11 @@ export function initHarmonicLab(containerId) {
   }
 
   function handlePointerMove(evt) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      return;
+    }
     const coords = getCanvasCoords(evt);
     const CX = coords.width * 0.44;
 
@@ -1040,6 +1055,11 @@ export function initHarmonicLab(containerId) {
   }
 
   function handlePointerUp() {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      return;
+    }
     if (isDragging) {
       isDragging = false;
       canvas.style.cursor = "grab";
@@ -1295,11 +1315,13 @@ export function initHarmonicLab(containerId) {
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("shm-checkpoint-container", "harmonic");
 
-  return () => {
+  const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("resize", setupHiDPICanvas);
     canvas.removeEventListener("pointerdown", handlePointerDown);
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
   };
+  _currentHarmonicCleanup = cleanup;
+  return cleanup;
 }

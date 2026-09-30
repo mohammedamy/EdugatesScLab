@@ -6,7 +6,7 @@
 // 4. Trial Store & Lab Dossier integration
 
 import assert from "assert";
-import { initHarmonicLab } from "../labs/phys-harmonic.js";
+import { initHarmonicLab, cleanupHarmonicLab } from "../labs/phys-harmonic.js";
 import { LabTrialStore } from "../labs/lab-telemetry-exporter.js";
 
 console.log("\n========================================================");
@@ -25,8 +25,10 @@ function test(desc, fn) {
   }
 }
 
-test("initHarmonicLab is exported as a function", () => {
+test("initHarmonicLab and cleanupHarmonicLab are exported as functions", () => {
   assert.strictEqual(typeof initHarmonicLab, "function");
+  assert.strictEqual(typeof cleanupHarmonicLab, "function");
+  cleanupHarmonicLab(); // Safe idempotent call
 });
 
 test("Mass-Spring theoretical period formula T = 2π√(m/k)", () => {
