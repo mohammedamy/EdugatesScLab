@@ -6,6 +6,9 @@ import { renderLatex, upgradeAllMath } from "../utils/math-renderer.js";
 import { showToast } from "../utils/toast.js";
 import { ProgressStore } from "../components/progress-tracker.js";
 import { exportToDocx } from "../utils/docx-export.js";
+import { captureCanvasAsDataUrl, exportLabReportPrintable, downloadStandaloneReportHtml, buildPrintableReportHtml } from "../utils/lab-report-exporter.js";
+
+export { captureCanvasAsDataUrl, exportLabReportPrintable, downloadStandaloneReportHtml, buildPrintableReportHtml };
 
 /**
  * In-memory trial store for virtual labs (persisted in session)
@@ -108,6 +111,8 @@ export function openLabReportModal(config) {
     conclusionNotes = ""
   } = config;
 
+  const canvasSnapshot = config.canvasDataUrl || captureCanvasAsDataUrl(config.canvasElement || config.canvasId);
+
   let overlay = document.getElementById("lab-report-modal-overlay");
   if (!overlay) {
     overlay = document.createElement("div");
@@ -130,6 +135,10 @@ export function openLabReportModal(config) {
           <span style="color: #94a3b8; font-size: 0.8rem;">• ${title}</span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
+          <button id="btn-export-html-lab-report" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; gap: 6px; border: 1px solid rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.15); color: #10b981;" title="Download self-contained offline HTML lab report">
+            <span>💾</span>
+            <span>Save HTML</span>
+          </button>
           <button id="btn-export-docx-lab-report" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; gap: 6px; border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.15); color: #38bdf8;" title="Export editable Microsoft Word (.docx) lab dossier">
             <span>📄</span>
             <span>Save as .docx</span>
@@ -199,6 +208,21 @@ export function openLabReportModal(config) {
               `).join("")}
             </div>
           </div>
+
+          <!-- Simulation Canvas Graph Snapshot -->
+          ${canvasSnapshot ? `
+            <div style="margin-bottom: 18px;">
+              <h3 style="font-size: 0.88rem; text-transform: uppercase; font-weight: 800; color: #1e293b; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                Sensor Telemetry &amp; Dynamic Simulation Graph
+              </h3>
+              <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 10px; text-align: center;">
+                <img src="${canvasSnapshot}" alt="${title} Simulation Graph" style="max-width: 100%; max-height: 260px; height: auto; border-radius: 6px; border: 1px solid #cbd5e1; display: block; margin: 0 auto; background: #070a12;">
+                <div style="font-size: 0.75rem; color: #475569; font-weight: 600; margin-top: 6px;">
+                  Figure 1.0: Live 60 FPS graphical sensor telemetry captured from active virtual laboratory canvas.
+                </div>
+              </div>
+            </div>
+          ` : ""}
 
           <!-- Mathematical Formulations -->
           ${formulas && formulas.length > 0 ? `
@@ -299,6 +323,22 @@ export function openLabReportModal(config) {
   document.body.style.overflow = "hidden";
 
   upgradeAllMath(overlay);
+
+  // Standalone HTML Export button
+  document.getElementById("btn-export-html-lab-report")?.addEventListener("click", () => {
+    downloadStandaloneReportHtml({
+      title,
+      labId: config.labId || "lab",
+      subject,
+      inquiryQuestion,
+      parameters,
+      readings: metrics,
+      headers: trials && trials.length > 0 ? ["Trial #", "Time", ...Object.keys(trials[0].measurements || {})] : [],
+      dataRows: trials && trials.length > 0 ? trials.map(t => [`Trial ${t.trialNumber}`, t.timestamp, ...Object.values(t.measurements || {})]) : [],
+      canvasDataUrl: canvasSnapshot,
+      notes: observations
+    });
+  });
 
   // DOCX Export button
   document.getElementById("btn-export-docx-lab-report")?.addEventListener("click", () => {

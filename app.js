@@ -100,44 +100,147 @@ export const NAV_SUBJECTS = [
   }
 ];
 
-// Initialize App with fast boot execution for slow smartboards
+// Initialize App with fast boot execution and error boundary
 function bootApp() {
-  setupDeviceDetection();
-  renderAppShell();
-  initCustomLogoDetector();
-  bindGlobalEvents();
+  try {
+    setupDeviceDetection();
+    renderAppShell();
+    initCustomLogoDetector();
+    bindGlobalEvents();
+    bindAccessibilityEvents();
 
-  // Register PWA Offline Service Worker
-  if ("serviceWorker" in navigator && (window.location.protocol === "http:" || window.location.protocol === "https:")) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").then(reg => {
-        console.log("[AmScLab PWA] Service Worker registered with scope:", reg.scope);
-      }).catch(err => {
-        console.warn("[AmScLab PWA] Service Worker notice:", err);
+    // Register PWA Offline Service Worker (Graceful loading with fallback)
+    if ("serviceWorker" in navigator && (window.location.protocol === "http:" || window.location.protocol === "https:")) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").then(reg => {
+          console.log("[AmScLab PWA] Service Worker registered with scope:", reg.scope);
+          reg.addEventListener("updatefound", () => {
+            const installingWorker = reg.installing;
+            if (installingWorker) {
+              installingWorker.addEventListener("statechange", () => {
+                if (installingWorker.state === "installed" && navigator.serviceWorker.controller) {
+                  console.log("[AmScLab PWA] New update installed.");
+                }
+              });
+            }
+          });
+        }).catch(err => {
+          // Fallback to sw.js if service-worker.js registration fails
+          navigator.serviceWorker.register("./sw.js").catch(swErr => {
+            console.warn("[AmScLab PWA] Service Worker registration notice:", swErr);
+          });
+        });
       });
+    }
+
+    // Bind URL Hash Routing and process initial URL
+    window.addEventListener("hashchange", handleHashRoute);
+    window.addEventListener("popstate", handleHashRoute);
+    if (window.location.hash) {
+      handleHashRoute();
+    } else {
+      renderCurrentView();
+    }
+
+    // Mark application as successfully booted
+    if (typeof window !== "undefined") {
+      window.__APP_BOOTED__ = true;
+    }
+
+    // Defer floating smartboard pen bar canvas initialization slightly so first paint is instantaneous
+    const loadSmartboardToolbar = () => {
+      import("./components/smartboard-toolbar.js?v=3.1").then(m => m.initSmartboardToolbar()).catch(err => {
+        console.warn("Smartboard toolbar deferred load warning:", err);
+      });
+    };
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(loadSmartboardToolbar, { timeout: 350 });
+    } else {
+      setTimeout(loadSmartboardToolbar, 100);
+    }
+  } catch (bootErr) {
+    console.error("Application boot exception:", bootErr);
+    if (typeof window !== "undefined" && typeof window.__TRIGGER_APP_ERROR__ === "function") {
+      window.__TRIGGER_APP_ERROR__(bootErr);
+    }
+  }
+}
+
+function bindAccessibilityEvents() {
+  // Direct Skip Link Focus Management
+  const skipLink = document.querySelector(".skip-link");
+  if (skipLink) {
+    skipLink.addEventListener("click", (e) => {
+      const mainContent = document.getElementById("main-content-view");
+      if (mainContent) {
+        e.preventDefault();
+        mainContent.focus();
+        mainContent.scrollIntoView({ behavior: "smooth" });
+      }
     });
   }
+}
 
-  // Bind URL Hash Routing and process initial URL
-  window.addEventListener("hashchange", handleHashRoute);
-  window.addEventListener("popstate", handleHashRoute);
-  if (window.location.hash) {
-    handleHashRoute();
-  } else {
-    renderCurrentView();
-  }
+export function enhanceA11y(container) {
+  if (!container) return;
 
-  // Defer floating smartboard pen bar canvas initialization slightly so first paint is instantaneous
-  const loadSmartboardToolbar = () => {
-    import("./components/smartboard-toolbar.js?v=3.1").then(m => m.initSmartboardToolbar()).catch(err => {
-      console.warn("Smartboard toolbar deferred load warning:", err);
+  // 1. Ensure range sliders have role="slider" and synchronized ARIA properties
+  container.querySelectorAll('input[type="range"]').forEach(slider => {
+    slider.setAttribute("role", "slider");
+    const min = slider.getAttribute("min") || "0";
+    const max = slider.getAttribute("max") || "100";
+    const val = slider.value || min;
+    slider.setAttribute("aria-valuemin", min);
+    slider.setAttribute("aria-valuemax", max);
+    slider.setAttribute("aria-valuenow", val);
+
+    if (!slider.hasAttribute("aria-label")) {
+      const label = slider.closest(".control-group")?.querySelector(".control-label") || slider.parentElement?.querySelector("label");
+      if (label) {
+        slider.setAttribute("aria-label", label.innerText.replace(/[\r\n]+/g, " ").trim());
+      } else if (slider.id) {
+        slider.setAttribute("aria-label", slider.id.replace(/[-_]+/g, " "));
+      }
+    }
+
+    if (!slider.__a11yBound) {
+      slider.__a11yBound = true;
+      slider.addEventListener("input", () => {
+        slider.setAttribute("aria-valuenow", slider.value);
+      });
+    }
+  });
+
+  // 2. View switchers & mode toggles
+  container.querySelectorAll(".lab-view-switcher").forEach(switcher => {
+    switcher.setAttribute("role", "group");
+    switcher.setAttribute("aria-label", "Workbench View Switcher");
+    switcher.querySelectorAll("button").forEach(btn => {
+      btn.setAttribute("role", "button");
+      btn.setAttribute("aria-pressed", btn.classList.contains("active") ? "true" : "false");
+      if (!btn.hasAttribute("aria-label")) {
+        btn.setAttribute("aria-label", btn.innerText.trim());
+      }
     });
-  };
-  if ("requestIdleCallback" in window) {
-    window.requestIdleCallback(loadSmartboardToolbar, { timeout: 350 });
-  } else {
-    setTimeout(loadSmartboardToolbar, 100);
-  }
+  });
+
+  // 3. Telemetry dashboards & live readouts
+  container.querySelectorAll(".sim-telemetry-dashboard").forEach(dash => {
+    dash.setAttribute("role", "region");
+    dash.setAttribute("aria-label", "Simulation Telemetry Readouts");
+    dash.querySelectorAll("[id^='val-'], .metric-val").forEach(val => {
+      val.setAttribute("role", "status");
+      val.setAttribute("aria-live", "polite");
+    });
+  });
+
+  // 4. Interactive Simulation Action Buttons (Launch, Fire, Reset, Pause, Record)
+  container.querySelectorAll(".btn-lab-action, #btn-fire, #btn-reset, #btn-pause, #btn-play, #btn-record, #btn-launch").forEach(btn => {
+    btn.setAttribute("role", "button");
+    if (!btn.hasAttribute("aria-label")) {
+      btn.setAttribute("aria-label", btn.innerText.trim() || btn.title || "Simulation Control");
+    }
+  });
 }
 
 if (typeof document !== "undefined") {
@@ -219,7 +322,9 @@ function setDeviceMode(mode) {
 
   // Update active state in device toggle buttons
   document.querySelectorAll(".device-btn").forEach(b => {
-    b.classList.toggle("active", b.dataset.mode === mode);
+    const isActive = b.dataset.mode === mode;
+    b.classList.toggle("active", isActive);
+    b.setAttribute("aria-pressed", isActive ? "true" : "false");
   });
 }
 
@@ -328,10 +433,10 @@ function renderAppShell() {
           </button>
 
           <div class="device-mode-toggle" role="group" aria-label="Screen Optimization &amp; Hardware Profile" title="Screen Optimization &amp; Hardware Profile">
-            <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto" aria-label="Auto hardware profile">Auto</button>
-            <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" aria-label="MAXHUB &amp; Smartboard 60 FPS Turbo Profile" title="MAXHUB &amp; Smartboard 60 FPS Turbo Profile (Zero-Blur, Opaque, Hardware Accelerated)">⚡ MAXHUB Turbo</button>
-            <button class="device-btn ${AppState.deviceMode === 'tablet' ? 'active' : ''}" data-mode="tablet" aria-label="Tablet Profile" title="Tablet Mode">Tablet</button>
-            <button class="device-btn ${AppState.deviceMode === 'mobile' ? 'active' : ''}" data-mode="mobile" aria-label="Mobile Profile" title="Mobile Mode">Mobile</button>
+            <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto" aria-label="Auto hardware profile" aria-pressed="${AppState.deviceMode === 'auto'}">Auto</button>
+            <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" aria-label="MAXHUB &amp; Smartboard 60 FPS Turbo Profile" aria-pressed="${AppState.deviceMode === 'smartboard'}" title="MAXHUB &amp; Smartboard 60 FPS Turbo Profile (Zero-Blur, Opaque, Hardware Accelerated)">⚡ MAXHUB Turbo</button>
+            <button class="device-btn ${AppState.deviceMode === 'tablet' ? 'active' : ''}" data-mode="tablet" aria-label="Tablet Profile" aria-pressed="${AppState.deviceMode === 'tablet'}" title="Tablet Mode">Tablet</button>
+            <button class="device-btn ${AppState.deviceMode === 'mobile' ? 'active' : ''}" data-mode="mobile" aria-label="Mobile Profile" aria-pressed="${AppState.deviceMode === 'mobile'}" title="Mobile Mode">Mobile</button>
           </div>
         </div>
       </nav>
@@ -552,6 +657,16 @@ export function handleHashRoute() {
   const segments = pathPart.split("/").filter(Boolean);
   const route = (segments[0] || "chem").toLowerCase();
 
+  // Accessibility Skip-Link Target Anchor Focus Management
+  if (route === "main-content-view") {
+    const mainEl = document.getElementById("main-content-view");
+    if (mainEl) {
+      mainEl.focus();
+      mainEl.scrollIntoView({ behavior: "smooth" });
+    }
+    return;
+  }
+
   // Route 1: Main Curriculum Tabs & Hubs
   if (["chem", "bio", "phys", "labs", "lab", "quiz", "flashcards"].includes(route)) {
     if (window.closeActiveModuleModal) window.closeActiveModuleModal();
@@ -704,6 +819,13 @@ function switchTab(tabId, updateHash = true) {
 
   renderCurrentView();
   window.scrollTo({ top: 0, behavior: "smooth" });
+
+  // Programmatic Focus Management for Screen Readers & Assistive Tech
+  const mainView = document.getElementById("main-content-view");
+  if (mainView) {
+    mainView.focus({ preventScroll: true });
+    enhanceA11y(mainView);
+  }
 }
 
 // Global Cross-Navigation Helpers
@@ -1698,12 +1820,38 @@ function mountActiveLab() {
   };
 
   const loader = labLoaders[normId] || labLoaders["projectile"];
-  mount.innerHTML = `<div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading 60 FPS Laboratory Workbench...</div>`;
+  mount.innerHTML = `
+    <div style="padding: 60px 24px; text-align: center; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;" role="status" aria-live="polite">
+      <div style="width: 40px; height: 40px; border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: #38bdf8; border-radius: 50%; animation: appShellSpin 0.8s linear infinite;" aria-hidden="true"></div>
+      <div style="font-weight: 700; color: #f1f5f9; font-size: 1.05rem;">Loading 60 FPS Laboratory Workbench...</div>
+      <div style="font-size: 0.82rem; color: #64748b;">Initializing apparatus controls, Canvas rendering, and live sensor telemetry</div>
+    </div>
+  `;
 
   loader().then(cleanup => {
     currentActiveLabCleanup = cleanup;
+    enhanceA11y(mount);
   }).catch(err => {
     console.error("Failed to load laboratory workbench:", err);
-    mount.innerHTML = `<div style="padding: 30px; text-align: center; color: #ef4444;">Failed to load laboratory workbench.</div>`;
+    mount.innerHTML = `
+      <div style="padding: 36px 24px; text-align: center; background: rgba(15, 23, 42, 0.85); border: 1.5px solid rgba(239, 68, 68, 0.4); border-radius: 12px; margin: 24px auto; max-width: 540px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);" role="alert">
+        <div style="font-size: 32px; margin-bottom: 10px;" aria-hidden="true">⚠️</div>
+        <div style="font-weight: 800; color: #f87171; font-size: 1.15rem; margin-bottom: 6px;">Workbench Initialization Interrupted</div>
+        <div style="font-size: 0.86rem; color: #94a3b8; margin-bottom: 16px;">
+          The simulation script or apparatus assets for <strong>${formatLabName("lab-" + normId)}</strong> could not be loaded.
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; color: #ef4444; background: rgba(0,0,0,0.4); border: 1px solid rgba(239, 68, 68, 0.2); padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; word-break: break-word; text-align: left;">
+          <div><strong style="color: #64748b;">DIAGNOSTIC:</strong></div>
+          <div>${err.message || String(err)}</div>
+        </div>
+        <button id="btn-retry-workbench" class="btn btn-primary" style="margin: 0 auto; display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; font-weight: 700; border-radius: 8px;">
+          <span>🔄</span>
+          <span>Retry / Reload Workbench</span>
+        </button>
+      </div>
+    `;
+    document.getElementById("btn-retry-workbench")?.addEventListener("click", () => {
+      mountActiveLab();
+    });
   });
 }

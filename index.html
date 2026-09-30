@@ -16,21 +16,18 @@
   <title>Edugates-ClipSAT Science Labs | World-Class Virtual Labs &amp; STEM Curriculum</title>
 
   <!-- Favicon, Manifest & Brand Icons -->
-  <link rel="icon" type="image/png" href="assets/logo.png">
-  <link rel="apple-touch-icon" href="assets/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
   <link rel="manifest" href="manifest.json">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Edugates-ClipSAT">
 
-  <!-- Preconnect & DNS-Prefetch for Fast CDN and Font Loading on Slow Smartboard Networks -->
+  <!-- Preconnect for Fast CDN and Font Loading on High-Resolution and Smartboard Networks -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-  <link rel="dns-prefetch" href="https://fonts.gstatic.com">
-  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;600;700&display=swap">
 
   <!-- KaTeX High-Precision Mathematical Typesetting -->
@@ -38,8 +35,8 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" onload="if (window.upgradeAllMath) window.upgradeAllMath();"></script>
 
   <!-- Preload Core Stylesheet -->
-  <link rel="preload" href="index.css?v=4.1" as="style">
-  <link rel="stylesheet" href="index.css?v=4.1">
+  <link rel="preload" href="index.css?v=4.2" as="style">
+  <link rel="stylesheet" href="index.css?v=4.2">
 
   <!-- Instant Hardware, MAXHUB & Smartboard Processor Optimizer (Executes before first paint) -->
   <script>
@@ -84,12 +81,99 @@
 
   <!-- Semantic Application Shell Mount Point -->
   <div id="app-root">
-    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: sans-serif; color: #94a3b8;">
-      Loading Edugates-ClipSAT Science Labs...
+    <div id="app-shell-loading" style="min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #070a12; color: #94a3b8; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; gap: 18px; padding: 24px; text-align: center;">
+      <div style="width: 52px; height: 52px; position: relative;" aria-hidden="true">
+        <div style="position: absolute; inset: 0; border: 3px solid rgba(56, 189, 248, 0.15); border-top-color: #38bdf8; border-radius: 50%; animation: appShellSpin 0.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;"></div>
+        <div style="position: absolute; inset: 6px; border: 2px dashed rgba(6, 182, 212, 0.3); border-bottom-color: #06b6d4; border-radius: 50%; animation: appShellSpinRev 1.4s linear infinite;"></div>
+      </div>
+      <div style="font-size: 1.05rem; font-weight: 700; color: #f1f5f9; letter-spacing: -0.01em;" role="status" aria-live="polite">
+        Loading Edugates-ClipSAT Science Labs...
+      </div>
+      <div style="font-size: 0.82rem; color: #64748b; max-width: 360px;">
+        Initializing STEM virtual workbenches &amp; 60 FPS simulation engines
+      </div>
     </div>
   </div>
 
+  <style>
+    @keyframes appShellSpin { to { transform: rotate(360deg); } }
+    @keyframes appShellSpinRev { to { transform: rotate(-360deg); } }
+  </style>
+
+  <!-- Application Boot Watchdog & Error Boundary -->
+  <script>
+    (function() {
+      window.__APP_BOOTED__ = false;
+
+      function renderAppErrorBoundary(errorInfo) {
+        if (window.__APP_BOOTED__) return;
+        var root = document.getElementById("app-root");
+        if (!root) return;
+
+        var message = (errorInfo && errorInfo.message) || (typeof errorInfo === "string" ? errorInfo : "Application boot timeout (8s)");
+        var isOffline = typeof navigator !== "undefined" && !navigator.onLine;
+
+        root.innerHTML = `
+          <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #070a12; color: #f1f5f9; font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; padding: 24px;">
+            <div style="max-width: 580px; width: 100%; background: rgba(15, 23, 42, 0.96); border: 1.5px solid rgba(239, 68, 68, 0.4); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 35px rgba(239, 68, 68, 0.15); border-radius: 16px; padding: 36px 30px; text-align: center;">
+              <div style="width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 50%; background: rgba(239, 68, 68, 0.12); border: 1.5px solid rgba(239, 68, 68, 0.5); display: flex; align-items: center; justify-content: center; font-size: 26px; color: #ef4444;" aria-hidden="true">
+                ⚠️
+              </div>
+              <h1 style="font-size: 1.35rem; font-weight: 800; color: #f87171; margin: 0 0 8px;">
+                Laboratory Loading Interrupted
+              </h1>
+              <p style="font-size: 0.9rem; color: #94a3b8; line-height: 1.5; margin: 0 0 20px;">
+                The laboratory application shell could not complete its initialization within 8 seconds. This typically occurs when a network glitch interrupts scripts, CDN resources, or simulation assets.
+              </p>
+              
+              <div style="background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 14px 16px; margin-bottom: 24px; text-align: left; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: #cbd5e1; word-break: break-word;">
+                <div style="color: #64748b; font-size: 0.7rem; text-transform: uppercase; margin-bottom: 6px; font-weight: 700;">Diagnostic Information:</div>
+                <div style="margin-bottom: 3px;"><strong style="color: #f87171;">Reason:</strong> ${message}</div>
+                <div style="margin-bottom: 3px;"><strong style="color: #38bdf8;">Status:</strong> ${isOffline ? "Offline (No active internet connection)" : "Online"}</div>
+                <div style="color: #64748b; font-size: 0.72rem; margin-top: 5px;">Platform: ${navigator.userAgent.slice(0, 75)}...</div>
+              </div>
+
+              <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+                <button id="btn-reload-app" onclick="window.location.reload();" style="cursor: pointer; background: #0284c7; color: #ffffff; border: none; border-radius: 10px; padding: 12px 24px; font-size: 0.9rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+                  <span>🔄</span>
+                  <span>Retry / Reload Laboratory</span>
+                </button>
+                <button id="btn-clear-cache-reload" onclick="if ('serviceWorker' in navigator && window.caches) { caches.keys().then(function(keys) { return Promise.all(keys.map(function(k) { return caches.delete(k); })); }).then(function() { window.location.reload(true); }); } else { window.location.reload(true); }" style="cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 12px 20px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                  <span>🧹</span>
+                  <span>Clear Cache &amp; Reload</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      window.__TRIGGER_APP_ERROR__ = renderAppErrorBoundary;
+
+      // 8-Second Watchdog Timer
+      var bootTimeout = setTimeout(function() {
+        if (!window.__APP_BOOTED__) {
+          renderAppErrorBoundary({ message: "Timeout: Application scripts did not finish booting within 8000ms" });
+        }
+      }, 8000);
+
+      window.addEventListener("error", function(evt) {
+        if (!window.__APP_BOOTED__) {
+          clearTimeout(bootTimeout);
+          renderAppErrorBoundary({ message: evt.message || "Script execution error occurred during startup" });
+        }
+      });
+
+      window.addEventListener("unhandledrejection", function(evt) {
+        if (!window.__APP_BOOTED__) {
+          clearTimeout(bootTimeout);
+          renderAppErrorBoundary({ message: (evt.reason && evt.reason.message) || "Unhandled asynchronous rejection during startup" });
+        }
+      });
+    })();
+  </script>
+
   <!-- Main Modular Application Script -->
-  <script type="module" src="app.js?v=4.1"></script>
+  <script type="module" src="app.js?v=4.2"></script>
 </body>
 </html>

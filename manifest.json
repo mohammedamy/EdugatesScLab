@@ -1,20 +1,57 @@
 {
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "id": "edugates-clipsat-scilab",
   "name": "Edugates-ClipSAT Science Labs",
-  "short_name": "AmScLab",
-  "description": "Interactive STEM Virtual Laboratories & Curriculum covering Inspire Chemistry, Biology, and Physics",
+  "short_name": "Edugates Labs",
+  "description": "Interactive STEM Virtual Laboratories & Curriculum covering Inspire Chemistry, Biology, and Physics for Smartboards, Desktops, Tablets, and Mobiles",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
   "background_color": "#070a12",
-  "theme_color": "#070a12",
-  "categories": ["education", "science", "productivity"],
+  "theme_color": "#0284c7",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "education",
+    "science",
+    "productivity"
+  ],
   "icons": [
     {
-      "src": "assets/logo.png",
-      "sizes": "192x192 512x512",
+      "src": "assets/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/logo.png",
+      "sizes": "302x426",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
@@ -36,7 +73,7 @@
     {
       "name": "Virtual Labs Suite",
       "url": "./index.html#labs",
-      "description": "9 Interactive 60 FPS Science Workbenches"
+      "description": "30 Interactive 60 FPS Science Workbenches"
     }
   ]
 }
