@@ -46,6 +46,14 @@ export function initBeerLambertLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-beer-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 Dynamics Simulator
+            </button>
+            <button id="view-mode-beer-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Bench
+            </button>
+          </div>
           <button class="btn btn-secondary btn-sm" id="btn-beer-record-point" style="padding: 5px 14px; font-size: 0.78rem; border-color: rgba(6, 182, 212, 0.4); color: #38bdf8;">
             📍 Record Calibration Point
           </button>
@@ -63,6 +71,27 @@ export function initBeerLambertLab(containerId) {
         <!-- Canvas Viewport -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(6, 182, 212, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #082f49 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="beer-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="beer-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/beer_lambert_bench.jpg" alt="4K Research Spectrophotometer & Optics Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(6, 182, 212, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">UV-Vis Spectrophotometer</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Monochromator λ = 190–1100 nm</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Precision Quartz Cuvette</div>
+                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Optical Path b = 1.000 cm ± 0.005</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Silicon Photodiode Array</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Dynamic Range: 0.000 to 4.000 Abs</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -431,6 +460,29 @@ export function initBeerLambertLab(containerId) {
         (Math.pow(10, -pt.a) * 100).toFixed(2)
       ])
     });
+  });
+
+  // 4K Photo View Switcher
+  const btnBeerSim = container.querySelector("#view-mode-beer-sim");
+  const btnBeerPhoto = container.querySelector("#view-mode-beer-photo");
+  const beerPhotoOverlay = container.querySelector("#beer-photo-overlay");
+
+  btnBeerSim?.addEventListener("click", () => {
+    btnBeerSim.classList.add("active");
+    btnBeerSim.style.background = "";
+    btnBeerPhoto.classList.remove("active");
+    btnBeerPhoto.style.background = "transparent";
+    if (beerPhotoOverlay) beerPhotoOverlay.style.display = "none";
+    SoundFX.playClick();
+  });
+
+  btnBeerPhoto?.addEventListener("click", () => {
+    btnBeerPhoto.classList.add("active");
+    btnBeerPhoto.style.background = "";
+    btnBeerSim.classList.remove("active");
+    btnBeerSim.style.background = "transparent";
+    if (beerPhotoOverlay) beerPhotoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Mount Assessment

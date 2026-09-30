@@ -76,6 +76,14 @@ export function initPopulationEcologyLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-eco-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 Field Simulator
+            </button>
+            <button id="view-mode-eco-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Station
+            </button>
+          </div>
           <button class="btn btn-secondary btn-sm" id="btn-eco-pause" style="padding: 5px 12px; font-size: 0.78rem;">
             ⏸ Pause
           </button>
@@ -96,6 +104,27 @@ export function initPopulationEcologyLab(containerId) {
         <!-- Canvas Viewport: 2D Ecosystem Arena -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(16, 185, 129, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #064e3b 0%, #022c22 60%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="eco-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="eco-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/ecology_bench.jpg" alt="4K Population Ecology & Field Research Station" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Field Telemetry &amp; GPS Station</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Wildlife Demographics Monitor</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Stereomicroscope &amp; Quadrat Grid</div>
+                <div style="color: #fbbf24; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Benthic Macroinvertebrate Survey</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Lotka-Volterra Demographics</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Real-Time Oscillations &amp; Phase</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -426,6 +455,29 @@ export function initPopulationEcologyLab(containerId) {
         Math.round(pt.pred)
       ])
     });
+  });
+
+  // 4K Photo View Switcher
+  const btnEcoSim = container.querySelector("#view-mode-eco-sim");
+  const btnEcoPhoto = container.querySelector("#view-mode-eco-photo");
+  const ecoPhotoOverlay = container.querySelector("#eco-photo-overlay");
+
+  btnEcoSim?.addEventListener("click", () => {
+    btnEcoSim.classList.add("active");
+    btnEcoSim.style.background = "";
+    btnEcoPhoto.classList.remove("active");
+    btnEcoPhoto.style.background = "transparent";
+    if (ecoPhotoOverlay) ecoPhotoOverlay.style.display = "none";
+    SoundFX.playClick();
+  });
+
+  btnEcoPhoto?.addEventListener("click", () => {
+    btnEcoPhoto.classList.add("active");
+    btnEcoPhoto.style.background = "";
+    btnEcoSim.classList.remove("active");
+    btnEcoSim.style.background = "transparent";
+    if (ecoPhotoOverlay) ecoPhotoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Mount Assessment

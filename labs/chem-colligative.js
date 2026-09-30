@@ -71,6 +71,14 @@ export function initColligativeLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-collig-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 Cryo Simulator
+            </button>
+            <button id="view-mode-collig-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Bench
+            </button>
+          </div>
           <button class="btn btn-secondary btn-sm" id="btn-collig-record" style="padding: 5px 14px; font-size: 0.78rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
             📍 Record Data Point
           </button>
@@ -88,6 +96,27 @@ export function initColligativeLab(containerId) {
         <!-- Canvas Viewport -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(56, 189, 248, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #0c4a6e 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="collig-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="collig-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/colligative_bench.jpg" alt="4K Colligative Properties & Cryoscopy Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Cryoscopic Freezing Cell</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Insulated Vacuum Dewared Bath</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Beckmann Thermometer &amp; RTD</div>
+                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Resolution ±0.001 °C Differential</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Analytical Balance &amp; Solutes</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Precision 0.0001 g Mass Meter</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -536,6 +565,29 @@ export function initColligativeLab(containerId) {
         dtf.toFixed(2)
       ])
     });
+  });
+
+  // 4K Photo View Switcher
+  const btnColligSim = container.querySelector("#view-mode-collig-sim");
+  const btnColligPhoto = container.querySelector("#view-mode-collig-photo");
+  const colligPhotoOverlay = container.querySelector("#collig-photo-overlay");
+
+  btnColligSim?.addEventListener("click", () => {
+    btnColligSim.classList.add("active");
+    btnColligSim.style.background = "";
+    btnColligPhoto.classList.remove("active");
+    btnColligPhoto.style.background = "transparent";
+    if (colligPhotoOverlay) colligPhotoOverlay.style.display = "none";
+    SoundFX.playClick();
+  });
+
+  btnColligPhoto?.addEventListener("click", () => {
+    btnColligPhoto.classList.add("active");
+    btnColligPhoto.style.background = "";
+    btnColligSim.classList.remove("active");
+    btnColligSim.style.background = "transparent";
+    if (colligPhotoOverlay) colligPhotoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Mount Assessment

@@ -57,6 +57,14 @@ export function initFluidsBuoyancyLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-fluids-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 Fluids Simulator
+            </button>
+            <button id="view-mode-fluids-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Bench
+            </button>
+          </div>
           <button class="btn btn-secondary btn-sm" id="btn-fluid-mode" style="padding: 5px 14px; font-size: 0.78rem; border-color: rgba(6, 182, 212, 0.4); color: #38bdf8;">
             🔀 Switch to Venturi Tube
           </button>
@@ -74,6 +82,27 @@ export function initFluidsBuoyancyLab(containerId) {
         <!-- Canvas Viewport: Archimedes Tank or Venturi Tube -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(6, 182, 212, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #083344 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="fluids-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="fluids-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/fluids_bench.jpg" alt="4K Fluid Mechanics & Archimedes Buoyancy Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(6, 182, 212, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Archimedes Overflow Tank</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Suspended Brass Mass &amp; Spout</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">OHAUS Digital Tare Balance</div>
+                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Displaced Water m = 245.0 g</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Digital Dynamometer Tension</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Buoyant Force F_b = 3.62 N</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -538,6 +567,29 @@ export function initFluidsBuoyancyLab(containerId) {
         ];
       })
     });
+  });
+
+  // 4K Photo View Switcher
+  const btnFluidsSim = container.querySelector("#view-mode-fluids-sim");
+  const btnFluidsPhoto = container.querySelector("#view-mode-fluids-photo");
+  const fluidsPhotoOverlay = container.querySelector("#fluids-photo-overlay");
+
+  btnFluidsSim?.addEventListener("click", () => {
+    btnFluidsSim.classList.add("active");
+    btnFluidsSim.style.background = "";
+    btnFluidsPhoto.classList.remove("active");
+    btnFluidsPhoto.style.background = "transparent";
+    if (fluidsPhotoOverlay) fluidsPhotoOverlay.style.display = "none";
+    SoundFX.playClick();
+  });
+
+  btnFluidsPhoto?.addEventListener("click", () => {
+    btnFluidsPhoto.classList.add("active");
+    btnFluidsPhoto.style.background = "";
+    btnFluidsSim.classList.remove("active");
+    btnFluidsSim.style.background = "transparent";
+    if (fluidsPhotoOverlay) fluidsPhotoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Mount Assessment

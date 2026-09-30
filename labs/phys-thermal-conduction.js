@@ -59,6 +59,14 @@ export function initThermalConductionLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-cond-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 Thermal Simulator
+            </button>
+            <button id="view-mode-cond-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Bench
+            </button>
+          </div>
           <button class="btn btn-secondary btn-sm" id="btn-cond-reset" style="padding: 5px 12px; font-size: 0.78rem;">
             ⟲ Equilibrate State
           </button>
@@ -73,6 +81,27 @@ export function initThermalConductionLab(containerId) {
         <!-- Canvas Viewport: Thermal Bar & Thermocouples -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(249, 115, 22, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #2e1005 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="cond-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="cond-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/conduction_bench.jpg" alt="4K Thermodynamics & Linear Heat Conduction Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(249, 115, 22, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Insulated Linear Test Bar</div>
+                <div style="color: #fb923c; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Hot Heater (95°C) &amp; Cold Sink</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">5-Point Thermocouple Array</div>
+                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">PicoLog Multi-Channel Logger</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">FLIR Thermal Imaging Camera</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Infrared Gradient Verification</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -438,6 +467,29 @@ export function initThermalConductionLab(containerId) {
         heatFluxWatts.toFixed(2)
       ])
     });
+  });
+
+  // 4K Photo View Switcher
+  const btnCondSim = container.querySelector("#view-mode-cond-sim");
+  const btnCondPhoto = container.querySelector("#view-mode-cond-photo");
+  const condPhotoOverlay = container.querySelector("#cond-photo-overlay");
+
+  btnCondSim?.addEventListener("click", () => {
+    btnCondSim.classList.add("active");
+    btnCondSim.style.background = "";
+    btnCondPhoto.classList.remove("active");
+    btnCondPhoto.style.background = "transparent";
+    if (condPhotoOverlay) condPhotoOverlay.style.display = "none";
+    SoundFX.playClick();
+  });
+
+  btnCondPhoto?.addEventListener("click", () => {
+    btnCondPhoto.classList.add("active");
+    btnCondPhoto.style.background = "";
+    btnCondSim.classList.remove("active");
+    btnCondSim.style.background = "transparent";
+    if (condPhotoOverlay) condPhotoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Mount Assessment

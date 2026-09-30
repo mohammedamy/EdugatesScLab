@@ -101,6 +101,14 @@ export function initOrganicReactionsLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-org-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 Kinetics Simulator
+            </button>
+            <button id="view-mode-org-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Bench
+            </button>
+          </div>
           <button class="btn btn-secondary btn-sm" id="btn-org-playpause" style="padding: 5px 12px; font-size: 0.78rem;">
             ⏸ Pause Animation
           </button>
@@ -118,6 +126,27 @@ export function initOrganicReactionsLab(containerId) {
         <!-- Canvas Viewport -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(168, 85, 247, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #1e1b4b 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="org-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="org-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/organic_bench.jpg" alt="4K Organic Synthesis & Distillation Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Quickfit Reflux Condenser</div>
+                <div style="color: #c084fc; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Liebig Water-Cooled Column</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Digital Heating Mantle</div>
+                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">IKA RCT Magnetic Stirrer</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Pear Separatory Funnel</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Biphasic Phase Separation</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -592,6 +621,29 @@ export function initOrganicReactionsLab(containerId) {
         [5, "1.00", m.deltaH.toFixed(1), "Relaxed Ground State Products"]
       ]
     });
+  });
+
+  // 4K Photo View Switcher
+  const btnOrgSim = container.querySelector("#view-mode-org-sim");
+  const btnOrgPhoto = container.querySelector("#view-mode-org-photo");
+  const orgPhotoOverlay = container.querySelector("#org-photo-overlay");
+
+  btnOrgSim?.addEventListener("click", () => {
+    btnOrgSim.classList.add("active");
+    btnOrgSim.style.background = "";
+    btnOrgPhoto.classList.remove("active");
+    btnOrgPhoto.style.background = "transparent";
+    if (orgPhotoOverlay) orgPhotoOverlay.style.display = "none";
+    SoundFX.playClick();
+  });
+
+  btnOrgPhoto?.addEventListener("click", () => {
+    btnOrgPhoto.classList.add("active");
+    btnOrgPhoto.style.background = "";
+    btnOrgSim.classList.remove("active");
+    btnOrgSim.style.background = "transparent";
+    if (orgPhotoOverlay) orgPhotoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Mount Assessment

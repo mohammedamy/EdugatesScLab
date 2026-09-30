@@ -55,6 +55,14 @@ export function initRotationalDynamicsLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-rot-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 Track Simulator
+            </button>
+            <button id="view-mode-rot-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Bench
+            </button>
+          </div>
           <button class="btn btn-primary btn-sm" id="btn-rot-release" style="padding: 5px 14px; font-size: 0.78rem;">
             🏁 Release Gate (Race!)
           </button>
@@ -72,6 +80,27 @@ export function initRotationalDynamicsLab(containerId) {
         <!-- Canvas Viewport: Incline Plane & Laser Photogates -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(245, 158, 11, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #291e0a 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="rot-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="rot-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/rotational_bench.jpg" alt="4K Classical Mechanics & Rotational Dynamics Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Incline Track &amp; Photogates</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Dual PASCO Smart Timing Gates</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Geometric Rolling Bodies</div>
+                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Solid Disk • Hoop • Steel Sphere</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">PASCO Smart Digital Timer</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Elapsed Millisecond Precision</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -428,6 +457,29 @@ export function initRotationalDynamicsLab(containerId) {
         ["B", SHAPES[shapeBKey].name, SHAPES[shapeBKey].formula, SHAPES[shapeBKey].c, accB.toFixed(3), (finishTimeB || 0).toFixed(3)]
       ]
     });
+  });
+
+  // 4K Photo View Switcher
+  const btnRotSim = container.querySelector("#view-mode-rot-sim");
+  const btnRotPhoto = container.querySelector("#view-mode-rot-photo");
+  const rotPhotoOverlay = container.querySelector("#rot-photo-overlay");
+
+  btnRotSim?.addEventListener("click", () => {
+    btnRotSim.classList.add("active");
+    btnRotSim.style.background = "";
+    btnRotPhoto.classList.remove("active");
+    btnRotPhoto.style.background = "transparent";
+    if (rotPhotoOverlay) rotPhotoOverlay.style.display = "none";
+    SoundFX.playClick();
+  });
+
+  btnRotPhoto?.addEventListener("click", () => {
+    btnRotPhoto.classList.add("active");
+    btnRotPhoto.style.background = "";
+    btnRotSim.classList.remove("active");
+    btnRotSim.style.background = "transparent";
+    if (rotPhotoOverlay) rotPhotoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Mount Assessment

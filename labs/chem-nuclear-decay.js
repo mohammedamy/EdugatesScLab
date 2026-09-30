@@ -69,6 +69,14 @@ export function initNuclearDecayLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-decay-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 Kinetics Simulator
+            </button>
+            <button id="view-mode-decay-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Bench
+            </button>
+          </div>
           <button class="btn btn-secondary btn-sm" id="btn-decay-toggle" style="padding: 5px 14px; font-size: 0.78rem;">
             ${isRunning ? "⏸ Pause" : "▶ Resume"}
           </button>
@@ -86,6 +94,27 @@ export function initNuclearDecayLab(containerId) {
         <!-- Canvas Viewport -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(239, 68, 68, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #2a0b0b 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="decay-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="decay-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/nuclear_decay_bench.jpg" alt="4K Nuclear Physics & Radiochemistry Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Geiger-Müller Scintillation Unit</div>
+                <div style="color: #f87171; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Halogen-Quenched BNC Probe</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Lead Attenuation Shield Stand</div>
+                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">μ = 0.77 cm⁻¹ (γ-Shielding)</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Digital Scaler Ratemeter</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">High-Precision Nuclear Counts</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -471,6 +500,29 @@ export function initNuclearDecayLab(containerId) {
         ((pt.n / initialNucleiCount) * 100).toFixed(2)
       ])
     });
+  });
+
+  // 4K Photo View Switcher
+  const btnDecaySim = container.querySelector("#view-mode-decay-sim");
+  const btnDecayPhoto = container.querySelector("#view-mode-decay-photo");
+  const decayPhotoOverlay = container.querySelector("#decay-photo-overlay");
+
+  btnDecaySim?.addEventListener("click", () => {
+    btnDecaySim.classList.add("active");
+    btnDecaySim.style.background = "";
+    btnDecayPhoto.classList.remove("active");
+    btnDecayPhoto.style.background = "transparent";
+    if (decayPhotoOverlay) decayPhotoOverlay.style.display = "none";
+    SoundFX.playClick();
+  });
+
+  btnDecayPhoto?.addEventListener("click", () => {
+    btnDecayPhoto.classList.add("active");
+    btnDecayPhoto.style.background = "";
+    btnDecaySim.classList.remove("active");
+    btnDecaySim.style.background = "transparent";
+    if (decayPhotoOverlay) decayPhotoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Mount Assessment

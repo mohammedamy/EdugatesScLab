@@ -62,6 +62,14 @@ export function initGelElectrophoresisLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 10px;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-gel-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 Gel Simulator
+            </button>
+            <button id="view-mode-gel-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Bench
+            </button>
+          </div>
           <button class="btn btn-primary btn-sm" id="btn-gel-power" style="padding: 5px 14px; font-size: 0.78rem;">
             ⚡ Start Power Supply
           </button>
@@ -82,6 +90,27 @@ export function initGelElectrophoresisLab(containerId) {
         <!-- Canvas Viewport -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(16, 185, 129, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: #030712; border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="gel-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
+
+          <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+          <div id="gel-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+            <img src="assets/labs/electrophoresis_bench.jpg" alt="4K Agarose Gel Electrophoresis Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            
+            <!-- Live Analytical Telemetry Callout on Photo -->
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Submarine Agarose Tank</div>
+                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">1X TAE Buffer with Platinum Leads</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">High-Voltage Power Supply</div>
+                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Bio-Rad Constant 100V / 85mA</div>
+              </div>
+              <div>
+                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Blue LED Transilluminator</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Fluorescent GelGreen DNA Ladder</div>
+              </div>
+            </div>
+          </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
@@ -498,6 +527,29 @@ export function initGelElectrophoresisLab(containerId) {
         getBandDistance(band.bp).toFixed(2)
       ])
     });
+  });
+
+  // 4K Photo View Switcher
+  const btnGelSim = container.querySelector("#view-mode-gel-sim");
+  const btnGelPhoto = container.querySelector("#view-mode-gel-photo");
+  const gelPhotoOverlay = container.querySelector("#gel-photo-overlay");
+
+  btnGelSim?.addEventListener("click", () => {
+    btnGelSim.classList.add("active");
+    btnGelSim.style.background = "";
+    btnGelPhoto.classList.remove("active");
+    btnGelPhoto.style.background = "transparent";
+    if (gelPhotoOverlay) gelPhotoOverlay.style.display = "none";
+    SoundFX.playClick();
+  });
+
+  btnGelPhoto?.addEventListener("click", () => {
+    btnGelPhoto.classList.add("active");
+    btnGelPhoto.style.background = "";
+    btnGelSim.classList.remove("active");
+    btnGelSim.style.background = "transparent";
+    if (gelPhotoOverlay) gelPhotoOverlay.style.display = "block";
+    SoundFX.playClick();
   });
 
   // Mount Assessment

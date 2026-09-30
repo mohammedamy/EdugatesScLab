@@ -2,7 +2,7 @@
 // Network-First with Cache Fallback for dynamic local scripts & styles,
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts).
 
-const CACHE_NAME = "amscilab-pwa-v38";
+const CACHE_NAME = "amscilab-pwa-v39";
 
 const CORE_ASSETS = [
   "./",
@@ -67,23 +67,33 @@ const CORE_ASSETS = [
   "./labs/phys-rotational-dynamics.js",
   "./labs/phys-thermal-conduction.js",
   "./labs/phys-fluids-buoyancy.js",
+  "./assets/labs/action_potential_bench.jpg",
+  "./assets/labs/beer_lambert_bench.jpg",
   "./assets/labs/calorimetry_bench.jpg",
   "./assets/labs/circuits_bench.jpg",
+  "./assets/labs/colligative_bench.jpg",
+  "./assets/labs/conduction_bench.jpg",
   "./assets/labs/dna_structure.jpg",
+  "./assets/labs/ecology_bench.jpg",
   "./assets/labs/electrochem_bench.jpg",
+  "./assets/labs/electrophoresis_bench.jpg",
   "./assets/labs/element_samples.jpg",
   "./assets/labs/enzymes_bench.jpg",
   "./assets/labs/equilibrium_bench.jpg",
+  "./assets/labs/fluids_bench.jpg",
   "./assets/labs/gas_laws_bench.jpg",
   "./assets/labs/harmonic_bench.jpg",
   "./assets/labs/magnetism_bench.jpg",
   "./assets/labs/microscope_bench.jpg",
+  "./assets/labs/nuclear_decay_bench.jpg",
   "./assets/labs/optics_bench.jpg",
+  "./assets/labs/organic_bench.jpg",
   "./assets/labs/photoelectric_bench.jpg",
   "./assets/labs/photosynthesis_bench.jpg",
   "./assets/labs/projectile_bench.jpg",
   "./assets/labs/punnett_bench.jpg",
   "./assets/labs/respiration_bench.jpg",
+  "./assets/labs/rotational_bench.jpg",
   "./assets/labs/titration_bench.jpg",
   "./assets/labs/vsepr_bench.jpg",
   "./assets/labs/waves_bench.jpg"
