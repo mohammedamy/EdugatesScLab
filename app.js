@@ -20,16 +20,27 @@ if (typeof document !== "undefined" && document.documentElement) {
   document.documentElement.setAttribute("data-theme", savedTheme);
 }
 
-if (typeof window !== "undefined" && window.matchMedia) {
-  window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", (e) => {
-    if (typeof localStorage !== "undefined" && !localStorage.getItem("edugates_theme")) {
-      setTheme(e.matches ? "day" : "night");
+if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+  try {
+    const mql = window.matchMedia("(prefers-color-scheme: light)");
+    const themeChangeHandler = (e) => {
+      if (typeof localStorage !== "undefined" && !localStorage.getItem("edugates_theme")) {
+        setTheme(e.matches ? "day" : "night");
+      }
+    };
+    if (typeof mql.addEventListener === "function") {
+      mql.addEventListener("change", themeChangeHandler);
+    } else if (typeof mql.addListener === "function") {
+      mql.addListener(themeChangeHandler);
     }
-  });
+  } catch (err) {
+    // Graceful fallback for older Android WebView engines
+  }
 }
 
 // Global Application State
 let currentActiveLabCleanup = null;
+let currentActiveQuizCleanup = null;
 
 const AppState = {
   currentTab: "chem", // 'chem', 'bio', 'phys', 'labs', 'quiz', 'flashcards'
@@ -768,6 +779,10 @@ function switchTab(tabId, updateHash = true) {
     try { currentActiveLabCleanup(); } catch (e) {}
     currentActiveLabCleanup = null;
   }
+  if (tabId !== "quiz" && typeof currentActiveQuizCleanup === "function") {
+    try { currentActiveQuizCleanup(); } catch (e) {}
+    currentActiveQuizCleanup = null;
+  }
 
   AppState.currentTab = tabId;
   AppState.selectedUnit = "ALL";
@@ -878,11 +893,15 @@ function renderCurrentView() {
   }
 
   if (AppState.currentTab === "quiz") {
+    if (typeof currentActiveQuizCleanup === "function") {
+      try { currentActiveQuizCleanup(); } catch (e) {}
+      currentActiveQuizCleanup = null;
+    }
     container.innerHTML = `<div id="quiz-engine-mount"><div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading Assessment Engine & Question Bank...</div></div>`;
     const initialConfig = AppState.quizFilter || null;
     AppState.quizFilter = null;
     import("./components/quiz-engine.js?v=3.1").then(m => {
-      m.renderQuizEngine("quiz-engine-mount", initialConfig);
+      currentActiveQuizCleanup = m.renderQuizEngine("quiz-engine-mount", initialConfig);
     }).catch(err => {
       console.error("Quiz load error:", err);
       container.innerHTML = `<div style="padding: 30px; text-align: center; color: #ef4444;">Failed to load assessment engine.</div>`;
@@ -994,6 +1013,7 @@ function formatLabName(labKey) {
 
 function getLessonIconEmoji(type) {
   if (!type) return "🔬";
+  if (type.startsWith("chem-ozone") || type.startsWith("chem-density-ozone")) return "🛡️";
   if (type.startsWith("chem-density")) return "⚖️";
   if (type.startsWith("chem-heating")) return "🔥";
   if (type.startsWith("chem-bohr")) return "⚛️";

@@ -493,8 +493,8 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
                 <span style="color: #0284c7; font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
                   <span>🧮</span> Step-by-Step Quantitative Worked Example
                 </span>
-                <span style="font-size: 0.75rem; color: #10b981; font-family: var(--font-mono); font-weight: 700; background: rgba(16,185,129,0.12); padding: 3px 10px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.3);">
-                  Verified Solution
+                <span style="font-size: 0.75rem; color: ${theory.isVerified ? '#10b981' : '#f59e0b'}; font-family: var(--font-mono); font-weight: 700; background: ${theory.isVerified ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)'}; padding: 3px 10px; border-radius: 4px; border: 1px solid ${theory.isVerified ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'};">
+                  ${theory.workedExample.status || (theory.isVerified ? "Specialist Verified Solution" : "Curriculum Standard Reference Solution (Under Specialist Review)")}
                 </span>
               </div>
               <div class="worked-example-prob">

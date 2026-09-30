@@ -2195,4 +2195,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
   // Initial render
   showConfig();
+
+  return function cleanupQuiz() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    removePresenterKeyHandler();
+  };
 }

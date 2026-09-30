@@ -361,6 +361,7 @@ export function initTitrationLab(containerId) {
 
   // Draw Apparatus Bench
   function drawApparatus() {
+    if (!container || !container.isConnected) return;
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = appCanvas.width / dpr;
     const h = appCanvas.height / dpr;
@@ -711,6 +712,7 @@ export function initTitrationLab(containerId) {
 
   // Draw Titration Curve Graph & Derivative Peak
   function drawCurve() {
+    if (!container || !container.isConnected) return;
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = curveCanvas.width / dpr;
     const h = curveCanvas.height / dpr;
@@ -852,13 +854,27 @@ export function initTitrationLab(containerId) {
     curveCtx.restore();
   }
 
+  let autoTitrateInterval = null;
+
+  function stopAutoTitrate() {
+    if (autoTitrateInterval) {
+      clearInterval(autoTitrateInterval);
+      autoTitrateInterval = null;
+    }
+  }
+
   function updateTelemetry() {
+    if (!container || !container.isConnected) return;
     const ph = calculatePH(vTitrant);
-    document.getElementById("disp-digital-ph").innerText = ph.toFixed(2);
-    document.getElementById("disp-digital-vol").innerText = `${vTitrant.toFixed(2)} mL`;
+    const dispPh = document.getElementById("disp-digital-ph");
+    if (dispPh) dispPh.innerText = ph.toFixed(2);
+    const dispVol = document.getElementById("disp-digital-vol");
+    if (dispVol) dispVol.innerText = `${vTitrant.toFixed(2)} mL`;
 
     const neutralBadge = document.getElementById("neutral-badge");
     const phState = document.getElementById("disp-ph-state");
+
+    if (!neutralBadge || !phState) return;
 
     if (vTitrant < 24.5) {
       neutralBadge.innerText = "Pre-Equivalence Zone";
@@ -919,6 +935,7 @@ export function initTitrationLab(containerId) {
     }
 
     if (!container.isConnected) {
+      stopAutoTitrate();
       if (animId) cancelAnimationFrame(animId);
       return;
     }
@@ -936,73 +953,101 @@ export function initTitrationLab(containerId) {
   animate();
 
   // Control Handlers
-  document.getElementById("btn-add-drop").addEventListener("click", () => {
+  document.getElementById("btn-add-drop")?.addEventListener("click", () => {
+    stopAutoTitrate();
     addVolume(0.05);
   });
 
-  document.getElementById("btn-titr-slow").addEventListener("click", () => {
+  document.getElementById("btn-titr-slow")?.addEventListener("click", () => {
+    stopAutoTitrate();
     flowRate = 0.2;
-    document.getElementById("titr-status").innerText = "Dispensing at 0.2 mL/s";
-    document.getElementById("titr-status-dot").style.background = "#10b981";
+    const statusEl = document.getElementById("titr-status");
+    if (statusEl) statusEl.innerText = "Dispensing at 0.2 mL/s";
+    const dotEl = document.getElementById("titr-status-dot");
+    if (dotEl) dotEl.style.background = "#10b981";
   });
 
-  document.getElementById("btn-titr-fast").addEventListener("click", () => {
+  document.getElementById("btn-titr-fast")?.addEventListener("click", () => {
+    stopAutoTitrate();
     flowRate = 1.5;
-    document.getElementById("titr-status").innerText = "Dispensing at 1.5 mL/s";
-    document.getElementById("titr-status-dot").style.background = "#f59e0b";
+    const statusEl = document.getElementById("titr-status");
+    if (statusEl) statusEl.innerText = "Dispensing at 1.5 mL/s";
+    const dotEl = document.getElementById("titr-status-dot");
+    if (dotEl) dotEl.style.background = "#f59e0b";
   });
 
-  document.getElementById("btn-titr-stop").addEventListener("click", () => {
+  document.getElementById("btn-titr-stop")?.addEventListener("click", () => {
+    stopAutoTitrate();
     flowRate = 0;
-    document.getElementById("titr-status").innerText = "Stopcock Valve Closed";
-    document.getElementById("titr-status-dot").style.background = "#ef4444";
+    const statusEl = document.getElementById("titr-status");
+    if (statusEl) statusEl.innerText = "Stopcock Valve Closed";
+    const dotEl = document.getElementById("titr-status-dot");
+    if (dotEl) dotEl.style.background = "#ef4444";
   });
 
-  document.getElementById("btn-titr-auto").addEventListener("click", () => {
+  document.getElementById("btn-titr-auto")?.addEventListener("click", () => {
+    stopAutoTitrate();
     flowRate = 0;
-    const interval = setInterval(() => {
+    const statusEl = document.getElementById("titr-status");
+    if (statusEl) statusEl.innerText = "⚡ Automated Micro-Dosing Active...";
+    const dotEl = document.getElementById("titr-status-dot");
+    if (dotEl) dotEl.style.background = "#38bdf8";
+
+    autoTitrateInterval = setInterval(() => {
+      if (!container || !container.isConnected) {
+        stopAutoTitrate();
+        return;
+      }
       if (vTitrant < 24.9) {
         addVolume(0.2);
       } else if (vTitrant < 25.0) {
         addVolume(0.02);
       } else {
-        clearInterval(interval);
-        document.getElementById("titr-status").innerText = "🎯 Titration Complete at Equivalence";
-        document.getElementById("titr-status-dot").style.background = "#10b981";
+        stopAutoTitrate();
+        const sEl = document.getElementById("titr-status");
+        if (sEl) sEl.innerText = "🎯 Titration Complete at Equivalence";
+        const dEl = document.getElementById("titr-status-dot");
+        if (dEl) dEl.style.background = "#10b981";
       }
     }, 40);
   });
 
-  document.getElementById("btn-titr-reset").addEventListener("click", () => {
+  document.getElementById("btn-titr-reset")?.addEventListener("click", () => {
+    stopAutoTitrate();
     flowRate = 0;
     vTitrant = 0;
     dataPoints = [{ v: 0, ph: calculatePH(0) }];
     drops = [];
-    document.getElementById("titr-status").innerText = "Burette Charged (0.100 M NaOH)";
-    document.getElementById("titr-status-dot").style.background = "#06b6d4";
+    const statusEl = document.getElementById("titr-status");
+    if (statusEl) statusEl.innerText = "Burette Charged (0.100 M NaOH)";
+    const dotEl = document.getElementById("titr-status-dot");
+    if (dotEl) dotEl.style.background = "#06b6d4";
     updateTelemetry();
     drawApparatus();
     drawCurve();
   });
 
-  document.getElementById("select-acid-type").addEventListener("change", (e) => {
+  document.getElementById("select-acid-type")?.addEventListener("change", (e) => {
+    stopAutoTitrate();
     acidType = e.target.value;
     flowRate = 0;
     vTitrant = 0;
     dataPoints = [{ v: 0, ph: calculatePH(0) }];
+    const analAcid = document.getElementById("anal-acid-text");
+    const analTarget = document.getElementById("anal-target-text");
     if (acidType === "HCl") {
-      document.getElementById("anal-acid-text").innerText = "25.00 mL of 0.100 M HCl";
-      document.getElementById("anal-target-text").innerText = "25.00 mL NaOH (pH 7.00)";
+      if (analAcid) analAcid.innerText = "25.00 mL of 0.100 M HCl";
+      if (analTarget) analTarget.innerText = "25.00 mL NaOH (pH 7.00)";
     } else {
-      document.getElementById("anal-acid-text").innerText = "25.00 mL of 0.100 M CH₃COOH";
-      document.getElementById("anal-target-text").innerText = "25.00 mL NaOH (pH 8.72)";
+      if (analAcid) analAcid.innerText = "25.00 mL of 0.100 M CH₃COOH";
+      if (analTarget) analTarget.innerText = "25.00 mL NaOH (pH 8.72)";
     }
     updateTelemetry();
     drawApparatus();
     drawCurve();
   });
 
-  document.getElementById("select-indicator").addEventListener("change", (e) => {
+  document.getElementById("select-indicator")?.addEventListener("change", (e) => {
     indicator = e.target.value;
     drawApparatus();
   });
@@ -1121,6 +1166,7 @@ export function initTitrationLab(containerId) {
   mountLabCheckpoint("titr-checkpoint-container", "titration");
 
   return () => {
+    stopAutoTitrate();
     if (animId) cancelAnimationFrame(animId);
   };
 }

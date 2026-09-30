@@ -23,6 +23,7 @@ export function getOrGenerateDiagram(subKey, module, lesson, profile, diagramTyp
       if (m.id === 3 && l.id === 2) return SCIENTIFIC_DIAGRAMS.chem_rutherford_gold_foil;
       if (m.id === 3 && l.id === 3) return SCIENTIFIC_DIAGRAMS.chem_mass_spectrometry;
       if (m.id === 15) return SCIENTIFIC_DIAGRAMS.chem_energy_diagram;
+      if (m.id === 16 && l.id === 2) return SCIENTIFIC_DIAGRAMS.chem_le_chatelier_shifts;
       if (m.id === 17 && l.id === 2) return SCIENTIFIC_DIAGRAMS.chem_le_chatelier_shifts;
       if (m.id === 17) return SCIENTIFIC_DIAGRAMS.chem_titration_curve;
       if (m.id === 19) return SCIENTIFIC_DIAGRAMS.chem_galvanic_cell;

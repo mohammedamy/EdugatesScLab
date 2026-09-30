@@ -3,12 +3,15 @@
 
 export const LESSON_INTERACTIVE_REGISTRY = {
   "CHEM-M01-L1": {
-    "type": "chem-density",
+    "type": "chem-ozone-density",
     "lessonBadge": "Lesson 1",
     "title": "Atmospheric Ozone & Gas Density Distribution",
-    "formula": "\\text{Density } \\rho = \\frac{m}{V}",
-    "inquiry": "Examine gas mass-to-volume distribution in atmospheric layers; observe how ozone density differences govern stratospheric UV shielding.",
+    "formula": "\\rho(z) = \\rho_0 e^{-z/H} \\quad \\text{and} \\quad \\text{O}_3 + h\\nu_{\\text{UV}} \\to \\text{O}_2 + \\text{O}",
+    "inquiry": "Examine gas mass-to-volume density distribution across atmospheric strata; investigate how stratospheric ozone concentration governs solar UV-C and UV-B shielding and protects the biosphere.",
     "defaultParams": {
+      "ozoneDu": 300,
+      "uvFlux": 100,
+      "probeAltitudeKm": 25,
       "mass": 48,
       "volume": 32
     }

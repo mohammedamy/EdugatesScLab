@@ -137,8 +137,8 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
               <span style="color: #38bdf8; font-weight: 800; font-size: 0.92rem; display: flex; align-items: center; gap: 6px;">
                 <span>🧮</span> Quantitative Worked Example &amp; Calculation Steps
               </span>
-              <span style="font-size: 0.75rem; color: #10b981; font-family: var(--font-mono); font-weight: 700; background: rgba(16,185,129,0.12); padding: 2px 8px; border-radius: 4px;">
-                Verified Solution
+              <span style="font-size: 0.75rem; color: ${theory.isVerified ? '#10b981' : '#f59e0b'}; font-family: var(--font-mono); font-weight: 700; background: ${theory.isVerified ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)'}; padding: 2px 8px; border-radius: 4px; border: 1px solid ${theory.isVerified ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'};">
+                ${theory.workedExample.status || (theory.isVerified ? "Specialist Verified Solution" : "Curriculum Standard Reference Solution (Under Specialist Review)")}
               </span>
             </div>
             <div style="font-size: 0.9rem; color: var(--text-main); font-weight: 600; margin-bottom: 10px; line-height: 1.5;">
@@ -163,7 +163,9 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
   const simMountId = `${containerId}-sim-mount`;
 
   // Route to the specific simulation builder
-  if (spec.type.startsWith("chem-density")) {
+  if (spec.type.startsWith("chem-ozone") || spec.type.startsWith("chem-density-ozone")) {
+    buildOzoneDensityInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("chem-density")) {
     buildDensityInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("chem-heating")) {
     buildHeatingCurveInteractive(simMountId, spec.defaultParams);
@@ -300,6 +302,386 @@ export function cleanupAllLessonInteractives() {
 
 
 // =========================================================================
+
+/**
+ * 0. Chemistry: Stratospheric Ozone & Atmospheric Gas Density Interactive
+ * Dual Activity: Primary Stratospheric Ozone & UV-C/UV-B Shielding + Supporting Fluid Density & Buoyancy
+ */
+function buildOzoneDensityInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+  let currentSubTab = "ozone"; // 'ozone' or 'density'
+
+  function renderView() {
+    mount.innerHTML = `
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; gap: 8px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 8px; flex-wrap: wrap;">
+          <button class="btn ${currentSubTab === 'ozone' ? 'btn-primary' : 'btn-secondary'}" id="${mountId}-tab-ozone" style="font-size: 0.8rem; padding: 6px 14px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <span>🛡️</span> Primary: Stratospheric Ozone &amp; UV Shielding
+          </button>
+          <button class="btn ${currentSubTab === 'density' ? 'btn-primary' : 'btn-secondary'}" id="${mountId}-tab-density" style="font-size: 0.8rem; padding: 6px 14px; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+            <span>⚖️</span> Supporting Activity: Fluid Density &amp; Buoyancy
+          </button>
+        </div>
+        <div id="${mountId}-activity-container"></div>
+      </div>
+    `;
+
+    document.getElementById(`${mountId}-tab-ozone`)?.addEventListener("click", () => {
+      if (currentSubTab !== "ozone") {
+        currentSubTab = "ozone";
+        renderView();
+      }
+    });
+
+    document.getElementById(`${mountId}-tab-density`)?.addEventListener("click", () => {
+      if (currentSubTab !== "density") {
+        currentSubTab = "density";
+        renderView();
+      }
+    });
+
+    const actContainer = document.getElementById(`${mountId}-activity-container`);
+    if (!actContainer) return;
+
+    if (currentSubTab === "density") {
+      actContainer.innerHTML = `
+        <div style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: var(--text-main); margin-bottom: 8px; line-height: 1.4;">
+          <strong>⚖️ Supporting Activity — Density ($\rho = m/V$):</strong>
+          Mass-to-volume ratio dictates physical behavior across all states of matter: in fluids, it governs Archimedes buoyant float/sink equilibrium; in planetary atmospheres, it dictates barometric density stratification ($\rho(z) = \rho_0 e^{-z/H}$).
+        </div>
+        <div id="${mountId}-sub-density"></div>
+      `;
+      buildDensityInteractive(`${mountId}-sub-density`, params);
+    } else {
+      buildOzoneAtmosphereInteractive(actContainer, `${mountId}-ozone-sim`, params);
+    }
+  }
+
+  renderView();
+}
+
+function buildOzoneAtmosphereInteractive(container, subMountId, params) {
+  let ozoneDu = params.ozoneDu || 300; // Dobson Units (100 to 500)
+  let uvFlux = params.uvFlux || 100; // 50% to 150%
+  let probeAlt = params.probeAltitudeKm !== undefined ? params.probeAltitudeKm : 25; // 0 to 45 km
+
+  container.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative;">
+        <canvas id="${subMountId}-canvas" width="380" height="260" style="width: 100%; height: 260px;"></canvas>
+        <div id="${subMountId}-layer-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; pointer-events: none; backdrop-filter: blur(4px);">
+          Stratosphere (Ozone Layer Maximum)
+        </div>
+        <div style="position: absolute; bottom: 8px; right: 10px; font-size: 0.70rem; color: #94a3b8; background: rgba(15,23,42,0.85); padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border-color);">
+          Sun ☀️ ➔ UV-C/B/A Rays
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill">
+          <span class="readout-label">Total Ozone Column:</span>
+          <span class="readout-val" id="${subMountId}-val-du" style="color: #38bdf8;">${ozoneDu} DU</span>
+        </div>
+
+        <div class="sim-readout-pill" id="${subMountId}-uvi-pill" style="background: rgba(16,185,129,0.15); color: #10b981;">
+          Ground UV-B Index: Calculating...
+        </div>
+
+        <div class="sim-readout-pill">
+          <span class="readout-label">Air Density at ${probeAlt} km:</span>
+          <span class="readout-val" id="${subMountId}-val-density" style="color: #a855f7;">-- kg/m³</span>
+        </div>
+
+        <div style="margin-bottom: 6px;">
+          <div style="font-size: 0.74rem; color: var(--text-dim); margin-bottom: 4px; font-weight: 600;">Atmospheric Scenario:</div>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+            <button class="btn-sim-action ${ozoneDu === 300 ? 'active' : ''}" id="${subMountId}-p-std" style="padding: 4px; font-size: 0.72rem;">🌍 Standard 300 DU</button>
+            <button class="btn-sim-action ${ozoneDu === 120 ? 'active' : ''}" id="${subMountId}-p-hole" style="padding: 4px; font-size: 0.72rem;">❄️ Ozone Hole 120 DU</button>
+            <button class="btn-sim-action ${ozoneDu === 450 ? 'active' : ''}" id="${subMountId}-p-high" style="padding: 4px; font-size: 0.72rem;">🛡️ Thick 450 DU</button>
+          </div>
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Ozone Column (Dobson Units):</span>
+            <span id="${subMountId}-lbl-du" style="font-family: var(--font-mono); color: #38bdf8; font-weight: 700;">${ozoneDu} DU</span>
+          </div>
+          <input type="range" class="sim-slider" id="${subMountId}-sld-du" min="100" max="500" step="10" value="${ozoneDu}">
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Solar UV Radiation Flux:</span>
+            <span id="${subMountId}-lbl-uv" style="font-family: var(--font-mono); color: #ec4899; font-weight: 700;">${uvFlux}%</span>
+          </div>
+          <input type="range" class="sim-slider" id="${subMountId}-sld-uv" min="50" max="150" step="5" value="${uvFlux}">
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Altitude Metrology Probe (z):</span>
+            <span id="${subMountId}-lbl-alt" style="font-family: var(--font-mono); color: #a855f7; font-weight: 700;">${probeAlt} km</span>
+          </div>
+          <input type="range" class="sim-slider" id="${subMountId}-sld-alt" min="0" max="45" step="1" value="${probeAlt}">
+        </div>
+
+        <div style="font-size: 0.72rem; color: var(--text-dim); background: rgba(0,0,0,0.25); border-radius: 6px; padding: 6px 10px; line-height: 1.4; border: 1px solid var(--border-color); margin-top: 4px;">
+          <strong style="color: #38bdf8;">☀️ Chapman Photolysis:</strong>
+          $\\text{O}_2 + h\\nu_{\\text{UV-C}} \\to 2\\text{O} \\quad \\| \\quad \\text{O} + \\text{O}_2 \\to \\text{O}_3 \\quad \\| \\quad \\text{O}_3 + h\\nu_{\\text{UV-B}} \\to \\text{O}_2 + \\text{O}$
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${subMountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const sldDu = document.getElementById(`${subMountId}-sld-du`);
+  const sldUv = document.getElementById(`${subMountId}-sld-uv`);
+  const sldAlt = document.getElementById(`${subMountId}-sld-alt`);
+  const lblDu = document.getElementById(`${subMountId}-lbl-du`);
+  const lblUv = document.getElementById(`${subMountId}-lbl-uv`);
+  const lblAlt = document.getElementById(`${subMountId}-lbl-alt`);
+  const valDu = document.getElementById(`${subMountId}-val-du`);
+  const valDensity = document.getElementById(`${subMountId}-val-density`);
+  const uviPill = document.getElementById(`${subMountId}-uvi-pill`);
+  const layerBadge = document.getElementById(`${subMountId}-layer-badge`);
+
+  function updateReadouts() {
+    lblDu.innerText = `${ozoneDu} DU`;
+    lblUv.innerText = `${uvFlux}%`;
+    lblAlt.innerText = `${probeAlt} km`;
+    valDu.innerText = `${ozoneDu} DU`;
+
+    // Barometric gas density: rho(z) = rho_0 * exp(-z / H_s)
+    const rho0 = 1.225; // kg/m3 at sea level
+    const scaleHeight = 7.4; // km
+    const localDensity = rho0 * Math.exp(-probeAlt / scaleHeight);
+    valDensity.innerText = `${localDensity < 0.01 ? localDensity.toExponential(2) : localDensity.toFixed(3)} kg/m³`;
+
+    // UV transmission and ground UV Index
+    const uvTrans = Math.exp(-2.8 * (ozoneDu / 300));
+    const uvi = (uvFlux / 100) * 11.5 * (uvTrans / Math.exp(-2.8));
+    if (uvi < 3.0) {
+      uviPill.style.background = "rgba(16,185,129,0.15)";
+      uviPill.style.color = "#10b981";
+      uviPill.innerText = `Ground UV-B: UVI ${uvi.toFixed(1)} (Low Risk)`;
+    } else if (uvi < 7.0) {
+      uviPill.style.background = "rgba(245,158,11,0.15)";
+      uviPill.style.color = "#f59e0b";
+      uviPill.innerText = `Ground UV-B: UVI ${uvi.toFixed(1)} (Moderate Risk)`;
+    } else {
+      uviPill.style.background = "rgba(239,68,68,0.2)";
+      uviPill.style.color = "#ef4444";
+      uviPill.innerText = `Ground UV-B: UVI ${uvi.toFixed(1)} (CRITICAL / High Risk)`;
+    }
+
+    if (probeAlt < 12) {
+      layerBadge.innerText = "Troposphere (Weather & Dense Air)";
+      layerBadge.style.color = "#38bdf8";
+    } else if (probeAlt <= 35) {
+      layerBadge.innerText = "Stratosphere (Ozone Shielding Layer)";
+      layerBadge.style.color = "#10b981";
+    } else {
+      layerBadge.innerText = "Mesosphere (Very Low Density Gas)";
+      layerBadge.style.color = "#ec4899";
+    }
+  }
+
+  sldDu.addEventListener("input", (e) => {
+    ozoneDu = parseInt(e.target.value, 10);
+    updateReadouts();
+  });
+  sldUv.addEventListener("input", (e) => {
+    uvFlux = parseInt(e.target.value, 10);
+    updateReadouts();
+  });
+  sldAlt.addEventListener("input", (e) => {
+    probeAlt = parseInt(e.target.value, 10);
+    updateReadouts();
+  });
+
+  document.getElementById(`${subMountId}-p-std`)?.addEventListener("click", () => {
+    ozoneDu = 300;
+    sldDu.value = 300;
+    updateReadouts();
+  });
+  document.getElementById(`${subMountId}-p-hole`)?.addEventListener("click", () => {
+    ozoneDu = 120;
+    sldDu.value = 120;
+    updateReadouts();
+  });
+  document.getElementById(`${subMountId}-p-high`)?.addEventListener("click", () => {
+    ozoneDu = 450;
+    sldDu.value = 450;
+    updateReadouts();
+  });
+
+  updateReadouts();
+
+  // Animated Photons / Wave Pulses
+  const photons = [];
+  for (let i = 0; i < 24; i++) {
+    photons.push({
+      x: 30 + Math.random() * 320,
+      y: Math.random() * 200,
+      speed: 1.2 + Math.random() * 1.8,
+      type: i % 3 === 0 ? "uvc" : (i % 3 === 1 ? "uvb" : "uva")
+    });
+  }
+
+  let animId = null;
+  function loop() {
+    if (!canvas.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
+    const w = canvas.width / dpr;
+    const h = canvas.height / dpr;
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+
+    // 1. Atmosphere Altitude Gradient (Top = 45 km, Bottom = 0 km)
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+    skyGrad.addColorStop(0, "#030712"); // Mesosphere/Space
+    skyGrad.addColorStop(0.35, "#0b1528"); // Stratosphere
+    skyGrad.addColorStop(0.72, "#13233c"); // Tropopause
+    skyGrad.addColorStop(1, "#1e3a5f"); // Troposphere
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    // 2. Stratospheric Ozone Layer (Alt 15km to 35km -> y from h*0.66 to h*0.22)
+    const ozTopY = h * 0.22;
+    const ozBotY = h * 0.66;
+    const ozGlow = ctx.createLinearGradient(0, ozTopY, 0, ozBotY);
+    const ozAlpha = Math.min(0.75, (ozoneDu / 500) * 0.70);
+    ozGlow.addColorStop(0, "rgba(56, 189, 248, 0)");
+    ozGlow.addColorStop(0.45, `rgba(56, 189, 248, ${ozAlpha})`);
+    ozGlow.addColorStop(0.55, `rgba(16, 185, 129, ${ozAlpha * 0.9})`);
+    ozGlow.addColorStop(1, "rgba(56, 189, 248, 0)");
+    ctx.fillStyle = ozGlow;
+    ctx.fillRect(0, ozTopY, w, ozBotY - ozTopY);
+
+    // Ozone Layer Boundaries & Text
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(0, ozTopY); ctx.lineTo(w, ozTopY);
+    ctx.moveTo(0, ozBotY); ctx.lineTo(w, ozBotY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = "rgba(56, 189, 248, 0.75)";
+    ctx.font = "bold 9px 'JetBrains Mono', monospace";
+    ctx.fillText("STRATOSPHERE (OZONE LAYER ~20-30 km)", 14, ozTopY + 16);
+
+    // 3. Troposphere Boundary
+    const tropoY = h * 0.73; // 12 km
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.25)";
+    ctx.beginPath();
+    ctx.moveTo(0, tropoY); ctx.lineTo(w, tropoY);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(148, 163, 184, 0.6)";
+    ctx.fillText("TROPOPAUSE (12 km)", 14, tropoY - 4);
+
+    // 4. Ground Surface (0 km)
+    const groundH = 22;
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(0, h - groundH, w, groundH);
+    ctx.strokeStyle = "#334155";
+    ctx.strokeRect(0, h - groundH, w, groundH);
+    ctx.fillStyle = "#64748b";
+    ctx.fillText("EARTH SURFACE (z = 0 km)", 14, h - 8);
+
+    // 5. Animated Descending UV Photons
+    const uvTransB = Math.exp(-2.8 * (ozoneDu / 300));
+    photons.forEach(p => {
+      p.y += p.speed * (uvFlux / 100);
+      if (p.y > h - groundH) {
+        p.y = 10;
+        p.x = 30 + Math.random() * 320;
+      }
+
+      const altKm = 45 * (1 - p.y / (h - groundH));
+
+      // Attenuation rules:
+      // UV-C is absorbed completely above 18 km
+      if (p.type === "uvc" && altKm < 18) {
+        p.y = 10;
+        p.x = 30 + Math.random() * 320;
+      }
+      // UV-B is absorbed in ozone layer
+      if (p.type === "uvb" && altKm < 20 && Math.random() > uvTransB) {
+        p.y = 10;
+        p.x = 30 + Math.random() * 320;
+      }
+
+      ctx.beginPath();
+      if (p.type === "uvc") {
+        ctx.fillStyle = "#ec4899";
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+      } else if (p.type === "uvb") {
+        ctx.fillStyle = "#8b5cf6";
+        ctx.arc(p.x, p.y, 2.2, 0, Math.PI * 2);
+      } else {
+        ctx.fillStyle = "#f59e0b";
+        ctx.arc(p.x, p.y, 2.0, 0, Math.PI * 2);
+      }
+      ctx.fill();
+    });
+
+    // 6. Draw Altitude Metrology Probe Line
+    const probeY = (h - groundH) * (1 - probeAlt / 45);
+    ctx.strokeStyle = "#a855f7";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, probeY);
+    ctx.lineTo(w, probeY);
+    ctx.stroke();
+
+    // Probe readout tag
+    ctx.fillStyle = "#a855f7";
+    ctx.fillRect(w - 110, probeY - 14, 105, 14);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 9px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`Probe: ${probeAlt} km`, w - 58, probeY - 3);
+    ctx.textAlign = "left";
+
+    // Legend in upper left corner
+    ctx.fillStyle = "#ec4899";
+    ctx.fillRect(w - 120, 10, 8, 8);
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = "8px 'JetBrains Mono', monospace";
+    ctx.fillText("UV-C (100% blocked)", w - 108, 17);
+
+    ctx.fillStyle = "#8b5cf6";
+    ctx.fillRect(w - 120, 22, 8, 8);
+    ctx.fillStyle = "#f8fafc";
+    ctx.fillText(`UV-B (${(uvTransB * 100).toFixed(0)}% reaching)`, w - 108, 29);
+
+    ctx.fillStyle = "#f59e0b";
+    ctx.fillRect(w - 120, 34, 8, 8);
+    ctx.fillStyle = "#f8fafc";
+    ctx.fillText("UV-A (Transmitted)", w - 108, 41);
+
+    ctx.restore();
+    animId = requestAnimationFrame(loop);
+  }
+
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(subMountId, () => {
+    if (animId) cancelAnimationFrame(animId);
+  });
+}
 
 /**
  * 1. Chemistry: Density & Buoyancy Interactive
