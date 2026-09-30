@@ -62,9 +62,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     overlay.id = "module-modal-overlay";
     document.body.appendChild(overlay);
   }
-  // Default to Fullscreen presentation mode: lessons open edge-to-edge, eliminating the cramped box
+  // Universal Edge-to-Edge Full Browser Screen: lessons open 100vw x 100vh, never in a dialogue box
   let isFullscreen = true;
-  overlay.className = isFullscreen ? "modal-overlay modal-fullscreen is-fullscreen-lesson" : "modal-overlay";
+  overlay.className = "modal-overlay modal-fullscreen is-fullscreen-lesson";
   overlay.style.display = "flex";
   document.body.style.overflow = "hidden";
   document.body.classList.add("modal-open");
@@ -79,6 +79,16 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   let currentLabCleanup = null;
   let currentSimZoom = 1.0;
 
+  function syncFullscreenButton() {
+    const isDisplayFs = typeof document !== "undefined" && !!(document.fullscreenElement || document.webkitFullscreenElement);
+    const icon = document.getElementById("btn-fs-icon");
+    const label = document.getElementById("btn-fs-label");
+    const btn = document.getElementById("btn-header-fullscreen-modal");
+    if (icon) icon.textContent = isDisplayFs ? '🗗' : '⛶';
+    if (label) label.textContent = isDisplayFs ? 'Exit Display' : 'Display Fullscreen';
+    if (btn) btn.title = isDisplayFs ? 'Exit Hardware Display Fullscreen (Esc)' : 'Expand to Fullscreen Display / Smartboard Kiosk Mode';
+  }
+
   function closeModal() {
     if (typeof currentLabCleanup === "function") {
       currentLabCleanup();
@@ -89,6 +99,10 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     cleanupLessonInteractive("lab-lesson-sim-container");
     cleanupLessonInteractive("embedded-module-lab-mount");
     document.removeEventListener("keydown", handleKeydown);
+    if (typeof syncFullscreenButton === "function") {
+      document.removeEventListener("fullscreenchange", syncFullscreenButton);
+      document.removeEventListener("webkitfullscreenchange", syncFullscreenButton);
+    }
     document.body.style.overflow = "";
     document.body.classList.remove("modal-open");
 
@@ -114,6 +128,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   // Register on window for back-button / external hash navigation dismiss
   window.closeActiveModuleModal = closeModal;
 
+  document.addEventListener("fullscreenchange", syncFullscreenButton);
+  document.addEventListener("webkitfullscreenchange", syncFullscreenButton);
+
   function handleKeydown(e) {
     if (e.key === "Escape") {
       closeModal();
@@ -135,7 +152,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
   }
   document.addEventListener("keydown", handleKeydown);
 
-  // Backdrop click to close modal
+  // Backdrop click guard (overlay is 100vw x 100vh full screen, fully covered by shell)
   overlay.addEventListener("click", (e) => {
     if (e.target === overlay) {
       closeModal();
@@ -151,10 +168,13 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     const curSubName = moduleData.code.startsWith("CHEM") ? "Chemistry" : (moduleData.code.startsWith("BIO") ? "Biology" : "Physics");
 
     overlay.innerHTML = `
-      <div class="modal-content-shell ${isFullscreen ? 'is-fullscreen' : ''}" role="dialog" aria-modal="true" aria-labelledby="modal-chapter-title">
+      <div class="modal-content-shell is-fullscreen" id="lesson-fullscreen-workspace" role="main" aria-label="Lesson Full Browser Screen View">
         <div class="modal-header">
           <div class="modal-header-titles">
-            <nav class="modal-breadcrumbs" aria-label="Breadcrumbs" style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 4px;">
+            <nav class="modal-breadcrumbs" aria-label="Breadcrumbs" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 4px;">
+              <button id="btn-header-back-curriculum" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer;" title="Back to Curriculum Grid">
+                <span>← Back to Curriculum</span>
+              </button>
               <a href="#${curTabId}" class="breadcrumb-link" style="color: inherit; text-decoration: none;">${curSubName}</a>
               <span aria-hidden="true" style="opacity: 0.4;">/</span>
               <span style="color: ${subjectColor}; font-weight: 700;">${moduleData.code}</span>
@@ -166,9 +186,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
             <button class="btn btn-secondary btn-header-annotate" id="btn-header-annotate-modal" title="Toggle Smartboard Drawing Pen &amp; Highlighter over simulation" aria-label="Toggle In-Class Annotation" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; cursor: pointer;">
               <span>✏️ Annotate</span>
             </button>
-            <button class="btn btn-secondary btn-header-fullscreen" id="btn-header-fullscreen-modal" title="Toggle Fullscreen Presentation View" aria-label="Toggle Fullscreen View" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
-              <span id="btn-fs-icon">${isFullscreen ? '🗗' : '⛶'}</span>
-              <span id="btn-fs-label">${isFullscreen ? 'Standard' : 'Fullscreen'}</span>
+            <button class="btn btn-secondary btn-header-fullscreen" id="btn-header-fullscreen-modal" title="Toggle Fullscreen Display / Kiosk Mode" aria-label="Toggle Fullscreen Display" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
+              <span id="btn-fs-icon">⛶</span>
+              <span id="btn-fs-label">Display Fullscreen</span>
             </button>
             <button class="btn btn-secondary btn-header-share" id="btn-header-share-modal" title="Share to Google Classroom, Classera, or Copy Link" aria-label="Share to LMS or copy deep link" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
               <span>📤 Share</span>
@@ -176,7 +196,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
             <button class="btn btn-secondary btn-header-lesson-plan" id="btn-header-lesson-plan" title="Open 2-Page A4 Teacher Lesson Plan &amp; Export PDF" aria-label="Open 2-Page A4 Teacher Lesson Plan" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
               <span>📄 A4 Plan</span>
             </button>
-            <button class="modal-close-btn" id="btn-close-modal" aria-label="Close modal">✕</button>
+            <button class="modal-close-btn" id="btn-close-modal" aria-label="Close lesson and return to curriculum" title="Exit to Curriculum (Esc)">✕</button>
           </div>
         </div>
 
@@ -206,33 +226,46 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     const btnClose = document.getElementById("btn-close-modal");
     if (btnClose) btnClose.addEventListener("click", closeModal);
 
-    // Fullscreen Toggle Button
+    // Back to Curriculum Button
+    const btnBack = document.getElementById("btn-header-back-curriculum");
+    if (btnBack) {
+      btnBack.addEventListener("click", (e) => {
+        e.preventDefault();
+        try { SoundFX.playClick(); } catch (err) {}
+        closeModal();
+      });
+    }
+
+    // Breadcrumb links close full screen lesson view
+    overlay.querySelectorAll(".breadcrumb-link").forEach(link => {
+      link.addEventListener("click", () => {
+        closeModal();
+      });
+    });
+
+    // Fullscreen Toggle Button (toggles browser/kiosk display fullscreen; CSS layout is ALWAYS 100vw x 100vh full browser screen, never a dialogue box)
     const btnFs = document.getElementById("btn-header-fullscreen-modal");
     if (btnFs) {
+      syncFullscreenButton();
       btnFs.addEventListener("click", () => {
         try { SoundFX.playClick(); } catch (e) {}
-        isFullscreen = !isFullscreen;
-        overlay.classList.toggle("modal-fullscreen", isFullscreen);
-        overlay.classList.toggle("is-fullscreen-lesson", isFullscreen);
-        const shell = overlay.querySelector(".modal-content-shell");
-        if (shell) shell.classList.toggle("is-fullscreen", isFullscreen);
-        const icon = document.getElementById("btn-fs-icon");
-        const label = document.getElementById("btn-fs-label");
-        if (icon) icon.textContent = isFullscreen ? '🗗' : '⛶';
-        if (label) label.textContent = isFullscreen ? 'Standard' : 'Fullscreen';
-
-        if (isFullscreen) {
-          if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-            document.documentElement.requestFullscreen().catch(() => {});
+        const isDisplayFs = typeof document !== "undefined" && !!(document.fullscreenElement || document.webkitFullscreenElement);
+        if (isDisplayFs) {
+          if (document.exitFullscreen) {
+            document.exitFullscreen().catch(() => {});
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
           }
         } else {
-          if (document.fullscreenElement && document.exitFullscreen) {
-            document.exitFullscreen().catch(() => {});
+          const reqFs = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
+          if (reqFs) {
+            reqFs.call(document.documentElement).catch(() => {});
           }
         }
         setTimeout(() => {
+          syncFullscreenButton();
           window.dispatchEvent(new Event("resize"));
-        }, 80);
+        }, 100);
       });
     }
 
