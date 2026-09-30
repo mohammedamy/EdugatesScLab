@@ -7,7 +7,17 @@ import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 import { SoundFX } from "../utils/audio-synth.js";
 
+let _currentVseprCleanup = null;
+
+export function cleanupVseprLab() {
+  if (typeof _currentVseprCleanup === "function") {
+    try { _currentVseprCleanup(); } catch (e) {}
+    _currentVseprCleanup = null;
+  }
+}
+
 export function initVseprLab(containerId) {
+  cleanupVseprLab();
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -739,14 +749,14 @@ export function initVseprLab(containerId) {
     }
   }
 
-  // Animation Loop (60 FPS with Smartboard Pacing & Overdraw Protection)
+  // Animation Loop (Decoupled Delta-T Rotation with Smartboard Pacing)
   let lastVseprTime = 0;
   let needsRedraw = true;
   function requestRender() {
     needsRedraw = true;
   }
   function animate(now) {
-    if (!container.isConnected) {
+    if (!container || !container.isConnected) {
       if (animId) cancelAnimationFrame(animId);
       return;
     }
@@ -754,12 +764,15 @@ export function initVseprLab(containerId) {
                     document.documentElement.classList.contains("fast-smartboard-mode") ||
                     /Android|MAXHUB/i.test(navigator.userAgent);
     const interval = isSmart ? 33 : 16;
-    if (!now || now - lastVseprTime >= interval) {
-      lastVseprTime = now || performance.now();
+    const currentTime = now || performance.now();
+    if (!lastVseprTime || currentTime - lastVseprTime >= interval) {
+      const elapsed = lastVseprTime ? Math.min((currentTime - lastVseprTime) / 1000, 0.1) : (interval / 1000);
+      lastVseprTime = currentTime;
+      const dtFactor = Math.min(Math.max(elapsed * 60, 0.5), 3.0);
       const photoEl = container.querySelector("#vsepr-photo-overlay");
       if (!photoEl || photoEl.style.display !== "block") {
         if (autoRotate && !isDragging) {
-          rotY += 0.008;
+          rotY += 0.008 * dtFactor;
           render3D();
         } else if (isDragging || needsRedraw) {
           needsRedraw = false;
@@ -960,7 +973,9 @@ export function initVseprLab(containerId) {
   });
 
   // Cleanup on unmount
-  return () => {
+  const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
   };
+  _currentVseprCleanup = cleanup;
+  return cleanup;
 }

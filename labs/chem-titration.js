@@ -5,7 +5,17 @@
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
+let _currentTitrationCleanup = null;
+
+export function cleanupTitrationLab() {
+  if (typeof _currentTitrationCleanup === "function") {
+    try { _currentTitrationCleanup(); } catch (e) {}
+    _currentTitrationCleanup = null;
+  }
+}
+
 export function initTitrationLab(containerId) {
+  cleanupTitrationLab();
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -360,7 +370,7 @@ export function initTitrationLab(containerId) {
   }
 
   // Draw Apparatus Bench
-  function drawApparatus() {
+  function drawApparatus(dtFactor = 0) {
     if (!container || !container.isConnected) return;
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = appCanvas.width / dpr;
@@ -685,8 +695,10 @@ export function initTitrationLab(containerId) {
     // 9. Falling Drops Simulation (Parabolic falling with teardrop shape)
     for (let i = drops.length - 1; i >= 0; i--) {
       const d = drops[i];
-      d.speed += 0.35; // Gravity acceleration
-      d.y += d.speed;
+      if (dtFactor > 0) {
+        d.speed += 0.35 * dtFactor; // Gravity acceleration scaled by dt
+        d.y += d.speed * dtFactor;
+      }
 
       // Draw Teardrop
       appCtx.fillStyle = "#38bdf8";
@@ -864,7 +876,10 @@ export function initTitrationLab(containerId) {
   }
 
   function updateTelemetry() {
-    if (!container || !container.isConnected) return;
+    if (!container || !container.isConnected || !document.getElementById("titration-apparatus-canvas")) {
+      stopAutoTitrate();
+      return;
+    }
     const ph = calculatePH(vTitrant);
     const dispPh = document.getElementById("disp-digital-ph");
     if (dispPh) dispPh.innerText = ph.toFixed(2);
@@ -874,7 +889,10 @@ export function initTitrationLab(containerId) {
     const neutralBadge = document.getElementById("neutral-badge");
     const phState = document.getElementById("disp-ph-state");
 
-    if (!neutralBadge || !phState) return;
+    if (!neutralBadge || !phState) {
+      stopAutoTitrate();
+      return;
+    }
 
     if (vTitrant < 24.5) {
       neutralBadge.innerText = "Pre-Equivalence Zone";
@@ -898,7 +916,14 @@ export function initTitrationLab(containerId) {
   }
 
   function addVolume(amount) {
-    if (vTitrant >= 50.0) return;
+    if (!container || !container.isConnected || !document.getElementById("titration-apparatus-canvas")) {
+      stopAutoTitrate();
+      return;
+    }
+    if (vTitrant >= 50.0) {
+      stopAutoTitrate();
+      return;
+    }
     vTitrant = Math.min(50.0, vTitrant + amount);
     const ph = calculatePH(vTitrant);
     dataPoints.push({ v: vTitrant, ph });
@@ -910,59 +935,73 @@ export function initTitrationLab(containerId) {
     drops.push({ x: buretX, y: stopcockY + 38, speed: 2 });
 
     updateTelemetry();
-    drawApparatus();
+    drawApparatus(0);
     drawCurve();
   }
 
-  let lastFrameTime = 0;
+  let lastPhysicsTime = 0;
+  let lastDrawTime = 0;
+  let dropAccumulator = 0;
   let needsRedraw = true;
 
-  // Animation Loop for Continuous Flow & Drops
+  // Animation Loop for Continuous Flow & Drops (Delta-T physics decoupled from render pacing)
   function animate(now) {
-    if (!container || !container.isConnected) {
+    if (!container || !container.isConnected || !document.getElementById("titration-apparatus-canvas")) {
       stopAutoTitrate();
       if (animId) cancelAnimationFrame(animId);
       return;
     }
 
+    const currentTime = now || performance.now();
+    if (!lastPhysicsTime) lastPhysicsTime = currentTime;
+    const dtSeconds = Math.min((currentTime - lastPhysicsTime) / 1000, 0.1);
+    lastPhysicsTime = currentTime;
+
     const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
                     document.documentElement.classList.contains("fast-smartboard-mode") ||
                     /Android|MAXHUB/i.test(navigator.userAgent);
-    const interval = isSmart ? 33.3 : 16.0;
+    const drawInterval = isSmart ? 33.3 : 16.0;
 
     const photoEl = container.querySelector("#titr-photo-overlay");
     const isPhotoOverlay = photoEl && photoEl.style.display === "block";
 
     if (!isPhotoOverlay) {
-      const isFlowing = (flowRate > 0 && vTitrant < 50.0) || drops.length > 0;
+      const isFlowing = (flowRate > 0 && vTitrant < 50.0);
+
       if (isFlowing) {
-        if (!now || now - lastFrameTime >= interval) {
-          lastFrameTime = now || performance.now();
+        // True physical calculation based on real elapsed seconds dt (mL/s * s = mL)
+        const stepVol = flowRate * dtSeconds;
+        vTitrant = Math.min(50.0, vTitrant + stepVol);
+        const ph = calculatePH(vTitrant);
+        dataPoints.push({ v: vTitrant, ph });
 
-          if (flowRate > 0 && vTitrant < 50.0) {
-            const stepVol = flowRate * (interval / 1000);
-            vTitrant = Math.min(50.0, vTitrant + stepVol);
-            const ph = calculatePH(vTitrant);
-            dataPoints.push({ v: vTitrant, ph });
-
-            // Spawn drops periodically
-            if (Math.random() < 0.7) {
-              const standX = 110;
-              const buretX = standX + 100;
-              const stopcockY = 35 + 240;
-              drops.push({ x: buretX, y: stopcockY + 38, speed: 3 });
-            }
-
-            updateTelemetry();
-            drawCurve();
-          }
-
-          drawApparatus();
+        // Spawn drops periodically based on elapsed time and flowRate
+        dropAccumulator += flowRate * dtSeconds;
+        if (dropAccumulator >= 0.04) {
+          dropAccumulator = 0;
+          const standX = 110;
+          const buretX = standX + 100;
+          const stopcockY = 35 + 240;
+          drops.push({ x: buretX, y: stopcockY + 38, speed: 2.5 });
         }
-      } else if (needsRedraw) {
-        drawApparatus();
+
+        updateTelemetry();
+        needsRedraw = true;
+      }
+
+      if (drops.length > 0) {
+        needsRedraw = true;
+      }
+
+      if (needsRedraw && (!now || currentTime - lastDrawTime >= drawInterval || isFlowing)) {
+        const dtDrawSeconds = Math.min((currentTime - (lastDrawTime || currentTime)) / 1000, 0.1);
+        lastDrawTime = currentTime;
+        const dtFactor = dtDrawSeconds > 0 ? (dtDrawSeconds * 60) : 1.0;
+        drawApparatus(dtFactor);
         drawCurve();
-        needsRedraw = false;
+        if (!isFlowing && drops.length === 0) {
+          needsRedraw = false;
+        }
       }
     }
 
@@ -1188,9 +1227,11 @@ export function initTitrationLab(containerId) {
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("titr-checkpoint-container", "titration");
 
-  return () => {
+  const cleanup = () => {
     stopAutoTitrate();
     if (animId) cancelAnimationFrame(animId);
   };
+  _currentTitrationCleanup = cleanup;
+  return cleanup;
 }
 

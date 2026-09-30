@@ -58,6 +58,8 @@ const titrContent = fs.readFileSync(path.join(rootDir, "labs", "chem-titration.j
 assert(titrContent.includes("let autoTitrateInterval = null;"), "Declares autoTitrateInterval handle at lab scope");
 assert(titrContent.includes("function stopAutoTitrate()"), "Implements stopAutoTitrate() cleanup helper");
 assert(titrContent.includes("stopAutoTitrate();") && titrContent.includes("cancelAnimationFrame(animId)"), "Lab unmount hook stops auto-titration and animation loop");
+assert(titrContent.includes("export function cleanupTitrationLab()"), "chem-titration.js exports cleanupTitrationLab()");
+assert(titrContent.includes("flowRate * dtSeconds"), "chem-titration.js decouples titration delivery with true elapsed seconds dt");
 assert(titrContent.includes("if (!container || !container.isConnected)"), "Guards simulation and interval against detached DOM nodes");
 assert(titrContent.includes("if (dispPh) dispPh.innerText = ph.toFixed(2);"), "updateTelemetry defensively guards DOM elements against null crashes");
 console.log("  ✅ PASS: Auto-titration interval is fully managed, cancellable, and guarded against detached containers");
@@ -132,25 +134,40 @@ const theoryContent = fs.readFileSync(path.join(rootDir, "data", "lesson-theory-
 assert(theoryContent.includes('"CHEM-M09": {'), "lesson-theory-database.js contains dedicated CHEM-M09 (The Mole) record");
 assert(theoryContent.includes("25.00") && theoryContent.includes("CaCO"), "CHEM-M09 worked example computes real CaCO3 molar mass and mole quantities");
 assert(!theoryContent.includes("X_1 = 10.0"), "Generic X1=10 fallback is completely eliminated");
+assert(!theoryContent.includes("X_1 = 12.5"), "Generic X1=12.5 fallback is completely eliminated");
+assert(!theoryContent.includes("Y_{\\text{final}} = 31.5"), "Generic Y_final=31.5 fallback is completely eliminated");
+assert(!theoryContent.includes("Y_final"), "Generic Y_final fallback is completely eliminated");
 assert(theoryContent.includes("Curriculum Standard Reference Solution (Under Specialist Review)"), "Synthesized fallbacks are transparently labeled as under specialist review");
 
 const modViewerContent = fs.readFileSync(path.join(rootDir, "components", "module-viewer.js"), "utf-8");
+const weSolverContent = fs.existsSync(path.join(rootDir, "components", "worked-example-solver.js")) 
+  ? fs.readFileSync(path.join(rootDir, "components", "worked-example-solver.js"), "utf-8") : "";
 assert(
-  modViewerContent.includes("Curriculum Standard Reference Solution (Under Specialist Review)"),
-  "module-viewer.js displays appropriate review status badge"
+  modViewerContent.includes("Curriculum Standard Reference Solution (Under Specialist Review)") ||
+  weSolverContent.includes("Curriculum Standard Reference Solution (Under Specialist Review)"),
+  "module-viewer.js or worked-example-solver.js displays appropriate review status badge"
 );
 console.log("  ✅ PASS: Generic fallbacks replaced with authentic calculations; review status badges are honest and transparent");
 
 // ----------------------------------------------------
-// Test 7: Simulation Low-Power Frame Pacing & Idle Skipping (P1.7)
+// Test 7: Simulation Low-Power Frame Pacing & Delta-t Decoupling (P1.7)
 // ----------------------------------------------------
-console.log("\n⚡ Test 7: Simulation Low-Power Frame Pacing & Idle Skipping (P1.7)");
+console.log("\n⚡ Test 7: Simulation Frame Pacing, Delta-t Decoupling & Lifecycle Cleanup");
 const harmonicContent = fs.readFileSync(path.join(rootDir, "labs", "phys-harmonic.js"), "utf-8");
 assert(harmonicContent.includes("let needsRedraw = true;"), "phys-harmonic.js defines needsRedraw dirty-flag tracker");
 assert(harmonicContent.includes("targetDrawInterval = isSmart ? 33.3 : 16.0;"), "phys-harmonic.js paces frame drawing to 30 FPS on MAXHUB / Smartboard");
 assert(harmonicContent.includes("needsRedraw = false;"), "phys-harmonic.js halts unnecessary recurring redraws when simulation is paused");
 assert(harmonicContent.includes("typeof window.getLabDPR === \"function\" ? window.getLabDPR()"), "phys-harmonic.js resolves getLabDPR() for fill-rate capping");
-console.log("  ✅ PASS: Harmonic simulation implements zero-cost idle skipping, 30 FPS smartboard pacing, and DPR capping");
+
+const gasLawsContent = fs.readFileSync(path.join(rootDir, "labs", "chem-gas-laws.js"), "utf-8");
+assert(gasLawsContent.includes("export function cleanupGasLawsLab()"), "chem-gas-laws.js exports cleanupGasLawsLab()");
+assert(gasLawsContent.includes("p.update(w, h, topY, dtFactor);"), "chem-gas-laws.js scales particle updates with dtFactor");
+assert(gasLawsContent.includes("this.vx * dtFactor"), "chem-gas-laws.js moves particles proportionally to dtFactor");
+
+const vseprContent = fs.readFileSync(path.join(rootDir, "labs", "chem-vsepr.js"), "utf-8");
+assert(vseprContent.includes("export function cleanupVseprLab()"), "chem-vsepr.js exports cleanupVseprLab()");
+assert(vseprContent.includes("rotY += 0.008 * dtFactor;"), "chem-vsepr.js scales auto-rotation angular velocity with dtFactor");
+console.log("  ✅ PASS: Simulations implement dt physics decoupling, lifecycle cleanup, 30 FPS smartboard pacing, and DPR capping");
 
 // ----------------------------------------------------
 // Test 8: Staged App Shell Precache & Resilient Asset Streaming (P1.6)

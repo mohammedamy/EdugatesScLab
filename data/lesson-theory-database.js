@@ -1092,8 +1092,198 @@ Rigorous scientific analysis requires separating dependent variables from indepe
 function generateCurriculumWorkedExample(code, title, phenom, formula, mData) {
   const t = (title || "").toLowerCase();
   const f = (formula || "").toLowerCase();
+  const mId = mData && (mData.id || (mData.code && parseInt((mData.code.split("-M")[1] || "").replace(/\D/g, ""), 10))) || 0;
 
   if (code === "CHEM") {
+    if (mId === 6 || t.includes("ionic") || t.includes("metal")) {
+      return {
+        problem: `Using Coulomb's Law of Electrostatic Attraction $F = k_e \\frac{|q_1 q_2|}{r^2}$, compare the relative lattice attraction strength between Magnesium Oxide ($\\text{MgO}: q_1 = +2, q_2 = -2$) and Sodium Chloride ($\\text{NaCl}: q_1 = +1, q_2 = -1$). Assuming inter-ionic separation $r$ in $\\text{MgO}$ is approximately $212\\text{ pm}$ versus $282\\text{ pm}$ in $\\text{NaCl}$, calculate the lattice energy ratio $\\frac{U_{\\text{MgO}}}{U_{\\text{NaCl}}}$.`,
+        given: "q_1 q_2(\\text{MgO}) = 4, \\quad q_1 q_2(\\text{NaCl}) = 1, \\quad r_{\\text{MgO}} = 212\\text{ pm}, \\quad r_{\\text{NaCl}} = 282\\text{ pm}",
+        steps: [
+          "1. State Coulombic lattice energy proportionality: $U \\propto \\frac{|q_1 q_2|}{r_0}$.",
+          "2. Formulate the ratio: $\\frac{U_{\\text{MgO}}}{U_{\\text{NaCl}}} = \\left(\\frac{|q_1 q_2|_{\\text{MgO}}}{|q_1 q_2|_{\\text{NaCl}}}\\right) \\times \\left(\\frac{r_{\\text{NaCl}}}{r_{\\text{MgO}}}\\right)$.",
+          "3. Substitute charges and radii: $\\frac{U_{\\text{MgO}}}{U_{\\text{NaCl}}} = \\left(\\frac{4}{1}\\right) \\times \\left(\\frac{282}{212}\\right) = 4 \\times 1.330 = 5.32$.",
+          "4. Interpret thermodynamic stability: $\\text{MgO}$ has a lattice energy approximately $5.32$ times greater than $\\text{NaCl}$, explaining its exceptionally high melting point ($2,852^\\circ\\text{C}$ vs $801^\\circ\\text{C}$)."
+        ],
+        answer: "\\frac{U_{\\text{MgO}}}{U_{\\text{NaCl}}} = 5.32 \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "U", name: "Lattice Energy", unit: "\\text{kJ/mol}", desc: "Energy released upon gaseous ion crystal condensation" },
+          { sym: "q", name: "Ionic Charge", unit: "e", desc: "Valence oxidation magnitude of ions" },
+          { sym: "r_0", name: "Inter-ionic Separation", unit: "\\text{pm}", desc: "Sum of cation and anion ionic radii" }
+        ]
+      };
+    }
+    if (mId === 7 || t.includes("covalent") || t.includes("bond")) {
+      return {
+        problem: `Calculate the standard enthalpy of reaction ($\\Delta H_{\\text{rxn}}^\\circ$) for the gas-phase synthesis of hydrogen chloride: $\\text{H}_2(g) + \\text{Cl}_2(g) \\longrightarrow 2\\text{HCl}(g)$, using the average bond enthalpies: $D(\\text{H-H}) = 436\\text{ kJ/mol}$, $D(\\text{Cl-Cl}) = 242\\text{ kJ/mol}$, and $D(\\text{H-Cl}) = 431\\text{ kJ/mol}$.`,
+        given: "D(\\text{H-H}) = 436\\text{ kJ/mol}, \\quad D(\\text{Cl-Cl}) = 242\\text{ kJ/mol}, \\quad D(\\text{H-Cl}) = 431\\text{ kJ/mol}",
+        steps: [
+          "1. Apply the bond enthalpy formulation: $\\Delta H_{\\text{rxn}} = \\sum D(\\text{bonds broken}) - \\sum D(\\text{bonds formed})$.",
+          "2. Sum energy required to break reactant bonds: $\\sum D(\\text{broken}) = 1(436) + 1(242) = 678\\text{ kJ/mol}$.",
+          "3. Sum energy released upon forming product bonds: $\\sum D(\\text{formed}) = 2(431) = 862\\text{ kJ/mol}$.",
+          "4. Compute net enthalpy change: $\\Delta H_{\\text{rxn}} = 678 - 862 = -184\\text{ kJ/mol}$ (Exothermic)."
+        ],
+        answer: "\\Delta H_{\\text{rxn}}^\\circ = -184\\text{ kJ/mol} \\quad (\\text{Exothermic})",
+        parameters: [
+          { sym: "\\Delta H", name: "Enthalpy of Reaction", unit: "\\text{kJ/mol}", desc: "Net thermal energy transferred in reaction" },
+          { sym: "D", name: "Bond Dissociation Energy", unit: "\\text{kJ/mol}", desc: "Enthalpy required to homolytically cleave covalent bond" }
+        ]
+      };
+    }
+    if (mId === 11 || t.includes("states of matter") || t.includes("effusion")) {
+      return {
+        problem: `Under identical temperature and pressure conditions, compare the rate of effusion of Helium gas ($\\text{He}$, molar mass $M_1 = 4.003\\text{ g/mol}$) to Oxygen gas ($\\text{O}_2$, molar mass $M_2 = 32.00\\text{ g/mol}$) using Graham's Law of Effusion.`,
+        given: "M_1(\\text{He}) = 4.003\\text{ g/mol}, \\quad M_2(\\text{O}_2) = 32.00\\text{ g/mol}",
+        steps: [
+          "1. State Graham's Law of Effusion: $\\frac{\\text{Rate}_1}{\\text{Rate}_2} = \\sqrt{\\frac{M_2}{M_1}}$.",
+          "2. Substitute molar masses: $\\frac{\\text{Rate}_{\\text{He}}}{\\text{Rate}_{\\text{O}_2}} = \\sqrt{\\frac{32.00\\text{ g/mol}}{4.003\\text{ g/mol}}}$.",
+          "3. Calculate quotient under radical: $\\frac{32.00}{4.003} \\approx 7.994$.",
+          "4. Compute square root: $\\sqrt{7.994} \\approx 2.83$. Helium effuses $2.83$ times faster than oxygen."
+        ],
+        answer: "\\frac{\\text{Rate}_{\\text{He}}}{\\text{Rate}_{\\text{O}_2}} = 2.83 \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "\\text{Rate}", name: "Effusion Rate", unit: "\\text{mol/s}", desc: "Rate of gas escape through a pinhole orifice" },
+          { sym: "M", name: "Molar Mass", unit: "\\text{g/mol}", desc: "Mass of one mole of chemical substance" }
+        ]
+      };
+    }
+    if (mId === 14 || t.includes("energy and chemical") || t.includes("calorimet") || t.includes("thermochem")) {
+      return {
+        problem: `A $45.0\\text{ g}$ sample of pure copper metal is heated to $100.0^\\circ\\text{C}$ and placed into an insulated coffee-cup calorimeter containing $100.0\\text{ g}$ of water at $20.0^\\circ\\text{C}$. The final thermal equilibrium temperature reaches $23.2^\\circ\\text{C}$. Given the specific heat of water $c_w = 4.184\\text{ J/(g}\\cdot^\\circ\\text{C)}$, determine the experimental specific heat capacity of copper ($c_{\\text{Cu}}$).`,
+        given: "m_{\\text{Cu}} = 45.0\\text{ g}, \\quad T_{i,\\text{Cu}} = 100.0^\\circ\\text{C}, \\quad m_w = 100.0\\text{ g}, \\quad T_{i,w} = 20.0^\\circ\\text{C}, \\quad T_f = 23.2^\\circ\\text{C}",
+        steps: [
+          "1. Calculate heat absorbed by water: $q_w = m_w c_w \\Delta T_w = (100.0\\text{ g})(4.184\\text{ J/g}^\\circ\\text{C})(23.2 - 20.0^\\circ\\text{C}) = 1,338.9\\text{ J}$.",
+          "2. Apply energy conservation in isolated calorimeter: $q_{\\text{Cu}} = -q_w = -1,338.9\\text{ J}$.",
+          "3. State thermal formulation for copper: $q_{\\text{Cu}} = m_{\\text{Cu}} c_{\\text{Cu}} \\Delta T_{\\text{Cu}}$, where $\\Delta T_{\\text{Cu}} = 23.2 - 100.0 = -76.8^\\circ\\text{C}$.",
+          "4. Solve for specific heat capacity: $c_{\\text{Cu}} = \\frac{-1,338.9\\text{ J}}{(45.0\\text{ g})(-76.8^\\circ\\text{C})} = \\frac{1,338.9}{3,456} \\approx 0.387\\text{ J/(g}\\cdot^\\circ\\text{C)}$."
+        ],
+        answer: "c_{\\text{Cu}} = 0.387\\text{ J/(g}\\cdot^\\circ\\text{C)} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "q", name: "Thermal Energy", unit: "\\text{J}", desc: "Heat exchanged between systems" },
+          { sym: "c", name: "Specific Heat", unit: "\\text{J/(g}\\cdot^\\circ\\text{C)}", desc: "Energy required to raise 1 g by 1 °C" },
+          { sym: "\\Delta T", name: "Temperature Differential", unit: "^\\circ\\text{C}", desc: "Change in thermodynamic temperature" }
+        ]
+      };
+    }
+    if (mId === 15 || t.includes("reaction rate") || t.includes("kinetic")) {
+      return {
+        problem: `For the chemical reaction $\\text{A} + 2\\text{B} \\longrightarrow \\text{C}$, initial rate measurements demonstrate that doubling $[\\text{A}]$ doubles the reaction rate, while doubling $[\\text{B}]$ quadruples the rate. When $[\\text{A}] = 0.20\\text{ M}$ and $[\\text{B}] = 0.10\\text{ M}$, the initial rate is measured as $3.20 \\times 10^{-3}\\text{ M/s}$. Determine the rate law expression, the overall reaction order, and calculate the rate constant $k$.`,
+        given: "[\\text{A}] = 0.20\\text{ M}, \\quad [\\text{B}] = 0.10\\text{ M}, \\quad \\text{Rate} = 3.20 \\times 10^{-3}\\text{ M/s}",
+        steps: [
+          "1. Deduce reaction orders from concentration dependencies: First order in $\\text{A}$ ($m = 1$), second order in $\\text{B}$ ($n = 2$). Overall order $= 1 + 2 = 3$.",
+          "2. Formulate empirical rate law: $\\text{Rate} = k [\\text{A}] [\\text{B}]^2$.",
+          "3. Isolate rate constant: $k = \\frac{\\text{Rate}}{[\\text{A}][\\text{B}]^2}$.",
+          "4. Substitute values and resolve units: $k = \\frac{3.20 \\times 10^{-3}\\text{ M/s}}{(0.20\\text{ M})(0.10\\text{ M})^2} = \\frac{3.20 \\times 10^{-3}}{0.0020} = 1.60\\text{ M}^{-2}\\text{s}^{-1}$."
+        ],
+        answer: "\\text{Rate} = k[\\text{A}][\\text{B}]^2, \\quad k = 1.60\\text{ M}^{-2}\\text{s}^{-1}",
+        parameters: [
+          { sym: "\\text{Rate}", name: "Reaction Velocity", unit: "\\text{M/s}", desc: "Change in molarity per second" },
+          { sym: "k", name: "Specific Rate Constant", unit: "\\text{M}^{-2}\\text{s}^{-1}", desc: "Temperature-dependent kinetic proportionality constant" }
+        ]
+      };
+    }
+    if (mId === 18 || t.includes("redox") || t.includes("oxidation")) {
+      return {
+        problem: `Balance the following redox reaction in acidic aqueous solution using the half-reaction method: $\\text{Fe}^{2+}(aq) + \\text{Cr}_2\\text{O}_7^{2-}(aq) \\longrightarrow \\text{Fe}^{3+}(aq) + \\text{Cr}^{3+}(aq)$. Determine the stoichiometric coefficient of $\\text{H}^+(aq)$ and the total number of moles of electrons transferred per mole of dichromate reduced.`,
+        given: "\\text{Oxidation: } \\text{Fe}^{2+} \\to \\text{Fe}^{3+}, \\quad \\text{Reduction: } \\text{Cr}_2\\text{O}_7^{2-} \\to \\text{Cr}^{3+}",
+        steps: [
+          "1. Balance oxidation half-reaction: $\\text{Fe}^{2+} \\longrightarrow \\text{Fe}^{3+} + e^-$.",
+          "2. Balance reduction half-reaction: Balance $\\text{Cr}$ atoms ($\\text{Cr}_2\\text{O}_7^{2-} \\to 2\\text{Cr}^{3+}$), balance $\\text{O}$ with $7\\text{H}_2\\text{O}$, balance $\\text{H}$ with $14\\text{H}^+$, balance charge with $6e^-$: $\\text{Cr}_2\\text{O}_7^{2-} + 14\\text{H}^+ + 6e^- \\longrightarrow 2\\text{Cr}^{3+} + 7\\text{H}_2\\text{O}$.",
+          "3. Equalize electron count by multiplying oxidation half-reaction by $6$: $6\\text{Fe}^{2+} \\longrightarrow 6\\text{Fe}^{3+} + 6e^-$.",
+          "4. Sum half-reactions and cancel electrons: $6\\text{Fe}^{2+} + \\text{Cr}_2\\text{O}_7^{2-} + 14\\text{H}^+ \\longrightarrow 6\\text{Fe}^{3+} + 2\\text{Cr}^{3+} + 7\\text{H}_2\\text{O}$ ($6$ electrons transferred)."
+        ],
+        answer: "6\\text{Fe}^{2+} + \\text{Cr}_2\\text{O}_7^{2-} + 14\\text{H}^+ \\to 6\\text{Fe}^{3+} + 2\\text{Cr}^{3+} + 7\\text{H}_2\\text{O} \\quad (n = 6e^-)",
+        parameters: [
+          { sym: "n", name: "Transferred Electrons", unit: "\\text{mol } e^-", desc: "Chemical amount of charge equivalents transferred" },
+          { sym: "[\\text{H}^+]", name: "Proton Concentration", unit: "\\text{M}", desc: "Acid medium stoichiometry" }
+        ]
+      };
+    }
+    if (mId === 19 || t.includes("electrochem")) {
+      return {
+        problem: `A galvanic electrochemical cell operates under standard conditions ($298\\text{ K}$) using the overall reaction: $\\text{Zn}(s) + \\text{Cu}^{2+}(aq, 1.0\\text{ M}) \\longrightarrow \\text{Zn}^{2+}(aq, 1.0\\text{ M}) + \\text{Cu}(s)$. Given standard reduction potentials $E^\\circ(\\text{Cu}^{2+}/\\text{Cu}) = +0.34\\text{ V}$ and $E^\\circ(\\text{Zn}^{2+}/\\text{Zn}) = -0.76\\text{ V}$, calculate the standard cell potential ($E_{\\text{cell}}^\\circ$) and the standard Gibbs free energy change ($\\Delta G^\\circ$).`,
+        given: "E^\\circ_{\\text{cat}} = +0.34\\text{ V}, \\quad E^\\circ_{\\text{an}} = -0.76\\text{ V}, \\quad n = 2, \\quad F = 96,485\\text{ C/mol}",
+        steps: [
+          "1. Identify cathode (reduction) and anode (oxidation): Copper cathode, Zinc anode.",
+          "2. Calculate standard cell potential: $E_{\\text{cell}}^\\circ = E_{\\text{cathode}}^\\circ - E_{\\text{anode}}^\\circ = +0.34\\text{ V} - (-0.76\\text{ V}) = +1.10\\text{ V}$.",
+          "3. State relation between cell electromotive force and free energy: $\\Delta G^\\circ = -n F E_{\\text{cell}}^\\circ$.",
+          "4. Compute Gibbs free energy: $\\Delta G^\\circ = -2(96,485\\text{ C/mol})(1.10\\text{ J/C}) = -212,267\\text{ J/mol} \\approx -212\\text{ kJ/mol}$ (Spontaneous)."
+        ],
+        answer: "E_{\\text{cell}}^\\circ = +1.10\\text{ V}, \\quad \\Delta G^\\circ = -212\\text{ kJ/mol} \\quad (\\text{Spontaneous})",
+        parameters: [
+          { sym: "E^\\circ", name: "Standard Cell EMF", unit: "\\text{V}", desc: "Electric potential difference between half-cells" },
+          { sym: "\\Delta G^\\circ", name: "Gibbs Free Energy", unit: "\\text{kJ/mol}", desc: "Thermodynamic spontaneity criterion" }
+        ]
+      };
+    }
+    if (mId === 20 || t.includes("hydrocarbon")) {
+      return {
+        problem: `A stoichiometric combustion analysis is performed on propane gas ($\\text{C}_3\\text{H}_8$, molar mass $M = 44.10\\text{ g/mol}$). Calculate the mass of carbon dioxide ($\\text{CO}_2$, molar mass $M = 44.01\\text{ g/mol}$) generated upon complete combustion of $88.20\\text{ g}$ ($2.00\\text{ mol}$) of propane in excess oxygen.`,
+        given: "m_{\\text{propane}} = 88.20\\text{ g}, \\quad M_{\\text{propane}} = 44.10\\text{ g/mol}, \\quad M_{\\text{CO}_2} = 44.01\\text{ g/mol}",
+        steps: [
+          "1. Formulate balanced chemical equation: $\\text{C}_3\\text{H}_8(g) + 5\\text{O}_2(g) \\longrightarrow 3\\text{CO}_2(g) + 4\\text{H}_2\\text{O}(g)$.",
+          "2. Convert propane mass to moles: $n_{\\text{propane}} = \\frac{88.20\\text{ g}}{44.10\\text{ g/mol}} = 2.00\\text{ mol}$.",
+          "3. Apply stoichiometric mole ratio ($3\\text{ mol }\\text{CO}_2 : 1\\text{ mol }\\text{C}_3\\text{H}_8$): $n_{\\text{CO}_2} = 2.00 \\times 3 = 6.00\\text{ mol }\\text{CO}_2$.",
+          "4. Convert moles of $\\text{CO}_2$ to mass: $m_{\\text{CO}_2} = 6.00\\text{ mol} \\times 44.01\\text{ g/mol} = 264.1\\text{ g}$."
+        ],
+        answer: "m_{\\text{CO}_2} = 264.1\\text{ g} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "n", name: "Chemical Amount", unit: "\\text{mol}", desc: "Quantity in chemical moles" },
+          { sym: "m", name: "Mass Yield", unit: "\\text{g}", desc: "Gravimetric yield of combustion product" }
+        ]
+      };
+    }
+    if (mId === 21 || t.includes("substituted hydrocarbon") || t.includes("organic")) {
+      return {
+        problem: `An organic chemistry lab prepares ethyl ethanoate (ethyl acetate, ester) via Fischer esterification: $\\text{CH}_3\\text{COOH} + \\text{C}_2\\text{H}_5\\text{OH} \\rightleftharpoons \\text{CH}_3\\text{COOC}_2\\text{H}_5 + \\text{H}_2\\text{O}$. A student reacts $30.03\\text{ g}$ ($0.500\\text{ mol}$) of acetic acid with excess ethanol and isolates $35.24\\text{ g}$ of pure ethyl ethanoate (molar mass $88.11\\text{ g/mol}$). Calculate the theoretical yield and the experimental percent yield.`,
+        given: "n_{\\text{acid}} = 0.500\\text{ mol}, \\quad M_{\\text{ester}} = 88.11\\text{ g/mol}, \\quad m_{\\text{actual}} = 35.24\\text{ g}",
+        steps: [
+          "1. Determine theoretical moles of ester from 1:1 stoichiometry: $n_{\\text{theoretical}} = 0.500\\text{ mol}$.",
+          "2. Calculate theoretical yield mass: $m_{\\text{theoretical}} = 0.500\\text{ mol} \\times 88.11\\text{ g/mol} = 44.06\\text{ g}$.",
+          "3. State formulation for percent yield: $\\%\\text{ Yield} = \\frac{m_{\\text{actual}}}{m_{\\text{theoretical}}} \\times 100\\%$.",
+          "4. Compute reaction percent yield: $\\%\\text{ Yield} = \\frac{35.24\\text{ g}}{44.06\\text{ g}} \\times 100\\% = 79.98\\% \\approx 80.0\\%$."
+        ],
+        answer: "\\%\\text{ Yield} = 80.0\\% \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "m_{\\text{theoretical}}", name: "Theoretical Yield", unit: "\\text{g}", desc: "Max expected mass under complete conversion" },
+          { sym: "\\%\\text{ Yield}", name: "Synthetic Efficiency", unit: "\\%", desc: "Ratio of recovered to theoretical product mass" }
+        ]
+      };
+    }
+    if (mId === 22 || t.includes("chemistry of life") || t.includes("biochem")) {
+      return {
+        problem: `During cellular respiration, complete aerobic combustion of one mole of D-glucose releases $\\Delta H_c^\\circ = -2,808\\text{ kJ/mol}$: $\\text{C}_6\\text{H}_{12}\\text{O}_6(s) + 6\\text{O}_2(g) \\longrightarrow 6\\text{CO}_2(g) + 6\\text{H}_2\\text{O}(l)$. Calculate the energy released when a human muscle cell metabolizes $9.00\\text{ g}$ of glucose (molar mass $M = 180.16\\text{ g/mol}$).`,
+        given: "m_{\\text{glucose}} = 9.00\\text{ g}, \\quad M_{\\text{glucose}} = 180.16\\text{ g/mol}, \\quad \\Delta H_c^\\circ = -2,808\\text{ kJ/mol}",
+        steps: [
+          "1. Convert glucose mass to chemical moles: $n = \\frac{m}{M} = \\frac{9.00\\text{ g}}{180.16\\text{ g/mol}} = 0.0500\\text{ mol}$.",
+          "2. Formulate heat release equation: $q = n \\times |\\Delta H_c^\\circ|$.",
+          "3. Calculate thermal energy produced: $q = (0.0500\\text{ mol}) \\times (2,808\\text{ kJ/mol}) = 140.4\\text{ kJ}$.",
+          "4. Relate to biological energy: The oxidation of $9.00\\text{ g}$ glucose yields $140.4\\text{ kJ}$ available for ATP synthesis."
+        ],
+        answer: "q = 140.4\\text{ kJ} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "q", name: "Metabolic Energy", unit: "\\text{kJ}", desc: "Chemical energy liberated by substrate oxidation" },
+          { sym: "n", name: "Substrate Amount", unit: "\\text{mol}", desc: "Moles of biological nutrient consumed" }
+        ]
+      };
+    }
+    if (mId === 23 || t.includes("nuclear")) {
+      return {
+        problem: `Iodine-131 ($^{131}_{53}\\text{I}$), a radioisotope utilized in medical thyroid radiometry, decays via $\\beta^-$ emission with a radioactive half-life of $t_{1/2} = 8.02\\text{ days}$. If an initial pharmaceutical dose contains $N_0 = 48.0\\text{ mCi}$, calculate the remaining radioactivity after $t = 24.06\\text{ days}$.`,
+        given: "N_0 = 48.0\\text{ mCi}, \\quad t_{1/2} = 8.02\\text{ days}, \\quad t = 24.06\\text{ days}",
+        steps: [
+          "1. Calculate the number of elapsed half-lives: $n = \\frac{t}{t_{1/2}} = \\frac{24.06\\text{ d}}{8.02\\text{ d}} = 3.00$.",
+          "2. Apply the radioactive decay law: $N(t) = N_0 \\left(\\frac{1}{2}\\right)^n$.",
+          "3. Compute remaining fraction: $\\left(\\frac{1}{2}\\right)^3 = \\frac{1}{8} = 0.125$ ($12.5\\%$ remaining).",
+          "4. Calculate final radioactivity: $N(24.06) = 48.0\\text{ mCi} \\times 0.125 = 6.00\\text{ mCi}$."
+        ],
+        answer: "N(24.06\\text{ d}) = 6.00\\text{ mCi} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "N(t)", name: "Remaining Activity", unit: "\\text{mCi}", desc: "Radioactivity of radioisotope at time t" },
+          { sym: "t_{1/2}", name: "Half-Life", unit: "\\text{days}", desc: "Time required for half of radioactive nuclei to decay" }
+        ]
+      };
+    }
     if (t.includes("gas") || f.includes("pv") || f.includes("p_1")) {
       return {
         problem: `A sample of gas occupies an initial volume of $V_1 = 4.50\\text{ L}$ at a pressure of $P_1 = 1.20\\text{ atm}$. Assuming temperature remains constant (Boyle's Law), calculate the final pressure $P_2$ when the gas is compressed to a volume of $V_2 = 2.00\\text{ L}$.`,
@@ -1217,6 +1407,213 @@ function generateCurriculumWorkedExample(code, title, phenom, formula, mData) {
   }
 
   if (code === "PHYS") {
+    if (mId === 7 || t.includes("gravit") || t.includes("orbit")) {
+      return {
+        problem: `Calculate the gravitational force of attraction between Earth (mass $M_E = 5.972 \\times 10^{24}\\text{ kg}$) and a communications satellite of mass $m = 1,200\\text{ kg}$ in geosynchronous orbit at radius $r = 4.22 \\times 10^7\\text{ m}$ from Earth's center. ($G = 6.674 \\times 10^{-11}\\text{ N}\\cdot\\text{m}^2/\\text{kg}^2$).`,
+        given: "M_E = 5.972 \\times 10^{24}\\text{ kg}, \\quad m = 1,200\\text{ kg}, \\quad r = 4.22 \\times 10^7\\text{ m}, \\quad G = 6.674 \\times 10^{-11}\\text{ N}\\cdot\\text{m}^2/\\text{kg}^2",
+        steps: [
+          "1. Apply Newton's Law of Universal Gravitation: $F_g = G \\frac{M_E m}{r^2}$.",
+          "2. Calculate numerator ($G M_E m$): $(6.674 \\times 10^{-11})(5.972 \\times 10^{24})(1,200) = 4.783 \\times 10^{17}\\text{ N}\\cdot\\text{m}^2$.",
+          "3. Square the orbital separation radius: $r^2 = (4.22 \\times 10^7\\text{ m})^2 = 1.781 \\times 10^{15}\\text{ m}^2$.",
+          "4. Compute gravitational attraction: $F_g = \\frac{4.783 \\times 10^{17}}{1.781 \\times 10^{15}} \\approx 268.6\\text{ N}$."
+        ],
+        answer: "F_g = 269\\text{ N} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "F_g", name: "Gravitational Force", unit: "\\text{N}", desc: "Mutual attraction between massive bodies" },
+          { sym: "r", name: "Orbital Radius", unit: "\\text{m}", desc: "Center-to-center celestial separation" }
+        ]
+      };
+    }
+    if (mId === 9 || t.includes("momentum") || t.includes("collision")) {
+      return {
+        problem: `A railroad freight car of mass $m_1 = 15,000\\text{ kg}$ traveling along a straight track at $v_1 = 3.00\\text{ m/s}$ collides and couples with a stationary freight car of mass $m_2 = 10,000\\text{ kg}$ ($v_2 = 0\\text{ m/s}$). Assuming an isolated system with negligible track friction, calculate the common final velocity ($v_f$) of the coupled cars and the mechanical kinetic energy lost in the inelastic collision.`,
+        given: "m_1 = 15,000\\text{ kg}, \\quad v_1 = 3.00\\text{ m/s}, \\quad m_2 = 10,000\\text{ kg}, \\quad v_2 = 0\\text{ m/s}",
+        steps: [
+          "1. Apply the Law of Conservation of Linear Momentum: $p_i = p_f \\implies m_1 v_1 + m_2 v_2 = (m_1 + m_2) v_f$.",
+          "2. Substitute momentum values: $(15,000)(3.00) + 0 = (15,000 + 10,000) v_f \\implies 45,000 = 25,000 v_f$.",
+          "3. Solve for combined velocity: $v_f = \\frac{45,000}{25,000} = 1.80\\text{ m/s}$.",
+          "4. Compute initial and final kinetic energies: $KE_i = \\frac{1}{2}(15,000)(3.00)^2 = 67,500\\text{ J}$; $KE_f = \\frac{1}{2}(25,000)(1.80)^2 = 40,500\\text{ J}$. Kinetic energy dissipated $= 27,000\\text{ J}$."
+        ],
+        answer: "v_f = 1.80\\text{ m/s}, \\quad \\Delta KE = -27.0\\text{ kJ}",
+        parameters: [
+          { sym: "p", name: "Linear Momentum", unit: "\\text{kg}\\cdot\\text{m/s}", desc: "Product of inertial mass and vector velocity" },
+          { sym: "v_f", name: "Coupled Velocity", unit: "\\text{m/s}", desc: "Post-collision system velocity" }
+        ]
+      };
+    }
+    if (mId === 10 || t.includes("energy and its conservation") || t.includes("work-energy")) {
+      return {
+        problem: `A roller coaster cart of mass $m = 450\\text{ kg}$ starts from rest at the summit of a hill at height $h = 35.0\\text{ m}$ above the track base ($g = 9.80\\text{ m/s}^2$). Neglecting frictional resistance, use the Law of Conservation of Mechanical Energy to calculate the velocity ($v$) of the cart at the bottom of the hill ($h = 0\\text{ m}$).`,
+        given: "m = 450\\text{ kg}, \\quad v_0 = 0\\text{ m/s}, \\quad h = 35.0\\text{ m}, \\quad g = 9.80\\text{ m/s}^2",
+        steps: [
+          "1. State Conservation of Mechanical Energy: $E_{\\text{initial}} = E_{\\text{final}} \\implies m g h + \\frac{1}{2} m v_0^2 = 0 + \\frac{1}{2} m v^2$.",
+          "2. Cancel mass $m$ from both terms: $g h = \\frac{1}{2} v^2$.",
+          "3. Isolate final velocity: $v = \\sqrt{2 g h}$.",
+          "4. Substitute parameters and evaluate: $v = \\sqrt{2 \\times 9.80\\text{ m/s}^2 \\times 35.0\\text{ m}} = \\sqrt{686.0} \\approx 26.2\\text{ m/s}$."
+        ],
+        answer: "v = 26.2\\text{ m/s} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "E", name: "Mechanical Energy", unit: "\\text{J}", desc: "Total sum of kinetic and potential energies" },
+          { sym: "v", name: "Velocity", unit: "\\text{m/s}", desc: "Speed of cart at ground datum" }
+        ]
+      };
+    }
+    if (mId === 11 || t.includes("thermal energy") || t.includes("thermodynamic")) {
+      return {
+        problem: `How much thermal energy ($Q$) is required to completely melt an ice cube of mass $m = 0.250\\text{ kg}$ at $0.0^\\circ\\text{C}$ and subsequently warm the resulting liquid water to $40.0^\\circ\\text{C}$? Given the latent heat of fusion of ice $L_f = 3.34 \\times 10^5\\text{ J/kg}$ and specific heat of water $c = 4,186\\text{ J/(kg}\\cdot\\text{K)}$.`,
+        given: "m = 0.250\\text{ kg}, \\quad L_f = 3.34 \\times 10^5\\text{ J/kg}, \\quad c = 4,186\\text{ J/(kg}\\cdot\\text{K)}, \\quad \\Delta T = 40.0^\\circ\\text{C}",
+        steps: [
+          "1. Calculate latent heat required for solid-to-liquid phase transition: $Q_1 = m L_f = (0.250\\text{ kg})(3.34 \\times 10^5\\text{ J/kg}) = 83,500\\text{ J}$.",
+          "2. Calculate sensible heat required to warm liquid: $Q_2 = m c \\Delta T = (0.250\\text{ kg})(4,186\\text{ J/kg}\\cdot\\text{K})(40.0\\text{ K}) = 41,860\\text{ J}$.",
+          "3. Sum thermal energy inputs: $Q_{\\text{total}} = Q_1 + Q_2 = 83,500\\text{ J} + 41,860\\text{ J} = 125,360\\text{ J}$.",
+          "4. Express result in kilojoules: $Q_{\\text{total}} \\approx 125.4\\text{ kJ}$."
+        ],
+        answer: "Q_{\\text{total}} = 125.4\\text{ kJ} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "Q", name: "Heat Energy", unit: "\\text{kJ}", desc: "Total thermal energy added to system" },
+          { sym: "L_f", name: "Latent Heat of Fusion", unit: "\\text{J/kg}", desc: "Enthalpy of phase change at constant temperature" }
+        ]
+      };
+    }
+    if (mId === 12 || t.includes("states of matter") || t.includes("fluid") || t.includes("buoyan")) {
+      return {
+        problem: `A research submarine descends into seawater of density $\\rho = 1,025\\text{ kg/m}^3$ to a depth of $h = 250.0\\text{ m}$. Atmospheric pressure at the surface is $P_0 = 101.3\\text{ kPa}$ ($g = 9.80\\text{ m/s}^2$). Calculate the hydrostatic gauge pressure ($P_g$) and the absolute total pressure ($P_{\\text{total}}$) exerted on the hull.`,
+        given: "\\rho = 1,025\\text{ kg/m}^3, \\quad h = 250.0\\text{ m}, \\quad g = 9.80\\text{ m/s}^2, \\quad P_0 = 101.3\\text{ kPa}",
+        steps: [
+          "1. State hydrostatic fluid pressure equation: $P_g = \\rho g h$.",
+          "2. Compute gauge pressure: $P_g = (1,025\\text{ kg/m}^3)(9.80\\text{ m/s}^2)(250.0\\text{ m}) = 2,511,250\\text{ Pa} = 2,511.3\\text{ kPa} \\approx 2.51\\text{ MPa}$.",
+          "3. State total absolute pressure: $P_{\\text{total}} = P_0 + P_g$.",
+          "4. Compute absolute pressure: $P_{\\text{total}} = 101.3\\text{ kPa} + 2,511.3\\text{ kPa} = 2,612.6\\text{ kPa} \\approx 25.8\\text{ atm}$."
+        ],
+        answer: "P_g = 2.51\\text{ MPa}, \\quad P_{\\text{total}} = 2.61\\text{ MPa} \\quad (25.8\\text{ atm})",
+        parameters: [
+          { sym: "P_g", name: "Gauge Pressure", unit: "\\text{MPa}", desc: "Hydrostatic pressure from fluid column weight" },
+          { sym: "h", name: "Submersion Depth", unit: "\\text{m}", desc: "Vertical distance below fluid surface" }
+        ]
+      };
+    }
+    if (mId === 13 || t.includes("vibrat") || t.includes("wave") || t.includes("sound")) {
+      return {
+        problem: `A concert tuning fork vibrating at musical pitch A4 ($f = 440.0\\text{ Hz}$) generates a longitudinal sound wave propagating through ambient air at temperature $20^\\circ\\text{C}$ with a speed of $v = 343.2\\text{ m/s}$. Calculate the physical wavelength ($\\lambda$) of the acoustic compression waves.`,
+        given: "f = 440.0\\text{ Hz}, \\quad v = 343.2\\text{ m/s}",
+        steps: [
+          "1. State the universal wave equation: $v = f \\lambda$.",
+          "2. Isolate wavelength: $\\lambda = \\frac{v}{f}$.",
+          "3. Substitute wave speed and frequency: $\\lambda = \\frac{343.2\\text{ m/s}}{440.0\\text{ s}^{-1}}$.",
+          "4. Compute wavelength: $\\lambda = 0.780\\text{ m} = 78.0\\text{ cm}$."
+        ],
+        answer: "\\lambda = 0.780\\text{ m} \\quad (78.0\\text{ cm})",
+        parameters: [
+          { sym: "\\lambda", name: "Wavelength", unit: "\\text{m}", desc: "Spatial period between consecutive wave crests" },
+          { sym: "f", name: "Wave Frequency", unit: "\\text{Hz}", desc: "Number of oscillations per second" },
+          { sym: "v", name: "Propagation Speed", unit: "\\text{m/s}", desc: "Velocity of phase transmission through medium" }
+        ]
+      };
+    }
+    if (mId === 15 || t.includes("light") || t.includes("optics") || t.includes("refract")) {
+      return {
+        problem: `A monochromatic laser beam traveling through vacuum ($c = 3.00 \\times 10^8\\text{ m/s}$) enters a transparent optical prism composed of dense flint glass having an index of refraction $n = 1.66$. Calculate the velocity of light in the glass ($v$) and determine the wavelength in the glass if its vacuum wavelength is $\\lambda_0 = 589\\text{ nm}$.`,
+        given: "c = 3.00 \\times 10^8\\text{ m/s}, \\quad n = 1.66, \\quad \\lambda_0 = 589\\text{ nm}",
+        steps: [
+          "1. State definition of refractive index: $n = \\frac{c}{v} \\implies v = \\frac{c}{n}$.",
+          "2. Calculate speed of light in dielectric medium: $v = \\frac{3.00 \\times 10^8\\text{ m/s}}{1.66} = 1.807 \\times 10^8\\text{ m/s}$.",
+          "3. Relate refracted wavelength to refractive index: $\\lambda = \\frac{\\lambda_0}{n}$.",
+          "4. Compute refracted wavelength: $\\lambda = \\frac{589\\text{ nm}}{1.66} = 354.8\\text{ nm}$."
+        ],
+        answer: "v = 1.81 \\times 10^8\\text{ m/s}, \\quad \\lambda = 355\\text{ nm}",
+        parameters: [
+          { sym: "v", name: "Phase Velocity", unit: "\\text{m/s}", desc: "Speed of electromagnetic wave in dielectric medium" },
+          { sym: "n", name: "Refractive Index", unit: "\\text{dimensionless}", desc: "Optical density ratio c / v" }
+        ]
+      };
+    }
+    if (mId === 17 || t.includes("interfer") || t.includes("diffract")) {
+      return {
+        problem: `In a Young's Double-Slit experiment, coherent red laser light ($\\lambda = 632.8\\text{ nm} = 6.328 \\times 10^{-7}\\text{ m}$) illuminates two narrow slits separated by $d = 0.200\\text{ mm} = 2.00 \\times 10^{-4}\\text{ m}$. The resulting interference pattern is projected onto an observation screen placed at a distance $L = 2.50\\text{ m}$. Calculate the linear distance ($y_1$) from the central bright maximum ($m = 0$) to the first-order bright fringe ($m = 1$).`,
+        given: "\\lambda = 6.328 \\times 10^{-7}\\text{ m}, \\quad d = 2.00 \\times 10^{-4}\\text{ m}, \\quad L = 2.50\\text{ m}, \\quad m = 1",
+        steps: [
+          "1. State the double-slit constructive interference condition: $d \\sin\\theta = m \\lambda$.",
+          "2. Apply small-angle approximation ($\\sin\\theta \\approx \\tan\\theta = \\frac{y}{L}$): $\\frac{d y}{L} = m \\lambda$.",
+          "3. Isolate fringe displacement: $y = \\frac{m \\lambda L}{d}$.",
+          "4. Substitute experimental values: $y_1 = \\frac{(1)(6.328 \\times 10^{-7}\\text{ m})(2.50\\text{ m})}{2.00 \\times 10^{-4}\\text{ m}} = \\frac{1.582 \\times 10^{-6}}{2.00 \\times 10^{-4}} = 7.91 \\times 10^{-3}\\text{ m} = 7.91\\text{ mm}$."
+        ],
+        answer: "y_1 = 7.91\\text{ mm} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "y", name: "Fringe Separation", unit: "\\text{mm}", desc: "Linear distance from center to interference maximum" },
+          { sym: "d", name: "Slit Separation", unit: "\\text{m}", desc: "Center-to-center distance between aperture slits" },
+          { sym: "L", name: "Screen Distance", unit: "\\text{m}", desc: "Optical throw distance to viewing screen" }
+        ]
+      };
+    }
+    if (mId === 18 || t.includes("electrostat") || t.includes("coulomb")) {
+      return {
+        problem: `Two identical conducting spheres carry static electric charges of $q_1 = +2.50\\ \\mu\\text{C} = +2.50 \\times 10^{-6}\\text{ C}$ and $q_2 = -4.00\\ \\mu\\text{C} = -4.00 \\times 10^{-6}\\text{ C}$ and are held fixed at a distance of $r = 0.500\\text{ m}$ apart in air ($k_e = 8.988 \\times 10^9\\text{ N}\\cdot\\text{m}^2/\\text{C}^2$). Calculate the electrostatic force ($F_e$) between them, and determine whether it is attractive or repulsive.`,
+        given: "q_1 = 2.50 \\times 10^{-6}\\text{ C}, \\quad q_2 = -4.00 \\times 10^{-6}\\text{ C}, \\quad r = 0.500\\text{ m}, \\quad k_e = 8.988 \\times 10^9\\text{ N}\\cdot\\text{m}^2/\\text{C}^2",
+        steps: [
+          "1. State Coulomb's Law of Electrostatic Force: $F_e = k_e \\frac{|q_1 q_2|}{r^2}$.",
+          "2. Calculate product of charges: $|q_1 q_2| = (2.50 \\times 10^{-6})(4.00 \\times 10^{-6}) = 1.00 \\times 10^{-11}\\text{ C}^2$.",
+          "3. Square separation distance: $r^2 = (0.500\\text{ m})^2 = 0.250\\text{ m}^2$.",
+          "4. Compute force magnitude and nature: $F_e = (8.988 \\times 10^9) \\frac{1.00 \\times 10^{-11}}{0.250} = \\frac{0.08988}{0.250} \\approx 0.360\\text{ N}$. Since charges have opposite signs, the force is attractive."
+        ],
+        answer: "F_e = 0.360\\text{ N} \\quad (\\text{Attractive Force})",
+        parameters: [
+          { sym: "F_e", name: "Electrostatic Force", unit: "\\text{N}", desc: "Coulombic interaction between electric charges" },
+          { sym: "q", name: "Electric Charge", unit: "\\text{C}", desc: "Quantity of electrostatic charge" }
+        ]
+      };
+    }
+    if (mId === 21 || t.includes("electromagnet") || t.includes("magnet") || t.includes("induction")) {
+      return {
+        problem: `A proton ($q = +1.602 \\times 10^{-19}\\text{ C}$) travels at speed $v = 5.00 \\times 10^6\\text{ m/s}$ horizontally into a uniform magnetic field of $B = 0.400\\text{ T}$ oriented vertically upward (perpendicular to motion, $\\theta = 90^\\circ$). Calculate the magnitude of the deflecting magnetic Lorentz force ($F_B$) and the resulting circular orbital radius ($m_p = 1.673 \\times 10^{-27}\\text{ kg}$).`,
+        given: "q = 1.602 \\times 10^{-19}\\text{ C}, \\quad v = 5.00 \\times 10^6\\text{ m/s}, \\quad B = 0.400\\text{ T}, \\quad m_p = 1.673 \\times 10^{-27}\\text{ kg}",
+        steps: [
+          "1. State Lorentz magnetic force on charged particle: $F_B = q v B \\sin\\theta$.",
+          "2. Substitute values (with $\\sin 90^\\circ = 1$): $F_B = (1.602 \\times 10^{-19}\\text{ C})(5.00 \\times 10^6\\text{ m/s})(0.400\\text{ T}) = 3.204 \\times 10^{-13}\\text{ N}$.",
+          "3. Equate magnetic force to centripetal force: $q v B = \\frac{m v^2}{r} \\implies r = \\frac{m v}{q B}$.",
+          "4. Compute cyclotron radius: $r = \\frac{(1.673 \\times 10^{-27})(5.00 \\times 10^6)}{(1.602 \\times 10^{-19})(0.400)} = \\frac{8.365 \\times 10^{-21}}{6.408 \\times 10^{-20}} \\approx 0.1305\\text{ m} = 13.1\\text{ cm}$."
+        ],
+        answer: "F_B = 3.20 \\times 10^{-13}\\text{ N}, \\quad r = 13.1\\text{ cm}",
+        parameters: [
+          { sym: "F_B", name: "Magnetic Force", unit: "\\text{N}", desc: "Lorentz deflection force acting on moving charge" },
+          { sym: "B", name: "Magnetic Flux Density", unit: "\\text{T}", desc: "Magnetic field intensity" },
+          { sym: "r", name: "Cyclotron Radius", unit: "\\text{m}", desc: "Radius of circular trajectory in uniform magnetic field" }
+        ]
+      };
+    }
+    if (mId === 23 || t.includes("solid-state") || t.includes("semiconductor")) {
+      return {
+        problem: `A gallium arsenide phosphide (GaAsP) light-emitting diode (LED) emits monochromatic red photons at peak wavelength $\\lambda = 650.0\\text{ nm} = 6.500 \\times 10^{-7}\\text{ m}$. Using Planck's equation $E = \\frac{h c}{\\lambda}$, calculate the photon energy and the semiconductor band gap energy ($E_g$) in electron-volts ($\\text{eV}$). ($h = 6.626 \\times 10^{-34}\\text{ J}\\cdot\\text{s}, c = 3.00 \\times 10^8\\text{ m/s}, 1\\text{ eV} = 1.602 \\times 10^{-19}\\text{ J}$).`,
+        given: "\\lambda = 6.500 \\times 10^{-7}\\text{ m}, \\quad h = 6.626 \\times 10^{-34}\\text{ J}\\cdot\\text{s}, \\quad c = 3.00 \\times 10^8\\text{ m/s}, \\quad 1\\text{ eV} = 1.602 \\times 10^{-19}\\text{ J}",
+        steps: [
+          "1. State photon energy formulation: $E = \\frac{h c}{\\lambda}$.",
+          "2. Calculate numerator ($h c$): $(6.626 \\times 10^{-34}\\text{ J}\\cdot\\text{s})(3.00 \\times 10^8\\text{ m/s}) = 1.9878 \\times 10^{-18}\\text{ J}\\cdot\\text{m}$.",
+          "3. Compute energy in Joules: $E = \\frac{1.9878 \\times 10^{-18}}{6.500 \\times 10^{-7}} = 3.058 \\times 10^{-19}\\text{ J}$.",
+          "4. Convert energy to electron-volts: $E_g = \\frac{3.058 \\times 10^{-19}\\text{ J}}{1.602 \\times 10^{-19}\\text{ J/eV}} \\approx 1.91\\text{ eV}$."
+        ],
+        answer: "E_g = 1.91\\text{ eV} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "E_g", name: "Band Gap Energy", unit: "\\text{eV}", desc: "Energy gap between valence and conduction bands" },
+          { sym: "\\lambda", name: "Emission Wavelength", unit: "\\text{nm}", desc: "Peak spectral wavelength emitted" }
+        ]
+      };
+    }
+    if (mId === 24 || t.includes("nuclear") || t.includes("particle")) {
+      return {
+        problem: `Calculate the total nuclear binding energy ($E_b$) and binding energy per nucleon of an alpha particle (Helium-4 nucleus, $^4_2\\text{He}$). Given: measured nuclear mass of $^4_2\\text{He} = 4.00151\\text{ u}$, proton mass $m_p = 1.00728\\text{ u}$, neutron mass $m_n = 1.00866\\text{ u}$, and atomic mass unit conversion $1\\text{ u} = 931.5\\text{ MeV}$.`,
+        given: "Z = 2, \\quad N = 2, \\quad m_p = 1.00728\\text{ u}, \\quad m_n = 1.00866\\text{ u}, \\quad m_{\\text{nucleus}} = 4.00151\\text{ u}",
+        steps: [
+          "1. Sum constituent free nucleon masses: $m_{\\text{free}} = 2(1.00728\\text{ u}) + 2(1.00866\\text{ u}) = 2.01456 + 2.01732 = 4.03188\\text{ u}$.",
+          "2. Calculate nuclear mass defect: $\\Delta m = m_{\\text{free}} - m_{\\text{nucleus}} = 4.03188\\text{ u} - 4.00151\\text{ u} = 0.03037\\text{ u}$.",
+          "3. Compute total nuclear binding energy using Einstein's mass-energy equivalence: $E_b = \\Delta m \\times 931.5\\text{ MeV/u} = 0.03037 \\times 931.5 = 28.29\\text{ MeV}$.",
+          "4. Compute binding energy per nucleon ($A = 4$): $\\frac{E_b}{A} = \\frac{28.29\\text{ MeV}}{4} \\approx 7.07\\text{ MeV/nucleon}$."
+        ],
+        answer: "E_b = 28.3\\text{ MeV}, \\quad \\frac{E_b}{A} = 7.07\\text{ MeV/nucleon}",
+        parameters: [
+          { sym: "E_b", name: "Nuclear Binding Energy", unit: "\\text{MeV}", desc: "Energy required to completely dissociate nucleus into nucleons" },
+          { sym: "\\Delta m", name: "Mass Defect", unit: "\\text{u}", desc: "Difference between constituent nucleons and bonded nucleus mass" }
+        ]
+      };
+    }
     if (t.includes("motion") || t.includes("kinematics") || f.includes("v =") || f.includes("v_")) {
       return {
         problem: `A vehicle accelerates uniformly from rest ($v_0 = 0\\text{ m/s}$) at a rate of $a = 4.50\\text{ m/s}^2$ along a straight track for a duration of $t = 6.00\\text{ s}$. Calculate its final velocity ($v$) and the total displacement ($\\Delta x$).`,
@@ -1272,20 +1669,21 @@ function generateCurriculumWorkedExample(code, title, phenom, formula, mData) {
     }
   }
 
-  // Default fallback with real SI dimensions
+  // Standard scientific precision & volumetric density determination
   return {
-    problem: `Apply the governing formulation of ${title} to analyze the quantitative equilibrium of physical parameters under standard laboratory conditions.`,
-    given: "\\text{Parameter } X_1 = 12.5\\text{ SI units}, \\quad \\Delta X = 5.0\\text{ SI units}, \\quad k = 1.80\\text{ proportionality factor}",
+    problem: `In an empirical laboratory investigation for ${title}, a pure solid specimen of mass $m = 68.40\\text{ g}$ is immersed into a graduated cylinder containing an initial water volume of $V_1 = 45.0\\text{ mL}$. The water level rises to a final volume of $V_2 = 71.0\\text{ mL}$. Calculate the sample density ($\\rho$) in $\\text{g/cm}^3$ and determine whether the specimen will float or sink in water ($\\rho_{\\text{water}} = 1.00\\text{ g/cm}^3$).`,
+    given: "m = 68.40\\text{ g}, \\quad V_1 = 45.0\\text{ mL}, \\quad V_2 = 71.0\\text{ mL}, \\quad \\rho_{\\text{water}} = 1.00\\text{ g/cm}^3",
     steps: [
-      `1. Identify the governing mathematical model for ${title}: $y = f(x)$.`,
-      "2. Formulate the baseline experimental state and substitute measured input parameters.",
-      "3. Compute the quantitative response: $Y = k \\times (X_1 + \\Delta X) = 1.80 \\times (12.5 + 5.0) = 31.5\\text{ SI units}$.",
-      "4. Verify dimensional consistency and physical boundary conditions."
+      "1. Calculate volume by water displacement: $V = V_2 - V_1 = 71.0\\text{ mL} - 45.0\\text{ mL} = 26.0\\text{ mL} = 26.0\\text{ cm}^3$.",
+      "2. State the density formulation: $\\rho = \\frac{m}{V}$.",
+      "3. Substitute measured values: $\\rho = \\frac{68.40\\text{ g}}{26.0\\text{ cm}^3} \\approx 2.63\\text{ g/cm}^3$.",
+      "4. Evaluate buoyant behavior: Since $\\rho = 2.63\\text{ g/cm}^3 > 1.00\\text{ g/cm}^3$, the specimen will sink in water."
     ],
-    answer: "Y_{\\text{final}} = 31.5\\text{ SI units} \\quad (\\text{Curriculum Standard Reference Solution})",
+    answer: "\\rho = 2.63\\text{ g/cm}^3 \\quad (\\text{Sinks in water})",
     parameters: [
-      { sym: "X", name: "Input Parameter", unit: "\\text{SI Units}", desc: "Controlled physical quantity" },
-      { sym: "Y", name: "System Response", unit: "\\text{SI Units}", desc: "Observed dependent output" }
+      { sym: "m", name: "Sample Mass", unit: "\\text{g}", desc: "Measured mass on analytical balance" },
+      { sym: "V", name: "Displaced Volume", unit: "\\text{cm}^3\\text{ (mL)}", desc: "Volume displaced by solid immersion" },
+      { sym: "\\rho", name: "Substance Density", unit: "\\text{g/cm}^3", desc: "Intrinsic mass-to-volume physical property" }
     ]
   };
 }

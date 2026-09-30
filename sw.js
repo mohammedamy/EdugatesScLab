@@ -124,13 +124,14 @@ self.addEventListener("install", (event) => {
       await cache.addAll(CORE_APP_SHELL).catch((err) => {
         console.warn("[AmScLab PWA] Core shell precache non-fatal warning:", err);
       });
-      // Stage 2: Secondary Lab Benches & Media (Non-blocking resilient caching)
+      // Stage 2: Secondary Lab Benches & Media (Non-blocking streaming without stalling install)
       const secondaryPromises = SECONDARY_ASSETS.map((assetUrl) =>
         cache.add(assetUrl).catch((err) => {
           console.warn("[AmScLab PWA] Secondary asset background cache deferred for:", assetUrl, err?.message);
         })
       );
-      await Promise.allSettled(secondaryPromises);
+      // Stream secondary assets asynchronously without delaying shell installation
+      Promise.allSettled(secondaryPromises);
     }).then(() => self.skipWaiting())
   );
 });

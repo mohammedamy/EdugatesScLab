@@ -122,6 +122,12 @@ assert(
   `All 242 lessons map to a valid interactive specification (Mapped: ${mappedInteractives}/242, Missing: ${missingInteractives.length})`
 );
 
+const chemM1L1Spec = getLessonInteractiveSpec("CHEM", 1, 1);
+assert(
+  chemM1L1Spec && chemM1L1Spec.type === "chem-ozone-density",
+  `CHEM-M01-L1 maps to authentic 'chem-ozone-density' atmospheric simulation (Found: ${chemM1L1Spec ? chemM1L1Spec.type : 'none'})`
+);
+
 // ----------------------------------------------------
 // Test 4: Question Bank Consistency
 // ----------------------------------------------------

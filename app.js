@@ -18,6 +18,13 @@ const systemPrefersLight = typeof window !== "undefined" && window.matchMedia &&
 const savedTheme = userSavedTheme || (systemPrefersLight ? "day" : "night");
 if (typeof document !== "undefined" && document.documentElement) {
   document.documentElement.setAttribute("data-theme", savedTheme);
+  if (document.body) {
+    document.body.setAttribute("data-theme", savedTheme);
+  } else if (typeof window !== "undefined") {
+    window.addEventListener("DOMContentLoaded", () => {
+      if (document.body) document.body.setAttribute("data-theme", savedTheme);
+    });
+  }
 }
 
 if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
@@ -507,6 +514,9 @@ function toggleDayNightTheme() {
 function setTheme(theme) {
   AppState.theme = theme;
   document.documentElement.setAttribute("data-theme", theme);
+  if (document.body) {
+    document.body.setAttribute("data-theme", theme);
+  }
   localStorage.setItem("edugates_theme", theme);
   try {
     SoundFX.playClick();

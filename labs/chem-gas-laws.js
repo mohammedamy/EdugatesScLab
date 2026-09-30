@@ -5,7 +5,17 @@
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
 
+let _currentGasLawsCleanup = null;
+
+export function cleanupGasLawsLab() {
+  if (typeof _currentGasLawsCleanup === "function") {
+    try { _currentGasLawsCleanup(); } catch (e) {}
+    _currentGasLawsCleanup = null;
+  }
+}
+
 export function initGasLawsLab(containerId) {
+  cleanupGasLawsLab();
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -262,9 +272,9 @@ export function initGasLawsLab(containerId) {
       this.vy = Math.sin(angle) * baseSpeed;
     }
 
-    update(w, h, topY) {
-      this.x += this.vx;
-      this.y += this.vy;
+    update(w, h, topY, dtFactor = 1.0) {
+      this.x += this.vx * dtFactor;
+      this.y += this.vy * dtFactor;
 
       const cLeft = 85;
       const cRight = w - 85;
@@ -272,18 +282,18 @@ export function initGasLawsLab(containerId) {
 
       if (this.x - this.radius < cLeft) {
         this.x = cLeft + this.radius;
-        this.vx *= -1;
+        if (this.vx < 0) this.vx *= -1;
       } else if (this.x + this.radius > cRight) {
         this.x = cRight - this.radius;
-        this.vx *= -1;
+        if (this.vx > 0) this.vx *= -1;
       }
 
       if (this.y - this.radius < topY) {
         this.y = topY + this.radius;
-        this.vy *= -1;
+        if (this.vy < 0) this.vy *= -1;
       } else if (this.y + this.radius > cBottom) {
         this.y = cBottom - this.radius;
-        this.vy *= -1;
+        if (this.vy > 0) this.vy *= -1;
       }
     }
   }
@@ -309,7 +319,7 @@ export function initGasLawsLab(containerId) {
     return maxY - frac * (maxY - minY);
   }
 
-  function drawChamber() {
+  function drawChamber(dtFactor = 1.0) {
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const w = chamberCanvas.width / dpr;
     const h = chamberCanvas.height / dpr;
@@ -413,7 +423,7 @@ export function initGasLawsLab(containerId) {
 
     // 4. Update & Draw 3D Gas Particles
     particles.forEach(p => {
-      p.update(w, h, topY);
+      p.update(w, h, topY, dtFactor);
 
       const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
       let pColor = "#38bdf8";
@@ -631,7 +641,7 @@ export function initGasLawsLab(containerId) {
 
   let lastFrameTime = 0;
   function renderLoop(now) {
-    if (!container.isConnected) {
+    if (!container || !container.isConnected) {
       if (animId) cancelAnimationFrame(animId);
       return;
     }
@@ -639,11 +649,14 @@ export function initGasLawsLab(containerId) {
                     document.documentElement.classList.contains("fast-smartboard-mode") ||
                     /Android|MAXHUB/i.test(navigator.userAgent);
     const interval = isSmart ? 33 : 16;
-    if (!now || now - lastFrameTime >= interval) {
-      lastFrameTime = now || performance.now();
+    const currentTime = now || performance.now();
+    if (!lastFrameTime || currentTime - lastFrameTime >= interval) {
+      const elapsed = lastFrameTime ? Math.min((currentTime - lastFrameTime) / 1000, 0.1) : (interval / 1000);
+      lastFrameTime = currentTime;
+      const dtFactor = Math.min(Math.max(elapsed * 60, 0.5), 3.0);
       const photoEl = container.querySelector("#gas-photo-overlay");
       if (!photoEl || photoEl.style.display !== "block") {
-        drawChamber();
+        drawChamber(dtFactor);
         if (boltzmannNeedsRedraw) {
           drawBoltzmann();
           boltzmannNeedsRedraw = false;
@@ -858,8 +871,10 @@ export function initGasLawsLab(containerId) {
   window.addEventListener("resize", handleResize);
   handleResize();
 
-  return () => {
+  const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("resize", handleResize);
   };
+  _currentGasLawsCleanup = cleanup;
+  return cleanup;
 }

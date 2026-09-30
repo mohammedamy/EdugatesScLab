@@ -79,108 +79,256 @@ body.mode-smartboard .bg-glow-blob,
 
 /* 3. Solid, high-contrast, performant opaque surfaces for smooth 4K compositing */
 /* Dark Mode Smartboard Surfaces (Default) */
-:root:not([data-theme="day"]) [data-mode="smartboard"] .app-navbar,
+:root:not([data-theme="day"])[data-mode="smartboard"] .app-navbar,
+:root:not([data-theme="day"]).mode-smartboard .app-navbar,
+:root:not([data-theme="day"]).fast-smartboard-mode .app-navbar,
 :root:not([data-theme="day"]) body.mode-smartboard .app-navbar,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .app-navbar,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .app-navbar,
 :root:not([data-theme="day"]) .fast-smartboard-mode .app-navbar {
   background: #070a12 !important;
   color: #f8fafc !important;
 }
 
-:root:not([data-theme="day"]) [data-mode="smartboard"] .hero-banner,
+:root:not([data-theme="day"])[data-mode="smartboard"] .hero-banner,
+:root:not([data-theme="day"]).mode-smartboard .hero-banner,
+:root:not([data-theme="day"]).fast-smartboard-mode .hero-banner,
 :root:not([data-theme="day"]) body.mode-smartboard .hero-banner,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .hero-banner,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .hero-banner,
 :root:not([data-theme="day"]) .fast-smartboard-mode .hero-banner,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .smartboard-pen-bar,
+:root:not([data-theme="day"])[data-mode="smartboard"] .smartboard-pen-bar,
+:root:not([data-theme="day"]).mode-smartboard .smartboard-pen-bar,
+:root:not([data-theme="day"]).fast-smartboard-mode .smartboard-pen-bar,
 :root:not([data-theme="day"]) body.mode-smartboard .smartboard-pen-bar,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .smartboard-pen-bar,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .smartboard-pen-bar,
 :root:not([data-theme="day"]) .fast-smartboard-mode .smartboard-pen-bar,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .module-card,
+:root:not([data-theme="day"])[data-mode="smartboard"] .module-card,
+:root:not([data-theme="day"]).mode-smartboard .module-card,
+:root:not([data-theme="day"]).fast-smartboard-mode .module-card,
 :root:not([data-theme="day"]) body.mode-smartboard .module-card,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .module-card,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .module-card,
 :root:not([data-theme="day"]) .fast-smartboard-mode .module-card,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .lesson-card-full,
+:root:not([data-theme="day"])[data-mode="smartboard"] .lesson-card-full,
+:root:not([data-theme="day"]).mode-smartboard .lesson-card-full,
+:root:not([data-theme="day"]).fast-smartboard-mode .lesson-card-full,
 :root:not([data-theme="day"]) body.mode-smartboard .lesson-card-full,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .lesson-card-full,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .lesson-card-full,
 :root:not([data-theme="day"]) .fast-smartboard-mode .lesson-card-full,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .modal-content-shell,
+:root:not([data-theme="day"])[data-mode="smartboard"] .modal-content-shell,
+:root:not([data-theme="day"]).mode-smartboard .modal-content-shell,
+:root:not([data-theme="day"]).fast-smartboard-mode .modal-content-shell,
 :root:not([data-theme="day"]) body.mode-smartboard .modal-content-shell,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .modal-content-shell,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .modal-content-shell,
 :root:not([data-theme="day"]) .fast-smartboard-mode .modal-content-shell,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .nav-dropdown-menu,
+:root:not([data-theme="day"])[data-mode="smartboard"] .nav-dropdown-menu,
+:root:not([data-theme="day"]).mode-smartboard .nav-dropdown-menu,
+:root:not([data-theme="day"]).fast-smartboard-mode .nav-dropdown-menu,
 :root:not([data-theme="day"]) body.mode-smartboard .nav-dropdown-menu,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .nav-dropdown-menu,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .nav-dropdown-menu,
 :root:not([data-theme="day"]) .fast-smartboard-mode .nav-dropdown-menu,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .calculator-modal,
+:root:not([data-theme="day"])[data-mode="smartboard"] .calculator-modal,
+:root:not([data-theme="day"]).mode-smartboard .calculator-modal,
+:root:not([data-theme="day"]).fast-smartboard-mode .calculator-modal,
 :root:not([data-theme="day"]) body.mode-smartboard .calculator-modal,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .calculator-modal,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .calculator-modal,
 :root:not([data-theme="day"]) .fast-smartboard-mode .calculator-modal,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .quiz-modal,
+:root:not([data-theme="day"])[data-mode="smartboard"] .quiz-modal,
+:root:not([data-theme="day"]).mode-smartboard .quiz-modal,
+:root:not([data-theme="day"]).fast-smartboard-mode .quiz-modal,
 :root:not([data-theme="day"]) body.mode-smartboard .quiz-modal,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .quiz-modal,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .quiz-modal,
 :root:not([data-theme="day"]) .fast-smartboard-mode .quiz-modal,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .interactive-shell,
+:root:not([data-theme="day"])[data-mode="smartboard"] .interactive-shell,
+:root:not([data-theme="day"]).mode-smartboard .interactive-shell,
+:root:not([data-theme="day"]).fast-smartboard-mode .interactive-shell,
 :root:not([data-theme="day"]) body.mode-smartboard .interactive-shell,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .interactive-shell,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .interactive-shell,
 :root:not([data-theme="day"]) .fast-smartboard-mode .interactive-shell,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .sb-timer-widget,
+:root:not([data-theme="day"])[data-mode="smartboard"] .sb-timer-widget,
+:root:not([data-theme="day"]).mode-smartboard .sb-timer-widget,
+:root:not([data-theme="day"]).fast-smartboard-mode .sb-timer-widget,
 :root:not([data-theme="day"]) body.mode-smartboard .sb-timer-widget,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .sb-timer-widget,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .sb-timer-widget,
 :root:not([data-theme="day"]) .fast-smartboard-mode .sb-timer-widget,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .sb-curtain-handle,
+:root:not([data-theme="day"])[data-mode="smartboard"] .sb-curtain-handle,
+:root:not([data-theme="day"]).mode-smartboard .sb-curtain-handle,
+:root:not([data-theme="day"]).fast-smartboard-mode .sb-curtain-handle,
 :root:not([data-theme="day"]) body.mode-smartboard .sb-curtain-handle,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .sb-curtain-handle,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .sb-curtain-handle,
 :root:not([data-theme="day"]) .fast-smartboard-mode .sb-curtain-handle,
-:root:not([data-theme="day"]) [data-mode="smartboard"] .sb-spotlight-hud,
+:root:not([data-theme="day"])[data-mode="smartboard"] .sb-spotlight-hud,
+:root:not([data-theme="day"]).mode-smartboard .sb-spotlight-hud,
+:root:not([data-theme="day"]).fast-smartboard-mode .sb-spotlight-hud,
 :root:not([data-theme="day"]) body.mode-smartboard .sb-spotlight-hud,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .sb-spotlight-hud,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .sb-spotlight-hud,
 :root:not([data-theme="day"]) .fast-smartboard-mode .sb-spotlight-hud {
   background: #0f172a !important;
   color: #f8fafc !important;
 }
 
-:root:not([data-theme="day"]) [data-mode="smartboard"] .modal-backdrop,
+:root:not([data-theme="day"])[data-mode="smartboard"] .modal-backdrop,
+:root:not([data-theme="day"]).mode-smartboard .modal-backdrop,
+:root:not([data-theme="day"]).fast-smartboard-mode .modal-backdrop,
 :root:not([data-theme="day"]) body.mode-smartboard .modal-backdrop,
+:root:not([data-theme="day"]) body.fast-smartboard-mode .modal-backdrop,
+:root:not([data-theme="day"]) [data-mode="smartboard"] .modal-backdrop,
 :root:not([data-theme="day"]) .fast-smartboard-mode .modal-backdrop {
   background: rgba(0, 0, 0, 0.78) !important;
 }
 
 /* Day Mode Smartboard Surfaces (Opaque White & Slate, Zero-Blur, High-Contrast WCAG AAA >= 7:1) */
+html[data-theme="day"][data-mode="smartboard"] .app-navbar,
+html[data-theme="day"].mode-smartboard .app-navbar,
+html[data-theme="day"].fast-smartboard-mode .app-navbar,
+html[data-theme="day"] body.mode-smartboard .app-navbar,
+html[data-theme="day"] body.fast-smartboard-mode .app-navbar,
 [data-theme="day"][data-mode="smartboard"] .app-navbar,
+[data-theme="day"].mode-smartboard .app-navbar,
+[data-theme="day"].fast-smartboard-mode .app-navbar,
 [data-theme="day"] body.mode-smartboard .app-navbar,
 body.mode-smartboard[data-theme="day"] .app-navbar,
-[data-theme="day"] .fast-smartboard-mode .app-navbar {
+[data-theme="day"] .fast-smartboard-mode .app-navbar,
+[data-theme="day"] .app-navbar {
   background: #ffffff !important;
   border-bottom: 2px solid #cbd5e1 !important;
   color: #0f172a !important;
 }
 
+html[data-theme="day"][data-mode="smartboard"] .hero-banner,
+html[data-theme="day"].mode-smartboard .hero-banner,
+html[data-theme="day"].fast-smartboard-mode .hero-banner,
+html[data-theme="day"] body.mode-smartboard .hero-banner,
+html[data-theme="day"] body.fast-smartboard-mode .hero-banner,
 [data-theme="day"][data-mode="smartboard"] .hero-banner,
+[data-theme="day"].mode-smartboard .hero-banner,
+[data-theme="day"].fast-smartboard-mode .hero-banner,
 [data-theme="day"] body.mode-smartboard .hero-banner,
 body.mode-smartboard[data-theme="day"] .hero-banner,
 [data-theme="day"] .fast-smartboard-mode .hero-banner,
+html[data-theme="day"][data-mode="smartboard"] .smartboard-pen-bar,
+html[data-theme="day"].mode-smartboard .smartboard-pen-bar,
+html[data-theme="day"].fast-smartboard-mode .smartboard-pen-bar,
+html[data-theme="day"] body.mode-smartboard .smartboard-pen-bar,
+html[data-theme="day"] body.fast-smartboard-mode .smartboard-pen-bar,
 [data-theme="day"][data-mode="smartboard"] .smartboard-pen-bar,
+[data-theme="day"].mode-smartboard .smartboard-pen-bar,
+[data-theme="day"].fast-smartboard-mode .smartboard-pen-bar,
 [data-theme="day"] body.mode-smartboard .smartboard-pen-bar,
 [data-theme="day"] .fast-smartboard-mode .smartboard-pen-bar,
+html[data-theme="day"][data-mode="smartboard"] .module-card,
+html[data-theme="day"].mode-smartboard .module-card,
+html[data-theme="day"].fast-smartboard-mode .module-card,
+html[data-theme="day"] body.mode-smartboard .module-card,
+html[data-theme="day"] body.fast-smartboard-mode .module-card,
 [data-theme="day"][data-mode="smartboard"] .module-card,
+[data-theme="day"].mode-smartboard .module-card,
+[data-theme="day"].fast-smartboard-mode .module-card,
 [data-theme="day"] body.mode-smartboard .module-card,
 body.mode-smartboard[data-theme="day"] .module-card,
 [data-theme="day"] .fast-smartboard-mode .module-card,
+html[data-theme="day"][data-mode="smartboard"] .lesson-card-full,
+html[data-theme="day"].mode-smartboard .lesson-card-full,
+html[data-theme="day"].fast-smartboard-mode .lesson-card-full,
+html[data-theme="day"] body.mode-smartboard .lesson-card-full,
+html[data-theme="day"] body.fast-smartboard-mode .lesson-card-full,
 [data-theme="day"][data-mode="smartboard"] .lesson-card-full,
+[data-theme="day"].mode-smartboard .lesson-card-full,
+[data-theme="day"].fast-smartboard-mode .lesson-card-full,
 [data-theme="day"] body.mode-smartboard .lesson-card-full,
 body.mode-smartboard[data-theme="day"] .lesson-card-full,
 [data-theme="day"] .fast-smartboard-mode .lesson-card-full,
+html[data-theme="day"][data-mode="smartboard"] .modal-content-shell,
+html[data-theme="day"].mode-smartboard .modal-content-shell,
+html[data-theme="day"].fast-smartboard-mode .modal-content-shell,
+html[data-theme="day"] body.mode-smartboard .modal-content-shell,
+html[data-theme="day"] body.fast-smartboard-mode .modal-content-shell,
 [data-theme="day"][data-mode="smartboard"] .modal-content-shell,
+[data-theme="day"].mode-smartboard .modal-content-shell,
+[data-theme="day"].fast-smartboard-mode .modal-content-shell,
 [data-theme="day"] body.mode-smartboard .modal-content-shell,
 body.mode-smartboard[data-theme="day"] .modal-content-shell,
 [data-theme="day"] .fast-smartboard-mode .modal-content-shell,
+html[data-theme="day"][data-mode="smartboard"] .nav-dropdown-menu,
+html[data-theme="day"].mode-smartboard .nav-dropdown-menu,
+html[data-theme="day"].fast-smartboard-mode .nav-dropdown-menu,
+html[data-theme="day"] body.mode-smartboard .nav-dropdown-menu,
+html[data-theme="day"] body.fast-smartboard-mode .nav-dropdown-menu,
 [data-theme="day"][data-mode="smartboard"] .nav-dropdown-menu,
+[data-theme="day"].mode-smartboard .nav-dropdown-menu,
+[data-theme="day"].fast-smartboard-mode .nav-dropdown-menu,
 [data-theme="day"] body.mode-smartboard .nav-dropdown-menu,
 body.mode-smartboard[data-theme="day"] .nav-dropdown-menu,
 [data-theme="day"] .fast-smartboard-mode .nav-dropdown-menu,
+html[data-theme="day"][data-mode="smartboard"] .calculator-modal,
+html[data-theme="day"].mode-smartboard .calculator-modal,
+html[data-theme="day"].fast-smartboard-mode .calculator-modal,
+html[data-theme="day"] body.mode-smartboard .calculator-modal,
+html[data-theme="day"] body.fast-smartboard-mode .calculator-modal,
 [data-theme="day"][data-mode="smartboard"] .calculator-modal,
+[data-theme="day"].mode-smartboard .calculator-modal,
+[data-theme="day"].fast-smartboard-mode .calculator-modal,
 [data-theme="day"] body.mode-smartboard .calculator-modal,
 [data-theme="day"] .fast-smartboard-mode .calculator-modal,
+html[data-theme="day"][data-mode="smartboard"] .quiz-modal,
+html[data-theme="day"].mode-smartboard .quiz-modal,
+html[data-theme="day"].fast-smartboard-mode .quiz-modal,
+html[data-theme="day"] body.mode-smartboard .quiz-modal,
+html[data-theme="day"] body.fast-smartboard-mode .quiz-modal,
 [data-theme="day"][data-mode="smartboard"] .quiz-modal,
+[data-theme="day"].mode-smartboard .quiz-modal,
+[data-theme="day"].fast-smartboard-mode .quiz-modal,
 [data-theme="day"] body.mode-smartboard .quiz-modal,
 [data-theme="day"] .fast-smartboard-mode .quiz-modal,
+html[data-theme="day"][data-mode="smartboard"] .interactive-shell,
+html[data-theme="day"].mode-smartboard .interactive-shell,
+html[data-theme="day"].fast-smartboard-mode .interactive-shell,
+html[data-theme="day"] body.mode-smartboard .interactive-shell,
+html[data-theme="day"] body.fast-smartboard-mode .interactive-shell,
 [data-theme="day"][data-mode="smartboard"] .interactive-shell,
+[data-theme="day"].mode-smartboard .interactive-shell,
+[data-theme="day"].fast-smartboard-mode .interactive-shell,
 [data-theme="day"] body.mode-smartboard .interactive-shell,
 [data-theme="day"] .fast-smartboard-mode .interactive-shell,
+html[data-theme="day"][data-mode="smartboard"] .sb-timer-widget,
+html[data-theme="day"].mode-smartboard .sb-timer-widget,
+html[data-theme="day"].fast-smartboard-mode .sb-timer-widget,
+html[data-theme="day"] body.mode-smartboard .sb-timer-widget,
+html[data-theme="day"] body.fast-smartboard-mode .sb-timer-widget,
 [data-theme="day"][data-mode="smartboard"] .sb-timer-widget,
+[data-theme="day"].mode-smartboard .sb-timer-widget,
+[data-theme="day"].fast-smartboard-mode .sb-timer-widget,
 [data-theme="day"] body.mode-smartboard .sb-timer-widget,
 [data-theme="day"] .fast-smartboard-mode .sb-timer-widget,
+html[data-theme="day"][data-mode="smartboard"] .sb-curtain-handle,
+html[data-theme="day"].mode-smartboard .sb-curtain-handle,
+html[data-theme="day"].fast-smartboard-mode .sb-curtain-handle,
+html[data-theme="day"] body.mode-smartboard .sb-curtain-handle,
+html[data-theme="day"] body.fast-smartboard-mode .sb-curtain-handle,
 [data-theme="day"][data-mode="smartboard"] .sb-curtain-handle,
+[data-theme="day"].mode-smartboard .sb-curtain-handle,
+[data-theme="day"].fast-smartboard-mode .sb-curtain-handle,
 [data-theme="day"] body.mode-smartboard .sb-curtain-handle,
 [data-theme="day"] .fast-smartboard-mode .sb-curtain-handle,
+html[data-theme="day"][data-mode="smartboard"] .sb-spotlight-hud,
+html[data-theme="day"].mode-smartboard .sb-spotlight-hud,
+html[data-theme="day"].fast-smartboard-mode .sb-spotlight-hud,
+html[data-theme="day"] body.mode-smartboard .sb-spotlight-hud,
+html[data-theme="day"] body.fast-smartboard-mode .sb-spotlight-hud,
 [data-theme="day"][data-mode="smartboard"] .sb-spotlight-hud,
+[data-theme="day"].mode-smartboard .sb-spotlight-hud,
+[data-theme="day"].fast-smartboard-mode .sb-spotlight-hud,
 [data-theme="day"] body.mode-smartboard .sb-spotlight-hud,
 [data-theme="day"] .fast-smartboard-mode .sb-spotlight-hud {
   background: #ffffff !important;
@@ -188,30 +336,28 @@ body.mode-smartboard[data-theme="day"] .nav-dropdown-menu,
   color: #0f172a !important;
 }
 
-[data-theme="day"][data-mode="smartboard"] .hero-banner h1,
-[data-theme="day"][data-mode="smartboard"] .hero-banner h2,
-[data-theme="day"][data-mode="smartboard"] .hero-banner p,
-[data-theme="day"] body.mode-smartboard .hero-banner h1,
-[data-theme="day"] body.mode-smartboard .hero-banner p,
-[data-theme="day"][data-mode="smartboard"] .module-card h2,
-[data-theme="day"][data-mode="smartboard"] .module-card h3,
-[data-theme="day"][data-mode="smartboard"] .module-card p,
-[data-theme="day"] body.mode-smartboard .module-card h2,
-[data-theme="day"] body.mode-smartboard .module-card p,
-[data-theme="day"][data-mode="smartboard"] .lesson-card-full h3,
-[data-theme="day"][data-mode="smartboard"] .lesson-card-full p,
-[data-theme="day"] body.mode-smartboard .lesson-card-full h3,
-[data-theme="day"] body.mode-smartboard .lesson-card-full p {
+[data-theme="day"] .hero-banner h1,
+[data-theme="day"] .hero-banner h2,
+[data-theme="day"] .hero-banner p,
+[data-theme="day"] .hero-title,
+[data-theme="day"] .hero-desc,
+[data-theme="day"] .module-card h2,
+[data-theme="day"] .module-card h3,
+[data-theme="day"] .module-card p,
+[data-theme="day"] .module-card-title,
+[data-theme="day"] .lesson-card-full h3,
+[data-theme="day"] .lesson-card-full p {
   color: #0f172a !important;
 }
 
-[data-theme="day"][data-mode="smartboard"] .hero-banner .hero-subtitle,
-[data-theme="day"] body.mode-smartboard .hero-banner .hero-subtitle,
-[data-theme="day"][data-mode="smartboard"] .module-card .module-phenomenon,
-[data-theme="day"] body.mode-smartboard .module-card .module-phenomenon {
+[data-theme="day"] .hero-banner .hero-subtitle,
+[data-theme="day"] .module-card .module-phenomenon,
+[data-theme="day"] .module-card-unit,
+[data-theme="day"] .module-lesson-count {
   color: #334155 !important;
 }
 
+[data-theme="day"] .btn-secondary,
 [data-theme="day"][data-mode="smartboard"] .btn-secondary,
 [data-theme="day"] body.mode-smartboard .btn-secondary,
 [data-theme="day"] .fast-smartboard-mode .btn-secondary {
@@ -1853,34 +1999,87 @@ body.mode-smartboard .modal-content-shell #tab-lesson-sim-container,
   width: 100% !important;
 }
 
-/* Day Mode High-Contrast Fullscreen Overrides */
+/* Day Mode High-Contrast Fullscreen & Modal Overrides */
+html[data-theme="day"] .modal-overlay,
+[data-theme="day"] .modal-overlay,
 [data-theme="day"] .modal-overlay.modal-fullscreen,
 [data-theme="day"] .modal-overlay.is-fullscreen-lesson,
 [data-theme="day"][data-mode="smartboard"] .modal-overlay,
-body.mode-smartboard[data-theme="day"] .modal-overlay {
+[data-theme="day"].mode-smartboard .modal-overlay,
+[data-theme="day"].fast-smartboard-mode .modal-overlay,
+body.mode-smartboard[data-theme="day"] .modal-overlay,
+[data-theme="day"] body.mode-smartboard .modal-overlay {
   background: #ffffff !important;
 }
 
+html[data-theme="day"] .modal-content-shell,
+[data-theme="day"] .modal-content-shell,
 [data-theme="day"] .modal-content-shell.is-fullscreen,
 [data-theme="day"][data-mode="smartboard"] .modal-content-shell,
-body.mode-smartboard[data-theme="day"] .modal-content-shell {
+[data-theme="day"].mode-smartboard .modal-content-shell,
+[data-theme="day"].fast-smartboard-mode .modal-content-shell,
+body.mode-smartboard[data-theme="day"] .modal-content-shell,
+[data-theme="day"] body.mode-smartboard .modal-content-shell {
   background: #ffffff !important;
   color: #0f172a !important;
 }
 
+html[data-theme="day"] .modal-header,
+[data-theme="day"] .modal-header,
+[data-theme="day"] .modal-content-shell .modal-header,
 [data-theme="day"] .modal-content-shell.is-fullscreen .modal-header,
 [data-theme="day"][data-mode="smartboard"] .modal-content-shell .modal-header,
-body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-header {
+[data-theme="day"].mode-smartboard .modal-content-shell .modal-header,
+[data-theme="day"].fast-smartboard-mode .modal-content-shell .modal-header,
+body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-header,
+[data-theme="day"] body.mode-smartboard .modal-content-shell .modal-header,
+[data-theme="day"] .fast-smartboard-mode .modal-content-shell .modal-header {
   background: #ffffff !important;
   border-bottom: 2px solid #cbd5e1 !important;
   color: #0f172a !important;
 }
 
+html[data-theme="day"] .modal-tabs-header,
+[data-theme="day"] .modal-tabs-header,
+[data-theme="day"] .modal-content-shell .modal-tabs-header,
 [data-theme="day"] .modal-content-shell.is-fullscreen .modal-tabs-header,
 [data-theme="day"][data-mode="smartboard"] .modal-content-shell .modal-tabs-header,
-body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header {
+[data-theme="day"].mode-smartboard .modal-content-shell .modal-tabs-header,
+[data-theme="day"].fast-smartboard-mode .modal-content-shell .modal-tabs-header,
+body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
+[data-theme="day"] body.mode-smartboard .modal-content-shell .modal-tabs-header,
+[data-theme="day"] .fast-smartboard-mode .modal-content-shell .modal-tabs-header {
   background: #f8fafc !important;
   border-bottom: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .modal-content-shell .modal-body,
+[data-theme="day"] .modal-content-shell.is-fullscreen .modal-body,
+[data-theme="day"][data-mode="smartboard"] .modal-content-shell .modal-body,
+[data-theme="day"].mode-smartboard .modal-content-shell .modal-body,
+[data-theme="day"].fast-smartboard-mode .modal-content-shell .modal-body {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .modal-header h2,
+[data-theme="day"] .modal-header h3,
+[data-theme="day"] .modal-header p,
+[data-theme="day"] .modal-header .modal-title,
+[data-theme="day"] .modal-header .lesson-breadcrumb {
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .modal-tab-btn {
+  color: #475569 !important;
+}
+[data-theme="day"] .modal-tab-btn:hover {
+  color: #0f172a !important;
+}
+[data-theme="day"] .modal-tab-btn.active {
+  color: #0284c7 !important;
+  border-bottom: 2px solid #0284c7 !important;
 }
 
 .modal-header {

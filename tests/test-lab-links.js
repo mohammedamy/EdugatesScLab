@@ -62,7 +62,11 @@ globalThis.requestAnimationFrame = () => 1;
 globalThis.cancelAnimationFrame = () => {};
 
 globalThis.document = {
-  documentElement: { setAttribute: () => {} },
+  documentElement: {
+    setAttribute: () => {},
+    getAttribute: () => null,
+    classList: { contains: () => false, add: () => {}, remove: () => {} }
+  },
   getElementById: (id) => getOrCreateMock(id),
   querySelectorAll: (sel) => [getOrCreateMock(sel)],
   querySelector: (sel) => getOrCreateMock(sel),
