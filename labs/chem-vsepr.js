@@ -660,8 +660,13 @@ export function initVseprLab(containerId) {
         ctx.beginPath();
         ctx.arc(item.proj.x, item.proj.y, r, 0, Math.PI * 2);
         ctx.fillStyle = grad;
-        ctx.shadowColor = item.color;
-        ctx.shadowBlur = 12 * zoom;
+        const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                        document.documentElement.classList.contains("fast-smartboard-mode") ||
+                        /Android|MAXHUB/i.test(navigator.userAgent);
+        if (!isSmart) {
+          ctx.shadowColor = item.color;
+          ctx.shadowBlur = 12 * zoom;
+        }
         ctx.fill();
 
         // Element Symbol text
@@ -736,6 +741,10 @@ export function initVseprLab(containerId) {
 
   // Animation Loop (60 FPS with Smartboard Pacing & Overdraw Protection)
   let lastVseprTime = 0;
+  let needsRedraw = true;
+  function requestRender() {
+    needsRedraw = true;
+  }
   function animate(now) {
     if (!container.isConnected) {
       if (animId) cancelAnimationFrame(animId);
@@ -752,7 +761,8 @@ export function initVseprLab(containerId) {
         if (autoRotate && !isDragging) {
           rotY += 0.008;
           render3D();
-        } else if (isDragging) {
+        } else if (isDragging || needsRedraw) {
+          needsRedraw = false;
           render3D();
         }
       }
@@ -814,6 +824,7 @@ export function initVseprLab(containerId) {
     e.preventDefault();
     zoom += e.deltaY * -0.0015;
     zoom = Math.min(Math.max(0.65, zoom), 1.8);
+    requestRender();
   }, { passive: false });
 
   // Update molecule selection
@@ -843,6 +854,7 @@ export function initVseprLab(containerId) {
     polTag.innerText = currentMolecule.isPolar ? "POLAR" : "NONPOLAR";
     polTag.style.background = currentMolecule.isPolar ? "rgba(239, 68, 68, 0.2)" : "rgba(16, 185, 129, 0.2)";
     polTag.style.color = currentMolecule.isPolar ? "#f87171" : "#34d399";
+    requestRender();
   }
 
   // Toggles
@@ -851,6 +863,7 @@ export function initVseprLab(containerId) {
     e.currentTarget.classList.toggle("active", showLonePairs);
     e.currentTarget.querySelector("span:first-child").innerText = showLonePairs ? "✓" : "○";
     SoundFX.playSwitchSnap();
+    requestRender();
   });
 
   document.getElementById("toggle-bond-angles").addEventListener("click", (e) => {
@@ -858,6 +871,7 @@ export function initVseprLab(containerId) {
     e.currentTarget.classList.toggle("active", showBondAngles);
     e.currentTarget.querySelector("span:first-child").innerText = showBondAngles ? "✓" : "○";
     SoundFX.playSwitchSnap();
+    requestRender();
   });
 
   document.getElementById("toggle-dipoles").addEventListener("click", (e) => {
@@ -865,12 +879,14 @@ export function initVseprLab(containerId) {
     e.currentTarget.classList.toggle("active", showDipoles);
     e.currentTarget.querySelector("span:first-child").innerText = showDipoles ? "✓" : "○";
     SoundFX.playSwitchSnap();
+    requestRender();
   });
 
   document.getElementById("btn-vsepr-autorotate").addEventListener("click", (e) => {
     autoRotate = !autoRotate;
     e.currentTarget.innerText = autoRotate ? "⏸ Pause Rotation" : "▶ Auto-Rotate";
     SoundFX.playClick();
+    requestRender();
   });
 
   document.getElementById("btn-vsepr-reset-view").addEventListener("click", () => {
@@ -878,11 +894,13 @@ export function initVseprLab(containerId) {
     rotY = 0.55;
     zoom = 1.0;
     SoundFX.playClick();
+    requestRender();
   });
 
   document.getElementById("btn-vsepr-invert-spin").addEventListener("click", () => {
     rotY = -rotY;
     SoundFX.playClick();
+    requestRender();
   });
 
   // 4K Photo Bench Switcher

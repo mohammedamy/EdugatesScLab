@@ -430,8 +430,13 @@ export function initCircuitsLab(containerId) {
         continue;
       }
       ctx.fillStyle = "#38bdf8";
-      ctx.shadowColor = "#38bdf8";
-      ctx.shadowBlur = 8;
+      const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                      document.documentElement.classList.contains("fast-smartboard-mode") ||
+                      /Android|MAXHUB/i.test(navigator.userAgent);
+      if (!isSmart) {
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 8;
+      }
       ctx.beginPath();
       ctx.arc(sp.x, sp.y, 2.5 * sp.life, 0, Math.PI * 2);
       ctx.fill();
@@ -507,7 +512,10 @@ export function initCircuitsLab(containerId) {
     const filamentColor = (power > 0.05) ? "#ffffff" : "#64748b";
     ctx.strokeStyle = filamentColor;
     ctx.lineWidth = 2.5;
-    if (power > 0.05) {
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    if (power > 0.05 && !isSmart) {
       ctx.shadowColor = "#fef08a";
       ctx.shadowBlur = 10;
     }
@@ -528,8 +536,10 @@ export function initCircuitsLab(containerId) {
     if (switchClosed && current > 0) {
       electronOffset = (electronOffset + current * 1.8) % 40;
       ctx.fillStyle = "#38bdf8";
-      ctx.shadowColor = "#38bdf8";
-      ctx.shadowBlur = 6;
+      if (!isSmart) {
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 6;
+      }
 
       function drawElectron(x, y) {
         ctx.beginPath();
@@ -610,12 +620,22 @@ export function initCircuitsLab(containerId) {
 
     const bands = getResistorBands(r1);
     document.getElementById("r1-bands-text").innerText = `Bands: ${bands[0].name} - ${bands[1].name} - ${bands[2].name} - Gold (${Math.round(r1)} Ω)`;
+    requestRender();
   }
 
   let lastFrameTime = 0;
+  let needsRedraw = true;
+  function requestRender() {
+    needsRedraw = true;
+  }
   function renderLoop(now) {
     if (!container.isConnected) {
       if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+    const isCircuitActive = (switchClosed && current > 0) || (sparks && sparks.length > 0);
+    if (!isCircuitActive && !needsRedraw) {
+      animId = requestAnimationFrame(renderLoop);
       return;
     }
     const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
@@ -624,6 +644,7 @@ export function initCircuitsLab(containerId) {
     const interval = isSmart ? 33 : 16;
     if (!now || now - lastFrameTime >= interval) {
       lastFrameTime = now || performance.now();
+      needsRedraw = false;
       const photoEl = container.querySelector("#circuit-photo-overlay");
       if (!photoEl || photoEl.style.display !== "block") {
         drawCircuit();
@@ -826,10 +847,16 @@ export function initCircuitsLab(containerId) {
   mountLabCheckpoint("circuits-checkpoint-container", "circuits");
 
   function handleResize() {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      window.removeEventListener("resize", handleResize);
+      return;
+    }
     const rect = canvas.getBoundingClientRect();
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     canvas.width = rect.width * dpr;
     canvas.height = 500 * dpr;
+    requestRender();
   }
   window.addEventListener("resize", handleResize);
   handleResize();

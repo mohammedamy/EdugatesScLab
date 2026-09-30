@@ -344,9 +344,14 @@ export function initGasLawsLab(containerId) {
       fGrad.addColorStop(0.8, "#ef4444");
       fGrad.addColorStop(1, "rgba(239, 68, 68, 0)");
 
+      const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                      document.documentElement.classList.contains("fast-smartboard-mode") ||
+                      /Android|MAXHUB/i.test(navigator.userAgent);
       chamberCtx.fillStyle = fGrad;
-      chamberCtx.shadowColor = "#f59e0b";
-      chamberCtx.shadowBlur = 20;
+      if (!isSmart) {
+        chamberCtx.shadowColor = "#f59e0b";
+        chamberCtx.shadowBlur = 20;
+      }
       chamberCtx.beginPath();
       chamberCtx.ellipse(flameX, flameY - 20, 22 + flicker, 36, 0, 0, Math.PI * 2);
       chamberCtx.fill();
@@ -358,9 +363,14 @@ export function initGasLawsLab(containerId) {
       chamberCtx.ellipse(flameX, flameY - 10, 10, 18, 0, 0, Math.PI * 2);
       chamberCtx.fill();
     } else if (isCooling) {
+      const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                      document.documentElement.classList.contains("fast-smartboard-mode") ||
+                      /Android|MAXHUB/i.test(navigator.userAgent);
       chamberCtx.fillStyle = "rgba(56, 189, 248, 0.25)";
-      chamberCtx.shadowColor = "#38bdf8";
-      chamberCtx.shadowBlur = 16;
+      if (!isSmart) {
+        chamberCtx.shadowColor = "#38bdf8";
+        chamberCtx.shadowBlur = 16;
+      }
       chamberCtx.fillRect(cLeft - 8, cBottom, cWidth + 16, 35);
       chamberCtx.shadowBlur = 0;
 
@@ -539,10 +549,15 @@ export function initGasLawsLab(containerId) {
     const vRMS = Math.sqrt((3 * R * temperature) / M);
     const vMP = Math.sqrt((2 * R * temperature) / M);
 
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
     bzCtx.strokeStyle = "#f59e0b";
     bzCtx.lineWidth = 2.5;
-    bzCtx.shadowColor = "#f59e0b";
-    bzCtx.shadowBlur = 8;
+    if (!isSmart) {
+      bzCtx.shadowColor = "#f59e0b";
+      bzCtx.shadowBlur = 8;
+    }
     bzCtx.beginPath();
 
     const aConst = M / (2 * R * temperature);
@@ -578,6 +593,11 @@ export function initGasLawsLab(containerId) {
     bzCtx.restore();
   }
 
+  let boltzmannNeedsRedraw = true;
+  function requestBoltzmannRedraw() {
+    boltzmannNeedsRedraw = true;
+  }
+
   function updateTelemetry() {
     const R_atm = 0.08206;
     const P_atm = (moles * R_atm * temperature) / volume;
@@ -606,6 +626,7 @@ export function initGasLawsLab(containerId) {
       statusBadge.innerText = "Gas Equilibrium Stable";
       statusDot.style.background = "#10b981";
     }
+    requestBoltzmannRedraw();
   }
 
   let lastFrameTime = 0;
@@ -623,7 +644,10 @@ export function initGasLawsLab(containerId) {
       const photoEl = container.querySelector("#gas-photo-overlay");
       if (!photoEl || photoEl.style.display !== "block") {
         drawChamber();
-        drawBoltzmann();
+        if (boltzmannNeedsRedraw) {
+          drawBoltzmann();
+          boltzmannNeedsRedraw = false;
+        }
       }
     }
     animId = requestAnimationFrame(renderLoop);
@@ -817,6 +841,11 @@ export function initGasLawsLab(containerId) {
   mountLabCheckpoint("gas-checkpoint-container", "gaslaws");
 
   function handleResize() {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      window.removeEventListener("resize", handleResize);
+      return;
+    }
     const rect1 = chamberCanvas.getBoundingClientRect();
     const rect2 = bzCanvas.getBoundingClientRect();
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
@@ -824,6 +853,7 @@ export function initGasLawsLab(containerId) {
     chamberCanvas.height = 520 * dpr;
     bzCanvas.width = rect2.width * dpr;
     bzCanvas.height = 330 * dpr;
+    requestBoltzmannRedraw();
   }
   window.addEventListener("resize", handleResize);
   handleResize();

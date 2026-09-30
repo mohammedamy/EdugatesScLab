@@ -372,6 +372,10 @@ export function initPunnettLab(containerId) {
   }
 
   // --- SCIENTIFIC RENDERING OF SPECIMENS ---
+  const isSmartboard = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                       document.documentElement.classList.contains("fast-smartboard-mode") ||
+                       /Android|MAXHUB/i.test(navigator.userAgent);
+
   function drawPeaSeed(ctx, x, y, radius, isRound, mainCol, darkCol) {
     ctx.save();
     ctx.translate(x, y);
@@ -387,9 +391,11 @@ export function initPunnettLab(containerId) {
       ctx.beginPath();
       ctx.arc(0, 0, radius, 0, Math.PI * 2);
       ctx.fillStyle = grad;
-      ctx.shadowColor = "rgba(0,0,0,0.5)";
-      ctx.shadowBlur = 10;
-      ctx.shadowOffsetY = 4;
+      if (!isSmartboard) {
+        ctx.shadowColor = "rgba(0,0,0,0.5)";
+        ctx.shadowBlur = 10;
+        ctx.shadowOffsetY = 4;
+      }
       ctx.fill();
 
       // Specular highlight gleam
@@ -426,9 +432,11 @@ export function initPunnettLab(containerId) {
       grad.addColorStop(1, "#092010");
 
       ctx.fillStyle = grad;
-      ctx.shadowColor = "rgba(0,0,0,0.6)";
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetY = 4;
+      if (!isSmartboard) {
+        ctx.shadowColor = "rgba(0,0,0,0.6)";
+        ctx.shadowBlur = 12;
+        ctx.shadowOffsetY = 4;
+      }
       ctx.fill();
 
       // Wrinkle crease shadows
@@ -470,8 +478,10 @@ export function initPunnettLab(containerId) {
     gradBanner.addColorStop(0.6, mainColor);
     gradBanner.addColorStop(1, darkColor);
     ctx.fillStyle = gradBanner;
-    ctx.shadowColor = "rgba(0,0,0,0.4)";
-    ctx.shadowBlur = 8;
+    if (!isSmartboard) {
+      ctx.shadowColor = "rgba(0,0,0,0.4)";
+      ctx.shadowBlur = 8;
+    }
     ctx.fill();
 
     // Veins on banner
@@ -511,8 +521,10 @@ export function initPunnettLab(containerId) {
     ctx.beginPath();
     ctx.arc(0, size * 0.05, size * 0.12, 0, Math.PI * 2);
     ctx.fillStyle = "#facc15";
-    ctx.shadowColor = "rgba(250, 204, 21, 0.7)";
-    ctx.shadowBlur = 6;
+    if (!isSmartboard) {
+      ctx.shadowColor = "rgba(250, 204, 21, 0.7)";
+      ctx.shadowBlur = 6;
+    }
     ctx.fill();
 
     ctx.restore();
@@ -528,8 +540,10 @@ export function initPunnettLab(containerId) {
     const halfLen = length / 2;
 
     ctx.fillStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 8;
+    if (!isSmartboard) {
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 8;
+    }
 
     // Centromere constriction
     ctx.beginPath();
@@ -555,8 +569,10 @@ export function initPunnettLab(containerId) {
     ctx.fillStyle = "#ffffff";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.shadowColor = "rgba(0,0,0,0.8)";
-    ctx.shadowBlur = 4;
+    if (!isSmartboard) {
+      ctx.shadowColor = "rgba(0,0,0,0.8)";
+      ctx.shadowBlur = 4;
+    }
     ctx.fillText(letter, 0, halfLen + 14);
 
     ctx.restore();
@@ -729,8 +745,10 @@ export function initPunnettLab(containerId) {
         ctx.fillStyle = "rgba(244, 63, 94, 0.35)";
         ctx.strokeStyle = "#f43f5e";
         ctx.lineWidth = 2;
-        ctx.shadowColor = "#f43f5e";
-        ctx.shadowBlur = 12;
+        if (!isSmartboard) {
+          ctx.shadowColor = "#f43f5e";
+          ctx.shadowBlur = 12;
+        }
       } else {
         ctx.fillStyle = "rgba(244, 63, 94, 0.14)";
         ctx.strokeStyle = "rgba(244, 63, 94, 0.7)";
@@ -793,8 +811,10 @@ export function initPunnettLab(containerId) {
         ctx.fillStyle = "rgba(56, 189, 248, 0.35)";
         ctx.strokeStyle = "#38bdf8";
         ctx.lineWidth = 2;
-        ctx.shadowColor = "#38bdf8";
-        ctx.shadowBlur = 12;
+        if (!isSmartboard) {
+          ctx.shadowColor = "#38bdf8";
+          ctx.shadowBlur = 12;
+        }
       } else {
         ctx.fillStyle = "rgba(56, 189, 248, 0.14)";
         ctx.strokeStyle = "rgba(56, 189, 248, 0.7)";
@@ -838,14 +858,18 @@ export function initPunnettLab(containerId) {
           ctx.fillStyle = "rgba(56, 189, 248, 0.28)";
           ctx.strokeStyle = "#38bdf8";
           ctx.lineWidth = 2.5;
-          ctx.shadowColor = "#38bdf8";
-          ctx.shadowBlur = 16;
+          if (!isSmartboard) {
+            ctx.shadowColor = "#38bdf8";
+            ctx.shadowBlur = 16;
+          }
         } else if (isMatchedPheno) {
           ctx.fillStyle = "rgba(245, 158, 11, 0.2)";
           ctx.strokeStyle = "#f59e0b";
           ctx.lineWidth = 2;
-          ctx.shadowColor = "#f59e0b";
-          ctx.shadowBlur = 10;
+          if (!isSmartboard) {
+            ctx.shadowColor = "#f59e0b";
+            ctx.shadowBlur = 10;
+          }
         } else {
           ctx.fillStyle = "rgba(18, 28, 48, 0.75)";
           ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
@@ -869,8 +893,10 @@ export function initPunnettLab(containerId) {
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillStyle = "#ffffff";
-          ctx.shadowColor = "rgba(0,0,0,0.8)";
-          ctx.shadowBlur = 6;
+          if (!isSmartboard) {
+            ctx.shadowColor = "rgba(0,0,0,0.8)";
+            ctx.shadowBlur = 6;
+          }
           ctx.fillText(combo, x + cellSize / 2, y + cellSize * 0.77);
           ctx.restore();
 
@@ -1465,6 +1491,11 @@ export function initPunnettLab(containerId) {
 
   // Dynamic High-DPI (Retina) Resize Handler
   function handleResize() {
+    if (!container || !container.isConnected) {
+      if (ro) ro.disconnect();
+      window.removeEventListener("resize", handleResize);
+      return;
+    }
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     const canvasW = rect.width > 0 ? rect.width : 600;

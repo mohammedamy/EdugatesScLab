@@ -312,11 +312,17 @@ export function initOpticsLab(containerId) {
     ctx.lineTo(w - 30, centerY);
     ctx.stroke();
 
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+
     // 4. Focal Point Markers (F, 2F, F', 2F')
     function drawFocalPoint(xPos, label, color = "#818cf8") {
       ctx.fillStyle = color;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
+      if (!isSmart) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8;
+      }
       ctx.beginPath();
       ctx.arc(xPos, centerY, 4, 0, Math.PI * 2);
       ctx.fill();
@@ -353,8 +359,10 @@ export function initOpticsLab(containerId) {
       lensGrad.addColorStop(1, "rgba(56, 189, 248, 0.55)");
 
       ctx.fillStyle = lensGrad;
-      ctx.shadowColor = "#38bdf8";
-      ctx.shadowBlur = 12;
+      if (!isSmart) {
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 12;
+      }
       ctx.beginPath();
       ctx.ellipse(centerX, centerY, 15, 115, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -406,8 +414,10 @@ export function initOpticsLab(containerId) {
         // High-Intensity Green Laser Beams
         ctx.strokeStyle = "rgba(52, 211, 153, 0.9)";
         ctx.lineWidth = 2.5;
-        ctx.shadowColor = "#34d399";
-        ctx.shadowBlur = 10;
+        if (!isSmart) {
+          ctx.shadowColor = "#34d399";
+          ctx.shadowBlur = 10;
+        }
         ctx.beginPath();
         ctx.moveTo(objX, centerY + dy);
         ctx.lineTo(centerX, centerY + dy);
@@ -438,7 +448,7 @@ export function initOpticsLab(containerId) {
       ctx.stroke();
 
       // Flame
-      flameFlicker = (Math.sin(Date.now() / 120) * 1.5);
+      flameFlicker = isSmart ? 0 : (Math.sin(Date.now() / 120) * 1.5);
       const flameY = objY - objH - flameFlicker;
 
       const flameGrad = ctx.createRadialGradient(objX, flameY + 6, 2, objX, flameY + 4, 14);
@@ -448,8 +458,10 @@ export function initOpticsLab(containerId) {
       flameGrad.addColorStop(1, "rgba(239, 68, 68, 0)");
 
       ctx.fillStyle = flameGrad;
-      ctx.shadowColor = "#f59e0b";
-      ctx.shadowBlur = 18;
+      if (!isSmart) {
+        ctx.shadowColor = "#f59e0b";
+        ctx.shadowBlur = 18;
+      }
       ctx.beginPath();
       ctx.ellipse(objX, flameY + 4, 6, 12, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -467,8 +479,10 @@ export function initOpticsLab(containerId) {
         // RAY 1: Parallel Ray (Cyan)
         ctx.strokeStyle = "#06b6d4";
         ctx.lineWidth = 2.5;
-        ctx.shadowColor = "#06b6d4";
-        ctx.shadowBlur = 8;
+        if (!isSmart) {
+          ctx.shadowColor = "#06b6d4";
+          ctx.shadowBlur = 8;
+        }
         ctx.beginPath();
         ctx.moveTo(tipX, tipY);
         ctx.lineTo(centerX, tipY);
@@ -555,8 +569,10 @@ export function initOpticsLab(containerId) {
           // Image Flame
           const imFlameY = img.isUpright ? (centerY - Math.abs(img.hi * scale)) : (centerY + Math.abs(img.hi * scale));
           ctx.fillStyle = isVirtual ? "#c084fc" : "#f59e0b";
-          ctx.shadowColor = isVirtual ? "#c084fc" : "#f59e0b";
-          ctx.shadowBlur = 14;
+          if (!isSmart) {
+            ctx.shadowColor = isVirtual ? "#c084fc" : "#f59e0b";
+            ctx.shadowBlur = 14;
+          }
           ctx.beginPath();
           ctx.ellipse(imgX, imFlameY, 5, 10, 0, 0, Math.PI * 2);
           ctx.fill();
@@ -606,9 +622,14 @@ export function initOpticsLab(containerId) {
         badge.style.background = "rgba(139, 92, 246, 0.2)";
       }
     }
+    requestRender();
   }
 
   let lastFrameTime = 0;
+  let needsRedraw = true;
+  function requestRender() {
+    needsRedraw = true;
+  }
   function renderLoop(now) {
     if (!container.isConnected) {
       if (animId) cancelAnimationFrame(animId);
@@ -617,9 +638,14 @@ export function initOpticsLab(containerId) {
     const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
                     document.documentElement.classList.contains("fast-smartboard-mode") ||
                     /Android|MAXHUB/i.test(navigator.userAgent);
+    if ((isSmart || laserMode) && !needsRedraw) {
+      animId = requestAnimationFrame(renderLoop);
+      return;
+    }
     const interval = isSmart ? 33 : 16;
     if (!now || now - lastFrameTime >= interval) {
       lastFrameTime = now || performance.now();
+      needsRedraw = false;
       const photoEl = container.querySelector("#optics-photo-overlay");
       if (!photoEl || photoEl.style.display !== "block") {
         draw();
@@ -707,10 +733,12 @@ export function initOpticsLab(containerId) {
 
   document.getElementById("chk-grid").addEventListener("change", (e) => {
     showGraduations = e.target.checked;
+    requestRender();
   });
 
   document.getElementById("chk-laser").addEventListener("change", (e) => {
     laserMode = e.target.checked;
+    requestRender();
   });
 
   // View Switcher
@@ -725,6 +753,7 @@ export function initOpticsLab(containerId) {
     btnSim.style.color = "#818cf8";
     btnPhoto.style.background = "transparent";
     btnPhoto.style.color = "#94a3b8";
+    requestRender();
   });
 
   btnPhoto.addEventListener("click", () => {
@@ -735,6 +764,7 @@ export function initOpticsLab(containerId) {
     btnPhoto.style.color = "#818cf8";
     btnSim.style.background = "transparent";
     btnSim.style.color = "#94a3b8";
+    requestRender();
   });
 
   // Telemetry Suite: Record Current State as Trial
@@ -825,10 +855,16 @@ export function initOpticsLab(containerId) {
   mountLabCheckpoint("optics-checkpoint-container", "optics");
 
   function handleResize() {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      window.removeEventListener("resize", handleResize);
+      return;
+    }
     const rect = canvas.getBoundingClientRect();
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     canvas.width = rect.width * dpr;
     canvas.height = 490 * dpr;
+    requestRender();
   }
   window.addEventListener("resize", handleResize);
   handleResize();

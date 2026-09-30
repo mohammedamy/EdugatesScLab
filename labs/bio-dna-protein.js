@@ -421,8 +421,13 @@ export function initDnaProteinLab(containerId) {
       aaGrad.addColorStop(1, "#0f172a");
 
       ctx.fillStyle = aaGrad;
-      ctx.shadowColor = item.color || "#3b82f6";
-      ctx.shadowBlur = 12;
+      const isSmartboard = document.documentElement.getAttribute("data-mode") === "smartboard" ||
+                           document.documentElement.classList.contains("fast-smartboard-mode") ||
+                           /Android|MAXHUB/i.test(navigator.userAgent);
+      if (!isSmartboard) {
+        ctx.shadowColor = item.color || "#3b82f6";
+        ctx.shadowBlur = 12;
+      }
       ctx.beginPath();
       ctx.arc(px, polyY, 18, 0, Math.PI * 2);
       ctx.fill();
@@ -635,6 +640,10 @@ export function initDnaProteinLab(containerId) {
   mountLabCheckpoint("dna-checkpoint-container", "dnaprotein");
 
   function handleResize() {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("resize", handleResize);
+      return;
+    }
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;

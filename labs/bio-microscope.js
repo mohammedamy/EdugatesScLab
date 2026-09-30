@@ -544,11 +544,17 @@ export function initMicroscopeLab(containerId) {
         chGrad.addColorStop(1, "#15803d");
 
         ctx.fillStyle = chGrad;
-        ctx.shadowColor = "rgba(74, 222, 128, 0.6)";
-        ctx.shadowBlur = 6;
+        const isSmartboard = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                             document.documentElement.classList.contains("fast-smartboard-mode") ||
+                             /Android|MAXHUB/i.test(navigator.userAgent);
+        if (!isSmartboard) {
+          ctx.shadowColor = "rgba(74, 222, 128, 0.6)";
+          ctx.shadowBlur = 6;
+        }
         ctx.beginPath();
         ctx.arc(px, py, 6.5, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
       }
     });
     ctx.restore();
@@ -823,12 +829,22 @@ export function initMicroscopeLab(containerId) {
 
     const scaleMap = { 4: "200 µm", 10: "50 µm", 40: "12 µm", 100: "5 µm" };
     document.getElementById("scale-text").innerText = `Scale: ${scaleMap[objectivePower] || "50 µm"}`;
+    needsRedraw = true;
   }
 
   let lastFrameTime = 0;
+  let needsRedraw = true;
+  function requestRender() {
+    needsRedraw = true;
+  }
   function renderLoop(now) {
     if (!container.isConnected) {
       if (animId) cancelAnimationFrame(animId);
+      return;
+    }
+    const hasDynamicMotion = (currentSlide === "elodea_leaf" || currentSlide === "paramecium");
+    if (!hasDynamicMotion && !needsRedraw) {
+      animId = requestAnimationFrame(renderLoop);
       return;
     }
     // Cap to 30 FPS on Smartboard/Android to eliminate GPU stalls and prevent browser halts
@@ -838,6 +854,7 @@ export function initMicroscopeLab(containerId) {
     const interval = isSmart ? 33 : 16;
     if (!now || now - lastFrameTime >= interval) {
       lastFrameTime = now || performance.now();
+      needsRedraw = false;
       drawView();
     }
     animId = requestAnimationFrame(renderLoop);
@@ -866,16 +883,19 @@ export function initMicroscopeLab(containerId) {
   inIris.addEventListener("input", (e) => {
     irisAperture = parseFloat(e.target.value) / 100;
     document.getElementById("disp-iris").innerText = `${Math.round(e.target.value)}%`;
+    requestRender();
   });
 
   inStageX.addEventListener("input", (e) => {
     stageX = parseFloat(e.target.value);
     document.getElementById("disp-stage-x").innerText = `${stageX} µm`;
+    requestRender();
   });
 
   inStageY.addEventListener("input", (e) => {
     stageY = parseFloat(e.target.value);
     document.getElementById("disp-stage-y").innerText = `${stageY} µm`;
+    requestRender();
   });
 
   // Objective Turret Buttons
@@ -906,6 +926,8 @@ export function initMicroscopeLab(containerId) {
       document.getElementById("slide-stain-badge").innerText = data.stain;
       document.getElementById("slide-desc").innerText = data.desc;
     }
+    updateTelemetry();
+    requestRender();
   });
 
   // Auto-Focus Calibrate
@@ -927,6 +949,7 @@ export function initMicroscopeLab(containerId) {
     inStageY.value = 0;
     document.getElementById("disp-stage-x").innerText = "0 µm";
     document.getElementById("disp-stage-y").innerText = "0 µm";
+    requestRender();
   });
 
   // Reticle Toggle
@@ -1057,10 +1080,16 @@ export function initMicroscopeLab(containerId) {
 
   // Resize Handling
   function handleResize() {
+    if (!container || !container.isConnected) {
+      if (animId) cancelAnimationFrame(animId);
+      window.removeEventListener("resize", handleResize);
+      return;
+    }
     const rect = canvas.getBoundingClientRect();
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     canvas.width = rect.width * dpr;
     canvas.height = 530 * dpr;
+    requestRender();
   }
   window.addEventListener("resize", handleResize);
   handleResize();
