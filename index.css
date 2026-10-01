@@ -2264,6 +2264,7 @@ body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
   display: block;
   width: 100%;
   height: 480px;
+  touch-action: none;
 }
 .lab-controls-panel {
   display: grid;
@@ -4107,12 +4108,34 @@ body.modal-open .sb-toolbar-toggle {
   .lab-controls-panel {
     grid-template-columns: 1fr;
   }
+  [class*="-layout"],
   .harmonic-layout,
   .punnett-layout,
   .gas-layout,
   .titration-layout,
   .microscope-layout,
-  .periodic-layout {
+  .periodic-layout,
+  .ptable-layout,
+  .vsepr-layout,
+  .respiration-layout,
+  .magnetism-layout,
+  .equilibrium-layout,
+  .calorimetry-layout,
+  .rot-layout,
+  .gel-layout,
+  .cond-layout,
+  .collig-layout,
+  .eco-layout,
+  .enzyme-layout,
+  .fluids-layout,
+  .decay-layout,
+  .org-layout,
+  .electrochem-layout,
+  .photoelectric-layout,
+  .photo-layout,
+  .wave-layout,
+  .beer-layout,
+  .neuro-layout {
     grid-template-columns: 1fr !important;
   }
 }
