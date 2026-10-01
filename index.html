@@ -30,9 +30,9 @@
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=STIX+Two+Text:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;600;700&display=swap">
 
-  <!-- KaTeX High-Precision Mathematical Typesetting -->
+  <!-- KaTeX High-Precision Mathematical Typesetting (Non-blocking async progressive enhancement) -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" onload="if (window.upgradeAllMath) window.upgradeAllMath();"></script>
+  <script async src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" onload="if (window.upgradeAllMath) window.upgradeAllMath();"></script>
 
   <!-- Preload Core Stylesheet -->
   <link rel="preload" href="index.css?v=4.4" as="style">
@@ -153,9 +153,14 @@
       // 8-Second Watchdog Timer
       var bootTimeout = setTimeout(function() {
         if (!window.__APP_BOOTED__) {
+          if (document.getElementById("main-content-view") || document.querySelector(".app-header")) {
+            window.__APP_BOOTED__ = true;
+            return;
+          }
           renderAppErrorBoundary({ message: "Timeout: Application scripts did not finish booting within 8000ms" });
         }
       }, 8000);
+      window.__BOOT_WATCHDOG_TIMER__ = bootTimeout;
 
       window.addEventListener("error", function(evt) {
         if (!window.__APP_BOOTED__) {

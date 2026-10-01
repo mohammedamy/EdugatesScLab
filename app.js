@@ -122,6 +122,12 @@ export const NAV_SUBJECTS = [
 // Initialize App with fast boot execution and error boundary
 function bootApp() {
   try {
+    if (typeof window !== "undefined") {
+      window.__APP_BOOTED__ = true;
+      if (window.__BOOT_WATCHDOG_TIMER__) {
+        clearTimeout(window.__BOOT_WATCHDOG_TIMER__);
+      }
+    }
     setupDeviceDetection();
     renderAppShell();
     initCustomLogoDetector();
@@ -271,7 +277,9 @@ export function enhanceA11y(container) {
 }
 
 if (typeof document !== "undefined") {
-  if (document.readyState === "loading") {
+  if (document.getElementById("app-root")) {
+    bootApp();
+  } else if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", bootApp, { once: true });
   } else {
     bootApp();
