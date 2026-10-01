@@ -385,18 +385,12 @@ function renderAppShell() {
         <div class="nav-dropdown-wrapper" id="nav-dropdown-wrapper">
           <button class="nav-dropdown-trigger ${curSub.themeClass}" id="nav-dropdown-trigger" 
                   aria-haspopup="true" aria-expanded="false" 
-                  aria-label="Select Subject or Area (Current: ${curSub.name})"
-                  title="Select Subject or Area (Chemistry, Biology, Physics, Labs, Quiz, Flashcards)">
+                  aria-label="Select Subject (Current: ${curSub.name})"
+                  title="Select Subject: ${curSub.name}">
             <div class="nav-dropdown-trigger-icon" id="nav-dropdown-current-icon">
               ${curSub.icon}
             </div>
-            <div class="nav-dropdown-trigger-info">
-              <span class="nav-dropdown-current-label">Curriculum / Area</span>
-              <div class="nav-dropdown-current-row">
-                <span class="nav-dropdown-current-title" id="nav-dropdown-current-title">${curSub.name}</span>
-                <span class="nav-dropdown-current-badge" id="nav-dropdown-current-badge">${curSub.badge}</span>
-              </div>
-            </div>
+            <span class="nav-dropdown-current-title" id="nav-dropdown-current-title">${curSub.name}</span>
             <div class="nav-dropdown-chevron" id="nav-dropdown-chevron" aria-hidden="true">
               ${icons.chevronDown}
             </div>
@@ -445,15 +439,10 @@ function renderAppShell() {
           <span class="theme-toggle-text">${AppState.theme === 'day' ? 'Day' : 'Night'}</span>
         </button>
 
+        <!-- Mastery Telemetry Button -->
         <button class="btn btn-secondary nav-action-btn" id="btn-open-progress" title="Student STEM Mastery Telemetry" aria-label="Student STEM Mastery telemetry and progress">
           <span class="nav-btn-icon">${icons.trophy}</span>
           <span class="nav-btn-label">Mastery</span>
-        </button>
-
-        <!-- Offline Readiness & Storage Diagnostics Button -->
-        <button class="btn btn-secondary nav-action-btn" id="btn-open-offline-diag" title="Offline Readiness, Cache Diagnostics &amp; Storage Quota (Hot-key: O)" aria-label="Offline diagnostics and storage quota">
-          <span class="nav-btn-icon">📡</span>
-          <span class="nav-btn-label">Offline</span>
         </button>
 
         <!-- Focus Presentation Mode Toggle Button -->

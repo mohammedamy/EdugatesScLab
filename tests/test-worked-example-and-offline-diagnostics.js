@@ -164,9 +164,8 @@ it("smartboard-toolbar.js includes offline diagnostics button (#sb-tool-offline)
   assert(sbContent.includes('e.key === "o" || e.key === "O"'), "smartboard-toolbar must support hotkey O");
 });
 
-it("app.js navbar includes offline diagnostics button (#btn-open-offline-diag)", () => {
+it("app.js exposes window.openOfflineDiagnosticsModal for smartboard toolbar and global shortcuts", () => {
   const appContent = fs.readFileSync(path.join(rootDir, "app.js"), "utf8");
-  assert(appContent.includes('id="btn-open-offline-diag"'), "app.js must contain btn-open-offline-diag button");
   assert(appContent.includes('window.openOfflineDiagnosticsModal'), "app.js must expose window.openOfflineDiagnosticsModal");
 });
 

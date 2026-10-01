@@ -250,6 +250,13 @@ assert(indexCss.includes(".nav-action-btn") &&
        indexCss.includes('[data-theme="day"] .nav-action-btn'),
   "index.css provides polished Day & Night styling for navbar action buttons");
 
+assert(!appJsContent.includes('id="btn-open-offline-diag"'),
+  "app.js removes offline button from navbar for a cleaner, unified header layout");
+
+assert(!appJsContent.includes('class="nav-dropdown-current-label"') &&
+       appJsContent.includes('id="nav-dropdown-current-title"'),
+  "app.js configures menu dropdown title to show subject name only");
+
 // ----------------------------------------------------
 // Summary
 // ----------------------------------------------------

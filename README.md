@@ -44,7 +44,7 @@ Guarantees uninterrupted classroom delivery in school networks with intermittent
 - **Persistent Storage Locking**: Calls `navigator.storage.persist()` to protect laboratory simulations and question banks from automated browser disk eviction.
 - **One-Click Field Trip Precaching**: Pre-caches all 30 virtual lab engines, curriculum theory databases, and media assets into CacheStorage (`amscilab-pwa-v42`).
 - **Offline Health Check**: Verifies 16 essential subsystems (HTML shell, CSS, engines, data, labs) with visual status indicators.
-- **Quick Access**: Open via Pen Toolbar button (`#sb-tool-offline`), Navbar button (`#btn-open-offline-diag`), or universal keyboard shortcut **`O`**.
+- **Quick Access**: Open via Pen Toolbar button (`#sb-tool-offline`) or universal keyboard shortcut **`O`**.
 
 ### 4. 🖍️ Smartboard Classroom Toolbar (10 Interactive Tools)
 Floating, draggable, and bottom-dockable teacher presentation suite:
