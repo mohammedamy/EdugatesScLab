@@ -355,64 +355,69 @@ export function initAnatomyAtlasLab(containerId) {
           </div>
 
           <!-- Bottom Layer Opacity & Dissection Strip (Macro Mode) -->
-          <div id="dissection-control-panel" style="display: flex; flex-direction: column; gap: 8px; background: rgba(15, 23, 42, 0.5); padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border-color);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-color); text-transform: uppercase; letter-spacing: 0.05em;">
-                Layer Dissection &amp; Opacity Blending
-              </span>
-              <button id="btn-isolate-skeletal" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 2px 8px;">
-                Isolate Skeleton
-              </button>
-              <button id="btn-isolate-viscera" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 2px 8px;">
-                Isolate Viscera
-              </button>
-              <button id="btn-reset-layers" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 2px 8px;">
-                Reset All Layers
-              </button>
+          <div id="dissection-control-panel" style="display: flex; flex-direction: column; gap: 10px; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(12px); padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.8rem; font-weight: 800; color: #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em;">
+                  🔬 Layer Dissection &amp; Opacity Blending
+                </span>
+                <span style="font-size: 0.72rem; color: #64748b; font-style: italic;">(Drag sliders to peel anatomical strata)</span>
+              </div>
+              <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                <button id="btn-isolate-skeletal" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 3px 9px;">
+                  💀 Isolate Skeleton
+                </button>
+                <button id="btn-isolate-viscera" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 3px 9px;">
+                  🫀 Isolate Viscera
+                </button>
+                <button id="btn-reset-layers" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 3px 9px;">
+                  🔄 Reset Layers
+                </button>
+              </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; font-size: 0.78rem;">
-              <div>
-                <div style="display: flex; justify-content: space-between; color: var(--text-dim); margin-bottom: 2px;">
-                  <span>✨ Integument</span>
-                  <span id="val-skin">25%</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 0.78rem;">
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; padding: 8px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; color: #94a3b8; margin-bottom: 4px; font-weight: 600;">
+                  <span style="white-space: nowrap;">✨ Integument</span>
+                  <span id="val-skin" style="font-family: var(--font-mono); font-size: 0.75rem; color: #cbd5e1;">25%</span>
                 </div>
-                <input id="rng-skin" type="range" min="0" max="100" value="25" class="range-slider" style="width: 100%;">
+                <input id="rng-skin" type="range" min="0" max="100" value="25" class="range-slider" style="width: 100%; cursor: pointer;">
               </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; color: #f87171; margin-bottom: 2px;">
-                  <span>💪 Muscular</span>
-                  <span id="val-muscular">85%</span>
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; padding: 8px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; color: #f87171; margin-bottom: 4px; font-weight: 600;">
+                  <span style="white-space: nowrap;">💪 Muscular</span>
+                  <span id="val-muscular" style="font-family: var(--font-mono); font-size: 0.75rem; color: #f87171;">85%</span>
                 </div>
-                <input id="rng-muscular" type="range" min="0" max="100" value="85" class="range-slider" style="width: 100%;">
+                <input id="rng-muscular" type="range" min="0" max="100" value="85" class="range-slider" style="width: 100%; cursor: pointer;">
               </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; color: #e2e8f0; margin-bottom: 2px;">
-                  <span>💀 Skeletal</span>
-                  <span id="val-skeletal">95%</span>
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; padding: 8px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">
+                  <span style="white-space: nowrap;">💀 Skeletal</span>
+                  <span id="val-skeletal" style="font-family: var(--font-mono); font-size: 0.75rem; color: #e2e8f0;">95%</span>
                 </div>
-                <input id="rng-skeletal" type="range" min="0" max="100" value="95" class="range-slider" style="width: 100%;">
+                <input id="rng-skeletal" type="range" min="0" max="100" value="95" class="range-slider" style="width: 100%; cursor: pointer;">
               </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; color: #fbbf24; margin-bottom: 2px;">
-                  <span>🍽️ Splanchnic/Viscera</span>
-                  <span id="val-visceral">100%</span>
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; padding: 8px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; color: #fbbf24; margin-bottom: 4px; font-weight: 600;">
+                  <span style="white-space: nowrap;" title="Splanchnic Internal Viscera">🍽️ Viscera / Organs</span>
+                  <span id="val-visceral" style="font-family: var(--font-mono); font-size: 0.75rem; color: #fbbf24;">100%</span>
                 </div>
-                <input id="rng-visceral" type="range" min="0" max="100" value="100" class="range-slider" style="width: 100%;">
+                <input id="rng-visceral" type="range" min="0" max="100" value="100" class="range-slider" style="width: 100%; cursor: pointer;">
               </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; color: #ef4444; margin-bottom: 2px;">
-                  <span>🫀 Vasculature</span>
-                  <span id="val-circulatory">100%</span>
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; padding: 8px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; color: #ef4444; margin-bottom: 4px; font-weight: 600;">
+                  <span style="white-space: nowrap;">🫀 Vasculature</span>
+                  <span id="val-circulatory" style="font-family: var(--font-mono); font-size: 0.75rem; color: #ef4444;">100%</span>
                 </div>
-                <input id="rng-circulatory" type="range" min="0" max="100" value="100" class="range-slider" style="width: 100%;">
+                <input id="rng-circulatory" type="range" min="0" max="100" value="100" class="range-slider" style="width: 100%; cursor: pointer;">
               </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; color: #38bdf8; margin-bottom: 2px;">
-                  <span>🧠 Nervous</span>
-                  <span id="val-nervous">90%</span>
+              <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.07); border-radius: 8px; padding: 8px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; color: #38bdf8; margin-bottom: 4px; font-weight: 600;">
+                  <span style="white-space: nowrap;">🧠 Nervous</span>
+                  <span id="val-nervous" style="font-family: var(--font-mono); font-size: 0.75rem; color: #38bdf8;">90%</span>
                 </div>
-                <input id="rng-nervous" type="range" min="0" max="100" value="90" class="range-slider" style="width: 100%;">
+                <input id="rng-nervous" type="range" min="0" max="100" value="90" class="range-slider" style="width: 100%; cursor: pointer;">
               </div>
             </div>
           </div>
