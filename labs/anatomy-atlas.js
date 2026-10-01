@@ -10,6 +10,7 @@ import { SoundFX } from "../utils/audio-synth.js";
 import {
   ANATOMICAL_SYSTEMS,
   ANATOMICAL_STRUCTURES,
+  ANATOMICAL_PLATES,
   HISTOLOGY_SIMULATION_MODELS,
   ANATOMY_CHECKPOINTS
 } from "../data/human-anatomy-atlas-data.js";
@@ -33,6 +34,7 @@ export function initAnatomyAtlasLab(containerId) {
   let activeSystemFilter = "all"; // 'all' | systemId
   let activeRegion = "all"; // 'all' | 'head' | 'thorax' | 'abdomen' | 'pelvis' | 'upper_limb' | 'lower_limb'
   let activeView = "anterior"; // 'anterior' | 'posterior'
+  let activePlate = "full_anterior"; // 11 High-Res Plates: 'full_anterior' | 'full_posterior' | 'skeletal' | 'muscular' | 'heart' | 'brain' | 'lungs' | 'digestive' | 'urinary' | 'cranial' | 'histology_slide'
   let activeHistologyModel = "cardiac_cycle";
   let selectedStructure = ANATOMICAL_STRUCTURES.find(s => s.id === "heart") || ANATOMICAL_STRUCTURES[0];
   let searchQuery = "";
@@ -59,14 +61,21 @@ export function initAnatomyAtlasLab(containerId) {
   // 8K Imaging Modes ('photo' | 'xray' | 'angiogram')
   let imagingMode = "photo";
 
-  // Preload Museum-Grade 8K Anatomical Dissection Plates
-  const imgAnterior = new Image();
-  imgAnterior.crossOrigin = "anonymous";
-  imgAnterior.src = "./assets/labs/human_anatomy_anterior_8k.jpg";
+  // Preload Museum-Grade 8K Anatomical Dissection & Microscopic Plates
+  const plateImages = {};
+  if (ANATOMICAL_PLATES) {
+    Object.keys(ANATOMICAL_PLATES).forEach(key => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = ANATOMICAL_PLATES[key].src;
+      plateImages[key] = img;
+    });
+  }
 
-  const imgPosterior = new Image();
-  imgPosterior.crossOrigin = "anonymous";
-  imgPosterior.src = "./assets/labs/human_anatomy_posterior_8k.jpg";
+  const imgAnterior = plateImages.full_anterior || new Image();
+  const imgPosterior = plateImages.full_posterior || new Image();
+  if (!imgAnterior.src) imgAnterior.src = "./assets/labs/human_anatomy_anterior_8k.jpg";
+  if (!imgPosterior.src) imgPosterior.src = "./assets/labs/human_anatomy_posterior_8k.jpg";
 
   // Animation and simulation handles
   let animId = null;
@@ -121,14 +130,65 @@ export function initAnatomyAtlasLab(containerId) {
     } catch (e) {}
   }
 
+  // Synthesized Vesicular Pulmonary Breath Sounds Generator
+  function playBreathSound() {
+    try {
+      const audioCtx = SoundFX.getAudioContext?.() || (window.AudioContext ? new window.AudioContext() : null);
+      if (!audioCtx || audioCtx.state === "suspended") return;
+      const bufferSize = Math.floor(audioCtx.sampleRate * 1.6);
+      const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = buffer.getChannelData(0);
+      let b0 = 0, b1 = 0, b2 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        output[i] = (b0 + b1 + b2) * 0.12;
+      }
+      const noise = audioCtx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = 260;
+      filter.Q.value = 1.6;
+      const gain = audioCtx.createGain();
+      const now = audioCtx.currentTime;
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.22, now + 0.7); // Inspiration
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5); // Expiration
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(audioCtx.destination);
+      noise.start(now);
+    } catch (e) {}
+  }
+
+  // Visible structures helper for active plate & view
+  function getVisibleStructures(plateId, view) {
+    return ANATOMICAL_STRUCTURES.filter(s => {
+      if (s.plate) {
+        return s.plate === plateId;
+      }
+      if (plateId === "full_anterior") {
+        return s.view === "anterior";
+      }
+      if (plateId === "full_posterior") {
+        return s.view === "posterior";
+      }
+      const plateConf = ANATOMICAL_PLATES ? ANATOMICAL_PLATES[plateId] : null;
+      if (plateConf && plateConf.system !== "all") {
+        return s.system === plateConf.system;
+      }
+      return s.view === view;
+    });
+  }
+
   // Pick new quiz target
   function selectNewQuizTarget() {
-    const candidates = ANATOMICAL_STRUCTURES.filter(s => s.view === activeView);
-    if (candidates.length === 0) {
-      quizState.targetStructure = ANATOMICAL_STRUCTURES[0];
-    } else {
-      quizState.targetStructure = candidates[Math.floor(Math.random() * candidates.length)];
-    }
+    const visible = getVisibleStructures(activePlate, activeView);
+    const candidates = visible.length > 0 ? visible : ANATOMICAL_STRUCTURES;
+    quizState.targetStructure = candidates[Math.floor(Math.random() * candidates.length)];
     quizState.feedbackMsg = `Tap or click the pin for: "${quizState.targetStructure.name}" (${quizState.targetStructure.latinName})`;
     quizState.feedbackType = "neutral";
   }
@@ -183,6 +243,35 @@ export function initAnatomyAtlasLab(containerId) {
             <span>📋</span>
             <span>Lab Dossier</span>
           </button>
+        </div>
+      </div>
+
+      <!-- Interactive 11-Plate Anatomical & Histological System Selector -->
+      <div class="atlas-plate-strip-wrapper" style="background: var(--surface-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">
+              🏛️ High-Resolution Scientific Anatomical Plates (8K UHD)
+            </span>
+            <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight: 700; border: 1px solid rgba(56, 189, 248, 0.3);">
+              11 Dedicated Medical Systems
+            </span>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-dim);">
+            Tap any organ plate for instant high-definition cross-sections, pinpoint coordinates, &amp; telemetry
+          </div>
+        </div>
+        <div id="plate-selector-strip" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin;">
+          ${Object.keys(ANATOMICAL_PLATES || {}).map(key => {
+            const p = ANATOMICAL_PLATES[key];
+            const isAct = activePlate === key;
+            return `
+              <button class="btn btn-sm btn-plate-select ${isAct ? 'btn-primary' : 'btn-secondary'}" data-plate="${key}" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-weight: 700; white-space: nowrap; border-radius: 8px; font-size: 0.78rem;">
+                <span>${p.icon}</span>
+                <span>${p.shortName || p.name}</span>
+              </button>
+            `;
+          }).join("")}
         </div>
       </div>
 
@@ -405,6 +494,14 @@ export function initAnatomyAtlasLab(containerId) {
                 Coronary artery disease, acute myocardial infarction (STEMI/NSTEMI with cardiac troponin release), congestive heart failure.
               </div>
             </div>
+
+            <!-- Interactive Stethoscope & Acoustic Bio-Telemetry Auscultator -->
+            <div id="inspect-interactive-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button id="btn-inspect-auscultate" class="btn btn-outline btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 0.78rem; padding: 8px 12px;">
+                <span id="btn-inspect-auscultate-icon">🫀</span>
+                <span id="btn-inspect-auscultate-label">Auscultate Cardiac Sounds (S1/S2)</span>
+              </button>
+            </div>
           </div>
 
           <!-- HISTOLOGY SIMULATION CONTROLLER (Visible when in Histology Tab) -->
@@ -595,7 +692,88 @@ export function initAnatomyAtlasLab(containerId) {
     if (nerve) nerve.innerText = structure.innervation;
     const path = document.getElementById("inspect-pathology");
     if (path) path.innerText = structure.pathology;
+
+    const auscBtn = document.getElementById("btn-inspect-auscultate");
+    const auscIcon = document.getElementById("btn-inspect-auscultate-icon");
+    const auscLabel = document.getElementById("btn-inspect-auscultate-label");
+    if (auscBtn && auscLabel) {
+      if (structure.system === "circulatory") {
+        if (auscIcon) auscIcon.innerText = "🫀";
+        auscLabel.innerText = "Auscultate Cardiac Sounds (S1/S2)";
+      } else if (structure.system === "respiratory") {
+        if (auscIcon) auscIcon.innerText = "🫁";
+        auscLabel.innerText = "Auscultate Vesicular Breath Sounds";
+      } else if (structure.system === "nervous") {
+        if (auscIcon) auscIcon.innerText = "⚡";
+        auscLabel.innerText = "Stimulate Bioelectric Action Potential";
+      } else {
+        if (auscIcon) auscIcon.innerText = "🔬";
+        auscLabel.innerText = "Inspect Microscopic Histology Model";
+      }
+    }
   }
+
+  // Auscultate / Bio-telemetry action trigger
+  document.getElementById("btn-inspect-auscultate")?.addEventListener("click", () => {
+    if (!selectedStructure) return;
+    if (selectedStructure.system === "circulatory") {
+      playHeartSound(true);
+      setTimeout(() => playHeartSound(false), 260);
+    } else if (selectedStructure.system === "respiratory") {
+      playBreathSound();
+    } else if (selectedStructure.system === "nervous") {
+      SoundFX.playPop();
+    } else {
+      switchTab("histology");
+    }
+  });
+
+  // Dedicated 11-Plate Anatomical Switcher
+  function switchAnatomicalPlate(plateKey) {
+    if (!ANATOMICAL_PLATES || !ANATOMICAL_PLATES[plateKey]) return;
+    activePlate = plateKey;
+    const p = ANATOMICAL_PLATES[plateKey];
+    if (p.view) {
+      activeView = p.view;
+      btnViewAnt?.classList.toggle("btn-primary", activeView === "anterior");
+      btnViewAnt?.classList.toggle("btn-secondary", activeView !== "anterior");
+      btnViewPost?.classList.toggle("btn-primary", activeView === "posterior");
+      btnViewPost?.classList.toggle("btn-secondary", activeView !== "posterior");
+    }
+    SoundFX.playPop();
+
+    // Reset viewport zoom/pan
+    zoom = 1.0;
+    panX = 0;
+    panY = 0;
+    if (zoomBadge) zoomBadge.innerText = "1.0×";
+
+    // Auto-select relevant structure
+    const candidate = ANATOMICAL_STRUCTURES.find(s => s.plate === plateKey) ||
+                      ANATOMICAL_STRUCTURES.find(s => p.system !== "all" && s.system === p.system) ||
+                      ANATOMICAL_STRUCTURES.find(s => s.view === activeView);
+    if (candidate) {
+      updateInspectorCard(candidate);
+    }
+
+    // Update buttons in plate strip
+    container.querySelectorAll(".btn-plate-select").forEach(b => {
+      const match = b.dataset.plate === plateKey;
+      b.classList.toggle("btn-primary", match);
+      b.classList.toggle("btn-secondary", !match);
+    });
+
+    // Update banner text
+    if (canvasModeText) {
+      canvasModeText.innerText = `${p.name} • 8K UHD Medical Plate • Drag to Pan • Wheel/Pinch to Zoom`;
+    }
+  }
+
+  container.querySelectorAll(".btn-plate-select").forEach(b => {
+    b.addEventListener("click", () => {
+      switchAnatomicalPlate(b.dataset.plate);
+    });
+  });
 
   // Search input filter
   inputSearch?.addEventListener("input", (e) => {
@@ -608,7 +786,9 @@ export function initAnatomyAtlasLab(containerId) {
       s.description.toLowerCase().includes(searchQuery)
     );
     if (match) {
-      if (activeView !== match.view) {
+      if (match.plate && match.plate !== activePlate) {
+        switchAnatomicalPlate(match.plate);
+      } else if (activeView !== match.view) {
         activeView = match.view;
         btnViewAnt.classList.toggle("btn-primary", activeView === "anterior");
         btnViewAnt.classList.toggle("btn-secondary", activeView !== "anterior");
@@ -636,7 +816,8 @@ export function initAnatomyAtlasLab(containerId) {
     quizPromptBanner.style.display = (activeTab === "quiz") ? "flex" : "none";
 
     if (activeTab === "macro") {
-      canvasModeText.innerText = "4K UHD Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom";
+      const p = ANATOMICAL_PLATES ? ANATOMICAL_PLATES[activePlate] : null;
+      canvasModeText.innerText = p ? `${p.name} • 8K UHD Medical Plate • Drag to Pan • Wheel/Pinch to Zoom` : "4K UHD Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom";
     } else if (activeTab === "histology") {
       canvasModeText.innerText = "60 FPS Microscopic Simulation Workbench • Interactive Physiological Parameters";
       renderHistologyControls();
@@ -659,6 +840,9 @@ export function initAnatomyAtlasLab(containerId) {
     btnViewAnt.classList.remove("btn-secondary");
     btnViewPost.classList.remove("btn-primary");
     btnViewPost.classList.add("btn-secondary");
+    if (activePlate === "full_posterior") {
+      switchAnatomicalPlate("full_anterior");
+    }
     SoundFX.playClick();
   });
   btnViewPost?.addEventListener("click", () => {
@@ -667,6 +851,7 @@ export function initAnatomyAtlasLab(containerId) {
     btnViewPost.classList.remove("btn-secondary");
     btnViewAnt.classList.remove("btn-primary");
     btnViewAnt.classList.add("btn-secondary");
+    switchAnatomicalPlate("full_posterior");
     SoundFX.playClick();
   });
 
@@ -723,12 +908,12 @@ export function initAnatomyAtlasLab(containerId) {
 
   // Zoom buttons
   btnZoomIn?.addEventListener("click", () => {
-    zoom = Math.min(10.0, zoom * 1.35);
+    zoom = Math.min(12.0, zoom * 1.35);
     if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
     SoundFX.playClick();
   });
   btnZoomOut?.addEventListener("click", () => {
-    zoom = Math.max(0.6, zoom / 1.35);
+    zoom = Math.max(0.4, zoom / 1.35);
     if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
     SoundFX.playClick();
   });
@@ -794,12 +979,12 @@ export function initAnatomyAtlasLab(containerId) {
       panX = e.clientX - dragStartX;
       panY = e.clientY - dragStartY;
     } else {
-      // Hover detection on pins
+      // Hover detection on active plate pins
       const coords = getCanvasCoords(e);
       const norm = canvasToNormalizedCoords(coords.x, coords.y, coords.width, coords.height);
       const hitRadius = 36 / zoom; // Screen pixel normalized radius
-      const found = ANATOMICAL_STRUCTURES.find(s => {
-        if (s.view !== activeView) return false;
+      const visible = getVisibleStructures(activePlate, activeView);
+      const found = visible.find(s => {
         const dx = s.coords.x - norm.x;
         const dy = s.coords.y - norm.y;
         return Math.hypot(dx, dy) <= hitRadius;
@@ -816,13 +1001,68 @@ export function initAnatomyAtlasLab(containerId) {
     }
   });
 
+  // Touch Screen Two-Finger Pinch-to-Zoom & Pan Engine
+  let touchStartDist = 0;
+  let touchStartZoom = 1.0;
+  let isPinching = false;
+
+  canvas.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      isDragging = false;
+      isPinching = true;
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      touchStartZoom = zoom;
+    } else if (e.touches.length === 1 && !isPinching) {
+      isDragging = true;
+      dragStartX = e.touches[0].clientX - panX;
+      dragStartY = e.touches[0].clientY - panY;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", (e) => {
+    if (e.touches.length === 2 && isPinching && touchStartDist > 0) {
+      e.preventDefault();
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const ratio = currentDist / touchStartDist;
+      const newZoom = Math.max(0.4, Math.min(12.0, touchStartZoom * ratio));
+
+      const rect = canvas.getBoundingClientRect();
+      const midX = ((t1.clientX + t2.clientX) / 2) - rect.left;
+      const midY = ((t1.clientY + t2.clientY) / 2) - rect.top;
+
+      panX = midX - (midX - panX) * (newZoom / zoom);
+      panY = midY - (midY - panY) * (newZoom / zoom);
+      zoom = newZoom;
+
+      if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
+    } else if (e.touches.length === 1 && isDragging) {
+      panX = e.touches[0].clientX - dragStartX;
+      panY = e.touches[0].clientY - dragStartY;
+    }
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", (e) => {
+    if (e.touches.length < 2) {
+      isPinching = false;
+      touchStartDist = 0;
+    }
+    if (e.touches.length === 0) {
+      isDragging = false;
+    }
+  });
+
   // Click on pin
   canvas.addEventListener("click", (e) => {
     const coords = getCanvasCoords(e);
     const norm = canvasToNormalizedCoords(coords.x, coords.y, coords.width, coords.height);
     const hitRadius = 40 / zoom;
-    const clicked = ANATOMICAL_STRUCTURES.find(s => {
-      if (s.view !== activeView) return false;
+    const visible = getVisibleStructures(activePlate, activeView);
+    const clicked = visible.find(s => {
       const dx = s.coords.x - norm.x;
       const dy = s.coords.y - norm.y;
       return Math.hypot(dx, dy) <= hitRadius;
@@ -853,7 +1093,7 @@ export function initAnatomyAtlasLab(containerId) {
   canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
     const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
-    const newZoom = Math.max(0.6, Math.min(10.0, zoom * zoomFactor));
+    const newZoom = Math.max(0.4, Math.min(12.0, zoom * zoomFactor));
 
     // Zoom centered on cursor
     const coords = getCanvasCoords(e);
@@ -1024,11 +1264,13 @@ export function initAnatomyAtlasLab(containerId) {
     }
 
     // Header banner
+    const activePlateConf = ANATOMICAL_PLATES ? ANATOMICAL_PLATES[activePlate] : null;
+    const plateTitle = activePlateConf ? `${activePlateConf.name.toUpperCase()} (4K UHD)` : "HUMAN ANATOMY ATLAS & SYSTEMIC MATRIX (4K UHD)";
     offCtx.fillStyle = "#ffffff";
-    offCtx.font = "bold 64px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
-    offCtx.fillText("HUMAN ANATOMY ATLAS & SYSTEMIC MATRIX (4K UHD)", 120, 140);
+    offCtx.font = "bold 60px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+    offCtx.fillText(plateTitle, 120, 140);
     offCtx.fillStyle = "#38bdf8";
-    offCtx.font = "600 32px 'JetBrains Mono', monospace";
+    offCtx.font = "600 30px 'JetBrains Mono', monospace";
     offCtx.fillText("EDUGATES-CLIPSAT RESEARCH-GRADE STEM LABORATORIES • TERMINOLOGIA ANATOMICA", 120, 190);
 
     // Draw anatomy figure onto 4K canvas
@@ -1082,11 +1324,11 @@ export function initAnatomyAtlasLab(containerId) {
     // Timestamp & Watermark
     offCtx.fillStyle = "rgba(255, 255, 255, 0.4)";
     offCtx.font = "20px 'JetBrains Mono', monospace";
-    offCtx.fillText(`Rendered at ${new Date().toISOString()} • Native 3840×2160 Vector Metrology`, 120, 2100);
+    offCtx.fillText(`Plate: ${activePlateConf?.shortName || activePlate} • Rendered at ${new Date().toISOString()} • Native 3840×2160 Vector Metrology`, 120, 2100);
 
     // Download PNG
     const link = document.createElement("a");
-    link.download = `human_anatomy_4k_atlas_${selectedStructure ? selectedStructure.id : 'matrix'}.png`;
+    link.download = `human_anatomy_4k_${activePlate}_${selectedStructure ? selectedStructure.id : 'matrix'}.png`;
     link.href = offCanvas.toDataURL("image/png");
     link.click();
   }
@@ -1141,8 +1383,8 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.scale(renderScale, renderScale);
 
     // 0. PRIMARY 8K ULTRA-HD MEDICAL DISSECTION PLATE
-    const activeImg = (view === "anterior") ? imgAnterior : imgPosterior;
-    const isImgReady = activeImg.complete && activeImg.naturalWidth > 0;
+    const activeImg = plateImages[activePlate] || ((view === "anterior") ? imgAnterior : imgPosterior);
+    const isImgReady = activeImg && activeImg.complete && activeImg.naturalWidth > 0;
 
     if (isImgReady) {
       targetCtx.save();
@@ -1158,12 +1400,20 @@ export function initAnatomyAtlasLab(containerId) {
         targetCtx.filter = "none";
       }
 
-      // Exact 1000 x 1800 coordinate space calibration
-      const drawH = 1680;
+      // Exact 1000 x 1800 coordinate space calibration (scales properly based on aspect ratio)
+      const maxW = 900;
+      const maxH = 1680;
       const aspect = activeImg.naturalWidth / activeImg.naturalHeight;
-      const drawW = drawH * aspect;
+      let drawW, drawH;
+      if (aspect > (maxW / maxH)) {
+        drawW = maxW;
+        drawH = drawW / aspect;
+      } else {
+        drawH = maxH;
+        drawW = drawH * aspect;
+      }
       const drawX = 500 - (drawW / 2);
-      const drawY = 55;
+      const drawY = 900 - (drawH / 2);
 
       targetCtx.drawImage(activeImg, drawX, drawY, drawW, drawH);
       targetCtx.restore();
@@ -1176,12 +1426,14 @@ export function initAnatomyAtlasLab(containerId) {
       targetCtx.fillStyle = "#38bdf8";
       targetCtx.font = "bold 26px -apple-system, sans-serif";
       targetCtx.textAlign = "center";
-      targetCtx.fillText("Loading 8K Ultra-HD Medical Anatomy Plate...", 500, 880);
+      const plateName = ANATOMICAL_PLATES?.[activePlate]?.name || "8K Ultra-HD Medical Anatomy Plate";
+      targetCtx.fillText(`Loading ${plateName}...`, 500, 880);
       targetCtx.restore();
     }
 
-    // 1. DYNAMIC VASCULAR TREE ILLUMINATION OVERLAY
-    if (layerOpacities.circulatory > 0.05 || imagingMode === "angiogram") {
+    // 1. DYNAMIC VASCULAR TREE ILLUMINATION OVERLAY (Full body views)
+    const isFullBody = (activePlate === "full_anterior" || activePlate === "full_posterior");
+    if (isFullBody && (layerOpacities.circulatory > 0.05 || imagingMode === "angiogram")) {
       targetCtx.save();
       const circAlpha = Math.min(1.0, layerOpacities.circulatory * (imagingMode === "angiogram" ? 1.0 : 0.85));
       targetCtx.globalAlpha = circAlpha;
@@ -1223,8 +1475,51 @@ export function initAnatomyAtlasLab(containerId) {
       targetCtx.restore();
     }
 
-    // 2. BIOELECTRIC NERVOUS SYSTEM AXIS OVERLAY
-    if (layerOpacities.nervous > 0.05) {
+    // Dynamic Plate Overlays:
+    // Cardiac specific pulse overlay for internal heart plate:
+    if (activePlate === "heart") {
+      targetCtx.save();
+      const pulse = 1.0 + 0.15 * Math.sin(simTime * 8);
+      targetCtx.shadowColor = "#ef4444";
+      targetCtx.shadowBlur = 24 * pulse;
+      targetCtx.strokeStyle = "rgba(239, 68, 68, 0.45)";
+      targetCtx.lineWidth = 3 * pulse;
+      targetCtx.beginPath();
+      targetCtx.arc(505, 645, 50 * pulse, 0, Math.PI * 2);
+      targetCtx.stroke();
+      targetCtx.restore();
+    }
+
+    // Respiratory breathing expansion overlay for lungs plate:
+    if (activePlate === "lungs") {
+      targetCtx.save();
+      const breath = 1.0 + 0.08 * Math.sin(simTime * 2.4);
+      targetCtx.shadowColor = "#34d399";
+      targetCtx.shadowBlur = 20 * breath;
+      targetCtx.strokeStyle = "rgba(52, 211, 153, 0.4)";
+      targetCtx.lineWidth = 2.5 * breath;
+      targetCtx.beginPath();
+      targetCtx.arc(500, 630, 45 * breath, 0, Math.PI * 2);
+      targetCtx.stroke();
+      targetCtx.restore();
+    }
+
+    // Neural synaptic spark overlay for brain plate:
+    if (activePlate === "brain") {
+      targetCtx.save();
+      const brainPulse = 1.0 + 0.12 * Math.sin(simTime * 5);
+      targetCtx.shadowColor = "#38bdf8";
+      targetCtx.shadowBlur = 18 * brainPulse;
+      targetCtx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+      targetCtx.lineWidth = 2.5;
+      targetCtx.beginPath();
+      targetCtx.arc(310, 550, 40 * brainPulse, 0, Math.PI * 2);
+      targetCtx.stroke();
+      targetCtx.restore();
+    }
+
+    // 2. BIOELECTRIC NERVOUS SYSTEM AXIS OVERLAY (Full body views)
+    if (isFullBody && layerOpacities.nervous > 0.05) {
       targetCtx.save();
       targetCtx.globalAlpha = Math.min(1.0, layerOpacities.nervous * 0.9);
       targetCtx.shadowColor = "#00f0ff";
@@ -1255,8 +1550,8 @@ export function initAnatomyAtlasLab(containerId) {
       targetCtx.restore();
     }
 
-    // 3. SKELETAL & MUSCULAR OPACITY SHADING
-    if (layerOpacities.skeletal > 0.95 && layerOpacities.muscular < 0.2) {
+    // 3. SKELETAL & MUSCULAR OPACITY SHADING (Full body views)
+    if (isFullBody && layerOpacities.skeletal > 0.95 && layerOpacities.muscular < 0.2) {
       targetCtx.save();
       targetCtx.globalAlpha = 0.22;
       targetCtx.fillStyle = "#e2e8f0";
@@ -1265,7 +1560,7 @@ export function initAnatomyAtlasLab(containerId) {
       targetCtx.ellipse(view === "anterior" ? 590 : 500, 420, 70, 200, 0, 0, Math.PI * 2);
       targetCtx.fill();
       targetCtx.restore();
-    } else if (layerOpacities.muscular > 0.95 && layerOpacities.skeletal < 0.2) {
+    } else if (isFullBody && layerOpacities.muscular > 0.95 && layerOpacities.skeletal < 0.2) {
       targetCtx.save();
       targetCtx.globalAlpha = 0.22;
       targetCtx.fillStyle = "#f87171";
@@ -1277,7 +1572,9 @@ export function initAnatomyAtlasLab(containerId) {
     }
 
     // 4. ACTIVE STRUCTURE HIGH-PRECISION HUD RETICLE & SPOTLIGHT
-    if (selectedStructure && selectedStructure.view === view) {
+    const visibleStructures = getVisibleStructures(activePlate, view);
+    const isStructureVisible = selectedStructure && visibleStructures.some(s => s.id === selectedStructure.id);
+    if (selectedStructure && isStructureVisible) {
       targetCtx.save();
       const sx = selectedStructure.coords.x;
       const sy = selectedStructure.coords.y;
@@ -1323,8 +1620,8 @@ export function initAnatomyAtlasLab(containerId) {
     const now = performance.now();
     const pulseScale = 1.0 + 0.18 * Math.sin(now * 0.005);
 
-    ANATOMICAL_STRUCTURES.forEach(s => {
-      if (s.view !== view) return;
+    const visible = getVisibleStructures(activePlate, view);
+    visible.forEach(s => {
       const isSelected = selectedStructure && selectedStructure.id === s.id;
       const isHovered = hoveredStructure && hoveredStructure.id === s.id;
       const sys = ANATOMICAL_SYSTEMS[s.system] || { color: "#38bdf8" };
