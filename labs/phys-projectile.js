@@ -54,7 +54,7 @@ export function initProjectileLab(containerId) {
 
       <!-- Laboratory HUD & Canvas Area -->
       <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(56, 189, 248, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: #070a12; overflow: hidden; height: 520px;">
-        <canvas id="projectile-canvas" width="1000" height="520" style="height: 520px; width: 100%; display: block;"></canvas>
+        <canvas id="projectile-canvas" width="1000" height="520" style="height: 520px; width: 100%; display: block; touch-action: none; cursor: default;"></canvas>
 
         <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
         <div id="proj-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
@@ -92,6 +92,9 @@ export function initProjectileLab(containerId) {
               <span class="badge" id="env-badge" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.12); padding: 5px 12px; border-radius: 9999px; font-family: var(--font-mono); font-size: 0.78rem; color: #94a3b8; white-space: nowrap;">
                 🌍 Earth: g = 9.80 m/s²
               </span>
+              <span class="badge" id="drag-badge" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.12); padding: 5px 12px; border-radius: 9999px; font-family: var(--font-mono); font-size: 0.78rem; color: #94a3b8; white-space: nowrap;">
+                Vacuum (Ideal Parabola)
+              </span>
             </div>
 
             <!-- Target Challenge Banner -->
@@ -125,7 +128,7 @@ export function initProjectileLab(containerId) {
         <div id="proj-formula-bar" class="sim-floating-formula-bar" style="position: absolute; bottom: 12px; left: 16px; right: 16px; backdrop-filter: blur(12px); border-radius: 12px; padding: 10px 18px; display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 14px; font-size: 0.85rem; z-index: 10;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="color: #94a3b8; font-weight: 600;">Trajectory Equation:</span>
-            <span style="color: #38bdf8;">${renderLatex("y(x) = y_0 + x\\tan\\theta - \\frac{g x^2}{2v_0^2 \\cos^2\\theta}")}</span>
+            <span id="proj-formula-eqn" style="color: #38bdf8;">${renderLatex("y(x) = y_0 + x\\tan\\theta - \\frac{g x^2}{2v_0^2 \\cos^2\\theta}")}</span>
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="color: #94a3b8; font-weight: 600;">Theoretical Range:</span>
@@ -233,9 +236,29 @@ export function initProjectileLab(containerId) {
           </label>
 
           <label class="lab-checkbox-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; user-select: none; margin-left: 12px;">
+            <input type="checkbox" id="chk-air-drag" style="accent-color: #38bdf8; width: 16px; height: 16px;">
+            <span>Air Resistance Drag (C_d)</span>
+          </label>
+
+          <label class="lab-checkbox-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; user-select: none; margin-left: 12px;">
             <input type="checkbox" id="chk-slowmo" style="accent-color: #f59e0b; width: 16px; height: 16px;">
             <span>Slow Motion (0.3×)</span>
           </label>
+        </div>
+
+        <!-- Keyboard Shortcuts & Direct Canvas Manipulation Hint -->
+        <div style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 10px 14px; background: rgba(15, 23, 42, 0.5); border: 1px dashed rgba(255,255,255,0.12); border-radius: 8px; font-size: 0.76rem; color: var(--text-dim); margin-top: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); color: #38bdf8;">Space</kbd> / <kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); color: #38bdf8;">Enter</kbd> Launch</span>
+            <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); color: #38bdf8;">C</kbd> Clear Traces</span>
+            <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); color: #38bdf8;">↑/↓</kbd> Angle (±1°)</span>
+            <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); color: #38bdf8;">←/→</kbd> Velocity (±1 m/s)</span>
+            <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); color: #38bdf8;">T</kbd> Toggle Air Drag</span>
+            <span><kbd style="background: rgba(255,255,255,0.12); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); color: #38bdf8;">V</kbd> Vectors</span>
+          </div>
+          <span style="color: #38bdf8; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+            <span>🎯</span> Drag the Cannon barrel or Target flag directly on the canvas!
+          </span>
         </div>
       </div>
 
@@ -276,6 +299,7 @@ export function initProjectileLab(containerId) {
   let showVectors = true;
   let isSlowMo = false;
   let showStrobe = true;
+  let enableAirDrag = false;
 
   let isFlying = false;
   let t = 0;
@@ -284,6 +308,40 @@ export function initProjectileLab(containerId) {
   let strobeFlashPoints = [];
   let particles = [];
   let animId = null;
+  let compTimeout = null;
+  let themeObserver = null;
+
+  // Pointer dragging state for canvas interactive manipulation
+  let isDraggingAngle = false;
+  let isDraggingTarget = false;
+
+  function getDragCoeff() {
+    if (!enableAirDrag) return 0;
+    if (g === 1.62) return 0; // The Moon has no atmosphere
+    if (g === 3.71) return 0.0001; // Mars thin atmosphere
+    if (g === 24.79) return 0.012; // Jupiter dense atmosphere
+    return 0.0058; // Earth standard atmosphere (0.5 * rho * Cd * A / m)
+  }
+
+  function updateFormulaBar() {
+    const eqnEl = document.getElementById("proj-formula-eqn");
+    const dragBadge = document.getElementById("drag-badge");
+    if (enableAirDrag) {
+      if (eqnEl) eqnEl.innerHTML = renderLatex("F_d = \\frac{1}{2} C_d \\rho A v^2");
+      if (dragBadge) {
+        dragBadge.innerText = (g === 1.62) ? "Air Drag: N/A (Moon Vacuum)" : "Air Drag: Active (C_d=0.47)";
+        dragBadge.style.color = (g === 1.62) ? "#94a3b8" : "#38bdf8";
+        dragBadge.style.borderColor = (g === 1.62) ? "rgba(255,255,255,0.12)" : "rgba(56, 189, 248, 0.4)";
+      }
+    } else {
+      if (eqnEl) eqnEl.innerHTML = renderLatex("y(x) = y_0 + x\\tan\\theta - \\frac{g x^2}{2v_0^2 \\cos^2\\theta}");
+      if (dragBadge) {
+        dragBadge.innerText = "Vacuum (Ideal Parabola)";
+        dragBadge.style.color = "#94a3b8";
+        dragBadge.style.borderColor = "rgba(255,255,255,0.12)";
+      }
+    }
+  }
 
   function playLaunchSound() {
     try {
@@ -372,6 +430,7 @@ export function initProjectileLab(containerId) {
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
     const width = canvas.width / dpr;
     const heightPx = canvas.height / dpr;
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
 
     ctx.save();
     ctx.scale(dpr, dpr);
@@ -379,22 +438,30 @@ export function initProjectileLab(containerId) {
 
     // 1. Atmosphere Sky Gradient
     const skyGrad = ctx.createLinearGradient(0, 0, 0, heightPx - 75);
-    skyGrad.addColorStop(0, "#080e1e");
-    skyGrad.addColorStop(0.5, "#0f172a");
-    skyGrad.addColorStop(1, "#1e293b");
+    if (isDay) {
+      skyGrad.addColorStop(0, "#bae6fd");
+      skyGrad.addColorStop(0.6, "#e0f2fe");
+      skyGrad.addColorStop(1, "#f8fafc");
+    } else {
+      skyGrad.addColorStop(0, "#080e1e");
+      skyGrad.addColorStop(0.5, "#0f172a");
+      skyGrad.addColorStop(1, "#1e293b");
+    }
     ctx.fillStyle = skyGrad;
     ctx.fillRect(0, 0, width, heightPx - 75);
 
-    // Stars
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    for (let i = 1; i <= 25; i++) {
-      const sx = (i * 97) % width;
-      const sy = (i * 43) % (heightPx * 0.35);
-      ctx.fillRect(sx, sy, (i % 3 === 0) ? 2 : 1, (i % 3 === 0) ? 2 : 1);
+    // Stars (Night theme only)
+    if (!isDay) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      for (let i = 1; i <= 25; i++) {
+        const sx = (i * 97) % width;
+        const sy = (i * 43) % (heightPx * 0.35);
+        ctx.fillRect(sx, sy, (i % 3 === 0) ? 2 : 1, (i % 3 === 0) ? 2 : 1);
+      }
     }
 
     // 2. Parallax Distant Mountains
-    ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+    ctx.fillStyle = isDay ? "rgba(148, 163, 184, 0.45)" : "rgba(15, 23, 42, 0.75)";
     ctx.beginPath();
     ctx.moveTo(0, heightPx - 75);
     ctx.lineTo(0, heightPx - 180);
@@ -408,7 +475,7 @@ export function initProjectileLab(containerId) {
     ctx.fill();
 
     // 3. Coordinate Grid Lines & Metric Graduations
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.strokeStyle = isDay ? "rgba(15, 23, 42, 0.08)" : "rgba(255, 255, 255, 0.05)";
     ctx.lineWidth = 1;
     for (let x = 0; x <= 280; x += 20) {
       const p = metersToPixels(x, 0);
@@ -417,11 +484,13 @@ export function initProjectileLab(containerId) {
       ctx.lineTo(p.px, heightPx - 75);
       ctx.stroke();
 
-      ctx.fillStyle = (x % 40 === 0) ? "#38bdf8" : "rgba(255, 255, 255, 0.35)";
+      ctx.fillStyle = (x % 40 === 0) 
+        ? (isDay ? "#0284c7" : "#38bdf8") 
+        : (isDay ? "rgba(15, 23, 42, 0.5)" : "rgba(255, 255, 255, 0.35)");
       ctx.font = (x % 40 === 0) ? "bold 11px JetBrains Mono" : "10px JetBrains Mono";
       ctx.fillText(`${x}m`, p.px - 10, heightPx - 55);
 
-      ctx.fillStyle = (x % 40 === 0) ? "#38bdf8" : "rgba(255, 255, 255, 0.2)";
+      ctx.fillStyle = (x % 40 === 0) ? "#38bdf8" : (isDay ? "rgba(15, 23, 42, 0.2)" : "rgba(255, 255, 255, 0.2)");
       ctx.fillRect(p.px - 1, heightPx - 75, 2, 8);
     }
 
@@ -434,7 +503,7 @@ export function initProjectileLab(containerId) {
         ctx.lineTo(width, p.py);
         ctx.stroke();
 
-        ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+        ctx.fillStyle = isDay ? "rgba(15, 23, 42, 0.4)" : "rgba(255, 255, 255, 0.25)";
         ctx.font = "9px JetBrains Mono";
         ctx.fillText(`${y}m`, 38, p.py + 3);
       }
@@ -442,14 +511,20 @@ export function initProjectileLab(containerId) {
 
     // 4. Ground Cross-Section
     const groundGrad = ctx.createLinearGradient(0, heightPx - 75, 0, heightPx);
-    groundGrad.addColorStop(0, "#1e293b");
-    groundGrad.addColorStop(0.3, "#0f172a");
-    groundGrad.addColorStop(1, "#070a12");
+    if (isDay) {
+      groundGrad.addColorStop(0, "#475569");
+      groundGrad.addColorStop(0.3, "#334155");
+      groundGrad.addColorStop(1, "#1e293b");
+    } else {
+      groundGrad.addColorStop(0, "#1e293b");
+      groundGrad.addColorStop(0.3, "#0f172a");
+      groundGrad.addColorStop(1, "#070a12");
+    }
     ctx.fillStyle = groundGrad;
     ctx.fillRect(0, heightPx - 75, width, 75);
 
     // Glowing Neon Turf Boundary
-    ctx.strokeStyle = "#10b981";
+    ctx.strokeStyle = isDay ? "#059669" : "#10b981";
     ctx.lineWidth = 2.5;
     ctx.shadowColor = "#10b981";
     ctx.shadowBlur = 8;
@@ -459,7 +534,7 @@ export function initProjectileLab(containerId) {
     ctx.stroke();
     ctx.shadowBlur = 0;
 
-    // 5. Target Flag
+    // 5. Target Flag (Interactive Drag Handle)
     const targetPx = metersToPixels(targetX, 0);
     ctx.strokeStyle = "#cbd5e1";
     ctx.lineWidth = 3;
@@ -487,7 +562,7 @@ export function initProjectileLab(containerId) {
 
     ctx.fillStyle = "#f472b6";
     ctx.font = "bold 10px JetBrains Mono";
-    ctx.fillText("TARGET", targetPx.px - 18, heightPx - 142);
+    ctx.fillText("TARGET ↔", targetPx.px - 24, heightPx - 142);
 
     // 6. Draw Past Trajectories
     trajectoryHistory.forEach((traj) => {
@@ -669,11 +744,11 @@ export function initProjectileLab(containerId) {
       ctx.fill();
 
       if (showVectors) {
-        const rad = angle * Math.PI / 180;
-        const vx = speed * Math.cos(rad);
-        const vy = speed * Math.sin(rad) - g * t;
+        const vx = currentPt.vx !== undefined ? currentPt.vx : (speed * Math.cos(angle * Math.PI / 180));
+        const vy = currentPt.vy !== undefined ? currentPt.vy : (speed * Math.sin(angle * Math.PI / 180) - g * t);
         const scaleV = 0.85;
 
+        // Horizontal Vector
         ctx.strokeStyle = "#06b6d4";
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -685,6 +760,7 @@ export function initProjectileLab(containerId) {
         ctx.font = "bold 10px JetBrains Mono";
         ctx.fillText(`vₓ=${vx.toFixed(1)}m/s`, p.px + vx * scaleV + 6, p.py + 4);
 
+        // Vertical Vector
         ctx.strokeStyle = "#f59e0b";
         ctx.lineWidth = 2.5;
         ctx.beginPath();
@@ -696,6 +772,7 @@ export function initProjectileLab(containerId) {
         ctx.font = "bold 10px JetBrains Mono";
         ctx.fillText(`vᵧ=${vy.toFixed(1)}m/s`, p.px - 58, p.py - vy * scaleV);
 
+        // Resultant Vector
         ctx.strokeStyle = "#10b981";
         ctx.lineWidth = 3;
         ctx.shadowColor = "#10b981";
@@ -731,6 +808,12 @@ export function initProjectileLab(containerId) {
     let lastStrobeT = 0;
     let lastStepTime = 0;
 
+    const rad = angle * Math.PI / 180;
+    let simX = 0;
+    let simY = height;
+    let simVx = speed * Math.cos(rad);
+    let simVy = speed * Math.sin(rad);
+
     function step(now) {
       if (!container || !container.isConnected) {
         isFlying = false;
@@ -752,19 +835,49 @@ export function initProjectileLab(containerId) {
       lastStepTime = currentTime;
 
       const dtFactor = Math.min(Math.max(elapsed * 60, 0.5), 3.0);
-      const dt = (isSlowMo ? 0.016 : 0.045) * dtFactor;
-      t += dt;
+      const frameDt = (isSlowMo ? 0.016 : 0.045) * dtFactor;
+      const kDrag = getDragCoeff();
 
-      const rad = angle * Math.PI / 180;
-      const x = (speed * Math.cos(rad)) * t;
-      const y = height + (speed * Math.sin(rad)) * t - 0.5 * g * t * t;
+      if (kDrag > 0) {
+        // High-precision sub-stepping Euler-Cromer integration for aerodynamic drag
+        const subSteps = 8;
+        const subDt = frameDt / subSteps;
+        for (let s = 0; s < subSteps; s++) {
+          const vMag = Math.sqrt(simVx * simVx + simVy * simVy);
+          const dragAcc = kDrag * vMag;
+          const ax = -dragAcc * simVx;
+          const ay = -g - dragAcc * simVy;
+          simVx += ax * subDt;
+          simVy += ay * subDt;
+          simX += simVx * subDt;
+          simY += simVy * subDt;
+          t += subDt;
+          if (simY <= 0) break;
+        }
+      } else {
+        // Pure vacuum analytical kinematics
+        t += frameDt;
+        simX = (speed * Math.cos(rad)) * t;
+        simY = height + (speed * Math.sin(rad)) * t - 0.5 * g * t * t;
+        simVx = speed * Math.cos(rad);
+        simVy = speed * Math.sin(rad) - g * t;
+      }
+
+      const x = simX;
+      const y = Math.max(0, simY);
 
       if (y > maxRecordedH) {
         maxRecordedH = y;
         apexPoint = { x, y };
       }
 
-      currentTrajectory.push({ x, y });
+      currentTrajectory.push({
+        x: parseFloat(x.toFixed(3)),
+        y: parseFloat(y.toFixed(3)),
+        t: parseFloat(t.toFixed(3)),
+        vx: parseFloat(simVx.toFixed(2)),
+        vy: parseFloat(simVy.toFixed(2))
+      });
 
       // Stroboscopic Capture at intervals
       if (t - lastStrobeT >= 0.22) {
@@ -778,7 +891,7 @@ export function initProjectileLab(containerId) {
 
       drawScene();
 
-      if (y <= 0 && t > 0.08) {
+      if ((y <= 0 && t > 0.08) || (kDrag > 0 && simY <= 0 && t > 0.08)) {
         isFlying = false;
         const impactPx = metersToPixels(x, 0);
         createExplosion(impactPx.px, impactPx.py, "#f59e0b");
@@ -800,7 +913,9 @@ export function initProjectileLab(containerId) {
             "Flight Time (s)": parseFloat(t.toFixed(2)),
             "Max Altitude (m)": parseFloat(maxRecordedH.toFixed(2)),
             "Angle (°)": angle,
-            "Speed (m/s)": speed
+            "Speed (m/s)": speed,
+            "Platform Height (m)": height,
+            "Air Drag": enableAirDrag ? "Enabled (Cd=0.47)" : "Disabled (Vacuum)"
           }
         });
 
@@ -810,7 +925,7 @@ export function initProjectileLab(containerId) {
           const pill = document.getElementById(`pill-trial-${i + 1}`);
           if (pill) {
             pill.style.opacity = "1";
-            pill.innerText = `Trial ${tr.trialNumber}: R=${tr.measurements["Range (m)"]}m (θ=${tr.measurements["Angle (°)"]}°)`;
+            pill.innerText = `Trial ${tr.trialNumber}: R=${tr.measurements["Range (m)"]}m (${enableAirDrag ? "Drag" : "Vac"}, θ=${tr.measurements["Angle (°)"]}°)`;
           }
         });
 
@@ -839,6 +954,7 @@ export function initProjectileLab(containerId) {
   const inTarget = document.getElementById("input-target");
   const selGrav = document.getElementById("select-gravity");
   const chkVec = document.getElementById("chk-vectors");
+  const chkDrag = document.getElementById("chk-air-drag");
   const chkSlow = document.getElementById("chk-slowmo");
   const chkStrobe = document.getElementById("chk-strobe");
 
@@ -876,11 +992,18 @@ export function initProjectileLab(containerId) {
       "24.79": "⚡ Jupiter: g = 24.79 m/s²"
     };
     document.getElementById("env-badge").innerText = envTexts[e.target.value] || `g = ${g} m/s²`;
+    updateFormulaBar();
     if (!isFlying) drawScene();
   });
 
   chkVec.addEventListener("change", (e) => {
     showVectors = e.target.checked;
+    if (!isFlying) drawScene();
+  });
+
+  chkDrag.addEventListener("change", (e) => {
+    enableAirDrag = e.target.checked;
+    updateFormulaBar();
     if (!isFlying) drawScene();
   });
 
@@ -927,13 +1050,183 @@ export function initProjectileLab(containerId) {
     inAngle.value = 30;
     document.getElementById("disp-angle").innerText = "30°";
     launch();
-    setTimeout(() => {
+    if (compTimeout) clearTimeout(compTimeout);
+    compTimeout = setTimeout(() => {
+      if (!container || !container.isConnected) return;
       angle = 60;
       inAngle.value = 60;
       document.getElementById("disp-angle").innerText = "60°";
       launch();
     }, 2800);
   });
+
+  // Direct Canvas Pointer Drag Interaction
+  function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const clientY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  }
+
+  function isOverTarget(pos) {
+    const targetPx = metersToPixels(targetX, 0);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
+    const heightPx = canvas.height / dpr;
+    const inX = pos.x >= targetPx.px - 22 && pos.x <= targetPx.px + 36;
+    const inY = pos.y >= heightPx - 145 && pos.y <= heightPx - 65;
+    return inX && inY;
+  }
+
+  function isOverCannon(pos) {
+    const cannonOrigin = metersToPixels(0, height);
+    const dist = Math.hypot(pos.x - cannonOrigin.px, pos.y - cannonOrigin.py);
+    return dist <= 85 && pos.x >= cannonOrigin.px - 20;
+  }
+
+  function onPointerDown(e) {
+    if (isFlying) return;
+    const pos = getCanvasCoords(e);
+    if (isOverTarget(pos)) {
+      isDraggingTarget = true;
+      try { canvas.setPointerCapture(e.pointerId); } catch(err) {}
+      canvas.style.cursor = "ew-resize";
+      e.preventDefault();
+    } else if (isOverCannon(pos)) {
+      isDraggingAngle = true;
+      try { canvas.setPointerCapture(e.pointerId); } catch(err) {}
+      canvas.style.cursor = "crosshair";
+      e.preventDefault();
+    }
+  }
+
+  function onPointerMove(e) {
+    const pos = getCanvasCoords(e);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
+    const width = canvas.width / dpr;
+
+    if (isDraggingTarget) {
+      const scale = (width - 120) / 280;
+      const originX = 70;
+      let newTargetX = Math.round((pos.x - originX) / scale);
+      newTargetX = Math.max(30, Math.min(250, newTargetX));
+      targetX = newTargetX;
+      inTarget.value = targetX;
+      document.getElementById("disp-target").innerText = `${targetX} m`;
+      document.getElementById("val-target").innerText = `${targetX.toFixed(1)} m`;
+      drawScene();
+      return;
+    }
+
+    if (isDraggingAngle) {
+      const cannonOrigin = metersToPixels(0, height);
+      const dx = pos.x - cannonOrigin.px;
+      const dy = pos.y - cannonOrigin.py;
+      let deg = Math.round(-Math.atan2(dy, dx) * 180 / Math.PI);
+      deg = Math.max(5, Math.min(85, deg));
+      angle = deg;
+      inAngle.value = angle;
+      document.getElementById("disp-angle").innerText = `${angle}°`;
+      drawScene();
+      return;
+    }
+
+    if (!isFlying) {
+      if (isOverTarget(pos)) {
+        canvas.style.cursor = "ew-resize";
+      } else if (isOverCannon(pos)) {
+        canvas.style.cursor = "crosshair";
+      } else {
+        canvas.style.cursor = "default";
+      }
+    }
+  }
+
+  function onPointerUp(e) {
+    if (isDraggingTarget || isDraggingAngle) {
+      isDraggingTarget = false;
+      isDraggingAngle = false;
+      try { canvas.releasePointerCapture(e.pointerId); } catch(err) {}
+      canvas.style.cursor = "default";
+    }
+  }
+
+  canvas.addEventListener("pointerdown", onPointerDown);
+  window.addEventListener("pointermove", onPointerMove);
+  window.addEventListener("pointerup", onPointerUp);
+  window.addEventListener("pointercancel", onPointerUp);
+
+  // Global Keyboard Shortcuts
+  function handleKeydown(e) {
+    const tag = e.target ? e.target.tagName : "";
+    if (tag === "TEXTAREA" || (tag === "INPUT" && e.target.type !== "range")) {
+      return;
+    }
+
+    if (e.code === "Space" || e.key === "Enter") {
+      e.preventDefault();
+      launch();
+    } else if (e.key === "c" || e.key === "C") {
+      e.preventDefault();
+      document.getElementById("btn-clear-trajectories")?.click();
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const stepVal = e.shiftKey ? 5 : 1;
+      angle = Math.min(85, angle + stepVal);
+      inAngle.value = angle;
+      document.getElementById("disp-angle").innerText = `${angle}°`;
+      if (!isFlying) drawScene();
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const stepVal = e.shiftKey ? 5 : 1;
+      angle = Math.max(5, angle - stepVal);
+      inAngle.value = angle;
+      document.getElementById("disp-angle").innerText = `${angle}°`;
+      if (!isFlying) drawScene();
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      const stepVal = e.shiftKey ? 5 : 1;
+      speed = Math.min(75, speed + stepVal);
+      inSpeed.value = speed;
+      document.getElementById("disp-speed").innerText = `${speed} m/s`;
+      if (!isFlying) drawScene();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      const stepVal = e.shiftKey ? 5 : 1;
+      speed = Math.max(10, speed - stepVal);
+      inSpeed.value = speed;
+      document.getElementById("disp-speed").innerText = `${speed} m/s`;
+      if (!isFlying) drawScene();
+    } else if (e.key === "t" || e.key === "T") {
+      e.preventDefault();
+      const chk = document.getElementById("chk-air-drag");
+      if (chk) {
+        chk.checked = !chk.checked;
+        enableAirDrag = chk.checked;
+        updateFormulaBar();
+        if (!isFlying) drawScene();
+      }
+    } else if (e.key === "v" || e.key === "V") {
+      e.preventDefault();
+      const chk = document.getElementById("chk-vectors");
+      if (chk) {
+        chk.checked = !chk.checked;
+        showVectors = chk.checked;
+        if (!isFlying) drawScene();
+      }
+    } else if (e.key === "s" || e.key === "S") {
+      e.preventDefault();
+      const chk = document.getElementById("chk-slowmo");
+      if (chk) {
+        chk.checked = !chk.checked;
+        isSlowMo = chk.checked;
+      }
+    }
+  }
+
+  window.addEventListener("keydown", handleKeydown);
 
   // View Switcher
   const btnSim = document.getElementById("proj-mode-sim");
@@ -962,13 +1255,14 @@ export function initProjectileLab(containerId) {
   // Telemetry Suite: CSV Export Button
   document.getElementById("btn-export-proj-csv")?.addEventListener("click", () => {
     const trials = LabTrialStore.getTrials("projectile");
-    const headers = ["Time (s)", "x (m)", "y (m)", "vx (m/s)", "vy (m/s)"];
+    const headers = ["Time (s)", "x (m)", "y (m)", "vx (m/s)", "vy (m/s)", "Speed v (m/s)"];
     const rows = currentTrajectory.map(pt => [
-      pt.t || 0,
-      pt.x || 0,
-      pt.y || 0,
-      speed * Math.cos(angle * Math.PI / 180),
-      speed * Math.sin(angle * Math.PI / 180) - g * (pt.t || 0)
+      pt.t !== undefined ? pt.t : 0,
+      pt.x !== undefined ? pt.x : 0,
+      pt.y !== undefined ? pt.y : 0,
+      pt.vx !== undefined ? pt.vx : 0,
+      pt.vy !== undefined ? pt.vy : 0,
+      (pt.vx !== undefined && pt.vy !== undefined) ? parseFloat(Math.hypot(pt.vx, pt.vy).toFixed(2)) : 0
     ]);
 
     exportLabDataCsv({
@@ -979,10 +1273,11 @@ export function initProjectileLab(containerId) {
         "Muzzle Velocity (v₀)": `${speed} m/s`,
         "Initial Height (y₀)": `${height} m`,
         "Gravitational Acceleration (g)": `${g} m/s²`,
-        "Target Distance": `${targetX} m`
+        "Target Distance": `${targetX} m`,
+        "Aerodynamic Drag": enableAirDrag ? "Enabled (Cd = 0.47, sphere)" : "Vacuum"
       },
       headers,
-      dataRows: rows.length > 0 ? rows : [[0, 0, height, speed * Math.cos(angle * Math.PI / 180), speed * Math.sin(angle * Math.PI / 180)]]
+      dataRows: rows.length > 0 ? rows : [[0, 0, height, parseFloat((speed * Math.cos(angle * Math.PI / 180)).toFixed(2)), parseFloat((speed * Math.sin(angle * Math.PI / 180)).toFixed(2)), speed]]
     });
   });
 
@@ -998,14 +1293,16 @@ export function initProjectileLab(containerId) {
         "Muzzle Speed (v₀)": `${speed} m/s`,
         "Initial Platform Height (y₀)": `${height} m`,
         "Gravity (g)": `${g} m/s²`,
-        "Target Position": `${targetX} m`
+        "Target Position": `${targetX} m`,
+        "Aerodynamic Drag": enableAirDrag ? "Enabled (Cd = 0.47, sphere)" : "Vacuum"
       },
       trials,
       formulas: [
         "y(x) = y_0 + x\\tan\\theta - \\frac{g x^2}{2v_0^2 \\cos^2\\theta}",
         "R = \\frac{v_0^2 \\sin(2\\theta)}{g}",
         "t_{\\text{flight}} = \\frac{2v_0 \\sin\\theta}{g}",
-        "H_{\\text{max}} = y_0 + \\frac{v_0^2 \\sin^2\\theta}{2g}"
+        "H_{\\text{max}} = y_0 + \\frac{v_0^2 \\sin^2\\theta}{2g}",
+        "F_{\\text{drag}} = \\frac{1}{2} C_d \\rho A v^2"
       ]
     });
   });
@@ -1016,19 +1313,38 @@ export function initProjectileLab(containerId) {
   function handleResize() {
     const rect = canvas.getBoundingClientRect();
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
-    canvas.width = rect.width * dpr;
-    canvas.height = 520 * dpr;
+    const cssWidth = rect.width || canvas.parentElement?.clientWidth || 1000;
+    const cssHeight = rect.height || 520;
+    canvas.width = Math.round(cssWidth * dpr);
+    canvas.height = Math.round(cssHeight * dpr);
     drawScene();
   }
 
   window.addEventListener("resize", handleResize);
   handleResize();
 
+  // Day/Night Theme Observer
+  if (typeof MutationObserver !== "undefined") {
+    themeObserver = new MutationObserver(() => {
+      drawScene();
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"]
+    });
+  }
+
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
+    if (compTimeout) clearTimeout(compTimeout);
     window.removeEventListener("resize", handleResize);
+    window.removeEventListener("keydown", handleKeydown);
+    canvas.removeEventListener("pointerdown", onPointerDown);
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+    window.removeEventListener("pointercancel", onPointerUp);
+    if (themeObserver) themeObserver.disconnect();
   };
   _currentProjectileCleanup = cleanup;
   return cleanup;
 }
-
