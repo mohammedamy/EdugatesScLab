@@ -1842,11 +1842,11 @@ export function initSmartboardToolbar() {
   // -------------------------------------------------------------------------
   // 3b. Interactive Calibrated Science Ruler (cm / inches)
   // -------------------------------------------------------------------------
-  let smartboardTopZ = 200000;
+  let smartboardTopZ = 200090;
   function elevateSmartboardTool(widget) {
     if (!widget) return;
     smartboardTopZ += 2;
-    widget.style.zIndex = String(smartboardTopZ);
+    widget.style.setProperty("z-index", String(smartboardTopZ), "important");
   }
 
   let rulerWidget = document.getElementById("sb-ruler-widget");
@@ -1861,7 +1861,7 @@ export function initSmartboardToolbar() {
   rulerWidget.style.top = "180px";
   rulerWidget.style.width = "540px";
   rulerWidget.style.height = "86px";
-  rulerWidget.style.zIndex = "200000";
+  rulerWidget.style.zIndex = "200090";
   rulerWidget.style.transformOrigin = "270px 43px";
   rulerWidget.style.touchAction = "none";
   rulerWidget.style.userSelect = "none";
@@ -2062,7 +2062,7 @@ export function initSmartboardToolbar() {
   protractorWidget.style.top = "200px";
   protractorWidget.style.width = "400px";
   protractorWidget.style.height = "215px";
-  protractorWidget.style.zIndex = "200000";
+  protractorWidget.style.zIndex = "200090";
   protractorWidget.style.transformOrigin = "200px 200px";
   protractorWidget.style.touchAction = "none";
   protractorWidget.style.userSelect = "none";

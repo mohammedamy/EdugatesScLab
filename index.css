@@ -2614,7 +2614,7 @@ body.modal-open .sb-toolbar-toggle {
 .sb-ruler-widget,
 .sb-protractor-widget {
   position: fixed !important;
-  z-index: 200000 !important;
+  z-index: 200090 !important;
   touch-action: none !important;
   user-select: none !important;
   -webkit-user-select: none !important;
@@ -8915,7 +8915,7 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 .lp-modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 2500;
+  z-index: 200150 !important;
   background: rgba(7, 10, 18, 0.88);
   backdrop-filter: blur(12px);
   display: flex;
@@ -9810,7 +9810,7 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   position: fixed;
   bottom: 28px;
   right: 28px;
-  z-index: 100050;
+  z-index: 200250 !important;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -10239,7 +10239,7 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  z-index: 100000;
+  z-index: 200150 !important;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -10785,7 +10785,7 @@ mark.search-highlight {
    ========================================================================== */
 .calculator-modal {
   position: fixed;
-  z-index: 200000 !important;
+  z-index: 200100 !important;
   width: 418px;
   max-width: 96vw;
   background: linear-gradient(165deg, rgba(20, 26, 43, 0.96) 0%, rgba(9, 13, 24, 0.98) 100%);
@@ -11810,7 +11810,7 @@ body.mode-smartboard .calc-expr-input,
   background: rgba(2, 6, 23, 0.84) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  z-index: 10005 !important;
+  z-index: 200180 !important;
   display: flex !important;
   align-items: center;
   justify-content: center;

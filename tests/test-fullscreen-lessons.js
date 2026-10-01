@@ -101,6 +101,31 @@ testAssert(
   "index.css eliminates drop shadows, ensuring edge-to-edge canvas presentation"
 );
 
+// 6. Secondary Modals & Dialogs Stacking Layering (Lesson Plan & LMS Share)
+testAssert(
+  cssSrc.includes(".lp-modal-overlay") &&
+  cssSrc.includes("z-index: 200150 !important;"),
+  "index.css elevates .lp-modal-overlay to z-index: 200150 !important, ensuring Lesson Plan opens on top of lesson view"
+);
+
+testAssert(
+  cssSrc.includes(".lms-share-modal-overlay") &&
+  cssSrc.includes("z-index: 200180 !important;"),
+  "index.css elevates .lms-share-modal-overlay to z-index: 200180 !important, ensuring Share Box opens on top of lesson view and plan"
+);
+
+testAssert(
+  cssSrc.includes(".lab-report-modal-overlay") &&
+  cssSrc.includes("z-index: 200150 !important;"),
+  "index.css elevates .lab-report-modal-overlay above lesson view (z-index: 200150 !important)"
+);
+
+testAssert(
+  cssSrc.includes(".amscilab-toast") &&
+  cssSrc.includes("z-index: 200250 !important;"),
+  "index.css elevates toast notifications above all modals and full browser lesson view (z-index: 200250 !important)"
+);
+
 console.log("\n========================================================");
 console.log(`📊 Fullscreen Lesson Tests: ${passed} Passed, ${failed} Failed`);
 console.log("========================================================\n");

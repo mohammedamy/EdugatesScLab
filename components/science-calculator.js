@@ -400,12 +400,12 @@ let dragStartX = 0;
 let dragStartY = 0;
 let initialModalX = 0;
 let initialModalY = 0;
-let topFloatingZ = 200000;
+let topFloatingZ = 200100;
 
 export function bringWidgetToFront(el) {
   if (!el) return;
   topFloatingZ += 2;
-  el.style.zIndex = String(topFloatingZ);
+  el.style.setProperty("z-index", String(topFloatingZ), "important");
 }
 
 export function openScienceCalculator(initialExpr = "") {

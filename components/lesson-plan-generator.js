@@ -559,7 +559,10 @@ export function openLessonPlanModal(subjectCode, moduleId, lessonId) {
     overlay = document.createElement("div");
     overlay.id = "lesson-plan-modal-overlay";
     overlay.className = "lp-modal-overlay";
+    overlay.style.zIndex = "200150";
     document.body.appendChild(overlay);
+  } else {
+    overlay.style.zIndex = "200150";
   }
 
   // Generate Initial Data

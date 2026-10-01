@@ -208,7 +208,7 @@ export function openLmsShareModal(shareData = {}) {
     background: rgba(2, 6, 23, 0.82);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    z-index: 210000;
+    z-index: 200180;
     display: flex;
     align-items: center;
     justify-content: center;

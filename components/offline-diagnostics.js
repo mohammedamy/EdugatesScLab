@@ -89,7 +89,7 @@ export function openOfflineDiagnosticsModal() {
   overlay.id = "offline-diagnostics-overlay";
   overlay.className = "modal-overlay modal-fullscreen";
   overlay.style.display = "flex";
-  overlay.style.zIndex = "200100"; // Above all modals and tools
+  overlay.style.setProperty("z-index", "200150", "important"); // Above all modals and tools
   document.body.appendChild(overlay);
 
   function closeModal() {
