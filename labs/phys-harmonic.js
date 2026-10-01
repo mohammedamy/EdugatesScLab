@@ -71,7 +71,7 @@ export function initHarmonicLab(containerId) {
             Simple Harmonic Motion &amp; Hooke's Law Suite
           </span>
           <span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            F = -kx • T = 2\\pi\\sqrt{m/k} • Energy Conservation
+            F = -kx • T = 2π√(m/k) • Energy Conservation
           </span>
         </div>
 
