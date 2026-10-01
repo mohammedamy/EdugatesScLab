@@ -1546,6 +1546,57 @@ export const LAB_CHECKPOINTS = {
       correctIndex: 2,
       explanation: "True weight W = m·g = 5.0 kg × 9.81 m/s² = 49.05 N. Buoyant force F_b = ρ·V·g = 1000 kg/m³ × 0.002 m³ × 9.81 m/s² = 19.62 N. Apparent weight W_app = W - F_b = 49.05 N - 19.62 N = 29.43 N."
     }
+  ],
+
+  anatomy: [
+    {
+      id: "q1",
+      question: "During ventricular systole of the cardiac cycle, which heart valves are forced shut to produce the first heart sound (S1 'lub')?",
+      options: [
+        "Aortic and Pulmonary semilunar valves",
+        "Tricuspid and Mitral (Bicuspid) atrioventricular valves",
+        "Mitral and Aortic valves simultaneously",
+        "Eustachian and Thebesian coronary valves"
+      ],
+      correctIndex: 1,
+      explanation: "Isovolumetric ventricular contraction raises intraventricular pressure above atrial pressure, abruptly snapping the Tricuspid and Mitral atrioventricular (AV) valves shut, generating the reverberations perceived acoustically as the S1 'lub'."
+    },
+    {
+      id: "q2",
+      question: "In the renal countercurrent multiplier system, what is the primary transport mechanism operating in the thick ascending limb of the Loop of Henle?",
+      options: [
+        "Passive osmosis of water across aquaporin-1 channels",
+        "Active solute reabsorption via the Na+-K+-2Cl- (NKCC2) cotransporter while remaining impermeable to water",
+        "Facilitated diffusion of urea into the interstitial medulla",
+        "Aldosterone-mediated potassium secretion into the distal lumen"
+      ],
+      correctIndex: 1,
+      explanation: "The thick ascending limb actively reabsorbs sodium, potassium, and chloride ions via the NKCC2 cotransporter without allowing water to follow (it is impermeable to water), which hypertonically concentrates the renal medullary interstitium while diluting the tubular filtrate."
+    },
+    {
+      id: "q3",
+      question: "Which cranial nerve provides primary parasympathetic innervation to the thoracic viscera (slowing heart rate) and abdominal digestive organs?",
+      options: [
+        "Trigeminal Nerve (CN V)",
+        "Glossopharyngeal Nerve (CN IX)",
+        "Vagus Nerve (CN X)",
+        "Hypoglossal Nerve (CN XII)"
+      ],
+      correctIndex: 2,
+      explanation: "The Vagus Nerve (CN X, 'the wanderer') is the principal parasympathetic conduit supplying the heart (decreasing heart rate via SA/AV node M2 receptors), lungs (bronchoconstriction), stomach, and intestines up to the splenic flexure."
+    },
+    {
+      id: "q4",
+      question: "During muscle contraction according to the sliding filament theory, what molecular event directly causes the myosin cross-bridge head to detach from actin?",
+      options: [
+        "Release of inorganic phosphate (Pi) from the myosin head",
+        "Binding of a new ATP molecule to the nucleotide binding site on the myosin head",
+        "Hydrolysis of ATP into ADP and Pi",
+        "Re-uptake of calcium ions back into the sarcoplasmic reticulum"
+      ],
+      correctIndex: 1,
+      explanation: "ATP binding allosterically lowers the affinity of the myosin cross-bridge head for actin, triggering immediate detachment. In the absence of ATP (as after death), detachment cannot occur, resulting in rigor mortis."
+    }
   ]
 };
 
@@ -1572,6 +1623,7 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
     if (clean.includes("rotat") || clean.includes("torque") || clean.includes("inertia")) return LAB_CHECKPOINTS.rotational;
     if (clean.includes("conduct") || clean.includes("fourier") || clean.includes("heat")) return LAB_CHECKPOINTS.conduction;
     if (clean.includes("fluid") || clean.includes("buoy") || clean.includes("archimed") || clean.includes("bernoulli")) return LAB_CHECKPOINTS.fluids;
+    if (clean.includes("anatom") || clean.includes("atlas") || clean.includes("skelet")) return LAB_CHECKPOINTS.anatomy;
     if (clean.includes("project") || clean.includes("kinemat")) return LAB_CHECKPOINTS.projectile;
     if (clean.includes("titrat")) return LAB_CHECKPOINTS.titration;
     if (clean.includes("micro")) return LAB_CHECKPOINTS.microscope;

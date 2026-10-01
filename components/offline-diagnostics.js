@@ -23,7 +23,9 @@ const AUDIT_TARGETS = [
   { name: "Projectile Virtual Lab", url: "./labs/phys-projectile.js", critical: false },
   { name: "Titration Virtual Lab", url: "./labs/chem-titration.js", critical: false },
   { name: "Microscope Virtual Lab", url: "./labs/bio-microscope.js", critical: false },
-  { name: "Periodic Table Virtual Lab", url: "./labs/chem-periodic-table.js", critical: false }
+  { name: "Periodic Table Virtual Lab", url: "./labs/chem-periodic-table.js", critical: false },
+  { name: "4K Human Anatomy Atlas", url: "./labs/anatomy-atlas.js", critical: false },
+  { name: "Human Anatomy Atlas Data", url: "./data/human-anatomy-atlas-data.js", critical: false }
 ];
 
 export async function getStorageEstimate() {

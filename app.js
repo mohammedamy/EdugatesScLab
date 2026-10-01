@@ -993,6 +993,7 @@ export function normalizeLabId(rawId) {
   if (str === "vsepr") return "vsepr";
   if (str === "waves" || str === "wave") return "waves";
   if (str === "photosynthesis" || str.includes("photo")) return "photosynthesis";
+  if (str === "anatomy" || str === "atlas" || str === "human-anatomy" || str.includes("anatom") || str.includes("atlas")) return "anatomy";
   return "projectile";
 }
 
@@ -1028,7 +1029,8 @@ function formatLabName(labKey) {
     "actionpotential": "Neurobiology & Action Potential Patch Clamp",
     "rotational": "Rotational Dynamics & Moment of Inertia",
     "conduction": "Thermal Conduction & Fourier's Law",
-    "fluids": "Fluid Dynamics, Buoyancy & Bernoulli"
+    "fluids": "Fluid Dynamics, Buoyancy & Bernoulli",
+    "anatomy": "4K Human Anatomy Atlas & Histology"
   };
   return map[norm] || "Virtual Laboratory";
 }
@@ -1745,6 +1747,10 @@ function renderVirtualLabsHub(container) {
             <span class="lab-btn-icon-wrapper">${icons.fluidsBuoyancy}</span>
             <span class="lab-btn-title">Fluid Dynamics &amp; Buoyancy</span>
           </a>
+          <a href="#labs/anatomy" class="btn ${AppState.activeLabId === 'anatomy' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="anatomy" aria-label="4K Human Anatomy Atlas and Histology Lab" style="text-decoration: none;">
+            <span class="lab-btn-icon-wrapper">🏛️</span>
+            <span class="lab-btn-title">4K Human Anatomy Atlas</span>
+          </a>
         </div>
       </div>
 
@@ -1874,7 +1880,11 @@ function mountActiveLab() {
     "conduction": () => import("./labs/phys-thermal-conduction.js").then(m => m.initThermalConductionLab("active-lab-mount")),
     "lab-conduction": () => import("./labs/phys-thermal-conduction.js").then(m => m.initThermalConductionLab("active-lab-mount")),
     "fluids": () => import("./labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("active-lab-mount")),
-    "lab-fluids": () => import("./labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("active-lab-mount"))
+    "lab-fluids": () => import("./labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("active-lab-mount")),
+    "anatomy": () => import("./labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("active-lab-mount")),
+    "lab-anatomy": () => import("./labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("active-lab-mount")),
+    "atlas": () => import("./labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("active-lab-mount")),
+    "anatomy-atlas": () => import("./labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("active-lab-mount"))
   };
 
   const loader = labLoaders[normId] || labLoaders["projectile"];

@@ -985,7 +985,11 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
       "conduction": () => import("../labs/phys-thermal-conduction.js").then(m => m.initThermalConductionLab("embedded-module-lab-mount")),
       "lab-conduction": () => import("../labs/phys-thermal-conduction.js").then(m => m.initThermalConductionLab("embedded-module-lab-mount")),
       "fluids": () => import("../labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("embedded-module-lab-mount")),
-      "lab-fluids": () => import("../labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("embedded-module-lab-mount"))
+      "lab-fluids": () => import("../labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("embedded-module-lab-mount")),
+      "anatomy": () => import("../labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("embedded-module-lab-mount")),
+      "lab-anatomy": () => import("../labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("embedded-module-lab-mount")),
+      "atlas": () => import("../labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("embedded-module-lab-mount")),
+      "anatomy-atlas": () => import("../labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("embedded-module-lab-mount"))
     };
 
     const loader = labLoaders[rawKey] || labLoaders[cleanKey] || labLoaders["lab-projectile"];
