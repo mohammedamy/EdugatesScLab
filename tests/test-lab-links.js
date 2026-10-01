@@ -51,7 +51,7 @@ function createMockEl(id) {
 }
 
 globalThis.window = {
-  location: { href: "https://mohammedamy.github.io/EdugtesScLab/", hash: "" },
+  location: { href: "https://mohammedamy.github.io/EdugatesScLab/", hash: "" },
   addEventListener: () => {},
   removeEventListener: () => {},
   requestAnimationFrame: () => 1,

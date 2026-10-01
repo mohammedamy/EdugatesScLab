@@ -22,7 +22,7 @@ function assert(cond, desc) {
 }
 
 // 1. Basic URL Encoding
-const testUrl = "https://mohammedamy.github.io/EdugtesScLab/#quiz/chem";
+const testUrl = "https://mohammedamy.github.io/EdugatesScLab/#quiz/chem";
 const svg1 = generateQRSvg(testUrl);
 
 assert(typeof svg1 === "string" && svg1.startsWith("<svg") && svg1.endsWith("</svg>"),
@@ -60,7 +60,7 @@ assert(coloredSvg.includes('fill="#0284c7"') && coloredSvg.includes('fill="#ffff
 
 // 4. Large Payload & Multi-Lesson Curriculum Scope Deep-Link (> 500 characters)
 const longScope = Array.from({ length: 45 }, (_, i) => `CHEM-M${String(i + 1).padStart(2, "0")}-L1`).join(",");
-const longUrl = `https://mohammedamy.github.io/EdugtesScLab/#quiz?scope=${encodeURIComponent(longScope)}&subj=CHEM`;
+const longUrl = `https://mohammedamy.github.io/EdugatesScLab/#quiz?scope=${encodeURIComponent(longScope)}&subj=CHEM`;
 const longSvg = generateQRSvg(longUrl);
 
 assert(typeof longSvg === "string" && longSvg.length > 10000,
@@ -68,7 +68,7 @@ assert(typeof longSvg === "string" && longSvg.length > 10000,
 
 // 5. URL Normalization for Student Mobile Scanning
 const localShareUrl = getAbsoluteShareUrl("#module/CHEM-M02");
-assert(localShareUrl.startsWith("https://mohammedamy.github.io/EdugtesScLab/"),
+assert(localShareUrl.startsWith("https://mohammedamy.github.io/EdugatesScLab/"),
   `Local routes normalize to public canonical URL for student phone scanning: ${localShareUrl}`);
 
 console.log("\n========================================================");

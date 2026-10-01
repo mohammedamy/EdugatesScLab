@@ -63,7 +63,7 @@ export function getAbsoluteShareUrl(routeOrHash = "") {
                     window.location.hostname === "localhost" || 
                     window.location.hostname === "127.0.0.1" || 
                     window.location.protocol === "file:";
-    const canonicalBase = isLocal ? "https://mohammedamy.github.io/EdugtesScLab/" : (window.location.origin + window.location.pathname);
+    const canonicalBase = isLocal ? "https://mohammedamy.github.io/EdugatesScLab/" : (window.location.origin + window.location.pathname);
     const base = new URL(canonicalBase);
     if (!routeOrHash) return base.toString();
     if (routeOrHash.startsWith("http://") || routeOrHash.startsWith("https://")) {
@@ -79,7 +79,7 @@ export function getAbsoluteShareUrl(routeOrHash = "") {
     base.hash = hash;
     return base.toString();
   } catch (e) {
-    return "https://mohammedamy.github.io/EdugtesScLab/";
+    return "https://mohammedamy.github.io/EdugatesScLab/";
   }
 }
 

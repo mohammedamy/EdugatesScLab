@@ -1947,7 +1947,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                       window.location.hostname === "localhost" || 
                       window.location.hostname === "127.0.0.1" || 
                       window.location.protocol === "file:";
-      const originUrl = isLocal ? "https://mohammedamy.github.io/EdugtesScLab/" : (window.location.origin + window.location.pathname);
+      const originUrl = isLocal ? "https://mohammedamy.github.io/EdugatesScLab/" : (window.location.origin + window.location.pathname);
       const scopeParam = Array.from(selectedLessons).join(",");
       const qrDeepLink = scopeParam 
         ? `${originUrl}#quiz?scope=${encodeURIComponent(scopeParam)}&subj=${selectedSubject}`

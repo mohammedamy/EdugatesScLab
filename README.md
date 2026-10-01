@@ -1,4 +1,4 @@
-# Edugates-ClipSAT Science Labs (EdugtesScLab)
+# Edugates-ClipSAT Science Labs (EdugatesScLab)
 
 An enterprise-grade, world-class virtual science laboratory and interactive STEM educational platform covering **Inspire Chemistry**, **Inspire Biology**, and **Inspire Physics** curricula. Engineered for 4K Interactive Flat Panels (MAXHUB, Promethean, SMART Board), Desktop PCs, Chromebooks, Tablets, and Mobile devices with 100% offline PWA capabilities.
 
@@ -125,8 +125,8 @@ No compilation or build step required. The application uses modern Native ES Mod
 
 ```bash
 # Clone the repository
-git clone https://github.com/mohammedamy/EdugtesScLab.git
-cd EdugtesScLab
+git clone https://github.com/mohammedamy/EdugatesScLab.git
+cd EdugatesScLab
 
 # Serve locally with any static web server
 # Option A: Python

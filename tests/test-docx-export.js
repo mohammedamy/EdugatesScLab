@@ -5,7 +5,7 @@ let downloadedFilename = null;
 
 if (typeof globalThis.window === "undefined") {
   globalThis.window = {
-    location: { href: "https://mohammedamy.github.io/EdugtesScLab/" }
+    location: { href: "https://mohammedamy.github.io/EdugatesScLab/" }
   };
 }
 
