@@ -373,12 +373,14 @@ function renderAppShell() {
         </div>
         <div class="brand-text">
           <h1><span class="brand-title-prefix">Edugates-ClipSAT</span> <span class="logo-highlight">Science Labs</span></h1>
-          <div class="brand-tagline">Virtual Labs &amp; STEM Curriculum • Chemistry • Biology • Physics</div>
+          <div class="brand-tagline">
+            <span class="tagline-core">Virtual Labs &amp; STEM Curriculum</span><span class="tagline-extra"> • Chemistry • Biology • Physics</span>
+          </div>
         </div>
       </a>
 
       <!-- Semantic Main Navigation Landmark -->
-      <nav class="app-nav-container" aria-label="Main Navigation">
+      <nav class="app-nav-container app-nav-center" aria-label="Main Navigation">
         <!-- Navigation Subject Dropdown Menu -->
         <div class="nav-dropdown-wrapper" id="nav-dropdown-wrapper">
           <button class="nav-dropdown-trigger ${curSub.themeClass}" id="nav-dropdown-trigger" 
@@ -428,45 +430,49 @@ function renderAppShell() {
             </div>
           </div>
         </div>
-
-        <!-- Right Controls & Device Mode -->
-        <div class="nav-right-controls">
-          <!-- Day / Night Mode Toggle Switch -->
-          <button class="theme-toggle-btn" id="btn-theme-toggle" title="Switch Day/Night Mode (Light/Dark)" aria-label="Toggle Day or Night theme">
-            <div class="theme-toggle-track">
-              <div class="theme-toggle-thumb">
-                <span class="icon-sun">☀️</span>
-                <span class="icon-moon">🌙</span>
-              </div>
-            </div>
-            <span class="theme-toggle-text">${AppState.theme === 'day' ? 'Day' : 'Night'}</span>
-          </button>
-
-          <button class="btn btn-secondary" id="btn-open-progress" title="Student STEM Mastery Telemetry" aria-label="Student STEM Mastery telemetry and progress" style="padding: 6px 12px; font-size: 0.85rem; gap: 6px;">
-            ${icons.trophy}
-            <span>Mastery</span>
-          </button>
-
-          <!-- Offline Readiness & Storage Diagnostics Button -->
-          <button class="btn btn-secondary" id="btn-open-offline-diag" title="Offline Readiness, Cache Diagnostics &amp; Storage Quota (Hot-key: O)" aria-label="Offline diagnostics and storage quota" style="padding: 6px 12px; font-size: 0.85rem; gap: 6px;">
-            <span>📡</span>
-            <span>Offline</span>
-          </button>
-
-          <!-- Focus Presentation Mode Toggle Button -->
-          <button class="btn btn-secondary" id="btn-toggle-focus-mode" title="Focus Presentation Mode (Hide Navigation Chrome, Shift+F)" aria-label="Toggle Focus Presentation Mode" style="padding: 6px 12px; font-size: 0.85rem; gap: 6px;">
-            <span>🎯</span>
-            <span>Focus</span>
-          </button>
-
-          <div class="device-mode-toggle" role="group" aria-label="Screen Optimization &amp; Hardware Profile" title="Screen Optimization &amp; Hardware Profile">
-            <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto" aria-label="Auto hardware profile" aria-pressed="${AppState.deviceMode === 'auto'}">Auto</button>
-            <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" aria-label="MAXHUB &amp; Smartboard 60 FPS Turbo Profile" aria-pressed="${AppState.deviceMode === 'smartboard'}" title="MAXHUB &amp; Smartboard 60 FPS Turbo Profile (Zero-Blur, Opaque, Hardware Accelerated)">⚡ MAXHUB Turbo</button>
-            <button class="device-btn ${AppState.deviceMode === 'tablet' ? 'active' : ''}" data-mode="tablet" aria-label="Tablet Profile" aria-pressed="${AppState.deviceMode === 'tablet'}" title="Tablet Mode">Tablet</button>
-            <button class="device-btn ${AppState.deviceMode === 'mobile' ? 'active' : ''}" data-mode="mobile" aria-label="Mobile Profile" aria-pressed="${AppState.deviceMode === 'mobile'}" title="Mobile Mode">Mobile</button>
-          </div>
-        </div>
       </nav>
+
+      <!-- Right Controls & Device Mode -->
+      <div class="nav-right-controls" role="toolbar" aria-label="Display &amp; Hardware Mode Settings">
+        <!-- Day / Night Mode Toggle Switch -->
+        <button class="theme-toggle-btn" id="btn-theme-toggle" title="Switch Day/Night Mode (Light/Dark)" aria-label="Toggle Day or Night theme">
+          <div class="theme-toggle-track">
+            <div class="theme-toggle-thumb">
+              <span class="icon-sun">☀️</span>
+              <span class="icon-moon">🌙</span>
+            </div>
+          </div>
+          <span class="theme-toggle-text">${AppState.theme === 'day' ? 'Day' : 'Night'}</span>
+        </button>
+
+        <button class="btn btn-secondary nav-action-btn" id="btn-open-progress" title="Student STEM Mastery Telemetry" aria-label="Student STEM Mastery telemetry and progress">
+          <span class="nav-btn-icon">${icons.trophy}</span>
+          <span class="nav-btn-label">Mastery</span>
+        </button>
+
+        <!-- Offline Readiness & Storage Diagnostics Button -->
+        <button class="btn btn-secondary nav-action-btn" id="btn-open-offline-diag" title="Offline Readiness, Cache Diagnostics &amp; Storage Quota (Hot-key: O)" aria-label="Offline diagnostics and storage quota">
+          <span class="nav-btn-icon">📡</span>
+          <span class="nav-btn-label">Offline</span>
+        </button>
+
+        <!-- Focus Presentation Mode Toggle Button -->
+        <button class="btn btn-secondary nav-action-btn" id="btn-toggle-focus-mode" title="Focus Presentation Mode (Hide Navigation Chrome, Shift+F)" aria-label="Toggle Focus Presentation Mode">
+          <span class="nav-btn-icon">🎯</span>
+          <span class="nav-btn-label">Focus</span>
+        </button>
+
+        <div class="device-mode-toggle" role="group" aria-label="Screen Optimization &amp; Hardware Profile" title="Screen Optimization &amp; Hardware Profile">
+          <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto" aria-label="Auto hardware profile" aria-pressed="${AppState.deviceMode === 'auto'}">Auto</button>
+          <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" aria-label="MAXHUB &amp; Smartboard 60 FPS Turbo Profile" aria-pressed="${AppState.deviceMode === 'smartboard'}" title="MAXHUB &amp; Smartboard 60 FPS Turbo Profile (Zero-Blur, Opaque, Hardware Accelerated)">
+            <span class="device-btn-icon">⚡</span>
+            <span class="device-btn-full">MAXHUB Turbo</span>
+            <span class="device-btn-short">Turbo</span>
+          </button>
+          <button class="device-btn ${AppState.deviceMode === 'tablet' ? 'active' : ''}" data-mode="tablet" aria-label="Tablet Profile" aria-pressed="${AppState.deviceMode === 'tablet'}" title="Tablet Mode">Tablet</button>
+          <button class="device-btn ${AppState.deviceMode === 'mobile' ? 'active' : ''}" data-mode="mobile" aria-label="Mobile Profile" aria-pressed="${AppState.deviceMode === 'mobile'}" title="Mobile Mode">Mobile</button>
+        </div>
+      </div>
     </header>
 
     <!-- Exit Focus Mode Floating Pill Button -->

@@ -835,6 +835,16 @@ a.lesson-row-card {
    Ultra-sleek, responsive dropdown replacing horizontal tab bar
    ========================================================================= */
 
+.app-nav-container,
+.app-nav-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  position: relative;
+  min-width: 0;
+}
+
 .nav-dropdown-wrapper {
   position: relative;
   display: inline-flex;
@@ -1362,7 +1372,38 @@ a.lesson-row-card {
 .nav-right-controls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Nav Action Buttons (Mastery, Offline, Focus) */
+.nav-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-full, 9999px);
+  min-height: 38px;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+
+.nav-action-btn .nav-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.nav-action-btn .nav-btn-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 .device-mode-toggle {
@@ -1370,22 +1411,32 @@ a.lesson-row-card {
   align-items: center;
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
-  padding: 4px;
+  border-radius: var(--radius-full, 9999px);
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
 }
 .device-btn {
   background: transparent;
   border: none;
   color: var(--text-dim);
-  padding: 6px 12px;
-  border-radius: var(--radius-full);
+  padding: 5px 11px;
+  border-radius: var(--radius-full, 9999px);
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.device-btn .device-btn-short {
+  display: none;
+}
+.device-btn .device-btn-full {
+  display: inline;
 }
 .device-btn:hover {
   color: var(--text-muted);
@@ -3972,22 +4023,102 @@ body.modal-open .sb-toolbar-toggle {
 }
 
 
-/* Mobile & Tablet Responsiveness */
-@media (max-width: 900px) {
-  .app-navbar {
-    padding: 0 16px;
-    height: 74px;
+/* =========================================================================
+   UNIVERSAL RESPONSIVE NAVBAR ADAPTATIONS ACROSS ALL VIEWS
+   ========================================================================= */
+
+/* Tier 1: Laptops and Desktops with Display Scaling (1180px - 1420px) */
+@media (max-width: 1420px) {
+  .tagline-extra {
+    display: none !important;
   }
-  .brand-logo-box {
-    width: 48px;
-    height: 48px;
-  }
-  .brand-text .brand-tagline {
+  .device-btn .device-btn-full {
     display: none;
   }
-  .brand-text h1 {
-    font-size: 1.15rem;
+  .device-btn .device-btn-short {
+    display: inline;
   }
+  .nav-action-btn {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+    gap: 5px;
+  }
+  .app-navbar {
+    padding: 0 18px;
+    gap: 12px;
+  }
+}
+
+/* Tier 2: Compact Laptops & Large Tablets (980px - 1179px) */
+@media (max-width: 1180px) {
+  .brand-text .brand-tagline {
+    display: none !important;
+  }
+  .nav-dropdown-trigger {
+    padding: 6px 12px 6px 10px;
+    min-height: 44px;
+    gap: 8px;
+  }
+  .nav-dropdown-current-label {
+    display: none !important;
+  }
+  .nav-dropdown-current-title {
+    font-size: 0.94rem;
+  }
+  .app-navbar {
+    padding: 0 16px;
+    gap: 10px;
+  }
+  .device-btn {
+    padding: 4px 8px;
+    font-size: 0.74rem;
+  }
+}
+
+/* Tier 3: Tablets in Portrait & Mid-size Devices (768px - 979px) */
+@media (max-width: 980px) {
+  .app-navbar {
+    padding: 0 14px;
+    height: 72px;
+    min-height: 72px;
+    gap: 8px;
+  }
+  .brand-logo-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+  }
+  .brand-text h1 {
+    font-size: 1.12rem;
+  }
+  .brand-text .brand-tagline {
+    display: none !important;
+  }
+  .nav-action-btn .nav-btn-label {
+    display: none;
+  }
+  .nav-action-btn {
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .theme-toggle-text {
+    display: none;
+  }
+  .theme-toggle-btn {
+    padding: 4px 8px;
+  }
+  .device-btn {
+    padding: 4px 6px;
+    font-size: 0.72rem;
+  }
+  .nav-dropdown-menu {
+    width: 310px;
+  }
+
   .app-main {
     padding: 16px;
   }
@@ -4010,34 +4141,43 @@ body.modal-open .sb-toolbar-toggle {
   .periodic-layout {
     grid-template-columns: 1fr !important;
   }
+}
 
-  .nav-dropdown-trigger {
-    padding: 6px 12px 6px 10px;
-    gap: 8px;
-    min-height: 44px;
-  }
-  .nav-dropdown-current-label {
+/* Tier 4: Small Tablets & Large Phones (600px - 767px) */
+@media (max-width: 768px) {
+  .brand-title-prefix {
     display: none;
   }
-  .nav-dropdown-current-title {
-    font-size: 0.94rem;
+  .device-mode-toggle {
+    display: none !important;
+  }
+  .app-navbar {
+    padding: 0 12px;
+    gap: 8px;
+    height: 66px;
+    min-height: 66px;
+  }
+  .nav-dropdown-wrapper {
+    position: relative;
   }
   .nav-dropdown-menu {
-    width: 310px;
+    width: 290px;
   }
 }
 
+/* Tier 5: Mobile Phones (< 600px) */
 @media (max-width: 600px) {
   .app-navbar {
     height: auto;
-    min-height: 56px;
+    min-height: 60px;
     padding: 8px 12px;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 8px 10px;
   }
   .brand-section {
-    gap: 10px;
-    max-width: 100%;
+    gap: 8px;
+    flex: 1 1 auto;
+    max-width: none;
   }
   .brand-logo-box {
     width: 36px;
@@ -4046,28 +4186,42 @@ body.modal-open .sb-toolbar-toggle {
   }
   .brand-text h1 {
     font-size: 0.96rem;
-    line-height: 1.25;
+    line-height: 1.2;
     white-space: normal;
   }
-  .app-nav-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
+  .brand-title-prefix {
+    display: none;
+  }
+  .nav-right-controls {
+    flex: 0 0 auto;
     gap: 6px;
   }
   .device-mode-toggle {
-    display: none;
+    display: none !important;
+  }
+  .app-nav-container,
+  .app-nav-center {
+    order: 3;
+    width: 100%;
+    margin-top: 2px;
   }
   .nav-dropdown-wrapper {
+    width: 100%;
     position: static;
   }
+  .nav-dropdown-trigger {
+    width: 100%;
+    justify-content: space-between;
+    min-height: 42px;
+    padding: 6px 14px 6px 10px;
+  }
   .nav-dropdown-menu {
-    left: 12px;
-    right: 12px;
-    transform: translateY(-8px);
+    left: 8px;
+    right: 8px;
     width: auto;
     max-width: none;
+    top: calc(100% + 4px);
+    transform: translateY(-8px);
   }
   .nav-dropdown-wrapper.open .nav-dropdown-menu {
     transform: translateY(0);
@@ -5937,6 +6091,20 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   background: #ffffff;
   color: #0f172a;
   box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="day"] .nav-action-btn {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+}
+
+[data-theme="day"] .nav-action-btn:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+  color: #0284c7 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1) !important;
 }
 
 /* Day / Night Toggle Switch Widget */

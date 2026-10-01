@@ -226,6 +226,29 @@ const telemetryExporterContent = fs.readFileSync(path.join(rootDir, "labs/lab-te
 assert(telemetryExporterContent.includes("exportLabReportPrintable") && telemetryExporterContent.includes("captureCanvasAsDataUrl"),
   "labs/lab-telemetry-exporter.js re-exports modular report functions and integrates canvas capture");
 
+// ----------------------------------------------------
+// Pillar 7: Universal Responsive Header & Alignment Across All Views
+// ----------------------------------------------------
+console.log("\n📐 Pillar 7: Universal Responsive Header & Alignment Across All Views");
+
+assert(appJsContent.includes('class="app-nav-container app-nav-center"') &&
+       appJsContent.includes('class="nav-right-controls"'),
+  "app.js structures navbar with separated center navigation and right controls toolbar");
+
+assert(indexCss.includes(".app-nav-container") && indexCss.includes(".app-nav-center") &&
+       indexCss.includes("display: flex;"),
+  "index.css defines flex layout for .app-nav-container to prevent vertical control stacking");
+
+assert(indexCss.includes("@media (max-width: 1420px)") &&
+       indexCss.includes("@media (max-width: 1180px)") &&
+       indexCss.includes("@media (max-width: 980px)") &&
+       indexCss.includes("@media (max-width: 768px)") &&
+       indexCss.includes("@media (max-width: 600px)"),
+  "index.css implements 5 universal responsive tiers covering desktop scaling, laptops, tablets, and phones");
+
+assert(indexCss.includes(".nav-action-btn") &&
+       indexCss.includes('[data-theme="day"] .nav-action-btn'),
+  "index.css provides polished Day & Night styling for navbar action buttons");
 
 // ----------------------------------------------------
 // Summary
