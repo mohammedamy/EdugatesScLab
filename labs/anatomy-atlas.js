@@ -56,6 +56,18 @@ export function initAnatomyAtlasLab(containerId) {
   let dragStartY = 0;
   let hoveredStructure = null;
 
+  // 8K Imaging Modes ('photo' | 'xray' | 'angiogram')
+  let imagingMode = "photo";
+
+  // Preload Museum-Grade 8K Anatomical Dissection Plates
+  const imgAnterior = new Image();
+  imgAnterior.crossOrigin = "anonymous";
+  imgAnterior.src = "./assets/labs/human_anatomy_anterior_8k.jpg";
+
+  const imgPosterior = new Image();
+  imgPosterior.crossOrigin = "anonymous";
+  imgPosterior.src = "./assets/labs/human_anatomy_posterior_8k.jpg";
+
   // Animation and simulation handles
   let animId = null;
   let simTime = 0;
@@ -190,6 +202,20 @@ export function initAnatomyAtlasLab(containerId) {
               </button>
               <button id="btn-view-posterior" class="btn btn-sm ${activeView === 'posterior' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;">
                 Coronal Posterior
+              </button>
+            </div>
+
+            <!-- 8K Contrast & Imaging Shaders -->
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Plate:</span>
+              <button id="btn-imaging-photo" class="btn btn-sm ${imagingMode === 'photo' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Photorealistic 8K TrueColor Dissection">
+                📸 8K TrueColor
+              </button>
+              <button id="btn-imaging-xray" class="btn btn-sm ${imagingMode === 'xray' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Radiographic X-Ray Contrast">
+                ☢️ Radiographic
+              </button>
+              <button id="btn-imaging-angio" class="btn btn-sm ${imagingMode === 'angiogram' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Fluorescent Angiogram Contrast">
+                ⚡ Angiogram
               </button>
             </div>
 
@@ -429,6 +455,9 @@ export function initAnatomyAtlasLab(containerId) {
   const btnOpenDossier = document.getElementById("btn-open-dossier");
   const btnViewAnt = document.getElementById("btn-view-anterior");
   const btnViewPost = document.getElementById("btn-view-posterior");
+  const btnImagingPhoto = document.getElementById("btn-imaging-photo");
+  const btnImagingXray = document.getElementById("btn-imaging-xray");
+  const btnImagingAngio = document.getElementById("btn-imaging-angio");
   const selRegionJump = document.getElementById("sel-region-jump");
   const btnZoomIn = document.getElementById("btn-zoom-in");
   const btnZoomOut = document.getElementById("btn-zoom-out");
@@ -638,6 +667,32 @@ export function initAnatomyAtlasLab(containerId) {
     btnViewPost.classList.remove("btn-secondary");
     btnViewAnt.classList.remove("btn-primary");
     btnViewAnt.classList.add("btn-secondary");
+    SoundFX.playClick();
+  });
+
+  // Imaging Mode Switcher
+  function updateImagingButtons() {
+    btnImagingPhoto?.classList.toggle("btn-primary", imagingMode === "photo");
+    btnImagingPhoto?.classList.toggle("btn-secondary", imagingMode !== "photo");
+    btnImagingXray?.classList.toggle("btn-primary", imagingMode === "xray");
+    btnImagingXray?.classList.toggle("btn-secondary", imagingMode !== "xray");
+    btnImagingAngio?.classList.toggle("btn-primary", imagingMode === "angiogram");
+    btnImagingAngio?.classList.toggle("btn-secondary", imagingMode !== "angiogram");
+  }
+
+  btnImagingPhoto?.addEventListener("click", () => {
+    imagingMode = "photo";
+    updateImagingButtons();
+    SoundFX.playClick();
+  });
+  btnImagingXray?.addEventListener("click", () => {
+    imagingMode = "xray";
+    updateImagingButtons();
+    SoundFX.playClick();
+  });
+  btnImagingAngio?.addEventListener("click", () => {
+    imagingMode = "angiogram";
+    updateImagingButtons();
     SoundFX.playClick();
   });
 
@@ -1079,342 +1134,181 @@ export function initAnatomyAtlasLab(containerId) {
   });
 
   // ----------------------------------------------------
-  // VECTOR RENDERING ENGINE (Body Silhouette & Organs)
+  // 8K ULTRA-HD MEDICAL DISSECTION ENGINE
   // ----------------------------------------------------
   function drawHumanBodyVector(targetCtx, renderScale = 1.0, view = "anterior") {
     targetCtx.save();
     targetCtx.scale(renderScale, renderScale);
 
-    // 1. SKIN / INTEGUMENTARY LAYER
-    if (layerOpacities.skin > 0.02) {
+    // 0. PRIMARY 8K ULTRA-HD MEDICAL DISSECTION PLATE
+    const activeImg = (view === "anterior") ? imgAnterior : imgPosterior;
+    const isImgReady = activeImg.complete && activeImg.naturalWidth > 0;
+
+    if (isImgReady) {
       targetCtx.save();
-      targetCtx.globalAlpha = layerOpacities.skin;
-      targetCtx.fillStyle = "rgba(226, 178, 142, 0.4)";
-      targetCtx.strokeStyle = "rgba(240, 195, 160, 0.8)";
-      targetCtx.lineWidth = 3;
+      targetCtx.imageSmoothingEnabled = true;
+      targetCtx.imageSmoothingQuality = "high";
 
-      // Full body contour outline
-      targetCtx.beginPath();
-      // Head
-      targetCtx.ellipse(500, 130, 75, 95, 0, 0, Math.PI * 2);
-      // Neck
-      targetCtx.moveTo(470, 220); targetCtx.lineTo(465, 260);
-      targetCtx.lineTo(390, 280); // Shoulders
-      targetCtx.lineTo(340, 360); // Arms
-      targetCtx.lineTo(300, 520);
-      targetCtx.lineTo(240, 680); // Hands
-      targetCtx.lineTo(270, 680);
-      targetCtx.lineTo(330, 520);
-      targetCtx.lineTo(370, 370);
-      targetCtx.lineTo(420, 480); // Torso side
-      targetCtx.lineTo(430, 780); // Hip
-      targetCtx.lineTo(400, 1100); // Thigh
-      targetCtx.lineTo(410, 1380); // Knee
-      targetCtx.lineTo(400, 1680); // Ankle
-      targetCtx.lineTo(440, 1720); // Foot
-      targetCtx.lineTo(460, 1680);
-      targetCtx.lineTo(470, 1380);
-      targetCtx.lineTo(485, 1050);
-      targetCtx.lineTo(500, 880); // Inguinal crease
-      // Symmetrical right side
-      targetCtx.lineTo(515, 1050);
-      targetCtx.lineTo(530, 1380);
-      targetCtx.lineTo(540, 1680);
-      targetCtx.lineTo(560, 1720);
-      targetCtx.lineTo(600, 1680);
-      targetCtx.lineTo(590, 1380);
-      targetCtx.lineTo(600, 1100);
-      targetCtx.lineTo(570, 780);
-      targetCtx.lineTo(580, 480);
-      targetCtx.lineTo(630, 370);
-      targetCtx.lineTo(670, 520);
-      targetCtx.lineTo(730, 680);
-      targetCtx.lineTo(760, 680);
-      targetCtx.lineTo(700, 520);
-      targetCtx.lineTo(660, 360);
-      targetCtx.lineTo(610, 280);
-      targetCtx.lineTo(535, 260);
-      targetCtx.lineTo(530, 220);
-      targetCtx.closePath();
-      targetCtx.fill();
-      targetCtx.stroke();
-      targetCtx.restore();
-    }
-
-    // 2. MUSCULAR LAYER
-    if (layerOpacities.muscular > 0.02) {
-      targetCtx.save();
-      targetCtx.globalAlpha = layerOpacities.muscular;
-      targetCtx.fillStyle = "#ef4444";
-      targetCtx.strokeStyle = "#b91c1c";
-      targetCtx.lineWidth = 2;
-
-      // Pectoralis Major (Anterior)
-      if (view === "anterior") {
-        targetCtx.beginPath();
-        targetCtx.ellipse(450, 330, 45, 30, -0.2, 0, Math.PI * 2);
-        targetCtx.ellipse(550, 330, 45, 30, 0.2, 0, Math.PI * 2);
-        targetCtx.fill(); targetCtx.stroke();
-
-        // Rectus Abdominis
-        targetCtx.beginPath();
-        targetCtx.roundRect(475, 520, 22, 160, 6);
-        targetCtx.roundRect(503, 520, 22, 160, 6);
-        targetCtx.fill(); targetCtx.stroke();
-
-        // Quadriceps
-        targetCtx.beginPath();
-        targetCtx.ellipse(450, 1050, 32, 120, -0.05, 0, Math.PI * 2);
-        targetCtx.ellipse(550, 1050, 32, 120, 0.05, 0, Math.PI * 2);
-        targetCtx.fill(); targetCtx.stroke();
+      // Apply imaging contrast mode shaders
+      if (imagingMode === "xray") {
+        targetCtx.filter = "contrast(190%) invert(95%) hue-rotate(180deg) brightness(88%)";
+      } else if (imagingMode === "angiogram") {
+        targetCtx.filter = "contrast(220%) saturate(160%) hue-rotate(145deg) brightness(115%)";
       } else {
-        // Trapezius & Latissimus Dorsi (Posterior)
-        targetCtx.beginPath();
-        targetCtx.moveTo(500, 240);
-        targetCtx.lineTo(410, 300);
-        targetCtx.lineTo(440, 460);
-        targetCtx.lineTo(500, 580);
-        targetCtx.lineTo(560, 460);
-        targetCtx.lineTo(590, 300);
-        targetCtx.closePath();
-        targetCtx.fill(); targetCtx.stroke();
-
-        // Gluteus Maximus
-        targetCtx.beginPath();
-        targetCtx.ellipse(460, 840, 42, 50, -0.2, 0, Math.PI * 2);
-        targetCtx.ellipse(540, 840, 42, 50, 0.2, 0, Math.PI * 2);
-        targetCtx.fill(); targetCtx.stroke();
-
-        // Hamstrings & Gastrocnemius
-        targetCtx.beginPath();
-        targetCtx.ellipse(450, 1060, 28, 110, 0, 0, Math.PI * 2);
-        targetCtx.ellipse(550, 1060, 28, 110, 0, 0, Math.PI * 2);
-        targetCtx.ellipse(440, 1380, 24, 75, 0, 0, Math.PI * 2);
-        targetCtx.ellipse(560, 1380, 24, 75, 0, 0, Math.PI * 2);
-        targetCtx.fill(); targetCtx.stroke();
+        targetCtx.filter = "none";
       }
 
-      // Deltoids & Biceps (Bilateral)
-      targetCtx.beginPath();
-      targetCtx.ellipse(375, 310, 25, 40, -0.4, 0, Math.PI * 2);
-      targetCtx.ellipse(625, 310, 25, 40, 0.4, 0, Math.PI * 2);
-      targetCtx.ellipse(345, 410, 18, 50, -0.15, 0, Math.PI * 2);
-      targetCtx.ellipse(655, 410, 18, 50, 0.15, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
+      // Exact 1000 x 1800 coordinate space calibration
+      const drawH = 1680;
+      const aspect = activeImg.naturalWidth / activeImg.naturalHeight;
+      const drawW = drawH * aspect;
+      const drawX = 500 - (drawW / 2);
+      const drawY = 55;
+
+      targetCtx.drawImage(activeImg, drawX, drawY, drawW, drawH);
       targetCtx.restore();
-    }
-
-    // 3. SKELETAL SYSTEM LAYER
-    if (layerOpacities.skeletal > 0.02) {
+    } else {
+      // High-Tech Clinical Loading Shimmer
       targetCtx.save();
-      targetCtx.globalAlpha = layerOpacities.skeletal;
-      targetCtx.fillStyle = "#f8fafc";
-      targetCtx.strokeStyle = "#cbd5e1";
-      targetCtx.lineWidth = 3;
-
-      // Cranium / Skull
-      targetCtx.beginPath();
-      targetCtx.ellipse(500, 125, 62, 75, 0, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // Facial orbits and nasal cavity (anterior)
-      if (view === "anterior") {
-        targetCtx.fillStyle = "#0f172a";
-        targetCtx.beginPath();
-        targetCtx.ellipse(475, 125, 12, 14, 0, 0, Math.PI * 2);
-        targetCtx.ellipse(525, 125, 12, 14, 0, 0, Math.PI * 2);
-        targetCtx.moveTo(500, 140); targetCtx.lineTo(495, 160); targetCtx.lineTo(505, 160); targetCtx.closePath();
-        targetCtx.fill();
-        targetCtx.fillStyle = "#f8fafc";
-      }
-
-      // Vertebral Column (Cervical, Thoracic, Lumbar, Sacrum)
-      targetCtx.strokeStyle = "#94a3b8";
-      targetCtx.lineWidth = 14;
-      targetCtx.beginPath();
-      targetCtx.moveTo(500, 200);
-      targetCtx.lineTo(500, 840);
-      targetCtx.stroke();
-
-      // Clavicles
-      targetCtx.lineWidth = 5;
-      targetCtx.strokeStyle = "#f8fafc";
-      targetCtx.beginPath();
-      targetCtx.moveTo(500, 260); targetCtx.lineTo(400, 275);
-      targetCtx.moveTo(500, 260); targetCtx.lineTo(600, 275);
-      targetCtx.stroke();
-
-      // Sternum & Rib Cage (12 Rib pairs)
-      targetCtx.lineWidth = 3;
-      for (let r = 0; r < 8; r++) {
-        const ry = 300 + (r * 18);
-        const rw = 55 + (r * 6);
-        targetCtx.beginPath();
-        targetCtx.ellipse(500, ry, rw, 16, 0, 0, Math.PI);
-        targetCtx.stroke();
-      }
-
-      // Pelvis / Os Coxae
-      targetCtx.beginPath();
-      targetCtx.ellipse(460, 810, 48, 55, -0.3, 0, Math.PI * 2);
-      targetCtx.ellipse(540, 810, 48, 55, 0.3, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // Humerus, Radius, Ulna
-      targetCtx.lineWidth = 7;
-      targetCtx.beginPath();
-      targetCtx.moveTo(390, 280); targetCtx.lineTo(340, 460); // Left humerus
-      targetCtx.moveTo(610, 280); targetCtx.lineTo(660, 460); // Right humerus
-      targetCtx.moveTo(340, 460); targetCtx.lineTo(290, 620); // Left radius/ulna
-      targetCtx.moveTo(660, 460); targetCtx.lineTo(710, 620); // Right radius/ulna
-      targetCtx.stroke();
-
-      // Femur (Thigh) & Tibia/Fibula (Leg)
-      targetCtx.lineWidth = 10;
-      targetCtx.beginPath();
-      targetCtx.moveTo(460, 840); targetCtx.lineTo(440, 1220); // Left femur
-      targetCtx.moveTo(540, 840); targetCtx.lineTo(560, 1220); // Right femur
-      targetCtx.stroke();
-
-      // Patellae
-      targetCtx.fillStyle = "#ffffff";
-      targetCtx.beginPath();
-      targetCtx.arc(440, 1220, 10, 0, Math.PI * 2);
-      targetCtx.arc(560, 1220, 10, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // Tibia / Fibula
-      targetCtx.lineWidth = 7;
-      targetCtx.beginPath();
-      targetCtx.moveTo(440, 1230); targetCtx.lineTo(430, 1580);
-      targetCtx.moveTo(560, 1230); targetCtx.lineTo(570, 1580);
-      targetCtx.stroke();
-      targetCtx.restore();
-    }
-
-    // 4. VISCERAL / INTERNAL ORGANS LAYER
-    if (layerOpacities.visceral > 0.02) {
-      targetCtx.save();
-      targetCtx.globalAlpha = layerOpacities.visceral;
-
-      // Trachea & Bronchi
-      targetCtx.strokeStyle = "#38bdf8";
-      targetCtx.lineWidth = 6;
-      targetCtx.beginPath();
-      targetCtx.moveTo(500, 220); targetCtx.lineTo(500, 320);
-      targetCtx.lineTo(470, 360);
-      targetCtx.moveTo(500, 320); targetCtx.lineTo(530, 360);
-      targetCtx.stroke();
-
-      // Lungs (Left & Right)
-      targetCtx.fillStyle = "rgba(52, 211, 153, 0.75)";
-      targetCtx.strokeStyle = "#10b981";
-      targetCtx.lineWidth = 2;
-      targetCtx.beginPath();
-      targetCtx.ellipse(440, 380, 46, 75, -0.1, 0, Math.PI * 2);
-      targetCtx.ellipse(560, 380, 42, 75, 0.1, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // Heart
-      targetCtx.fillStyle = "#ef4444";
-      targetCtx.strokeStyle = "#991b1b";
-      targetCtx.lineWidth = 3;
-      targetCtx.beginPath();
-      targetCtx.ellipse(512, 395, 34, 42, -0.3, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // Liver (Large right lobe)
-      targetCtx.fillStyle = "rgba(245, 158, 11, 0.85)";
-      targetCtx.strokeStyle = "#b45309";
-      targetCtx.beginPath();
-      targetCtx.ellipse(465, 510, 52, 38, -0.15, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // Stomach (J-shaped left upper quadrant)
-      targetCtx.fillStyle = "rgba(251, 191, 36, 0.85)";
-      targetCtx.strokeStyle = "#d97706";
-      targetCtx.beginPath();
-      targetCtx.ellipse(535, 520, 38, 32, 0.35, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // Kidneys (Retroperitoneal)
-      targetCtx.fillStyle = "#8b5cf6";
-      targetCtx.strokeStyle = "#6d28d9";
-      targetCtx.beginPath();
-      targetCtx.ellipse(440, 600, 18, 30, -0.1, 0, Math.PI * 2);
-      targetCtx.ellipse(560, 600, 18, 30, 0.1, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // Small & Large Intestines
-      targetCtx.fillStyle = "#d97706";
-      targetCtx.strokeStyle = "#b45309";
-      targetCtx.beginPath();
-      targetCtx.ellipse(500, 690, 60, 50, 0, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // Urinary Bladder
-      targetCtx.fillStyle = "#c084fc";
-      targetCtx.strokeStyle = "#9333ea";
-      targetCtx.beginPath();
-      targetCtx.ellipse(500, 835, 24, 20, 0, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-      targetCtx.restore();
-    }
-
-    // 5. CARDIOVASCULAR VASCULATURE LAYER
-    if (layerOpacities.circulatory > 0.02) {
-      targetCtx.save();
-      targetCtx.globalAlpha = layerOpacities.circulatory;
-
-      // Aorta & Major Arteries (Red)
-      targetCtx.strokeStyle = "#ef4444";
-      targetCtx.lineWidth = 5;
-      targetCtx.beginPath();
-      // Ascending aorta & Arch
-      targetCtx.arc(505, 340, 18, Math.PI, 0);
-      targetCtx.lineTo(505, 780); // Descending abdominal aorta
-      targetCtx.lineTo(465, 870); // Left common iliac
-      targetCtx.moveTo(505, 780); targetCtx.lineTo(545, 870); // Right common iliac
-      // Carotid arteries
-      targetCtx.moveTo(495, 330); targetCtx.lineTo(480, 210);
-      targetCtx.moveTo(515, 330); targetCtx.lineTo(530, 210);
-      targetCtx.stroke();
-
-      // Vena Cava & Major Veins (Blue)
-      targetCtx.strokeStyle = "#38bdf8";
-      targetCtx.lineWidth = 5;
-      targetCtx.beginPath();
-      targetCtx.moveTo(525, 210); targetCtx.lineTo(520, 360); // SVC
-      targetCtx.moveTo(520, 430); targetCtx.lineTo(520, 780); // IVC
-      targetCtx.lineTo(480, 870);
-      targetCtx.moveTo(520, 780); targetCtx.lineTo(560, 870);
-      targetCtx.stroke();
-      targetCtx.restore();
-    }
-
-    // 6. NERVOUS SYSTEM LAYER
-    if (layerOpacities.nervous > 0.02) {
-      targetCtx.save();
-      targetCtx.globalAlpha = layerOpacities.nervous;
+      targetCtx.fillStyle = "rgba(15, 23, 42, 0.75)";
+      targetCtx.roundRect(80, 80, 840, 1640, 16);
+      targetCtx.fill();
       targetCtx.fillStyle = "#38bdf8";
-      targetCtx.strokeStyle = "#0284c7";
-      targetCtx.lineWidth = 2;
+      targetCtx.font = "bold 26px -apple-system, sans-serif";
+      targetCtx.textAlign = "center";
+      targetCtx.fillText("Loading 8K Ultra-HD Medical Anatomy Plate...", 500, 880);
+      targetCtx.restore();
+    }
 
-      // Brain
+    // 1. DYNAMIC VASCULAR TREE ILLUMINATION OVERLAY
+    if (layerOpacities.circulatory > 0.05 || imagingMode === "angiogram") {
+      targetCtx.save();
+      const circAlpha = Math.min(1.0, layerOpacities.circulatory * (imagingMode === "angiogram" ? 1.0 : 0.85));
+      targetCtx.globalAlpha = circAlpha;
+      const pulse = 1.0 + 0.16 * Math.sin(simTime * 8);
+
+      // Glowing Aorta & Systemic Arteries (Carmine Red)
+      targetCtx.shadowColor = "#ef4444";
+      targetCtx.shadowBlur = 12 * pulse;
+      targetCtx.strokeStyle = "#ef4444";
+      targetCtx.lineWidth = 4 * pulse;
       targetCtx.beginPath();
-      targetCtx.ellipse(500, 125, 48, 55, 0, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
+      if (view === "anterior") {
+        targetCtx.arc(520, 295, 16, Math.PI, 0); // Aortic arch
+        targetCtx.lineTo(520, 720); // Descending abdominal aorta
+        targetCtx.lineTo(475, 840); // Common iliac (anatomical right)
+        targetCtx.moveTo(520, 720); targetCtx.lineTo(565, 840); // Common iliac (anatomical left)
+        // Carotid branches
+        targetCtx.moveTo(512, 290); targetCtx.lineTo(488, 190);
+        targetCtx.moveTo(528, 290); targetCtx.lineTo(540, 190);
+        // Femoral extensions
+        targetCtx.moveTo(475, 840); targetCtx.lineTo(440, 1200);
+        targetCtx.moveTo(565, 840); targetCtx.lineTo(600, 1200);
+      }
+      targetCtx.stroke();
 
-      // Spinal Cord & Sciatic Nerves
+      // Glowing Vena Cava & Major Veins (Cyan)
+      targetCtx.shadowColor = "#38bdf8";
+      targetCtx.shadowBlur = 10;
       targetCtx.strokeStyle = "#38bdf8";
       targetCtx.lineWidth = 4;
       targetCtx.beginPath();
-      targetCtx.moveTo(500, 180);
-      targetCtx.lineTo(500, 740);
-      // Sciatic nerves branching to legs
-      targetCtx.moveTo(500, 740); targetCtx.lineTo(450, 1380);
-      targetCtx.moveTo(500, 740); targetCtx.lineTo(550, 1380);
+      if (view === "anterior") {
+        targetCtx.moveTo(536, 190); targetCtx.lineTo(532, 330); // SVC
+        targetCtx.moveTo(532, 400); targetCtx.lineTo(532, 720); // IVC
+        targetCtx.lineTo(495, 840);
+        targetCtx.moveTo(532, 720); targetCtx.lineTo(578, 840);
+      }
       targetCtx.stroke();
+      targetCtx.restore();
+    }
+
+    // 2. BIOELECTRIC NERVOUS SYSTEM AXIS OVERLAY
+    if (layerOpacities.nervous > 0.05) {
+      targetCtx.save();
+      targetCtx.globalAlpha = Math.min(1.0, layerOpacities.nervous * 0.9);
+      targetCtx.shadowColor = "#00f0ff";
+      targetCtx.shadowBlur = 14;
+      targetCtx.strokeStyle = "#38bdf8";
+      targetCtx.lineWidth = 3.5;
+
+      targetCtx.beginPath();
+      // Neurocranium & Spinal cord
+      targetCtx.moveTo(500, 120);
+      targetCtx.lineTo(500, 720);
+      // Brachial plexus
+      targetCtx.moveTo(500, 260); targetCtx.lineTo(360, 340); targetCtx.lineTo(290, 520);
+      targetCtx.moveTo(500, 260); targetCtx.lineTo(640, 340); targetCtx.lineTo(710, 520);
+      // Lumbosacral & Sciatic nerves
+      targetCtx.moveTo(500, 720); targetCtx.lineTo(440, 1100); targetCtx.lineTo(430, 1400);
+      targetCtx.moveTo(500, 720); targetCtx.lineTo(570, 1100); targetCtx.lineTo(580, 1400);
+      targetCtx.stroke();
+
+      // Traveling Action-Potential Bioelectric Pulse
+      const apPos = (simTime * 500) % 600;
+      targetCtx.beginPath();
+      targetCtx.arc(500, 120 + apPos, 5, 0, Math.PI * 2);
+      targetCtx.fillStyle = "#ffffff";
+      targetCtx.shadowColor = "#38bdf8";
+      targetCtx.shadowBlur = 20;
+      targetCtx.fill();
+      targetCtx.restore();
+    }
+
+    // 3. SKELETAL & MUSCULAR OPACITY SHADING
+    if (layerOpacities.skeletal > 0.95 && layerOpacities.muscular < 0.2) {
+      targetCtx.save();
+      targetCtx.globalAlpha = 0.22;
+      targetCtx.fillStyle = "#e2e8f0";
+      targetCtx.filter = "blur(14px)";
+      targetCtx.beginPath();
+      targetCtx.ellipse(view === "anterior" ? 590 : 500, 420, 70, 200, 0, 0, Math.PI * 2);
+      targetCtx.fill();
+      targetCtx.restore();
+    } else if (layerOpacities.muscular > 0.95 && layerOpacities.skeletal < 0.2) {
+      targetCtx.save();
+      targetCtx.globalAlpha = 0.22;
+      targetCtx.fillStyle = "#f87171";
+      targetCtx.filter = "blur(14px)";
+      targetCtx.beginPath();
+      targetCtx.ellipse(view === "anterior" ? 410 : 500, 420, 70, 200, 0, 0, Math.PI * 2);
+      targetCtx.fill();
+      targetCtx.restore();
+    }
+
+    // 4. ACTIVE STRUCTURE HIGH-PRECISION HUD RETICLE & SPOTLIGHT
+    if (selectedStructure && selectedStructure.view === view) {
+      targetCtx.save();
+      const sx = selectedStructure.coords.x;
+      const sy = selectedStructure.coords.y;
+      const now = performance.now();
+      const pulse = 1.0 + 0.15 * Math.sin(now * 0.006);
+
+      // Glowing targeting halo
+      targetCtx.beginPath();
+      targetCtx.arc(sx, sy, 32 * pulse, 0, Math.PI * 2);
+      targetCtx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+      targetCtx.lineWidth = 2;
+      targetCtx.setLineDash([4, 4]);
+      targetCtx.stroke();
+
+      // Corner brackets (HUD Reticle)
+      targetCtx.setLineDash([]);
+      targetCtx.strokeStyle = "#38bdf8";
+      targetCtx.lineWidth = 2.5;
+      const r = 24 * pulse;
+      // Top-Left
+      targetCtx.beginPath();
+      targetCtx.moveTo(sx - r, sy - r + 8); targetCtx.lineTo(sx - r, sy - r); targetCtx.lineTo(sx - r + 8, sy - r);
+      // Top-Right
+      targetCtx.moveTo(sx + r - 8, sy - r); targetCtx.lineTo(sx + r, sy - r); targetCtx.lineTo(sx + r, sy - r + 8);
+      // Bottom-Left
+      targetCtx.beginPath();
+      targetCtx.moveTo(sx - r, sy + r - 8); targetCtx.lineTo(sx - r, sy + r); targetCtx.lineTo(sx - r + 8, sy + r);
+      // Bottom-Right
+      targetCtx.moveTo(sx + r - 8, sy + r); targetCtx.lineTo(sx + r, sy + r); targetCtx.lineTo(sx + r, sy + r - 8);
+      targetCtx.stroke();
+
       targetCtx.restore();
     }
 

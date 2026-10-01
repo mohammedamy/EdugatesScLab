@@ -85,6 +85,8 @@ const SECONDARY_ASSETS = [
   "./labs/phys-fluids-buoyancy.js",
   "./labs/anatomy-atlas.js",
   "./data/human-anatomy-atlas-data.js",
+  "./assets/labs/human_anatomy_anterior_8k.jpg",
+  "./assets/labs/human_anatomy_posterior_8k.jpg",
   "./assets/labs/action_potential_bench.jpg",
   "./assets/labs/beer_lambert_bench.jpg",
   "./assets/labs/calorimetry_bench.jpg",
