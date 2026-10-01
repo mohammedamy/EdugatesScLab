@@ -34,6 +34,7 @@ export function initAnatomyAtlasLab(containerId) {
   let activeSystemFilter = "all"; // 'all' | systemId
   let activeRegion = "all"; // 'all' | 'head' | 'thorax' | 'abdomen' | 'pelvis' | 'upper_limb' | 'lower_limb'
   let activeView = "anterior"; // 'anterior' | 'posterior'
+  let activeGender = "male"; // 'male' | 'female'
   let activePlate = "full_anterior"; // 11 High-Res Plates: 'full_anterior' | 'full_posterior' | 'skeletal' | 'muscular' | 'heart' | 'brain' | 'lungs' | 'digestive' | 'urinary' | 'cranial' | 'histology_slide'
   let activeHistologyModel = "cardiac_cycle";
   let selectedStructure = ANATOMICAL_STRUCTURES.find(s => s.id === "heart") || ANATOMICAL_STRUCTURES[0];
@@ -98,8 +99,8 @@ export function initAnatomyAtlasLab(containerId) {
   if (!imgAnterior.src) imgAnterior.src = "./assets/labs/human_anatomy_anterior_8k.jpg";
   if (!imgPosterior.src) imgPosterior.src = "./assets/labs/human_anatomy_posterior_8k.jpg";
 
-  // Preload 6 Museum-Grade Registered 1000x1800 Body Strata (Identical silhouette & scale)
-  const bodyLayerImages = {
+  // Preload 6 Museum-Grade Registered 1000x1800 Male Body Strata
+  const maleLayerImages = {
     skeletal: new Image(),
     visceral: new Image(),
     circulatory: new Image(),
@@ -107,18 +108,42 @@ export function initAnatomyAtlasLab(containerId) {
     muscular: new Image(),
     skin: new Image()
   };
-  bodyLayerImages.skeletal.crossOrigin = "anonymous";
-  bodyLayerImages.skeletal.src = "./assets/labs/human_anatomy_layer_skeletal.png";
-  bodyLayerImages.visceral.crossOrigin = "anonymous";
-  bodyLayerImages.visceral.src = "./assets/labs/human_anatomy_layer_visceral.png";
-  bodyLayerImages.circulatory.crossOrigin = "anonymous";
-  bodyLayerImages.circulatory.src = "./assets/labs/human_anatomy_layer_circulatory.png";
-  bodyLayerImages.nervous.crossOrigin = "anonymous";
-  bodyLayerImages.nervous.src = "./assets/labs/human_anatomy_layer_nervous.png";
-  bodyLayerImages.muscular.crossOrigin = "anonymous";
-  bodyLayerImages.muscular.src = "./assets/labs/human_anatomy_layer_muscular.png";
-  bodyLayerImages.skin.crossOrigin = "anonymous";
-  bodyLayerImages.skin.src = "./assets/labs/human_anatomy_layer_skin.png";
+  maleLayerImages.skeletal.crossOrigin = "anonymous";
+  maleLayerImages.skeletal.src = "./assets/labs/human_anatomy_layer_skeletal.png";
+  maleLayerImages.visceral.crossOrigin = "anonymous";
+  maleLayerImages.visceral.src = "./assets/labs/human_anatomy_layer_visceral.png";
+  maleLayerImages.circulatory.crossOrigin = "anonymous";
+  maleLayerImages.circulatory.src = "./assets/labs/human_anatomy_layer_circulatory.png";
+  maleLayerImages.nervous.crossOrigin = "anonymous";
+  maleLayerImages.nervous.src = "./assets/labs/human_anatomy_layer_nervous.png";
+  maleLayerImages.muscular.crossOrigin = "anonymous";
+  maleLayerImages.muscular.src = "./assets/labs/human_anatomy_layer_muscular.png";
+  maleLayerImages.skin.crossOrigin = "anonymous";
+  maleLayerImages.skin.src = "./assets/labs/human_anatomy_layer_skin.png";
+
+  // Preload 6 Museum-Grade Registered 1000x1800 Female Body Strata
+  const femaleLayerImages = {
+    skeletal: new Image(),
+    visceral: new Image(),
+    circulatory: new Image(),
+    nervous: new Image(),
+    muscular: new Image(),
+    skin: new Image()
+  };
+  femaleLayerImages.skeletal.crossOrigin = "anonymous";
+  femaleLayerImages.skeletal.src = "./assets/labs/human_anatomy_female_layer_skeletal.png";
+  femaleLayerImages.visceral.crossOrigin = "anonymous";
+  femaleLayerImages.visceral.src = "./assets/labs/human_anatomy_female_layer_visceral.png";
+  femaleLayerImages.circulatory.crossOrigin = "anonymous";
+  femaleLayerImages.circulatory.src = "./assets/labs/human_anatomy_female_layer_circulatory.png";
+  femaleLayerImages.nervous.crossOrigin = "anonymous";
+  femaleLayerImages.nervous.src = "./assets/labs/human_anatomy_female_layer_nervous.png";
+  femaleLayerImages.muscular.crossOrigin = "anonymous";
+  femaleLayerImages.muscular.src = "./assets/labs/human_anatomy_female_layer_muscular.png";
+  femaleLayerImages.skin.crossOrigin = "anonymous";
+  femaleLayerImages.skin.src = "./assets/labs/human_anatomy_female_layer_skin.png";
+
+  const bodyLayerImages = maleLayerImages; // Backwards-compatible reference
 
   // Animation and simulation handles
   let animId = null;
@@ -334,6 +359,17 @@ export function initAnatomyAtlasLab(containerId) {
               </button>
               <button id="btn-view-posterior" class="btn btn-sm ${activeView === 'posterior' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;">
                 Coronal Posterior
+              </button>
+            </div>
+
+            <!-- Anatomical Model Gender Toggle -->
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Model:</span>
+              <button id="btn-gender-male" class="btn btn-sm ${activeGender === 'male' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Male Anatomical Model (4K Multi-Layer Strata)">
+                ♂️ Male
+              </button>
+              <button id="btn-gender-female" class="btn btn-sm ${activeGender === 'female' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Female Anatomical Model (4K Multi-Layer Strata)">
+                ♀️ Female
               </button>
             </div>
 
@@ -606,6 +642,8 @@ export function initAnatomyAtlasLab(containerId) {
   const btnOpenDossier = document.getElementById("btn-open-dossier");
   const btnViewAnt = document.getElementById("btn-view-anterior");
   const btnViewPost = document.getElementById("btn-view-posterior");
+  const btnGenderMale = document.getElementById("btn-gender-male");
+  const btnGenderFemale = document.getElementById("btn-gender-female");
   const btnImagingPhoto = document.getElementById("btn-imaging-photo");
   const btnImagingXray = document.getElementById("btn-imaging-xray");
   const btnImagingAngio = document.getElementById("btn-imaging-angio");
@@ -999,6 +1037,26 @@ export function initAnatomyAtlasLab(containerId) {
     btnViewAnt.classList.remove("btn-primary");
     btnViewAnt.classList.add("btn-secondary");
     switchAnatomicalPlate("full_posterior");
+    SoundFX.playClick();
+  });
+
+  // Gender Model Switcher
+  function updateGenderButtons() {
+    btnGenderMale?.classList.toggle("btn-primary", activeGender === "male");
+    btnGenderMale?.classList.toggle("btn-secondary", activeGender !== "male");
+    btnGenderFemale?.classList.toggle("btn-primary", activeGender === "female");
+    btnGenderFemale?.classList.toggle("btn-secondary", activeGender !== "female");
+  }
+
+  btnGenderMale?.addEventListener("click", () => {
+    activeGender = "male";
+    updateGenderButtons();
+    SoundFX.playClick();
+  });
+
+  btnGenderFemale?.addEventListener("click", () => {
+    activeGender = "female";
+    updateGenderButtons();
     SoundFX.playClick();
   });
 
@@ -1619,6 +1677,7 @@ export function initAnatomyAtlasLab(containerId) {
       title: "Human Anatomy & Histology Lab Dossier",
       labId: "anatomy",
       apparatusConfig: {
+        "Anatomical Model": activeGender === "female" ? "Female Anatomical Model" : "Male Anatomical Model",
         "View Angle": activeView === "anterior" ? "Coronal Anterior (Ventral)" : "Coronal Posterior (Dorsal)",
         "Selected Structure": selectedStructure ? `${selectedStructure.name} (${selectedStructure.latinName})` : "General",
         "Active System": selectedStructure ? selectedStructure.system : "All",
@@ -3132,28 +3191,29 @@ export function initAnatomyAtlasLab(containerId) {
       const isImgReady = skinImg && skinImg.complete && skinImg.naturalWidth > 0;
 
       if (view === "anterior") {
-        const hasLayers = bodyLayerImages.skin && bodyLayerImages.skin.complete && bodyLayerImages.skin.naturalWidth > 0;
+        const activeLayers = (activeGender === "female") ? femaleLayerImages : maleLayerImages;
+        const hasLayers = activeLayers.skin && activeLayers.skin.complete && activeLayers.skin.naturalWidth > 0;
 
         if (hasLayers) {
           // MULTI-LAYER 8K ANATOMICAL DISSECTION MATRIX (Registered Identical-Silhouette Strata)
           // Render in anatomical order from deep to superficial based on active slider opacities:
           if (layerOpacities.skeletal > 0.01) {
-            drawPlateImageLayer(targetCtx, bodyLayerImages.skeletal, layerOpacities.skeletal, imagingMode);
+            drawPlateImageLayer(targetCtx, activeLayers.skeletal, layerOpacities.skeletal, imagingMode);
           }
           if (layerOpacities.visceral > 0.01) {
-            drawPlateImageLayer(targetCtx, bodyLayerImages.visceral, layerOpacities.visceral, imagingMode);
+            drawPlateImageLayer(targetCtx, activeLayers.visceral, layerOpacities.visceral, imagingMode);
           }
           if (layerOpacities.circulatory > 0.01) {
-            drawPlateImageLayer(targetCtx, bodyLayerImages.circulatory, layerOpacities.circulatory, imagingMode);
+            drawPlateImageLayer(targetCtx, activeLayers.circulatory, layerOpacities.circulatory, imagingMode);
           }
           if (layerOpacities.nervous > 0.01) {
-            drawPlateImageLayer(targetCtx, bodyLayerImages.nervous, layerOpacities.nervous, imagingMode);
+            drawPlateImageLayer(targetCtx, activeLayers.nervous, layerOpacities.nervous, imagingMode);
           }
           if (layerOpacities.muscular > 0.01) {
-            drawPlateImageLayer(targetCtx, bodyLayerImages.muscular, layerOpacities.muscular, imagingMode);
+            drawPlateImageLayer(targetCtx, activeLayers.muscular, layerOpacities.muscular, imagingMode);
           }
           if (layerOpacities.skin > 0.01) {
-            drawPlateImageLayer(targetCtx, bodyLayerImages.skin, layerOpacities.skin, imagingMode);
+            drawPlateImageLayer(targetCtx, activeLayers.skin, layerOpacities.skin, imagingMode);
           }
         } else if (isImgReady) {
           drawPlateImageLayer(targetCtx, skinImg, 1.0, imagingMode);

@@ -144,7 +144,7 @@ check(atlasSource.includes("playBreathSound"), "anatomy-atlas.js features synthe
 check(atlasSource.includes("selectNewQuizTarget"), "anatomy-atlas.js implements interactive Pin Challenge assessment game");
 
 // ----------------------------------------------------
-// Test 6: Offline PWA Service Worker Plate Caching
+// Test 6: Offline PWA Service Worker Plate & Strata Caching
 // ----------------------------------------------------
 const swSource = fs.readFileSync(path.join(rootDir, "service-worker.js"), "utf-8");
 const allPlatesCached = plateKeys.every(pk => {
@@ -152,6 +152,12 @@ const allPlatesCached = plateKeys.every(pk => {
   return swSource.includes(p.src);
 });
 check(allPlatesCached, "service-worker.js includes all 11 8K anatomical plates in offline precache manifest");
+
+const layerNames = ["skin", "muscular", "skeletal", "visceral", "circulatory", "nervous"];
+const allMaleCached = layerNames.every(l => swSource.includes(`human_anatomy_layer_${l}.png`));
+const allFemaleCached = layerNames.every(l => swSource.includes(`human_anatomy_female_layer_${l}.png`));
+check(allMaleCached, "service-worker.js precaches all 6 male anatomical layer strata");
+check(allFemaleCached, "service-worker.js precaches all 6 female anatomical layer strata");
 
 // ----------------------------------------------------
 // Test 7: Application Routing & Checkpoint Integration
@@ -169,6 +175,33 @@ check(appSource.includes('"anatomy": () => import("./labs/anatomy-atlas.js")'), 
 check(appSource.includes('href="#labs/anatomy"'), "app.js provides 4K Human Anatomy Atlas navigation button");
 
 check(Array.isArray(LAB_CHECKPOINTS.anatomy) && LAB_CHECKPOINTS.anatomy.length >= 3, "LAB_CHECKPOINTS contains validated competency questions for anatomy suite");
+
+// ----------------------------------------------------
+// Test 8: Registered Dual-Gender Body Strata & Model Switch
+// ----------------------------------------------------
+let allLayerFilesExist = true;
+let allLayerFilesValidSize = true;
+
+layerNames.forEach(l => {
+  const malePath = path.join(rootDir, "assets", "labs", `human_anatomy_layer_${l}.png`);
+  const femalePath = path.join(rootDir, "assets", "labs", `human_anatomy_female_layer_${l}.png`);
+  
+  if (!fs.existsSync(malePath) || !fs.existsSync(femalePath)) {
+    allLayerFilesExist = false;
+  } else {
+    const maleStat = fs.statSync(malePath);
+    const femaleStat = fs.statSync(femalePath);
+    if (maleStat.size < 100000 || femaleStat.size < 100000) {
+      allLayerFilesValidSize = false;
+    }
+  }
+});
+check(allLayerFilesExist, "All 12 registered male and female body strata PNG assets exist on disk");
+check(allLayerFilesValidSize, "All registered anatomical strata are high-resolution PNG assets (>100KB)");
+
+check(atlasSource.includes("maleLayerImages") && atlasSource.includes("femaleLayerImages"), "anatomy-atlas.js loads both male and female layer image suites");
+check(atlasSource.includes("btn-gender-male") && atlasSource.includes("btn-gender-female"), "anatomy-atlas.js provides interactive male and female gender model toggle buttons");
+check(atlasSource.includes("activeGender"), "anatomy-atlas.js manages activeGender state with reactive layer switching");
 
 // ----------------------------------------------------
 // Test Summary
