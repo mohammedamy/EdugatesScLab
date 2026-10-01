@@ -98,6 +98,25 @@ test("index.css includes .harmonic-layout in responsive single-column layout at 
   assert(css.includes(".harmonic-layout"), "index.css must include .harmonic-layout rule");
 });
 
+test("phys-harmonic.js implements simulation speed multiplier buttons (1.0x, 0.5x, 0.25x)", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-harmonic.js"), "utf-8");
+  assert(code.includes('btn-shm-speed'), "Must include speed buttons with btn-shm-speed class");
+  assert(code.includes('data-speed="0.5"'), "Must include 0.5x half-speed slow motion option");
+  assert(code.includes('data-speed="0.25"'), "Must include 0.25x slow motion option");
+});
+
+test("phys-harmonic.js implements live cycle counter and empirical period zero-crossing measurement", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-harmonic.js"), "utf-8");
+  assert(code.includes('id="disp-shm-cycles"'), "Must include cycle counter HUD element");
+  assert(code.includes('prevDisplacement < 0 && x >= 0'), "Must track equilibrium zero-crossings for empirical period calculation");
+});
+
+test("phys-harmonic.js includes dynamic real-time mechanical energy partition ratio bar", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-harmonic.js"), "utf-8");
+  assert(code.includes('id="shm-energy-bar-pe"'), "Must include PE progress bar segment");
+  assert(code.includes('id="shm-energy-bar-ke"'), "Must include KE progress bar segment");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Harmonic Lab Tests: ${passed} Passed, 0 Failed`);
 console.log("========================================================\n");

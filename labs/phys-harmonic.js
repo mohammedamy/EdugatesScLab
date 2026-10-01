@@ -36,12 +36,17 @@ export function initHarmonicLab(containerId) {
   let isRunning = true;
   let isDragging = false;
   let animId = null;
+  let simSpeed = 1.0; // 1.0, 0.5, 0.25 (time dilation factor)
 
   // Kinematic State
   let x = initialAmplitude; // displacement (m) or angle (rad)
   let v = 0.0; // velocity (m/s) or angular velocity (rad/s)
   let a = 0.0; // acceleration (m/s²) or angular acceleration (rad/s²)
   let elapsedSeconds = 0;
+  let completedCycles = 0;
+  let lastCrossingTime = null;
+  let empiricalPeriod = null;
+  let prevDisplacement = initialAmplitude;
 
   // Graph View Mode: 'waveform', 'phase', 'energy'
   let graphMode = "waveform";
@@ -76,27 +81,41 @@ export function initHarmonicLab(containerId) {
         </div>
 
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
-            <button id="view-mode-shm-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;" role="group" aria-label="Workbench View Mode">
+            <button id="view-mode-shm-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;" aria-label="Interactive Dynamics Simulator View">
               🔬 Dynamics Simulator
             </button>
-            <button id="view-mode-shm-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+            <button id="view-mode-shm-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;" aria-label="4K Real PASCO Bench Photograph View">
               📸 4K Real PASCO Bench
             </button>
           </div>
-          <button class="btn btn-secondary btn-sm" id="btn-shm-toggle-run" style="padding: 5px 14px; font-size: 0.78rem;" title="Pause or resume physical integration (Spacebar)">
+
+          <!-- Simulation Speed Multiplier Controls (1.0x, 0.5x, 0.25x) -->
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;" role="group" aria-label="Simulation Speed and Time Dilation">
+            <button class="btn btn-secondary active btn-shm-speed" data-speed="1.0" style="padding: 4px 8px; font-size: 0.72rem; font-weight: 700; border-radius: 5px; border: none;" title="1.0x Real-time simulation rate" aria-label="Normal 1.0x speed">
+              1.0×
+            </button>
+            <button class="btn btn-secondary btn-shm-speed" data-speed="0.5" style="padding: 4px 8px; font-size: 0.72rem; font-weight: 600; border-radius: 5px; background: transparent; border: none;" title="0.5x Half-speed slow motion" aria-label="0.5x half speed">
+              0.5×
+            </button>
+            <button class="btn btn-secondary btn-shm-speed" data-speed="0.25" style="padding: 4px 8px; font-size: 0.72rem; font-weight: 600; border-radius: 5px; background: transparent; border: none;" title="0.25x Quarter-speed precision slow motion" aria-label="0.25x slow motion">
+              0.25×
+            </button>
+          </div>
+
+          <button class="btn btn-secondary btn-sm" id="btn-shm-toggle-run" style="padding: 5px 14px; font-size: 0.78rem;" title="Pause or resume physical integration (Spacebar)" aria-label="${isRunning ? 'Pause simulation' : 'Resume simulation'}">
             ${isRunning ? "⏸ Pause" : "▶ Resume"}
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-shm-reset" style="padding: 5px 12px; font-size: 0.78rem;" title="Reset displacement to initial amplitude and release from rest">
+          <button class="btn btn-secondary btn-sm" id="btn-shm-reset" style="padding: 5px 12px; font-size: 0.78rem;" title="Reset displacement to initial amplitude and release from rest" aria-label="Reset displacement and release from rest">
             ⟲ Release from Rest
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-shm-record-trial" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: #facc15;" title="Snapshot current kinematic telemetry into empirical comparison store">
+          <button class="btn btn-secondary btn-sm" id="btn-shm-record-trial" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: #facc15;" title="Snapshot current kinematic telemetry into empirical comparison store" aria-label="Record experimental trial">
             📝 Record Trial
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-shm-open-report" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Generate 2-Page NGSS Lab Report Dossier with Canvas snapshot and CER rubric">
+          <button class="btn btn-secondary btn-sm" id="btn-shm-open-report" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Generate 2-Page NGSS Lab Report Dossier with Canvas snapshot and CER rubric" aria-label="Generate NGSS Lab Report Dossier">
             📋 Lab Report Dossier
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-shm-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Export continuous trajectory data as RFC-4180 CSV">
+          <button class="btn btn-secondary btn-sm" id="btn-shm-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Export continuous trajectory data as RFC-4180 CSV" aria-label="Export continuous telemetry as CSV">
             📥 Export CSV
           </button>
         </div>
@@ -135,6 +154,7 @@ export function initHarmonicLab(containerId) {
               <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase;">OSCILLATION PERIOD &amp; FREQUENCY</div>
               <div style="font-weight: 800; font-size: 1.3rem; color: #facc15; font-family: var(--font-mono);" id="disp-shm-period">T = 0.889 s</div>
               <div style="font-size: 0.74rem; color: #38bdf8; font-family: var(--font-mono);" id="disp-shm-freq">f = 1.125 Hz • ω = 7.07 rad/s</div>
+              <div style="font-size: 0.69rem; color: #34d399; font-family: var(--font-mono); margin-top: 2px;" id="disp-shm-cycles">Cycles: 0 completed • T_emp: measuring...</div>
             </div>
 
             <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 10px; padding: 8px 14px; text-align: right; pointer-events: auto;">
@@ -145,13 +165,20 @@ export function initHarmonicLab(containerId) {
           </div>
 
           <!-- Bottom Drag Prompt & Energy Status Bar -->
-          <div style="position: absolute; bottom: 12px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; font-family: var(--font-mono); font-size: 0.74rem; color: #94a3b8; z-index: 5;">
-            <span style="background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);" id="disp-shm-status">
-              ⚡ Turning Point: v = 0, PE = Max, Restoring Force Max
-            </span>
-            <span style="background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
-              Total E = <span id="disp-shm-energy" style="color: #34d399; font-weight: 700;">3.06 J</span>
-            </span>
+          <div style="position: absolute; bottom: 12px; left: 16px; right: 16px; display: flex; flex-direction: column; gap: 6px; pointer-events: none; z-index: 5;">
+            <div style="display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 0.74rem; color: #94a3b8;">
+              <span style="background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);" id="disp-shm-status">
+                ⚡ Turning Point: v = 0, PE = Max, Restoring Force Max
+              </span>
+              <span style="background: rgba(0,0,0,0.7); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.08);">
+                Total E = <span id="disp-shm-energy" style="color: #34d399; font-weight: 700;">3.06 J</span>
+              </span>
+            </div>
+            <!-- Dynamic Real-Time Mechanical Energy Ratio Bar -->
+            <div style="width: 100%; height: 7px; background: rgba(0,0,0,0.6); border-radius: 4px; overflow: hidden; display: flex; border: 1px solid rgba(255,255,255,0.12);" title="Real-Time Energy Partition: Cyan = PE, Amber = KE">
+              <div id="shm-energy-bar-pe" style="height: 100%; width: 100%; background: #38bdf8; transition: width 0.04s linear;"></div>
+              <div id="shm-energy-bar-ke" style="height: 100%; width: 0%; background: #f59e0b; transition: width 0.04s linear;"></div>
+            </div>
           </div>
 
           <!-- Drag Hint Badge -->
@@ -321,6 +348,10 @@ export function initHarmonicLab(containerId) {
     v = 0.0;
     a = 0.0;
     elapsedSeconds = 0;
+    completedCycles = 0;
+    lastCrossingTime = null;
+    empiricalPeriod = null;
+    prevDisplacement = initialAmplitude;
     historyX.length = 0;
     historyV.length = 0;
     historyKE.length = 0;
@@ -362,6 +393,23 @@ export function initHarmonicLab(containerId) {
 
     if (dispPeriod) dispPeriod.innerText = T === Infinity ? "T = ∞ (Zero-G)" : `T = ${T.toFixed(3)} s`;
     if (dispFreq) dispFreq.innerText = `f = ${f.toFixed(3)} Hz • ω = ${omega.toFixed(2)} rad/s`;
+    
+    const dispCycles = container.querySelector("#disp-shm-cycles");
+    if (dispCycles) {
+      const empText = empiricalPeriod !== null 
+        ? `T_emp = ${empiricalPeriod.toFixed(3)} s (${(Math.abs(empiricalPeriod - T) / (T || 1) * 100).toFixed(1)}% dev)`
+        : "T_emp: measuring...";
+      dispCycles.innerText = `Cycles: ${completedCycles} completed • ${empText}`;
+    }
+
+    // Dynamic Mechanical Energy Split Bar
+    const barPE = container.querySelector("#shm-energy-bar-pe");
+    const barKE = container.querySelector("#shm-energy-bar-ke");
+    if (barPE && barKE && total > 0.0001) {
+      const pePct = Math.max(0, Math.min(100, (pe / total) * 100));
+      barPE.style.width = `${pePct.toFixed(1)}%`;
+      barKE.style.width = `${(100 - pePct).toFixed(1)}%`;
+    }
     
     if (dispPos) {
       if (oscillatorType === "spring") {
@@ -910,7 +958,7 @@ export function initHarmonicLab(containerId) {
     const targetDrawInterval = isSmart ? 33.3 : 16.0; // 30 FPS pacing on MAXHUB / Smartboard
 
     if (isRunning && !isDragging) {
-      const dt = Math.min(0.04, (currentTime - lastPhysicsTime) / 1000);
+      const dt = Math.min(0.04, (currentTime - lastPhysicsTime) / 1000) * simSpeed;
       lastPhysicsTime = currentTime;
       elapsedSeconds += dt;
 
@@ -929,6 +977,19 @@ export function initHarmonicLab(containerId) {
         v += a * dt;
         x += v * dt;
       }
+
+      // Empirical period zero-crossing detector (crossing equilibrium from negative to positive)
+      if (prevDisplacement < 0 && x >= 0) {
+        completedCycles++;
+        if (lastCrossingTime !== null) {
+          const dtCrossing = elapsedSeconds - lastCrossingTime;
+          if (dtCrossing > 0.1) {
+            empiricalPeriod = dtCrossing;
+          }
+        }
+        lastCrossingTime = elapsedSeconds;
+      }
+      prevDisplacement = x;
 
       // Record History Buffers
       historyX.push(x);
@@ -1082,6 +1143,10 @@ export function initHarmonicLab(containerId) {
       isDragging = false;
       canvas.style.cursor = "grab";
       v = 0; // Release from rest at new displacement
+      initialAmplitude = Math.max(0.08, Math.abs(x));
+      completedCycles = 0;
+      empiricalPeriod = null;
+      lastCrossingTime = null;
       needsRedraw = true;
       updateDisplayMetrics();
       SoundFX.playPop();
@@ -1100,7 +1165,10 @@ export function initHarmonicLab(containerId) {
       e.preventDefault();
       isRunning = !isRunning;
       const btn = container.querySelector("#btn-shm-toggle-run");
-      if (btn) btn.innerText = isRunning ? "⏸ Pause" : "▶ Resume";
+      if (btn) {
+        btn.innerText = isRunning ? "⏸ Pause" : "▶ Resume";
+        btn.setAttribute("aria-label", isRunning ? "Pause simulation" : "Resume simulation");
+      }
       needsRedraw = true;
       SoundFX.playClick();
     }
@@ -1137,9 +1205,26 @@ export function initHarmonicLab(containerId) {
     SoundFX.playClick();
   });
 
+  // Simulation Speed Multiplier Buttons (1.0x, 0.5x, 0.25x)
+  container.querySelectorAll(".btn-shm-speed").forEach(btn => {
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".btn-shm-speed").forEach(b => {
+        b.classList.remove("active");
+        b.style.background = "transparent";
+        b.style.fontWeight = "600";
+      });
+      btn.classList.add("active");
+      btn.style.background = "";
+      btn.style.fontWeight = "700";
+      simSpeed = parseFloat(btn.dataset.speed) || 1.0;
+      SoundFX.playClick();
+    });
+  });
+
   container.querySelector("#btn-shm-toggle-run")?.addEventListener("click", (e) => {
     isRunning = !isRunning;
     e.currentTarget.innerText = isRunning ? "⏸ Pause" : "▶ Resume";
+    e.currentTarget.setAttribute("aria-label", isRunning ? "Pause simulation" : "Resume simulation");
     needsRedraw = true;
     SoundFX.playClick();
   });
@@ -1269,6 +1354,8 @@ export function initHarmonicLab(containerId) {
         "Mass m (kg)": mass.toFixed(2),
         "Stiffness k or Length L": oscillatorType === "spring" ? `${springK.toFixed(1)} N/m` : `${lengthL.toFixed(2)} m`,
         "Theoretical Period T (s)": T === Infinity ? "Infinity" : T.toFixed(3),
+        "Empirical Measured Period (s)": empiricalPeriod !== null ? `${empiricalPeriod.toFixed(3)} s` : "In Progress",
+        "Completed Cycles": completedCycles,
         "Frequency f (Hz)": T === Infinity ? "0" : (1 / T).toFixed(3),
         "Current Displacement": oscillatorType === "spring" ? `${x.toFixed(3)} m` : `${(x * 180 / Math.PI).toFixed(1)}°`,
         "Total Energy E (J)": total.toFixed(3)
@@ -1302,7 +1389,10 @@ export function initHarmonicLab(containerId) {
         "System Parameter": oscillatorType === "spring" ? `Spring Constant k = ${springK.toFixed(1)} N/m` : `String Length L = ${lengthL.toFixed(2)} m`,
         "Gravitational Field (g)": `${gravity.toFixed(2)} m/s²`,
         "Viscous Damping (b)": `${dampingB.toFixed(2)} N·s/m`,
+        "Simulation Speed": `${simSpeed.toFixed(2)}x`,
         "Theoretical Period (T)": T === Infinity ? "Infinity" : `${T.toFixed(3)} s`,
+        "Empirical Measured Period": empiricalPeriod !== null ? `${empiricalPeriod.toFixed(3)} s` : "N/A",
+        "Completed Cycles": completedCycles,
         "Theoretical Frequency (f)": T === Infinity ? "0 Hz" : `${(1 / T).toFixed(3)} Hz`,
         "Mechanical Energy": `${total.toFixed(2)} J (KE: ${ke.toFixed(2)}J, PE: ${pe.toFixed(2)}J)`
       },
