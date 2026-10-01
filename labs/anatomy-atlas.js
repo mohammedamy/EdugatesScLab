@@ -1650,283 +1650,629 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.restore();
   }
 
-  // Master Anatomical Human Body Silhouette Contour (Used for Fill, Stroke, & 8K Photo Clipping)
+  // Master Anatomical Human Body Silhouette Contour (Vitruvian Proportions & Smooth Bézier Anatomy)
   function buildHumanBodyPath(targetCtx) {
     targetCtx.beginPath();
-    // Head (Cranium ellipse)
-    targetCtx.ellipse(500, 130, 75, 95, 0, 0, Math.PI * 2);
-    // Neck, Torso, and Appendicular Limbs
-    targetCtx.moveTo(470, 220);
-    targetCtx.lineTo(465, 260); // Neck left
-    targetCtx.lineTo(390, 280); // Shoulder left
-    targetCtx.lineTo(340, 360); // Deltoid left
-    targetCtx.lineTo(300, 520); // Bicep / elbow left
-    targetCtx.lineTo(240, 680); // Forearm / wrist left
-    targetCtx.lineTo(270, 680); // Hand inner left
-    targetCtx.lineTo(330, 520); // Forearm inner left
-    targetCtx.lineTo(370, 370); // Axilla left
-    targetCtx.lineTo(420, 480); // Lateral ribcage / waist left
-    targetCtx.lineTo(430, 780); // Iliac crest / hip left
-    targetCtx.lineTo(400, 1100); // Lateral thigh left
-    targetCtx.lineTo(410, 1380); // Knee lateral left
-    targetCtx.lineTo(400, 1680); // Lateral calf / ankle left
-    targetCtx.lineTo(440, 1720); // Lateral foot left
-    targetCtx.lineTo(460, 1680); // Medial foot left
-    targetCtx.lineTo(470, 1380); // Medial knee left
-    targetCtx.lineTo(485, 1050); // Medial thigh left
-    targetCtx.lineTo(500, 880); // Inguinal crease / perineum
-    // Symmetrical right side
-    targetCtx.lineTo(515, 1050); // Medial thigh right
-    targetCtx.lineTo(530, 1380); // Medial knee right
-    targetCtx.lineTo(540, 1680); // Medial foot right
-    targetCtx.lineTo(560, 1720); // Lateral foot right
-    targetCtx.lineTo(600, 1680); // Lateral calf / ankle right
-    targetCtx.lineTo(590, 1380); // Lateral knee right
-    targetCtx.lineTo(600, 1100); // Lateral thigh right
-    targetCtx.lineTo(570, 780); // Iliac crest / hip right
-    targetCtx.lineTo(580, 480); // Lateral ribcage / waist right
-    targetCtx.lineTo(630, 370); // Axilla right
-    targetCtx.lineTo(670, 520); // Forearm inner right
-    targetCtx.lineTo(730, 680); // Hand inner right
-    targetCtx.lineTo(760, 680); // Hand outer right
-    targetCtx.lineTo(700, 520); // Forearm outer right
-    targetCtx.lineTo(660, 360); // Deltoid right
-    targetCtx.lineTo(610, 280); // Shoulder right
-    targetCtx.lineTo(535, 260); // Neck right
-    targetCtx.lineTo(530, 220); // Neck upper right
+    // Start at Crown / Vertex of head
+    targetCtx.moveTo(500, 65);
+    // Left Cranial Vault (Parietal curvature & temporal dip)
+    targetCtx.bezierCurveTo(450, 65, 435, 95, 435, 135);
+    // Left Temple, Zygomatic flare, and Mandibular Angle (Ear/Jaw corner)
+    targetCtx.bezierCurveTo(435, 160, 442, 180, 452, 195);
+    // Left Neck (Sternocleidomastoid & Cervical contour)
+    targetCtx.bezierCurveTo(458, 208, 465, 222, 465, 245);
+    // Left Trapezius slope out to Acromion shoulder tip
+    targetCtx.bezierCurveTo(455, 260, 410, 272, 375, 278);
+    // Left Deltoid cap (Muscular rounded shoulder sweep)
+    targetCtx.bezierCurveTo(345, 285, 325, 315, 322, 355);
+    // Left Upper Arm (Biceps / Brachialis lateral contour)
+    targetCtx.bezierCurveTo(320, 395, 305, 435, 292, 465);
+    // Left Lateral Elbow (Lateral epicondyle & cubital region)
+    targetCtx.bezierCurveTo(282, 485, 275, 510, 268, 545);
+    // Left Forearm (Brachioradialis swell tapering to wrist)
+    targetCtx.bezierCurveTo(255, 595, 230, 655, 215, 715);
+    // Left Hand (Anatomical snuffbox, thenar eminence & abducted pollex/thumb)
+    targetCtx.bezierCurveTo(205, 735, 175, 742, 165, 755);
+    targetCtx.bezierCurveTo(158, 765, 162, 775, 175, 775); // Thumb tip
+    targetCtx.bezierCurveTo(185, 775, 195, 765, 202, 755); // First web space
+    // Left Digits (Index, middle, ring, little fingers extending distally)
+    targetCtx.bezierCurveTo(200, 785, 195, 835, 205, 890); // Finger extension
+    targetCtx.bezierCurveTo(212, 910, 225, 910, 232, 895); // Fingertip curvature
+    targetCtx.bezierCurveTo(242, 870, 252, 825, 258, 775); // Medial hand margin
+    // Left Medial Wrist & Forearm (Flexor carpi ulnaris rising to elbow)
+    targetCtx.bezierCurveTo(262, 745, 275, 690, 292, 620);
+    targetCtx.bezierCurveTo(305, 565, 322, 510, 332, 475); // Cubital fossa / medial elbow
+    // Left Medial Upper Arm to Axilla (Anterior axillary fold)
+    targetCtx.bezierCurveTo(342, 440, 360, 400, 375, 378);
+    // Left Lateral Thoracic Ribcage (Latissimus dorsi & serratus curve)
+    targetCtx.bezierCurveTo(390, 415, 405, 470, 412, 530);
+    // Left Waist Indentation (Narrowing at L2/L3 flank)
+    targetCtx.bezierCurveTo(415, 565, 416, 610, 422, 660);
+    // Left Iliac Crest & Hip (Greater trochanter flare)
+    targetCtx.bezierCurveTo(428, 710, 435, 760, 435, 810);
+    // Left Lateral Thigh (Vastus lateralis sweeping down to knee)
+    targetCtx.bezierCurveTo(435, 870, 422, 970, 418, 1070);
+    targetCtx.bezierCurveTo(415, 1130, 420, 1185, 424, 1220); // Lateral knee
+    // Left Lateral Knee to Calf (Gastrocnemius lateral head)
+    targetCtx.bezierCurveTo(426, 1250, 415, 1310, 412, 1370);
+    // Left Lateral Soleus & Achilles Tendon tapering to ankle
+    targetCtx.bezierCurveTo(410, 1430, 416, 1530, 420, 1610);
+    // Left Lateral Malleolus (Lower outer ankle) & Heel (Calcaneus)
+    targetCtx.bezierCurveTo(422, 1635, 416, 1675, 420, 1705);
+    targetCtx.bezierCurveTo(424, 1720, 435, 1722, 445, 1720); // Plantar heel & sole
+    // Left Metatarsals & Toes (Distal foot curvature)
+    targetCtx.bezierCurveTo(455, 1722, 468, 1720, 475, 1708);
+    // Left Medial Arch & Instep
+    targetCtx.bezierCurveTo(472, 1690, 465, 1665, 462, 1635);
+    // Left Medial Malleolus (Higher inner ankle bone)
+    targetCtx.bezierCurveTo(460, 1610, 458, 1560, 458, 1510);
+    // Left Medial Calf (Gastrocnemius medial head - fuller & lower curve)
+    targetCtx.bezierCurveTo(458, 1440, 468, 1370, 468, 1300);
+    // Left Medial Knee (Medial femoral/tibial condyle)
+    targetCtx.bezierCurveTo(468, 1250, 470, 1215, 470, 1175);
+    // Left Medial Thigh (Gracilis, sartorius & adductor curve)
+    targetCtx.bezierCurveTo(472, 1110, 478, 1010, 485, 940);
+    targetCtx.bezierCurveTo(490, 895, 496, 870, 500, 860); // Inguinal crease / Perineum
+
+    // --- SYMMETRICAL RIGHT SIDE ---
+    // Right Medial Thigh (Adductor longus & gracilis)
+    targetCtx.bezierCurveTo(504, 870, 510, 895, 515, 940);
+    targetCtx.bezierCurveTo(522, 1010, 528, 1110, 530, 1175);
+    // Right Medial Knee (Medial condyle)
+    targetCtx.bezierCurveTo(530, 1215, 532, 1250, 532, 1300);
+    // Right Medial Calf (Gastrocnemius medial head - fuller & lower curve)
+    targetCtx.bezierCurveTo(532, 1370, 542, 1440, 542, 1510);
+    // Right Medial Malleolus & Instep
+    targetCtx.bezierCurveTo(542, 1560, 540, 1610, 538, 1635);
+    targetCtx.bezierCurveTo(535, 1665, 528, 1690, 525, 1708);
+    // Right Toes & Plantar Sole
+    targetCtx.bezierCurveTo(532, 1720, 545, 1722, 555, 1720);
+    targetCtx.bezierCurveTo(565, 1722, 576, 1720, 580, 1705); // Plantar heel
+    // Right Lateral Malleolus & Achilles tendon
+    targetCtx.bezierCurveTo(584, 1675, 578, 1635, 580, 1610);
+    targetCtx.bezierCurveTo(584, 1530, 590, 1430, 588, 1370);
+    // Right Lateral Calf to Knee
+    targetCtx.bezierCurveTo(585, 1310, 574, 1250, 576, 1220);
+    // Right Lateral Thigh (Vastus lateralis sweep)
+    targetCtx.bezierCurveTo(580, 1185, 585, 1130, 582, 1070);
+    targetCtx.bezierCurveTo(578, 970, 565, 870, 565, 810);
+    // Right Hip & Iliac Crest
+    targetCtx.bezierCurveTo(565, 760, 572, 710, 578, 660);
+    // Right Waist Indentation
+    targetCtx.bezierCurveTo(584, 610, 585, 565, 588, 530);
+    // Right Lateral Ribcage to Axilla
+    targetCtx.bezierCurveTo(595, 470, 610, 415, 625, 378);
+    // Right Medial Arm to Cubital Fossa
+    targetCtx.bezierCurveTo(640, 400, 658, 440, 668, 475);
+    targetCtx.bezierCurveTo(678, 510, 695, 565, 708, 620);
+    // Right Medial Wrist & Hand
+    targetCtx.bezierCurveTo(725, 690, 738, 745, 742, 775);
+    targetCtx.bezierCurveTo(748, 825, 758, 870, 768, 895); // Medial digits
+    targetCtx.bezierCurveTo(775, 910, 788, 910, 795, 890); // Fingertip curvature
+    // Right Digits to Thumb
+    targetCtx.bezierCurveTo(805, 835, 800, 785, 798, 755); // First web space
+    targetCtx.bezierCurveTo(805, 765, 815, 775, 825, 775); // Thumb tip
+    targetCtx.bezierCurveTo(838, 775, 842, 765, 835, 755); // Thenar eminence
+    targetCtx.bezierCurveTo(825, 742, 795, 735, 785, 715); // Lateral wrist
+    // Right Lateral Forearm (Brachioradialis swell)
+    targetCtx.bezierCurveTo(770, 655, 745, 595, 732, 545);
+    // Right Lateral Elbow
+    targetCtx.bezierCurveTo(725, 510, 718, 485, 708, 465);
+    // Right Upper Arm
+    targetCtx.bezierCurveTo(695, 435, 680, 395, 678, 355);
+    // Right Deltoid Cap
+    targetCtx.bezierCurveTo(675, 315, 655, 285, 625, 278);
+    // Right Trapezius slope to neck
+    targetCtx.bezierCurveTo(590, 272, 545, 260, 535, 245);
+    // Right Neck (Sternocleidomastoid)
+    targetCtx.bezierCurveTo(535, 222, 542, 208, 548, 195);
+    // Right Mandibular Angle & Temple
+    targetCtx.bezierCurveTo(558, 180, 565, 160, 565, 135);
+    // Right Cranial Vault back to Vertex
+    targetCtx.bezierCurveTo(565, 95, 550, 65, 500, 65);
     targetCtx.closePath();
   }
 
-  // STRATUM 1: Skeletal System (206-Bone Osteology & Radiographic Contrast Engine)
+  // STRATUM 1: Skeletal System (206-Bone Osteology & Radiographic Framework)
   function drawSkeletalVector(targetCtx, view, alpha, mode = "photo") {
     if (alpha <= 0.005) return;
     targetCtx.save();
     targetCtx.globalAlpha = Math.min(1.0, alpha);
 
     const isXray = (mode === "xray");
-    const boneFill = isXray ? "#e0f2fe" : "#f8fafc";
+    const boneFill = isXray ? "#e0f2fe" : "#fbf9f4";
     const boneStroke = isXray ? "#38bdf8" : "#94a3b8";
-    const boneShadow = isXray ? "#38bdf8" : "rgba(0,0,0,0.35)";
+    const boneShade = isXray ? "#0284c7" : "#cbd5e1";
+    const discColor = isXray ? "#7dd3fc" : "#93c5fd";
+    const cartilageColor = isXray ? "rgba(125, 211, 252, 0.7)" : "rgba(147, 197, 253, 0.75)";
+    const shadowColor = isXray ? "#38bdf8" : "rgba(0,0,0,0.3)";
 
     targetCtx.fillStyle = boneFill;
     targetCtx.strokeStyle = boneStroke;
-    targetCtx.shadowColor = boneShadow;
-    targetCtx.shadowBlur = isXray ? 16 : 4;
-    targetCtx.lineWidth = 2.5;
-
-    // 1. Cranium / Skull
-    targetCtx.beginPath();
-    targetCtx.ellipse(500, 125, 62, 75, 0, 0, Math.PI * 2);
-    targetCtx.fill();
-    targetCtx.stroke();
-
-    if (view === "anterior") {
-      // Bilateral Orbits (Eye Sockets)
-      targetCtx.fillStyle = isXray ? "#0284c7" : "#0f172a";
-      targetCtx.beginPath();
-      targetCtx.ellipse(475, 125, 13, 15, -0.05, 0, Math.PI * 2);
-      targetCtx.ellipse(525, 125, 13, 15, 0.05, 0, Math.PI * 2);
-      targetCtx.fill();
-
-      // Piriform Aperture (Nasal Cavity)
-      targetCtx.beginPath();
-      targetCtx.moveTo(500, 142);
-      targetCtx.lineTo(492, 162);
-      targetCtx.lineTo(508, 162);
-      targetCtx.closePath();
-      targetCtx.fill();
-
-      // Zygomatic arches & Mandible (Jawbone)
-      targetCtx.strokeStyle = boneStroke;
-      targetCtx.fillStyle = boneFill;
-      targetCtx.lineWidth = 3;
-      targetCtx.beginPath();
-      targetCtx.moveTo(460, 170);
-      targetCtx.lineTo(465, 195);
-      targetCtx.lineTo(500, 205);
-      targetCtx.lineTo(535, 195);
-      targetCtx.lineTo(540, 170);
-      targetCtx.stroke();
-
-      // Teeth row hints
-      targetCtx.lineWidth = 1.5;
-      targetCtx.beginPath();
-      targetCtx.moveTo(480, 185); targetCtx.lineTo(520, 185);
-      targetCtx.moveTo(482, 192); targetCtx.lineTo(518, 192);
-      targetCtx.stroke();
-    } else {
-      // Posterior Cranium (Occiput & Nuchal Lines)
-      targetCtx.strokeStyle = boneStroke;
-      targetCtx.lineWidth = 2;
-      targetCtx.beginPath();
-      targetCtx.arc(500, 150, 30, 0.2 * Math.PI, 0.8 * Math.PI);
-      targetCtx.stroke();
-    }
-
-    // 2. Vertebral Column (Spine: C1-C7, T1-T12, L1-L5, Sacrum)
-    targetCtx.fillStyle = boneFill;
-    targetCtx.strokeStyle = boneStroke;
+    targetCtx.shadowColor = shadowColor;
+    targetCtx.shadowBlur = isXray ? 14 : 3;
     targetCtx.lineWidth = 2;
-    for (let v = 0; v < 22; v++) {
-      const vy = 205 + (v * 26);
-      const vw = 20 + Math.min(16, v * 0.8);
-      const vh = 16;
-      targetCtx.beginPath();
-      targetCtx.roundRect(500 - (vw / 2), vy, vw, vh, 4);
-      targetCtx.fill();
-      targetCtx.stroke();
-    }
 
-    // Sacrum & Coccyx
+    // 1. CRANIUM & FACIAL OSTEOLOGY
     targetCtx.beginPath();
-    targetCtx.moveTo(480, 770);
-    targetCtx.lineTo(520, 770);
-    targetCtx.lineTo(508, 830);
-    targetCtx.lineTo(500, 845);
-    targetCtx.lineTo(492, 830);
+    // Calvaria / Cranial Vault
+    targetCtx.moveTo(500, 75);
+    targetCtx.bezierCurveTo(452, 75, 440, 105, 440, 135);
+    targetCtx.bezierCurveTo(440, 155, 446, 170, 455, 180);
+    // Zygomatic arches flare
+    targetCtx.bezierCurveTo(455, 185, 460, 195, 470, 205);
+    // Mandible / Chin (Mental protuberance)
+    targetCtx.bezierCurveTo(482, 215, 492, 218, 500, 218);
+    targetCtx.bezierCurveTo(508, 218, 518, 215, 530, 205);
+    targetCtx.bezierCurveTo(540, 195, 545, 185, 545, 180);
+    targetCtx.bezierCurveTo(554, 170, 560, 155, 560, 135);
+    targetCtx.bezierCurveTo(560, 105, 548, 75, 500, 75);
     targetCtx.closePath();
     targetCtx.fill();
     targetCtx.stroke();
 
-    // 3. Clavicles (Collarbones)
-    targetCtx.lineWidth = 6;
-    targetCtx.beginPath();
-    targetCtx.moveTo(500, 260); targetCtx.quadraticCurveTo(450, 255, 390, 275);
-    targetCtx.moveTo(500, 260); targetCtx.quadraticCurveTo(550, 255, 610, 275);
-    targetCtx.stroke();
-
-    // 4. Sternum & Rib Cage (12 Rib pairs)
     if (view === "anterior") {
-      targetCtx.fillStyle = boneFill;
+      // Bilateral Orbits (Anatomical eye sockets with supraorbital margins)
+      targetCtx.fillStyle = isXray ? "#0369a1" : "#1e293b";
       targetCtx.strokeStyle = boneStroke;
-      targetCtx.lineWidth = 3;
+      targetCtx.lineWidth = 2;
+      // Left Orbit
       targetCtx.beginPath();
-      targetCtx.roundRect(491, 265, 18, 160, 6);
+      targetCtx.moveTo(462, 120);
+      targetCtx.bezierCurveTo(476, 118, 488, 122, 488, 134);
+      targetCtx.bezierCurveTo(488, 146, 474, 150, 464, 146);
+      targetCtx.bezierCurveTo(456, 142, 454, 126, 462, 120);
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
+      // Right Orbit
+      targetCtx.beginPath();
+      targetCtx.moveTo(538, 120);
+      targetCtx.bezierCurveTo(524, 118, 512, 122, 512, 134);
+      targetCtx.bezierCurveTo(512, 146, 526, 150, 536, 146);
+      targetCtx.bezierCurveTo(544, 142, 546, 126, 538, 120);
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
+
+      // Piriform Aperture (Nasal cavity with perpendicular ethmoid/vomer septum)
+      targetCtx.fillStyle = isXray ? "#0369a1" : "#1e293b";
+      targetCtx.beginPath();
+      targetCtx.moveTo(500, 138);
+      targetCtx.bezierCurveTo(492, 150, 490, 165, 495, 170);
+      targetCtx.bezierCurveTo(498, 172, 502, 172, 505, 170);
+      targetCtx.bezierCurveTo(510, 165, 508, 150, 500, 138);
+      targetCtx.closePath();
+      targetCtx.fill();
+      // Nasal Septum
+      targetCtx.strokeStyle = boneFill;
+      targetCtx.lineWidth = 1.5;
+      targetCtx.beginPath();
+      targetCtx.moveTo(500, 140); targetCtx.lineTo(500, 169);
+      targetCtx.stroke();
+
+      // Maxillary & Mandibular Alveolar Arches (Teeth rows)
+      targetCtx.strokeStyle = boneStroke;
+      targetCtx.fillStyle = boneFill;
+      targetCtx.lineWidth = 1.5;
+      targetCtx.beginPath();
+      // Maxillary dental arch
+      targetCtx.moveTo(480, 185); targetCtx.quadraticCurveTo(500, 188, 520, 185);
+      // Mandibular dental arch
+      targetCtx.moveTo(482, 193); targetCtx.quadraticCurveTo(500, 195, 518, 193);
+      targetCtx.stroke();
+      // Individual vertical tooth separator hints
+      for (let t = -3; t <= 3; t++) {
+        const tx = 500 + t * 5.5;
+        targetCtx.beginPath();
+        targetCtx.moveTo(tx, 184); targetCtx.lineTo(tx, 194);
+        targetCtx.stroke();
+      }
+
+      // Mental Foramina & Mandible Angle contours
+      targetCtx.fillStyle = isXray ? "#0284c7" : "#64748b";
+      targetCtx.beginPath();
+      targetCtx.arc(482, 202, 1.8, 0, Math.PI * 2);
+      targetCtx.arc(518, 202, 1.8, 0, Math.PI * 2);
+      targetCtx.fill();
+    } else {
+      // Posterior Cranium: Occiput, Lambdoid Suture, Inion, Nuchal lines
+      targetCtx.strokeStyle = boneStroke;
+      targetCtx.lineWidth = 1.8;
+      // Lambdoid suture inverted V
+      targetCtx.beginPath();
+      targetCtx.moveTo(500, 115);
+      targetCtx.lineTo(470, 145);
+      targetCtx.moveTo(500, 115);
+      targetCtx.lineTo(530, 145);
+      targetCtx.stroke();
+      // Superior nuchal line
+      targetCtx.beginPath();
+      targetCtx.moveTo(465, 160); targetCtx.quadraticCurveTo(500, 150, 535, 160);
+      targetCtx.stroke();
+      // External occipital protuberance (inion)
+      targetCtx.fillStyle = boneShade;
+      targetCtx.beginPath();
+      targetCtx.arc(500, 152, 3, 0, Math.PI * 2);
+      targetCtx.fill();
+    }
+
+    // 2. VERTEBRAL COLUMN (C1-C7, T1-T12, L1-L5, Sacrum, Coccyx)
+    targetCtx.fillStyle = boneFill;
+    targetCtx.strokeStyle = boneStroke;
+    targetCtx.lineWidth = 1.5;
+    for (let v = 0; v < 24; v++) {
+      const vy = 218 + (v * 24);
+      const isCervical = (v < 7);
+      const isThoracic = (v >= 7 && v < 19);
+      const vw = isCervical ? (16 + v * 0.6) : (isThoracic ? (20 + (v - 7) * 0.8) : (29 + (v - 19) * 1.2));
+      const vh = isCervical ? 12 : (isThoracic ? 14 : 16);
+
+      // Intervertebral Disc
+      if (v > 0) {
+        targetCtx.fillStyle = discColor;
+        targetCtx.beginPath();
+        targetCtx.roundRect(500 - (vw / 2) + 2, vy - 4, vw - 4, 4, 1.5);
+        targetCtx.fill();
+      }
+
+      // Vertebral Body
+      targetCtx.fillStyle = boneFill;
+      targetCtx.beginPath();
+      targetCtx.roundRect(500 - (vw / 2), vy, vw, vh, 3.5);
       targetCtx.fill();
       targetCtx.stroke();
-      // Xiphoid tip
+
+      // Transverse processes & Spinous process
+      if (view === "posterior") {
+        targetCtx.fillStyle = boneShade;
+        targetCtx.beginPath();
+        targetCtx.arc(500, vy + vh / 2, 2.5, 0, Math.PI * 2);
+        targetCtx.fill();
+      }
+    }
+
+    // Sacrum & Coccyx
+    targetCtx.fillStyle = boneFill;
+    targetCtx.strokeStyle = boneStroke;
+    targetCtx.lineWidth = 2;
+    targetCtx.beginPath();
+    targetCtx.moveTo(478, 775);
+    targetCtx.bezierCurveTo(478, 770, 522, 770, 522, 775);
+    targetCtx.lineTo(512, 835);
+    targetCtx.lineTo(504, 855); // Coccyx tip
+    targetCtx.lineTo(496, 855);
+    targetCtx.lineTo(488, 835);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Sacral Foramina (4 pairs)
+    targetCtx.fillStyle = isXray ? "#0284c7" : "#475569";
+    for (let sf = 0; sf < 4; sf++) {
+      const sfy = 785 + sf * 12;
+      const sfx = 6 + sf * 1.2;
       targetCtx.beginPath();
-      targetCtx.moveTo(500, 425); targetCtx.lineTo(495, 445); targetCtx.lineTo(505, 445);
+      targetCtx.arc(500 - sfx, sfy, 2, 0, Math.PI * 2);
+      targetCtx.arc(500 + sfx, sfy, 2, 0, Math.PI * 2);
+      targetCtx.fill();
+    }
+
+    // 3. CLAVICLES (Collarbones - Authentic Double S-Curve)
+    targetCtx.lineWidth = 4.5;
+    targetCtx.strokeStyle = boneFill;
+    targetCtx.beginPath();
+    // Left Clavicle
+    targetCtx.moveTo(492, 260);
+    targetCtx.bezierCurveTo(465, 252, 425, 268, 375, 276);
+    // Right Clavicle
+    targetCtx.moveTo(508, 260);
+    targetCtx.bezierCurveTo(535, 252, 575, 268, 625, 276);
+    targetCtx.stroke();
+    targetCtx.lineWidth = 2;
+    targetCtx.strokeStyle = boneStroke;
+    targetCtx.stroke();
+
+    // 4. STERNUM & THORACIC CAGE (12 Rib Pairs & Costal Cartilages)
+    if (view === "anterior") {
+      // Manubrium with suprasternal notch
+      targetCtx.fillStyle = boneFill;
+      targetCtx.strokeStyle = boneStroke;
+      targetCtx.lineWidth = 2;
+      targetCtx.beginPath();
+      targetCtx.moveTo(486, 262);
+      targetCtx.quadraticCurveTo(500, 265, 514, 262); // Suprasternal notch
+      targetCtx.lineTo(518, 290);
+      targetCtx.lineTo(508, 298); // Sternal angle (Angle of Louis)
+      targetCtx.lineTo(492, 298);
+      targetCtx.lineTo(482, 290);
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
+
+      // Sternal Body (Gladiolus)
+      targetCtx.beginPath();
+      targetCtx.moveTo(492, 298); targetCtx.lineTo(508, 298);
+      targetCtx.lineTo(506, 420); targetCtx.lineTo(494, 420);
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
+
+      // Costal facet segments on sternal body
+      for (let s = 1; s <= 4; s++) {
+        const sy = 298 + s * 24;
+        targetCtx.beginPath();
+        targetCtx.moveTo(493, sy); targetCtx.lineTo(507, sy);
+        targetCtx.stroke();
+      }
+
+      // Xiphoid Process with sternal foramen
+      targetCtx.beginPath();
+      targetCtx.moveTo(496, 420); targetCtx.lineTo(504, 420);
+      targetCtx.lineTo(502, 442); targetCtx.lineTo(498, 442);
       targetCtx.closePath();
       targetCtx.fill(); targetCtx.stroke();
     }
 
-    // 10 prominent rib pairs curving laterally
-    targetCtx.lineWidth = 3.5;
-    for (let r = 0; r < 10; r++) {
-      const ry = 285 + (r * 18);
-      const rw = 52 + (r * 7.5);
+    // 12 Paired Ribs & Costal Cartilages
+    targetCtx.lineWidth = 3;
+    for (let r = 0; r < 12; r++) {
+      const ry = 275 + (r * 15.5);
+      const rxw = 46 + (r < 7 ? r * 10 : (60 - (r - 7) * 8));
+      const rDrop = 14 + r * 2.5;
+
+      // Osseous Rib Shaft
+      targetCtx.strokeStyle = boneFill;
       targetCtx.beginPath();
-      targetCtx.moveTo(490, ry - 6);
-      targetCtx.bezierCurveTo(490 - rw, ry - 4, 490 - rw, ry + 22, (view === "anterior" ? 485 : 495), ry + 14);
-      targetCtx.moveTo(510, ry - 6);
-      targetCtx.bezierCurveTo(510 + rw, ry - 4, 510 + rw, ry + 22, (view === "anterior" ? 515 : 505), ry + 14);
+      // Left Rib
+      targetCtx.moveTo(492, ry - 6);
+      targetCtx.bezierCurveTo(492 - rxw, ry + 2, 492 - rxw, ry + rDrop + 8, 465, ry + rDrop);
+      // Right Rib
+      targetCtx.moveTo(508, ry - 6);
+      targetCtx.bezierCurveTo(508 + rxw, ry + 2, 508 + rxw, ry + rDrop + 8, 535, ry + rDrop);
       targetCtx.stroke();
+
+      targetCtx.lineWidth = 1.5;
+      targetCtx.strokeStyle = boneStroke;
+      targetCtx.stroke();
+
+      // Hyaline Costal Cartilage (Ribs 1-7 connecting to sternum, 8-10 to costal margin)
+      if (view === "anterior" && r < 10) {
+        targetCtx.strokeStyle = cartilageColor;
+        targetCtx.lineWidth = 2.5;
+        targetCtx.beginPath();
+        if (r < 7) {
+          // True ribs connect to sternum
+          const sternY = 280 + r * 20;
+          targetCtx.moveTo(465, ry + rDrop); targetCtx.quadraticCurveTo(480, ry + rDrop - 2, 492, sternY);
+          targetCtx.moveTo(535, ry + rDrop); targetCtx.quadraticCurveTo(520, ry + rDrop - 2, 508, sternY);
+        } else {
+          // False ribs connect to costal arch
+          targetCtx.moveTo(465, ry + rDrop); targetCtx.lineTo(480, 425);
+          targetCtx.moveTo(535, ry + rDrop); targetCtx.lineTo(520, 425);
+        }
+        targetCtx.stroke();
+      }
     }
 
-    // 5. Scapulae (Shoulder Blades)
-    targetCtx.lineWidth = 3;
-    targetCtx.fillStyle = boneFill;
-    targetCtx.beginPath();
-    targetCtx.moveTo(390, 280); targetCtx.lineTo(365, 350); targetCtx.lineTo(425, 365); targetCtx.closePath();
-    targetCtx.fill(); targetCtx.stroke();
-    targetCtx.beginPath();
-    targetCtx.moveTo(610, 280); targetCtx.lineTo(635, 350); targetCtx.lineTo(575, 365); targetCtx.closePath();
-    targetCtx.fill(); targetCtx.stroke();
-
-    // 6. Pelvis / Os Coxae
-    targetCtx.lineWidth = 4;
-    targetCtx.beginPath();
-    targetCtx.ellipse(455, 785, 46, 52, -0.25, 0, Math.PI * 2);
-    targetCtx.fill(); targetCtx.stroke();
-    targetCtx.beginPath();
-    targetCtx.ellipse(545, 785, 46, 52, 0.25, 0, Math.PI * 2);
-    targetCtx.fill(); targetCtx.stroke();
-
-    // Pelvic cavity inlet
-    targetCtx.fillStyle = isXray ? "#0284c7" : "#090d16";
-    targetCtx.beginPath();
-    targetCtx.ellipse(500, 805, 26, 22, 0, 0, Math.PI * 2);
-    targetCtx.fill();
-
-    // Obturator foramina
-    targetCtx.beginPath();
-    targetCtx.ellipse(465, 840, 10, 13, 0.2, 0, Math.PI * 2);
-    targetCtx.ellipse(535, 840, 10, 13, -0.2, 0, Math.PI * 2);
-    targetCtx.fill();
-
-    // 7. Upper Limbs (Humerus, Radius, Ulna, Hands)
+    // 5. SCAPULAE (Shoulder Blades)
     targetCtx.fillStyle = boneFill;
     targetCtx.strokeStyle = boneStroke;
-    targetCtx.lineWidth = 8;
+    targetCtx.lineWidth = 2;
+    // Left Scapula
     targetCtx.beginPath();
-    targetCtx.moveTo(385, 285); targetCtx.lineTo(338, 460); targetCtx.stroke();
+    targetCtx.moveTo(375, 278); // Acromion
+    targetCtx.lineTo(355, 345); // Glenoid / lateral border
+    targetCtx.lineTo(395, 385); // Inferior angle
+    targetCtx.lineTo(425, 310); // Medial / vertebral border
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+    // Right Scapula
     targetCtx.beginPath();
-    targetCtx.moveTo(615, 285); targetCtx.lineTo(662, 460); targetCtx.stroke();
-
-    targetCtx.beginPath();
-    targetCtx.arc(338, 460, 7, 0, Math.PI * 2);
-    targetCtx.arc(662, 460, 7, 0, Math.PI * 2);
+    targetCtx.moveTo(625, 278); // Acromion
+    targetCtx.lineTo(645, 345); // Glenoid
+    targetCtx.lineTo(605, 385); // Inferior angle
+    targetCtx.lineTo(575, 310); // Medial border
+    targetCtx.closePath();
     targetCtx.fill(); targetCtx.stroke();
 
-    // Radius & Ulna
-    targetCtx.lineWidth = 5;
+    // 6. PELVIS / OS COXAE (Ilium, Ischium, Pubis, Acetabulum, Obturator Foramina)
+    targetCtx.lineWidth = 2.5;
+    // Left Iliac Blade
     targetCtx.beginPath();
-    targetCtx.moveTo(335, 468); targetCtx.lineTo(285, 625);
-    targetCtx.moveTo(342, 468); targetCtx.lineTo(294, 625);
-    targetCtx.moveTo(665, 468); targetCtx.lineTo(715, 625);
-    targetCtx.moveTo(658, 468); targetCtx.lineTo(706, 625);
-    targetCtx.stroke();
+    targetCtx.moveTo(480, 770);
+    targetCtx.bezierCurveTo(460, 715, 415, 718, 418, 755); // Iliac crest & ASIS
+    targetCtx.bezierCurveTo(418, 785, 432, 820, 455, 835); // Acetabulum region
+    targetCtx.lineTo(485, 850); // Pubic ramus
+    targetCtx.lineTo(495, 845); // Pubic symphysis
+    targetCtx.bezierCurveTo(480, 810, 478, 785, 480, 770);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
 
-    // Hands
-    targetCtx.lineWidth = 3;
+    // Right Iliac Blade
     targetCtx.beginPath();
-    targetCtx.moveTo(288, 625); targetCtx.lineTo(270, 675);
-    targetCtx.moveTo(290, 625); targetCtx.lineTo(285, 680);
-    targetCtx.moveTo(292, 625); targetCtx.lineTo(300, 675);
-    targetCtx.moveTo(712, 625); targetCtx.lineTo(730, 675);
-    targetCtx.moveTo(710, 625); targetCtx.lineTo(715, 680);
-    targetCtx.moveTo(708, 625); targetCtx.lineTo(700, 675);
-    targetCtx.stroke();
+    targetCtx.moveTo(520, 770);
+    targetCtx.bezierCurveTo(540, 715, 585, 718, 582, 755); // Iliac crest & ASIS
+    targetCtx.bezierCurveTo(582, 785, 568, 820, 545, 835); // Acetabulum
+    targetCtx.lineTo(515, 850); // Pubic ramus
+    targetCtx.lineTo(505, 845); // Pubic symphysis
+    targetCtx.bezierCurveTo(520, 810, 522, 785, 520, 770);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
 
-    // 8. Lower Limbs (Femur, Patella, Tibia, Fibula, Feet)
-    targetCtx.lineWidth = 12;
+    // Pubic Symphysis (Fibrocartilage joint)
+    targetCtx.fillStyle = discColor;
     targetCtx.beginPath();
-    targetCtx.moveTo(455, 845); targetCtx.lineTo(438, 1215); targetCtx.stroke();
-    targetCtx.beginPath();
-    targetCtx.moveTo(545, 845); targetCtx.lineTo(562, 1215); targetCtx.stroke();
+    targetCtx.rect(496, 838, 8, 12);
+    targetCtx.fill();
 
-    // Patellae (Kneecaps)
+    // Obturator Foramina (Paired apertures)
+    targetCtx.fillStyle = isXray ? "#0369a1" : "#0f172a";
+    targetCtx.beginPath();
+    targetCtx.ellipse(470, 838, 9, 13, -0.2, 0, Math.PI * 2);
+    targetCtx.ellipse(530, 838, 9, 13, 0.2, 0, Math.PI * 2);
+    targetCtx.fill();
+
+    // 7. UPPER LIMBS (Humerus, Radius, Ulna, Carpus, Metacarpus, Phalanges)
+    targetCtx.fillStyle = boneFill;
+    targetCtx.strokeStyle = boneStroke;
+    targetCtx.lineWidth = 2;
+
+    // Left Humerus (Spherical head, shaft, epicondyles)
+    targetCtx.beginPath();
+    targetCtx.arc(365, 290, 11, 0, Math.PI * 2); // Head
+    targetCtx.moveTo(360, 300);
+    targetCtx.bezierCurveTo(342, 360, 320, 420, 298, 472); // Shaft diaphysis
+    targetCtx.lineTo(312, 476); // Distal epicondyle
+    targetCtx.bezierCurveTo(330, 420, 354, 360, 372, 300);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Right Humerus
+    targetCtx.beginPath();
+    targetCtx.arc(635, 290, 11, 0, Math.PI * 2);
+    targetCtx.moveTo(640, 300);
+    targetCtx.bezierCurveTo(658, 360, 680, 420, 702, 472);
+    targetCtx.lineTo(688, 476);
+    targetCtx.bezierCurveTo(670, 420, 646, 360, 628, 300);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Left Radius (Lateral) & Ulna (Medial with olecranon)
+    targetCtx.beginPath();
+    // Radius
+    targetCtx.moveTo(292, 482); targetCtx.bezierCurveTo(270, 545, 245, 625, 225, 715);
+    targetCtx.lineTo(233, 716); targetCtx.bezierCurveTo(252, 625, 278, 545, 300, 482);
+    targetCtx.closePath();
+    // Ulna
+    targetCtx.moveTo(304, 478); targetCtx.bezierCurveTo(286, 545, 268, 625, 248, 715);
+    targetCtx.lineTo(256, 716); targetCtx.bezierCurveTo(276, 625, 294, 545, 312, 478);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Right Radius & Ulna
+    targetCtx.beginPath();
+    // Radius
+    targetCtx.moveTo(708, 482); targetCtx.bezierCurveTo(730, 545, 755, 625, 775, 715);
+    targetCtx.lineTo(767, 716); targetCtx.bezierCurveTo(748, 625, 722, 545, 700, 482);
+    targetCtx.closePath();
+    // Ulna
+    targetCtx.moveTo(696, 478); targetCtx.bezierCurveTo(714, 545, 732, 625, 752, 715);
+    targetCtx.lineTo(744, 716); targetCtx.bezierCurveTo(724, 625, 706, 545, 688, 478);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Hand Bones (Carpals, Metacarpals, Phalanges)
+    // Left Hand
+    targetCtx.beginPath();
+    // Carpal mass
+    targetCtx.roundRect(228, 718, 22, 14, 4);
+    // 5 Metacarpals & Phalanges
+    for (let f = 0; f < 5; f++) {
+      const fx = 212 + f * 7.5;
+      const fy = 734 + Math.abs(f - 2) * 4;
+      const fl = 55 - Math.abs(f - 2) * 8;
+      targetCtx.moveTo(fx, fy); targetCtx.lineTo(fx - 4, fy + fl);
+    }
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Right Hand
+    targetCtx.beginPath();
+    targetCtx.roundRect(750, 718, 22, 14, 4);
+    for (let f = 0; f < 5; f++) {
+      const fx = 752 + f * 7.5;
+      const fy = 734 + Math.abs(f - 2) * 4;
+      const fl = 55 - Math.abs(f - 2) * 8;
+      targetCtx.moveTo(fx, fy); targetCtx.lineTo(fx + 4, fy + fl);
+    }
+    targetCtx.fill(); targetCtx.stroke();
+
+    // 8. LOWER LIMBS (Femur, Patella, Tibia, Fibula, Tarsus, Metatarsus, Phalanges)
+    // Left Femur (Spherical head, neck, trochanters, bowed shaft, condyles)
+    targetCtx.beginPath();
+    targetCtx.arc(460, 830, 14, 0, Math.PI * 2); // Femoral head in acetabulum
+    targetCtx.moveTo(452, 835);
+    targetCtx.lineTo(432, 842); // Femoral neck
+    targetCtx.lineTo(426, 848); // Greater trochanter
+    targetCtx.bezierCurveTo(424, 950, 420, 1070, 430, 1195); // Bowed diaphysis
+    targetCtx.lineTo(444, 1205); // Medial condyle
+    targetCtx.lineTo(422, 1205); // Lateral condyle
+    targetCtx.bezierCurveTo(434, 1070, 438, 950, 442, 845);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Right Femur
+    targetCtx.beginPath();
+    targetCtx.arc(540, 830, 14, 0, Math.PI * 2);
+    targetCtx.moveTo(548, 835);
+    targetCtx.lineTo(568, 842);
+    targetCtx.lineTo(574, 848); // Greater trochanter
+    targetCtx.bezierCurveTo(576, 950, 580, 1070, 570, 1195);
+    targetCtx.lineTo(556, 1205);
+    targetCtx.lineTo(578, 1205);
+    targetCtx.bezierCurveTo(566, 1070, 562, 950, 558, 845);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Patellae (Triangular sesamoid bones)
     if (view === "anterior") {
       targetCtx.fillStyle = boneFill;
-      targetCtx.lineWidth = 3;
       targetCtx.beginPath();
-      targetCtx.arc(438, 1215, 11, 0, Math.PI * 2);
-      targetCtx.arc(562, 1215, 11, 0, Math.PI * 2);
+      // Left Patella
+      targetCtx.moveTo(427, 1205); targetCtx.lineTo(441, 1205); targetCtx.lineTo(434, 1222);
+      targetCtx.closePath();
+      // Right Patella
+      targetCtx.moveTo(559, 1205); targetCtx.lineTo(573, 1205); targetCtx.lineTo(566, 1222);
+      targetCtx.closePath();
       targetCtx.fill(); targetCtx.stroke();
     }
 
-    // Tibia & Fibula
-    targetCtx.lineWidth = 8;
+    // Tibia (Broad plateau, tuberosity, shin crest, medial malleolus) & Fibula
+    // Left Tibia
     targetCtx.beginPath();
-    targetCtx.moveTo(438, 1230); targetCtx.lineTo(430, 1580); targetCtx.stroke();
-    targetCtx.beginPath();
-    targetCtx.moveTo(562, 1230); targetCtx.lineTo(570, 1580); targetCtx.stroke();
+    targetCtx.moveTo(425, 1215); targetCtx.lineTo(445, 1215); // Plateau
+    targetCtx.bezierCurveTo(442, 1340, 440, 1470, 448, 1608); // Medial malleolus
+    targetCtx.lineTo(438, 1608);
+    targetCtx.bezierCurveTo(432, 1470, 430, 1340, 428, 1215);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
 
-    targetCtx.lineWidth = 4;
+    // Left Fibula (Slender lateral bone with lower lateral malleolus)
     targetCtx.beginPath();
-    targetCtx.moveTo(422, 1240); targetCtx.lineTo(418, 1575); targetCtx.stroke();
-    targetCtx.beginPath();
-    targetCtx.moveTo(578, 1240); targetCtx.lineTo(582, 1575); targetCtx.stroke();
-
-    // Feet
-    targetCtx.lineWidth = 4;
-    targetCtx.beginPath();
-    targetCtx.moveTo(430, 1580); targetCtx.lineTo(445, 1715);
-    targetCtx.moveTo(425, 1580); targetCtx.lineTo(425, 1705);
-    targetCtx.moveTo(570, 1580); targetCtx.lineTo(555, 1715);
-    targetCtx.moveTo(575, 1580); targetCtx.lineTo(575, 1705);
+    targetCtx.arc(420, 1225, 4, 0, Math.PI * 2); // Head of fibula
+    targetCtx.moveTo(420, 1229); targetCtx.lineTo(423, 1622); // Shaft to lateral malleolus
     targetCtx.stroke();
+
+    // Right Tibia
+    targetCtx.beginPath();
+    targetCtx.moveTo(555, 1215); targetCtx.lineTo(575, 1215);
+    targetCtx.bezierCurveTo(558, 1340, 560, 1470, 552, 1608); // Medial malleolus
+    targetCtx.lineTo(562, 1608);
+    targetCtx.bezierCurveTo(568, 1470, 570, 1340, 572, 1215);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Right Fibula
+    targetCtx.beginPath();
+    targetCtx.arc(580, 1225, 4, 0, Math.PI * 2);
+    targetCtx.moveTo(580, 1229); targetCtx.lineTo(577, 1622);
+    targetCtx.stroke();
+
+    // Foot Bones (Tarsus, Metatarsus, Phalanges)
+    // Left Foot
+    targetCtx.beginPath();
+    targetCtx.moveTo(436, 1612); // Talus
+    targetCtx.lineTo(425, 1650); // Calcaneus heel
+    targetCtx.lineTo(432, 1712); // Lateral sole
+    targetCtx.lineTo(468, 1712); // Metatarsals & Toes
+    targetCtx.lineTo(452, 1612); // Navicular / cuneiforms
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Right Foot
+    targetCtx.beginPath();
+    targetCtx.moveTo(564, 1612);
+    targetCtx.lineTo(575, 1650);
+    targetCtx.lineTo(568, 1712);
+    targetCtx.lineTo(532, 1712);
+    targetCtx.lineTo(548, 1612);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
 
     targetCtx.restore();
   }
@@ -1937,293 +2283,602 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.save();
     targetCtx.globalAlpha = Math.min(1.0, alpha);
 
-    // 1. Trachea & Primary Bronchi
+    // 1. TRACHEA & PRIMARY BRONCHIAL ARBORIZATION
     targetCtx.strokeStyle = "#38bdf8";
     targetCtx.lineWidth = 6;
     targetCtx.beginPath();
-    targetCtx.moveTo(500, 220); targetCtx.lineTo(500, 320);
-    targetCtx.lineTo(468, 355);
-    targetCtx.moveTo(500, 320); targetCtx.lineTo(532, 355);
+    targetCtx.moveTo(500, 225); targetCtx.lineTo(500, 318); // Trachea to Carina at T4/T5
+    // Right Main Bronchus (Wider, shorter, more vertical at ~25°)
+    targetCtx.lineTo(472, 348);
+    // Left Main Bronchus (Longer, more horizontal at ~45°)
+    targetCtx.moveTo(500, 318); targetCtx.lineTo(535, 345);
     targetCtx.stroke();
 
-    // Cartilage rings
+    // C-shaped hyaline cartilage rings
     targetCtx.strokeStyle = "#bae6fd";
     targetCtx.lineWidth = 2;
-    for (let i = 0; i < 6; i++) {
-      const cy = 230 + (i * 14);
+    for (let i = 0; i < 7; i++) {
+      const cy = 232 + (i * 12);
       targetCtx.beginPath();
-      targetCtx.moveTo(494, cy); targetCtx.lineTo(506, cy);
+      targetCtx.moveTo(493, cy); targetCtx.lineTo(507, cy);
       targetCtx.stroke();
     }
 
-    // 2. Pulmonary Lungs with Respiratory Expansion
+    // 2. PULMONARY LUNGS (With authentic lobar morphology & respiratory expansion)
     const breath = 1.0 + 0.035 * Math.sin(simTime * 2.4);
-    targetCtx.fillStyle = "rgba(52, 211, 153, 0.85)";
-    targetCtx.strokeStyle = "#10b981";
+
+    // Right Lung (3 Lobes: Superior, Middle, Inferior)
+    targetCtx.save();
+    targetCtx.translate(440, 385);
+    targetCtx.scale(breath, breath);
+    targetCtx.fillStyle = "rgba(52, 211, 153, 0.88)";
+    targetCtx.strokeStyle = "#059669";
     targetCtx.lineWidth = 2.5;
     targetCtx.beginPath();
-    targetCtx.ellipse(442, 380, 48 * breath, 78 * breath, -0.08, 0, Math.PI * 2);
+    targetCtx.moveTo(0, -95); // Apex
+    targetCtx.bezierCurveTo(35, -90, 48, -40, 48, 10);
+    targetCtx.bezierCurveTo(48, 60, 35, 88, 0, 92); // Base
+    targetCtx.bezierCurveTo(-38, 92, -45, 60, -45, 10);
+    targetCtx.bezierCurveTo(-45, -40, -32, -90, 0, -95);
+    targetCtx.closePath();
     targetCtx.fill(); targetCtx.stroke();
 
+    // Fissures (Horizontal & Oblique)
+    targetCtx.strokeStyle = "#047857";
+    targetCtx.lineWidth = 1.8;
+    // Horizontal fissure
     targetCtx.beginPath();
-    targetCtx.ellipse(558, 380, 44 * breath, 78 * breath, 0.08, 0, Math.PI * 2);
-    targetCtx.fill(); targetCtx.stroke();
-
-    // 3. 4-Chambered Heart with Systolic Contraction Pulse
-    const hPulse = 1.0 + 0.065 * Math.sin(simTime * 8);
-    targetCtx.save();
-    targetCtx.translate(512, 395);
-    targetCtx.scale(hPulse, hPulse);
-    targetCtx.fillStyle = "#ef4444";
-    targetCtx.strokeStyle = "#991b1b";
-    targetCtx.lineWidth = 3;
-    targetCtx.shadowColor = "rgba(239, 68, 68, 0.4)";
-    targetCtx.shadowBlur = 10;
+    targetCtx.moveTo(-35, -10); targetCtx.quadraticCurveTo(5, -15, 45, -5);
+    targetCtx.stroke();
+    // Oblique fissure
     targetCtx.beginPath();
-    targetCtx.ellipse(0, 0, 36, 44, -0.28, 0, Math.PI * 2);
-    targetCtx.fill(); targetCtx.stroke();
-
-    targetCtx.fillStyle = "#dc2626";
-    targetCtx.beginPath();
-    targetCtx.roundRect(-10, -50, 20, 22, 4);
-    targetCtx.fill();
-
-    targetCtx.strokeStyle = "#7f1d1d";
-    targetCtx.lineWidth = 2;
-    targetCtx.beginPath();
-    targetCtx.moveTo(-6, -15); targetCtx.lineTo(12, 25);
+    targetCtx.moveTo(-20, -55); targetCtx.quadraticCurveTo(10, 15, 35, 75);
     targetCtx.stroke();
     targetCtx.restore();
 
-    // 4. Liver (Right & Left Lobes with Falciform Ligament)
-    targetCtx.fillStyle = "rgba(245, 158, 11, 0.9)";
-    targetCtx.strokeStyle = "#b45309";
-    targetCtx.lineWidth = 3;
+    // Left Lung (2 Lobes: Superior & Inferior with prominent Cardiac Notch & Lingula)
+    targetCtx.save();
+    targetCtx.translate(560, 385);
+    targetCtx.scale(breath, breath);
+    targetCtx.fillStyle = "rgba(52, 211, 153, 0.88)";
+    targetCtx.strokeStyle = "#059669";
+    targetCtx.lineWidth = 2.5;
     targetCtx.beginPath();
-    targetCtx.ellipse(465, 510, 54, 40, -0.12, 0, Math.PI * 2);
+    targetCtx.moveTo(0, -95); // Apex
+    targetCtx.bezierCurveTo(32, -90, 45, -40, 45, 10);
+    targetCtx.bezierCurveTo(45, 60, 38, 92, 0, 92); // Base
+    targetCtx.bezierCurveTo(-15, 88, -25, 75, -28, 55); // Lingula
+    targetCtx.bezierCurveTo(-48, 25, -48, -15, -25, -45); // Deep Cardiac Notch
+    targetCtx.bezierCurveTo(-32, -65, -25, -90, 0, -95);
+    targetCtx.closePath();
     targetCtx.fill(); targetCtx.stroke();
-    targetCtx.strokeStyle = "#fef3c7";
-    targetCtx.lineWidth = 1.5;
+
+    // Left Oblique fissure
+    targetCtx.strokeStyle = "#047857";
+    targetCtx.lineWidth = 1.8;
     targetCtx.beginPath();
-    targetCtx.moveTo(475, 475); targetCtx.lineTo(470, 545);
+    targetCtx.moveTo(25, -55); targetCtx.quadraticCurveTo(-5, 15, -25, 75);
+    targetCtx.stroke();
+    targetCtx.restore();
+
+    // 3. FOUR-CHAMBERED HEART & GREAT VESSELS (Conical pump shifted left with LAD & Aorta)
+    const hPulse = 1.0 + 0.065 * Math.sin(simTime * 8);
+    targetCtx.save();
+    targetCtx.translate(515, 395);
+    targetCtx.scale(hPulse, hPulse);
+
+    // Aortic Arch (Carmine with 3 branch arteries)
+    targetCtx.fillStyle = "#dc2626";
+    targetCtx.strokeStyle = "#991b1b";
+    targetCtx.lineWidth = 2.5;
+    targetCtx.beginPath();
+    targetCtx.arc(-8, -48, 16, Math.PI * 0.9, 0); // Arch curve
+    targetCtx.lineTo(6, -20);
+    targetCtx.lineTo(-6, -20);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // 3 Great Branches off Arch
+    targetCtx.strokeStyle = "#dc2626";
+    targetCtx.lineWidth = 3.5;
+    targetCtx.beginPath();
+    targetCtx.moveTo(-20, -56); targetCtx.lineTo(-24, -72); // Brachiocephalic
+    targetCtx.moveTo(-10, -64); targetCtx.lineTo(-10, -75); // Left common carotid
+    targetCtx.moveTo(0, -60); targetCtx.lineTo(4, -72); // Left subclavian
     targetCtx.stroke();
 
-    // 5. Gallbladder (Emerald bile reservoir)
+    // Pulmonary Trunk crossing anteriorly
+    targetCtx.fillStyle = "#38bdf8";
+    targetCtx.strokeStyle = "#0284c7";
+    targetCtx.lineWidth = 2;
+    targetCtx.beginPath();
+    targetCtx.moveTo(-18, -25);
+    targetCtx.bezierCurveTo(-14, -45, -4, -48, 10, -42);
+    targetCtx.lineTo(8, -32);
+    targetCtx.bezierCurveTo(0, -36, -8, -32, -12, -20);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Superior Vena Cava (SVC)
+    targetCtx.fillStyle = "#0284c7";
+    targetCtx.beginPath();
+    targetCtx.rect(-34, -58, 10, 35);
+    targetCtx.fill();
+
+    // Ventricular Myocardium (Left-shifted conical muscle mass with apex at left 5th ICS)
+    targetCtx.fillStyle = "#ef4444";
+    targetCtx.strokeStyle = "#991b1b";
+    targetCtx.lineWidth = 3;
+    targetCtx.shadowColor = "rgba(239, 68, 68, 0.45)";
+    targetCtx.shadowBlur = 10;
+    targetCtx.beginPath();
+    targetCtx.moveTo(-35, -15); // Right atrium border
+    targetCtx.bezierCurveTo(-42, 10, -35, 30, -20, 38); // Right ventricle inferior margin
+    targetCtx.bezierCurveTo(-5, 45, 12, 48, 22, 44); // Apex pointing inferolaterally
+    targetCtx.bezierCurveTo(38, 25, 42, -5, 25, -20); // Left ventricle lateral margin
+    targetCtx.bezierCurveTo(15, -28, -20, -25, -35, -15);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Anterior Interventricular Sulcus (LAD Coronary & Great Cardiac Vein)
+    targetCtx.strokeStyle = "#7f1d1d";
+    targetCtx.lineWidth = 2.5;
+    targetCtx.beginPath();
+    targetCtx.moveTo(-5, -15);
+    targetCtx.bezierCurveTo(2, 5, 8, 25, 20, 42); // Descending to apex
+    targetCtx.stroke();
+    // Coronary artery branchlets
+    targetCtx.strokeStyle = "#fca5a5";
+    targetCtx.lineWidth = 1.2;
+    targetCtx.beginPath();
+    targetCtx.moveTo(0, 0); targetCtx.lineTo(-12, 12);
+    targetCtx.moveTo(5, 15); targetCtx.lineTo(15, 22);
+    targetCtx.stroke();
+
+    targetCtx.restore();
+
+    // 4. LIVER (Hepar: Asymmetric wedge with Right/Left lobes & Falciform Ligament)
+    targetCtx.fillStyle = "rgba(217, 119, 6, 0.92)";
+    targetCtx.strokeStyle = "#92400e";
+    targetCtx.lineWidth = 3;
+    targetCtx.beginPath();
+    targetCtx.moveTo(422, 475); // Superior dome right lobe
+    targetCtx.bezierCurveTo(465, 468, 515, 475, 545, 492); // Sweeping over left lobe
+    targetCtx.bezierCurveTo(535, 520, 510, 525, 485, 535); // Inferior margin
+    targetCtx.bezierCurveTo(450, 550, 415, 545, 412, 520); // Right lateral margin
+    targetCtx.bezierCurveTo(410, 495, 415, 480, 422, 475);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Falciform Ligament & Ligamentum Teres Hepatis
+    targetCtx.strokeStyle = "#fef3c7";
+    targetCtx.lineWidth = 2;
+    targetCtx.beginPath();
+    targetCtx.moveTo(475, 472); targetCtx.bezierCurveTo(478, 500, 472, 525, 468, 542);
+    targetCtx.stroke();
+
+    // 5. GALLBLADDER (Pear-shaped emerald bile reservoir with cystic/bile ducts)
     targetCtx.fillStyle = "#10b981";
     targetCtx.strokeStyle = "#047857";
     targetCtx.lineWidth = 2;
     targetCtx.beginPath();
-    targetCtx.ellipse(452, 548, 11, 16, 0.3, 0, Math.PI * 2);
+    targetCtx.ellipse(455, 546, 10, 16, 0.35, 0, Math.PI * 2);
     targetCtx.fill(); targetCtx.stroke();
-
-    // 6. Stomach (J-shaped upper quadrant)
-    targetCtx.fillStyle = "rgba(251, 191, 36, 0.9)";
-    targetCtx.strokeStyle = "#d97706";
-    targetCtx.lineWidth = 3;
-    targetCtx.beginPath();
-    targetCtx.ellipse(535, 520, 40, 34, 0.35, 0, Math.PI * 2);
-    targetCtx.fill(); targetCtx.stroke();
-    targetCtx.strokeStyle = "rgba(217, 119, 6, 0.6)";
-    targetCtx.lineWidth = 1.5;
-    targetCtx.beginPath();
-    targetCtx.arc(532, 518, 18, 0.2 * Math.PI, 0.9 * Math.PI);
-    targetCtx.stroke();
-
-    // 7. Spleen
-    targetCtx.fillStyle = "#8b5cf6";
-    targetCtx.strokeStyle = "#6d28d9";
+    // Common Bile Duct (CBD)
+    targetCtx.strokeStyle = "#059669";
     targetCtx.lineWidth = 2;
     targetCtx.beginPath();
-    targetCtx.ellipse(582, 505, 16, 26, 0.2, 0, Math.PI * 2);
-    targetCtx.fill(); targetCtx.stroke();
-
-    // 8. Bilateral Kidneys & Descending Ureters
-    targetCtx.fillStyle = "#a855f7";
-    targetCtx.strokeStyle = "#7e22ce";
-    targetCtx.lineWidth = 2.5;
-    targetCtx.beginPath();
-    targetCtx.ellipse(440, 600, 20, 32, -0.1, 0, Math.PI * 2);
-    targetCtx.fill(); targetCtx.stroke();
-    targetCtx.beginPath();
-    targetCtx.ellipse(560, 595, 20, 32, 0.1, 0, Math.PI * 2);
-    targetCtx.fill(); targetCtx.stroke();
-
-    targetCtx.strokeStyle = "#c084fc";
-    targetCtx.lineWidth = 3;
-    targetCtx.beginPath();
-    targetCtx.moveTo(445, 625); targetCtx.quadraticCurveTo(460, 720, 492, 825);
-    targetCtx.moveTo(555, 620); targetCtx.quadraticCurveTo(540, 720, 508, 825);
+    targetCtx.moveTo(458, 538); targetCtx.quadraticCurveTo(470, 530, 482, 545);
     targetCtx.stroke();
 
-    // 9. Intestines (Small loops & Framing Colon)
-    targetCtx.fillStyle = "#f59e0b";
+    // 6. STOMACH (Gaster: J-shaped hollow organ with high fundus, curvatures & rugae)
+    targetCtx.fillStyle = "rgba(251, 191, 36, 0.92)";
     targetCtx.strokeStyle = "#b45309";
+    targetCtx.lineWidth = 3;
+    targetCtx.beginPath();
+    targetCtx.moveTo(518, 488); // Cardia / Esophageal entry
+    targetCtx.bezierCurveTo(535, 470, 565, 472, 572, 492); // Dome-like Fundus
+    targetCtx.bezierCurveTo(582, 515, 575, 545, 550, 555); // Greater Curvature
+    targetCtx.bezierCurveTo(535, 560, 515, 555, 502, 542); // Pyloric Antrum
+    targetCtx.bezierCurveTo(512, 530, 525, 520, 522, 505); // Lesser Curvature & Incisura
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Gastric Rugal Folds (Longitudinal undulating mucosal folds)
+    targetCtx.strokeStyle = "rgba(180, 83, 9, 0.55)";
+    targetCtx.lineWidth = 1.8;
+    targetCtx.beginPath();
+    targetCtx.moveTo(535, 490); targetCtx.quadraticCurveTo(555, 515, 545, 545);
+    targetCtx.moveTo(548, 488); targetCtx.quadraticCurveTo(568, 518, 558, 542);
+    targetCtx.stroke();
+
+    // 7. PANCREAS & SPLEEN
+    // Pancreas (Nestled in duodenal curve)
+    targetCtx.fillStyle = "#fde047";
+    targetCtx.strokeStyle = "#ca8a04";
+    targetCtx.lineWidth = 2;
+    targetCtx.beginPath();
+    targetCtx.moveTo(492, 538);
+    targetCtx.bezierCurveTo(520, 532, 550, 528, 570, 515); // Tail to splenic hilum
+    targetCtx.lineTo(568, 524);
+    targetCtx.bezierCurveTo(545, 538, 515, 544, 490, 548); // Body & Head
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Spleen (Left hypochondrium purplish lymphoid organ)
+    targetCtx.fillStyle = "#8b5cf6";
+    targetCtx.strokeStyle = "#5b21b6";
+    targetCtx.lineWidth = 2;
+    targetCtx.beginPath();
+    targetCtx.ellipse(585, 502, 14, 24, 0.25, 0, Math.PI * 2);
+    targetCtx.fill(); targetCtx.stroke();
+
+    // 8. BILATERAL KIDNEYS (Reniform beans with Hilum, Cortex, Pyramids & Ureters)
+    // Right Kidney (Lower at T12-L3)
+    targetCtx.fillStyle = "#a855f7";
+    targetCtx.strokeStyle = "#6b21a8";
     targetCtx.lineWidth = 2.5;
     targetCtx.beginPath();
-    targetCtx.ellipse(500, 695, 58, 48, 0, 0, Math.PI * 2);
+    targetCtx.moveTo(435, 580);
+    targetCtx.bezierCurveTo(452, 580, 455, 600, 448, 615); // Medial Hilum indentation
+    targetCtx.bezierCurveTo(442, 630, 432, 635, 420, 625); // Lower pole
+    targetCtx.bezierCurveTo(410, 610, 412, 595, 420, 582); // Convex lateral border
+    targetCtx.closePath();
     targetCtx.fill(); targetCtx.stroke();
-    targetCtx.strokeStyle = "rgba(180, 83, 9, 0.4)";
-    targetCtx.lineWidth = 2;
-    for (let c = 0; c < 4; c++) {
-      targetCtx.beginPath();
-      targetCtx.arc(480 + (c * 12), 680 + ((c % 2) * 16), 16, 0, Math.PI * 2);
-      targetCtx.stroke();
-    }
 
-    // Large Intestine / Colon
-    targetCtx.strokeStyle = "#d97706";
-    targetCtx.lineWidth = 14;
+    // Left Kidney (Higher at T11-L2)
+    targetCtx.beginPath();
+    targetCtx.moveTo(565, 572);
+    targetCtx.bezierCurveTo(548, 572, 545, 592, 552, 607); // Medial Hilum
+    targetCtx.bezierCurveTo(558, 622, 568, 627, 580, 617);
+    targetCtx.bezierCurveTo(590, 602, 588, 587, 580, 574);
+    targetCtx.closePath();
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Bilateral Muscular Ureters descending to bladder trigone
+    targetCtx.strokeStyle = "#c084fc";
+    targetCtx.lineWidth = 2.5;
+    targetCtx.beginPath();
+    targetCtx.moveTo(446, 610); targetCtx.bezierCurveTo(458, 680, 465, 750, 492, 828);
+    targetCtx.moveTo(554, 602); targetCtx.bezierCurveTo(542, 680, 535, 750, 508, 828);
+    targetCtx.stroke();
+
+    // 9. INTESTINES (Framing Large Intestine / Colon & Convoluted Small Bowel)
+    // Large Intestine (Colon with Haustra pouches & Taeniae Coli)
+    targetCtx.fillStyle = "rgba(245, 158, 11, 0.85)";
+    targetCtx.strokeStyle = "#92400e";
+    targetCtx.lineWidth = 2.5;
+
+    // Cecum & Appendix in Right Iliac Fossa
+    targetCtx.beginPath();
+    targetCtx.ellipse(436, 735, 16, 20, 0, 0, Math.PI * 2);
+    targetCtx.fill(); targetCtx.stroke();
+    // Vermiform Appendix
+    targetCtx.strokeStyle = "#b45309";
+    targetCtx.lineWidth = 3;
+    targetCtx.beginPath();
+    targetCtx.moveTo(436, 750); targetCtx.bezierCurveTo(428, 765, 435, 775, 442, 772);
+    targetCtx.stroke();
+
+    // Ascending Colon -> Hepatic Flexure -> Transverse Colon -> Splenic Flexure -> Descending -> Sigmoid
+    targetCtx.strokeStyle = "#b45309";
+    targetCtx.lineWidth = 15;
     targetCtx.lineCap = "round";
     targetCtx.lineJoin = "round";
     targetCtx.beginPath();
-    targetCtx.moveTo(445, 740);
-    targetCtx.lineTo(445, 640);
-    targetCtx.lineTo(500, 630);
-    targetCtx.lineTo(555, 640);
-    targetCtx.lineTo(555, 740);
-    targetCtx.lineTo(525, 780);
+    targetCtx.moveTo(436, 725);
+    targetCtx.lineTo(436, 630); // Ascending colon
+    targetCtx.bezierCurveTo(438, 615, 460, 612, 500, 615); // Hepatic flexure to Transverse colon
+    targetCtx.bezierCurveTo(540, 612, 562, 615, 564, 630); // Splenic flexure
+    targetCtx.lineTo(564, 725); // Descending colon
+    targetCtx.bezierCurveTo(564, 750, 545, 765, 525, 778); // Sigmoid colon
     targetCtx.stroke();
 
-    // 10. Urinary Bladder
-    targetCtx.fillStyle = "#c084fc";
-    targetCtx.strokeStyle = "#9333ea";
-    targetCtx.lineWidth = 3;
+    // Small Intestine (Central convoluted loops with plicae circulares)
+    targetCtx.fillStyle = "#f59e0b";
+    targetCtx.strokeStyle = "#d97706";
+    targetCtx.lineWidth = 2;
     targetCtx.beginPath();
-    targetCtx.ellipse(500, 835, 26, 22, 0, 0, Math.PI * 2);
+    targetCtx.ellipse(500, 685, 46, 42, 0, 0, Math.PI * 2);
+    targetCtx.fill(); targetCtx.stroke();
+    // Convoluted intestinal loops
+    targetCtx.strokeStyle = "#b45309";
+    targetCtx.lineWidth = 2;
+    for (let c = 0; c < 5; c++) {
+      targetCtx.beginPath();
+      targetCtx.arc(478 + (c * 11), 675 + ((c % 2) * 16), 14, 0, Math.PI * 2);
+      targetCtx.stroke();
+    }
+
+    // 10. URINARY BLADDER (Detrusor muscle reservoir)
+    targetCtx.fillStyle = "#c084fc";
+    targetCtx.strokeStyle = "#7e22ce";
+    targetCtx.lineWidth = 2.5;
+    targetCtx.beginPath();
+    targetCtx.ellipse(500, 835, 24, 20, 0, 0, Math.PI * 2);
     targetCtx.fill(); targetCtx.stroke();
 
     targetCtx.restore();
   }
 
-  // STRATUM 3: Muscular System (Superficial & Deep Myology)
+  // STRATUM 3: Skeletal Muscular System (Superficial & Deep Myology)
   function drawMuscularVector(targetCtx, view, alpha) {
     if (alpha <= 0.005) return;
     targetCtx.save();
     targetCtx.globalAlpha = Math.min(1.0, alpha);
 
-    targetCtx.fillStyle = "#ef4444";
-    targetCtx.strokeStyle = "#b91c1c";
+    const muscleRed = "#dc2626";
+    const muscleDark = "#991b1b";
+    const fasciaWhite = "rgba(254, 226, 226, 0.75)";
+    const tendonWhite = "#f8fafc";
+
+    targetCtx.fillStyle = muscleRed;
+    targetCtx.strokeStyle = muscleDark;
     targetCtx.lineWidth = 2;
 
     if (view === "anterior") {
-      // 1. Pectoralis Major (Bilateral Chest)
+      // 1. STERNOCLEIDOMASTOID (Neck strap muscles)
       targetCtx.beginPath();
-      targetCtx.ellipse(450, 335, 48, 32, -0.22, 0, Math.PI * 2);
-      targetCtx.ellipse(550, 335, 48, 32, 0.22, 0, Math.PI * 2);
+      // Left SCM
+      targetCtx.moveTo(462, 205); targetCtx.lineTo(470, 205); targetCtx.lineTo(494, 258); targetCtx.lineTo(486, 258);
+      targetCtx.closePath();
+      // Right SCM
+      targetCtx.moveTo(538, 205); targetCtx.lineTo(530, 205); targetCtx.lineTo(506, 258); targetCtx.lineTo(514, 258);
+      targetCtx.closePath();
       targetCtx.fill(); targetCtx.stroke();
 
-      // Pectoral fiber striations
-      targetCtx.strokeStyle = "rgba(185, 28, 28, 0.6)";
-      targetCtx.lineWidth = 1.5;
+      // 2. PECTORALIS MAJOR (Fan-shaped chest muscles with clavicular & sternocostal fiber heads)
+      // Left Pectoralis Major
       targetCtx.beginPath();
-      targetCtx.moveTo(495, 320); targetCtx.lineTo(440, 335);
-      targetCtx.moveTo(495, 335); targetCtx.lineTo(435, 345);
-      targetCtx.moveTo(505, 320); targetCtx.lineTo(560, 335);
-      targetCtx.moveTo(505, 335); targetCtx.lineTo(565, 345);
+      targetCtx.moveTo(492, 264); // Clavicular origin
+      targetCtx.bezierCurveTo(450, 266, 400, 290, 360, 318); // Insertion into humerus
+      targetCtx.bezierCurveTo(370, 345, 410, 365, 460, 365); // Inferior border
+      targetCtx.bezierCurveTo(482, 365, 492, 340, 492, 264); // Sternal margin
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
+
+      // Right Pectoralis Major
+      targetCtx.beginPath();
+      targetCtx.moveTo(508, 264);
+      targetCtx.bezierCurveTo(550, 266, 600, 290, 640, 318);
+      targetCtx.bezierCurveTo(630, 345, 590, 365, 540, 365);
+      targetCtx.bezierCurveTo(518, 365, 508, 340, 508, 264);
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
+
+      // Radiating Pectoral Muscle Fascicles
+      targetCtx.strokeStyle = fasciaWhite;
+      targetCtx.lineWidth = 1.2;
+      targetCtx.beginPath();
+      targetCtx.moveTo(490, 275); targetCtx.lineTo(375, 315);
+      targetCtx.moveTo(490, 305); targetCtx.lineTo(380, 328);
+      targetCtx.moveTo(485, 340); targetCtx.lineTo(390, 338);
+      targetCtx.moveTo(510, 275); targetCtx.lineTo(625, 315);
+      targetCtx.moveTo(510, 305); targetCtx.lineTo(620, 328);
+      targetCtx.moveTo(515, 340); targetCtx.lineTo(610, 338);
       targetCtx.stroke();
 
-      // 2. Rectus Abdominis (Six-Pack Bellies with Linea Alba)
-      targetCtx.fillStyle = "#dc2626";
-      targetCtx.strokeStyle = "#991b1b";
-      targetCtx.lineWidth = 2;
-      for (let ab = 0; ab < 3; ab++) {
-        const aby = 515 + (ab * 48);
+      // 3. SERRATUS ANTERIOR (Sawtooth digitations on lateral ribcage)
+      targetCtx.fillStyle = muscleRed;
+      targetCtx.strokeStyle = muscleDark;
+      targetCtx.lineWidth = 1.5;
+      for (let s = 0; s < 4; s++) {
+        const sy = 370 + s * 18;
+        // Left slips
         targetCtx.beginPath();
-        targetCtx.roundRect(474, aby, 22, 42, 6);
-        targetCtx.roundRect(504, aby, 22, 42, 6);
+        targetCtx.moveTo(395, sy); targetCtx.lineTo(418, sy + 6); targetCtx.lineTo(415, sy + 14); targetCtx.lineTo(392, sy + 8);
+        targetCtx.closePath();
+        targetCtx.fill(); targetCtx.stroke();
+        // Right slips
+        targetCtx.beginPath();
+        targetCtx.moveTo(605, sy); targetCtx.lineTo(582, sy + 6); targetCtx.lineTo(585, sy + 14); targetCtx.lineTo(608, sy + 8);
+        targetCtx.closePath();
         targetCtx.fill(); targetCtx.stroke();
       }
 
-      // Linea Alba
-      targetCtx.strokeStyle = "#fecaca";
+      // 4. RECTUS ABDOMINIS (Linea Alba & 4 Tendinous Intersections creating 6-pack)
+      targetCtx.fillStyle = "#b91c1c";
+      targetCtx.strokeStyle = muscleDark;
       targetCtx.lineWidth = 2;
+      for (let ab = 0; ab < 4; ab++) {
+        const aby = 465 + (ab * 48);
+        // Left belly
+        targetCtx.beginPath();
+        targetCtx.roundRect(474, aby, 22, 42, 5);
+        targetCtx.fill(); targetCtx.stroke();
+        // Right belly
+        targetCtx.beginPath();
+        targetCtx.roundRect(504, aby, 22, 42, 5);
+        targetCtx.fill(); targetCtx.stroke();
+      }
+
+      // Linea Alba (Midline fibrous tendon)
+      targetCtx.strokeStyle = tendonWhite;
+      targetCtx.lineWidth = 3;
       targetCtx.beginPath();
-      targetCtx.moveTo(500, 480); targetCtx.lineTo(500, 680);
+      targetCtx.moveTo(500, 445); targetCtx.lineTo(500, 675);
       targetCtx.stroke();
 
-      // 3. External Obliques (Waist Wall)
+      // 5. EXTERNAL OBLIQUES (Flank wall with downward-sloping fibers)
+      targetCtx.fillStyle = muscleRed;
+      targetCtx.strokeStyle = muscleDark;
+      targetCtx.lineWidth = 2;
+      // Left Oblique
+      targetCtx.beginPath();
+      targetCtx.moveTo(418, 460); targetCtx.bezierCurveTo(405, 540, 415, 620, 435, 690);
+      targetCtx.lineTo(468, 660); targetCtx.bezierCurveTo(460, 580, 458, 500, 468, 460);
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
+      // Right Oblique
+      targetCtx.beginPath();
+      targetCtx.moveTo(582, 460); targetCtx.bezierCurveTo(595, 540, 585, 620, 565, 690);
+      targetCtx.lineTo(532, 660); targetCtx.bezierCurveTo(540, 580, 542, 500, 532, 460);
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
+
+      // 6. QUADRICEPS FEMORIS (Rectus Femoris, Vastus Lateralis, & Teardrop Vastus Medialis Oblique)
+      // Left Thigh
+      targetCtx.beginPath();
+      // Vastus Lateralis (Sweeping lateral bulk)
+      targetCtx.ellipse(432, 1030, 24, 115, -0.05, 0, Math.PI * 2);
+      // Rectus Femoris (Central bipennate mass)
+      targetCtx.ellipse(452, 1020, 22, 105, 0, 0, Math.PI * 2);
+      // Vastus Medialis Oblique (VMO: Teardrop bulge just above medial knee)
+      targetCtx.ellipse(464, 1130, 16, 38, 0.15, 0, Math.PI * 2);
+      targetCtx.fill(); targetCtx.stroke();
+
+      // Right Thigh
+      targetCtx.beginPath();
+      // Vastus Lateralis
+      targetCtx.ellipse(568, 1030, 24, 115, 0.05, 0, Math.PI * 2);
+      // Rectus Femoris
+      targetCtx.ellipse(548, 1020, 22, 105, 0, 0, Math.PI * 2);
+      // Vastus Medialis Oblique (VMO)
+      targetCtx.ellipse(536, 1130, 16, 38, -0.15, 0, Math.PI * 2);
+      targetCtx.fill(); targetCtx.stroke();
+
+      // Patellar Tendon / Ligament
+      targetCtx.fillStyle = tendonWhite;
+      targetCtx.strokeStyle = "#cbd5e1";
+      targetCtx.lineWidth = 2;
+      targetCtx.beginPath();
+      targetCtx.roundRect(432, 1205, 12, 28, 3);
+      targetCtx.roundRect(556, 1205, 12, 28, 3);
+      targetCtx.fill(); targetCtx.stroke();
+
+      // 7. SARTORIUS (Longest muscle: Diagonal ribbon crossing thigh)
       targetCtx.fillStyle = "#ef4444";
       targetCtx.strokeStyle = "#b91c1c";
+      targetCtx.lineWidth = 1.8;
+      targetCtx.beginPath();
+      targetCtx.moveTo(432, 785); targetCtx.quadraticCurveTo(450, 950, 470, 1215);
+      targetCtx.lineTo(465, 1220); targetCtx.quadraticCurveTo(442, 950, 426, 785);
+      targetCtx.closePath();
+      targetCtx.moveTo(568, 785); targetCtx.quadraticCurveTo(550, 950, 530, 1215);
+      targetCtx.lineTo(535, 1220); targetCtx.quadraticCurveTo(558, 950, 574, 785);
+      targetCtx.closePath();
+      targetCtx.fill(); targetCtx.stroke();
+
+      // 8. TIBIALIS ANTERIOR (Shin muscle lateral to tibial crest)
+      targetCtx.fillStyle = muscleRed;
+      targetCtx.strokeStyle = muscleDark;
       targetCtx.lineWidth = 2;
       targetCtx.beginPath();
-      targetCtx.ellipse(440, 600, 24, 65, -0.15, 0, Math.PI * 2);
-      targetCtx.ellipse(560, 600, 24, 65, 0.15, 0, Math.PI * 2);
+      targetCtx.ellipse(436, 1380, 14, 85, 0.02, 0, Math.PI * 2);
+      targetCtx.ellipse(564, 1380, 14, 85, -0.02, 0, Math.PI * 2);
       targetCtx.fill(); targetCtx.stroke();
 
-      // 4. Quadriceps Femoris (Anterior Thighs)
+      // Extensor tendons over ankles to toes
+      targetCtx.strokeStyle = tendonWhite;
+      targetCtx.lineWidth = 2;
       targetCtx.beginPath();
-      targetCtx.ellipse(450, 1040, 36, 125, -0.05, 0, Math.PI * 2);
-      targetCtx.ellipse(432, 1050, 18, 110, -0.08, 0, Math.PI * 2);
-      targetCtx.ellipse(468, 1120, 16, 45, 0.05, 0, Math.PI * 2);
-      targetCtx.ellipse(550, 1040, 36, 125, 0.05, 0, Math.PI * 2);
-      targetCtx.ellipse(568, 1050, 18, 110, 0.08, 0, Math.PI * 2);
-      targetCtx.ellipse(532, 1120, 16, 45, -0.05, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      // 5. Anterior Leg (Tibialis Anterior)
-      targetCtx.beginPath();
-      targetCtx.ellipse(435, 1390, 20, 85, 0, 0, Math.PI * 2);
-      targetCtx.ellipse(565, 1390, 20, 85, 0, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
+      targetCtx.moveTo(436, 1470); targetCtx.lineTo(452, 1680);
+      targetCtx.moveTo(564, 1470); targetCtx.lineTo(548, 1680);
+      targetCtx.stroke();
     } else {
-      // POSTERIOR MYOLOGY
-      // 1. Trapezius Diamond
+      // POSTERIOR MYOLOGY (Trapezius, Latissimus Dorsi, Gluteus Maximus, Hamstrings, Gastrocnemius)
+      // 1. TRAPEZIUS (Diamond kite muscle covering neck and upper back)
       targetCtx.beginPath();
-      targetCtx.moveTo(500, 230);
-      targetCtx.lineTo(410, 290);
-      targetCtx.lineTo(440, 460);
-      targetCtx.lineTo(500, 570);
-      targetCtx.lineTo(560, 460);
-      targetCtx.lineTo(590, 290);
+      targetCtx.moveTo(500, 155); // External occipital protuberance
+      targetCtx.lineTo(410, 278); // Left acromion / spine of scapula
+      targetCtx.lineTo(450, 435); // Left scapula inferior angle
+      targetCtx.lineTo(500, 520); // T12 spinous process
+      targetCtx.lineTo(550, 435);
+      targetCtx.lineTo(590, 278);
       targetCtx.closePath();
       targetCtx.fill(); targetCtx.stroke();
 
-      // 2. Latissimus Dorsi
+      // 2. LATISSIMUS DORSI (Vast triangular muscle of lower back)
       targetCtx.beginPath();
-      targetCtx.moveTo(435, 460); targetCtx.lineTo(385, 380); targetCtx.lineTo(440, 680); targetCtx.lineTo(495, 680); targetCtx.lineTo(495, 560);
+      targetCtx.moveTo(450, 435); targetCtx.lineTo(380, 360); targetCtx.lineTo(425, 680); targetCtx.lineTo(496, 680); targetCtx.lineTo(496, 520);
       targetCtx.closePath();
-      targetCtx.moveTo(565, 460); targetCtx.lineTo(615, 380); targetCtx.lineTo(560, 680); targetCtx.lineTo(505, 680); targetCtx.lineTo(505, 560);
+      targetCtx.moveTo(550, 435); targetCtx.lineTo(620, 360); targetCtx.lineTo(575, 680); targetCtx.lineTo(504, 680); targetCtx.lineTo(504, 520);
       targetCtx.closePath();
       targetCtx.fill(); targetCtx.stroke();
 
-      // 3. Gluteus Maximus
+      // 3. GLUTEUS MAXIMUS & MEDIUS (Most powerful muscle in human body)
       targetCtx.beginPath();
-      targetCtx.ellipse(458, 835, 46, 54, -0.2, 0, Math.PI * 2);
-      targetCtx.ellipse(542, 835, 46, 54, 0.2, 0, Math.PI * 2);
+      targetCtx.ellipse(456, 815, 44, 55, -0.22, 0, Math.PI * 2);
+      targetCtx.ellipse(544, 815, 44, 55, 0.22, 0, Math.PI * 2);
       targetCtx.fill(); targetCtx.stroke();
 
-      // 4. Hamstrings
+      // Coarse diagonal gluteal fiber striations
+      targetCtx.strokeStyle = fasciaWhite;
+      targetCtx.lineWidth = 1.5;
       targetCtx.beginPath();
-      targetCtx.ellipse(450, 1060, 32, 115, 0, 0, Math.PI * 2);
-      targetCtx.ellipse(550, 1060, 32, 115, 0, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
+      targetCtx.moveTo(492, 785); targetCtx.lineTo(435, 835);
+      targetCtx.moveTo(492, 815); targetCtx.lineTo(440, 855);
+      targetCtx.moveTo(508, 785); targetCtx.lineTo(565, 835);
+      targetCtx.moveTo(508, 815); targetCtx.lineTo(560, 855);
+      targetCtx.stroke();
 
-      // 5. Gastrocnemius & Achilles
-      targetCtx.beginPath();
-      targetCtx.ellipse(438, 1370, 26, 75, -0.05, 0, Math.PI * 2);
-      targetCtx.ellipse(562, 1370, 26, 75, 0.05, 0, Math.PI * 2);
-      targetCtx.fill(); targetCtx.stroke();
-
-      targetCtx.fillStyle = "#fecaca";
-      targetCtx.strokeStyle = "#f87171";
+      // 4. HAMSTRINGS (Biceps femoris laterally, Semitendinosus/Semimembranosus medially)
+      targetCtx.fillStyle = muscleRed;
+      targetCtx.strokeStyle = muscleDark;
       targetCtx.lineWidth = 2;
       targetCtx.beginPath();
-      targetCtx.roundRect(432, 1450, 12, 120, 4);
-      targetCtx.roundRect(556, 1450, 12, 120, 4);
+      // Left Hamstring
+      targetCtx.ellipse(448, 1040, 28, 115, 0, 0, Math.PI * 2);
+      // Right Hamstring
+      targetCtx.ellipse(552, 1040, 28, 115, 0, 0, Math.PI * 2);
+      targetCtx.fill(); targetCtx.stroke();
+
+      // Popliteal Fossa (Diamond space behind knee)
+      targetCtx.fillStyle = "#7f1d1d";
+      targetCtx.beginPath();
+      targetCtx.ellipse(442, 1195, 12, 22, 0, 0, Math.PI * 2);
+      targetCtx.ellipse(558, 1195, 12, 22, 0, 0, Math.PI * 2);
+      targetCtx.fill();
+
+      // 5. GASTROCNEMIUS & ACHILLES TENDON (Dual calf heads with asymmetric medial fullness)
+      targetCtx.fillStyle = muscleRed;
+      targetCtx.strokeStyle = muscleDark;
+      targetCtx.lineWidth = 2;
+      targetCtx.beginPath();
+      // Left Calf (Medial head larger & extending lower)
+      targetCtx.ellipse(432, 1345, 18, 65, -0.05, 0, Math.PI * 2); // Lateral head
+      targetCtx.ellipse(452, 1370, 20, 72, 0.05, 0, Math.PI * 2); // Medial head
+      // Right Calf
+      targetCtx.ellipse(568, 1345, 18, 65, 0.05, 0, Math.PI * 2); // Lateral head
+      targetCtx.ellipse(548, 1370, 20, 72, -0.05, 0, Math.PI * 2); // Medial head
+      targetCtx.fill(); targetCtx.stroke();
+
+      // Achilles Tendon (Tendo Calcaneus: Thickest tendon in human body)
+      targetCtx.fillStyle = tendonWhite;
+      targetCtx.strokeStyle = "#cbd5e1";
+      targetCtx.lineWidth = 2;
+      targetCtx.beginPath();
+      targetCtx.roundRect(436, 1445, 14, 145, 4);
+      targetCtx.roundRect(550, 1445, 14, 145, 4);
       targetCtx.fill(); targetCtx.stroke();
     }
 
-    // Deltoids & Upper Limb Muscles (Bilateral)
-    targetCtx.fillStyle = "#ef4444";
-    targetCtx.strokeStyle = "#b91c1c";
+    // DELTOIDS & UPPER LIMBS (Bilateral)
+    targetCtx.fillStyle = muscleRed;
+    targetCtx.strokeStyle = muscleDark;
     targetCtx.lineWidth = 2;
+    // Deltoids (Wrapping shoulder cap)
     targetCtx.beginPath();
-    targetCtx.ellipse(372, 310, 26, 42, -0.4, 0, Math.PI * 2);
-    targetCtx.ellipse(628, 310, 26, 42, 0.4, 0, Math.PI * 2);
-    targetCtx.ellipse(342, 410, 20, 52, -0.15, 0, Math.PI * 2);
-    targetCtx.ellipse(658, 410, 20, 52, 0.15, 0, Math.PI * 2);
-    targetCtx.ellipse(312, 530, 18, 60, -0.25, 0, Math.PI * 2);
-    targetCtx.ellipse(688, 530, 18, 60, 0.25, 0, Math.PI * 2);
+    targetCtx.ellipse(360, 310, 24, 40, -0.38, 0, Math.PI * 2);
+    targetCtx.ellipse(640, 310, 24, 40, 0.38, 0, Math.PI * 2);
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Biceps Brachii / Triceps (Upper arm)
+    targetCtx.beginPath();
+    targetCtx.ellipse(328, 410, 20, 55, -0.15, 0, Math.PI * 2);
+    targetCtx.ellipse(672, 410, 20, 55, 0.15, 0, Math.PI * 2);
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Forearm (Brachioradialis & Flexor/Extensor groups)
+    targetCtx.beginPath();
+    targetCtx.ellipse(282, 550, 18, 70, -0.22, 0, Math.PI * 2);
+    targetCtx.ellipse(718, 550, 18, 70, 0.22, 0, Math.PI * 2);
+    targetCtx.fill(); targetCtx.stroke();
+
+    // Hand Muscle Bellies (Thenar & Hypothenar eminences)
+    targetCtx.beginPath();
+    targetCtx.ellipse(225, 745, 12, 18, -0.35, 0, Math.PI * 2);
+    targetCtx.ellipse(775, 745, 12, 18, 0.35, 0, Math.PI * 2);
     targetCtx.fill(); targetCtx.stroke();
 
     targetCtx.restore();
@@ -2235,7 +2890,7 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.save();
     targetCtx.globalAlpha = Math.min(1.0, alpha);
 
-    // 1. Photographic 8K Skin Overlay clipped cleanly to body contour (Eliminates JPEG black background)
+    // 1. Photographic 8K Skin Overlay clipped cleanly to body contour
     if (skinImg && skinImg.complete && skinImg.naturalWidth > 0) {
       targetCtx.save();
       buildHumanBodyPath(targetCtx);
@@ -2265,27 +2920,69 @@ export function initAnatomyAtlasLab(containerId) {
       targetCtx.drawImage(skinImg, drawX, drawY, drawW, drawH);
       targetCtx.restore();
     } else {
-      targetCtx.fillStyle = "rgba(226, 178, 142, 0.35)";
+      // Authentic dermal subsurface skin fill when photo is disabled
+      const skinGrad = targetCtx.createLinearGradient(500, 65, 500, 1720);
+      skinGrad.addColorStop(0, "#f3d5ba");
+      skinGrad.addColorStop(0.3, "#eac2a5");
+      skinGrad.addColorStop(0.6, "#dfb394");
+      skinGrad.addColorStop(1.0, "#d5a585");
+      targetCtx.fillStyle = skinGrad;
       buildHumanBodyPath(targetCtx);
       targetCtx.fill();
     }
 
     // 2. Crisp Medical Dermal Contour & Edge Highlighting
-    targetCtx.strokeStyle = "rgba(240, 195, 160, 0.85)";
+    targetCtx.strokeStyle = "rgba(226, 178, 142, 0.85)";
     targetCtx.lineWidth = 2.5;
     buildHumanBodyPath(targetCtx);
     targetCtx.stroke();
 
     // 3. Anatomical Surface Landmarks
     if (view === "anterior") {
-      targetCtx.fillStyle = "rgba(180, 130, 100, 0.55)";
+      targetCtx.fillStyle = "rgba(160, 110, 80, 0.55)";
+      // Suprasternal Notch
       targetCtx.beginPath();
-      targetCtx.ellipse(500, 620, 4, 5, 0, 0, Math.PI * 2);
+      targetCtx.arc(500, 255, 3.5, 0, Math.PI * 2);
       targetCtx.fill();
 
+      // Pectoral contours & Areola / Nipples
+      targetCtx.fillStyle = "rgba(180, 120, 95, 0.65)";
       targetCtx.beginPath();
-      targetCtx.arc(450, 360, 5, 0, Math.PI * 2);
-      targetCtx.arc(550, 360, 5, 0, Math.PI * 2);
+      targetCtx.arc(442, 355, 4.5, 0, Math.PI * 2);
+      targetCtx.arc(558, 355, 4.5, 0, Math.PI * 2);
+      targetCtx.fill();
+
+      // Umbilicus (Navel at L3/L4 level) with dermal depression
+      targetCtx.fillStyle = "rgba(140, 90, 65, 0.75)";
+      targetCtx.beginPath();
+      targetCtx.ellipse(500, 620, 4, 5.5, 0, 0, Math.PI * 2);
+      targetCtx.fill();
+      targetCtx.strokeStyle = "rgba(120, 75, 50, 0.45)";
+      targetCtx.lineWidth = 1.5;
+      targetCtx.beginPath();
+      targetCtx.arc(500, 621, 6, 0.1 * Math.PI, 0.9 * Math.PI);
+      targetCtx.stroke();
+
+      // Inguinal Ligament Creases
+      targetCtx.strokeStyle = "rgba(160, 110, 80, 0.35)";
+      targetCtx.lineWidth = 2;
+      targetCtx.beginPath();
+      targetCtx.moveTo(432, 790); targetCtx.quadraticCurveTo(465, 835, 495, 855);
+      targetCtx.moveTo(568, 790); targetCtx.quadraticCurveTo(535, 835, 505, 855);
+      targetCtx.stroke();
+    } else {
+      // Posterior Landmarks: Nuchal furrow, vertebral furrow, dimples of Venus, gluteal cleft
+      targetCtx.strokeStyle = "rgba(160, 110, 80, 0.35)";
+      targetCtx.lineWidth = 2;
+      targetCtx.beginPath();
+      targetCtx.moveTo(500, 220); targetCtx.lineTo(500, 750); // Posterior median furrow
+      targetCtx.stroke();
+
+      // Dimples of Venus (PSIS surface landmarks)
+      targetCtx.fillStyle = "rgba(150, 100, 70, 0.5)";
+      targetCtx.beginPath();
+      targetCtx.arc(482, 745, 3, 0, Math.PI * 2);
+      targetCtx.arc(518, 745, 3, 0, Math.PI * 2);
       targetCtx.fill();
     }
 
@@ -2300,60 +2997,83 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.globalAlpha = circAlpha;
     const pulse = 1.0 + 0.16 * Math.sin(simTime * 8);
 
-    // Glowing Aorta & Systemic Arteries (Carmine Red)
+    // Glowing Aorta & Systemic Arteries (Vermilion Red with systolic pulse)
     targetCtx.shadowColor = "#ef4444";
     targetCtx.shadowBlur = 12 * pulse;
     targetCtx.strokeStyle = "#ef4444";
     targetCtx.lineWidth = 4 * pulse;
     targetCtx.beginPath();
     if (view === "anterior") {
-      targetCtx.arc(520, 295, 16, Math.PI, 0); // Aortic arch
-      targetCtx.lineTo(520, 720); // Descending abdominal aorta
-      targetCtx.lineTo(475, 840); // Common iliac left
-      targetCtx.moveTo(520, 720); targetCtx.lineTo(565, 840); // Common iliac right
-      // Carotid branches
-      targetCtx.moveTo(512, 290); targetCtx.lineTo(488, 190);
-      targetCtx.moveTo(528, 290); targetCtx.lineTo(540, 190);
-      // Subclavian to brachial
-      targetCtx.moveTo(504, 292); targetCtx.lineTo(390, 310); targetCtx.lineTo(340, 460); targetCtx.lineTo(290, 620);
-      targetCtx.moveTo(536, 292); targetCtx.lineTo(610, 310); targetCtx.lineTo(660, 460); targetCtx.lineTo(710, 620);
-      // Femoral extensions
-      targetCtx.moveTo(475, 840); targetCtx.lineTo(440, 1200); targetCtx.lineTo(430, 1580);
-      targetCtx.moveTo(565, 840); targetCtx.lineTo(560, 1200); targetCtx.lineTo(570, 1580);
+      // Aortic Arch & Descending Thoracic / Abdominal Aorta
+      targetCtx.arc(518, 295, 18, Math.PI * 0.95, 0);
+      targetCtx.lineTo(518, 720); // Aorta to L4 bifurcation
+      // Iliac Bifurcation & Femoral Arteries
+      targetCtx.lineTo(475, 835); targetCtx.lineTo(440, 1050); targetCtx.lineTo(434, 1205); // Left Femoral to Popliteal
+      targetCtx.lineTo(430, 1400); targetCtx.lineTo(442, 1610); targetCtx.lineTo(458, 1690); // Anterior Tibial to Dorsalis Pedis
+      targetCtx.moveTo(518, 720);
+      targetCtx.lineTo(561, 835); targetCtx.lineTo(560, 1050); targetCtx.lineTo(566, 1205); // Right Femoral to Popliteal
+      targetCtx.lineTo(570, 1400); targetCtx.lineTo(558, 1610); targetCtx.lineTo(542, 1690);
+
+      // Carotid Arteries & Cranial Supply
+      targetCtx.moveTo(506, 290); targetCtx.lineTo(488, 195); targetCtx.lineTo(476, 145); // Left common & internal carotid
+      targetCtx.moveTo(526, 290); targetCtx.lineTo(538, 195); targetCtx.lineTo(548, 145); // Right common & internal carotid
+
+      // Subclavian, Axillary, Brachial & Radial/Ulnar Arteries to Hands
+      targetCtx.moveTo(502, 292); targetCtx.lineTo(380, 310); targetCtx.lineTo(332, 450); // Left Brachial
+      targetCtx.lineTo(290, 560); targetCtx.lineTo(228, 720); targetCtx.lineTo(215, 820); // Radial / Palmar arch
+      targetCtx.moveTo(534, 292); targetCtx.lineTo(620, 310); targetCtx.lineTo(668, 450); // Right Brachial
+      targetCtx.lineTo(710, 560); targetCtx.lineTo(772, 720); targetCtx.lineTo(785, 820); // Radial / Palmar arch
+
+      // Celiac, Renal & Mesenteric arterial branches
+      targetCtx.moveTo(518, 500); targetCtx.lineTo(475, 520); // Hepatic / Gastric
+      targetCtx.moveTo(518, 500); targetCtx.lineTo(565, 505); // Splenic
+      targetCtx.moveTo(518, 590); targetCtx.lineTo(452, 602); // Left Renal artery
+      targetCtx.moveTo(518, 590); targetCtx.lineTo(575, 595); // Right Renal artery
     } else {
+      // Posterior Vasculature
       targetCtx.moveTo(500, 310); targetCtx.lineTo(500, 720);
-      targetCtx.lineTo(470, 840); targetCtx.lineTo(440, 1200); targetCtx.lineTo(430, 1580);
-      targetCtx.moveTo(500, 720); targetCtx.lineTo(530, 840); targetCtx.lineTo(560, 1200); targetCtx.lineTo(570, 1580);
+      targetCtx.lineTo(470, 835); targetCtx.lineTo(440, 1205); targetCtx.lineTo(430, 1580);
+      targetCtx.moveTo(500, 720); targetCtx.lineTo(530, 835); targetCtx.lineTo(560, 1205); targetCtx.lineTo(570, 1580);
     }
     targetCtx.stroke();
 
     // Traveling Arterial Systolic Wave Packet
     const pWave = (simTime * 400) % 900;
     targetCtx.beginPath();
-    targetCtx.arc(520, 295 + (pWave * 0.45), 6 * pulse, 0, Math.PI * 2);
+    targetCtx.arc(518, 295 + (pWave * 0.45), 6 * pulse, 0, Math.PI * 2);
     targetCtx.fillStyle = "#ffffff";
     targetCtx.shadowColor = "#f43f5e";
     targetCtx.shadowBlur = 18;
     targetCtx.fill();
 
-    // Glowing Vena Cava & Major Veins (Cyan)
+    // Glowing Vena Cava & Major Systemic Veins (Cyan / Azure Blue)
     targetCtx.shadowColor = "#38bdf8";
     targetCtx.shadowBlur = 10;
     targetCtx.strokeStyle = "#38bdf8";
     targetCtx.lineWidth = 4;
     targetCtx.beginPath();
     if (view === "anterior") {
-      targetCtx.moveTo(536, 190); targetCtx.lineTo(532, 330); // SVC
-      targetCtx.moveTo(532, 400); targetCtx.lineTo(532, 720); // IVC
-      targetCtx.lineTo(495, 840); targetCtx.lineTo(460, 1200);
-      targetCtx.moveTo(532, 720); targetCtx.lineTo(578, 840); targetCtx.lineTo(540, 1200);
-      // Jugular veins
-      targetCtx.moveTo(478, 190); targetCtx.lineTo(532, 260);
-      targetCtx.moveTo(546, 190); targetCtx.lineTo(536, 260);
+      // Superior Vena Cava (SVC) & Jugular veins
+      targetCtx.moveTo(482, 195); targetCtx.lineTo(530, 260); // Left internal jugular
+      targetCtx.moveTo(544, 195); targetCtx.lineTo(534, 260); // Right internal jugular
+      targetCtx.moveTo(532, 260); targetCtx.lineTo(532, 340); // SVC to Right Atrium
+
+      // Inferior Vena Cava (IVC) ascending alongside aorta
+      targetCtx.moveTo(532, 420); targetCtx.lineTo(532, 720);
+      targetCtx.lineTo(490, 835); targetCtx.lineTo(456, 1050); targetCtx.lineTo(450, 1205); // Left Common Iliac & Femoral vein
+      targetCtx.moveTo(532, 720); targetCtx.lineTo(574, 835); targetCtx.lineTo(544, 1050); targetCtx.lineTo(550, 1205);
+
+      // Great Saphenous Vein (Longest vein in human body ascending medially)
+      targetCtx.moveTo(458, 1680); targetCtx.lineTo(462, 1400); targetCtx.lineTo(468, 1205); targetCtx.lineTo(476, 1000); targetCtx.lineTo(485, 850);
+      targetCtx.moveTo(542, 1680); targetCtx.lineTo(538, 1400); targetCtx.lineTo(532, 1205); targetCtx.lineTo(524, 1000); targetCtx.lineTo(515, 850);
+
+      // Cephalic & Basilic Veins of Arms
+      targetCtx.moveTo(380, 315); targetCtx.lineTo(315, 480); targetCtx.lineTo(260, 680);
+      targetCtx.moveTo(620, 315); targetCtx.lineTo(685, 480); targetCtx.lineTo(740, 680);
     } else {
       targetCtx.moveTo(515, 200); targetCtx.lineTo(515, 720);
-      targetCtx.lineTo(485, 840); targetCtx.lineTo(455, 1200);
-      targetCtx.moveTo(515, 720); targetCtx.lineTo(545, 840); targetCtx.lineTo(545, 1200);
+      targetCtx.lineTo(485, 835); targetCtx.lineTo(455, 1205);
+      targetCtx.moveTo(515, 720); targetCtx.lineTo(545, 835); targetCtx.lineTo(545, 1205);
     }
     targetCtx.stroke();
     targetCtx.restore();
@@ -2370,34 +3090,71 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.lineWidth = 3.5;
 
     targetCtx.beginPath();
+    // 1. CEREBRUM & ENCEPHALON (Cerebral hemispheres with gyri and sulci)
+    targetCtx.ellipse(500, 125, 46, 52, 0, 0, Math.PI * 2);
+
+    // Cerebral sulci convolutions
+    targetCtx.moveTo(480, 105); targetCtx.quadraticCurveTo(500, 115, 520, 105);
+    targetCtx.moveTo(472, 125); targetCtx.quadraticCurveTo(500, 135, 528, 125);
+    targetCtx.moveTo(475, 145); targetCtx.quadraticCurveTo(500, 155, 525, 145);
+
+    // Cerebellum & Brainstem exiting through foramen magnum
+    targetCtx.moveTo(492, 165); targetCtx.lineTo(492, 185);
+    targetCtx.moveTo(508, 165); targetCtx.lineTo(508, 185);
+
+    // 2. SPINAL CORD (With Cervical & Lumbar enlargements, conus medullaris & cauda equina)
+    targetCtx.moveTo(500, 185);
+    targetCtx.lineTo(500, 250); // Cervical cord
+    targetCtx.lineTo(500, 715); // Thoracic & Lumbar cord to Conus Medullaris (L1/L2)
+    // Cauda Equina ("Horse's tail" nerve roots streaming down dural sac)
+    targetCtx.lineTo(494, 785);
+    targetCtx.moveTo(500, 715); targetCtx.lineTo(506, 785);
+    targetCtx.moveTo(500, 715); targetCtx.lineTo(500, 810); // Filum terminale
+
+    // 3. BRACHIAL PLEXUS (C5-T1 roots branching to axillary, musculocutaneous, radial, median, ulnar)
+    // Left Upper Limb
+    targetCtx.moveTo(500, 255);
+    targetCtx.bezierCurveTo(450, 270, 390, 310, 350, 345); // Roots to trunks in neck
+    targetCtx.bezierCurveTo(325, 410, 305, 480, 280, 560); // Arm to forearm
+    targetCtx.bezierCurveTo(260, 640, 235, 710, 218, 820); // Wrist to digital nerves
+    // Right Upper Limb
+    targetCtx.moveTo(500, 255);
+    targetCtx.bezierCurveTo(550, 270, 610, 310, 650, 345);
+    targetCtx.bezierCurveTo(675, 410, 695, 480, 720, 560);
+    targetCtx.bezierCurveTo(740, 640, 765, 710, 782, 820);
+
+    // 4. THORACIC INTERCOSTAL NERVES (Segmented subcostal nerves)
+    for (let n = 0; n < 6; n++) {
+      const ny = 310 + (n * 30);
+      targetCtx.moveTo(500, ny); targetCtx.bezierCurveTo(475, ny + 8, 445, ny + 12, 420, ny + 20);
+      targetCtx.moveTo(500, ny); targetCtx.bezierCurveTo(525, ny + 8, 555, ny + 12, 580, ny + 20);
+    }
+
+    // 5. LUMBOSACRAL PLEXUS & SCIATIC NERVES (Thickest nerve in human body)
     if (view === "anterior") {
-      // Neurocranium & Brain
-      targetCtx.ellipse(500, 125, 48, 55, 0, 0, Math.PI * 2);
-      // Spinal Cord
-      targetCtx.moveTo(500, 180); targetCtx.lineTo(500, 720);
-      // Brachial Plexus
-      targetCtx.moveTo(500, 260); targetCtx.lineTo(360, 340); targetCtx.lineTo(290, 520); targetCtx.lineTo(260, 670);
-      targetCtx.moveTo(500, 260); targetCtx.lineTo(640, 340); targetCtx.lineTo(710, 520); targetCtx.lineTo(740, 670);
-      // Intercostal nerves
-      for (let n = 0; n < 4; n++) {
-        const ny = 330 + (n * 35);
-        targetCtx.moveTo(500, ny); targetCtx.lineTo(450, ny + 10);
-        targetCtx.moveTo(500, ny); targetCtx.lineTo(550, ny + 10);
-      }
-      // Lumbosacral & Sciatic nerves
-      targetCtx.moveTo(500, 720); targetCtx.lineTo(440, 1100); targetCtx.lineTo(430, 1500);
-      targetCtx.moveTo(500, 720); targetCtx.lineTo(570, 1100); targetCtx.lineTo(580, 1500);
+      // Femoral & Obturator Nerves
+      targetCtx.moveTo(500, 710); targetCtx.bezierCurveTo(470, 760, 448, 860, 442, 1020); targetCtx.lineTo(438, 1205);
+      targetCtx.moveTo(500, 710); targetCtx.bezierCurveTo(530, 760, 552, 860, 558, 1020); targetCtx.lineTo(562, 1205);
+      // Tibial & Peroneal Nerves down legs
+      targetCtx.moveTo(438, 1205); targetCtx.lineTo(434, 1420); targetCtx.lineTo(445, 1640);
+      targetCtx.moveTo(562, 1205); targetCtx.lineTo(566, 1420); targetCtx.lineTo(555, 1640);
     } else {
-      targetCtx.ellipse(500, 125, 52, 60, 0, 0, Math.PI * 2);
-      targetCtx.moveTo(500, 180); targetCtx.lineTo(500, 780);
-      targetCtx.moveTo(500, 250); targetCtx.lineTo(350, 350); targetCtx.lineTo(280, 530);
-      targetCtx.moveTo(500, 250); targetCtx.lineTo(650, 350); targetCtx.lineTo(720, 530);
-      targetCtx.moveTo(490, 780); targetCtx.lineTo(440, 1150); targetCtx.lineTo(435, 1550);
-      targetCtx.moveTo(510, 780); targetCtx.lineTo(560, 1150); targetCtx.lineTo(565, 1550);
+      // Massive Posterior Sciatic Nerves descending from greater sciatic foramen
+      targetCtx.moveTo(492, 750);
+      targetCtx.bezierCurveTo(465, 790, 452, 900, 448, 1050); // Sciatic trunk
+      targetCtx.lineTo(444, 1190); // Popliteal bifurcation into Tibial & Common Fibular
+      targetCtx.lineTo(438, 1420); targetCtx.lineTo(442, 1620);
+      targetCtx.moveTo(444, 1190); targetCtx.lineTo(426, 1260); // Fibular branch
+
+      targetCtx.moveTo(508, 750);
+      targetCtx.bezierCurveTo(535, 790, 548, 900, 552, 1050);
+      targetCtx.lineTo(556, 1190);
+      targetCtx.lineTo(562, 1420); targetCtx.lineTo(558, 1620);
+      targetCtx.moveTo(556, 1190); targetCtx.lineTo(574, 1260);
     }
     targetCtx.stroke();
 
-    // Traveling Action-Potential Bioelectric Pulse
+    // Dynamic Traveling Action-Potential Bioelectric Pulse
     const apPos = (simTime * 500) % 650;
     targetCtx.beginPath();
     targetCtx.arc(500, 120 + apPos, 5, 0, Math.PI * 2);
