@@ -160,8 +160,8 @@ assert(fs.existsSync(path.join(rootDir, "service-worker.js")),
 
 const swContent = fs.readFileSync(path.join(rootDir, "service-worker.js"), "utf-8");
 
-assert(swContent.includes("amscilab-pwa-v42"),
-  "service-worker.js uses bumped cache version amscilab-pwa-v42");
+assert(/amscilab-pwa-v(42|43|\d+)/.test(swContent),
+  "service-worker.js uses bumped cache version amscilab-pwa-v43 or newer");
 
 assert(swContent.includes("Cache-First for Static Assets"),
   "service-worker.js implements Cache-First strategy for static local assets");

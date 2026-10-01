@@ -3,15 +3,15 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v42";
+const CACHE_NAME = "amscilab-pwa-v43";
 
 const CORE_APP_SHELL = [
   "./",
   "./index.html",
   "./index.css",
-  "./index.css?v=4.2",
+  "./index.css?v=4.3",
   "./app.js",
-  "./app.js?v=4.2",
+  "./app.js?v=4.3",
   "./manifest.json",
   "./service-worker.js",
   "./sw.js",
