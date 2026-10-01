@@ -641,22 +641,9 @@ export function initAnatomyAtlasLab(containerId) {
   bindSlider(rngNervous, "nervous", "val-nervous");
 
   // Quick Layer Isolators
-  const ensureFullBodyMacro = () => {
-    if (activePlate !== "full_anterior" && activePlate !== "full_posterior") {
-      switchAnatomicalPlate(activeView === "posterior" ? "full_posterior" : "full_anterior");
-    }
-  };
-
   document.getElementById("btn-isolate-skeletal")?.addEventListener("click", () => {
     SoundFX.playPop();
-    ensureFullBodyMacro();
-    layerOpacities.skin = 0.0;
-    layerOpacities.muscular = 0.0;
-    layerOpacities.skeletal = 1.0;
-    layerOpacities.visceral = 0.0;
-    layerOpacities.circulatory = 0.0;
-    layerOpacities.nervous = 0.0;
-    syncSliders();
+    switchAnatomicalPlate("skeletal");
     if (canvasModeText) {
       canvasModeText.innerText = "💀 Skeletal System Isolated • Pure 206-Bone Osteology Dissection";
     }
@@ -664,14 +651,7 @@ export function initAnatomyAtlasLab(containerId) {
 
   document.getElementById("btn-isolate-muscular")?.addEventListener("click", () => {
     SoundFX.playPop();
-    ensureFullBodyMacro();
-    layerOpacities.skin = 0.0;
-    layerOpacities.muscular = 1.0;
-    layerOpacities.skeletal = 0.25;
-    layerOpacities.visceral = 0.0;
-    layerOpacities.circulatory = 0.0;
-    layerOpacities.nervous = 0.0;
-    syncSliders();
+    switchAnatomicalPlate("muscular");
     if (canvasModeText) {
       canvasModeText.innerText = "💪 Muscular System Isolated • Superficial & Deep Skeletal Myology";
     }
@@ -679,14 +659,7 @@ export function initAnatomyAtlasLab(containerId) {
 
   document.getElementById("btn-isolate-viscera")?.addEventListener("click", () => {
     SoundFX.playPop();
-    ensureFullBodyMacro();
-    layerOpacities.skin = 0.0;
-    layerOpacities.muscular = 0.0;
-    layerOpacities.skeletal = 0.15;
-    layerOpacities.visceral = 1.0;
-    layerOpacities.circulatory = 0.25;
-    layerOpacities.nervous = 0.0;
-    syncSliders();
+    switchAnatomicalPlate("digestive");
     if (canvasModeText) {
       canvasModeText.innerText = "🍽️ Splanchnic Viscera Isolated • Thoracic & Abdominal Internal Organs";
     }
@@ -694,14 +667,7 @@ export function initAnatomyAtlasLab(containerId) {
 
   document.getElementById("btn-isolate-neuro")?.addEventListener("click", () => {
     SoundFX.playPop();
-    ensureFullBodyMacro();
-    layerOpacities.skin = 0.0;
-    layerOpacities.muscular = 0.0;
-    layerOpacities.skeletal = 0.2;
-    layerOpacities.visceral = 0.0;
-    layerOpacities.circulatory = 1.0;
-    layerOpacities.nervous = 1.0;
-    syncSliders();
+    switchAnatomicalPlate("cranial");
     if (canvasModeText) {
       canvasModeText.innerText = "⚡ Neurovascular Matrix Isolated • Angiology & Neural Conduction Networks";
     }
@@ -709,14 +675,7 @@ export function initAnatomyAtlasLab(containerId) {
 
   document.getElementById("btn-reset-layers")?.addEventListener("click", () => {
     SoundFX.playPop();
-    ensureFullBodyMacro();
-    layerOpacities.skin = 0.25;
-    layerOpacities.muscular = 0.85;
-    layerOpacities.skeletal = 0.95;
-    layerOpacities.visceral = 1.0;
-    layerOpacities.circulatory = 1.0;
-    layerOpacities.nervous = 0.90;
-    syncSliders();
+    switchAnatomicalPlate(activeView === "posterior" ? "full_posterior" : "full_anterior");
     if (canvasModeText) {
       canvasModeText.innerText = "All Anatomical Strata Balanced • 6-Layer Multi-System Composite";
     }
@@ -3105,31 +3064,8 @@ export function initAnatomyAtlasLab(containerId) {
       const isImgReady = skinImg && skinImg.complete && skinImg.naturalWidth > 0;
 
       if (isImgReady) {
-        // Multi-Layer Cross-Fade & Photorealistic Medical Dissection Matrix
-        const isSkeletalIsolated = (layerOpacities.skeletal > 0.6 && layerOpacities.muscular < 0.2 && layerOpacities.skin < 0.2);
-        const isMuscularIsolated = (layerOpacities.muscular > 0.6 && layerOpacities.skeletal < 0.3 && layerOpacities.skin < 0.2);
-
-        if (isSkeletalIsolated && plateImages.skeletal && plateImages.skeletal.complete) {
-          drawPlateImageLayer(targetCtx, plateImages.skeletal, layerOpacities.skeletal, imagingMode);
-        } else if (isMuscularIsolated && plateImages.muscular && plateImages.muscular.complete) {
-          drawPlateImageLayer(targetCtx, plateImages.muscular, layerOpacities.muscular, imagingMode);
-        } else {
-          // Master Coronal Dissection Plate (Uncompromised 8K Clarity)
-          drawPlateImageLayer(targetCtx, skinImg, 1.0, imagingMode);
-
-          // Dynamic cross-fade blending when user emphasizes specific anatomical layers
-          if (layerOpacities.skeletal > 0.35 && plateImages.skeletal && plateImages.skeletal.complete && !isMuscularIsolated) {
-            targetCtx.save();
-            targetCtx.globalCompositeOperation = (imagingMode === "xray") ? "screen" : "source-over";
-            drawPlateImageLayer(targetCtx, plateImages.skeletal, layerOpacities.skeletal * 0.45, imagingMode);
-            targetCtx.restore();
-          }
-          if (layerOpacities.muscular > 0.5 && plateImages.muscular && plateImages.muscular.complete && !isSkeletalIsolated) {
-            targetCtx.save();
-            drawPlateImageLayer(targetCtx, plateImages.muscular, layerOpacities.muscular * 0.45, imagingMode);
-            targetCtx.restore();
-          }
-        }
+        // Master Coronal Dissection Plate (Uncompromised 8K Clarity - Single Pristine Figure)
+        drawPlateImageLayer(targetCtx, skinImg, 1.0, imagingMode);
 
         // Physiological Dynamics (Realistic cardiac systole pulse & neuroaxis signal)
         if (layerOpacities.circulatory > 0.1 && view === "anterior") {
@@ -3182,11 +3118,6 @@ export function initAnatomyAtlasLab(containerId) {
         else if (activePlate === "lungs") plateAlpha = layerOpacities.visceral;
         else if (activePlate === "digestive" || activePlate === "urinary") plateAlpha = layerOpacities.visceral;
         else if (activePlate === "cranial") plateAlpha = Math.max(layerOpacities.nervous, layerOpacities.skeletal);
-
-        // If muscular is selected, blend skeletal foundation underneath if desired
-        if (activePlate === "muscular" && layerOpacities.skeletal > 0.05) {
-          drawPlateImageLayer(targetCtx, plateImages.skeletal, layerOpacities.skeletal * 0.35, imagingMode);
-        }
 
         drawPlateImageLayer(targetCtx, activeImg, plateAlpha, imagingMode);
       } else {
