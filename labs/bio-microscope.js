@@ -4,8 +4,19 @@
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
+import { SoundFX } from "../utils/audio-synth.js";
+
+let _currentMicroscopeCleanup = null;
+
+export function cleanupMicroscopeLab() {
+  if (typeof _currentMicroscopeCleanup === "function") {
+    try { _currentMicroscopeCleanup(); } catch (e) {}
+    _currentMicroscopeCleanup = null;
+  }
+}
 
 export function initMicroscopeLab(containerId) {
+  cleanupMicroscopeLab();
   const container = document.getElementById(containerId);
   if (!container) return;
 
@@ -20,6 +31,9 @@ export function initMicroscopeLab(containerId) {
           </span>
           <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
             Köhler Illumination &amp; Abbe Resolution Limit
+          </span>
+          <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
+            Tactile Stage: Drag Eyepiece FOV Directly
           </span>
         </div>
 
@@ -69,6 +83,12 @@ export function initMicroscopeLab(containerId) {
             </span>
             <span class="badge" id="mag-badge" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 9999px; font-family: var(--font-mono); font-size: 0.78rem; color: #38bdf8; pointer-events: auto; white-space: nowrap;">
               100× Total Magnification (10× Eyepiece × 10× Objective)
+            </span>
+            <span class="badge" id="drag-hint-badge" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.3); padding: 5px 12px; border-radius: 9999px; font-family: var(--font-mono); font-size: 0.75rem; color: #38bdf8; pointer-events: auto; white-space: nowrap;">
+              ✋ Drag Eyepiece to Pan
+            </span>
+            <span class="badge" id="oil-immersion-badge" style="display: none; background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); padding: 5px 12px; border-radius: 9999px; font-family: var(--font-mono); font-size: 0.75rem; color: #fbbf24; pointer-events: auto; white-space: nowrap;">
+              💧 Type-A Immersion Oil (n=1.515) Applied
             </span>
           </div>
 
@@ -160,6 +180,19 @@ export function initMicroscopeLab(containerId) {
           </div>
         </div>
 
+        <!-- Contrast Staining & Illumination Filter Mode -->
+        <div class="control-group">
+          <label class="control-label">
+            <span>Optical Illumination &amp; Contrast Mode</span>
+            <span class="control-val" id="disp-filter" style="color: #38bdf8;">Brightfield</span>
+          </label>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-primary filter-btn active" data-filter="brightfield" style="flex: 1; padding: 7px 4px; font-size: 0.78rem;">☀️ Brightfield</button>
+            <button class="btn btn-secondary filter-btn" data-filter="darkfield" style="flex: 1; padding: 7px 4px; font-size: 0.78rem;">🌘 Darkfield / Phase</button>
+            <button class="btn btn-secondary filter-btn" data-filter="fluorescence" style="flex: 1; padding: 7px 4px; font-size: 0.78rem;">✨ Epi-Fluorescence</button>
+          </div>
+        </div>
+
         <!-- Coarse Focus Knob -->
         <div class="control-group">
           <label class="control-label">
@@ -241,6 +274,14 @@ export function initMicroscopeLab(containerId) {
   let irisAperture = 0.85;
   let stageX = 0;
   let stageY = 0;
+  let contrastMode = "brightfield"; // "brightfield", "darkfield", "fluorescence"
+  let turretTransitionProgress = 0; // 0 to 1 for revolving nosepiece shutter effect
+  let hasLockedFocus = false;
+  let isDraggingStage = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let stageX0 = 0;
+  let stageY0 = 0;
   let showReticle = true;
   let cyclosisAngle = 0;
   let animId = null;
@@ -281,10 +322,13 @@ export function initMicroscopeLab(containerId) {
   slideImages.paramecium.src = "assets/microscope/paramecium.jpg";
 
   function calculateBlur() {
-    const focusVal = coarseFocus + (fineFocus - 50) * 0.15;
+    const focusVal = coarseFocus + (fineFocus - 50) * 0.12;
     const diff = Math.abs(focusVal - optimalFocus);
-    const sensitivity = (objectivePower / 10) * 0.45;
-    return Math.min(16, diff * sensitivity);
+    // NA-scaled depth of field: higher magnification & NA produces dramatically shallower focal depth
+    const naMap = { 4: 0.10, 10: 0.25, 40: 0.65, 100: 1.25 };
+    const na = naMap[objectivePower] || 0.25;
+    const dofSensitivity = (Math.pow(na, 1.8) * (objectivePower / 10.0)) * 0.55 + 0.18;
+    return Math.min(22, diff * dofSensitivity);
   }
 
   function drawSpecimen(centerX, centerY, radius) {
@@ -297,9 +341,21 @@ export function initMicroscopeLab(containerId) {
     const isImgLoaded = img && img.complete && img.naturalWidth > 0;
 
     if (isImgLoaded) {
-      // Render Authentic High-Resolution Histological Specimen Photo
+      // Render Authentic High-Resolution Histological Specimen Photo with Contrast Shaders
       const imgSize = radius * 3.2;
-      ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
+      if (contrastMode === "darkfield") {
+        ctx.save();
+        ctx.filter = "invert(0.92) contrast(1.75) hue-rotate(180deg) brightness(1.1)";
+        ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
+        ctx.restore();
+      } else if (contrastMode === "fluorescence") {
+        ctx.save();
+        ctx.filter = "invert(0.95) contrast(2.2) saturate(2.4) hue-rotate(240deg)";
+        ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
+        ctx.restore();
+      } else {
+        ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
+      }
     }
 
     // Dynamic Live Overlays (Active Organelle Cyclosis & Motion)
@@ -727,13 +783,36 @@ export function initMicroscopeLab(containerId) {
     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
     ctx.clip();
 
-    // Realistic Substage Illumination Beam
-    const illGrad = ctx.createRadialGradient(centerX, centerY, 15, centerX, centerY, radius);
-    illGrad.addColorStop(0, `rgba(255, 255, 248, ${irisAperture})`);
-    illGrad.addColorStop(0.7, `rgba(235, 245, 255, ${irisAperture * 0.95})`);
-    illGrad.addColorStop(1, `rgba(180, 205, 230, ${irisAperture * 0.7})`);
-    ctx.fillStyle = illGrad;
-    ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+    // Illumination Background based on Optical Contrast Mode
+    if (contrastMode === "darkfield") {
+      // Darkfield / Phase Contrast: Pitch-black background with subtle annular cone
+      ctx.fillStyle = "#02040a";
+      ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+      const darkGrad = ctx.createRadialGradient(centerX, centerY, radius * 0.25, centerX, centerY, radius);
+      darkGrad.addColorStop(0, "rgba(2, 6, 23, 0.95)");
+      darkGrad.addColorStop(0.7, `rgba(15, 23, 42, ${irisAperture * 0.35})`);
+      darkGrad.addColorStop(1, `rgba(56, 189, 248, ${irisAperture * 0.25})`);
+      ctx.fillStyle = darkGrad;
+      ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+    } else if (contrastMode === "fluorescence") {
+      // Epi-Fluorescence: Deep UV cosmic violet-black excitation backdrop
+      ctx.fillStyle = "#02020a";
+      ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+      const uvGrad = ctx.createRadialGradient(centerX, centerY, 15, centerX, centerY, radius);
+      uvGrad.addColorStop(0, `rgba(45, 27, 105, ${irisAperture * 0.55})`);
+      uvGrad.addColorStop(0.7, `rgba(15, 23, 42, ${irisAperture * 0.45})`);
+      uvGrad.addColorStop(1, "rgba(2, 4, 15, 0.95)");
+      ctx.fillStyle = uvGrad;
+      ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+    } else {
+      // Realistic Substage Illumination Beam (Köhler Brightfield)
+      const illGrad = ctx.createRadialGradient(centerX, centerY, 15, centerX, centerY, radius);
+      illGrad.addColorStop(0, `rgba(255, 255, 248, ${irisAperture})`);
+      illGrad.addColorStop(0.7, `rgba(235, 245, 255, ${irisAperture * 0.95})`);
+      illGrad.addColorStop(1, `rgba(180, 205, 230, ${irisAperture * 0.7})`);
+      ctx.fillStyle = illGrad;
+      ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+    }
 
     // Apply Optical Depth-of-Field Blur
     const blurAmount = calculateBlur();
@@ -742,7 +821,21 @@ export function initMicroscopeLab(containerId) {
     // Draw Active Specimen Cells
     drawSpecimen(centerX, centerY, radius);
 
-    ctx.restore();
+    // Revolving Nosepiece Shutter Transition Vignette (Momentary mechanical sweep on objective change)
+    if (turretTransitionProgress > 0) {
+      ctx.filter = "none";
+      ctx.save();
+      const sweepAngle = (1 - turretTransitionProgress) * Math.PI * 2;
+      ctx.fillStyle = "rgba(2, 6, 23, 0.96)";
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, radius + 2, sweepAngle, sweepAngle + Math.PI * (1 + turretTransitionProgress * 0.5));
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.restore(); // End Circular FOV Clip
 
     // Heavy Anodized Eyepiece Bezel Ring
     const bezelGrad = ctx.createLinearGradient(0, centerY - radius, 0, centerY + radius);
@@ -758,14 +851,23 @@ export function initMicroscopeLab(containerId) {
 
     // Inner Specular Eyepiece Ring
     ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.strokeStyle = (contrastMode === "fluorescence") ? "rgba(168, 85, 247, 0.5)" : "rgba(56, 189, 248, 0.4)";
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
     ctx.stroke();
 
+    // Oil Immersion Meniscus Glow Ring at 100x
+    if (objectivePower === 100) {
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.45)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius - 2, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
     // Reticle Crosshairs & Micrometer Graduations
     if (showReticle) {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.strokeStyle = (contrastMode === "brightfield") ? "rgba(255, 255, 255, 0.35)" : "rgba(56, 189, 248, 0.45)";
       ctx.lineWidth = 1;
 
       // Horizontal Reticle
@@ -804,18 +906,30 @@ export function initMicroscopeLab(containerId) {
     const focusDot = document.getElementById("focus-lock-dot");
     const focusStatus = document.getElementById("focus-status");
 
-    if (blur <= 0.6) {
-      focusDot.style.background = "#10b981";
-      focusStatus.innerText = "🎯 Focus Locked (Sub-Micron Sharpness)";
-      focusStatus.style.color = "#34d399";
-    } else if (blur <= 3.0) {
-      focusDot.style.background = "#f59e0b";
-      focusStatus.innerText = "Fine Tuning Focus...";
-      focusStatus.style.color = "#f59e0b";
+    if (blur <= 0.45) {
+      if (focusDot) focusDot.style.background = "#10b981";
+      if (focusStatus) {
+        focusStatus.innerText = "🎯 Focus Locked (Sub-Micron Sharpness)";
+        focusStatus.style.color = "#34d399";
+      }
+      if (!hasLockedFocus) {
+        try { SoundFX.playPop(); } catch(e) {}
+        hasLockedFocus = true;
+      }
+    } else if (blur <= 2.8) {
+      if (focusDot) focusDot.style.background = "#f59e0b";
+      if (focusStatus) {
+        focusStatus.innerText = "Fine Tuning Focus...";
+        focusStatus.style.color = "#f59e0b";
+      }
+      hasLockedFocus = false;
     } else {
-      focusDot.style.background = "#ef4444";
-      focusStatus.innerText = "Out of Focus (Rotate Knobs)";
-      focusStatus.style.color = "#ef4444";
+      if (focusDot) focusDot.style.background = "#ef4444";
+      if (focusStatus) {
+        focusStatus.innerText = "Out of Focus (Rotate Knobs)";
+        focusStatus.style.color = "#ef4444";
+      }
+      hasLockedFocus = false;
     }
 
     // NA & Resolution
@@ -824,11 +938,14 @@ export function initMicroscopeLab(containerId) {
     const wavelength = 0.55; // 550nm green light in µm
     const res = (0.61 * wavelength) / na;
 
-    document.getElementById("na-disp").innerText = `${na.toFixed(2)}`;
-    document.getElementById("res-disp").innerText = `d = ${res.toFixed(2)} µm`;
+    const naDisp = document.getElementById("na-disp");
+    if (naDisp) naDisp.innerText = `${na.toFixed(2)}`;
+    const resDisp = document.getElementById("res-disp");
+    if (resDisp) resDisp.innerText = `d = ${res.toFixed(2)} µm`;
 
     const scaleMap = { 4: "200 µm", 10: "50 µm", 40: "12 µm", 100: "5 µm" };
-    document.getElementById("scale-text").innerText = `Scale: ${scaleMap[objectivePower] || "50 µm"}`;
+    const scaleText = document.getElementById("scale-text");
+    if (scaleText) scaleText.innerText = `Scale: ${scaleMap[objectivePower] || "50 µm"}`;
     needsRedraw = true;
   }
 
@@ -842,8 +959,12 @@ export function initMicroscopeLab(containerId) {
       if (animId) cancelAnimationFrame(animId);
       return;
     }
+    if (turretTransitionProgress > 0) {
+      turretTransitionProgress = Math.max(0, turretTransitionProgress - 0.08);
+      needsRedraw = true;
+    }
     const hasDynamicMotion = (currentSlide === "elodea_leaf" || currentSlide === "paramecium");
-    if (!hasDynamicMotion && !needsRedraw) {
+    if (!hasDynamicMotion && !needsRedraw && turretTransitionProgress === 0) {
       animId = requestAnimationFrame(renderLoop);
       return;
     }
@@ -861,7 +982,7 @@ export function initMicroscopeLab(containerId) {
   }
   renderLoop();
 
-  // Controls Binding
+  // Controls Binding Elements
   const inCoarse = document.getElementById("input-coarse");
   const inFine = document.getElementById("input-fine");
   const inIris = document.getElementById("input-iris");
@@ -898,6 +1019,90 @@ export function initMicroscopeLab(containerId) {
     requestRender();
   });
 
+  // ----------------------------------------------------
+  // Direct Touch / Mouse Specimen Stage Dragging
+  // ----------------------------------------------------
+  function getEyepieceCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
+    const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const clientY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    const scaleX = (canvas.width / dpr) / rect.width;
+    const scaleY = (canvas.height / dpr) / rect.height;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+
+  function isInsideFOV(x, y) {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
+    const w = canvas.width / dpr;
+    const h = canvas.height / dpr;
+    const centerX = w / 2;
+    const centerY = h / 2;
+    const radius = Math.min(w, h) * 0.44;
+    const dx = x - centerX;
+    const dy = y - centerY;
+    return (dx * dx + dy * dy) <= (radius * radius);
+  }
+
+  canvas.addEventListener("pointerdown", (e) => {
+    const { x, y } = getEyepieceCoords(e);
+    if (isInsideFOV(x, y)) {
+      isDraggingStage = true;
+      dragStartX = x;
+      dragStartY = y;
+      stageX0 = stageX;
+      stageY0 = stageY;
+      canvas.style.cursor = "grabbing";
+      try { canvas.setPointerCapture(e.pointerId); } catch(err) {}
+    }
+  });
+
+  canvas.addEventListener("pointermove", (e) => {
+    const { x, y } = getEyepieceCoords(e);
+    if (isDraggingStage) {
+      const dx = x - dragStartX;
+      const dy = y - dragStartY;
+      const zoomScale = objectivePower / 10.0;
+      // Proportional displacement so dragging feels physically 1:1 with tissue
+      const dStageX = dx / (zoomScale * 0.85);
+      const dStageY = dy / (zoomScale * 0.85);
+      stageX = Math.round(Math.max(-150, Math.min(150, stageX0 + dStageX)));
+      stageY = Math.round(Math.max(-150, Math.min(150, stageY0 + dStageY)));
+
+      if (inStageX) inStageX.value = stageX;
+      if (inStageY) inStageY.value = stageY;
+      const dispX = document.getElementById("disp-stage-x");
+      const dispY = document.getElementById("disp-stage-y");
+      if (dispX) dispX.innerText = `${stageX} µm`;
+      if (dispY) dispY.innerText = `${stageY} µm`;
+
+      requestRender();
+      return;
+    }
+
+    if (isInsideFOV(x, y)) {
+      canvas.style.cursor = "grab";
+    } else {
+      canvas.style.cursor = "default";
+    }
+  });
+
+  canvas.addEventListener("pointerup", (e) => {
+    if (isDraggingStage) {
+      isDraggingStage = false;
+      canvas.style.cursor = "grab";
+      try { canvas.releasePointerCapture(e.pointerId); } catch(err) {}
+    }
+  });
+
+  canvas.addEventListener("pointercancel", () => {
+    isDraggingStage = false;
+    canvas.style.cursor = "default";
+  });
+
   // Objective Turret Buttons
   container.querySelectorAll(".obj-btn").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -909,11 +1114,45 @@ export function initMicroscopeLab(containerId) {
       btn.classList.add("btn-primary", "active");
 
       objectivePower = parseInt(btn.dataset.obj, 10);
+      turretTransitionProgress = 1.0;
+      try { SoundFX.playSwitchSnap(); } catch(e) {}
+
       const totalMag = objectivePower * 10;
-      document.getElementById("disp-objective").innerText = `${objectivePower}× (${objectivePower === 4 ? 'Scanning' : objectivePower === 10 ? 'Low Power' : objectivePower === 40 ? 'High Dry' : 'Oil Immersion'})`;
-      document.getElementById("mag-badge").innerText = `${totalMag}× Total Magnification (10× Eyepiece × ${objectivePower}× Objective)`;
+      const dispObj = document.getElementById("disp-objective");
+      if (dispObj) {
+        dispObj.innerText = `${objectivePower}× (${objectivePower === 4 ? 'Scanning' : objectivePower === 10 ? 'Low Power' : objectivePower === 40 ? 'High Dry' : 'Oil Immersion'})`;
+      }
+      const magBadge = document.getElementById("mag-badge");
+      if (magBadge) {
+        magBadge.innerText = `${totalMag}× Total Magnification (10× Eyepiece × ${objectivePower}× Objective)`;
+      }
+
+      const oilBadge = document.getElementById("oil-immersion-badge");
+      if (oilBadge) {
+        oilBadge.style.display = (objectivePower === 100) ? "inline-flex" : "none";
+      }
 
       updateTelemetry();
+    });
+  });
+
+  // Contrast Filter Switcher Buttons
+  container.querySelectorAll(".filter-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      container.querySelectorAll(".filter-btn").forEach(b => {
+        b.classList.remove("btn-primary", "active");
+        b.classList.add("btn-secondary");
+      });
+      btn.classList.remove("btn-secondary");
+      btn.classList.add("btn-primary", "active");
+
+      contrastMode = btn.dataset.filter;
+      const dispFilter = document.getElementById("disp-filter");
+      if (dispFilter) {
+        dispFilter.innerText = contrastMode === "brightfield" ? "Brightfield" : (contrastMode === "darkfield" ? "Darkfield / Phase" : "Fluorescence");
+      }
+      try { SoundFX.playClick(); } catch(e) {}
+      requestRender();
     });
   });
 
@@ -938,6 +1177,7 @@ export function initMicroscopeLab(containerId) {
     inFine.value = 50;
     document.getElementById("disp-coarse").innerText = "50%";
     document.getElementById("disp-fine").innerText = "50%";
+    try { SoundFX.playClick(); } catch(e) {}
     updateTelemetry();
   });
 
@@ -949,6 +1189,7 @@ export function initMicroscopeLab(containerId) {
     inStageY.value = 0;
     document.getElementById("disp-stage-x").innerText = "0 µm";
     document.getElementById("disp-stage-y").innerText = "0 µm";
+    try { SoundFX.playClick(); } catch(e) {}
     requestRender();
   });
 
@@ -1094,8 +1335,10 @@ export function initMicroscopeLab(containerId) {
   window.addEventListener("resize", handleResize);
   handleResize();
 
-  return () => {
+  const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("resize", handleResize);
   };
+  _currentMicroscopeCleanup = cleanup;
+  return cleanup;
 }

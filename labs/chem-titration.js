@@ -4,6 +4,7 @@
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
+import { SoundFX } from "../utils/audio-synth.js";
 
 let _currentTitrationCleanup = null;
 
@@ -30,6 +31,9 @@ export function initTitrationLab(containerId) {
           </span>
           <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #38bdf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
             Class-A Volumetric Metrology (±0.03 mL)
+          </span>
+          <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
+            Interactive Valve: Click/Drag Glass Stopcock
           </span>
         </div>
 
@@ -147,10 +151,16 @@ export function initTitrationLab(containerId) {
               </div>
             </div>
 
-            <!-- Mathematical Formulation Pill -->
-            <div class="sim-sub-card" style="border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
-              <span>Law of Equivalents:</span>
-              <span style="color: #38bdf8;">${renderLatex("M_{\\text{acid}} V_{\\text{acid}} = M_{\\text{base}} V_{\\text{base}}")}</span>
+            <!-- Mathematical Formulation & Derivative Pill -->
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 8px;">
+              <div class="sim-sub-card" style="border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
+                <span>Equivalents:</span>
+                <span style="color: #38bdf8;">${renderLatex("M_A V_A = M_B V_B")}</span>
+              </div>
+              <div class="sim-sub-card" style="border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #ec4899; font-weight: 600;">dpH/dV:</span>
+                <span id="anal-deriv-text" style="color: #ec4899; font-family: var(--font-mono); font-weight: 700;">0.00 pH/mL</span>
+              </div>
             </div>
           </div>
         </div>
@@ -261,25 +271,20 @@ export function initTitrationLab(containerId) {
   let dataPoints = [];
   let drops = [];
   let bubbles = [];
+  let colorPlumes = [];
+  let reachedEquivalenceSoundPlayed = false;
+  let isHoveringStopcock = false;
+  let isDraggingStopcock = false;
+  let stopcockDragStartY = 0;
+  let stopcockDragStartFlow = 0;
   let animId = null;
   let viewMode = "sim"; // "sim" or "photo"
   let showDerivative = false;
 
-  // Sound synthesis
+  // Sound synthesis via pooled audio engine
   function playDropSound() {
     try {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(880 + Math.random() * 120, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(380, audioCtx.currentTime + 0.07);
-      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.07);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.07);
+      SoundFX.playDroplet();
     } catch(e) {}
   }
 
@@ -496,12 +501,69 @@ export function initTitrationLab(containerId) {
     const stopcockY = buretTop + buretH;
     appCtx.fillStyle = "#64748b";
     appCtx.fillRect(buretX - 4, stopcockY, 8, 16);
-    // PTFE Valve handle
-    appCtx.fillStyle = flowRate > 0 ? "#10b981" : "#ef4444";
+
+    // Interactive Hover/Active Focus Halo around Stopcock Valve
+    if (isHoveringStopcock || isDraggingStopcock) {
+      appCtx.save();
+      appCtx.strokeStyle = "#38bdf8";
+      appCtx.lineWidth = 2;
+      appCtx.shadowColor = "#06b6d4";
+      appCtx.shadowBlur = 10;
+      appCtx.beginPath();
+      appCtx.arc(buretX, stopcockY + 8, 20, 0, Math.PI * 2);
+      appCtx.stroke();
+
+      // Holographic Valve Prompt Tooltip
+      appCtx.fillStyle = "rgba(15, 23, 42, 0.94)";
+      appCtx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+      appCtx.lineWidth = 1;
+      appCtx.beginPath();
+      appCtx.roundRect(buretX + 26, stopcockY - 6, 134, 26, 6);
+      appCtx.fill();
+      appCtx.stroke();
+      appCtx.fillStyle = "#38bdf8";
+      appCtx.font = "bold 9px JetBrains Mono";
+      appCtx.fillText(isDraggingStopcock ? "Drag: Adjust Flow" : "Click / Drag Valve", buretX + 32, stopcockY + 11);
+      appCtx.restore();
+    }
+
+    // PTFE Valve handle with true physical rotation angle
+    // flowRate 0 = 90 deg (perpendicular, closed)
+    // flowRate 1.5 = 0 deg (parallel, open)
+    const valveAngle = (flowRate === 0) ? (Math.PI / 2) : ((1 - Math.min(1, flowRate / 1.5)) * (Math.PI / 2));
     appCtx.save();
     appCtx.translate(buretX, stopcockY + 8);
-    if (flowRate === 0) appCtx.rotate(Math.PI / 2); // Closed: perpendicular
-    appCtx.fillRect(-12, -4, 24, 8);
+    appCtx.rotate(valveAngle);
+
+    // Handle Shadow
+    appCtx.fillStyle = "rgba(0,0,0,0.4)";
+    appCtx.fillRect(-14, -2, 28, 10);
+
+    // PTFE Teflon Handle Body
+    const valveGrad = appCtx.createLinearGradient(-14, 0, 14, 0);
+    if (flowRate === 0) {
+      valveGrad.addColorStop(0, "#ef4444");
+      valveGrad.addColorStop(0.5, "#f87171");
+      valveGrad.addColorStop(1, "#dc2626");
+    } else if (flowRate < 0.8) {
+      valveGrad.addColorStop(0, "#10b981");
+      valveGrad.addColorStop(0.5, "#34d399");
+      valveGrad.addColorStop(1, "#059669");
+    } else {
+      valveGrad.addColorStop(0, "#f59e0b");
+      valveGrad.addColorStop(0.5, "#fbbf24");
+      valveGrad.addColorStop(1, "#d97706");
+    }
+    appCtx.fillStyle = valveGrad;
+    appCtx.beginPath();
+    appCtx.roundRect(-14, -5, 28, 10, 4);
+    appCtx.fill();
+
+    // Valve Center Retaining Ring
+    appCtx.fillStyle = "#ffffff";
+    appCtx.beginPath();
+    appCtx.arc(0, 0, 3, 0, Math.PI * 2);
+    appCtx.fill();
     appCtx.restore();
 
     // Fine Delivery Tip
@@ -514,8 +576,37 @@ export function initTitrationLab(containerId) {
     appCtx.lineTo(buretX + 4, stopcockY + 16);
     appCtx.stroke();
 
-    // Surface-Tension Forming Droplet at Tip
-    if (flowRate > 0 || drops.length === 0) {
+    // Surface-Tension Forming Droplet or Continuous Laminar Stream
+    if (flowRate >= 0.5) {
+      // Continuous Laminar Fluid Stream
+      const streamTop = stopcockY + 38;
+      const streamBottom = h - 68 - 65; // flask fluid top surface
+      const streamW = Math.min(3.5, 1.5 + flowRate * 1.2);
+      
+      appCtx.save();
+      const streamGrad = appCtx.createLinearGradient(buretX - streamW, 0, buretX + streamW, 0);
+      streamGrad.addColorStop(0, "rgba(56, 189, 248, 0.85)");
+      streamGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.95)");
+      streamGrad.addColorStop(1, "rgba(56, 189, 248, 0.85)");
+      appCtx.fillStyle = streamGrad;
+      appCtx.shadowColor = "#38bdf8";
+      appCtx.shadowBlur = 6;
+      appCtx.beginPath();
+      appCtx.moveTo(buretX - streamW/2, streamTop);
+      appCtx.lineTo(buretX + streamW/2, streamTop);
+      appCtx.lineTo(buretX + streamW/2 + 0.4, streamBottom);
+      appCtx.lineTo(buretX - streamW/2 - 0.4, streamBottom);
+      appCtx.closePath();
+      appCtx.fill();
+      appCtx.restore();
+
+      // Fluid impact ripple rings at solution surface
+      appCtx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+      appCtx.lineWidth = 1;
+      appCtx.beginPath();
+      appCtx.ellipse(buretX, streamBottom + 2, 7 + Math.sin(Date.now() * 0.02) * 2, 2.5, 0, 0, Math.PI * 2);
+      appCtx.stroke();
+    } else if (flowRate > 0 || drops.length === 0) {
       appCtx.fillStyle = "rgba(56, 189, 248, 0.75)";
       appCtx.beginPath();
       appCtx.arc(buretX, stopcockY + 39, 2.5, 0, Math.PI * 2);
@@ -586,6 +677,30 @@ export function initTitrationLab(containerId) {
     liqGrad.addColorStop(1, flaskFillColor);
     appCtx.fillStyle = liqGrad;
     appCtx.fillRect(flaskX - baseW, flaskY - fluidH, baseW * 2, fluidH);
+
+    // Dynamic Swirling Indicator Diffusion Plumes (Localized high-pH splash plumes)
+    if (colorPlumes.length > 0) {
+      for (let pIdx = colorPlumes.length - 1; pIdx >= 0; pIdx--) {
+        const p = colorPlumes[pIdx];
+        if (dtFactor > 0) {
+          p.radius += 0.45 * dtFactor;
+          p.opacity -= 0.02 * dtFactor;
+          if (stirrerRpm > 0) {
+            p.angle += (stirrerRpm / 600) * 0.14 * dtFactor;
+            p.x = flaskX + Math.cos(p.angle) * (p.radius * 1.6);
+            p.y += 0.25 * dtFactor;
+          }
+        }
+        if (p.opacity <= 0.02 || p.radius >= p.maxRadius) {
+          colorPlumes.splice(pIdx, 1);
+          continue;
+        }
+        appCtx.fillStyle = `${p.color}${Math.max(0, p.opacity).toFixed(3)})`;
+        appCtx.beginPath();
+        appCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        appCtx.fill();
+      }
+    }
 
     // Dynamic Swirling Vortex Cone (Physics when Stirrer > 0)
     if (stirrerRpm > 0) {
@@ -716,6 +831,17 @@ export function initTitrationLab(containerId) {
       if (d.y >= (flaskY - fluidH)) {
         drops.splice(i, 1);
         playDropSound();
+
+        // Spawn localized alkaline plume that swirls with magnetic stirrer
+        colorPlumes.push({
+          x: d.x + (Math.random() - 0.5) * 4,
+          y: flaskY - fluidH + 4,
+          radius: 2.5,
+          maxRadius: 16 + Math.random() * 8,
+          opacity: 0.85,
+          angle: Math.random() * Math.PI * 2,
+          color: (indicator === "phenolphthalein") ? "rgba(236, 72, 153," : (indicator === "bromothymol_blue" ? "rgba(37, 99, 235," : "rgba(234, 179, 8,")
+        });
       }
     }
 
@@ -796,15 +922,22 @@ export function initTitrationLab(containerId) {
     // First Derivative Curve (dpH/dV) if enabled
     if (showDerivative) {
       curveCtx.strokeStyle = "rgba(236, 72, 153, 0.85)";
-      curveCtx.lineWidth = 2;
+      curveCtx.lineWidth = 2.5;
       curveCtx.beginPath();
 
       const deltaV = 0.2;
-      let maxDeriv = 18.0;
+      let maxDeriv = 20.0;
+      let peakV = 25.0;
+      let peakDeriv = 0;
+
       for (let v = 0.5; v <= 49.5; v += 0.2) {
         const ph1 = calculatePH(v - deltaV);
         const ph2 = calculatePH(v + deltaV);
         const deriv = (ph2 - ph1) / (2 * deltaV);
+        if (deriv > peakDeriv) {
+          peakDeriv = deriv;
+          peakV = v;
+        }
         const normDeriv = Math.min(1.0, deriv / maxDeriv);
 
         const x = padLeft + (v / 50.0) * plotW;
@@ -814,6 +947,43 @@ export function initTitrationLab(containerId) {
         else curveCtx.lineTo(x, y);
       }
       curveCtx.stroke();
+
+      // Peak Indicator Marker & Holographic Equivalence Inflection Badge
+      const peakX = padLeft + (peakV / 50.0) * plotW;
+      const peakY = padTop + plotH - (Math.min(1.0, peakDeriv / maxDeriv) * plotH * 0.85);
+
+      curveCtx.save();
+      // Glowing Magenta Peak Dot
+      curveCtx.fillStyle = "#ec4899";
+      curveCtx.shadowColor = "#ec4899";
+      curveCtx.shadowBlur = 12;
+      curveCtx.beginPath();
+      curveCtx.arc(peakX, peakY, 5, 0, Math.PI * 2);
+      curveCtx.fill();
+
+      // Golden Target Ring
+      curveCtx.strokeStyle = "#f59e0b";
+      curveCtx.lineWidth = 1.5;
+      curveCtx.beginPath();
+      curveCtx.arc(peakX, peakY, 9, 0, Math.PI * 2);
+      curveCtx.stroke();
+
+      // Floating Analytical Callout Banner
+      curveCtx.fillStyle = "rgba(15, 23, 42, 0.92)";
+      curveCtx.strokeStyle = "rgba(236, 72, 153, 0.65)";
+      curveCtx.lineWidth = 1;
+      curveCtx.shadowColor = "rgba(0,0,0,0.6)";
+      curveCtx.shadowBlur = 8;
+      curveCtx.beginPath();
+      curveCtx.roundRect(peakX - 90, peakY - 32, 180, 22, 6);
+      curveCtx.fill();
+      curveCtx.stroke();
+      curveCtx.shadowBlur = 0;
+
+      curveCtx.fillStyle = "#ec4899";
+      curveCtx.font = "bold 9px JetBrains Mono";
+      curveCtx.fillText(`🎯 Peak: V_eq=${peakV.toFixed(2)}mL (dpH/dV=${peakDeriv.toFixed(1)})`, peakX - 84, peakY - 18);
+      curveCtx.restore();
     }
 
     // Theoretical Curve Path (Preview Ghost)
@@ -900,12 +1070,17 @@ export function initTitrationLab(containerId) {
       neutralBadge.style.background = "rgba(56, 189, 248, 0.15)";
       phState.innerText = "Excess Acid";
       phState.style.color = "#38bdf8";
+      reachedEquivalenceSoundPlayed = false;
     } else if (Math.abs(vTitrant - 25.0) <= 0.2) {
       neutralBadge.innerText = "🎯 AT EQUIVALENCE POINT";
       neutralBadge.style.color = "#10b981";
       neutralBadge.style.background = "rgba(16, 185, 129, 0.25)";
       phState.innerText = (acidType === "HCl") ? "Neutral (pH 7.00)" : "Equivalence (pH 8.72)";
       phState.style.color = "#10b981";
+      if (!reachedEquivalenceSoundPlayed) {
+        try { SoundFX.playSuccess(); } catch(e) {}
+        reachedEquivalenceSoundPlayed = true;
+      }
     } else {
       neutralBadge.innerText = "Post-Equivalence Zone";
       neutralBadge.style.color = "#ec4899";
@@ -913,6 +1088,13 @@ export function initTitrationLab(containerId) {
       phState.innerText = "Excess Base";
       phState.style.color = "#ec4899";
     }
+
+    // Live Analytical Derivative Calculation dpH/dV
+    const dV = 0.05;
+    const dpH = Math.abs(calculatePH(vTitrant + dV) - calculatePH(Math.max(0, vTitrant - dV)));
+    const currentDeriv = dpH / (2 * dV);
+    const derivText = document.getElementById("anal-deriv-text");
+    if (derivText) derivText.innerText = `${currentDeriv.toFixed(2)} pH/mL`;
   }
 
   function addVolume(amount) {
@@ -983,13 +1165,28 @@ export function initTitrationLab(containerId) {
           const buretX = standX + 100;
           const stopcockY = 35 + 240;
           drops.push({ x: buretX, y: stopcockY + 38, speed: 2.5 });
+
+          if (flowRate >= 0.5) {
+            // Also generate swirling splash plume directly in solution
+            const fluidH = 65;
+            const flaskY = (appCanvas.height / (typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1))) - 68;
+            colorPlumes.push({
+              x: buretX + (Math.random() - 0.5) * 4,
+              y: flaskY - fluidH + 4,
+              radius: 3,
+              maxRadius: 20 + Math.random() * 8,
+              opacity: 0.85,
+              angle: Math.random() * Math.PI * 2,
+              color: (indicator === "phenolphthalein") ? "rgba(236, 72, 153," : (indicator === "bromothymol_blue" ? "rgba(37, 99, 235," : "rgba(234, 179, 8,")
+            });
+          }
         }
 
         updateTelemetry();
         needsRedraw = true;
       }
 
-      if (drops.length > 0) {
+      if (drops.length > 0 || colorPlumes.length > 0) {
         needsRedraw = true;
       }
 
@@ -999,7 +1196,7 @@ export function initTitrationLab(containerId) {
         const dtFactor = dtDrawSeconds > 0 ? (dtDrawSeconds * 60) : 1.0;
         drawApparatus(dtFactor);
         drawCurve();
-        if (!isFlowing && drops.length === 0) {
+        if (!isFlowing && drops.length === 0 && colorPlumes.length === 0) {
           needsRedraw = false;
         }
       }
@@ -1014,37 +1211,142 @@ export function initTitrationLab(containerId) {
   drawCurve();
   animate();
 
+  // ----------------------------------------------------
+  // Interactive Direct Canvas Valve Hit-Testing & Dragging
+  // ----------------------------------------------------
+  const buretStandX = 110;
+  const valveCenterBX = buretStandX + 100; // 210
+  const valveCenterBY = 35 + 240 + 8; // 283
+
+  function getCanvasPos(e) {
+    const rect = appCanvas.getBoundingClientRect();
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
+    const clientX = e.clientX ?? (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+    const clientY = e.clientY ?? (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+    const scaleX = (appCanvas.width / dpr) / rect.width;
+    const scaleY = (appCanvas.height / dpr) / rect.height;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+
+  function isOverValve(x, y) {
+    const dx = x - valveCenterBX;
+    const dy = y - valveCenterBY;
+    return (dx * dx + dy * dy) <= (24 * 24);
+  }
+
+  function setValveFlow(rate, playAudio = true) {
+    stopAutoTitrate();
+    flowRate = rate;
+    const statusEl = document.getElementById("titr-status");
+    const dotEl = document.getElementById("titr-status-dot");
+    if (rate === 0) {
+      if (statusEl) statusEl.innerText = "Stopcock Valve Closed";
+      if (dotEl) dotEl.style.background = "#ef4444";
+    } else if (rate <= 0.25) {
+      if (statusEl) statusEl.innerText = `Dropwise Flow (${rate.toFixed(1)} mL/s)`;
+      if (dotEl) dotEl.style.background = "#10b981";
+    } else if (rate <= 0.7) {
+      if (statusEl) statusEl.innerText = `Continuous Flow (${rate.toFixed(1)} mL/s)`;
+      if (dotEl) dotEl.style.background = "#38bdf8";
+    } else {
+      if (statusEl) statusEl.innerText = `Fast Stream (${rate.toFixed(1)} mL/s)`;
+      if (dotEl) dotEl.style.background = "#f59e0b";
+    }
+    if (playAudio) {
+      try { SoundFX.playSwitchSnap(); } catch(e) {}
+    }
+    needsRedraw = true;
+  }
+
+  function cycleValve() {
+    if (flowRate === 0) {
+      setValveFlow(0.2);
+    } else if (flowRate <= 0.25) {
+      setValveFlow(0.6);
+    } else if (flowRate <= 0.7) {
+      setValveFlow(1.5);
+    } else {
+      setValveFlow(0);
+    }
+  }
+
+  appCanvas.addEventListener("pointermove", (e) => {
+    const { x, y } = getCanvasPos(e);
+    if (isDraggingStopcock) {
+      const dy = stopcockDragStartY - y;
+      const newRate = Math.max(0, Math.min(1.5, stopcockDragStartFlow + dy * 0.035));
+      flowRate = parseFloat(newRate.toFixed(2));
+      const statusEl = document.getElementById("titr-status");
+      const dotEl = document.getElementById("titr-status-dot");
+      if (flowRate === 0) {
+        if (statusEl) statusEl.innerText = "Stopcock Valve Closed";
+        if (dotEl) dotEl.style.background = "#ef4444";
+      } else {
+        if (statusEl) statusEl.innerText = `Valve Open (${flowRate.toFixed(2)} mL/s)`;
+        if (dotEl) dotEl.style.background = flowRate > 0.8 ? "#f59e0b" : "#10b981";
+      }
+      needsRedraw = true;
+      return;
+    }
+
+    const over = isOverValve(x, y);
+    if (over !== isHoveringStopcock) {
+      isHoveringStopcock = over;
+      appCanvas.style.cursor = over ? "pointer" : "default";
+      needsRedraw = true;
+    }
+  });
+
+  appCanvas.addEventListener("pointerdown", (e) => {
+    const { x, y } = getCanvasPos(e);
+    if (isOverValve(x, y)) {
+      isDraggingStopcock = true;
+      stopcockDragStartY = y;
+      stopcockDragStartFlow = flowRate;
+      try { appCanvas.setPointerCapture(e.pointerId); } catch(err) {}
+    }
+  });
+
+  appCanvas.addEventListener("pointerup", (e) => {
+    if (isDraggingStopcock) {
+      const { y } = getCanvasPos(e);
+      const moved = Math.abs(y - stopcockDragStartY);
+      if (moved < 5) {
+        // Simple click / tap
+        cycleValve();
+      } else {
+        try { SoundFX.playClick(); } catch(err) {}
+      }
+      isDraggingStopcock = false;
+      try { appCanvas.releasePointerCapture(e.pointerId); } catch(err) {}
+    }
+  });
+
+  appCanvas.addEventListener("pointercancel", () => {
+    isDraggingStopcock = false;
+    isHoveringStopcock = false;
+  });
+
   // Control Handlers
   document.getElementById("btn-add-drop")?.addEventListener("click", () => {
     stopAutoTitrate();
     addVolume(0.05);
+    try { SoundFX.playClick(); } catch(e) {}
   });
 
   document.getElementById("btn-titr-slow")?.addEventListener("click", () => {
-    stopAutoTitrate();
-    flowRate = 0.2;
-    const statusEl = document.getElementById("titr-status");
-    if (statusEl) statusEl.innerText = "Dispensing at 0.2 mL/s";
-    const dotEl = document.getElementById("titr-status-dot");
-    if (dotEl) dotEl.style.background = "#10b981";
+    setValveFlow(0.2);
   });
 
   document.getElementById("btn-titr-fast")?.addEventListener("click", () => {
-    stopAutoTitrate();
-    flowRate = 1.5;
-    const statusEl = document.getElementById("titr-status");
-    if (statusEl) statusEl.innerText = "Dispensing at 1.5 mL/s";
-    const dotEl = document.getElementById("titr-status-dot");
-    if (dotEl) dotEl.style.background = "#f59e0b";
+    setValveFlow(1.5);
   });
 
   document.getElementById("btn-titr-stop")?.addEventListener("click", () => {
-    stopAutoTitrate();
-    flowRate = 0;
-    const statusEl = document.getElementById("titr-status");
-    if (statusEl) statusEl.innerText = "Stopcock Valve Closed";
-    const dotEl = document.getElementById("titr-status-dot");
-    if (dotEl) dotEl.style.background = "#ef4444";
+    setValveFlow(0);
   });
 
   document.getElementById("btn-titr-auto")?.addEventListener("click", () => {
@@ -1080,10 +1382,13 @@ export function initTitrationLab(containerId) {
     vTitrant = 0;
     dataPoints = [{ v: 0, ph: calculatePH(0) }];
     drops = [];
+    colorPlumes = [];
+    reachedEquivalenceSoundPlayed = false;
     const statusEl = document.getElementById("titr-status");
     if (statusEl) statusEl.innerText = "Burette Charged (0.100 M NaOH)";
     const dotEl = document.getElementById("titr-status-dot");
     if (dotEl) dotEl.style.background = "#06b6d4";
+    try { SoundFX.playClick(); } catch(e) {}
     updateTelemetry();
     drawApparatus();
     drawCurve();
