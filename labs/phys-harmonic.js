@@ -106,7 +106,7 @@ export function initHarmonicLab(containerId) {
       <div style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px;" class="harmonic-layout">
         <!-- Oscillator Canvas Viewport -->
         <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(245, 158, 11, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #171104 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 550px;">
-          <canvas id="harmonic-canvas" width="580" height="550" style="height: 550px; width: 100%; display: block; cursor: grab;"></canvas>
+          <canvas id="harmonic-canvas" width="580" height="550" style="height: 550px; width: 100%; display: block; cursor: grab; touch-action: none;"></canvas>
 
           <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
           <div id="harmonic-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
@@ -1088,11 +1088,30 @@ export function initHarmonicLab(containerId) {
     }
   }
 
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("keydown", handleKeyDown);
+      return;
+    }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
+      return;
+    }
+    if (e.code === "Space" || e.key === " ") {
+      e.preventDefault();
+      isRunning = !isRunning;
+      const btn = container.querySelector("#btn-shm-toggle-run");
+      if (btn) btn.innerText = isRunning ? "⏸ Pause" : "▶ Resume";
+      needsRedraw = true;
+      SoundFX.playClick();
+    }
+  }
+
   canvas.addEventListener("pointerdown", handlePointerDown);
   window.addEventListener("pointermove", handlePointerMove);
   window.addEventListener("pointerup", handlePointerUp);
   window.addEventListener("pointercancel", handlePointerUp);
   window.addEventListener("blur", handlePointerUp);
+  window.addEventListener("keydown", handleKeyDown);
 
   // --- EVENT LISTENERS ---
   const btnSim = container.querySelector("#view-mode-shm-sim");
@@ -1343,6 +1362,7 @@ export function initHarmonicLab(containerId) {
     window.removeEventListener("pointerup", handlePointerUp);
     window.removeEventListener("pointercancel", handlePointerUp);
     window.removeEventListener("blur", handlePointerUp);
+    window.removeEventListener("keydown", handleKeyDown);
   };
   _currentHarmonicCleanup = cleanup;
   return cleanup;

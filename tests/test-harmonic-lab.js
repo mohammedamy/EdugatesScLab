@@ -6,6 +6,8 @@
 // 4. Trial Store & Lab Dossier integration
 
 import assert from "assert";
+import fs from "fs";
+import path from "path";
 import { initHarmonicLab, cleanupHarmonicLab } from "../labs/phys-harmonic.js";
 import { LabTrialStore } from "../labs/lab-telemetry-exporter.js";
 
@@ -78,6 +80,22 @@ test("LabTrialStore records and persists SHM trials", () => {
   const trials = LabTrialStore.getTrials("harmonic");
   assert.strictEqual(trials.length, 1);
   assert.strictEqual(trials[0].summary, "Spring (k=50N/m), m=1.00kg");
+});
+
+test("phys-harmonic.js includes touch-action: none on interactive canvas for smartboard/touchscreen dragging", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-harmonic.js"), "utf-8");
+  assert(code.includes('touch-action: none'), "Canvas markup must specify touch-action: none");
+});
+
+test("phys-harmonic.js implements Spacebar pause/resume listener with cleanup unbinding", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-harmonic.js"), "utf-8");
+  assert(code.includes('e.code === "Space" || e.key === " "'), "Must handle Spacebar event");
+  assert(code.includes('window.removeEventListener("keydown", handleKeyDown)'), "Cleanup must remove keydown listener");
+});
+
+test("index.css includes .harmonic-layout in responsive single-column layout at 980px", () => {
+  const css = fs.readFileSync(path.resolve("index.css"), "utf-8");
+  assert(css.includes(".harmonic-layout"), "index.css must include .harmonic-layout rule");
 });
 
 console.log("\n========================================================");

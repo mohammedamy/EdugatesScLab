@@ -4107,6 +4107,7 @@ body.modal-open .sb-toolbar-toggle {
   .lab-controls-panel {
     grid-template-columns: 1fr;
   }
+  .harmonic-layout,
   .punnett-layout,
   .gas-layout,
   .titration-layout,
