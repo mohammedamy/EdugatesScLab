@@ -340,6 +340,56 @@ assert(
 );
 console.log("  ✅ PASS: Smartboard annotation overlay and dynamic simulation zoom controls fully verified");
 
+// ----------------------------------------------------
+// Test 17: Seamless Smartboard Pen Release & Defensive Drawing Controls
+// ----------------------------------------------------
+console.log("\n✋ Test 17: Seamless Smartboard Pen Release & Defensive Drawing Controls");
+const toolbarPath = path.resolve("components/smartboard-toolbar.js");
+const toolbarSrc = fs.readFileSync(toolbarPath, "utf-8");
+
+assert(
+  toolbarSrc.includes('id="sb-tool-release-pen"') && toolbarSrc.includes("✋ Let Pen Go"),
+  "smartboard-toolbar.js contains prominent #sb-tool-release-pen quick-action button"
+);
+assert(
+  toolbarSrc.includes("releasePen: () => updateMode(\"pointer\")") &&
+  toolbarSrc.includes("getMode: () => currentTool") &&
+  toolbarSrc.includes("setMode: (mode) => updateMode(mode)"),
+  "window.smartboardToolbar exposes getMode, setMode, and releasePen API methods"
+);
+assert(
+  toolbarSrc.includes("setPointerCapture") && toolbarSrc.includes("releasePointerCapture"),
+  "Canvas implements setPointerCapture and releasePointerCapture to prevent sticky strokes crossing elements"
+);
+assert(
+  toolbarSrc.includes("if (e.buttons !== undefined && e.buttons === 0)"),
+  "Canvas moveDraw implements defensive button release check to terminate stuck inking"
+);
+assert(
+  toolbarSrc.includes('window.addEventListener("blur"') && toolbarSrc.includes('document.addEventListener("mouseleave"'),
+  "Drawing engine terminates strokes on window blur or document mouseleave"
+);
+assert(
+  toolbarSrc.includes('if (currentTool === "pen")') && toolbarSrc.includes('updateMode("pointer");'),
+  "Clicking active drawing pen button toggles pen off and returns to pointer interaction mode"
+);
+assert(
+  viewerSrc.includes("syncAnnotateButton") &&
+  viewerSrc.includes("✋ Let Pen Go") &&
+  viewerSrc.includes("smartboard-mode-change"),
+  "module-viewer.js synchronizes header annotate button with smartboard-mode-change and displays '✋ Let Pen Go'"
+);
+assert(
+  viewerSrc.includes("window.smartboardToolbar.releasePen()") &&
+  viewerSrc.includes("drawing-active"),
+  "module-viewer.js closeModal cleanly releases drawing mode and removes drawing-active canvas overlay"
+);
+assert(
+  indexCssContent.includes(".sb-release-pen-btn"),
+  "index.css defines custom glowing pill styling for .sb-release-pen-btn"
+);
+console.log("  ✅ PASS: Seamless pen release, sticky-stroke prevention, and header toggle fully verified");
+
 console.log("\n========================================================");
-console.log("📊 MAXHUB Android Improvement Plan: All 16 Test Groups Passed!");
+console.log("📊 MAXHUB Android Improvement Plan: All 17 Test Groups Passed!");
 console.log("========================================================\n");

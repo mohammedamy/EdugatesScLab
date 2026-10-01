@@ -32,13 +32,18 @@ export function initSmartboardToolbar() {
         </svg>
       </div>
 
-      <!-- Mouse Pointer -->
-      <button class="icon-action-btn" id="sb-tool-pointer" title="Mouse Pointer Mode" aria-label="Mouse pointer mode" style="border-radius: 9999px;">
+      <!-- Mouse Pointer / Release Pen -->
+      <button class="icon-action-btn" id="sb-tool-pointer" title="Mouse Pointer / Interact Mode (Let Pen Go)" aria-label="Mouse pointer mode (release pen)" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 8-3L3 3Z"/></svg>
       </button>
 
+      <!-- Prominent 'Let Pen Go' Button (Visible when Pen/Highlighter/Eraser active) -->
+      <button class="sb-release-pen-btn" id="sb-tool-release-pen" title="Release drawing pen and interact with lesson controls (Esc)" aria-label="Release drawing pen and interact with lesson controls" style="display: none;">
+        <span>✋ Let Pen Go</span>
+      </button>
+
       <!-- Drawing Pen -->
-      <button class="icon-action-btn active" id="sb-tool-pen" title="Drawing Pen" aria-label="Drawing pen tool" style="border-radius: 9999px;">
+      <button class="icon-action-btn active" id="sb-tool-pen" title="Drawing Pen (Click to Toggle On/Off)" aria-label="Drawing pen tool" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
       </button>
 
@@ -273,6 +278,7 @@ export function initSmartboardToolbar() {
 
   // DOM Elements
   const toolPointer = document.getElementById("sb-tool-pointer");
+  const toolReleasePen = document.getElementById("sb-tool-release-pen");
   const toolPen = document.getElementById("sb-tool-pen");
   const toolHighlighter = document.getElementById("sb-tool-highlighter");
   const toolSize = document.getElementById("sb-tool-size");
@@ -406,9 +412,14 @@ export function initSmartboardToolbar() {
       if (b !== toolSize) b.classList.remove("active");
     });
 
+    const releaseBtn = document.getElementById("sb-tool-release-pen");
+
     if (mode === "pointer") {
       toolPointer.classList.add("active");
       canvas.classList.remove("drawing-active");
+      isDrawing = false;
+      hasMoved = false;
+      if (releaseBtn) releaseBtn.style.display = "none";
       // If canvas is blank, hide it completely to free 100% of 4K GPU fill-rate during site navigation
       if (!hasDrawings) {
         canvas.style.display = "none";
@@ -418,6 +429,7 @@ export function initSmartboardToolbar() {
     } else {
       canvas.style.display = "block";
       canvas.classList.add("drawing-active");
+      if (releaseBtn) releaseBtn.style.display = "inline-flex";
       if (mode === "pen") {
         toolPen.classList.add("active");
       } else if (mode === "highlighter") {
@@ -428,6 +440,9 @@ export function initSmartboardToolbar() {
     }
     syncSizeUI();
     updateMiniBadge();
+    try {
+      window.dispatchEvent(new CustomEvent("smartboard-mode-change", { detail: { mode } }));
+    } catch (e) {}
   }
 
   // Clamping and Coordinate Application
@@ -683,6 +698,7 @@ export function initSmartboardToolbar() {
     toolCloseBar.addEventListener("click", (e) => {
       e.stopPropagation();
       SoundFX.playClick();
+      updateMode("pointer");
       bar.classList.remove("visible");
       bar.classList.add("sb-hidden");
       document.body.classList.remove("sb-docked-active");
@@ -712,6 +728,7 @@ export function initSmartboardToolbar() {
     SoundFX.playClick();
     const isCurrentlyVisible = bar.classList.contains("visible") || (document.body.classList.contains("mode-smartboard") && !bar.classList.contains("sb-hidden"));
     if (isCurrentlyVisible) {
+      updateMode("pointer");
       bar.classList.remove("visible");
       bar.classList.add("sb-hidden");
       toggleBtn.classList.remove("active");
@@ -788,22 +805,58 @@ export function initSmartboardToolbar() {
   // Tool Selectors
   toolPointer.addEventListener("click", () => {
     closeSizePopover();
+    SoundFX.playPop();
     updateMode("pointer");
+    import("../utils/toast.js").then(m => {
+      m.showToast("✋ Pen released — Interactive mode active", "info", 1800);
+    });
   });
+
+  if (toolReleasePen) {
+    toolReleasePen.addEventListener("click", () => {
+      closeSizePopover();
+      SoundFX.playPop();
+      updateMode("pointer");
+      import("../utils/toast.js").then(m => {
+        m.showToast("✋ Pen released — Interactive mode active", "info", 1800);
+      });
+    });
+  }
 
   toolPen.addEventListener("click", () => {
     closeSizePopover();
-    updateMode("pen");
+    if (currentTool === "pen") {
+      SoundFX.playPop();
+      updateMode("pointer");
+      import("../utils/toast.js").then(m => {
+        m.showToast("✋ Pen released — Interactive mode active", "info", 1800);
+      });
+    } else {
+      updateMode("pen");
+    }
   });
 
   toolHighlighter.addEventListener("click", () => {
     closeSizePopover();
-    updateMode("highlighter");
+    if (currentTool === "highlighter") {
+      SoundFX.playPop();
+      updateMode("pointer");
+      import("../utils/toast.js").then(m => {
+        m.showToast("✋ Highlighter released — Interactive mode active", "info", 1800);
+      });
+    } else {
+      updateMode("highlighter");
+    }
   });
 
   toolEraser.addEventListener("click", () => {
     closeSizePopover();
-    updateMode("eraser");
+    if (currentTool === "eraser") {
+      SoundFX.playPop();
+      updateMode("pointer");
+    } else {
+      updateMode("eraser");
+    }
   });
 
   toolSize.addEventListener("click", (e) => {
@@ -882,6 +935,9 @@ export function initSmartboardToolbar() {
     hasMoved = false;
     hasDrawings = true;
     canvas.style.display = "block";
+    if (e && e.pointerId !== undefined && canvas.setPointerCapture) {
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    }
     const pos = getPos(e);
     lastX = pos.x;
     lastY = pos.y;
@@ -889,6 +945,11 @@ export function initSmartboardToolbar() {
 
   function moveDraw(e) {
     if (!isDrawing || currentTool === "pointer") return;
+    // Defensive check: if pointer type has no buttons pressed, stop drawing immediately
+    if (e.buttons !== undefined && e.buttons === 0) {
+      stopDraw(e);
+      return;
+    }
     hasMoved = true;
     hasDrawings = true;
     const pos = getPos(e);
@@ -934,7 +995,10 @@ export function initSmartboardToolbar() {
     lastY = y;
   }
 
-  function stopDraw() {
+  function stopDraw(e) {
+    if (e && e.pointerId !== undefined && canvas.releasePointerCapture) {
+      try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
     if (isDrawing && !hasMoved) {
       ctx.save();
       if (currentTool === "eraser") {
@@ -960,6 +1024,7 @@ export function initSmartboardToolbar() {
       ctx.restore();
     }
     isDrawing = false;
+    hasMoved = false;
   }
 
   // Pointer Events provide zero-latency coalesced touch coordinates on Smartboards
@@ -985,26 +1050,41 @@ export function initSmartboardToolbar() {
       }
     }, { passive: false });
 
+    canvas.addEventListener("pointerup", stopDraw);
+    canvas.addEventListener("pointercancel", stopDraw);
     window.addEventListener("pointerup", stopDraw);
     window.addEventListener("pointercancel", stopDraw);
-  } else {
-    // Fallback for older browsers
-    canvas.addEventListener("mousedown", startDraw);
-    canvas.addEventListener("mousemove", moveDraw);
-    window.addEventListener("mouseup", stopDraw);
-
-    canvas.addEventListener("touchstart", (e) => {
-      if (currentTool !== "pointer") e.preventDefault();
-      startDraw(e);
-    }, { passive: false });
-
-    canvas.addEventListener("touchmove", (e) => {
-      if (currentTool !== "pointer") e.preventDefault();
-      moveDraw(e);
-    }, { passive: false });
-
-    window.addEventListener("touchend", stopDraw);
+    document.addEventListener("pointerup", stopDraw);
+    document.addEventListener("pointercancel", stopDraw);
   }
+
+  // Universal fallbacks for mouse and touch to guarantee the pen is never stuck down
+  canvas.addEventListener("mousedown", startDraw);
+  canvas.addEventListener("mousemove", moveDraw);
+  canvas.addEventListener("mouseup", stopDraw);
+  window.addEventListener("mouseup", stopDraw);
+  document.addEventListener("mouseup", stopDraw);
+
+  canvas.addEventListener("touchstart", (e) => {
+    if (currentTool !== "pointer") e.preventDefault();
+    startDraw(e);
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", (e) => {
+    if (currentTool !== "pointer") e.preventDefault();
+    moveDraw(e);
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", stopDraw);
+  canvas.addEventListener("touchcancel", stopDraw);
+  window.addEventListener("touchend", stopDraw);
+  window.addEventListener("touchcancel", stopDraw);
+  document.addEventListener("touchend", stopDraw);
+  document.addEventListener("touchcancel", stopDraw);
+
+  // If window loses focus or cursor leaves browser, immediately stop drawing
+  window.addEventListener("blur", () => { isDrawing = false; hasMoved = false; });
+  document.addEventListener("mouseleave", () => { isDrawing = false; hasMoved = false; });
 
   // =========================================================================
   // Teacher Presentation Suite: Classroom Timer, Curtain, Spotlight & Shortcuts
@@ -2437,6 +2517,13 @@ export function initSmartboardToolbar() {
         }
       }
     } else if (e.key === "Escape") {
+      if (currentTool !== "pointer") {
+        updateMode("pointer");
+        import("../utils/toast.js").then(m => {
+          m.showToast("✋ Pen released — Interactive mode active", "info", 1800);
+        });
+        return;
+      }
       if (protractorWidget.style.display !== "none") {
         toggleProtractor(false);
       } else if (rulerWidget.style.display !== "none") {
@@ -2450,6 +2537,7 @@ export function initSmartboardToolbar() {
       } else if (sizePopover.style.display !== "none") {
         closeSizePopover();
       } else if (bar.classList.contains("visible")) {
+        updateMode("pointer");
         bar.classList.remove("visible");
         bar.classList.add("sb-hidden");
         if (toggleBtn) toggleBtn.classList.remove("active");
@@ -2465,6 +2553,9 @@ export function initSmartboardToolbar() {
 
   // Expose lifecycle and docking controls for modals & responsive viewport management
   window.smartboardToolbar = {
+    getMode: () => currentTool,
+    setMode: (mode) => updateMode(mode),
+    releasePen: () => updateMode("pointer"),
     isBarVisible: () => bar.classList.contains("visible") && !bar.classList.contains("sb-hidden"),
     isDocked: () => isDocked,
     setDockedState: (val) => setDockedState(val),
@@ -2478,6 +2569,7 @@ export function initSmartboardToolbar() {
     },
     setMinimizedState: (val) => setMinimizedState(val),
     hideBar: () => {
+      updateMode("pointer");
       bar.classList.remove("visible");
       bar.classList.add("sb-hidden");
       document.body.classList.remove("sb-docked-active");
