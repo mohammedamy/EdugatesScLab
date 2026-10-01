@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v51";
+const CACHE_NAME = "amscilab-pwa-v52";
 
 const CORE_APP_SHELL = [
   "./",
@@ -42,6 +42,7 @@ const CORE_APP_SHELL = [
   "./components/lesson-plan-generator.js",
   "./components/progress-tracker.js",
   "./components/quiz-engine.js",
+  "./components/quiz-engine.js?v=3.1",
   "./components/smartboard-toolbar.js",
   "./components/science-calculator.js",
   "./components/flashcards.js",
@@ -208,20 +209,24 @@ self.addEventListener("fetch", (event) => {
         // Return cached asset immediately for 0-latency 60 FPS performance
         return cachedResponse;
       }
-
-      // Cache miss: fetch from network, populate cache, and return
-      return fetch(req).then((networkResponse) => {
-        if (
-          networkResponse &&
-          networkResponse.status === 200 &&
-          (networkResponse.type === "basic" || networkResponse.type === "default" || networkResponse.type === "cors")
-        ) {
-          const responseToCache = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, responseToCache));
+      return caches.match(req, { ignoreSearch: true }).then((fuzzyMatch) => {
+        if (fuzzyMatch) {
+          return fuzzyMatch;
         }
-        return networkResponse;
-      }).catch((err) => {
-        console.warn("[AmScLab PWA] Offline fetch fallback for:", req.url, err);
+        // Cache miss: fetch from network, populate cache, and return
+        return fetch(req).then((networkResponse) => {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            (networkResponse.type === "basic" || networkResponse.type === "default" || networkResponse.type === "cors")
+          ) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, responseToCache));
+          }
+          return networkResponse;
+        }).catch((err) => {
+          console.warn("[AmScLab PWA] Offline fetch fallback for:", req.url, err);
+        });
       });
     })
   );

@@ -98,6 +98,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     }
     // Note: By user design, all checkboxes start empty so user can choose their exact scope deliberately
+  }
   initDefaultScope();
 
   // Non-blocking background prefetch of question bank so it is warm by the time teacher clicks Generate
