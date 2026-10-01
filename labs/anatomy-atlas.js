@@ -98,6 +98,28 @@ export function initAnatomyAtlasLab(containerId) {
   if (!imgAnterior.src) imgAnterior.src = "./assets/labs/human_anatomy_anterior_8k.jpg";
   if (!imgPosterior.src) imgPosterior.src = "./assets/labs/human_anatomy_posterior_8k.jpg";
 
+  // Preload 6 Museum-Grade Registered 1000x1800 Body Strata (Identical silhouette & scale)
+  const bodyLayerImages = {
+    skeletal: new Image(),
+    visceral: new Image(),
+    circulatory: new Image(),
+    nervous: new Image(),
+    muscular: new Image(),
+    skin: new Image()
+  };
+  bodyLayerImages.skeletal.crossOrigin = "anonymous";
+  bodyLayerImages.skeletal.src = "./assets/labs/human_anatomy_layer_skeletal.png";
+  bodyLayerImages.visceral.crossOrigin = "anonymous";
+  bodyLayerImages.visceral.src = "./assets/labs/human_anatomy_layer_visceral.png";
+  bodyLayerImages.circulatory.crossOrigin = "anonymous";
+  bodyLayerImages.circulatory.src = "./assets/labs/human_anatomy_layer_circulatory.png";
+  bodyLayerImages.nervous.crossOrigin = "anonymous";
+  bodyLayerImages.nervous.src = "./assets/labs/human_anatomy_layer_nervous.png";
+  bodyLayerImages.muscular.crossOrigin = "anonymous";
+  bodyLayerImages.muscular.src = "./assets/labs/human_anatomy_layer_muscular.png";
+  bodyLayerImages.skin.crossOrigin = "anonymous";
+  bodyLayerImages.skin.src = "./assets/labs/human_anatomy_layer_skin.png";
+
   // Animation and simulation handles
   let animId = null;
   let simTime = 0;
@@ -640,10 +662,23 @@ export function initAnatomyAtlasLab(containerId) {
   bindSlider(rngCirculatory, "circulatory", "val-circulatory");
   bindSlider(rngNervous, "nervous", "val-nervous");
 
-  // Quick Layer Isolators
+  // Quick Layer Isolators (Operating on registered identical-silhouette body strata)
+  const ensureFullBodyMacro = () => {
+    if (activePlate !== "full_anterior" && activePlate !== "full_posterior") {
+      switchAnatomicalPlate(activeView === "posterior" ? "full_posterior" : "full_anterior");
+    }
+  };
+
   document.getElementById("btn-isolate-skeletal")?.addEventListener("click", () => {
     SoundFX.playPop();
-    switchAnatomicalPlate("skeletal");
+    ensureFullBodyMacro();
+    layerOpacities.skin = 0.0;
+    layerOpacities.muscular = 0.0;
+    layerOpacities.skeletal = 1.0;
+    layerOpacities.visceral = 0.0;
+    layerOpacities.circulatory = 0.0;
+    layerOpacities.nervous = 0.0;
+    syncSliders();
     if (canvasModeText) {
       canvasModeText.innerText = "💀 Skeletal System Isolated • Pure 206-Bone Osteology Dissection";
     }
@@ -651,7 +686,14 @@ export function initAnatomyAtlasLab(containerId) {
 
   document.getElementById("btn-isolate-muscular")?.addEventListener("click", () => {
     SoundFX.playPop();
-    switchAnatomicalPlate("muscular");
+    ensureFullBodyMacro();
+    layerOpacities.skin = 0.0;
+    layerOpacities.muscular = 1.0;
+    layerOpacities.skeletal = 0.0;
+    layerOpacities.visceral = 0.0;
+    layerOpacities.circulatory = 0.0;
+    layerOpacities.nervous = 0.0;
+    syncSliders();
     if (canvasModeText) {
       canvasModeText.innerText = "💪 Muscular System Isolated • Superficial & Deep Skeletal Myology";
     }
@@ -659,7 +701,14 @@ export function initAnatomyAtlasLab(containerId) {
 
   document.getElementById("btn-isolate-viscera")?.addEventListener("click", () => {
     SoundFX.playPop();
-    switchAnatomicalPlate("digestive");
+    ensureFullBodyMacro();
+    layerOpacities.skin = 0.0;
+    layerOpacities.muscular = 0.0;
+    layerOpacities.skeletal = 0.18;
+    layerOpacities.visceral = 1.0;
+    layerOpacities.circulatory = 0.20;
+    layerOpacities.nervous = 0.0;
+    syncSliders();
     if (canvasModeText) {
       canvasModeText.innerText = "🍽️ Splanchnic Viscera Isolated • Thoracic & Abdominal Internal Organs";
     }
@@ -667,7 +716,14 @@ export function initAnatomyAtlasLab(containerId) {
 
   document.getElementById("btn-isolate-neuro")?.addEventListener("click", () => {
     SoundFX.playPop();
-    switchAnatomicalPlate("cranial");
+    ensureFullBodyMacro();
+    layerOpacities.skin = 0.0;
+    layerOpacities.muscular = 0.0;
+    layerOpacities.skeletal = 0.18;
+    layerOpacities.visceral = 0.0;
+    layerOpacities.circulatory = 0.85;
+    layerOpacities.nervous = 1.0;
+    syncSliders();
     if (canvasModeText) {
       canvasModeText.innerText = "⚡ Neurovascular Matrix Isolated • Angiology & Neural Conduction Networks";
     }
@@ -675,7 +731,14 @@ export function initAnatomyAtlasLab(containerId) {
 
   document.getElementById("btn-reset-layers")?.addEventListener("click", () => {
     SoundFX.playPop();
-    switchAnatomicalPlate(activeView === "posterior" ? "full_posterior" : "full_anterior");
+    ensureFullBodyMacro();
+    layerOpacities.skin = 0.35;
+    layerOpacities.muscular = 0.70;
+    layerOpacities.skeletal = 0.85;
+    layerOpacities.visceral = 0.90;
+    layerOpacities.circulatory = 0.80;
+    layerOpacities.nervous = 0.70;
+    syncSliders();
     if (canvasModeText) {
       canvasModeText.innerText = "All Anatomical Strata Balanced • 6-Layer Multi-System Composite";
     }
@@ -1594,8 +1657,13 @@ export function initAnatomyAtlasLab(containerId) {
     const aspect = img.naturalWidth / img.naturalHeight;
     let drawX, drawY, drawW, drawH;
 
-    // Full Body coronal dissection plate (768x1376, aspect ~0.558)
-    if (Math.abs(aspect - (768 / 1376)) < 0.03) {
+    // Exact 1000x1800 registered multi-layer dissection plate
+    if (img.naturalWidth === 1000 && img.naturalHeight === 1800) {
+      drawX = 0;
+      drawY = 0;
+      drawW = 1000;
+      drawH = 1800;
+    } else if (Math.abs(aspect - (768 / 1376)) < 0.03) {
       drawH = 1680;
       drawW = drawH * aspect; // 937.67
       drawX = 500 - (drawW / 2); // 31.16
@@ -3063,20 +3131,44 @@ export function initAnatomyAtlasLab(containerId) {
       const skinImg = (view === "anterior") ? imgAnterior : imgPosterior;
       const isImgReady = skinImg && skinImg.complete && skinImg.naturalWidth > 0;
 
-      if (isImgReady) {
-        // Master Coronal Dissection Plate (Uncompromised 8K Clarity - Single Pristine Figure)
-        drawPlateImageLayer(targetCtx, skinImg, 1.0, imagingMode);
+      if (view === "anterior") {
+        const hasLayers = bodyLayerImages.skin && bodyLayerImages.skin.complete && bodyLayerImages.skin.naturalWidth > 0;
+
+        if (hasLayers) {
+          // MULTI-LAYER 8K ANATOMICAL DISSECTION MATRIX (Registered Identical-Silhouette Strata)
+          // Render in anatomical order from deep to superficial based on active slider opacities:
+          if (layerOpacities.skeletal > 0.01) {
+            drawPlateImageLayer(targetCtx, bodyLayerImages.skeletal, layerOpacities.skeletal, imagingMode);
+          }
+          if (layerOpacities.visceral > 0.01) {
+            drawPlateImageLayer(targetCtx, bodyLayerImages.visceral, layerOpacities.visceral, imagingMode);
+          }
+          if (layerOpacities.circulatory > 0.01) {
+            drawPlateImageLayer(targetCtx, bodyLayerImages.circulatory, layerOpacities.circulatory, imagingMode);
+          }
+          if (layerOpacities.nervous > 0.01) {
+            drawPlateImageLayer(targetCtx, bodyLayerImages.nervous, layerOpacities.nervous, imagingMode);
+          }
+          if (layerOpacities.muscular > 0.01) {
+            drawPlateImageLayer(targetCtx, bodyLayerImages.muscular, layerOpacities.muscular, imagingMode);
+          }
+          if (layerOpacities.skin > 0.01) {
+            drawPlateImageLayer(targetCtx, bodyLayerImages.skin, layerOpacities.skin, imagingMode);
+          }
+        } else if (isImgReady) {
+          drawPlateImageLayer(targetCtx, skinImg, 1.0, imagingMode);
+        }
 
         // Physiological Dynamics (Realistic cardiac systole pulse & neuroaxis signal)
-        if (layerOpacities.circulatory > 0.1 && view === "anterior") {
+        if (layerOpacities.circulatory > 0.1) {
           targetCtx.save();
           const pulse = 1.0 + 0.12 * Math.sin(simTime * 8);
-          const cGrad = targetCtx.createRadialGradient(544, 507, 6, 544, 507, 50 * pulse);
+          const cGrad = targetCtx.createRadialGradient(500, 480, 6, 500, 480, 50 * pulse);
           cGrad.addColorStop(0, `rgba(239, 68, 68, ${0.42 * layerOpacities.circulatory})`);
           cGrad.addColorStop(1, "rgba(239, 68, 68, 0)");
           targetCtx.fillStyle = cGrad;
           targetCtx.beginPath();
-          targetCtx.arc(544, 507, 50 * pulse, 0, Math.PI * 2);
+          targetCtx.arc(500, 480, 50 * pulse, 0, Math.PI * 2);
           targetCtx.fill();
           targetCtx.restore();
         }
@@ -3094,15 +3186,19 @@ export function initAnatomyAtlasLab(containerId) {
           targetCtx.restore();
         }
       } else {
-        targetCtx.save();
-        targetCtx.fillStyle = "rgba(15, 23, 42, 0.75)";
-        targetCtx.roundRect(80, 80, 840, 1640, 16);
-        targetCtx.fill();
-        targetCtx.fillStyle = "#38bdf8";
-        targetCtx.font = "bold 26px -apple-system, sans-serif";
-        targetCtx.textAlign = "center";
-        targetCtx.fillText("Loading 8K Ultra-HD Anatomical Plate...", 500, 880);
-        targetCtx.restore();
+        if (isImgReady) {
+          drawPlateImageLayer(targetCtx, skinImg, 1.0, imagingMode);
+        } else {
+          targetCtx.save();
+          targetCtx.fillStyle = "rgba(15, 23, 42, 0.75)";
+          targetCtx.roundRect(80, 80, 840, 1640, 16);
+          targetCtx.fill();
+          targetCtx.fillStyle = "#38bdf8";
+          targetCtx.font = "bold 26px -apple-system, sans-serif";
+          targetCtx.textAlign = "center";
+          targetCtx.fillText("Loading 8K Ultra-HD Anatomical Plate...", 500, 880);
+          targetCtx.restore();
+        }
       }
     } else {
       // FOCUSED ORGAN / SYSTEM PLATE RENDERING
