@@ -1632,19 +1632,28 @@ export function initAnatomyAtlasLab(containerId) {
       targetCtx.filter = "none";
     }
 
-    const maxW = 900;
-    const maxH = 1680;
     const aspect = img.naturalWidth / img.naturalHeight;
-    let drawW, drawH;
-    if (aspect > (maxW / maxH)) {
-      drawW = maxW;
-      drawH = drawW / aspect;
+    let drawX, drawY, drawW, drawH;
+
+    // Full Body coronal dissection plate (768x1376, aspect ~0.558)
+    if (Math.abs(aspect - (768 / 1376)) < 0.03) {
+      drawH = 1680;
+      drawW = drawH * aspect; // 937.67
+      drawX = 500 - (drawW / 2); // 31.16
+      drawY = 55;
     } else {
-      drawH = maxH;
-      drawW = drawH * aspect;
+      const maxW = 920;
+      const maxH = 1600;
+      if (aspect > (maxW / maxH)) {
+        drawW = maxW;
+        drawH = drawW / aspect;
+      } else {
+        drawH = maxH;
+        drawW = drawH * aspect;
+      }
+      drawX = 500 - (drawW / 2);
+      drawY = 900 - (drawH / 2);
     }
-    const drawX = 500 - (drawW / 2);
-    const drawY = 900 - (drawH / 2);
 
     targetCtx.drawImage(img, drawX, drawY, drawW, drawH);
     targetCtx.restore();
@@ -2890,37 +2899,10 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.save();
     targetCtx.globalAlpha = Math.min(1.0, alpha);
 
-    // 1. Photographic 8K Skin Overlay clipped cleanly to body contour
     if (skinImg && skinImg.complete && skinImg.naturalWidth > 0) {
-      targetCtx.save();
-      buildHumanBodyPath(targetCtx);
-      targetCtx.clip();
-
-      if (mode === "xray") {
-        targetCtx.filter = "contrast(190%) invert(95%) hue-rotate(180deg) brightness(88%)";
-      } else if (mode === "angiogram") {
-        targetCtx.filter = "contrast(220%) saturate(160%) hue-rotate(145deg) brightness(115%)";
-      } else {
-        targetCtx.filter = "none";
-      }
-
-      const maxW = 900;
-      const maxH = 1680;
-      const aspect = skinImg.naturalWidth / skinImg.naturalHeight;
-      let drawW, drawH;
-      if (aspect > (maxW / maxH)) {
-        drawW = maxW;
-        drawH = drawW / aspect;
-      } else {
-        drawH = maxH;
-        drawW = drawH * aspect;
-      }
-      const drawX = 500 - (drawW / 2);
-      const drawY = 900 - (drawH / 2);
-      targetCtx.drawImage(skinImg, drawX, drawY, drawW, drawH);
-      targetCtx.restore();
+      drawPlateImageLayer(targetCtx, skinImg, alpha, mode);
     } else {
-      // Authentic dermal subsurface skin fill when photo is disabled
+      // Dermal subsurface skin fill when photo is disabled
       const skinGrad = targetCtx.createLinearGradient(500, 65, 500, 1720);
       skinGrad.addColorStop(0, "#f3d5ba");
       skinGrad.addColorStop(0.3, "#eac2a5");
@@ -2928,61 +2910,6 @@ export function initAnatomyAtlasLab(containerId) {
       skinGrad.addColorStop(1.0, "#d5a585");
       targetCtx.fillStyle = skinGrad;
       buildHumanBodyPath(targetCtx);
-      targetCtx.fill();
-    }
-
-    // 2. Crisp Medical Dermal Contour & Edge Highlighting
-    targetCtx.strokeStyle = "rgba(226, 178, 142, 0.85)";
-    targetCtx.lineWidth = 2.5;
-    buildHumanBodyPath(targetCtx);
-    targetCtx.stroke();
-
-    // 3. Anatomical Surface Landmarks
-    if (view === "anterior") {
-      targetCtx.fillStyle = "rgba(160, 110, 80, 0.55)";
-      // Suprasternal Notch
-      targetCtx.beginPath();
-      targetCtx.arc(500, 255, 3.5, 0, Math.PI * 2);
-      targetCtx.fill();
-
-      // Pectoral contours & Areola / Nipples
-      targetCtx.fillStyle = "rgba(180, 120, 95, 0.65)";
-      targetCtx.beginPath();
-      targetCtx.arc(442, 355, 4.5, 0, Math.PI * 2);
-      targetCtx.arc(558, 355, 4.5, 0, Math.PI * 2);
-      targetCtx.fill();
-
-      // Umbilicus (Navel at L3/L4 level) with dermal depression
-      targetCtx.fillStyle = "rgba(140, 90, 65, 0.75)";
-      targetCtx.beginPath();
-      targetCtx.ellipse(500, 620, 4, 5.5, 0, 0, Math.PI * 2);
-      targetCtx.fill();
-      targetCtx.strokeStyle = "rgba(120, 75, 50, 0.45)";
-      targetCtx.lineWidth = 1.5;
-      targetCtx.beginPath();
-      targetCtx.arc(500, 621, 6, 0.1 * Math.PI, 0.9 * Math.PI);
-      targetCtx.stroke();
-
-      // Inguinal Ligament Creases
-      targetCtx.strokeStyle = "rgba(160, 110, 80, 0.35)";
-      targetCtx.lineWidth = 2;
-      targetCtx.beginPath();
-      targetCtx.moveTo(432, 790); targetCtx.quadraticCurveTo(465, 835, 495, 855);
-      targetCtx.moveTo(568, 790); targetCtx.quadraticCurveTo(535, 835, 505, 855);
-      targetCtx.stroke();
-    } else {
-      // Posterior Landmarks: Nuchal furrow, vertebral furrow, dimples of Venus, gluteal cleft
-      targetCtx.strokeStyle = "rgba(160, 110, 80, 0.35)";
-      targetCtx.lineWidth = 2;
-      targetCtx.beginPath();
-      targetCtx.moveTo(500, 220); targetCtx.lineTo(500, 750); // Posterior median furrow
-      targetCtx.stroke();
-
-      // Dimples of Venus (PSIS surface landmarks)
-      targetCtx.fillStyle = "rgba(150, 100, 70, 0.5)";
-      targetCtx.beginPath();
-      targetCtx.arc(482, 745, 3, 0, Math.PI * 2);
-      targetCtx.arc(518, 745, 3, 0, Math.PI * 2);
       targetCtx.fill();
     }
 
@@ -3173,26 +3100,74 @@ export function initAnatomyAtlasLab(containerId) {
     const isFullBody = (activePlate === "full_anterior" || activePlate === "full_posterior");
 
     if (isFullBody) {
-      // 0. MULTI-LAYER ANATOMICAL DISSECTION MATRIX (Full Body Macro Studio)
+      // 0. MULTI-LAYER 8K ANATOMICAL DISSECTION MATRIX (Full Body Macro Studio)
       const skinImg = (view === "anterior") ? imgAnterior : imgPosterior;
+      const isImgReady = skinImg && skinImg.complete && skinImg.naturalWidth > 0;
 
-      // STRATUM 1 (Deepest): Skeletal System (206-Bone Osteology & Radiographic Framework)
-      drawSkeletalVector(targetCtx, view, layerOpacities.skeletal, imagingMode);
+      if (isImgReady) {
+        // Multi-Layer Cross-Fade & Photorealistic Medical Dissection Matrix
+        const isSkeletalIsolated = (layerOpacities.skeletal > 0.6 && layerOpacities.muscular < 0.2 && layerOpacities.skin < 0.2);
+        const isMuscularIsolated = (layerOpacities.muscular > 0.6 && layerOpacities.skeletal < 0.3 && layerOpacities.skin < 0.2);
 
-      // STRATUM 2: Splanchnic Internal Viscera (Thoracic & Abdominal Organs)
-      drawVisceralVector(targetCtx, view, layerOpacities.visceral);
+        if (isSkeletalIsolated && plateImages.skeletal && plateImages.skeletal.complete) {
+          drawPlateImageLayer(targetCtx, plateImages.skeletal, layerOpacities.skeletal, imagingMode);
+        } else if (isMuscularIsolated && plateImages.muscular && plateImages.muscular.complete) {
+          drawPlateImageLayer(targetCtx, plateImages.muscular, layerOpacities.muscular, imagingMode);
+        } else {
+          // Master Coronal Dissection Plate (Uncompromised 8K Clarity)
+          drawPlateImageLayer(targetCtx, skinImg, 1.0, imagingMode);
 
-      // STRATUM 3: Skeletal Muscular System (Superficial & Deep Myology)
-      drawMuscularVector(targetCtx, view, layerOpacities.muscular);
+          // Dynamic cross-fade blending when user emphasizes specific anatomical layers
+          if (layerOpacities.skeletal > 0.35 && plateImages.skeletal && plateImages.skeletal.complete && !isMuscularIsolated) {
+            targetCtx.save();
+            targetCtx.globalCompositeOperation = (imagingMode === "xray") ? "screen" : "source-over";
+            drawPlateImageLayer(targetCtx, plateImages.skeletal, layerOpacities.skeletal * 0.45, imagingMode);
+            targetCtx.restore();
+          }
+          if (layerOpacities.muscular > 0.5 && plateImages.muscular && plateImages.muscular.complete && !isSkeletalIsolated) {
+            targetCtx.save();
+            drawPlateImageLayer(targetCtx, plateImages.muscular, layerOpacities.muscular * 0.45, imagingMode);
+            targetCtx.restore();
+          }
+        }
 
-      // STRATUM 4: Superficial Integument & 8K Photo Skin Blending
-      drawSkinVector(targetCtx, view, layerOpacities.skin, skinImg, imagingMode);
+        // Physiological Dynamics (Realistic cardiac systole pulse & neuroaxis signal)
+        if (layerOpacities.circulatory > 0.1 && view === "anterior") {
+          targetCtx.save();
+          const pulse = 1.0 + 0.12 * Math.sin(simTime * 8);
+          const cGrad = targetCtx.createRadialGradient(544, 507, 6, 544, 507, 50 * pulse);
+          cGrad.addColorStop(0, `rgba(239, 68, 68, ${0.42 * layerOpacities.circulatory})`);
+          cGrad.addColorStop(1, "rgba(239, 68, 68, 0)");
+          targetCtx.fillStyle = cGrad;
+          targetCtx.beginPath();
+          targetCtx.arc(544, 507, 50 * pulse, 0, Math.PI * 2);
+          targetCtx.fill();
+          targetCtx.restore();
+        }
 
-      // STRATUM 5: Vasculature (Angiology - Pulsating Arterial & Venous Trees)
-      drawVascularVector(targetCtx, view, layerOpacities.circulatory, imagingMode);
-
-      // STRATUM 6: Bioelectric Nervous System Axis (Central & Peripheral Neuroaxis)
-      drawNervousVector(targetCtx, view, layerOpacities.nervous);
+        if (layerOpacities.nervous > 0.1) {
+          targetCtx.save();
+          const apPos = (simTime * 350) % 550;
+          const nGrad = targetCtx.createRadialGradient(500, 260 + apPos, 2, 500, 260 + apPos, 16);
+          nGrad.addColorStop(0, `rgba(56, 189, 248, ${0.65 * layerOpacities.nervous})`);
+          nGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
+          targetCtx.fillStyle = nGrad;
+          targetCtx.beginPath();
+          targetCtx.arc(500, 260 + apPos, 16, 0, Math.PI * 2);
+          targetCtx.fill();
+          targetCtx.restore();
+        }
+      } else {
+        targetCtx.save();
+        targetCtx.fillStyle = "rgba(15, 23, 42, 0.75)";
+        targetCtx.roundRect(80, 80, 840, 1640, 16);
+        targetCtx.fill();
+        targetCtx.fillStyle = "#38bdf8";
+        targetCtx.font = "bold 26px -apple-system, sans-serif";
+        targetCtx.textAlign = "center";
+        targetCtx.fillText("Loading 8K Ultra-HD Anatomical Plate...", 500, 880);
+        targetCtx.restore();
+      }
     } else {
       // FOCUSED ORGAN / SYSTEM PLATE RENDERING
       const activeImg = plateImages[activePlate] || ((view === "anterior") ? imgAnterior : imgPosterior);
