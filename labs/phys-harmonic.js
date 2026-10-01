@@ -998,6 +998,9 @@ export function initHarmonicLab(containerId) {
       if (Math.abs(coords.x - CX) < 60 && Math.abs(coords.y - massY) < 50) {
         isDragging = true;
         canvas.style.cursor = "grabbing";
+        if (evt && evt.pointerId !== undefined && canvas.setPointerCapture) {
+          try { canvas.setPointerCapture(evt.pointerId); } catch (e) {}
+        }
         SoundFX.playClick();
       }
     } else {
@@ -1008,6 +1011,9 @@ export function initHarmonicLab(containerId) {
       if (Math.hypot(coords.x - bobX, coords.y - bobY) < 45) {
         isDragging = true;
         canvas.style.cursor = "grabbing";
+        if (evt && evt.pointerId !== undefined && canvas.setPointerCapture) {
+          try { canvas.setPointerCapture(evt.pointerId); } catch (e) {}
+        }
         SoundFX.playClick();
       }
     }
@@ -1017,6 +1023,13 @@ export function initHarmonicLab(containerId) {
     if (!container || !container.isConnected) {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+      window.removeEventListener("blur", handlePointerUp);
+      return;
+    }
+    // Defensive check: if pointer button is released, stop dragging immediately
+    if (evt.buttons !== undefined && evt.buttons === 0 && isDragging) {
+      handlePointerUp(evt);
       return;
     }
     const coords = getCanvasCoords(evt);
@@ -1054,10 +1067,15 @@ export function initHarmonicLab(containerId) {
     updateDisplayMetrics();
   }
 
-  function handlePointerUp() {
+  function handlePointerUp(evt) {
+    if (evt && evt.pointerId !== undefined && canvas.releasePointerCapture) {
+      try { canvas.releasePointerCapture(evt.pointerId); } catch (e) {}
+    }
     if (!container || !container.isConnected) {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
+      window.removeEventListener("blur", handlePointerUp);
       return;
     }
     if (isDragging) {
@@ -1073,6 +1091,8 @@ export function initHarmonicLab(containerId) {
   canvas.addEventListener("pointerdown", handlePointerDown);
   window.addEventListener("pointermove", handlePointerMove);
   window.addEventListener("pointerup", handlePointerUp);
+  window.addEventListener("pointercancel", handlePointerUp);
+  window.addEventListener("blur", handlePointerUp);
 
   // --- EVENT LISTENERS ---
   const btnSim = container.querySelector("#view-mode-shm-sim");
@@ -1321,6 +1341,8 @@ export function initHarmonicLab(containerId) {
     canvas.removeEventListener("pointerdown", handlePointerDown);
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
+    window.removeEventListener("pointercancel", handlePointerUp);
+    window.removeEventListener("blur", handlePointerUp);
   };
   _currentHarmonicCleanup = cleanup;
   return cleanup;
