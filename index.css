@@ -2472,7 +2472,7 @@ body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
 #smartboard-draw-canvas.drawing-active {
   pointer-events: auto;
   cursor: crosshair;
-  z-index: 200090 !important;
+  z-index: 200080 !important;
 }
 
 /* Floating Smartboard Pen Bar - Collapsible / Auto-Hide */
@@ -2480,7 +2480,7 @@ body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 200080 !important;
+  z-index: 200100 !important;
   background: rgba(15, 23, 42, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -2498,62 +2498,6 @@ body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
   opacity: 0;
   pointer-events: none;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-/* Prominent 'Let Pen Go' Button on Smartboard Toolbar */
-.sb-release-pen-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 14px;
-  height: 38px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  border-radius: var(--radius-full, 9999px);
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35));
-  border: 1.5px solid rgba(245, 158, 11, 0.7);
-  color: #fbbf24;
-  cursor: pointer;
-  white-space: nowrap;
-  user-select: none;
-  -webkit-user-select: none;
-  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  animation: sb-pulse-release 2.2s infinite ease-in-out;
-}
-
-.sb-release-pen-btn:hover {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.4), rgba(217, 119, 6, 0.55));
-  border-color: #f59e0b;
-  color: #ffffff;
-  transform: scale(1.04);
-  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
-}
-
-.sb-release-pen-btn:active {
-  transform: scale(0.96);
-}
-
-@keyframes sb-pulse-release {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
-  }
-}
-
-[data-theme="day"] .sb-release-pen-btn {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  border-color: #d97706;
-  color: #92400e;
-  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.2);
-}
-
-[data-theme="day"] .sb-release-pen-btn:hover {
-  background: linear-gradient(135deg, #fde68a, #fcd34d);
-  color: #78350f;
 }
 
 /* Pen Bar Visible State */
@@ -2594,7 +2538,7 @@ body.mode-smartboard .smartboard-pen-bar:not(.sb-hidden),
   background: rgba(15, 23, 42, 0.97) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
-  z-index: 200080 !important;
+  z-index: 200100 !important;
 }
 
 [data-theme="day"] .smartboard-pen-bar.sb-is-docked {
@@ -2632,7 +2576,7 @@ body.modal-open .sb-toolbar-toggle {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  z-index: 200075 !important;
+  z-index: 200100 !important;
   width: 48px;
   height: 48px;
   border-radius: 50%;

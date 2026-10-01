@@ -32,18 +32,13 @@ export function initSmartboardToolbar() {
         </svg>
       </div>
 
-      <!-- Mouse Pointer / Release Pen -->
-      <button class="icon-action-btn" id="sb-tool-pointer" title="Mouse Pointer / Interact Mode (Let Pen Go)" aria-label="Mouse pointer mode (release pen)" style="border-radius: 9999px;">
+      <!-- Mouse Pointer / Select Tool -->
+      <button class="icon-action-btn active" id="sb-tool-pointer" title="Mouse Pointer / Select Tool" aria-label="Mouse pointer select mode" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7 18 3-7 8-3L3 3Z"/></svg>
       </button>
 
-      <!-- Prominent 'Let Pen Go' Button (Visible when Pen/Highlighter/Eraser active) -->
-      <button class="sb-release-pen-btn" id="sb-tool-release-pen" title="Release drawing pen and interact with lesson controls (Esc)" aria-label="Release drawing pen and interact with lesson controls" style="display: none;">
-        <span>✋ Let Pen Go</span>
-      </button>
-
       <!-- Drawing Pen -->
-      <button class="icon-action-btn active" id="sb-tool-pen" title="Drawing Pen (Click to Toggle On/Off)" aria-label="Drawing pen tool" style="border-radius: 9999px;">
+      <button class="icon-action-btn" id="sb-tool-pen" title="Drawing Pen" aria-label="Drawing pen tool" style="border-radius: 9999px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
       </button>
 
@@ -278,7 +273,6 @@ export function initSmartboardToolbar() {
 
   // DOM Elements
   const toolPointer = document.getElementById("sb-tool-pointer");
-  const toolReleasePen = document.getElementById("sb-tool-release-pen");
   const toolPen = document.getElementById("sb-tool-pen");
   const toolHighlighter = document.getElementById("sb-tool-highlighter");
   const toolSize = document.getElementById("sb-tool-size");
@@ -412,14 +406,11 @@ export function initSmartboardToolbar() {
       if (b !== toolSize) b.classList.remove("active");
     });
 
-    const releaseBtn = document.getElementById("sb-tool-release-pen");
-
     if (mode === "pointer") {
       toolPointer.classList.add("active");
       canvas.classList.remove("drawing-active");
       isDrawing = false;
       hasMoved = false;
-      if (releaseBtn) releaseBtn.style.display = "none";
       // If canvas is blank, hide it completely to free 100% of 4K GPU fill-rate during site navigation
       if (!hasDrawings) {
         canvas.style.display = "none";
@@ -429,7 +420,6 @@ export function initSmartboardToolbar() {
     } else {
       canvas.style.display = "block";
       canvas.classList.add("drawing-active");
-      if (releaseBtn) releaseBtn.style.display = "inline-flex";
       if (mode === "pen") {
         toolPen.classList.add("active");
       } else if (mode === "highlighter") {
@@ -802,61 +792,30 @@ export function initSmartboardToolbar() {
     });
   }
 
-  // Tool Selectors
-  toolPointer.addEventListener("click", () => {
+  // Tool Selectors - Allow clean selection of mouse pointer or drawing tools
+  toolPointer.addEventListener("click", (e) => {
+    e.stopPropagation();
     closeSizePopover();
     SoundFX.playPop();
     updateMode("pointer");
-    import("../utils/toast.js").then(m => {
-      m.showToast("✋ Pen released — Interactive mode active", "info", 1800);
-    });
   });
 
-  if (toolReleasePen) {
-    toolReleasePen.addEventListener("click", () => {
-      closeSizePopover();
-      SoundFX.playPop();
-      updateMode("pointer");
-      import("../utils/toast.js").then(m => {
-        m.showToast("✋ Pen released — Interactive mode active", "info", 1800);
-      });
-    });
-  }
-
-  toolPen.addEventListener("click", () => {
+  toolPen.addEventListener("click", (e) => {
+    e.stopPropagation();
     closeSizePopover();
-    if (currentTool === "pen") {
-      SoundFX.playPop();
-      updateMode("pointer");
-      import("../utils/toast.js").then(m => {
-        m.showToast("✋ Pen released — Interactive mode active", "info", 1800);
-      });
-    } else {
-      updateMode("pen");
-    }
+    updateMode("pen");
   });
 
-  toolHighlighter.addEventListener("click", () => {
+  toolHighlighter.addEventListener("click", (e) => {
+    e.stopPropagation();
     closeSizePopover();
-    if (currentTool === "highlighter") {
-      SoundFX.playPop();
-      updateMode("pointer");
-      import("../utils/toast.js").then(m => {
-        m.showToast("✋ Highlighter released — Interactive mode active", "info", 1800);
-      });
-    } else {
-      updateMode("highlighter");
-    }
+    updateMode("highlighter");
   });
 
-  toolEraser.addEventListener("click", () => {
+  toolEraser.addEventListener("click", (e) => {
+    e.stopPropagation();
     closeSizePopover();
-    if (currentTool === "eraser") {
-      SoundFX.playPop();
-      updateMode("pointer");
-    } else {
-      updateMode("eraser");
-    }
+    updateMode("eraser");
   });
 
   toolSize.addEventListener("click", (e) => {
@@ -930,6 +889,9 @@ export function initSmartboardToolbar() {
 
   function startDraw(e) {
     if (currentTool === "pointer") return;
+    if (e.target && (e.target.closest("#smartboard-pen-bar") || e.target.closest(".sb-toolbar-toggle") || e.target.closest(".sb-palette-popover") || e.target.closest(".sb-size-popover") || e.target.closest(".sb-ruler-widget") || e.target.closest(".sb-protractor-widget"))) {
+      return;
+    }
     closeSizePopover();
     isDrawing = true;
     hasMoved = false;
@@ -2519,9 +2481,6 @@ export function initSmartboardToolbar() {
     } else if (e.key === "Escape") {
       if (currentTool !== "pointer") {
         updateMode("pointer");
-        import("../utils/toast.js").then(m => {
-          m.showToast("✋ Pen released — Interactive mode active", "info", 1800);
-        });
         return;
       }
       if (protractorWidget.style.display !== "none") {

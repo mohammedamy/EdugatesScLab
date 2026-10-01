@@ -89,35 +89,6 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     if (btn) btn.title = isDisplayFs ? 'Exit Hardware Display Fullscreen (Esc)' : 'Expand to Fullscreen Display / Smartboard Kiosk Mode';
   }
 
-  function syncAnnotateButton(mode) {
-    const btnAnnotate = document.getElementById("btn-header-annotate-modal");
-    if (!btnAnnotate) return;
-    const isDrawing = mode !== undefined
-      ? mode !== "pointer"
-      : (window.smartboardToolbar && typeof window.smartboardToolbar.getMode === "function"
-          ? window.smartboardToolbar.getMode() !== "pointer"
-          : !!document.getElementById("smartboard-draw-canvas")?.classList.contains("drawing-active"));
-
-    const label = document.getElementById("btn-annotate-label");
-    if (isDrawing) {
-      if (label) label.textContent = "✋ Let Pen Go";
-      btnAnnotate.title = "Release drawing pen and interact with lesson controls (Esc)";
-      btnAnnotate.style.background = "rgba(16, 185, 129, 0.2)";
-      btnAnnotate.style.borderColor = "rgba(16, 185, 129, 0.5)";
-      btnAnnotate.style.color = "#34d399";
-    } else {
-      if (label) label.textContent = "✏️ Annotate";
-      btnAnnotate.title = "Toggle Smartboard Drawing Pen & Highlighter over simulation";
-      btnAnnotate.style.background = "rgba(245, 158, 11, 0.15)";
-      btnAnnotate.style.borderColor = "rgba(245, 158, 11, 0.35)";
-      btnAnnotate.style.color = "#fbbf24";
-    }
-  }
-
-  function handleModeChange(e) {
-    syncAnnotateButton(e.detail?.mode);
-  }
-
   function closeModal() {
     if (typeof currentLabCleanup === "function") {
       currentLabCleanup();
@@ -128,14 +99,13 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     cleanupLessonInteractive("lab-lesson-sim-container");
     cleanupLessonInteractive("embedded-module-lab-mount");
     document.removeEventListener("keydown", handleKeydown);
-    window.removeEventListener("smartboard-mode-change", handleModeChange);
     if (typeof syncFullscreenButton === "function") {
       document.removeEventListener("fullscreenchange", syncFullscreenButton);
       document.removeEventListener("webkitfullscreenchange", syncFullscreenButton);
     }
-    // Release drawing mode and reset canvas pointer events on close
-    if (window.smartboardToolbar && typeof window.smartboardToolbar.releasePen === "function") {
-      window.smartboardToolbar.releasePen();
+    // Reset toolbar to pointer mode and clear canvas pointer events on close
+    if (window.smartboardToolbar && typeof window.smartboardToolbar.setMode === "function") {
+      window.smartboardToolbar.setMode("pointer");
     }
     const canvas = document.getElementById("smartboard-draw-canvas");
     if (canvas) {
@@ -169,16 +139,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
 
   document.addEventListener("fullscreenchange", syncFullscreenButton);
   document.addEventListener("webkitfullscreenchange", syncFullscreenButton);
-  window.addEventListener("smartboard-mode-change", handleModeChange);
 
   function handleKeydown(e) {
     if (e.key === "Escape") {
-      // If drawing mode is active, release pen first rather than exiting entire lesson
-      if (window.smartboardToolbar && typeof window.smartboardToolbar.getMode === "function" && window.smartboardToolbar.getMode() !== "pointer") {
-        window.smartboardToolbar.releasePen();
-        syncAnnotateButton("pointer");
-        return;
-      }
       closeModal();
       return;
     }
@@ -230,7 +193,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
           </div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             <button class="btn btn-secondary btn-header-annotate" id="btn-header-annotate-modal" title="Toggle Smartboard Drawing Pen &amp; Highlighter over simulation" aria-label="Toggle In-Class Annotation" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; cursor: pointer;">
-              <span id="btn-annotate-label">✏️ Annotate</span>
+              <span>✏️ Annotate</span>
             </button>
             <button class="btn btn-secondary btn-header-fullscreen" id="btn-header-fullscreen-modal" title="Toggle Fullscreen Display / Kiosk Mode" aria-label="Toggle Fullscreen Display" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
               <span id="btn-fs-icon">⛶</span>
@@ -318,44 +281,22 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     // Annotate Button (Smartboard Toolbar)
     const btnAnnotate = document.getElementById("btn-header-annotate-modal");
     if (btnAnnotate) {
-      syncAnnotateButton();
       btnAnnotate.addEventListener("click", () => {
         try { SoundFX.playPop(); } catch (e) {}
-        const isDrawing = window.smartboardToolbar && typeof window.smartboardToolbar.getMode === "function"
-          ? window.smartboardToolbar.getMode() !== "pointer"
-          : !!document.getElementById("smartboard-draw-canvas")?.classList.contains("drawing-active");
-
-        if (isDrawing) {
-          if (window.smartboardToolbar && typeof window.smartboardToolbar.releasePen === "function") {
-            window.smartboardToolbar.releasePen();
-          } else {
-            const pBtn = document.getElementById("sb-tool-pointer");
-            if (pBtn) pBtn.click();
-          }
-          syncAnnotateButton("pointer");
-          import("../utils/toast.js").then(m => {
-            m.showToast("✋ Pen released — Interactive mode active", "info", 1800);
-          });
+        const pBar = document.getElementById("smartboard-pen-bar");
+        if (pBar) {
+          pBar.classList.remove("sb-modal-docked");
+          pBar.classList.remove("sb-hidden");
+          pBar.classList.add("visible");
+          pBar.style.transform = "translateY(0)";
+          pBar.style.opacity = "1";
+          pBar.style.pointerEvents = "auto";
+        }
+        if (window.smartboardToolbar && typeof window.smartboardToolbar.setMode === "function") {
+          window.smartboardToolbar.setMode("pen");
         } else {
-          const pBar = document.getElementById("smartboard-pen-bar");
-          if (pBar) {
-            pBar.classList.remove("sb-modal-docked");
-            pBar.classList.remove("sb-hidden");
-            pBar.classList.add("visible");
-            pBar.style.transform = "translateY(0)";
-            pBar.style.opacity = "1";
-            pBar.style.pointerEvents = "auto";
-          }
-          if (window.smartboardToolbar && typeof window.smartboardToolbar.setMode === "function") {
-            window.smartboardToolbar.setMode("pen");
-          } else {
-            const penBtn = document.getElementById("sb-tool-pen");
-            if (penBtn) penBtn.click();
-          }
-          syncAnnotateButton("pen");
-          import("../utils/toast.js").then(m => {
-            m.showToast("✏️ Smartboard Pen active — Draw or highlight anywhere on the lesson", "info", 2600);
-          });
+          const penBtn = document.getElementById("sb-tool-pen");
+          if (penBtn) penBtn.click();
         }
       });
     }
