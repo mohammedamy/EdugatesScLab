@@ -49,6 +49,27 @@ export function initAnatomyAtlasLab(containerId) {
     nervous: 0.90
   };
 
+  // Helper to determine active opacity of any anatomical structure based on its layer & system
+  function getStructureOpacity(s) {
+    if (!s) return 1.0;
+    if (s.layer === 1) return layerOpacities.skin;
+    if (s.layer === 2) return layerOpacities.muscular;
+    if (s.layer === 3) return layerOpacities.skeletal;
+    if (s.layer === 4) return layerOpacities.visceral;
+    if (s.layer === 5) return layerOpacities.circulatory;
+    if (s.layer === 6) return layerOpacities.nervous;
+
+    if (s.system === "integumentary") return layerOpacities.skin;
+    if (s.system === "muscular") return layerOpacities.muscular;
+    if (s.system === "skeletal") return layerOpacities.skeletal;
+    if (s.system === "circulatory") return layerOpacities.circulatory;
+    if (s.system === "nervous") return layerOpacities.nervous;
+    if (s.system === "digestive" || s.system === "respiratory" || s.system === "urinary" || s.system === "endocrine" || s.system === "lymphatic") {
+      return layerOpacities.visceral;
+    }
+    return 1.0;
+  }
+
   // 4K Pan & Zoom viewport transform
   let zoom = 1.0;
   let panX = 0;
@@ -186,7 +207,7 @@ export function initAnatomyAtlasLab(containerId) {
 
   // Pick new quiz target
   function selectNewQuizTarget() {
-    const visible = getVisibleStructures(activePlate, activeView);
+    const visible = getVisibleStructures(activePlate, activeView).filter(s => getStructureOpacity(s) >= 0.15);
     const candidates = visible.length > 0 ? visible : ANATOMICAL_STRUCTURES;
     quizState.targetStructure = candidates[Math.floor(Math.random() * candidates.length)];
     quizState.feedbackMsg = `Tap or click the pin for: "${quizState.targetStructure.name}" (${quizState.targetStructure.latinName})`;
@@ -364,14 +385,20 @@ export function initAnatomyAtlasLab(containerId) {
                 <span style="font-size: 0.72rem; color: #64748b; font-style: italic;">(Drag sliders to peel anatomical strata)</span>
               </div>
               <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-                <button id="btn-isolate-skeletal" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 3px 9px;">
-                  💀 Isolate Skeleton
+                <button id="btn-isolate-skeletal" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 3px 9px;" title="Isolate 206-Bone Skeleton">
+                  💀 Skeleton
                 </button>
-                <button id="btn-isolate-viscera" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 3px 9px;">
-                  🫀 Isolate Viscera
+                <button id="btn-isolate-muscular" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 3px 9px;" title="Isolate Muscular System">
+                  💪 Muscular
                 </button>
-                <button id="btn-reset-layers" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 3px 9px;">
-                  🔄 Reset Layers
+                <button id="btn-isolate-viscera" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 3px 9px;" title="Isolate Splanchnic Viscera">
+                  🍽️ Viscera
+                </button>
+                <button id="btn-isolate-neuro" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 3px 9px;" title="Isolate Neurovascular Tree">
+                  ⚡ Neurovascular
+                </button>
+                <button id="btn-reset-layers" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 3px 9px;" title="Reset All Layer Strata">
+                  🔄 Reset All
                 </button>
               </div>
             </div>
@@ -615,24 +642,63 @@ export function initAnatomyAtlasLab(containerId) {
 
   // Quick Layer Isolators
   document.getElementById("btn-isolate-skeletal")?.addEventListener("click", () => {
-    layerOpacities.skin = 0.05;
-    layerOpacities.muscular = 0.1;
+    SoundFX.playPop();
+    layerOpacities.skin = 0.0;
+    layerOpacities.muscular = 0.0;
     layerOpacities.skeletal = 1.0;
-    layerOpacities.visceral = 0.05;
+    layerOpacities.visceral = 0.0;
+    layerOpacities.circulatory = 0.05;
+    layerOpacities.nervous = 0.05;
+    syncSliders();
+    if (canvasModeText) {
+      canvasModeText.innerText = "💀 Skeletal System Isolated • Pure 206-Bone Osteology Dissection";
+    }
+  });
+
+  document.getElementById("btn-isolate-muscular")?.addEventListener("click", () => {
+    SoundFX.playPop();
+    layerOpacities.skin = 0.0;
+    layerOpacities.muscular = 1.0;
+    layerOpacities.skeletal = 0.35;
+    layerOpacities.visceral = 0.0;
     layerOpacities.circulatory = 0.1;
     layerOpacities.nervous = 0.1;
     syncSliders();
+    if (canvasModeText) {
+      canvasModeText.innerText = "💪 Muscular System Isolated • Superficial & Deep Skeletal Myology";
+    }
   });
+
   document.getElementById("btn-isolate-viscera")?.addEventListener("click", () => {
-    layerOpacities.skin = 0.05;
-    layerOpacities.muscular = 0.1;
-    layerOpacities.skeletal = 0.2;
+    SoundFX.playPop();
+    layerOpacities.skin = 0.0;
+    layerOpacities.muscular = 0.05;
+    layerOpacities.skeletal = 0.25;
     layerOpacities.visceral = 1.0;
-    layerOpacities.circulatory = 0.7;
-    layerOpacities.nervous = 0.3;
+    layerOpacities.circulatory = 0.85;
+    layerOpacities.nervous = 0.25;
     syncSliders();
+    if (canvasModeText) {
+      canvasModeText.innerText = "🍽️ Splanchnic Viscera Isolated • Thoracic & Abdominal Internal Organs";
+    }
   });
+
+  document.getElementById("btn-isolate-neuro")?.addEventListener("click", () => {
+    SoundFX.playPop();
+    layerOpacities.skin = 0.0;
+    layerOpacities.muscular = 0.0;
+    layerOpacities.skeletal = 0.25;
+    layerOpacities.visceral = 0.0;
+    layerOpacities.circulatory = 1.0;
+    layerOpacities.nervous = 1.0;
+    syncSliders();
+    if (canvasModeText) {
+      canvasModeText.innerText = "⚡ Neurovascular Matrix Isolated • Angiology & Neural Conduction Networks";
+    }
+  });
+
   document.getElementById("btn-reset-layers")?.addEventListener("click", () => {
+    SoundFX.playPop();
     layerOpacities.skin = 0.25;
     layerOpacities.muscular = 0.85;
     layerOpacities.skeletal = 0.95;
@@ -640,15 +706,18 @@ export function initAnatomyAtlasLab(containerId) {
     layerOpacities.circulatory = 1.0;
     layerOpacities.nervous = 0.90;
     syncSliders();
+    if (canvasModeText) {
+      canvasModeText.innerText = "All Anatomical Strata Balanced • 6-Layer Multi-System Composite";
+    }
   });
 
   function syncSliders() {
-    if (rngSkin) { rngSkin.value = layerOpacities.skin * 100; document.getElementById("val-skin").innerText = `${Math.round(layerOpacities.skin * 100)}%`; }
-    if (rngMuscular) { rngMuscular.value = layerOpacities.muscular * 100; document.getElementById("val-muscular").innerText = `${Math.round(layerOpacities.muscular * 100)}%`; }
-    if (rngSkeletal) { rngSkeletal.value = layerOpacities.skeletal * 100; document.getElementById("val-skeletal").innerText = `${Math.round(layerOpacities.skeletal * 100)}%`; }
-    if (rngVisceral) { rngVisceral.value = layerOpacities.visceral * 100; document.getElementById("val-visceral").innerText = `${Math.round(layerOpacities.visceral * 100)}%`; }
-    if (rngCirculatory) { rngCirculatory.value = layerOpacities.circulatory * 100; document.getElementById("val-circulatory").innerText = `${Math.round(layerOpacities.circulatory * 100)}%`; }
-    if (rngNervous) { rngNervous.value = layerOpacities.nervous * 100; document.getElementById("val-nervous").innerText = `${Math.round(layerOpacities.nervous * 100)}%`; }
+    if (rngSkin) { rngSkin.value = Math.round(layerOpacities.skin * 100); document.getElementById("val-skin").innerText = `${Math.round(layerOpacities.skin * 100)}%`; }
+    if (rngMuscular) { rngMuscular.value = Math.round(layerOpacities.muscular * 100); document.getElementById("val-muscular").innerText = `${Math.round(layerOpacities.muscular * 100)}%`; }
+    if (rngSkeletal) { rngSkeletal.value = Math.round(layerOpacities.skeletal * 100); document.getElementById("val-skeletal").innerText = `${Math.round(layerOpacities.skeletal * 100)}%`; }
+    if (rngVisceral) { rngVisceral.value = Math.round(layerOpacities.visceral * 100); document.getElementById("val-visceral").innerText = `${Math.round(layerOpacities.visceral * 100)}%`; }
+    if (rngCirculatory) { rngCirculatory.value = Math.round(layerOpacities.circulatory * 100); document.getElementById("val-circulatory").innerText = `${Math.round(layerOpacities.circulatory * 100)}%`; }
+    if (rngNervous) { rngNervous.value = Math.round(layerOpacities.nervous * 100); document.getElementById("val-nervous").innerText = `${Math.round(layerOpacities.nervous * 100)}%`; }
   }
 
   // Focus camera directly on selected structure
@@ -750,6 +819,48 @@ export function initAnatomyAtlasLab(containerId) {
     // Reset viewport zoom/pan to centered view
     focusCameraOnCoords(500, 900, 1.0);
     if (zoomBadge) zoomBadge.innerText = "1.0×";
+
+    // Intelligent layer opacity adaptation for dedicated plates
+    if (plateKey === "skeletal") {
+      layerOpacities.skeletal = 1.0;
+      layerOpacities.skin = 0.0;
+      layerOpacities.muscular = 0.05;
+      layerOpacities.visceral = 0.0;
+      syncSliders();
+    } else if (plateKey === "muscular") {
+      layerOpacities.muscular = 1.0;
+      layerOpacities.skin = 0.0;
+      layerOpacities.skeletal = 0.35;
+      layerOpacities.visceral = 0.0;
+      syncSliders();
+    } else if (plateKey === "digestive") {
+      layerOpacities.visceral = 1.0;
+      layerOpacities.skeletal = 0.2;
+      layerOpacities.skin = 0.0;
+      layerOpacities.muscular = 0.0;
+      syncSliders();
+    } else if (plateKey === "heart") {
+      layerOpacities.circulatory = 1.0;
+      layerOpacities.visceral = 1.0;
+      layerOpacities.skin = 0.0;
+      syncSliders();
+    } else if (plateKey === "brain") {
+      layerOpacities.nervous = 1.0;
+      layerOpacities.skin = 0.0;
+      syncSliders();
+    } else if (plateKey === "lungs") {
+      layerOpacities.visceral = 1.0;
+      layerOpacities.skin = 0.0;
+      syncSliders();
+    } else if (plateKey === "full_anterior" || plateKey === "full_posterior") {
+      layerOpacities.skin = 0.25;
+      layerOpacities.muscular = 0.85;
+      layerOpacities.skeletal = 0.95;
+      layerOpacities.visceral = 1.0;
+      layerOpacities.circulatory = 1.0;
+      layerOpacities.nervous = 0.90;
+      syncSliders();
+    }
 
     // Auto-select relevant structure
     const candidate = ANATOMICAL_STRUCTURES.find(s => s.plate === plateKey) ||
@@ -1013,7 +1124,7 @@ export function initAnatomyAtlasLab(containerId) {
       const coords = getCanvasCoords(e);
       const norm = canvasToNormalizedCoords(coords.x, coords.y, coords.width, coords.height);
       const hitRadius = 36 / zoom; // Screen pixel normalized radius
-      const visible = getVisibleStructures(activePlate, activeView);
+      const visible = getVisibleStructures(activePlate, activeView).filter(s => getStructureOpacity(s) >= 0.12);
       const found = visible.find(s => {
         const dx = s.coords.x - norm.x;
         const dy = s.coords.y - norm.y;
@@ -1168,7 +1279,7 @@ export function initAnatomyAtlasLab(containerId) {
     const coords = getCanvasCoords(e);
     const norm = canvasToNormalizedCoords(coords.x, coords.y, coords.width, coords.height);
     const hitRadius = 40 / zoom;
-    const visible = getVisibleStructures(activePlate, activeView);
+    const visible = getVisibleStructures(activePlate, activeView).filter(s => getStructureOpacity(s) >= 0.12);
     const clicked = visible.find(s => {
       const dx = s.coords.x - norm.x;
       const dy = s.coords.y - norm.y;
@@ -1493,206 +1604,261 @@ export function initAnatomyAtlasLab(containerId) {
   });
 
   // ----------------------------------------------------
-  // 8K ULTRA-HD MEDICAL DISSECTION ENGINE
+  // 8K ULTRA-HD MEDICAL DISSECTION & COMPOSITING ENGINE
   // ----------------------------------------------------
+  function drawPlateImageLayer(targetCtx, img, alpha, filterMode = null) {
+    if (!img || !img.complete || img.naturalWidth <= 0 || alpha <= 0.005) return;
+    targetCtx.save();
+    targetCtx.globalAlpha = Math.min(1.0, Math.max(0, alpha));
+    targetCtx.imageSmoothingEnabled = true;
+    targetCtx.imageSmoothingQuality = "high";
+
+    if (filterMode === "xray") {
+      targetCtx.filter = "contrast(190%) invert(95%) hue-rotate(180deg) brightness(88%)";
+    } else if (filterMode === "angiogram") {
+      targetCtx.filter = "contrast(220%) saturate(160%) hue-rotate(145deg) brightness(115%)";
+    } else {
+      targetCtx.filter = "none";
+    }
+
+    const maxW = 900;
+    const maxH = 1680;
+    const aspect = img.naturalWidth / img.naturalHeight;
+    let drawW, drawH;
+    if (aspect > (maxW / maxH)) {
+      drawW = maxW;
+      drawH = drawW / aspect;
+    } else {
+      drawH = maxH;
+      drawW = drawH * aspect;
+    }
+    const drawX = 500 - (drawW / 2);
+    const drawY = 900 - (drawH / 2);
+
+    targetCtx.drawImage(img, drawX, drawY, drawW, drawH);
+    targetCtx.restore();
+  }
+
   function drawHumanBodyVector(targetCtx, renderScale = 1.0, view = "anterior") {
     targetCtx.save();
     targetCtx.scale(renderScale, renderScale);
 
-    // 0. PRIMARY 8K ULTRA-HD MEDICAL DISSECTION PLATE
-    const activeImg = plateImages[activePlate] || ((view === "anterior") ? imgAnterior : imgPosterior);
-    const isImgReady = activeImg && activeImg.complete && activeImg.naturalWidth > 0;
-
-    if (isImgReady) {
-      targetCtx.save();
-      targetCtx.imageSmoothingEnabled = true;
-      targetCtx.imageSmoothingQuality = "high";
-
-      // Apply imaging contrast mode shaders
-      if (imagingMode === "xray") {
-        targetCtx.filter = "contrast(190%) invert(95%) hue-rotate(180deg) brightness(88%)";
-      } else if (imagingMode === "angiogram") {
-        targetCtx.filter = "contrast(220%) saturate(160%) hue-rotate(145deg) brightness(115%)";
-      } else {
-        targetCtx.filter = "none";
-      }
-
-      // Exact 1000 x 1800 coordinate space calibration (scales properly based on aspect ratio)
-      const maxW = 900;
-      const maxH = 1680;
-      const aspect = activeImg.naturalWidth / activeImg.naturalHeight;
-      let drawW, drawH;
-      if (aspect > (maxW / maxH)) {
-        drawW = maxW;
-        drawH = drawW / aspect;
-      } else {
-        drawH = maxH;
-        drawW = drawH * aspect;
-      }
-      const drawX = 500 - (drawW / 2);
-      const drawY = 900 - (drawH / 2);
-
-      targetCtx.drawImage(activeImg, drawX, drawY, drawW, drawH);
-      targetCtx.restore();
-    } else {
-      // High-Tech Clinical Loading Shimmer
-      targetCtx.save();
-      targetCtx.fillStyle = "rgba(15, 23, 42, 0.75)";
-      targetCtx.roundRect(80, 80, 840, 1640, 16);
-      targetCtx.fill();
-      targetCtx.fillStyle = "#38bdf8";
-      targetCtx.font = "bold 26px -apple-system, sans-serif";
-      targetCtx.textAlign = "center";
-      const plateName = ANATOMICAL_PLATES?.[activePlate]?.name || "8K Ultra-HD Medical Anatomy Plate";
-      targetCtx.fillText(`Loading ${plateName}...`, 500, 880);
-      targetCtx.restore();
-    }
-
-    // 1. DYNAMIC VASCULAR TREE ILLUMINATION OVERLAY (Full body views)
     const isFullBody = (activePlate === "full_anterior" || activePlate === "full_posterior");
-    if (isFullBody && (layerOpacities.circulatory > 0.05 || imagingMode === "angiogram")) {
-      targetCtx.save();
-      const circAlpha = Math.min(1.0, layerOpacities.circulatory * (imagingMode === "angiogram" ? 1.0 : 0.85));
-      targetCtx.globalAlpha = circAlpha;
-      const pulse = 1.0 + 0.16 * Math.sin(simTime * 8);
 
-      // Glowing Aorta & Systemic Arteries (Carmine Red)
-      targetCtx.shadowColor = "#ef4444";
-      targetCtx.shadowBlur = 12 * pulse;
-      targetCtx.strokeStyle = "#ef4444";
-      targetCtx.lineWidth = 4 * pulse;
-      targetCtx.beginPath();
-      if (view === "anterior") {
-        targetCtx.arc(520, 295, 16, Math.PI, 0); // Aortic arch
-        targetCtx.lineTo(520, 720); // Descending abdominal aorta
-        targetCtx.lineTo(475, 840); // Common iliac (anatomical right)
-        targetCtx.moveTo(520, 720); targetCtx.lineTo(565, 840); // Common iliac (anatomical left)
-        // Carotid branches
-        targetCtx.moveTo(512, 290); targetCtx.lineTo(488, 190);
-        targetCtx.moveTo(528, 290); targetCtx.lineTo(540, 190);
-        // Femoral extensions
-        targetCtx.moveTo(475, 840); targetCtx.lineTo(440, 1200);
-        targetCtx.moveTo(565, 840); targetCtx.lineTo(600, 1200);
+    if (isFullBody) {
+      // 0. MULTI-LAYER COMPOSITOR (Full Body Macro Studio)
+      const skinImg = (view === "anterior") ? imgAnterior : imgPosterior;
+      const anyImgReady = (skinImg && skinImg.complete && skinImg.naturalWidth > 0) ||
+                          (plateImages.skeletal && plateImages.skeletal.complete && plateImages.skeletal.naturalWidth > 0);
+
+      if (!anyImgReady) {
+        // High-Tech Clinical Loading Shimmer
+        targetCtx.save();
+        targetCtx.fillStyle = "rgba(15, 23, 42, 0.75)";
+        targetCtx.roundRect(80, 80, 840, 1640, 16);
+        targetCtx.fill();
+        targetCtx.fillStyle = "#38bdf8";
+        targetCtx.font = "bold 26px -apple-system, sans-serif";
+        targetCtx.textAlign = "center";
+        targetCtx.fillText("Loading 8K Medical Dissection Matrix...", 500, 880);
+        targetCtx.restore();
+      } else {
+        // STRATUM 1 (Deepest): Skeletal System (206 Bones Osteology)
+        if (layerOpacities.skeletal > 0.005) {
+          drawPlateImageLayer(targetCtx, plateImages.skeletal, layerOpacities.skeletal, imagingMode);
+        }
+
+        // STRATUM 2: Splanchnic Internal Viscera (Thoracic & Abdominal Organs)
+        if (layerOpacities.visceral > 0.005) {
+          drawPlateImageLayer(targetCtx, plateImages.digestive, layerOpacities.visceral, imagingMode);
+        }
+
+        // STRATUM 3: Skeletal Muscular System (Superficial & Deep Myology)
+        if (layerOpacities.muscular > 0.005) {
+          drawPlateImageLayer(targetCtx, plateImages.muscular, layerOpacities.muscular, imagingMode);
+        }
+
+        // STRATUM 4: Superficial Integument (Coronal Skin Layer)
+        if (layerOpacities.skin > 0.005) {
+          drawPlateImageLayer(targetCtx, skinImg, layerOpacities.skin, imagingMode);
+        }
       }
-      targetCtx.stroke();
 
-      // Glowing Vena Cava & Major Veins (Cyan)
-      targetCtx.shadowColor = "#38bdf8";
-      targetCtx.shadowBlur = 10;
-      targetCtx.strokeStyle = "#38bdf8";
-      targetCtx.lineWidth = 4;
-      targetCtx.beginPath();
-      if (view === "anterior") {
-        targetCtx.moveTo(536, 190); targetCtx.lineTo(532, 330); // SVC
-        targetCtx.moveTo(532, 400); targetCtx.lineTo(532, 720); // IVC
-        targetCtx.lineTo(495, 840);
-        targetCtx.moveTo(532, 720); targetCtx.lineTo(578, 840);
+      // STRATUM 5: Dynamic Vascular Tree Overlay (Arterial & Venous Trees)
+      if (layerOpacities.circulatory > 0.03 || imagingMode === "angiogram") {
+        targetCtx.save();
+        const circAlpha = Math.min(1.0, layerOpacities.circulatory * (imagingMode === "angiogram" ? 1.0 : 0.9));
+        targetCtx.globalAlpha = circAlpha;
+        const pulse = 1.0 + 0.16 * Math.sin(simTime * 8);
+
+        // Glowing Aorta & Systemic Arteries (Carmine Red)
+        targetCtx.shadowColor = "#ef4444";
+        targetCtx.shadowBlur = 12 * pulse;
+        targetCtx.strokeStyle = "#ef4444";
+        targetCtx.lineWidth = 4 * pulse;
+        targetCtx.beginPath();
+        if (view === "anterior") {
+          targetCtx.arc(520, 295, 16, Math.PI, 0); // Aortic arch
+          targetCtx.lineTo(520, 720); // Descending abdominal aorta
+          targetCtx.lineTo(475, 840); // Common iliac (anatomical right)
+          targetCtx.moveTo(520, 720); targetCtx.lineTo(565, 840); // Common iliac (anatomical left)
+          // Carotid branches
+          targetCtx.moveTo(512, 290); targetCtx.lineTo(488, 190);
+          targetCtx.moveTo(528, 290); targetCtx.lineTo(540, 190);
+          // Femoral extensions
+          targetCtx.moveTo(475, 840); targetCtx.lineTo(440, 1200);
+          targetCtx.moveTo(565, 840); targetCtx.lineTo(600, 1200);
+        } else {
+          // Posterior descending aorta & branches
+          targetCtx.moveTo(500, 310); targetCtx.lineTo(500, 720);
+          targetCtx.lineTo(470, 840); targetCtx.lineTo(440, 1200);
+          targetCtx.moveTo(500, 720); targetCtx.lineTo(530, 840); targetCtx.lineTo(560, 1200);
+        }
+        targetCtx.stroke();
+
+        // Glowing Vena Cava & Major Veins (Cyan)
+        targetCtx.shadowColor = "#38bdf8";
+        targetCtx.shadowBlur = 10;
+        targetCtx.strokeStyle = "#38bdf8";
+        targetCtx.lineWidth = 4;
+        targetCtx.beginPath();
+        if (view === "anterior") {
+          targetCtx.moveTo(536, 190); targetCtx.lineTo(532, 330); // SVC
+          targetCtx.moveTo(532, 400); targetCtx.lineTo(532, 720); // IVC
+          targetCtx.lineTo(495, 840);
+          targetCtx.moveTo(532, 720); targetCtx.lineTo(578, 840);
+        } else {
+          targetCtx.moveTo(515, 200); targetCtx.lineTo(515, 720);
+          targetCtx.lineTo(485, 840);
+          targetCtx.moveTo(515, 720); targetCtx.lineTo(545, 840);
+        }
+        targetCtx.stroke();
+        targetCtx.restore();
       }
-      targetCtx.stroke();
-      targetCtx.restore();
-    }
 
-    // Dynamic Plate Overlays:
-    // Cardiac specific pulse overlay for internal heart plate:
-    if (activePlate === "heart") {
-      targetCtx.save();
-      const pulse = 1.0 + 0.15 * Math.sin(simTime * 8);
-      targetCtx.shadowColor = "#ef4444";
-      targetCtx.shadowBlur = 24 * pulse;
-      targetCtx.strokeStyle = "rgba(239, 68, 68, 0.45)";
-      targetCtx.lineWidth = 3 * pulse;
-      targetCtx.beginPath();
-      targetCtx.arc(505, 645, 50 * pulse, 0, Math.PI * 2);
-      targetCtx.stroke();
-      targetCtx.restore();
-    }
+      // STRATUM 6: Bioelectric Nervous System Axis Overlay
+      if (layerOpacities.nervous > 0.03) {
+        targetCtx.save();
+        targetCtx.globalAlpha = Math.min(1.0, layerOpacities.nervous * 0.95);
+        targetCtx.shadowColor = "#00f0ff";
+        targetCtx.shadowBlur = 14;
+        targetCtx.strokeStyle = "#38bdf8";
+        targetCtx.lineWidth = 3.5;
 
-    // Respiratory breathing expansion overlay for lungs plate:
-    if (activePlate === "lungs") {
-      targetCtx.save();
-      const breath = 1.0 + 0.08 * Math.sin(simTime * 2.4);
-      targetCtx.shadowColor = "#34d399";
-      targetCtx.shadowBlur = 20 * breath;
-      targetCtx.strokeStyle = "rgba(52, 211, 153, 0.4)";
-      targetCtx.lineWidth = 2.5 * breath;
-      targetCtx.beginPath();
-      targetCtx.arc(500, 630, 45 * breath, 0, Math.PI * 2);
-      targetCtx.stroke();
-      targetCtx.restore();
-    }
+        targetCtx.beginPath();
+        if (view === "anterior") {
+          // Neurocranium & Spinal cord
+          targetCtx.moveTo(500, 120);
+          targetCtx.lineTo(500, 720);
+          // Brachial plexus
+          targetCtx.moveTo(500, 260); targetCtx.lineTo(360, 340); targetCtx.lineTo(290, 520);
+          targetCtx.moveTo(500, 260); targetCtx.lineTo(640, 340); targetCtx.lineTo(710, 520);
+          // Lumbosacral & Sciatic nerves
+          targetCtx.moveTo(500, 720); targetCtx.lineTo(440, 1100); targetCtx.lineTo(430, 1400);
+          targetCtx.moveTo(500, 720); targetCtx.lineTo(570, 1100); targetCtx.lineTo(580, 1400);
+        } else {
+          // Dorsal neuroaxis & Sciatic nerve trunk
+          targetCtx.moveTo(500, 110);
+          targetCtx.lineTo(500, 780);
+          targetCtx.moveTo(500, 250); targetCtx.lineTo(350, 350);
+          targetCtx.moveTo(500, 250); targetCtx.lineTo(650, 350);
+          targetCtx.moveTo(490, 780); targetCtx.lineTo(440, 1150); targetCtx.lineTo(435, 1500);
+          targetCtx.moveTo(510, 780); targetCtx.lineTo(560, 1150); targetCtx.lineTo(565, 1500);
+        }
+        targetCtx.stroke();
 
-    // Neural synaptic spark overlay for brain plate:
-    if (activePlate === "brain") {
-      targetCtx.save();
-      const brainPulse = 1.0 + 0.12 * Math.sin(simTime * 5);
-      targetCtx.shadowColor = "#38bdf8";
-      targetCtx.shadowBlur = 18 * brainPulse;
-      targetCtx.strokeStyle = "rgba(56, 189, 248, 0.4)";
-      targetCtx.lineWidth = 2.5;
-      targetCtx.beginPath();
-      targetCtx.arc(310, 550, 40 * brainPulse, 0, Math.PI * 2);
-      targetCtx.stroke();
-      targetCtx.restore();
-    }
+        // Traveling Action-Potential Bioelectric Pulse
+        const apPos = (simTime * 500) % 600;
+        targetCtx.beginPath();
+        targetCtx.arc(500, 120 + apPos, 5, 0, Math.PI * 2);
+        targetCtx.fillStyle = "#ffffff";
+        targetCtx.shadowColor = "#38bdf8";
+        targetCtx.shadowBlur = 20;
+        targetCtx.fill();
+        targetCtx.restore();
+      }
+    } else {
+      // FOCUSED ORGAN / SYSTEM PLATE RENDERING
+      const activeImg = plateImages[activePlate] || ((view === "anterior") ? imgAnterior : imgPosterior);
+      const isImgReady = activeImg && activeImg.complete && activeImg.naturalWidth > 0;
 
-    // 2. BIOELECTRIC NERVOUS SYSTEM AXIS OVERLAY (Full body views)
-    if (isFullBody && layerOpacities.nervous > 0.05) {
-      targetCtx.save();
-      targetCtx.globalAlpha = Math.min(1.0, layerOpacities.nervous * 0.9);
-      targetCtx.shadowColor = "#00f0ff";
-      targetCtx.shadowBlur = 14;
-      targetCtx.strokeStyle = "#38bdf8";
-      targetCtx.lineWidth = 3.5;
+      if (isImgReady) {
+        let plateAlpha = 1.0;
+        if (activePlate === "skeletal") plateAlpha = layerOpacities.skeletal;
+        else if (activePlate === "muscular") plateAlpha = layerOpacities.muscular;
+        else if (activePlate === "heart") plateAlpha = Math.max(layerOpacities.circulatory, layerOpacities.visceral);
+        else if (activePlate === "brain") plateAlpha = layerOpacities.nervous;
+        else if (activePlate === "lungs") plateAlpha = layerOpacities.visceral;
+        else if (activePlate === "digestive" || activePlate === "urinary") plateAlpha = layerOpacities.visceral;
+        else if (activePlate === "cranial") plateAlpha = Math.max(layerOpacities.nervous, layerOpacities.skeletal);
 
-      targetCtx.beginPath();
-      // Neurocranium & Spinal cord
-      targetCtx.moveTo(500, 120);
-      targetCtx.lineTo(500, 720);
-      // Brachial plexus
-      targetCtx.moveTo(500, 260); targetCtx.lineTo(360, 340); targetCtx.lineTo(290, 520);
-      targetCtx.moveTo(500, 260); targetCtx.lineTo(640, 340); targetCtx.lineTo(710, 520);
-      // Lumbosacral & Sciatic nerves
-      targetCtx.moveTo(500, 720); targetCtx.lineTo(440, 1100); targetCtx.lineTo(430, 1400);
-      targetCtx.moveTo(500, 720); targetCtx.lineTo(570, 1100); targetCtx.lineTo(580, 1400);
-      targetCtx.stroke();
+        // If muscular is selected, blend skeletal foundation underneath if desired
+        if (activePlate === "muscular" && layerOpacities.skeletal > 0.05) {
+          drawPlateImageLayer(targetCtx, plateImages.skeletal, layerOpacities.skeletal * 0.35, imagingMode);
+        }
 
-      // Traveling Action-Potential Bioelectric Pulse
-      const apPos = (simTime * 500) % 600;
-      targetCtx.beginPath();
-      targetCtx.arc(500, 120 + apPos, 5, 0, Math.PI * 2);
-      targetCtx.fillStyle = "#ffffff";
-      targetCtx.shadowColor = "#38bdf8";
-      targetCtx.shadowBlur = 20;
-      targetCtx.fill();
-      targetCtx.restore();
-    }
+        drawPlateImageLayer(targetCtx, activeImg, plateAlpha, imagingMode);
+      } else {
+        targetCtx.save();
+        targetCtx.fillStyle = "rgba(15, 23, 42, 0.75)";
+        targetCtx.roundRect(80, 80, 840, 1640, 16);
+        targetCtx.fill();
+        targetCtx.fillStyle = "#38bdf8";
+        targetCtx.font = "bold 26px -apple-system, sans-serif";
+        targetCtx.textAlign = "center";
+        const plateName = ANATOMICAL_PLATES?.[activePlate]?.name || "8K Ultra-HD Medical Anatomy Plate";
+        targetCtx.fillText(`Loading ${plateName}...`, 500, 880);
+        targetCtx.restore();
+      }
 
-    // 3. SKELETAL & MUSCULAR OPACITY SHADING (Full body views)
-    if (isFullBody && layerOpacities.skeletal > 0.95 && layerOpacities.muscular < 0.2) {
-      targetCtx.save();
-      targetCtx.globalAlpha = 0.22;
-      targetCtx.fillStyle = "#e2e8f0";
-      targetCtx.filter = "blur(14px)";
-      targetCtx.beginPath();
-      targetCtx.ellipse(view === "anterior" ? 590 : 500, 420, 70, 200, 0, 0, Math.PI * 2);
-      targetCtx.fill();
-      targetCtx.restore();
-    } else if (isFullBody && layerOpacities.muscular > 0.95 && layerOpacities.skeletal < 0.2) {
-      targetCtx.save();
-      targetCtx.globalAlpha = 0.22;
-      targetCtx.fillStyle = "#f87171";
-      targetCtx.filter = "blur(14px)";
-      targetCtx.beginPath();
-      targetCtx.ellipse(view === "anterior" ? 410 : 500, 420, 70, 200, 0, 0, Math.PI * 2);
-      targetCtx.fill();
-      targetCtx.restore();
+      // Dynamic Physiological Plate Overlays:
+      if (activePlate === "heart" && layerOpacities.circulatory > 0.05) {
+        targetCtx.save();
+        const pulse = 1.0 + 0.15 * Math.sin(simTime * 8);
+        targetCtx.shadowColor = "#ef4444";
+        targetCtx.shadowBlur = 24 * pulse;
+        targetCtx.strokeStyle = `rgba(239, 68, 68, ${0.45 * layerOpacities.circulatory})`;
+        targetCtx.lineWidth = 3 * pulse;
+        targetCtx.beginPath();
+        targetCtx.arc(505, 645, 50 * pulse, 0, Math.PI * 2);
+        targetCtx.stroke();
+        targetCtx.restore();
+      }
+
+      if (activePlate === "lungs" && layerOpacities.visceral > 0.05) {
+        targetCtx.save();
+        const breath = 1.0 + 0.08 * Math.sin(simTime * 2.4);
+        targetCtx.shadowColor = "#34d399";
+        targetCtx.shadowBlur = 20 * breath;
+        targetCtx.strokeStyle = `rgba(52, 211, 153, ${0.4 * layerOpacities.visceral})`;
+        targetCtx.lineWidth = 2.5 * breath;
+        targetCtx.beginPath();
+        targetCtx.arc(500, 630, 45 * breath, 0, Math.PI * 2);
+        targetCtx.stroke();
+        targetCtx.restore();
+      }
+
+      if (activePlate === "brain" && layerOpacities.nervous > 0.05) {
+        targetCtx.save();
+        const brainPulse = 1.0 + 0.12 * Math.sin(simTime * 5);
+        targetCtx.shadowColor = "#38bdf8";
+        targetCtx.shadowBlur = 18 * brainPulse;
+        targetCtx.strokeStyle = `rgba(56, 189, 248, ${0.4 * layerOpacities.nervous})`;
+        targetCtx.lineWidth = 2.5;
+        targetCtx.beginPath();
+        targetCtx.arc(310, 550, 40 * brainPulse, 0, Math.PI * 2);
+        targetCtx.stroke();
+        targetCtx.restore();
+      }
     }
 
     // 4. ACTIVE STRUCTURE HIGH-PRECISION HUD RETICLE & SPOTLIGHT
     const visibleStructures = getVisibleStructures(activePlate, view);
-    const isStructureVisible = selectedStructure && visibleStructures.some(s => s.id === selectedStructure.id);
+    const structAlpha = selectedStructure ? getStructureOpacity(selectedStructure) : 0;
+    const isStructureVisible = selectedStructure && visibleStructures.some(s => s.id === selectedStructure.id) && structAlpha >= 0.08;
     if (selectedStructure && isStructureVisible) {
       targetCtx.save();
+      targetCtx.globalAlpha = Math.min(1.0, structAlpha);
       const sx = selectedStructure.coords.x;
       const sy = selectedStructure.coords.y;
       const now = performance.now();
@@ -1739,12 +1905,18 @@ export function initAnatomyAtlasLab(containerId) {
 
     const visible = getVisibleStructures(activePlate, view);
     visible.forEach(s => {
+      const structAlpha = getStructureOpacity(s);
+      if (structAlpha < 0.08) return; // Layer is peeled/dissected away!
+
       const isSelected = selectedStructure && selectedStructure.id === s.id;
       const isHovered = hoveredStructure && hoveredStructure.id === s.id;
       const sys = ANATOMICAL_SYSTEMS[s.system] || { color: "#38bdf8" };
 
       const px = s.coords.x;
       const py = s.coords.y;
+
+      targetCtx.save();
+      targetCtx.globalAlpha = Math.min(1.0, structAlpha);
 
       // Pulsing outer beacon ring
       targetCtx.beginPath();
@@ -1777,6 +1949,8 @@ export function initAnatomyAtlasLab(containerId) {
         targetCtx.fillStyle = isSelected ? "#38bdf8" : "#ffffff";
         targetCtx.fillText(label, px + 20, py + 4);
       }
+
+      targetCtx.restore();
     });
 
     targetCtx.restore();
