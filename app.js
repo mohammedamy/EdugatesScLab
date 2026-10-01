@@ -276,15 +276,7 @@ export function enhanceA11y(container) {
   });
 }
 
-if (typeof document !== "undefined") {
-  if (document.getElementById("app-root")) {
-    bootApp();
-  } else if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bootApp, { once: true });
-  } else {
-    bootApp();
-  }
-}
+
 
 function initCustomLogoDetector() {
   // Official brand asset is assets/logo.png
@@ -974,6 +966,103 @@ function getSubjectPlaceholderSvg(code) {
   return "assets/placeholder-flask.svg";
 }
 
+// Master Registry of Virtual Laboratories (Classified by Chemistry, Physics, Biology)
+// Adding new labs here or via registerVirtualLab() automatically categorizes and sorts them alphabetically (A-Z).
+export const VIRTUAL_LABS_REGISTRY = [
+  // Chemistry Laboratories (11)
+  { id: "titration", subject: "chem", title: "Acid-Base Titration", icon: icons.titration, ariaLabel: "Acid-Base Titration Virtual Lab", href: "#labs/titration" },
+  { id: "beerlambert", subject: "chem", title: "Beer-Lambert Law", icon: icons.beerLambert, ariaLabel: "Spectrophotometry and Beer-Lambert Law Lab", href: "#labs/beerlambert" },
+  { id: "calorimetry", subject: "chem", title: "Calorimetry & ΔH", icon: icons.calorimetry, ariaLabel: "Calorimetry and Thermochemistry Virtual Lab", href: "#labs/calorimetry" },
+  { id: "colligative", subject: "chem", title: "Colligative Properties", icon: icons.colligative, ariaLabel: "Colligative Properties and Freezing Point Lab", href: "#labs/colligative" },
+  { id: "electrochem", subject: "chem", title: "Electrochemistry & Voltaic", icon: icons.electrochem, ariaLabel: "Electrochemistry and Voltaic Cells Lab", href: "#labs/electrochem" },
+  { id: "equilibrium", subject: "chem", title: "Equilibrium & Le Chatelier", icon: icons.equilibrium, ariaLabel: "Chemical Equilibrium and Le Chatelier Lab", href: "#labs/equilibrium" },
+  { id: "gaslaws", subject: "chem", title: "Gas Laws & Kinetic Theory", icon: icons.gasLaws, ariaLabel: "Gas Laws and Kinetic Theory Lab", href: "#labs/gaslaws" },
+  { id: "ptable", subject: "chem", title: "Interactive Periodic Table", icon: icons.periodicTable, ariaLabel: "Interactive Periodic Table Lab", href: "#labs/ptable" },
+  { id: "decay", subject: "chem", title: "Nuclear Decay & Kinetics", icon: icons.nuclearDecay, ariaLabel: "Radioactive Decay and Nuclear Kinetics Lab", href: "#labs/decay" },
+  { id: "organic", subject: "chem", title: "Organic Mechanisms", icon: icons.organicReactions, ariaLabel: "Organic Reaction Mechanisms Lab", href: "#labs/organic" },
+  { id: "vsepr", subject: "chem", title: "VSEPR 3D Modeler", icon: icons.vsepr, ariaLabel: "VSEPR 3D Modeler Lab", href: "#labs/vsepr" },
+
+  // Physics Laboratories (10)
+  { id: "circuits", subject: "phys", title: "DC Circuits & Ohm's Law", icon: icons.circuit, ariaLabel: "DC Circuits and Ohm's Law Lab", href: "#labs/circuits" },
+  { id: "fluids", subject: "phys", title: "Fluid Dynamics & Buoyancy", icon: icons.fluidsBuoyancy, ariaLabel: "Fluid Dynamics and Buoyancy Lab", href: "#labs/fluids" },
+  { id: "optics", subject: "phys", title: "Geometric Optics Ray Tracing", icon: icons.optics, ariaLabel: "Geometric Optics Ray Tracing Lab", href: "#labs/optics" },
+  { id: "harmonic", subject: "phys", title: "Harmonic Motion & Hooke", icon: icons.harmonic, ariaLabel: "Harmonic Motion and Hooke's Law Lab", href: "#labs/harmonic" },
+  { id: "projectile", subject: "phys", title: "Kinematics & Projectiles", icon: icons.projectile, ariaLabel: "Kinematics and Projectiles Virtual Lab", href: "#labs/projectile" },
+  { id: "magnetism", subject: "phys", title: "Magnetic Force & e/m", icon: icons.magnetism, ariaLabel: "Magnetic Force and Lorentz e/m Lab", href: "#labs/magnetism" },
+  { id: "photoelectric", subject: "phys", title: "Photoelectric Effect", icon: icons.photoelectric, ariaLabel: "Photoelectric Effect and Quantum Physics Lab", href: "#labs/photoelectric" },
+  { id: "rotational", subject: "phys", title: "Rotational Dynamics", icon: icons.rotationalDynamics, ariaLabel: "Rotational Dynamics and Moment of Inertia Lab", href: "#labs/rotational" },
+  { id: "conduction", subject: "phys", title: "Thermal Conduction", icon: icons.thermalConduction, ariaLabel: "Thermal Conduction and Fourier Law Lab", href: "#labs/conduction" },
+  { id: "waves", subject: "phys", title: "Wave Interference & Slits", icon: icons.waveInterference, ariaLabel: "Wave Interference and Slits Lab", href: "#labs/waves" },
+
+  // Biology Laboratories (10) - Suite Navigation href="#labs/anatomy"
+  { id: "anatomy", subject: "bio", title: "4K Human Anatomy Atlas", icon: "🏛️", ariaLabel: "4K Human Anatomy Atlas and Histology Lab", href: "#labs/anatomy" },
+  { id: "actionpotential", subject: "bio", title: "Action Potential Patch Clamp", icon: icons.actionPotential, ariaLabel: "Neurobiology and Action Potential Patch Clamp Lab", href: "#labs/actionpotential" },
+  { id: "respiration", subject: "bio", title: "Cellular Respiration", icon: icons.respiration, ariaLabel: "Cellular Respiration and Respirometer Lab", href: "#labs/respiration" },
+  { id: "dnaprotein", subject: "bio", title: "DNA & Protein Synthesis", icon: icons.dna, ariaLabel: "DNA and Protein Synthesis Lab", href: "#labs/dnaprotein" },
+  { id: "enzymes", subject: "bio", title: "Enzyme Kinetics", icon: icons.enzymes, ariaLabel: "Enzyme Kinetics and Catalysis Lab", href: "#labs/enzymes" },
+  { id: "electrophoresis", subject: "bio", title: "Gel Electrophoresis", icon: icons.gelElectrophoresis, ariaLabel: "Agarose Gel Electrophoresis Lab", href: "#labs/electrophoresis" },
+  { id: "photosynthesis", subject: "bio", title: "Photosynthesis & Bioenergetics", icon: icons.photosynthesis, ariaLabel: "Photosynthesis and Bioenergetics Lab", href: "#labs/photosynthesis" },
+  { id: "ecology", subject: "bio", title: "Population Ecology", icon: icons.populationEcology, ariaLabel: "Population Ecology and Lotka-Volterra Lab", href: "#labs/ecology" },
+  { id: "punnett", subject: "bio", title: "Punnett Genetics Cross", icon: icons.punnett, ariaLabel: "Punnett Genetics Cross Lab", href: "#labs/punnett" },
+  { id: "microscope", subject: "bio", title: "Ultra-HD Microscope", icon: icons.microscope, ariaLabel: "Ultra-HD Microscope Virtual Lab", href: "#labs/microscope" }
+];
+
+export const LAB_SUBJECT_CONFIG = {
+  chem: {
+    id: "chem",
+    label: "Chemistry",
+    shortCode: "CHE",
+    icon: "🧪",
+    color: "#06b6d4",
+    description: "Titration, Equilibrium, Gas Laws, Thermodynamics, VSEPR & Reaction Kinetics"
+  },
+  phys: {
+    id: "phys",
+    label: "Physics",
+    shortCode: "PHY",
+    icon: "⚛️",
+    color: "#6366f1",
+    description: "Kinematics, DC Circuits, Wave Optics, Harmonic Motion & Quantum Phenomena"
+  },
+  bio: {
+    id: "bio",
+    label: "Biology",
+    shortCode: "BIO",
+    icon: "🧬",
+    color: "#10b981",
+    description: "4K Human Anatomy Atlas, Microscopy, Genetics, Enzyme Kinetics & Bioenergetics"
+  }
+};
+
+export function registerVirtualLab(labDef) {
+  if (!labDef || !labDef.id) return;
+  const idx = VIRTUAL_LABS_REGISTRY.findIndex(l => l.id === labDef.id);
+  const entry = {
+    href: `#labs/${labDef.id}`,
+    ariaLabel: labDef.ariaLabel || `${labDef.title} Virtual Lab`,
+    ...labDef
+  };
+  if (idx >= 0) {
+    VIRTUAL_LABS_REGISTRY[idx] = { ...VIRTUAL_LABS_REGISTRY[idx], ...entry };
+  } else {
+    VIRTUAL_LABS_REGISTRY.push(entry);
+  }
+}
+
+export function getClassifiedVirtualLabs() {
+  const subjects = ["chem", "phys", "bio"];
+  const result = {};
+
+  subjects.forEach(sub => {
+    const list = VIRTUAL_LABS_REGISTRY.filter(lab => (lab.subject || "phys").toLowerCase().startsWith(sub));
+    // Sort strictly alphabetically by title (A to Z) using localeCompare
+    list.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" }));
+    result[sub] = list;
+  });
+
+  return result;
+}
+
 export function normalizeLabId(rawId) {
   if (!rawId) return "projectile";
   const str = String(rawId).toLowerCase().trim().replace(/^lab[-_]?/, "");
@@ -1620,103 +1709,6 @@ function renderSubjectView(container, curData, themeColor) {
   renderMathInElement(container);
 }
 
-// Master Registry of Virtual Laboratories (Classified by Chemistry, Physics, Biology)
-// Adding new labs here or via registerVirtualLab() automatically categorizes and sorts them alphabetically (A-Z).
-export const VIRTUAL_LABS_REGISTRY = [
-  // Chemistry Laboratories (11)
-  { id: "titration", subject: "chem", title: "Acid-Base Titration", icon: icons.titration, ariaLabel: "Acid-Base Titration Virtual Lab", href: "#labs/titration" },
-  { id: "beerlambert", subject: "chem", title: "Beer-Lambert Law", icon: icons.beerLambert, ariaLabel: "Spectrophotometry and Beer-Lambert Law Lab", href: "#labs/beerlambert" },
-  { id: "calorimetry", subject: "chem", title: "Calorimetry & ΔH", icon: icons.calorimetry, ariaLabel: "Calorimetry and Thermochemistry Virtual Lab", href: "#labs/calorimetry" },
-  { id: "colligative", subject: "chem", title: "Colligative Properties", icon: icons.colligative, ariaLabel: "Colligative Properties and Freezing Point Lab", href: "#labs/colligative" },
-  { id: "electrochem", subject: "chem", title: "Electrochemistry & Voltaic", icon: icons.electrochem, ariaLabel: "Electrochemistry and Voltaic Cells Lab", href: "#labs/electrochem" },
-  { id: "equilibrium", subject: "chem", title: "Equilibrium & Le Chatelier", icon: icons.equilibrium, ariaLabel: "Chemical Equilibrium and Le Chatelier Lab", href: "#labs/equilibrium" },
-  { id: "gaslaws", subject: "chem", title: "Gas Laws & Kinetic Theory", icon: icons.gasLaws, ariaLabel: "Gas Laws and Kinetic Theory Lab", href: "#labs/gaslaws" },
-  { id: "ptable", subject: "chem", title: "Interactive Periodic Table", icon: icons.periodicTable, ariaLabel: "Interactive Periodic Table Lab", href: "#labs/ptable" },
-  { id: "decay", subject: "chem", title: "Nuclear Decay & Kinetics", icon: icons.nuclearDecay, ariaLabel: "Radioactive Decay and Nuclear Kinetics Lab", href: "#labs/decay" },
-  { id: "organic", subject: "chem", title: "Organic Mechanisms", icon: icons.organicReactions, ariaLabel: "Organic Reaction Mechanisms Lab", href: "#labs/organic" },
-  { id: "vsepr", subject: "chem", title: "VSEPR 3D Modeler", icon: icons.vsepr, ariaLabel: "VSEPR 3D Modeler Lab", href: "#labs/vsepr" },
-
-  // Physics Laboratories (10)
-  { id: "circuits", subject: "phys", title: "DC Circuits & Ohm's Law", icon: icons.circuit, ariaLabel: "DC Circuits and Ohm's Law Lab", href: "#labs/circuits" },
-  { id: "fluids", subject: "phys", title: "Fluid Dynamics & Buoyancy", icon: icons.fluidsBuoyancy, ariaLabel: "Fluid Dynamics and Buoyancy Lab", href: "#labs/fluids" },
-  { id: "optics", subject: "phys", title: "Geometric Optics Ray Tracing", icon: icons.optics, ariaLabel: "Geometric Optics Ray Tracing Lab", href: "#labs/optics" },
-  { id: "harmonic", subject: "phys", title: "Harmonic Motion & Hooke", icon: icons.harmonic, ariaLabel: "Harmonic Motion and Hooke's Law Lab", href: "#labs/harmonic" },
-  { id: "projectile", subject: "phys", title: "Kinematics & Projectiles", icon: icons.projectile, ariaLabel: "Kinematics and Projectiles Virtual Lab", href: "#labs/projectile" },
-  { id: "magnetism", subject: "phys", title: "Magnetic Force & e/m", icon: icons.magnetism, ariaLabel: "Magnetic Force and Lorentz e/m Lab", href: "#labs/magnetism" },
-  { id: "photoelectric", subject: "phys", title: "Photoelectric Effect", icon: icons.photoelectric, ariaLabel: "Photoelectric Effect and Quantum Physics Lab", href: "#labs/photoelectric" },
-  { id: "rotational", subject: "phys", title: "Rotational Dynamics", icon: icons.rotationalDynamics, ariaLabel: "Rotational Dynamics and Moment of Inertia Lab", href: "#labs/rotational" },
-  { id: "conduction", subject: "phys", title: "Thermal Conduction", icon: icons.thermalConduction, ariaLabel: "Thermal Conduction and Fourier Law Lab", href: "#labs/conduction" },
-  { id: "waves", subject: "phys", title: "Wave Interference & Slits", icon: icons.waveInterference, ariaLabel: "Wave Interference and Slits Lab", href: "#labs/waves" },
-
-  // Biology Laboratories (10) - Suite Navigation href="#labs/anatomy"
-  { id: "anatomy", subject: "bio", title: "4K Human Anatomy Atlas", icon: "🏛️", ariaLabel: "4K Human Anatomy Atlas and Histology Lab", href: "#labs/anatomy" },
-  { id: "actionpotential", subject: "bio", title: "Action Potential Patch Clamp", icon: icons.actionPotential, ariaLabel: "Neurobiology and Action Potential Patch Clamp Lab", href: "#labs/actionpotential" },
-  { id: "respiration", subject: "bio", title: "Cellular Respiration", icon: icons.respiration, ariaLabel: "Cellular Respiration and Respirometer Lab", href: "#labs/respiration" },
-  { id: "dnaprotein", subject: "bio", title: "DNA & Protein Synthesis", icon: icons.dna, ariaLabel: "DNA and Protein Synthesis Lab", href: "#labs/dnaprotein" },
-  { id: "enzymes", subject: "bio", title: "Enzyme Kinetics", icon: icons.enzymes, ariaLabel: "Enzyme Kinetics and Catalysis Lab", href: "#labs/enzymes" },
-  { id: "electrophoresis", subject: "bio", title: "Gel Electrophoresis", icon: icons.gelElectrophoresis, ariaLabel: "Agarose Gel Electrophoresis Lab", href: "#labs/electrophoresis" },
-  { id: "photosynthesis", subject: "bio", title: "Photosynthesis & Bioenergetics", icon: icons.photosynthesis, ariaLabel: "Photosynthesis and Bioenergetics Lab", href: "#labs/photosynthesis" },
-  { id: "ecology", subject: "bio", title: "Population Ecology", icon: icons.populationEcology, ariaLabel: "Population Ecology and Lotka-Volterra Lab", href: "#labs/ecology" },
-  { id: "punnett", subject: "bio", title: "Punnett Genetics Cross", icon: icons.punnett, ariaLabel: "Punnett Genetics Cross Lab", href: "#labs/punnett" },
-  { id: "microscope", subject: "bio", title: "Ultra-HD Microscope", icon: icons.microscope, ariaLabel: "Ultra-HD Microscope Virtual Lab", href: "#labs/microscope" }
-];
-
-export const LAB_SUBJECT_CONFIG = {
-  chem: {
-    id: "chem",
-    label: "Chemistry",
-    shortCode: "CHE",
-    icon: "🧪",
-    color: "#06b6d4",
-    description: "Titration, Equilibrium, Gas Laws, Thermodynamics, VSEPR & Reaction Kinetics"
-  },
-  phys: {
-    id: "phys",
-    label: "Physics",
-    shortCode: "PHY",
-    icon: "⚛️",
-    color: "#6366f1",
-    description: "Kinematics, DC Circuits, Wave Optics, Harmonic Motion & Quantum Phenomena"
-  },
-  bio: {
-    id: "bio",
-    label: "Biology",
-    shortCode: "BIO",
-    icon: "🧬",
-    color: "#10b981",
-    description: "4K Human Anatomy Atlas, Microscopy, Genetics, Enzyme Kinetics & Bioenergetics"
-  }
-};
-
-export function registerVirtualLab(labDef) {
-  if (!labDef || !labDef.id) return;
-  const idx = VIRTUAL_LABS_REGISTRY.findIndex(l => l.id === labDef.id);
-  const entry = {
-    href: `#labs/${labDef.id}`,
-    ariaLabel: labDef.ariaLabel || `${labDef.title} Virtual Lab`,
-    ...labDef
-  };
-  if (idx >= 0) {
-    VIRTUAL_LABS_REGISTRY[idx] = { ...VIRTUAL_LABS_REGISTRY[idx], ...entry };
-  } else {
-    VIRTUAL_LABS_REGISTRY.push(entry);
-  }
-}
-
-export function getClassifiedVirtualLabs() {
-  const subjects = ["chem", "phys", "bio"];
-  const result = {};
-
-  subjects.forEach(sub => {
-    const list = VIRTUAL_LABS_REGISTRY.filter(lab => (lab.subject || "phys").toLowerCase().startsWith(sub));
-    // Sort strictly alphabetically by title (A to Z) using localeCompare
-    list.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" }));
-    result[sub] = list;
-  });
-
-  return result;
-}
-
 export function renderClassifiedLabNavHTML(activeLabId, filterSubject = "all") {
   const classified = getClassifiedVirtualLabs();
   const subjects = [
@@ -2015,3 +2007,15 @@ function mountActiveLab() {
     });
   });
 }
+
+// Master Application Initialization Entrypoint (Executed after all module definitions are evaluated)
+if (typeof document !== "undefined") {
+  if (document.getElementById("app-root")) {
+    bootApp();
+  } else if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootApp, { once: true });
+  } else {
+    bootApp();
+  }
+}
+

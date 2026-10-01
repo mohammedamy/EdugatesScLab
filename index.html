@@ -35,8 +35,8 @@
   <script async src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" onload="if (window.upgradeAllMath) window.upgradeAllMath();"></script>
 
   <!-- Preload Core Stylesheet -->
-  <link rel="preload" href="index.css?v=4.4" as="style">
-  <link rel="stylesheet" href="index.css?v=4.4">
+  <link rel="preload" href="index.css?v=4.5" as="style">
+  <link rel="stylesheet" href="index.css?v=4.5">
 
   <!-- Instant Hardware, MAXHUB & Smartboard Processor Optimizer (Executes before first paint) -->
   <script>
@@ -134,11 +134,11 @@
               </div>
 
               <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
-                <button id="btn-reload-app" onclick="window.location.reload();" style="cursor: pointer; background: #0284c7; color: #ffffff; border: none; border-radius: 10px; padding: 12px 24px; font-size: 0.9rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
+                <button id="btn-reload-app" onclick="window.location.href = window.location.origin + window.location.pathname + '?reload=' + Date.now() + (window.location.hash || '');" style="cursor: pointer; background: #0284c7; color: #ffffff; border: none; border-radius: 10px; padding: 12px 24px; font-size: 0.9rem; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);">
                   <span>🔄</span>
                   <span>Retry / Reload Laboratory</span>
                 </button>
-                <button id="btn-clear-cache-reload" onclick="if ('serviceWorker' in navigator && window.caches) { caches.keys().then(function(keys) { return Promise.all(keys.map(function(k) { return caches.delete(k); })); }).then(function() { window.location.reload(true); }); } else { window.location.reload(true); }" style="cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 12px 20px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                <button id="btn-clear-cache-reload" onclick="var p = []; if ('serviceWorker' in navigator) { p.push(navigator.serviceWorker.getRegistrations().then(function(regs){return Promise.all(regs.map(function(r){return r.unregister();}));}).catch(function(){})); } if (window.caches) { p.push(caches.keys().then(function(keys){return Promise.all(keys.map(function(k){return caches.delete(k);}));}).catch(function(){})); } Promise.all(p).then(function(){ window.location.href = window.location.origin + window.location.pathname + '?reload=' + Date.now(); }).catch(function(){ window.location.reload(true); });" style="cursor: pointer; background: transparent; color: #94a3b8; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 10px; padding: 12px 20px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
                   <span>🧹</span>
                   <span>Clear Cache &amp; Reload</span>
                 </button>
@@ -179,6 +179,6 @@
   </script>
 
   <!-- Main Modular Application Script -->
-  <script type="module" src="app.js?v=4.4"></script>
+  <script type="module" src="app.js?v=4.5"></script>
 </body>
 </html>
