@@ -126,8 +126,23 @@ export function panBy(dx, dy) {
 // ----------------------------------------------------
 // Touch Screen 2-Finger Pinch Gesture Handlers
 // ----------------------------------------------------
+function shouldIgnorePinch(e) {
+  const target = e.target;
+  if (!target) return false;
+  return Boolean(
+    target.closest && (
+      target.closest("#atlas-canvas-container") ||
+      target.closest("#atlas-canvas") ||
+      target.closest("canvas") ||
+      target.closest("[data-no-touch-zoom]") ||
+      target.closest(".atlas-workbench")
+    )
+  );
+}
+
 function onTouchStart(e) {
   if (e.touches.length === 2) {
+    if (shouldIgnorePinch(e)) return;
     const t1 = e.touches[0];
     const t2 = e.touches[1];
 
@@ -201,6 +216,7 @@ function onTouchEnd(e) {
 // ----------------------------------------------------
 function onWheel(e) {
   if (e.ctrlKey) {
+    if (shouldIgnorePinch(e)) return;
     if (e.cancelable) e.preventDefault();
     const factor = e.deltaY < 0 ? 1.06 : 0.94;
     setScale(currentScale * factor, e.clientX, e.clientY, false);

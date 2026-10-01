@@ -332,13 +332,13 @@ export function initAnatomyAtlasLab(containerId) {
           </div>
 
           <!-- Canvas Display Mount -->
-          <div id="atlas-canvas-container" style="position: relative; width: 100%; height: 640px; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); touch-action: none; cursor: grab;">
-            <canvas id="atlas-canvas" style="display: block; width: 100%; height: 100%;"></canvas>
+          <div id="atlas-canvas-container" data-no-touch-zoom="true" style="position: relative; width: 100%; height: 640px; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); touch-action: none; cursor: grab;">
+            <canvas id="atlas-canvas" style="display: block; width: 100%; height: 100%; touch-action: none; -webkit-user-select: none; user-select: none;"></canvas>
 
             <!-- Floating Overlay Badge for Active Mode -->
             <div id="canvas-overlay-banner" style="position: absolute; top: 14px; left: 14px; pointer-events: none; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 6px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 700; color: #38bdf8; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
               <span>🔍</span>
-              <span id="canvas-mode-text">4K UHD Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom</span>
+              <span id="canvas-mode-text">4K UHD Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom • Double-Tap to Reset</span>
             </div>
 
             <!-- Quiz Target Banner (Visible in Quiz Mode) -->
@@ -742,10 +742,8 @@ export function initAnatomyAtlasLab(containerId) {
     }
     SoundFX.playPop();
 
-    // Reset viewport zoom/pan
-    zoom = 1.0;
-    panX = 0;
-    panY = 0;
+    // Reset viewport zoom/pan to centered view
+    focusCameraOnCoords(500, 900, 1.0);
     if (zoomBadge) zoomBadge.innerText = "1.0×";
 
     // Auto-select relevant structure
@@ -887,9 +885,7 @@ export function initAnatomyAtlasLab(containerId) {
     activeRegion = reg;
     SoundFX.playClick();
     if (reg === "all") {
-      zoom = 1.0;
-      panX = 0;
-      panY = 0;
+      focusCameraOnCoords(500, 900, 1.0);
     } else if (reg === "head") {
       focusCameraOnCoords(500, 150, 3.2);
     } else if (reg === "thorax") {
@@ -906,21 +902,31 @@ export function initAnatomyAtlasLab(containerId) {
     if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
   });
 
-  // Zoom buttons
+  // Zoom buttons (Smooth & centered on viewport midpoint)
   btnZoomIn?.addEventListener("click", () => {
-    zoom = Math.min(12.0, zoom * 1.35);
+    const rect = canvas.getBoundingClientRect();
+    const cx = (rect.width || 600) / 2;
+    const cy = (rect.height || 640) / 2;
+    const newZoom = Math.min(12.0, zoom * 1.35);
+    panX = cx - (cx - panX) * (newZoom / zoom);
+    panY = cy - (cy - panY) * (newZoom / zoom);
+    zoom = newZoom;
     if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
     SoundFX.playClick();
   });
   btnZoomOut?.addEventListener("click", () => {
-    zoom = Math.max(0.4, zoom / 1.35);
+    const rect = canvas.getBoundingClientRect();
+    const cx = (rect.width || 600) / 2;
+    const cy = (rect.height || 640) / 2;
+    const newZoom = Math.max(0.4, zoom / 1.35);
+    panX = cx - (cx - panX) * (newZoom / zoom);
+    panY = cy - (cy - panY) * (newZoom / zoom);
+    zoom = newZoom;
     if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
     SoundFX.playClick();
   });
   btnZoomReset?.addEventListener("click", () => {
-    zoom = 1.0;
-    panX = 0;
-    panY = 0;
+    focusCameraOnCoords(500, 900, 1.0);
     if (zoomBadge) zoomBadge.innerText = "1.0×";
     SoundFX.playClick();
   });
@@ -947,16 +953,28 @@ export function initAnatomyAtlasLab(containerId) {
     }
   }
 
-  // Pointer interaction on canvas (Pan & Click Pins)
+  // Pointer & Touch Interaction State
+  let touchStartDist = 0;
+  let touchStartZoom = 1.0;
+  let isPinching = false;
+  let pinchAnchorModelX = 500;
+  let pinchAnchorModelY = 900;
+  let totalDragDistance = 0;
+  let lastTouchTapTime = 0;
+  let lastTouchTapPos = { x: 0, y: 0 };
+  let hasCenteredInitialView = false;
+
+  // Safe canvas coordinate extractor (handles mouse, pointer, touch, and touchend)
   function getCanvasCoords(e) {
     const rect = canvas.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+    const clientX = touch ? touch.clientX : (e.clientX !== undefined ? e.clientX : rect.left);
+    const clientY = touch ? touch.clientY : (e.clientY !== undefined ? e.clientY : rect.top);
     return {
       x: clientX - rect.left,
       y: clientY - rect.top,
-      width: rect.width,
-      height: rect.height
+      width: rect.width || 600,
+      height: rect.height || 640
     };
   }
 
@@ -967,17 +985,24 @@ export function initAnatomyAtlasLab(containerId) {
     return { x: nx, y: ny };
   }
 
-  canvas.addEventListener("pointerdown", (e) => {
+  // Mouse / Stylus Pointer Handlers (explicitly ignore 'touch' pointers to prevent dual-firing with touchstart)
+  function handlePointerDown(e) {
+    if (e.pointerType === "touch") return;
     isDragging = true;
+    totalDragDistance = 0;
     dragStartX = e.clientX - panX;
     dragStartY = e.clientY - panY;
     canvas.style.cursor = "grabbing";
-  });
+  }
 
-  window.addEventListener("pointermove", (e) => {
+  function handlePointerMove(e) {
+    if (e.pointerType === "touch") return;
     if (isDragging) {
-      panX = e.clientX - dragStartX;
-      panY = e.clientY - dragStartY;
+      const nextPanX = e.clientX - dragStartX;
+      const nextPanY = e.clientY - dragStartY;
+      totalDragDistance += Math.hypot(nextPanX - panX, nextPanY - panY);
+      panX = nextPanX;
+      panY = nextPanY;
     } else {
       // Hover detection on active plate pins
       const coords = getCanvasCoords(e);
@@ -992,72 +1017,149 @@ export function initAnatomyAtlasLab(containerId) {
       hoveredStructure = found || null;
       canvas.style.cursor = hoveredStructure ? "pointer" : "grab";
     }
-  });
+  }
 
-  window.addEventListener("pointerup", (e) => {
+  function handlePointerUp(e) {
+    if (e.pointerType === "touch") return;
     if (isDragging) {
       isDragging = false;
       canvas.style.cursor = "grab";
     }
-  });
+  }
 
-  // Touch Screen Two-Finger Pinch-to-Zoom & Pan Engine
-  let touchStartDist = 0;
-  let touchStartZoom = 1.0;
-  let isPinching = false;
+  canvas.addEventListener("pointerdown", handlePointerDown);
+  window.addEventListener("pointermove", handlePointerMove);
+  window.addEventListener("pointerup", handlePointerUp);
 
+  // Multi-Touch Two-Finger Pinch-to-Zoom & Anchored Panning Engine
   canvas.addEventListener("touchstart", (e) => {
+    e.stopPropagation();
+
     if (e.touches.length === 2) {
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
       isDragging = false;
       isPinching = true;
+
       const t1 = e.touches[0];
       const t2 = e.touches[1];
-      touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      touchStartDist = Math.max(dist, 10);
       touchStartZoom = zoom;
+
+      const rect = canvas.getBoundingClientRect();
+      const midCanvasX = ((t1.clientX + t2.clientX) / 2) - rect.left;
+      const midCanvasY = ((t1.clientY + t2.clientY) / 2) - rect.top;
+
+      // Calculate model coordinates beneath midpoint of fingers:
+      const scale = (rect.height / 1800) * zoom;
+      pinchAnchorModelX = (midCanvasX - panX) / scale;
+      pinchAnchorModelY = (midCanvasY - panY) / scale;
+
     } else if (e.touches.length === 1 && !isPinching) {
+      const t = e.touches[0];
       isDragging = true;
-      dragStartX = e.touches[0].clientX - panX;
-      dragStartY = e.touches[0].clientY - panY;
+      totalDragDistance = 0;
+      dragStartX = t.clientX - panX;
+      dragStartY = t.clientY - panY;
+
+      // Double-Tap gesture to zoom in or reset
+      const now = performance.now();
+      const dt = now - lastTouchTapTime;
+      const distFromLastTap = Math.hypot(t.clientX - lastTouchTapPos.x, t.clientY - lastTouchTapPos.y);
+
+      if (dt < 320 && distFromLastTap < 32) {
+        if (e.cancelable) e.preventDefault();
+        SoundFX.playPop();
+        const rect = canvas.getBoundingClientRect();
+        const tapCanvasX = t.clientX - rect.left;
+        const tapCanvasY = t.clientY - rect.top;
+
+        if (zoom > 1.35) {
+          // Reset to 1.0x centered
+          focusCameraOnCoords(500, 900, 1.0);
+        } else {
+          // Zoom in 2.8x centered at tap point
+          const scale = (rect.height / 1800) * zoom;
+          const targetModelX = (tapCanvasX - panX) / scale;
+          const targetModelY = (tapCanvasY - panY) / scale;
+          focusCameraOnCoords(targetModelX, targetModelY, 2.8);
+        }
+        isDragging = false;
+        lastTouchTapTime = 0;
+        return;
+      }
+      lastTouchTapTime = now;
+      lastTouchTapPos = { x: t.clientX, y: t.clientY };
     }
   }, { passive: false });
 
   canvas.addEventListener("touchmove", (e) => {
+    e.stopPropagation();
+
     if (e.touches.length === 2 && isPinching && touchStartDist > 0) {
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
+
       const t1 = e.touches[0];
       const t2 = e.touches[1];
-      const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      const ratio = currentDist / touchStartDist;
+      const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      const ratio = dist / touchStartDist;
+
+      // Clamped continuous zoom factor
       const newZoom = Math.max(0.4, Math.min(12.0, touchStartZoom * ratio));
 
       const rect = canvas.getBoundingClientRect();
-      const midX = ((t1.clientX + t2.clientX) / 2) - rect.left;
-      const midY = ((t1.clientY + t2.clientY) / 2) - rect.top;
+      const midCanvasX = ((t1.clientX + t2.clientX) / 2) - rect.left;
+      const midCanvasY = ((t1.clientY + t2.clientY) / 2) - rect.top;
 
-      panX = midX - (midX - panX) * (newZoom / zoom);
-      panY = midY - (midY - panY) * (newZoom / zoom);
+      // Mathematically anchored transform keeps anatomical point pinned under fingers
+      const newScale = (rect.height / 1800) * newZoom;
+      panX = midCanvasX - (pinchAnchorModelX * newScale);
+      panY = midCanvasY - (pinchAnchorModelY * newScale);
       zoom = newZoom;
 
+      totalDragDistance += 20;
       if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
-    } else if (e.touches.length === 1 && isDragging) {
-      panX = e.touches[0].clientX - dragStartX;
-      panY = e.touches[0].clientY - dragStartY;
+
+    } else if (e.touches.length === 1 && isDragging && !isPinching) {
+      if (e.cancelable) e.preventDefault();
+      const nextPanX = e.touches[0].clientX - dragStartX;
+      const nextPanY = e.touches[0].clientY - dragStartY;
+      totalDragDistance += Math.hypot(nextPanX - panX, nextPanY - panY);
+      panX = nextPanX;
+      panY = nextPanY;
     }
   }, { passive: false });
 
   canvas.addEventListener("touchend", (e) => {
-    if (e.touches.length < 2) {
+    e.stopPropagation();
+
+    if (e.touches.length === 1) {
+      // Seamless finger transition: 1 finger lifted while pinching, transfer to 1-finger drag
       isPinching = false;
       touchStartDist = 0;
-    }
-    if (e.touches.length === 0) {
+      isDragging = true;
+      dragStartX = e.touches[0].clientX - panX;
+      dragStartY = e.touches[0].clientY - panY;
+    } else if (e.touches.length === 0) {
+      isPinching = false;
+      touchStartDist = 0;
       isDragging = false;
     }
   });
 
-  // Click on pin
+  canvas.addEventListener("touchcancel", (e) => {
+    isPinching = false;
+    touchStartDist = 0;
+    isDragging = false;
+  });
+
+  // Click on pin with drag guard (ignores click if user was panning/pinching)
   canvas.addEventListener("click", (e) => {
+    if (totalDragDistance > 8) {
+      totalDragDistance = 0;
+      return;
+    }
+
     const coords = getCanvasCoords(e);
     const norm = canvasToNormalizedCoords(coords.x, coords.y, coords.width, coords.height);
     const hitRadius = 40 / zoom;
@@ -1089,11 +1191,21 @@ export function initAnatomyAtlasLab(containerId) {
     }
   });
 
-  // Wheel Zoom
+  // Trackpad Pinch (Ctrl+Wheel) & Mouse Wheel Zoom
   canvas.addEventListener("wheel", (e) => {
     e.preventDefault();
-    const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
-    const newZoom = Math.max(0.4, Math.min(12.0, zoom * zoomFactor));
+    e.stopPropagation();
+
+    let newZoom;
+    if (e.ctrlKey) {
+      // Continuous smooth trackpad pinch gesture
+      const factor = Math.exp(-e.deltaY * 0.012);
+      newZoom = Math.max(0.4, Math.min(12.0, zoom * factor));
+    } else {
+      // Discrete mouse wheel stepped zoom
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+      newZoom = Math.max(0.4, Math.min(12.0, zoom * zoomFactor));
+    }
 
     // Zoom centered on cursor
     const coords = getCanvasCoords(e);
@@ -2131,6 +2243,11 @@ export function initAnatomyAtlasLab(containerId) {
       canvas.height = displayHeight;
     }
 
+    if (!hasCenteredInitialView && rect.width > 0 && rect.height > 0) {
+      focusCameraOnCoords(500, 900, 1.0);
+      hasCenteredInitialView = true;
+    }
+
     ctx.save();
     ctx.scale(dpr, dpr);
 
@@ -2176,6 +2293,8 @@ export function initAnatomyAtlasLab(containerId) {
       cancelAnimationFrame(animId);
       animId = null;
     }
+    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener("pointerup", handlePointerUp);
   };
 
   return _currentAtlasCleanup;
