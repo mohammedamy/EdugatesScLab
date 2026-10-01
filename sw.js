@@ -30,6 +30,7 @@ const CORE_APP_SHELL = [
   "./utils/lms-share.js",
   "./utils/docx-export.js",
   "./utils/lab-report-exporter.js",
+  "./utils/touch-zoom.js",
   "./data/chemistry-curriculum.js",
   "./data/biology-curriculum.js",
   "./data/physics-curriculum.js",

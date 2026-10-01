@@ -2489,6 +2489,443 @@ body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.6), 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
+/* Virtual Laboratories Classified Navigation (Che/Phy/Bio & A-Z Sorted) */
+.lab-nav-header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.lab-filter-pills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lab-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-family: var(--font-heading);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(30, 41, 59, 0.6);
+  color: var(--text-muted);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+}
+
+.lab-filter-pill:hover {
+  background: rgba(51, 65, 85, 0.8);
+  color: var(--text-main);
+  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px);
+}
+
+.lab-filter-pill.active {
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+}
+
+.lab-filter-pill[data-subject-filter="chem"].active {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+}
+
+.lab-filter-pill[data-subject-filter="phys"].active {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+}
+
+.lab-filter-pill[data-subject-filter="bio"].active {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+
+.lab-filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  background: rgba(0, 0, 0, 0.35);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.lab-sort-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px dashed rgba(56, 189, 248, 0.35);
+  border-radius: 9999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #38bdf8;
+  letter-spacing: 0.02em;
+}
+
+.lab-classified-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.lab-subject-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 22px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  transition: all 0.3s ease;
+}
+
+.lab-subject-group.lab-group-chem {
+  border-left: 4px solid #06b6d4;
+}
+
+.lab-subject-group.lab-group-phys {
+  border-left: 4px solid #6366f1;
+}
+
+.lab-subject-group.lab-group-bio {
+  border-left: 4px solid #10b981;
+}
+
+.lab-subject-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lab-subject-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.lab-subject-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-family: var(--font-heading);
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.lab-subject-badge.badge-chem {
+  background: rgba(6, 182, 212, 0.15);
+  color: #22d3ee;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+}
+
+.lab-subject-badge.badge-phys {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+}
+
+.lab-subject-badge.badge-bio {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.badge-dot {
+  opacity: 0.4;
+}
+
+.badge-count {
+  font-size: 0.76rem;
+  opacity: 0.9;
+}
+
+.lab-subject-desc {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.lab-alphabetical-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #94a3b8;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Day theme adjustments for classified lab navigation */
+[data-theme="day"] .lab-nav-header-controls {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="day"] .lab-filter-pill {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+
+[data-theme="day"] .lab-filter-pill:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+[data-theme="day"] .lab-subject-group {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+[data-theme="day"] .lab-subject-header {
+  border-bottom-color: #e2e8f0;
+}
+
+/* Universal Touch Screen Pinch-to-Zoom Controller HUD */
+.touch-zoom-hud {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 200080;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.touch-zoom-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 0 16px rgba(56, 189, 248, 0.2);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.touch-zoom-hud.is-active-zoom .touch-zoom-pill {
+  border-color: #38bdf8;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 22px rgba(56, 189, 248, 0.45);
+}
+
+.touch-zoom-hud.is-shrunk .touch-zoom-pill {
+  border-color: #f59e0b;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 22px rgba(245, 158, 11, 0.45);
+}
+
+.touch-zoom-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.touch-zoom-btn:hover {
+  background: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+  transform: scale(1.08);
+}
+
+.touch-zoom-btn:active {
+  transform: scale(0.94);
+}
+
+.touch-zoom-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.4);
+  color: #e2e8f0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 68px;
+  justify-content: center;
+}
+
+.touch-zoom-badge:hover {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.touch-zoom-btn-reset {
+  display: none;
+  gap: 4px;
+  width: auto;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+  color: #ffffff;
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  font-weight: 800;
+  box-shadow: 0 2px 10px rgba(14, 165, 233, 0.4);
+}
+
+.touch-zoom-btn-reset:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.6);
+  color: #ffffff;
+}
+
+.touch-zoom-popover {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  border-radius: 14px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+  width: 210px;
+}
+
+.touch-zoom-popover-title {
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 2px;
+}
+
+.touch-zoom-preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.touch-zoom-preset-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.touch-zoom-preset-opt:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.preset-tag {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  font-family: var(--font-heading);
+}
+
+.touch-zoom-hint {
+  font-size: 0.7rem;
+  color: #64748b;
+  line-height: 1.35;
+  margin-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 6px;
+}
+
+/* Day theme adjustments for Touch Zoom HUD */
+[data-theme="day"] .touch-zoom-pill {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="day"] .touch-zoom-btn {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+[data-theme="day"] .touch-zoom-btn:hover {
+  background: #e2e8f0;
+  color: #0284c7;
+}
+
+[data-theme="day"] .touch-zoom-badge {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+[data-theme="day"] .touch-zoom-popover {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="day"] .touch-zoom-preset-opt {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
 /* Smartboard Annotation Overlay Canvas */
 #smartboard-draw-canvas {
   position: fixed;

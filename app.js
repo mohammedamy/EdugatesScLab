@@ -57,7 +57,8 @@ const AppState = {
   searchQuery: "",
   selectedUnit: "ALL",
   activeLabId: "projectile",
-  quizFilter: null
+  quizFilter: null,
+  labsFilterSubject: "all" // 'all', 'chem', 'phys', 'bio'
 };
 
 // Available Curricula and Laboratory Modules for Main Navigation Dropdown
@@ -179,6 +180,11 @@ function bootApp() {
     } else {
       setTimeout(loadSmartboardToolbar, 100);
     }
+
+    // Initialize Touch Screen 2-Finger Pinch-to-Zoom & Whole-Screen Scaling Engine
+    import("./utils/touch-zoom.js").then(m => m.initTouchZoom()).catch(err => {
+      console.warn("Touch zoom init warning:", err);
+    });
   } catch (bootErr) {
     console.error("Application boot exception:", bootErr);
     if (typeof window !== "undefined" && typeof window.__TRIGGER_APP_ERROR__ === "function") {
@@ -999,6 +1005,10 @@ export function normalizeLabId(rawId) {
 
 function formatLabName(labKey) {
   const norm = normalizeLabId(labKey);
+  if (typeof VIRTUAL_LABS_REGISTRY !== "undefined") {
+    const reg = VIRTUAL_LABS_REGISTRY.find(l => l.id === norm);
+    if (reg && reg.title) return reg.title;
+  }
   const map = {
     "projectile": "Kinematics & Dynamics",
     "titration": "Titration & Stoichiometry",
@@ -1602,6 +1612,184 @@ function renderSubjectView(container, curData, themeColor) {
   renderMathInElement(container);
 }
 
+// Master Registry of Virtual Laboratories (Classified by Chemistry, Physics, Biology)
+// Adding new labs here or via registerVirtualLab() automatically categorizes and sorts them alphabetically (A-Z).
+export const VIRTUAL_LABS_REGISTRY = [
+  // Chemistry Laboratories (11)
+  { id: "titration", subject: "chem", title: "Acid-Base Titration", icon: icons.titration, ariaLabel: "Acid-Base Titration Virtual Lab", href: "#labs/titration" },
+  { id: "beerlambert", subject: "chem", title: "Beer-Lambert Law", icon: icons.beerLambert, ariaLabel: "Spectrophotometry and Beer-Lambert Law Lab", href: "#labs/beerlambert" },
+  { id: "calorimetry", subject: "chem", title: "Calorimetry & ΔH", icon: icons.calorimetry, ariaLabel: "Calorimetry and Thermochemistry Virtual Lab", href: "#labs/calorimetry" },
+  { id: "colligative", subject: "chem", title: "Colligative Properties", icon: icons.colligative, ariaLabel: "Colligative Properties and Freezing Point Lab", href: "#labs/colligative" },
+  { id: "electrochem", subject: "chem", title: "Electrochemistry & Voltaic", icon: icons.electrochem, ariaLabel: "Electrochemistry and Voltaic Cells Lab", href: "#labs/electrochem" },
+  { id: "equilibrium", subject: "chem", title: "Equilibrium & Le Chatelier", icon: icons.equilibrium, ariaLabel: "Chemical Equilibrium and Le Chatelier Lab", href: "#labs/equilibrium" },
+  { id: "gaslaws", subject: "chem", title: "Gas Laws & Kinetic Theory", icon: icons.gasLaws, ariaLabel: "Gas Laws and Kinetic Theory Lab", href: "#labs/gaslaws" },
+  { id: "ptable", subject: "chem", title: "Interactive Periodic Table", icon: icons.periodicTable, ariaLabel: "Interactive Periodic Table Lab", href: "#labs/ptable" },
+  { id: "decay", subject: "chem", title: "Nuclear Decay & Kinetics", icon: icons.nuclearDecay, ariaLabel: "Radioactive Decay and Nuclear Kinetics Lab", href: "#labs/decay" },
+  { id: "organic", subject: "chem", title: "Organic Mechanisms", icon: icons.organicReactions, ariaLabel: "Organic Reaction Mechanisms Lab", href: "#labs/organic" },
+  { id: "vsepr", subject: "chem", title: "VSEPR 3D Modeler", icon: icons.vsepr, ariaLabel: "VSEPR 3D Modeler Lab", href: "#labs/vsepr" },
+
+  // Physics Laboratories (10)
+  { id: "circuits", subject: "phys", title: "DC Circuits & Ohm's Law", icon: icons.circuit, ariaLabel: "DC Circuits and Ohm's Law Lab", href: "#labs/circuits" },
+  { id: "fluids", subject: "phys", title: "Fluid Dynamics & Buoyancy", icon: icons.fluidsBuoyancy, ariaLabel: "Fluid Dynamics and Buoyancy Lab", href: "#labs/fluids" },
+  { id: "optics", subject: "phys", title: "Geometric Optics Ray Tracing", icon: icons.optics, ariaLabel: "Geometric Optics Ray Tracing Lab", href: "#labs/optics" },
+  { id: "harmonic", subject: "phys", title: "Harmonic Motion & Hooke", icon: icons.harmonic, ariaLabel: "Harmonic Motion and Hooke's Law Lab", href: "#labs/harmonic" },
+  { id: "projectile", subject: "phys", title: "Kinematics & Projectiles", icon: icons.projectile, ariaLabel: "Kinematics and Projectiles Virtual Lab", href: "#labs/projectile" },
+  { id: "magnetism", subject: "phys", title: "Magnetic Force & e/m", icon: icons.magnetism, ariaLabel: "Magnetic Force and Lorentz e/m Lab", href: "#labs/magnetism" },
+  { id: "photoelectric", subject: "phys", title: "Photoelectric Effect", icon: icons.photoelectric, ariaLabel: "Photoelectric Effect and Quantum Physics Lab", href: "#labs/photoelectric" },
+  { id: "rotational", subject: "phys", title: "Rotational Dynamics", icon: icons.rotationalDynamics, ariaLabel: "Rotational Dynamics and Moment of Inertia Lab", href: "#labs/rotational" },
+  { id: "conduction", subject: "phys", title: "Thermal Conduction", icon: icons.thermalConduction, ariaLabel: "Thermal Conduction and Fourier Law Lab", href: "#labs/conduction" },
+  { id: "waves", subject: "phys", title: "Wave Interference & Slits", icon: icons.waveInterference, ariaLabel: "Wave Interference and Slits Lab", href: "#labs/waves" },
+
+  // Biology Laboratories (10) - Suite Navigation href="#labs/anatomy"
+  { id: "anatomy", subject: "bio", title: "4K Human Anatomy Atlas", icon: "🏛️", ariaLabel: "4K Human Anatomy Atlas and Histology Lab", href: "#labs/anatomy" },
+  { id: "actionpotential", subject: "bio", title: "Action Potential Patch Clamp", icon: icons.actionPotential, ariaLabel: "Neurobiology and Action Potential Patch Clamp Lab", href: "#labs/actionpotential" },
+  { id: "respiration", subject: "bio", title: "Cellular Respiration", icon: icons.respiration, ariaLabel: "Cellular Respiration and Respirometer Lab", href: "#labs/respiration" },
+  { id: "dnaprotein", subject: "bio", title: "DNA & Protein Synthesis", icon: icons.dna, ariaLabel: "DNA and Protein Synthesis Lab", href: "#labs/dnaprotein" },
+  { id: "enzymes", subject: "bio", title: "Enzyme Kinetics", icon: icons.enzymes, ariaLabel: "Enzyme Kinetics and Catalysis Lab", href: "#labs/enzymes" },
+  { id: "electrophoresis", subject: "bio", title: "Gel Electrophoresis", icon: icons.gelElectrophoresis, ariaLabel: "Agarose Gel Electrophoresis Lab", href: "#labs/electrophoresis" },
+  { id: "photosynthesis", subject: "bio", title: "Photosynthesis & Bioenergetics", icon: icons.photosynthesis, ariaLabel: "Photosynthesis and Bioenergetics Lab", href: "#labs/photosynthesis" },
+  { id: "ecology", subject: "bio", title: "Population Ecology", icon: icons.populationEcology, ariaLabel: "Population Ecology and Lotka-Volterra Lab", href: "#labs/ecology" },
+  { id: "punnett", subject: "bio", title: "Punnett Genetics Cross", icon: icons.punnett, ariaLabel: "Punnett Genetics Cross Lab", href: "#labs/punnett" },
+  { id: "microscope", subject: "bio", title: "Ultra-HD Microscope", icon: icons.microscope, ariaLabel: "Ultra-HD Microscope Virtual Lab", href: "#labs/microscope" }
+];
+
+export const LAB_SUBJECT_CONFIG = {
+  chem: {
+    id: "chem",
+    label: "Chemistry",
+    shortCode: "CHE",
+    icon: "🧪",
+    color: "#06b6d4",
+    description: "Titration, Equilibrium, Gas Laws, Thermodynamics, VSEPR & Reaction Kinetics"
+  },
+  phys: {
+    id: "phys",
+    label: "Physics",
+    shortCode: "PHY",
+    icon: "⚛️",
+    color: "#6366f1",
+    description: "Kinematics, DC Circuits, Wave Optics, Harmonic Motion & Quantum Phenomena"
+  },
+  bio: {
+    id: "bio",
+    label: "Biology",
+    shortCode: "BIO",
+    icon: "🧬",
+    color: "#10b981",
+    description: "4K Human Anatomy Atlas, Microscopy, Genetics, Enzyme Kinetics & Bioenergetics"
+  }
+};
+
+export function registerVirtualLab(labDef) {
+  if (!labDef || !labDef.id) return;
+  const idx = VIRTUAL_LABS_REGISTRY.findIndex(l => l.id === labDef.id);
+  const entry = {
+    href: `#labs/${labDef.id}`,
+    ariaLabel: labDef.ariaLabel || `${labDef.title} Virtual Lab`,
+    ...labDef
+  };
+  if (idx >= 0) {
+    VIRTUAL_LABS_REGISTRY[idx] = { ...VIRTUAL_LABS_REGISTRY[idx], ...entry };
+  } else {
+    VIRTUAL_LABS_REGISTRY.push(entry);
+  }
+}
+
+export function getClassifiedVirtualLabs() {
+  const subjects = ["chem", "phys", "bio"];
+  const result = {};
+
+  subjects.forEach(sub => {
+    const list = VIRTUAL_LABS_REGISTRY.filter(lab => (lab.subject || "phys").toLowerCase().startsWith(sub));
+    // Sort strictly alphabetically by title (A to Z) using localeCompare
+    list.sort((a, b) => a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: "base" }));
+    result[sub] = list;
+  });
+
+  return result;
+}
+
+export function renderClassifiedLabNavHTML(activeLabId, filterSubject = "all") {
+  const classified = getClassifiedVirtualLabs();
+  const subjects = [
+    { key: "chem", config: LAB_SUBJECT_CONFIG.chem, labs: classified.chem || [] },
+    { key: "phys", config: LAB_SUBJECT_CONFIG.phys, labs: classified.phys || [] },
+    { key: "bio", config: LAB_SUBJECT_CONFIG.bio, labs: classified.bio || [] }
+  ];
+
+  const totalCount = VIRTUAL_LABS_REGISTRY.length;
+  const chemCount = (classified.chem || []).length;
+  const physCount = (classified.phys || []).length;
+  const bioCount = (classified.bio || []).length;
+
+  return `
+    <!-- Subject Filter Tabs & Classification Bar -->
+    <div class="lab-nav-header-controls">
+      <div class="lab-filter-pills" role="tablist" aria-label="Filter Virtual Laboratories by Subject">
+        <button class="lab-filter-pill ${filterSubject === 'all' ? 'active' : ''}" data-subject-filter="all" role="tab" aria-selected="${filterSubject === 'all'}">
+          <span class="lab-filter-icon">🌐</span>
+          <span class="lab-filter-label">All Laboratories</span>
+          <span class="lab-filter-badge">${totalCount}</span>
+        </button>
+        <button class="lab-filter-pill ${filterSubject === 'chem' ? 'active' : ''}" data-subject-filter="chem" role="tab" aria-selected="${filterSubject === 'chem'}">
+          <span class="lab-filter-icon">🧪</span>
+          <span class="lab-filter-label">Chemistry (Che)</span>
+          <span class="lab-filter-badge chem-badge">${chemCount}</span>
+        </button>
+        <button class="lab-filter-pill ${filterSubject === 'phys' ? 'active' : ''}" data-subject-filter="phys" role="tab" aria-selected="${filterSubject === 'phys'}">
+          <span class="lab-filter-icon">⚛️</span>
+          <span class="lab-filter-label">Physics (Phy)</span>
+          <span class="lab-filter-badge phys-badge">${physCount}</span>
+        </button>
+        <button class="lab-filter-pill ${filterSubject === 'bio' ? 'active' : ''}" data-subject-filter="bio" role="tab" aria-selected="${filterSubject === 'bio'}">
+          <span class="lab-filter-icon">🧬</span>
+          <span class="lab-filter-label">Biology (Bio)</span>
+          <span class="lab-filter-badge bio-badge">${bioCount}</span>
+        </button>
+      </div>
+
+      <div class="lab-sort-badge" title="Laboratories are categorized into Chemistry, Physics, and Biology, and dynamically arranged in alphabetical order (A to Z)">
+        <span class="lab-sort-indicator-icon">🔤</span>
+        <span class="lab-sort-indicator-text">Organized Alphabetically (A → Z)</span>
+      </div>
+    </div>
+
+    <!-- Classified Laboratories Subject Sections -->
+    <div class="lab-classified-sections">
+      ${subjects.map(({ key, config, labs }) => {
+        const isVisible = filterSubject === "all" || filterSubject === key;
+        return `
+          <section class="lab-subject-group lab-group-${key}" data-subject="${key}" style="${isVisible ? '' : 'display: none;'}">
+            <div class="lab-subject-header">
+              <div class="lab-subject-info">
+                <span class="lab-subject-badge badge-${key}">
+                  <span class="badge-icon">${config.icon}</span>
+                  <span class="badge-title">${config.label.toUpperCase()} LABORATORIES</span>
+                  <span class="badge-dot">•</span>
+                  <span class="badge-count">${labs.length} EXPERIMENTS</span>
+                </span>
+                <span class="lab-subject-desc">${config.description}</span>
+              </div>
+              <div class="lab-alphabetical-chip" title="Alphabetically sorted from A to Z">
+                <span>A → Z</span>
+              </div>
+            </div>
+
+            <div class="lab-nav-pills-container">
+              ${labs.map(lab => `
+                <a href="${lab.href || '#labs/' + lab.id}" class="btn ${activeLabId === lab.id ? 'btn-primary' : 'btn-secondary'} lab-nav-btn lab-btn-${key}" data-lab="${lab.id}" aria-label="${lab.ariaLabel}" style="text-decoration: none;">
+                  <span class="lab-btn-icon-wrapper">${lab.icon}</span>
+                  <span class="lab-btn-title">${lab.title}</span>
+                </a>
+              `).join('')}
+            </div>
+          </section>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
 function renderVirtualLabsHub(container) {
   container.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 28px;">
@@ -1625,133 +1813,8 @@ function renderVirtualLabsHub(container) {
           High-performance physics, chemistry, and biological simulations with live numerical data telemetry, variable control inputs, real-time calculus, and interactive laboratory apparatus.
         </p>
 
-        <!-- 30 Lab Selector Tabs -->
-        <div class="lab-nav-pills-container">
-          <a href="#labs/projectile" class="btn ${AppState.activeLabId === 'projectile' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="projectile" aria-label="Kinematics and Projectiles Virtual Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.projectile}</span>
-            <span class="lab-btn-title">Kinematics &amp; Projectiles</span>
-          </a>
-          <a href="#labs/titration" class="btn ${AppState.activeLabId === 'titration' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="titration" aria-label="Acid-Base Titration Virtual Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.titration}</span>
-            <span class="lab-btn-title">Acid-Base Titration</span>
-          </a>
-          <a href="#labs/microscope" class="btn ${AppState.activeLabId === 'microscope' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="microscope" aria-label="Ultra-HD Microscope Virtual Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.microscope}</span>
-            <span class="lab-btn-title">Ultra-HD Microscope</span>
-          </a>
-          <a href="#labs/ptable" class="btn ${AppState.activeLabId === 'ptable' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="ptable" aria-label="Interactive Periodic Table Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.periodicTable}</span>
-            <span class="lab-btn-title">Interactive Periodic Table</span>
-          </a>
-          <a href="#labs/circuits" class="btn ${AppState.activeLabId === 'circuits' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="circuits" aria-label="DC Circuits and Ohm's Law Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.circuit}</span>
-            <span class="lab-btn-title">DC Circuits &amp; Ohm's Law</span>
-          </a>
-          <a href="#labs/gaslaws" class="btn ${AppState.activeLabId === 'gaslaws' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="gaslaws" aria-label="Gas Laws and Kinetic Theory Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.gasLaws}</span>
-            <span class="lab-btn-title">Gas Laws &amp; Kinetic Theory</span>
-          </a>
-          <a href="#labs/dnaprotein" class="btn ${AppState.activeLabId === 'dnaprotein' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="dnaprotein" aria-label="DNA and Protein Synthesis Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.dna}</span>
-            <span class="lab-btn-title">DNA &amp; Protein Synthesis</span>
-          </a>
-          <a href="#labs/punnett" class="btn ${AppState.activeLabId === 'punnett' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="punnett" aria-label="Punnett Genetics Cross Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.punnett}</span>
-            <span class="lab-btn-title">Punnett Genetics Cross</span>
-          </a>
-          <a href="#labs/optics" class="btn ${AppState.activeLabId === 'optics' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="optics" aria-label="Geometric Optics Ray Tracing Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.optics}</span>
-            <span class="lab-btn-title">Geometric Optics Ray Tracing</span>
-          </a>
-          <a href="#labs/vsepr" class="btn ${AppState.activeLabId === 'vsepr' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="vsepr" aria-label="VSEPR 3D Modeler Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.vsepr}</span>
-            <span class="lab-btn-title">VSEPR 3D Modeler</span>
-          </a>
-          <a href="#labs/waves" class="btn ${AppState.activeLabId === 'waves' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="waves" aria-label="Wave Interference and Slits Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.waveInterference}</span>
-            <span class="lab-btn-title">Wave Interference &amp; Slits</span>
-          </a>
-          <a href="#labs/photosynthesis" class="btn ${AppState.activeLabId === 'photosynthesis' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="photosynthesis" aria-label="Photosynthesis and Bioenergetics Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.photosynthesis}</span>
-            <span class="lab-btn-title">Photosynthesis &amp; Bioenergetics</span>
-          </a>
-          <a href="#labs/calorimetry" class="btn ${AppState.activeLabId === 'calorimetry' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="calorimetry" aria-label="Calorimetry and Thermochemistry Virtual Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.calorimetry}</span>
-            <span class="lab-btn-title">Calorimetry &amp; &Delta;H</span>
-          </a>
-          <a href="#labs/equilibrium" class="btn ${AppState.activeLabId === 'equilibrium' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="equilibrium" aria-label="Chemical Equilibrium and Le Chatelier Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.equilibrium}</span>
-            <span class="lab-btn-title">Equilibrium &amp; Le Chatelier</span>
-          </a>
-          <a href="#labs/electrochem" class="btn ${AppState.activeLabId === 'electrochem' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="electrochem" aria-label="Electrochemistry and Voltaic Cells Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.electrochem}</span>
-            <span class="lab-btn-title">Electrochemistry &amp; Voltaic</span>
-          </a>
-          <a href="#labs/harmonic" class="btn ${AppState.activeLabId === 'harmonic' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="harmonic" aria-label="Harmonic Motion and Hooke's Law Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.harmonic}</span>
-            <span class="lab-btn-title">Harmonic Motion &amp; Hooke</span>
-          </a>
-          <a href="#labs/photoelectric" class="btn ${AppState.activeLabId === 'photoelectric' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="photoelectric" aria-label="Photoelectric Effect and Quantum Physics Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.photoelectric}</span>
-            <span class="lab-btn-title">Photoelectric Effect</span>
-          </a>
-          <a href="#labs/magnetism" class="btn ${AppState.activeLabId === 'magnetism' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="magnetism" aria-label="Magnetic Force and Lorentz e/m Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.magnetism}</span>
-            <span class="lab-btn-title">Magnetic Force &amp; e/m</span>
-          </a>
-          <a href="#labs/enzymes" class="btn ${AppState.activeLabId === 'enzymes' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="enzymes" aria-label="Enzyme Kinetics and Catalysis Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.enzymes}</span>
-            <span class="lab-btn-title">Enzyme Kinetics</span>
-          </a>
-          <a href="#labs/respiration" class="btn ${AppState.activeLabId === 'respiration' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="respiration" aria-label="Cellular Respiration and Respirometer Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.respiration}</span>
-            <span class="lab-btn-title">Cellular Respiration</span>
-          </a>
-          <a href="#labs/beerlambert" class="btn ${AppState.activeLabId === 'beerlambert' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="beerlambert" aria-label="Spectrophotometry and Beer-Lambert Law Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.beerLambert}</span>
-            <span class="lab-btn-title">Beer-Lambert Law</span>
-          </a>
-          <a href="#labs/decay" class="btn ${AppState.activeLabId === 'decay' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="decay" aria-label="Radioactive Decay and Nuclear Kinetics Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.nuclearDecay}</span>
-            <span class="lab-btn-title">Nuclear Decay &amp; Kinetics</span>
-          </a>
-          <a href="#labs/colligative" class="btn ${AppState.activeLabId === 'colligative' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="colligative" aria-label="Colligative Properties and Freezing Point Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.colligative}</span>
-            <span class="lab-btn-title">Colligative Properties</span>
-          </a>
-          <a href="#labs/organic" class="btn ${AppState.activeLabId === 'organic' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="organic" aria-label="Organic Reaction Mechanisms Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.organicReactions}</span>
-            <span class="lab-btn-title">Organic Mechanisms</span>
-          </a>
-          <a href="#labs/electrophoresis" class="btn ${AppState.activeLabId === 'electrophoresis' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="electrophoresis" aria-label="Agarose Gel Electrophoresis Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.gelElectrophoresis}</span>
-            <span class="lab-btn-title">Gel Electrophoresis</span>
-          </a>
-          <a href="#labs/ecology" class="btn ${AppState.activeLabId === 'ecology' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="ecology" aria-label="Population Ecology and Lotka-Volterra Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.populationEcology}</span>
-            <span class="lab-btn-title">Population Ecology</span>
-          </a>
-          <a href="#labs/actionpotential" class="btn ${AppState.activeLabId === 'actionpotential' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="actionpotential" aria-label="Neurobiology and Action Potential Patch Clamp Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.actionPotential}</span>
-            <span class="lab-btn-title">Action Potential Patch Clamp</span>
-          </a>
-          <a href="#labs/rotational" class="btn ${AppState.activeLabId === 'rotational' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="rotational" aria-label="Rotational Dynamics and Moment of Inertia Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.rotationalDynamics}</span>
-            <span class="lab-btn-title">Rotational Dynamics</span>
-          </a>
-          <a href="#labs/conduction" class="btn ${AppState.activeLabId === 'conduction' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="conduction" aria-label="Thermal Conduction and Fourier Law Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.thermalConduction}</span>
-            <span class="lab-btn-title">Thermal Conduction</span>
-          </a>
-          <a href="#labs/fluids" class="btn ${AppState.activeLabId === 'fluids' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="fluids" aria-label="Fluid Dynamics and Buoyancy Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">${icons.fluidsBuoyancy}</span>
-            <span class="lab-btn-title">Fluid Dynamics &amp; Buoyancy</span>
-          </a>
-          <a href="#labs/anatomy" class="btn ${AppState.activeLabId === 'anatomy' ? 'btn-primary' : 'btn-secondary'} lab-nav-btn" data-lab="anatomy" aria-label="4K Human Anatomy Atlas and Histology Lab" style="text-decoration: none;">
-            <span class="lab-btn-icon-wrapper">🏛️</span>
-            <span class="lab-btn-title">4K Human Anatomy Atlas</span>
-          </a>
-        </div>
+        <!-- Dynamic Classified & Alphabetically Organized Labs Navigation -->
+        ${renderClassifiedLabNavHTML(AppState.activeLabId, AppState.labsFilterSubject)}
       </div>
 
       <!-- Mount Container for Selected Lab -->
@@ -1778,8 +1841,29 @@ function renderVirtualLabsHub(container) {
     });
   });
 
+  // Bind Subject Filter Buttons
+  container.querySelectorAll(".lab-filter-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+      const filter = pill.dataset.subjectFilter || "all";
+      AppState.labsFilterSubject = filter;
+      try { SoundFX.playClick(); } catch (err) {}
+
+      container.querySelectorAll(".lab-filter-pill").forEach(p => {
+        const isAct = p.dataset.subjectFilter === filter;
+        p.classList.toggle("active", isAct);
+        p.setAttribute("aria-selected", isAct ? "true" : "false");
+      });
+
+      container.querySelectorAll(".lab-subject-group").forEach(group => {
+        const grpSub = group.dataset.subject;
+        const show = filter === "all" || filter === grpSub;
+        group.style.display = show ? "" : "none";
+      });
+    });
+  });
+
   // Bind Lab Selector Buttons
-  document.querySelectorAll(".lab-nav-btn").forEach(btn => {
+  container.querySelectorAll(".lab-nav-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
       if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
       e.preventDefault();
