@@ -1176,6 +1176,52 @@ export const icons = {
     <path d="M2 20c3-1.5 6 1.5 10 0s7 1.5 10 0" stroke="#0284c7" stroke-width="2"/>
     <line x1="12" y1="10" x2="12" y2="3" stroke="#10b981" stroke-width="2"/>
     <polyline points="10,5 12,3 14,5" stroke="#10b981" stroke-width="2"/>
+  </svg>`,
+
+  reactionKinetics: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 2v7.31L4.5 19.5A2 2 0 0 0 6.23 22h11.54a2 2 0 0 0 1.73-2.5L14 9.31V2" stroke="#f59e0b"/>
+    <line x1="8.5" y1="2" x2="15.5" y2="2" stroke="#f59e0b"/>
+    <path d="M13 14l-2 4h3l-2 4" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="8" cy="18" r="1.5" fill="#f59e0b"/>
+    <circle cx="16" cy="17" r="1.5" fill="#10b981"/>
+  </svg>`,
+
+  collisions: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="10" width="7" height="6" rx="1" stroke="#38bdf8" fill="rgba(56, 189, 248, 0.2)"/>
+    <rect x="15" y="10" width="7" height="6" rx="1" stroke="#f43f5e" fill="rgba(244, 63, 94, 0.2)"/>
+    <line x1="1" y1="19" x2="23" y2="19" stroke="#64748b" stroke-width="2"/>
+    <path d="M5 6l3 2-3 2" stroke="#38bdf8"/>
+    <path d="M19 6l-3 2 3 2" stroke="#f43f5e"/>
+    <line x1="12" y1="8" x2="12" y2="15" stroke="#facc15" stroke-dasharray="2 2"/>
+  </svg>`,
+
+  induction: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="2" y="5" width="8" height="14" rx="2" stroke="#f43f5e" fill="rgba(244, 63, 94, 0.2)"/>
+    <text x="5" y="10" font-size="5" fill="#f43f5e" font-weight="bold">N</text>
+    <text x="5" y="16" font-size="5" fill="#38bdf8" font-weight="bold">S</text>
+    <path d="M14 6c3 0 5 1.5 5 3.5s-2 3.5-5 3.5 5 1.5 5 3.5-2 3.5-5 3.5" stroke="#fbbf24" stroke-width="2"/>
+    <circle cx="21" cy="12" r="2" stroke="#22c55e" fill="rgba(34, 197, 94, 0.3)"/>
+    <line x1="21" y1="12" x2="22" y2="10.5" stroke="#22c55e" stroke-width="1.5"/>
+  </svg>`,
+
+  osmosis: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 3v12a7 7 0 0 0 14 0V3" stroke="#38bdf8" stroke-width="2"/>
+    <line x1="12" y1="6" x2="12" y2="20" stroke="#94a3b8" stroke-dasharray="2 2"/>
+    <circle cx="8" cy="12" r="1.5" fill="#38bdf8"/>
+    <circle cx="7" cy="15" r="1" fill="#38bdf8"/>
+    <circle cx="16" cy="10" r="2" fill="#a855f7"/>
+    <circle cx="15" cy="14" r="2" fill="#a855f7"/>
+    <circle cx="17" cy="16" r="1.2" fill="#38bdf8"/>
+  </svg>`,
+
+  mitosis: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9" stroke="#10b981" stroke-width="2"/>
+    <path d="M9 7l3 5-3 5" stroke="#f43f5e" stroke-width="2"/>
+    <path d="M15 7l-3 5 3 5" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="6" cy="12" r="1" fill="#f59e0b"/>
+    <circle cx="18" cy="12" r="1" fill="#f59e0b"/>
+    <line x1="6" y1="12" x2="9" y2="12" stroke="#f59e0b" stroke-dasharray="1 1"/>
+    <line x1="15" y1="12" x2="18" y2="12" stroke="#f59e0b" stroke-dasharray="1 1"/>
   </svg>`
 };
 

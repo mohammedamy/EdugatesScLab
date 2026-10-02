@@ -45,12 +45,12 @@ console.log("========================================================\n");
 // Test 1: Registry Integrity & Subject Classification
 // ----------------------------------------------------
 check(Array.isArray(VIRTUAL_LABS_REGISTRY), "VIRTUAL_LABS_REGISTRY is an array");
-check(VIRTUAL_LABS_REGISTRY.length >= 31, `VIRTUAL_LABS_REGISTRY contains all 31 platform laboratories (Found: ${VIRTUAL_LABS_REGISTRY.length})`);
+check(VIRTUAL_LABS_REGISTRY.length === 36, `VIRTUAL_LABS_REGISTRY contains all 36 platform laboratories (Found: ${VIRTUAL_LABS_REGISTRY.length})`);
 
 const classified = getClassifiedVirtualLabs();
-check(Array.isArray(classified.chem) && classified.chem.length === 11, `Chemistry classification contains exactly 11 laboratories (Found: ${classified.chem?.length})`);
-check(Array.isArray(classified.phys) && classified.phys.length === 10, `Physics classification contains exactly 10 laboratories (Found: ${classified.phys?.length})`);
-check(Array.isArray(classified.bio) && classified.bio.length === 10, `Biology classification contains exactly 10 laboratories (Found: ${classified.bio?.length})`);
+check(Array.isArray(classified.chem) && classified.chem.length === 12, `Chemistry classification contains exactly 12 laboratories (Found: ${classified.chem?.length})`);
+check(Array.isArray(classified.phys) && classified.phys.length === 12, `Physics classification contains exactly 12 laboratories (Found: ${classified.phys?.length})`);
+check(Array.isArray(classified.bio) && classified.bio.length === 12, `Biology classification contains exactly 12 laboratories (Found: ${classified.bio?.length})`);
 
 // ----------------------------------------------------
 // Test 2: Strict Alphabetical Ordering (A to Z)

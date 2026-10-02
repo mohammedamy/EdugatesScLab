@@ -3516,12 +3516,7 @@ export function initAnatomyAtlasLab(containerId) {
       playHeartSound(false); // S2 "Dub"
     }
 
-    // Cardiac Cycle Mechanical Phases:
-    // Phase 1 (0.00 - 0.15): Atrial Systole (P-wave, active filling, AV valves OPEN, SL valves CLOSED)
-    // Phase 2 (0.15 - 0.22): Isovolumetric Contraction (QRS, AV valves SNAP SHUT -> S1, SL valves CLOSED)
-    // Phase 3 (0.22 - 0.48): Rapid & Reduced Ejection (Peak Systole 120 mmHg, AV CLOSED, SL valves OPEN)
-    // Phase 4 (0.48 - 0.55): Isovolumetric Relaxation (T-wave, SL valves SNAP SHUT -> S2, AV CLOSED)
-    // Phase 5 (0.55 - 1.00): Passive Diastolic Filling (AV valves OPEN, SL valves CLOSED)
+    // Cardiac Cycle Mechanical Phases (Wiggers Physiological Stages)
     const isAtrialSystole = beatPhase < 0.15;
     const isIsovolumetricContraction = beatPhase >= 0.15 && beatPhase < 0.22;
     const isVentricularEjection = beatPhase >= 0.22 && beatPhase < 0.48;
@@ -3582,412 +3577,643 @@ export function initAnatomyAtlasLab(containerId) {
       phaseColor = "#38bdf8";
     }
 
-    // Biomechanical myocardial strain & torsion
-    let scaleX = 1.0;
-    let scaleY = 1.0;
-    let twistAngle = 0;
+    // CONTINUOUS NONLINEAR BIOMECHANICAL MYOCARDIAL STRAIN & APICAL TORSION
+    // 1. Atrial presystolic kick strain (0.00 - 0.15)
+    const atrialStrain = isAtrialSystole ? Math.sin((beatPhase / 0.15) * Math.PI) : 0;
 
-    if (isAtrialSystole) {
-      scaleY = 0.98 + 0.02 * Math.cos((beatPhase / 0.15) * Math.PI);
-    } else if (isIsovolumetricContraction) {
-      scaleX = 0.98;
-      scaleY = 0.98;
-      twistAngle = 0.01;
+    // 2. Ventricular systole contraction curve (0.15 - 0.48)
+    let ventStrain = 0;
+    let apicalTwist = 0;
+    let avDescent = 0;
+
+    if (isIsovolumetricContraction) {
+      const t = (beatPhase - 0.15) / 0.07;
+      ventStrain = 0.035 * t; // Isometric stiffening & wall rounding
+      apicalTwist = 0.010 * t;
+      avDescent = 0.008 * t;
     } else if (isVentricularEjection) {
       const t = (beatPhase - 0.22) / 0.26;
-      const strain = Math.sin(t * Math.PI);
-      scaleX = 1.0 - 0.07 * strain;
-      scaleY = 1.0 - 0.09 * strain;
-      twistAngle = -0.03 * strain; // wringing apical torsion
+      // Asymmetric ejection curve: rapid acceleration in early systole
+      const ejectionCurve = Math.sin(t * Math.PI);
+      ventStrain = 0.035 + 0.115 * ejectionCurve; // Up to 15% radial wall contraction!
+      apicalTwist = 0.010 + 0.042 * ejectionCurve; // Wringing counter-clockwise apical twist!
+      avDescent = 0.008 + 0.048 * ejectionCurve;  // Base/AV ring pulled downward toward apex!
     } else if (isIsovolumetricRelaxation) {
       const t = (beatPhase - 0.48) / 0.07;
-      scaleX = 0.95 + t * 0.05;
-      scaleY = 0.93 + t * 0.07;
+      // Rapid elastic untwisting recoil (diastolic suction)
+      ventStrain = 0.035 * (1.0 - t);
+      apicalTwist = 0.010 * (1.0 - t);
+      avDescent = 0.008 * (1.0 - t);
     } else {
+      // Diastolic passive filling: subtle elastic compliance
       const t = (beatPhase - 0.55) / 0.45;
-      scaleX = 1.0 + 0.025 * Math.sin(t * Math.PI);
-      scaleY = 1.0 + 0.02 * Math.sin(t * Math.PI);
+      ventStrain = -0.025 * Math.sin(t * Math.PI);
     }
 
-    // Canvas layout
+    // Geometry layout
     const heartCenterX = width * 0.28;
     const heartCenterY = height * 0.49;
     const maxHeartH = height * 0.76;
     const heartW = Math.min(width * 0.42, 380, maxHeartH * (896 / 1200));
     const heartH = heartW * (1200 / 896);
 
-    // Initialize circulating blood particles if needed
-    if (!histoState.bloodParticles || histoState.bloodParticles.length === 0) {
-      histoState.bloodParticles = [];
-      // 22 deoxygenated particles (SVC/RA -> RV -> Pulmonary Trunk)
-      for (let i = 0; i < 22; i++) {
-        histoState.bloodParticles.push({
-          type: "deox",
-          t: Math.random(),
-          speed: 0.14 + Math.random() * 0.06,
-          jitterX: (Math.random() - 0.5) * 14,
-          jitterY: (Math.random() - 0.5) * 14,
-          size: 3 + Math.random() * 2
-        });
-      }
-      // 22 oxygenated particles (Pulmonary Veins/LA -> LV -> Aorta)
-      for (let i = 0; i < 22; i++) {
-        histoState.bloodParticles.push({
-          type: "ox",
-          t: Math.random(),
-          speed: 0.14 + Math.random() * 0.06,
-          jitterX: (Math.random() - 0.5) * 14,
-          jitterY: (Math.random() - 0.5) * 14,
-          size: 3 + Math.random() * 2
-        });
-      }
-    }
+    // Anatomical continuous coordinate deformation mapping (Rigid Great Vessels, C^2 Smoothness, ZERO Upper Split)
+    const TOP_RIGID_V = 0.28; // Upper 28% (Aortic arch, SVC, pulmonary trunk bifurcation) is 100% rigid & anchored
 
-    // Update blood flow particles
-    const ejectionBoost = isVentricularEjection ? 2.6 : 1.0;
-    histoState.bloodParticles.forEach(p => {
-      p.t += dt * p.speed * ejectionBoost;
-      if (p.t > 1.0) p.t -= 1.0;
-    });
+    const getDeformation = (v) => {
+      // v ranges from 0.0 (top great vessels) to 1.0 (ventricular apex)
+      if (v <= TOP_RIGID_V) {
+        return { scaleX: 1.0, shiftX: 0.0, shiftY: 0.0 };
+      }
+
+      // Smooth C^2 transition from static great vessels (v=0.28) to contracting base & ventricles (v>=0.40)
+      const u = Math.min(1.0, (v - TOP_RIGID_V) / 0.12);
+      const w = u * u * u * (u * (u * 6 - 15) + 10); // Quintic smootherstep (0 at u=0, 1 at u=1, zero 1st & 2nd derivatives)
+
+      // Longitudinal AV base descent (piston motion toward the fixed apex):
+      // Peaks at AV ring (v ≈ 0.40) with 14-18px excursion, smoothly tapering to 0 at the apex (v = 1.0)
+      const ventWeight = Math.max(0.0, 1.0 - (v - 0.40) / 0.60);
+      const shiftY = (avDescent * 0.35 + atrialStrain * 0.015) * heartH * w * ventWeight;
+
+      // Radial inward contraction:
+      // Atrial presystolic kick: gentle compliance in upper atrium (v ≈ 0.34)
+      const atrialPulse = Math.sin(Math.PI * Math.min(1.0, (v - TOP_RIGID_V) / 0.14));
+      const scaleAtrial = 1.0 - atrialStrain * 0.03 * atrialPulse;
+
+      // Ventricular systole: powerful inward squeeze of free walls (v ≈ 0.70)
+      const ventPulse = Math.sin(Math.PI * Math.max(0.0, (v - 0.38) / 0.62));
+      const scaleVent = 1.0 - ventStrain * 0.09 * ventPulse;
+
+      const blendVent = Math.max(0.0, Math.min(1.0, (v - 0.34) / 0.10));
+      const scaleX = (1.0 - blendVent) * scaleAtrial + blendVent * scaleVent;
+
+      // Apical wringing torsion: Helical twisting begins below the AV groove (v > 0.40)
+      const twistU = Math.max(0.0, (v - 0.40) / 0.60);
+      const shiftX = -apicalTwist * heartW * (twistU * twistU);
+
+      return { scaleX, shiftX, shiftY };
+    };
+
+    const mapPoint = (nx, ny) => {
+      const v = Math.max(0, Math.min(1.0, (ny + 1.0) / 2.0));
+      const d = getDeformation(v);
+      return {
+        x: nx * (heartW / 2) * d.scaleX + d.shiftX,
+        y: ny * (heartH / 2) + d.shiftY
+      };
+    };
+
+    const mapX = (nx, ny = 0) => mapPoint(nx, ny).x;
+    const mapY = (ny, nx = 0) => mapPoint(nx, ny).y;
 
     targetCtx.save();
     targetCtx.translate(heartCenterX, heartCenterY);
-    targetCtx.rotate(twistAngle);
-    targetCtx.scale(scaleX, scaleY);
 
-    // 1. DRAW REAL ANATOMICAL HEART CORONAL CROSS-SECTION
+    // 1. BIOMECHANICAL CONTINUOUS-MESH MYOCARDIAL CONTRACTION & APICAL WRINGING
     const isHeartImgReady = imgHeartCoronal && imgHeartCoronal.complete && imgHeartCoronal.naturalWidth > 0;
     if (isHeartImgReady) {
       targetCtx.save();
-      // Subtle myocardial pulsating glow
-      targetCtx.shadowColor = isSystole ? "rgba(239, 68, 68, 0.45)" : "rgba(225, 29, 72, 0.2)";
-      targetCtx.shadowBlur = isSystole ? 26 : 14;
-      targetCtx.drawImage(imgHeartCoronal, -heartW / 2, -heartH / 2, heartW, heartH);
+      // Soft organic myocardial pulsatile halo
+      targetCtx.shadowColor = isSystole ? "rgba(239, 68, 68, 0.35)" : "rgba(225, 29, 72, 0.18)";
+      targetCtx.shadowBlur = isSystole ? 24 : 12;
+
+      const srcW = imgHeartCoronal.naturalWidth;
+      const srcH = imgHeartCoronal.naturalHeight;
+
+      // A. MONOLITHIC UN-SLICED UPPER GREAT VESSELS (v = 0.0 to 0.28)
+      // Drawn as ONE solid photographic block: ZERO slicing, ZERO split, ZERO seams
+      const srcTopH = srcH * TOP_RIGID_V;
+      const dstTopH = heartH * TOP_RIGID_V;
+      const topY = -heartH / 2;
+
+      targetCtx.drawImage(
+        imgHeartCoronal,
+        0, 0, srcW, srcTopH,
+        -heartW / 2, topY, heartW, dstTopH + 0.8
+      );
+
+      // B. CONTINUOUS NODAL MESH FOR CONTRACTING MYOCARDIUM (v = 0.28 to 1.0)
+      const NUM_MYO_SLICES = 28;
+      const myoVRange = 1.0 - TOP_RIGID_V;
+      const srcMyoSliceH = (srcH * myoVRange) / NUM_MYO_SLICES;
+
+      const myoNodes = [];
+      for (let k = 0; k <= NUM_MYO_SLICES; k++) {
+        const v = TOP_RIGID_V + (k / NUM_MYO_SLICES) * myoVRange;
+        const d = getDeformation(v);
+        const y = -heartH / 2 + v * heartH + d.shiftY;
+        myoNodes.push({ y, scaleX: d.scaleX, shiftX: d.shiftX });
+      }
+
+      for (let s = 0; s < NUM_MYO_SLICES; s++) {
+        const topNode = myoNodes[s];
+        const botNode = myoNodes[s + 1];
+
+        const sy = srcTopH + s * srcMyoSliceH;
+        const dy = topNode.y;
+        // Mathematical sub-pixel overlap guarantees seamless boundary
+        const dh = (botNode.y - topNode.y) + 0.8;
+
+        const midScaleX = (topNode.scaleX + botNode.scaleX) * 0.5;
+        const midShiftX = (topNode.shiftX + botNode.shiftX) * 0.5;
+
+        const curW = heartW * midScaleX;
+        const dx = -curW / 2 + midShiftX;
+
+        targetCtx.drawImage(
+          imgHeartCoronal,
+          0, sy, srcW, srcMyoSliceH,
+          dx, dy, curW, dh
+        );
+      }
       targetCtx.restore();
     } else {
-      // High-Fidelity Anatomical Fallback (Coronal Section with Real Cavities)
+      // Vector fallback with identical continuous strain
       targetCtx.save();
       targetCtx.fillStyle = "#1e1b2e";
       targetCtx.strokeStyle = "#be123c";
-      targetCtx.lineWidth = 14;
+      targetCtx.lineWidth = 12;
       targetCtx.beginPath();
-      // External pericardial silhouette
-      targetCtx.moveTo(0, heartH * 0.46);
-      targetCtx.bezierCurveTo(-heartW * 0.52, heartH * 0.28, -heartW * 0.55, -heartH * 0.25, -heartW * 0.15, -heartH * 0.38);
-      targetCtx.bezierCurveTo(-heartW * 0.05, -heartH * 0.48, heartW * 0.20, -heartH * 0.48, heartW * 0.35, -heartH * 0.32);
-      targetCtx.bezierCurveTo(heartW * 0.55, -heartH * 0.18, heartW * 0.52, heartH * 0.28, 0, heartH * 0.46);
+      targetCtx.moveTo(mapX(0, 0.46), mapY(0.46, 0));
+      targetCtx.bezierCurveTo(mapX(-0.52, 0.28), mapY(0.28, -0.52), mapX(-0.55, -0.25), mapY(-0.25, -0.55), mapX(-0.15, -0.38), mapY(-0.38, -0.15));
+      targetCtx.bezierCurveTo(mapX(-0.05, -0.48), mapY(-0.48, -0.05), mapX(0.20, -0.48), mapY(-0.48, 0.20), mapX(0.35, -0.32), mapY(-0.32, 0.35));
+      targetCtx.bezierCurveTo(mapX(0.55, -0.18), mapY(-0.18, 0.55), mapX(0.52, 0.28), mapY(0.28, 0.52), mapX(0, 0.46), mapY(0.46, 0));
       targetCtx.closePath();
       targetCtx.fill(); targetCtx.stroke();
-
-      // Cavity cutouts
-      targetCtx.fillStyle = "#090d16";
-      // RA cavity
-      targetCtx.beginPath(); targetCtx.ellipse(-heartW * 0.26, -heartH * 0.16, heartW * 0.16, heartH * 0.12, 0, 0, Math.PI * 2); targetCtx.fill();
-      // LA cavity
-      targetCtx.beginPath(); targetCtx.ellipse(heartW * 0.24, -heartH * 0.16, heartW * 0.15, heartH * 0.12, 0, 0, Math.PI * 2); targetCtx.fill();
-      // RV cavity
-      targetCtx.beginPath(); targetCtx.ellipse(-heartW * 0.22, heartH * 0.16, heartW * 0.17, heartH * 0.18, 0, 0, Math.PI * 2); targetCtx.fill();
-      // LV cavity (thick myocardial wall)
-      targetCtx.beginPath(); targetCtx.ellipse(heartW * 0.20, heartH * 0.16, heartW * 0.14, heartH * 0.20, 0, 0, Math.PI * 2); targetCtx.fill();
       targetCtx.restore();
     }
 
-    // Helper coordinate mapping: normX [-1, 1], normY [-1, 1]
-    const mapX = (nx) => nx * (heartW / 2);
-    const mapY = (ny) => ny * (heartH / 2);
-
-    // 2. DYNAMIC FUNCTIONAL HEART VALVE LEAFLETS
-    // A. Tricuspid Valve Leaflets (between RA and RV, nx: -0.38, ny: -0.06)
+    // 2. DYNAMIC MEMBRANOUS HEART VALVES (FLUTTERING INFLOW & BILLOWING COAPTATION)
+    // A. Tricuspid Valve (RA -> RV, between -0.43 and -0.27, ny = -0.06)
     targetCtx.save();
-    const triX = mapX(-0.38);
-    const triY = mapY(-0.06);
-    const valveWidth = heartW * 0.14;
-    targetCtx.lineWidth = 3;
-    targetCtx.lineCap = "round";
+    const triL = mapPoint(-0.43, -0.06);
+    const triR = mapPoint(-0.27, -0.06);
+    const triMid = mapPoint(-0.35, -0.06);
+    const triPapAnt = mapPoint(-0.38, 0.16);
+    const triPapSep = mapPoint(-0.28, 0.16);
 
     if (isAvOpen) {
-      // Leaflets swung open downward into RV
-      targetCtx.strokeStyle = "rgba(147, 197, 253, 0.95)";
+      // Flowing downward with diastolic stream flutter
+      const flutter = Math.sin(simTime * 24) * 0.015 * heartH;
+      const cuspTipL = mapPoint(-0.38, 0.04);
+      const cuspTipR = mapPoint(-0.32, 0.04);
+
+      // Anterior cusp
+      targetCtx.fillStyle = "rgba(255, 245, 245, 0.45)";
+      targetCtx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+      targetCtx.lineWidth = 1.8;
       targetCtx.beginPath();
-      targetCtx.moveTo(triX - valveWidth / 2, triY);
-      targetCtx.lineTo(triX - valveWidth * 0.2, triY + heartH * 0.05); // Anterior cusp open
-      targetCtx.moveTo(triX + valveWidth / 2, triY);
-      targetCtx.lineTo(triX + valveWidth * 0.2, triY + heartH * 0.05); // Septal cusp open
+      targetCtx.moveTo(triL.x, triL.y);
+      targetCtx.quadraticCurveTo(triL.x, triMid.y + 6, cuspTipL.x, cuspTipL.y + flutter);
+      targetCtx.stroke();
+
+      // Septal cusp
+      targetCtx.beginPath();
+      targetCtx.moveTo(triR.x, triR.y);
+      targetCtx.quadraticCurveTo(triR.x, triMid.y + 6, cuspTipR.x, cuspTipR.y - flutter);
       targetCtx.stroke();
     } else {
-      // Leaflets snapped firmly closed with chordae tendineae
-      targetCtx.strokeStyle = "#ffffff";
+      // Firm upward billowing coaptation against RV systolic pressure
+      const coaptY = triMid.y - 4;
+      targetCtx.strokeStyle = "rgba(255, 255, 255, 0.95)";
       targetCtx.shadowColor = "#38bdf8";
       targetCtx.shadowBlur = 6;
+      targetCtx.lineWidth = 2.2;
       targetCtx.beginPath();
-      targetCtx.moveTo(triX - valveWidth / 2, triY);
-      targetCtx.lineTo(triX, triY + 2);
-      targetCtx.lineTo(triX + valveWidth / 2, triY);
+      targetCtx.moveTo(triL.x, triL.y);
+      targetCtx.quadraticCurveTo(triMid.x - 4, coaptY, triMid.x, coaptY);
+      targetCtx.quadraticCurveTo(triMid.x + 4, coaptY, triR.x, triR.y);
       targetCtx.stroke();
-      // Chordae tendineae taut anchoring threads
-      targetCtx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-      targetCtx.lineWidth = 1.2;
-      targetCtx.beginPath();
-      targetCtx.moveTo(triX - valveWidth * 0.2, triY + 2); targetCtx.lineTo(triX - valveWidth * 0.1, triY + heartH * 0.08);
-      targetCtx.moveTo(triX + valveWidth * 0.2, triY + 2); targetCtx.lineTo(triX + valveWidth * 0.1, triY + heartH * 0.08);
-      targetCtx.stroke();
-    }
-    targetCtx.restore();
+      targetCtx.shadowBlur = 0;
 
-    // B. Mitral (Bicuspid) Valve Leaflets (between LA and LV, nx: +0.32, ny: -0.06)
-    targetCtx.save();
-    const mitX = mapX(0.32);
-    const mitY = mapY(-0.06);
-    const mitW = heartW * 0.14;
-    targetCtx.lineWidth = 3;
-    targetCtx.lineCap = "round";
-
-    if (isAvOpen) {
-      // Anterior and posterior cusps parted open into LV
-      targetCtx.strokeStyle = "rgba(254, 202, 202, 0.95)";
-      targetCtx.beginPath();
-      targetCtx.moveTo(mitX - mitW / 2, mitY);
-      targetCtx.lineTo(mitX - mitW * 0.2, mitY + heartH * 0.05);
-      targetCtx.moveTo(mitX + mitW / 2, mitY);
-      targetCtx.lineTo(mitX + mitW * 0.2, mitY + heartH * 0.05);
-      targetCtx.stroke();
-    } else {
-      // Snapped firmly shut holding back 120 mmHg
-      targetCtx.strokeStyle = "#ffffff";
-      targetCtx.shadowColor = "#ef4444";
-      targetCtx.shadowBlur = 6;
-      targetCtx.beginPath();
-      targetCtx.moveTo(mitX - mitW / 2, mitY);
-      targetCtx.lineTo(mitX, mitY + 2);
-      targetCtx.lineTo(mitX + mitW / 2, mitY);
-      targetCtx.stroke();
-      // Taut chordae tendineae to LV papillary muscles
+      // Fine, glistening taut Chordae Tendineae to Papillary Muscles
       targetCtx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-      targetCtx.lineWidth = 1.2;
+      targetCtx.lineWidth = 1.0;
       targetCtx.beginPath();
-      targetCtx.moveTo(mitX - mitW * 0.2, mitY + 2); targetCtx.lineTo(mitX - mitW * 0.1, mitY + heartH * 0.10);
-      targetCtx.moveTo(mitX + mitW * 0.2, mitY + 2); targetCtx.lineTo(mitX + mitW * 0.1, mitY + heartH * 0.10);
+      targetCtx.moveTo(triMid.x - 3, coaptY + 1); targetCtx.lineTo(triPapAnt.x, triPapAnt.y);
+      targetCtx.moveTo(triMid.x + 3, coaptY + 1); targetCtx.lineTo(triPapSep.x, triPapSep.y);
       targetCtx.stroke();
     }
     targetCtx.restore();
 
-    // C. Pulmonary Valve (at base of pulmonary trunk, nx: -0.16, ny: -0.36)
+    // B. Mitral (Bicuspid) Valve (LA -> LV, between +0.24 and +0.40, ny = -0.06)
     targetCtx.save();
-    const pulX = mapX(-0.16);
-    const pulY = mapY(-0.36);
-    const pulW = heartW * 0.11;
-    targetCtx.lineWidth = 2.8;
-    targetCtx.lineCap = "round";
-    if (isSlOpen) {
-      // Semilunar cusps flap wide open upward into pulmonary trunk
-      targetCtx.strokeStyle = "#38bdf8";
-      targetCtx.shadowColor = "#38bdf8";
-      targetCtx.shadowBlur = 8;
+    const mitL = mapPoint(0.24, -0.06);
+    const mitR = mapPoint(0.40, -0.06);
+    const mitMid = mapPoint(0.32, -0.06);
+    const mitPapPost = mapPoint(0.25, 0.18);
+    const mitPapAnt = mapPoint(0.37, 0.18);
+
+    if (isAvOpen) {
+      const flutter = Math.sin(simTime * 26 + 1.2) * 0.016 * heartH;
+      const cuspTipAnt = mapPoint(0.29, 0.045);
+      const cuspTipPost = mapPoint(0.35, 0.045);
+
+      targetCtx.strokeStyle = "rgba(255, 255, 255, 0.88)";
+      targetCtx.lineWidth = 1.8;
       targetCtx.beginPath();
-      targetCtx.moveTo(pulX - pulW / 2, pulY); targetCtx.lineTo(pulX - pulW * 0.4, pulY - heartH * 0.04);
-      targetCtx.moveTo(pulX + pulW / 2, pulY); targetCtx.lineTo(pulX + pulW * 0.4, pulY - heartH * 0.04);
+      targetCtx.moveTo(mitL.x, mitL.y);
+      targetCtx.quadraticCurveTo(mitL.x + 4, mitMid.y + 6, cuspTipAnt.x, cuspTipAnt.y + flutter);
+      targetCtx.stroke();
+
+      targetCtx.beginPath();
+      targetCtx.moveTo(mitR.x, mitR.y);
+      targetCtx.quadraticCurveTo(mitR.x - 4, mitMid.y + 6, cuspTipPost.x, cuspTipPost.y - flutter);
       targetCtx.stroke();
     } else {
-      // Closed semilunar cusps meeting tightly
-      targetCtx.strokeStyle = "rgba(255, 255, 255, 0.85)";
-      targetCtx.beginPath();
-      targetCtx.arc(pulX, pulY, pulW * 0.45, 0.2, Math.PI - 0.2);
-      targetCtx.stroke();
-    }
-    targetCtx.restore();
-
-    // D. Aortic Valve (at aortic root / LVOT, nx: +0.07, ny: -0.32)
-    targetCtx.save();
-    const aorX = mapX(0.07);
-    const aorY = mapY(-0.32);
-    const aorW = heartW * 0.11;
-    targetCtx.lineWidth = 2.8;
-    targetCtx.lineCap = "round";
-    if (isSlOpen) {
-      // Cusps wide open during ejection
-      targetCtx.strokeStyle = "#fb7171";
+      // Snapped firmly shut against 120 mmHg peak LV systolic pressure
+      const coaptY = mitMid.y - 5;
+      targetCtx.strokeStyle = "rgba(255, 255, 255, 0.95)";
       targetCtx.shadowColor = "#ef4444";
-      targetCtx.shadowBlur = 8;
+      targetCtx.shadowBlur = 7;
+      targetCtx.lineWidth = 2.4;
       targetCtx.beginPath();
-      targetCtx.moveTo(aorX - aorW / 2, aorY); targetCtx.lineTo(aorX - aorW * 0.4, aorY - heartH * 0.04);
-      targetCtx.moveTo(aorX + aorW / 2, aorY); targetCtx.lineTo(aorX + aorW * 0.4, aorY - heartH * 0.04);
+      targetCtx.moveTo(mitL.x, mitL.y);
+      targetCtx.quadraticCurveTo(mitMid.x - 3, coaptY, mitMid.x, coaptY);
+      targetCtx.quadraticCurveTo(mitMid.x + 3, coaptY, mitR.x, mitR.y);
       targetCtx.stroke();
-    } else {
-      // Sealed shut against 80 mmHg diastolic pressure
-      targetCtx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+      targetCtx.shadowBlur = 0;
+
+      // Heavy taut Chordae Tendineae to prominent LV Papillary Muscles
+      targetCtx.strokeStyle = "rgba(255, 255, 255, 0.50)";
+      targetCtx.lineWidth = 1.1;
       targetCtx.beginPath();
-      targetCtx.arc(aorX, aorY, aorW * 0.45, 0.2, Math.PI - 0.2);
+      targetCtx.moveTo(mitMid.x - 4, coaptY + 1); targetCtx.lineTo(mitPapPost.x, mitPapPost.y);
+      targetCtx.moveTo(mitMid.x + 4, coaptY + 1); targetCtx.lineTo(mitPapAnt.x, mitPapAnt.y);
       targetCtx.stroke();
     }
     targetCtx.restore();
 
-    // 3. CIRCULATING ERYTHROCYTE BLOOD PARTICLES
-    // Spline interpolation helper for smooth anatomical particle paths
+    // C. Semilunar Valves (Pulmonary & Aortic Outflow Tracts)
+    // The authentic 8K coronal illustration already captures the aortic and pulmonary valve cusps in exquisite anatomical relief.
+    // Valve opening kinetics are manifested through high-velocity transvalvular ejection jets, avoiding any artificial lines cutting across vessel lumens.
+    if (isSlOpen) {
+      targetCtx.save();
+      const pulCenter = mapPoint(-0.16, -0.32);
+      const aorCenter = mapPoint(0.07, -0.30);
+      const r = heartW * 0.035;
+
+      // Soft forward transvalvular outflow jet illumination (RVOT -> Pulmonary Trunk)
+      const pulJet = targetCtx.createRadialGradient(pulCenter.x, pulCenter.y, 2, pulCenter.x, pulCenter.y, r * 1.6);
+      pulJet.addColorStop(0, "rgba(56, 189, 248, 0.45)");
+      pulJet.addColorStop(0.7, "rgba(56, 189, 248, 0.15)");
+      pulJet.addColorStop(1, "rgba(56, 189, 248, 0)");
+      targetCtx.fillStyle = pulJet;
+      targetCtx.beginPath();
+      targetCtx.arc(pulCenter.x, pulCenter.y, r * 1.6, 0, Math.PI * 2);
+      targetCtx.fill();
+
+      // Soft forward transvalvular outflow jet illumination (LVOT -> Ascending Aorta)
+      const aorJet = targetCtx.createRadialGradient(aorCenter.x, aorCenter.y, 2, aorCenter.x, aorCenter.y, r * 1.6);
+      aorJet.addColorStop(0, "rgba(248, 113, 113, 0.45)");
+      aorJet.addColorStop(0.7, "rgba(248, 113, 113, 0.15)");
+      aorJet.addColorStop(1, "rgba(248, 113, 113, 0)");
+      targetCtx.fillStyle = aorJet;
+      targetCtx.beginPath();
+      targetCtx.arc(aorCenter.x, aorCenter.y, r * 1.6, 0, Math.PI * 2);
+      targetCtx.fill();
+      targetCtx.restore();
+    }
+
+    // 3. FLUID HEMODYNAMICS: PULSATILE ERYTHROCYTE STREAMS & INTRAVENTRICULAR VORTEX
     const evalSpline = (pts, t) => {
       const p = Math.max(0, Math.min(0.999, t)) * (pts.length - 1);
       const idx = Math.floor(p);
       const frac = p - idx;
       const p0 = pts[idx];
       const p1 = pts[idx + 1];
-      return {
-        x: p0.x + (p1.x - p0.x) * frac,
-        y: p0.y + (p1.y - p0.y) * frac
-      };
+      const p2 = pts[Math.min(pts.length - 1, idx + 2)];
+      const pPre = pts[Math.max(0, idx - 1)];
+
+      // Catmull-Rom smooth cubic anatomical spline
+      const t2 = frac * frac;
+      const t3 = t2 * frac;
+      const x = 0.5 * ((2 * p0.x) + (-pPre.x + p1.x) * frac + (2 * pPre.x - 5 * p0.x + 4 * p1.x - p2.x) * t2 + (-pPre.x + 3 * p0.x - 3 * p1.x + p2.x) * t3);
+      const y = 0.5 * ((2 * p0.y) + (-pPre.y + p1.y) * frac + (2 * pPre.y - 5 * p0.y + 4 * p1.y - p2.y) * t2 + (-pPre.y + 3 * p0.y - 3 * p1.y + p2.y) * t3);
+
+      return { x, y };
     };
 
-    // Anatomical waypoints
+    // Realistic anatomical centerline waypoints
     const deoxWaypoints = [
-      { x: mapX(-0.46), y: mapY(-0.70) }, // SVC
-      { x: mapX(-0.40), y: mapY(-0.40) }, // Upper RA
-      { x: mapX(-0.38), y: mapY(-0.20) }, // Mid RA
-      { x: mapX(-0.36), y: mapY(-0.06) }, // Tricuspid plane
-      { x: mapX(-0.32), y: mapY(0.18) },  // Inflow RV
-      { x: mapX(-0.24), y: mapY(0.24) },  // Deep RV apical loop
-      { x: mapX(-0.20), y: mapY(-0.10) }, // RVOT
-      { x: mapX(-0.16), y: mapY(-0.36) }, // Pulmonary valve
-      { x: mapX(-0.16), y: mapY(-0.55) }, // Pulmonary trunk
-      { x: mapX(-0.28), y: mapY(-0.72) }  // Left pulmonary artery branch
+      mapPoint(-0.44, -0.72), // Superior Vena Cava
+      mapPoint(-0.38, -0.42), // Upper Right Atrium
+      mapPoint(-0.36, -0.20), // Mid Right Atrium
+      mapPoint(-0.35, -0.06), // Tricuspid Valve Orifice
+      mapPoint(-0.33, 0.16),  // RV Inflow
+      mapPoint(-0.24, 0.26),  // RV Apical Loop
+      mapPoint(-0.18, -0.08), // RV Outflow Tract (Infundibulum)
+      mapPoint(-0.16, -0.34), // Pulmonary Valve
+      mapPoint(-0.16, -0.52), // Pulmonary Trunk
+      mapPoint(-0.30, -0.72)  // Left Pulmonary Artery
     ];
 
     const oxWaypoints = [
-      { x: mapX(0.55), y: mapY(-0.32) },  // Pulmonary veins inflow
-      { x: mapX(0.38), y: mapY(-0.26) },  // Left Atrium
-      { x: mapX(0.32), y: mapY(-0.06) },  // Mitral plane
-      { x: mapX(0.30), y: mapY(0.18) },   // High LV
-      { x: mapX(0.22), y: mapY(0.32) },   // Deep LV apical loop
-      { x: mapX(0.14), y: mapY(0.00) },   // LVOT
-      { x: mapX(0.07), y: mapY(-0.32) },  // Aortic valve
-      { x: mapX(0.06), y: mapY(-0.54) },  // Ascending aorta
-      { x: mapX(0.02), y: mapY(-0.75) }   // Aortic arch
+      mapPoint(0.54, -0.32),  // Pulmonary Veins
+      mapPoint(0.38, -0.24),  // Left Atrium Cavity
+      mapPoint(0.32, -0.06),  // Mitral Valve Orifice
+      mapPoint(0.30, 0.16),   // LV Lateral Wall
+      mapPoint(0.20, 0.32),   // LV Apex (Intraventricular Vortex)
+      mapPoint(0.10, 0.18),   // Septal Return Stream
+      mapPoint(0.10, -0.04),  // LV Outflow Tract (LVOT)
+      mapPoint(0.07, -0.32),  // Aortic Valve
+      mapPoint(0.06, -0.54),  // Ascending Aorta
+      mapPoint(0.02, -0.78)   // Aortic Arch & Brachiocephalic
     ];
+
+    // Initialize 72 volumetric stream particles
+    if (!histoState.bloodParticles || histoState.bloodParticles.length < 64) {
+      histoState.bloodParticles = [];
+      for (let i = 0; i < 36; i++) {
+        histoState.bloodParticles.push({
+          type: "deox",
+          t: (i / 36) + Math.random() * 0.02,
+          baseSpeed: 0.14 + (Math.random() - 0.5) * 0.04,
+          lateralSpread: (Math.random() - 0.5) * 1.6,
+          size: 2.8 + Math.random() * 1.8
+        });
+      }
+      for (let i = 0; i < 36; i++) {
+        histoState.bloodParticles.push({
+          type: "ox",
+          t: (i / 36) + Math.random() * 0.02,
+          baseSpeed: 0.14 + (Math.random() - 0.5) * 0.04,
+          lateralSpread: (Math.random() - 0.5) * 1.6,
+          size: 2.8 + Math.random() * 1.8
+        });
+      }
+    }
 
     targetCtx.save();
     histoState.bloodParticles.forEach(p => {
-      const pts = p.type === "deox" ? deoxWaypoints : oxWaypoints;
-      const pos = evalSpline(pts, p.t);
       const isDeox = p.type === "deox";
+      const pts = isDeox ? deoxWaypoints : oxWaypoints;
 
-      targetCtx.fillStyle = isDeox ? "#38bdf8" : "#ef4444";
-      targetCtx.shadowColor = isDeox ? "#0284c7" : "#dc2626";
-      targetCtx.shadowBlur = 4;
+      // Phase-dependent pulsatile fluid speed
+      let speedMult = 1.0;
+      if (isVentricularEjection) {
+        // High-velocity ejection jet in outflow tracts (t > 0.6)
+        if (p.t > 0.58) speedMult = 4.2;
+        else speedMult = 0.5;
+      } else if (isAtrialSystole) {
+        // Inflow jet across AV valves (t in 0.2..0.45)
+        if (p.t > 0.18 && p.t < 0.48) speedMult = 2.4;
+      } else if (isDiastolicFilling) {
+        // Rapid early filling (E-wave)
+        if (p.t > 0.18 && p.t < 0.52) speedMult = 2.0;
+      } else if (isIsovolumetricContraction) {
+        // Valves closed: quiescent swirling
+        speedMult = 0.25;
+      }
+
+      p.t += dt * p.baseSpeed * speedMult;
+      if (p.t >= 1.0) p.t -= 1.0;
+
+      // Position and tangent orientation
+      const tCur = Math.max(0, Math.min(0.99, p.t));
+      const tNext = Math.min(0.999, tCur + 0.015);
+      const pos0 = evalSpline(pts, tCur);
+      const pos1 = evalSpline(pts, tNext);
+
+      const dx = pos1.x - pos0.x;
+      const dy = pos1.y - pos0.y;
+      const angle = Math.atan2(dy, dx);
+      const mag = Math.hypot(dx, dy) || 1;
+      const nx = -dy / mag;
+      const ny = dx / mag;
+
+      // Volumetric lumen channel width
+      const channelWidth = (p.t > 0.68) ? 9 : 18;
+      const px = pos0.x + nx * (p.lateralSpread * channelWidth);
+      const py = pos0.y + ny * (p.lateralSpread * channelWidth);
+
+      // Velocity-stretched droplet streamline length
+      const streakLen = p.size * (1.0 + Math.min(speedMult, 4.0) * 2.4);
+
+      targetCtx.save();
+      targetCtx.translate(px, py);
+      targetCtx.rotate(angle);
+
+      // Streamline Comet Tail
+      const tailGrad = targetCtx.createLinearGradient(-streakLen, 0, p.size, 0);
+      if (isDeox) {
+        tailGrad.addColorStop(0, "rgba(56, 189, 248, 0)");
+        tailGrad.addColorStop(0.6, "rgba(56, 189, 248, 0.4)");
+        tailGrad.addColorStop(1, "#38bdf8");
+        targetCtx.fillStyle = tailGrad;
+        targetCtx.shadowColor = "#0284c7";
+        targetCtx.shadowBlur = 5;
+      } else {
+        tailGrad.addColorStop(0, "rgba(239, 68, 68, 0)");
+        tailGrad.addColorStop(0.6, "rgba(248, 113, 113, 0.5)");
+        tailGrad.addColorStop(1, "#ef4444");
+        targetCtx.fillStyle = tailGrad;
+        targetCtx.shadowColor = "#dc2626";
+        targetCtx.shadowBlur = 6;
+      }
+
       targetCtx.beginPath();
-      targetCtx.arc(pos.x + p.jitterX, pos.y + p.jitterY, p.size, 0, Math.PI * 2);
+      targetCtx.ellipse(0, 0, streakLen / 2, p.size * 0.8, 0, 0, Math.PI * 2);
       targetCtx.fill();
+
+      // White-hot luminous core on high-speed ejection particles
+      if (speedMult > 2.5) {
+        targetCtx.fillStyle = "#ffffff";
+        targetCtx.beginPath();
+        targetCtx.arc(streakLen * 0.25, 0, p.size * 0.45, 0, Math.PI * 2);
+        targetCtx.fill();
+      }
+      targetCtx.restore();
     });
     targetCtx.restore();
 
-    // 4. ANATOMICAL ELECTRICAL CONDUCTION SYSTEM OVERLAY
+    // 4. ANATOMICAL BIOELECTRICAL CONDUCTION SYSTEM (ACTION POTENTIAL WAVEFRONT)
     targetCtx.save();
-    const saX = mapX(-0.46);
-    const saY = mapY(-0.44);
-    const avX = mapX(-0.06);
-    const avY = mapY(-0.10);
-    const hisEndY = mapY(0.06);
-    const apexX = mapX(0.02);
-    const apexY = mapY(0.38);
+    const saPt = mapPoint(-0.45, -0.42);
+    const avPt = mapPoint(-0.06, -0.10);
+    const hisEnd = mapPoint(-0.02, 0.06);
+    const apexPt = mapPoint(0.02, 0.38);
 
     // A. Sinoatrial (SA) Node - Pacemaker
-    const saFired = beatPhase < 0.12;
-    targetCtx.fillStyle = saFired ? "#ffffff" : "#f59e0b";
+    const saActive = beatPhase < 0.10;
+    targetCtx.fillStyle = saActive ? "#ffffff" : "#f59e0b";
     targetCtx.shadowColor = "#f59e0b";
-    targetCtx.shadowBlur = saFired ? 18 : 6;
+    targetCtx.shadowBlur = saActive ? 20 : 6;
     targetCtx.beginPath();
-    targetCtx.arc(saX, saY, saFired ? 7 : 5, 0, Math.PI * 2);
+    targetCtx.arc(saPt.x, saPt.y, saActive ? 6.0 : 4.2, 0, Math.PI * 2);
     targetCtx.fill();
 
-    // SA radiating impulse wave across atria (during atrial depolarization)
-    if (saFired) {
-      const waveRad = (beatPhase / 0.12) * (heartW * 0.35);
-      targetCtx.strokeStyle = `rgba(253, 224, 71, ${1.0 - beatPhase / 0.12})`;
-      targetCtx.lineWidth = 2;
+    // Luminous SA depolarization aura contained strictly within the Right Atrial tissue (P-wave)
+    if (saActive) {
+      const p = beatPhase / 0.10;
+      const glowR = 24 * (1.0 + p * 0.4);
+      const saGlow = targetCtx.createRadialGradient(saPt.x, saPt.y, 2, saPt.x, saPt.y, glowR);
+      saGlow.addColorStop(0, "rgba(254, 240, 138, 0.60)");
+      saGlow.addColorStop(0.5, "rgba(234, 179, 8, 0.20)");
+      saGlow.addColorStop(1, "rgba(234, 179, 8, 0)");
+      targetCtx.fillStyle = saGlow;
       targetCtx.beginPath();
-      targetCtx.arc(saX, saY, waveRad, -0.8, 1.8);
-      targetCtx.stroke();
+      targetCtx.arc(saPt.x, saPt.y, glowR, 0, Math.PI * 2);
+      targetCtx.fill();
     }
 
-    // B. Internodal Conduction Tracts & Bachmann's Bundle
-    targetCtx.strokeStyle = beatPhase < 0.16 ? "rgba(254, 240, 138, 0.85)" : "rgba(234, 179, 8, 0.35)";
-    targetCtx.lineWidth = 2.5;
+    // B. Internodal Pathways (Subtle neural filaments strictly within RA endocardium down to AV node)
+    targetCtx.strokeStyle = "rgba(245, 158, 11, 0.30)";
+    targetCtx.lineWidth = 1.2;
     targetCtx.beginPath();
-    // Anterior, middle, posterior internodal tracts to AV node
-    targetCtx.moveTo(saX, saY);
-    targetCtx.bezierCurveTo(mapX(-0.35), mapY(-0.30), mapX(-0.20), mapY(-0.20), avX, avY);
-    // Bachmann's bundle traversing across to Left Atrium
-    targetCtx.moveTo(saX, saY);
-    targetCtx.bezierCurveTo(mapX(-0.20), mapY(-0.45), mapX(0.10), mapY(-0.40), mapX(0.32), mapY(-0.30));
+    targetCtx.moveTo(saPt.x, saPt.y);
+    const midAtrial = mapPoint(-0.35, -0.26);
+    targetCtx.bezierCurveTo(midAtrial.x, midAtrial.y, avPt.x - 4, avPt.y - 10, avPt.x, avPt.y);
+    // Delicate subendocardial pathway across low interatrial crest to Left Atrium
+    const laBranch = mapPoint(0.24, -0.20);
+    targetCtx.moveTo(avPt.x, avPt.y - 4);
+    targetCtx.quadraticCurveTo(mapX(0.06, -0.16), mapY(-0.16, 0.06), laBranch.x, laBranch.y);
     targetCtx.stroke();
 
-    // C. Atrioventricular (AV) Node (Delays conduction by ~0.10s)
-    const avActive = beatPhase >= 0.08 && beatPhase < 0.18;
-    targetCtx.fillStyle = avActive ? "#ffffff" : "#eab308";
+    // Travelling excitation packet along internodal tracts (0.00 - 0.12)
+    if (beatPhase < 0.12) {
+      const tTrac = beatPhase / 0.12;
+      const sparkX = saPt.x + (avPt.x - saPt.x) * tTrac;
+      const sparkY = saPt.y + (avPt.y - saPt.y) * tTrac;
+      targetCtx.fillStyle = "#ffffff";
+      targetCtx.shadowColor = "#fde047";
+      targetCtx.shadowBlur = 12;
+      targetCtx.beginPath();
+      targetCtx.arc(sparkX, sparkY, 3.2, 0, Math.PI * 2);
+      targetCtx.fill();
+    }
+
+    // C. Atrioventricular (AV) Node (Delays impulse by ~100ms)
+    const avDelay = beatPhase >= 0.08 && beatPhase < 0.18;
+    targetCtx.fillStyle = avDelay ? "#ffffff" : "#eab308";
     targetCtx.shadowColor = "#eab308";
-    targetCtx.shadowBlur = avActive ? 16 : 5;
+    targetCtx.shadowBlur = avDelay ? 18 : 5;
     targetCtx.beginPath();
-    targetCtx.arc(avX, avY, avActive ? 6.5 : 4.5, 0, Math.PI * 2);
+    targetCtx.arc(avPt.x, avPt.y, avDelay ? 6 : 4, 0, Math.PI * 2);
     targetCtx.fill();
 
-    // D. Bundle of His -> Left & Right Bundle Branches -> Purkinje Arborization
-    const qrsActive = beatPhase >= 0.18 && beatPhase < 0.28;
-    targetCtx.strokeStyle = qrsActive ? "#ffffff" : (isSystole ? "rgba(254, 240, 138, 0.7)" : "rgba(234, 179, 8, 0.3)");
-    targetCtx.shadowColor = qrsActive ? "#38bdf8" : "#eab308";
-    targetCtx.shadowBlur = qrsActive ? 14 : 0;
-    targetCtx.lineWidth = qrsActive ? 3.5 : 2;
+    // D. His-Purkinje Fast Conduction Network (QRS Flash, 0.18 - 0.28)
+    const isQrsFlash = beatPhase >= 0.18 && beatPhase < 0.28;
+    targetCtx.strokeStyle = isQrsFlash ? "rgba(255, 255, 255, 0.95)" : "rgba(234, 179, 8, 0.28)";
+    targetCtx.shadowColor = isQrsFlash ? "#38bdf8" : "#eab308";
+    targetCtx.shadowBlur = isQrsFlash ? 14 : 0;
+    targetCtx.lineWidth = isQrsFlash ? 2.5 : 1.4;
+
+    const rbbMid = mapPoint(-0.16, 0.22);
+    const rbbApex = mapPoint(-0.20, 0.30);
+    const lbbMid = mapPoint(0.12, 0.22);
+    const lbbApex = apexPt;
+    const lbbFreeWall = mapPoint(0.34, 0.10);
 
     targetCtx.beginPath();
-    // Bundle of His down muscular septum
-    targetCtx.moveTo(avX, avY);
-    targetCtx.lineTo(mapX(-0.02), hisEndY);
+    // Bundle of His
+    targetCtx.moveTo(avPt.x, avPt.y);
+    targetCtx.lineTo(hisEnd.x, hisEnd.y);
 
-    // Right Bundle Branch curving into RV and moderator band
-    targetCtx.moveTo(mapX(-0.02), hisEndY);
-    targetCtx.bezierCurveTo(mapX(-0.08), mapY(0.18), mapX(-0.16), mapY(0.28), mapX(-0.22), mapY(0.26));
-    // Right Purkinje arborization
-    targetCtx.lineTo(mapX(-0.34), mapY(0.15));
-    targetCtx.moveTo(mapX(-0.22), mapY(0.26));
-    targetCtx.lineTo(mapX(-0.18), apexY);
+    // Right Bundle Branch & Moderator Band arborization
+    targetCtx.lineTo(rbbMid.x, rbbMid.y);
+    targetCtx.lineTo(rbbApex.x, rbbApex.y);
+    targetCtx.lineTo(mapX(-0.32, 0.16), mapY(0.16, -0.32));
 
-    // Left Bundle Branch down left septum
-    targetCtx.moveTo(mapX(-0.02), hisEndY);
-    targetCtx.bezierCurveTo(mapX(0.06), mapY(0.18), mapX(0.14), mapY(0.26), apexX, apexY);
-    // Left Purkinje arborization up lateral LV free wall
-    targetCtx.moveTo(apexX, apexY);
-    targetCtx.bezierCurveTo(mapX(0.18), mapY(0.32), mapX(0.32), mapY(0.22), mapX(0.36), mapY(0.08));
-    targetCtx.moveTo(apexX, apexY);
-    targetCtx.lineTo(mapX(0.08), mapY(0.40));
+    // Left Bundle Branch & Lateral Purkinje Arborization
+    targetCtx.moveTo(hisEnd.x, hisEnd.y);
+    targetCtx.lineTo(lbbMid.x, lbbMid.y);
+    targetCtx.lineTo(lbbApex.x, lbbApex.y);
+    targetCtx.lineTo(lbbFreeWall.x, lbbFreeWall.y);
     targetCtx.stroke();
 
-    // E. Ventricular Repolarization Wave (T-wave, epicardium to endocardium)
-    if (beatPhase >= 0.36 && beatPhase < 0.54) {
-      const repolAlpha = Math.sin(((beatPhase - 0.36) / 0.18) * Math.PI) * 0.45;
+    // Traveling Action Potential Photon Wavefront down Septum into Ventricles
+    if (isQrsFlash) {
+      const qrsT = (beatPhase - 0.18) / 0.10; // 0.0 -> 1.0 along the branch
+      const curLbbX = hisEnd.x + (lbbApex.x - hisEnd.x) * qrsT;
+      const curLbbY = hisEnd.y + (lbbApex.y - hisEnd.y) * qrsT;
+      const curRbbX = hisEnd.x + (rbbApex.x - hisEnd.x) * qrsT;
+      const curRbbY = hisEnd.y + (rbbApex.y - hisEnd.y) * qrsT;
+
+      targetCtx.fillStyle = "#ffffff";
+      targetCtx.shadowColor = "#38bdf8";
+      targetCtx.shadowBlur = 16;
+      targetCtx.beginPath();
+      targetCtx.arc(curLbbX, curLbbY, 4.5, 0, Math.PI * 2);
+      targetCtx.arc(curRbbX, curRbbY, 4.0, 0, Math.PI * 2);
+      targetCtx.fill();
+    }
+
+    // E. Ventricular Repolarization Wave (T-Wave, Epicardium -> Endocardium)
+    if (beatPhase >= 0.38 && beatPhase < 0.52) {
+      const repolAlpha = Math.sin(((beatPhase - 0.38) / 0.14) * Math.PI) * 0.32;
       targetCtx.fillStyle = `rgba(249, 115, 22, ${repolAlpha})`;
       targetCtx.beginPath();
-      targetCtx.arc(apexX, apexY * 0.85, heartW * 0.35, 0, Math.PI * 2);
+      targetCtx.arc(apexPt.x, apexPt.y * 0.85, heartW * 0.36, 0, Math.PI * 2);
       targetCtx.fill();
     }
     targetCtx.restore();
 
-    // 5. ANATOMICAL CHAMBER & VESSEL CALLOUT LABELS
+    // 5. OUTER-FLANK FROSTED CALLOUT BADGES (LEAVING THE CENTRAL HEART 100% UNOBSTRUCTED)
     targetCtx.save();
-    targetCtx.font = "bold 11px -apple-system, sans-serif";
+    targetCtx.font = "bold 11px -apple-system, BlinkMacSystemFont, sans-serif";
     targetCtx.textAlign = "center";
     targetCtx.textBaseline = "middle";
 
-    const drawPill = (txt, x, y, bg, border, fg) => {
-      const tw = targetCtx.measureText(txt).width + 12;
-      targetCtx.fillStyle = bg;
+    const drawOuterCallout = (txt, badgeX, badgeY, targetPt, bg, border, fg) => {
+      // Slender leader line to chamber
+      targetCtx.save();
       targetCtx.strokeStyle = border;
       targetCtx.lineWidth = 1;
+      targetCtx.setLineDash([3, 3]);
       targetCtx.beginPath();
-      targetCtx.roundRect(x - tw / 2, y - 9, tw, 18, 9);
-      targetCtx.fill(); targetCtx.stroke();
+      targetCtx.moveTo(badgeX, badgeY);
+      targetCtx.lineTo(targetPt.x, targetPt.y);
+      targetCtx.stroke();
+
+      // Glowing anchor dot at chamber
+      targetCtx.setLineDash([]);
       targetCtx.fillStyle = fg;
-      targetCtx.fillText(txt, x, y);
+      targetCtx.shadowColor = border;
+      targetCtx.shadowBlur = 6;
+      targetCtx.beginPath();
+      targetCtx.arc(targetPt.x, targetPt.y, 3, 0, Math.PI * 2);
+      targetCtx.fill();
+      targetCtx.restore();
+
+      // Rounded Badge
+      const tw = targetCtx.measureText(txt).width + 16;
+      targetCtx.fillStyle = bg;
+      targetCtx.strokeStyle = border;
+      targetCtx.lineWidth = 1.2;
+      targetCtx.beginPath();
+      targetCtx.roundRect(badgeX - tw / 2, badgeY - 10, tw, 20, 10);
+      targetCtx.fill();
+      targetCtx.stroke();
+      targetCtx.fillStyle = fg;
+      targetCtx.fillText(txt, badgeX, badgeY);
     };
 
-    drawPill("RA (Atrium Dextrum)", mapX(-0.40), mapY(-0.22), "rgba(15, 23, 42, 0.85)", "rgba(56, 189, 248, 0.4)", "#38bdf8");
-    drawPill("LA (Atrium Sinistrum)", mapX(0.40), mapY(-0.22), "rgba(15, 23, 42, 0.85)", "rgba(248, 113, 113, 0.4)", "#f87171");
-    drawPill("RV (Ventriculus Dexter)", mapX(-0.32), mapY(0.22), "rgba(15, 23, 42, 0.85)", "rgba(56, 189, 248, 0.4)", "#38bdf8");
-    drawPill("LV (Ventriculus Sinister)", mapX(0.30), mapY(0.22), "rgba(15, 23, 42, 0.85)", "rgba(248, 113, 113, 0.4)", "#f87171");
+    // Positioned outside the heart silhouette at the outer lateral flanks
+    drawOuterCallout(
+      "RA (Atrium Dextrum)",
+      -heartW * 0.54, -heartH * 0.22,
+      mapPoint(-0.38, -0.22),
+      "rgba(15, 23, 42, 0.85)", "rgba(56, 189, 248, 0.6)", "#38bdf8"
+    );
+    drawOuterCallout(
+      "LA (Atrium Sinistrum)",
+      heartW * 0.54, -heartH * 0.22,
+      mapPoint(0.38, -0.22),
+      "rgba(15, 23, 42, 0.85)", "rgba(248, 113, 113, 0.6)", "#f87171"
+    );
+    drawOuterCallout(
+      "RV (Ventriculus Dexter)",
+      -heartW * 0.52, heartH * 0.24,
+      mapPoint(-0.32, 0.20),
+      "rgba(15, 23, 42, 0.85)", "rgba(56, 189, 248, 0.6)", "#38bdf8"
+    );
+    drawOuterCallout(
+      "LV (Ventriculus Sinister)",
+      heartW * 0.52, heartH * 0.24,
+      mapPoint(0.28, 0.20),
+      "rgba(15, 23, 42, 0.85)", "rgba(248, 113, 113, 0.6)", "#f87171"
+    );
     targetCtx.restore();
 
     targetCtx.restore(); // Restore heart center transform
@@ -3996,13 +4222,13 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.save();
     const hudY = height - 60;
     const hudW = width * 0.52;
-    targetCtx.fillStyle = "rgba(15, 23, 42, 0.88)";
-    targetCtx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    targetCtx.fillStyle = "rgba(15, 23, 42, 0.90)";
+    targetCtx.strokeStyle = "rgba(255, 255, 255, 0.12)";
     targetCtx.lineWidth = 1;
     targetCtx.roundRect(16, hudY - 32, hudW, 76, 10);
     targetCtx.fill(); targetCtx.stroke();
 
-    // Phase Badge with glowing status pill
+    // Phase Badge with glowing status beacon
     targetCtx.fillStyle = phaseColor;
     targetCtx.shadowColor = phaseColor;
     targetCtx.shadowBlur = 8;

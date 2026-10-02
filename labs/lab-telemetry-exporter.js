@@ -1597,6 +1597,201 @@ export const LAB_CHECKPOINTS = {
       correctIndex: 1,
       explanation: "ATP binding allosterically lowers the affinity of the myosin cross-bridge head for actin, triggering immediate detachment. In the absence of ATP (as after death), detachment cannot occur, resulting in rigor mortis."
     }
+  ],
+
+  kinetics: [
+    {
+      id: "q1",
+      question: "According to collision theory and the Arrhenius equation (k = A·e^(-Ea/RT)), adding a positive catalyst like MnO₂ accelerates a chemical reaction primarily by:",
+      options: [
+        "Increasing the average kinetic energy of the reactant molecules",
+        "Providing an alternative reaction pathway with a lower activation energy (Ea)",
+        "Increasing the stoichiometric equilibrium constant K_eq",
+        "Shifting the overall reaction enthalpy ΔH to a more exothermic value"
+      ],
+      correctIndex: 1,
+      explanation: "A catalyst provides an alternative mechanism or transition state with lower activation energy (Ea), allowing a significantly higher fraction of molecular collisions to possess sufficient energy to react, without altering ΔH or K_eq."
+    },
+    {
+      id: "q2",
+      question: "For a reaction with rate law Rate = k·[A]²·[B]⁰, if the concentration of [A] is tripled while [B] is doubled, the instantaneous reaction rate will:",
+      options: [
+        "Increase by a factor of 3",
+        "Increase by a factor of 6",
+        "Increase by a factor of 9",
+        "Remain unchanged"
+      ],
+      correctIndex: 2,
+      explanation: "The reaction is 2nd order in A and 0th order in B. Tripling [A] increases rate by 3² = 9. Changing [B] has no effect because [B]⁰ = 1. Overall rate increases by 9×."
+    },
+    {
+      id: "q3",
+      question: "In an Arrhenius plot of ln(k) versus (1/T), the slope of the resulting straight line equals:",
+      options: [
+        "-Ea / R",
+        "+Ea / R",
+        "-ΔH / R",
+        "ln(A)"
+      ],
+      correctIndex: 0,
+      explanation: "Taking the natural logarithm of the Arrhenius equation yields ln(k) = - (Ea / R) · (1/T) + ln(A). Plotting ln(k) vs (1/T) gives a linear slope m = -Ea / R."
+    }
+  ],
+
+  collisions: [
+    {
+      id: "q1",
+      question: "In any isolated physical system with zero net external forces (ΣF_ext = 0), what quantity is strictly conserved during all collisions, whether elastic or inelastic?",
+      options: [
+        "Total mechanical kinetic energy only",
+        "Total linear vector momentum (Σp = m₁v₁ + m₂v₂ = const)",
+        "The relative speed of separation",
+        "Total potential energy only"
+      ],
+      correctIndex: 1,
+      explanation: "By Newton's third law and the impulse-momentum theorem, internal forces sum to zero in an isolated system. Total vector linear momentum is always conserved in every collision, regardless of elasticity."
+    },
+    {
+      id: "q2",
+      question: "In a perfectly inelastic collision (coefficient of restitution e = 0.0) between two gliders on a frictionless air track:",
+      options: [
+        "Kinetic energy is completely conserved with zero loss",
+        "The gliders stick together and move with a common final velocity",
+        "The gliders rebound with equal and opposite velocities",
+        "The momentum of each individual glider is conserved"
+      ],
+      correctIndex: 1,
+      explanation: "In a perfectly inelastic collision (e = 0), maximum kinetic energy is dissipated into internal heat/deformation, and the colliding bodies couple or stick together, traveling with an identical final velocity v_f = (m₁u₁ + m₂u₂) / (m₁ + m₂)."
+    },
+    {
+      id: "q3",
+      question: "A 0.50 kg glider moving at +2.0 m/s undergoes a perfectly elastic collision (e = 1.0) with an identical stationary 0.50 kg glider (m₁ = m₂, u₂ = 0). What are the final velocities?",
+      options: [
+        "v₁ = 0.0 m/s and v₂ = +2.0 m/s (complete velocity transfer)",
+        "v₁ = +1.0 m/s and v₂ = +1.0 m/s",
+        "v₁ = -1.0 m/s and v₂ = +1.0 m/s",
+        "v₁ = -2.0 m/s and v₂ = 0.0 m/s"
+      ],
+      correctIndex: 0,
+      explanation: "For equal masses in a 1D perfectly elastic collision, the colliding bodies completely exchange velocities: the incident glider halts (v₁ = 0) and the target glider moves away with the incident velocity (v₂ = +2.0 m/s)."
+    }
+  ],
+
+  induction: [
+    {
+      id: "q1",
+      question: "According to Faraday's Law of Induction, the magnitude of the induced electromotive force (EMF) in a coil of N turns is directly proportional to:",
+      options: [
+        "The static magnetic flux Φ_B passing through the coil",
+        "The time rate of change of magnetic flux through the coil (dΦ_B / dt)",
+        "The total electrical resistance of the wire only",
+        "The mass of the bar magnet"
+      ],
+      correctIndex: 1,
+      explanation: "Faraday's Law states E = -N · (dΦ_B / dt). An EMF is induced ONLY when magnetic flux through the coil is changing with respect to time; a stationary magnet inside a coil induces zero voltage."
+    },
+    {
+      id: "q2",
+      question: "According to Lenz's Law, the direction of the induced current in a closed loop will always:",
+      options: [
+        "Align with the external magnetic field to amplify it",
+        "Produce an induced magnetic field that opposes the change in magnetic flux that caused it",
+        "Flow in the direction of the magnet's physical motion",
+        "Create zero magnetic field"
+      ],
+      correctIndex: 1,
+      explanation: "Lenz's Law (represented by the negative sign in E = -N dΦ/dt) is a consequence of conservation of energy: the induced current creates an opposing magnetic field that resists the flux change."
+    },
+    {
+      id: "q3",
+      question: "Inserting a ferromagnetic soft-iron core into the center of an air-core induction coil will:",
+      options: [
+        "Decrease the induced EMF because iron conducts electricity",
+        "Significantly increase the induced EMF due to the high magnetic permeability (μ_r >> 1) concentrating magnetic flux",
+        "Cancel the magnetic flux entirely",
+        "Convert AC voltage into DC voltage"
+      ],
+      correctIndex: 1,
+      explanation: "Ferromagnetic materials have high relative permeability (μ_r >> 1), which dramatically intensifies and concentrates the magnetic flux lines through the coil loops, multiplying dΦ_B/dt and the induced EMF."
+    }
+  ],
+
+  osmosis: [
+    {
+      id: "q1",
+      question: "When a human red blood cell (erythrocyte) is placed in a pure hypotonic water solution (osmolarity ~0 mOsm/L), what physiological phenomenon occurs?",
+      options: [
+        "Water leaves the cell, causing severe crenation and shrinkage",
+        "Net osmotic influx of water causes the cell to swell and burst (osmotic hemolysis/lysis)",
+        "The cell remains in dynamic equilibrium because of its cellulose cell wall",
+        "Active transport pumps sodium into the extracellular fluid to prevent swelling"
+      ],
+      correctIndex: 1,
+      explanation: "Animal cells lack a rigid cell wall. In a hypotonic environment (Ψ_ext > Ψ_cell), water flows rapidly into the erythrocyte down the water potential gradient until internal hydrostatic pressure exceeds plasma membrane tensile strength, causing hemolytic lysis."
+    },
+    {
+      id: "q2",
+      question: "According to the water potential equation (Ψ = Ψ_s + Ψ_p), water will always spontaneously move across a selectively permeable membrane from an area of:",
+      options: [
+        "Lower (more negative) water potential to higher water potential",
+        "Higher (less negative / pure water) water potential to lower (more negative) water potential",
+        "Higher solute concentration to lower solute concentration",
+        "Zero pressure to high positive pressure regardless of solutes"
+      ],
+      correctIndex: 1,
+      explanation: "Water flows spontaneously from higher water potential (closer to 0 bar, less negative) to lower water potential (more negative, higher solute concentration), down its free energy gradient."
+    },
+    {
+      id: "q3",
+      question: "When an Elodea plant cell is immersed in a concentrated hypertonic salt solution (0.50 M NaCl), the central vacuole loses water, causing the plasma membrane to pull away from the rigid cell wall. This cytological process is called:",
+      options: [
+        "Crenation",
+        "Plasmolysis",
+        "Turgor generation",
+        "Hemolysis"
+      ],
+      correctIndex: 1,
+      explanation: "Plasmolysis is the shrinking of the plant cell protoplast and detachment of the plasma membrane from the rigid cellulose cell wall caused by exosmosis in a hypertonic medium."
+    }
+  ],
+
+  mitosis: [
+    {
+      id: "q1",
+      question: "In a cytogenetics laboratory count of 100 onion root tip meristem cells, 15 are in Prophase, 8 in Metaphase, 4 in Anaphase, 3 in Telophase, and 70 in Interphase. What is the Mitotic Index (MI)?",
+      options: [
+        "70.0%",
+        "30.0%",
+        "15.0%",
+        "8.0%"
+      ],
+      correctIndex: 1,
+      explanation: "Mitotic Index (MI) = (Total cells in mitosis / Total cells counted) × 100%. Here, mitotic cells = 15 + 8 + 4 + 3 = 30. Total = 100. MI = (30 / 100) × 100% = 30.0%."
+    },
+    {
+      id: "q2",
+      question: "During which phase of mitosis do sister chromatids disjoin at their centromeres and get pulled toward opposite spindle poles by depolymerizing kinetochore microtubules?",
+      options: [
+        "Prophase",
+        "Metaphase",
+        "Anaphase",
+        "Telophase"
+      ],
+      correctIndex: 2,
+      explanation: "Anaphase begins when cohesin protein complexes holding sister chromatids together are cleaved by separase, allowing the separated daughter chromosomes to be pulled toward opposite centrosome poles."
+    },
+    {
+      id: "q3",
+      question: "Colchicine is an antimitotic chemotherapeutic alkaloid that binds tubulin dimers and prevents microtubule polymerization. Treating actively dividing meristematic cells with colchicine arrests cells at which stage of mitosis?",
+      options: [
+        "Interphase G₁ phase",
+        "Metaphase (at the Spindle Assembly Checkpoint)",
+        "Cytokinesis cleavage",
+        "Telophase nuclear reconstruction"
+      ],
+      correctIndex: 1,
+      explanation: "Without functional spindle microtubules to generate tension on kinetochores, the Spindle Assembly Checkpoint (SAC) remains persistently active, arresting cells at the equatorial Metaphase plate."
+    }
   ]
 };
 
@@ -1613,6 +1808,11 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
     if (LAB_CHECKPOINTS[raw]) return LAB_CHECKPOINTS[raw];
     if (LAB_CHECKPOINTS[clean]) return LAB_CHECKPOINTS[clean];
     if (LAB_CHECKPOINTS[clean + "s"]) return LAB_CHECKPOINTS[clean + "s"];
+    if (clean.includes("kinet") || clean.includes("rate") || clean.includes("arrhen")) return LAB_CHECKPOINTS.kinetics;
+    if (clean.includes("collis") || clean.includes("moment") || clean.includes("airtrack")) return LAB_CHECKPOINTS.collisions;
+    if (clean.includes("induct") || clean.includes("faraday") || clean.includes("lenz") || clean.includes("solenoid")) return LAB_CHECKPOINTS.induction;
+    if (clean.includes("osmo") || clean.includes("tonicit") || clean.includes("membran") || clean.includes("plasmol")) return LAB_CHECKPOINTS.osmosis;
+    if (clean.includes("mitos") || clean.includes("cellcycle") || clean.includes("histol") || clean.includes("anaph")) return LAB_CHECKPOINTS.mitosis;
     if (clean.includes("beer") || clean.includes("lambert") || clean.includes("spectro")) return LAB_CHECKPOINTS.beerlambert;
     if (clean.includes("decay") || clean.includes("nuclear") || clean.includes("radioact")) return LAB_CHECKPOINTS.decay;
     if (clean.includes("collig") || clean.includes("freez") || clean.includes("boil")) return LAB_CHECKPOINTS.colligative;

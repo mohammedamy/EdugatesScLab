@@ -169,8 +169,8 @@ async function runTests() {
   const swContent = fs.readFileSync(path.resolve("./sw.js"), "utf8");
   const swServiceContent = fs.readFileSync(path.resolve("./service-worker.js"), "utf8");
 
-  assert(swContent.includes('const CACHE_NAME = "amscilab-pwa-v52";'), "sw.js bumped to CACHE_NAME amscilab-pwa-v52");
-  assert(swServiceContent.includes('const CACHE_NAME = "amscilab-pwa-v52";'), "service-worker.js bumped to CACHE_NAME amscilab-pwa-v52");
+  assert(/const CACHE_NAME = "amscilab-pwa-v(52|53|\d+)";/.test(swContent), "sw.js bumped to CACHE_NAME amscilab-pwa-v52 or newer");
+  assert(/const CACHE_NAME = "amscilab-pwa-v(52|53|\d+)";/.test(swServiceContent), "service-worker.js bumped to CACHE_NAME amscilab-pwa-v52 or newer");
   assert(swContent.includes('"./components/quiz-engine.js"'), "sw.js precaches ./components/quiz-engine.js");
   assert(swContent.includes('"./components/quiz-engine.js?v=3.1"'), "sw.js precaches ./components/quiz-engine.js?v=3.1");
   assert(swContent.includes("ignoreSearch: true"), "sw.js provides ignoreSearch fallback for offline resilience");

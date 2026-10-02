@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v52";
+const CACHE_NAME = "amscilab-pwa-v53";
 
 const CORE_APP_SHELL = [
   "./",
@@ -87,6 +87,11 @@ const SECONDARY_ASSETS = [
   "./labs/phys-thermal-conduction.js",
   "./labs/phys-fluids-buoyancy.js",
   "./labs/anatomy-atlas.js",
+  "./labs/chem-reaction-kinetics.js",
+  "./labs/phys-collisions.js",
+  "./labs/phys-induction.js",
+  "./labs/bio-osmosis.js",
+  "./labs/bio-mitosis.js",
   "./data/human-anatomy-atlas-data.js",
   "./assets/labs/human_anatomy_anterior_8k.jpg",
   "./assets/labs/human_anatomy_posterior_8k.jpg",
@@ -143,7 +148,12 @@ const SECONDARY_ASSETS = [
   "./assets/labs/rotational_bench.jpg",
   "./assets/labs/titration_bench.jpg",
   "./assets/labs/vsepr_bench.jpg",
-  "./assets/labs/waves_bench.jpg"
+  "./assets/labs/waves_bench.jpg",
+  "./assets/labs/kinetics_bench.jpg",
+  "./assets/labs/collisions_bench.jpg",
+  "./assets/labs/induction_bench.jpg",
+  "./assets/labs/osmosis_bench.jpg",
+  "./assets/labs/mitosis_bench.jpg"
 ];
 
 const CORE_ASSETS = [...CORE_APP_SHELL, ...SECONDARY_ASSETS];

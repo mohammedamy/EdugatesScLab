@@ -216,7 +216,13 @@ const virtualLabFiles = [
   "labs/bio-action-potential.js",
   "labs/phys-rotational-dynamics.js",
   "labs/phys-thermal-conduction.js",
-  "labs/phys-fluids-buoyancy.js"
+  "labs/phys-fluids-buoyancy.js",
+  "labs/anatomy-atlas.js",
+  "labs/chem-reaction-kinetics.js",
+  "labs/phys-collisions.js",
+  "labs/phys-induction.js",
+  "labs/bio-osmosis.js",
+  "labs/bio-mitosis.js"
 ];
 
 let allLabsImported = true;

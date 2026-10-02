@@ -214,12 +214,12 @@ assert(indexCssContent.includes('[data-mode="smartboard"] .range-slider::-webkit
 console.log("  ✅ PASS: Search input debounced against layout thrashing; smartboard touch targets sized generously (52-58px)");
 
 // ----------------------------------------------------
-// Test 11: All 30 Virtual Lab Workbenches Disconnect Guards
+// Test 11: All 35 Virtual Lab Workbenches Disconnect Guards
 // ----------------------------------------------------
-console.log("\n🔬 Test 11: All 30 Virtual Lab Workbenches Disconnect Guards");
+console.log("\n🔬 Test 11: All 35 Virtual Lab Workbenches Disconnect Guards");
 const labFiles = fs.readdirSync(path.join(rootDir, "labs"))
   .filter(f => f.startsWith("bio-") || f.startsWith("chem-") || f.startsWith("phys-"));
-assert.strictEqual(labFiles.length, 30, `Expected exactly 30 virtual lab modules, found ${labFiles.length}`);
+assert.strictEqual(labFiles.length, 35, `Expected exactly 35 virtual lab modules, found ${labFiles.length}`);
 for (const f of labFiles) {
   const code = fs.readFileSync(path.join(rootDir, "labs", f), "utf-8");
   assert(
@@ -227,7 +227,7 @@ for (const f of labFiles) {
     `Lab ${f} must include isConnected disconnect guard for animation loops or observers`
   );
 }
-console.log(`  ✅ PASS: All 30 virtual lab modules verified with isConnected unmount disconnect guards`);
+console.log(`  ✅ PASS: All 35 virtual lab modules verified with isConnected unmount disconnect guards`);
 
 // ----------------------------------------------------
 // Test 12: Smartboard DPR Capping & Fill-Rate Shielding
@@ -242,7 +242,7 @@ for (const f of labFiles) {
     }
   });
 }
-console.log("  ✅ PASS: Zero unshielded window.devicePixelRatio allocations; all 30 labs route through getLabDPR()");
+console.log("  ✅ PASS: Zero unshielded window.devicePixelRatio allocations; all 35 labs route through getLabDPR()");
 
 // ----------------------------------------------------
 // Test 13: Classroom Stopwatch & Exam Timer Lifecycle Protections

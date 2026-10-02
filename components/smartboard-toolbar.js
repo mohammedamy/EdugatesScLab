@@ -723,9 +723,13 @@ export function initSmartboardToolbar() {
     const isFloating = isVisible && !isDocked && !isMinimized;
     document.body.classList.toggle("sb-toolbar-open", isFloating);
     if (isVisible && isDocked && !isMinimized) {
-      document.body.classList.add("sb-docked-active");
+      if (!document.body.classList.contains("sb-docked-active")) {
+        document.body.classList.add("sb-docked-active");
+      }
     } else if (!isDocked || isMinimized || !isVisible) {
-      document.body.classList.remove("sb-docked-active");
+      if (document.body.classList.contains("sb-docked-active")) {
+        document.body.classList.remove("sb-docked-active");
+      }
     }
   }
 

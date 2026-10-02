@@ -58,10 +58,15 @@ const expectedBenchImages = [
   "rotational_bench.jpg",
   "titration_bench.jpg",
   "vsepr_bench.jpg",
-  "waves_bench.jpg"
+  "waves_bench.jpg",
+  "kinetics_bench.jpg",
+  "collisions_bench.jpg",
+  "induction_bench.jpg",
+  "osmosis_bench.jpg",
+  "mitosis_bench.jpg"
 ];
 
-console.log("📁 Test 1: Verifying 30 Lab Bench Image Files in assets/labs/");
+console.log("📁 Test 1: Verifying 35 Lab Bench Image Files in assets/labs/");
 expectedBenchImages.forEach((filename) => {
   const filePath = path.join(rootDir, "assets", "labs", filename);
   const exists = fs.existsSync(filePath);
@@ -150,6 +155,41 @@ const newLabConfigs = [
     simBtn: "view-mode-fluids-sim",
     photoBtn: "view-mode-fluids-photo",
     overlay: "fluids-photo-overlay"
+  },
+  {
+    file: "labs/chem-reaction-kinetics.js",
+    image: "assets/labs/kinetics_bench.jpg",
+    simBtn: "view-mode-kinetics-sim",
+    photoBtn: "view-mode-kinetics-photo",
+    overlay: "kinetics-photo-overlay"
+  },
+  {
+    file: "labs/phys-collisions.js",
+    image: "assets/labs/collisions_bench.jpg",
+    simBtn: "btn-view-sim",
+    photoBtn: "btn-view-photo",
+    overlay: "photo-overlay"
+  },
+  {
+    file: "labs/phys-induction.js",
+    image: "assets/labs/induction_bench.jpg",
+    simBtn: "btn-view-sim",
+    photoBtn: "btn-view-photo",
+    overlay: "photo-overlay"
+  },
+  {
+    file: "labs/bio-osmosis.js",
+    image: "assets/labs/osmosis_bench.jpg",
+    simBtn: "btn-view-sim",
+    photoBtn: "btn-view-photo",
+    overlay: "photo-overlay"
+  },
+  {
+    file: "labs/bio-mitosis.js",
+    image: "assets/labs/mitosis_bench.jpg",
+    simBtn: "btn-view-sim",
+    photoBtn: "btn-view-photo",
+    overlay: "photo-overlay"
   }
 ];
 

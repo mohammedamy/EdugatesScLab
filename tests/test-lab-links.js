@@ -189,7 +189,25 @@ const testCases = [
   { input: "fourier-heat", expected: "conduction" },
   { input: "lab-fluids", expected: "fluids" },
   { input: "fluids-buoyancy", expected: "fluids" },
-  { input: "archimedes", expected: "fluids" }
+  { input: "archimedes", expected: "fluids" },
+  { input: "lab-kinetics", expected: "kinetics" },
+  { input: "kinetics", expected: "kinetics" },
+  { input: "reaction-rate", expected: "kinetics" },
+  { input: "lab-collisions", expected: "collisions" },
+  { input: "collisions", expected: "collisions" },
+  { input: "momentum", expected: "collisions" },
+  { input: "lab-induction", expected: "induction" },
+  { input: "induction", expected: "induction" },
+  { input: "faraday", expected: "induction" },
+  { input: "lab-osmosis", expected: "osmosis" },
+  { input: "osmosis", expected: "osmosis" },
+  { input: "tonicity", expected: "osmosis" },
+  { input: "lab-mitosis", expected: "mitosis" },
+  { input: "mitosis", expected: "mitosis" },
+  { input: "cellcycle", expected: "mitosis" },
+  { input: "lab-anatomy", expected: "anatomy" },
+  { input: "anatomy", expected: "anatomy" },
+  { input: "atlas", expected: "anatomy" }
 ];
 
 let allNormalized = true;
@@ -211,7 +229,8 @@ const expectedLabIds = [
   "photoelectric", "magnetism", "enzymes", "respiration",
   "beerlambert", "decay", "colligative", "organic",
   "electrophoresis", "ecology", "actionpotential", "rotational",
-  "conduction", "fluids"
+  "conduction", "fluids", "kinetics", "collisions",
+  "induction", "osmosis", "mitosis", "anatomy"
 ];
 
 let allModulesMapValid = true;
@@ -284,7 +303,13 @@ const labLoaders = [
   { name: "actionpotential", loader: () => import("../labs/bio-action-potential.js").then(m => m.initActionPotentialLab("test-mount")) },
   { name: "rotational", loader: () => import("../labs/phys-rotational-dynamics.js").then(m => m.initRotationalDynamicsLab("test-mount")) },
   { name: "conduction", loader: () => import("../labs/phys-thermal-conduction.js").then(m => m.initThermalConductionLab("test-mount")) },
-  { name: "fluids", loader: () => import("../labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("test-mount")) }
+  { name: "fluids", loader: () => import("../labs/phys-fluids-buoyancy.js").then(m => m.initFluidsBuoyancyLab("test-mount")) },
+  { name: "kinetics", loader: () => import("../labs/chem-reaction-kinetics.js").then(m => m.initReactionKineticsLab("test-mount")) },
+  { name: "collisions", loader: () => import("../labs/phys-collisions.js").then(m => m.initCollisionsLab("test-mount")) },
+  { name: "induction", loader: () => import("../labs/phys-induction.js").then(m => m.initInductionLab("test-mount")) },
+  { name: "osmosis", loader: () => import("../labs/bio-osmosis.js").then(m => m.initOsmosisLab("test-mount")) },
+  { name: "mitosis", loader: () => import("../labs/bio-mitosis.js").then(m => m.initMitosisLab("test-mount")) },
+  { name: "anatomy", loader: () => import("../labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("test-mount")) }
 ];
 
 let allLabsInitCleanly = true;
@@ -305,8 +330,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appJsContent = fs.readFileSync(path.join(__dirname, "../app.js"), "utf-8");
-assert(/badge:\s*"30 Labs"/.test(appJsContent), 'Virtual Labs navigation tab badge displays "30 Labs"');
-assert(/tagline:\s*"30 Interactive STEM Workbenches"/.test(appJsContent), 'Virtual Labs navigation tab tagline displays "30 Interactive STEM Workbenches"');
+assert(/badge:\s*"36 Labs"/.test(appJsContent), 'Virtual Labs navigation tab badge displays "36 Labs"');
+assert(/tagline:\s*"36 Interactive STEM Workbenches"/.test(appJsContent), 'Virtual Labs navigation tab tagline displays "36 Interactive STEM Workbenches"');
 
 console.log("\n========================================================");
 console.log(`📊 Lab Links Tests: ${passed} Passed, ${failed} Failed`);

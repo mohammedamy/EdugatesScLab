@@ -93,8 +93,8 @@ export const NAV_SUBJECTS = [
   {
     id: "labs",
     name: "Virtual Labs",
-    badge: "30 Labs",
-    tagline: "30 Interactive STEM Workbenches",
+    badge: "36 Labs",
+    tagline: "36 Interactive STEM Workbenches",
     icon: icons.microscope,
     themeClass: "tab-labs",
     color: "#38bdf8"
@@ -969,10 +969,11 @@ function getSubjectPlaceholderSvg(code) {
 // Master Registry of Virtual Laboratories (Classified by Chemistry, Physics, Biology)
 // Adding new labs here or via registerVirtualLab() automatically categorizes and sorts them alphabetically (A-Z).
 export const VIRTUAL_LABS_REGISTRY = [
-  // Chemistry Laboratories (11)
+  // Chemistry Laboratories (12)
   { id: "titration", subject: "chem", title: "Acid-Base Titration", icon: icons.titration, ariaLabel: "Acid-Base Titration Virtual Lab", href: "#labs/titration" },
   { id: "beerlambert", subject: "chem", title: "Beer-Lambert Law", icon: icons.beerLambert, ariaLabel: "Spectrophotometry and Beer-Lambert Law Lab", href: "#labs/beerlambert" },
   { id: "calorimetry", subject: "chem", title: "Calorimetry & ΔH", icon: icons.calorimetry, ariaLabel: "Calorimetry and Thermochemistry Virtual Lab", href: "#labs/calorimetry" },
+  { id: "kinetics", subject: "chem", title: "Chemical Kinetics & Rates", icon: icons.reactionKinetics, ariaLabel: "Chemical Kinetics and Reaction Rates Lab", href: "#labs/kinetics" },
   { id: "colligative", subject: "chem", title: "Colligative Properties", icon: icons.colligative, ariaLabel: "Colligative Properties and Freezing Point Lab", href: "#labs/colligative" },
   { id: "electrochem", subject: "chem", title: "Electrochemistry & Voltaic", icon: icons.electrochem, ariaLabel: "Electrochemistry and Voltaic Cells Lab", href: "#labs/electrochem" },
   { id: "equilibrium", subject: "chem", title: "Equilibrium & Le Chatelier", icon: icons.equilibrium, ariaLabel: "Chemical Equilibrium and Le Chatelier Lab", href: "#labs/equilibrium" },
@@ -982,21 +983,25 @@ export const VIRTUAL_LABS_REGISTRY = [
   { id: "organic", subject: "chem", title: "Organic Mechanisms", icon: icons.organicReactions, ariaLabel: "Organic Reaction Mechanisms Lab", href: "#labs/organic" },
   { id: "vsepr", subject: "chem", title: "VSEPR 3D Modeler", icon: icons.vsepr, ariaLabel: "VSEPR 3D Modeler Lab", href: "#labs/vsepr" },
 
-  // Physics Laboratories (10)
+  // Physics Laboratories (12)
   { id: "circuits", subject: "phys", title: "DC Circuits & Ohm's Law", icon: icons.circuit, ariaLabel: "DC Circuits and Ohm's Law Lab", href: "#labs/circuits" },
+  { id: "induction", subject: "phys", title: "Electromagnetic Induction & Faraday", icon: icons.induction, ariaLabel: "Electromagnetic Induction and Faraday Lab", href: "#labs/induction" },
   { id: "fluids", subject: "phys", title: "Fluid Dynamics & Buoyancy", icon: icons.fluidsBuoyancy, ariaLabel: "Fluid Dynamics and Buoyancy Lab", href: "#labs/fluids" },
   { id: "optics", subject: "phys", title: "Geometric Optics Ray Tracing", icon: icons.optics, ariaLabel: "Geometric Optics Ray Tracing Lab", href: "#labs/optics" },
   { id: "harmonic", subject: "phys", title: "Harmonic Motion & Hooke", icon: icons.harmonic, ariaLabel: "Harmonic Motion and Hooke's Law Lab", href: "#labs/harmonic" },
   { id: "projectile", subject: "phys", title: "Kinematics & Projectiles", icon: icons.projectile, ariaLabel: "Kinematics and Projectiles Virtual Lab", href: "#labs/projectile" },
+  { id: "collisions", subject: "phys", title: "Linear Momentum & Collisions", icon: icons.collisions, ariaLabel: "Linear Momentum and Collisions Virtual Lab", href: "#labs/collisions" },
   { id: "magnetism", subject: "phys", title: "Magnetic Force & e/m", icon: icons.magnetism, ariaLabel: "Magnetic Force and Lorentz e/m Lab", href: "#labs/magnetism" },
   { id: "photoelectric", subject: "phys", title: "Photoelectric Effect", icon: icons.photoelectric, ariaLabel: "Photoelectric Effect and Quantum Physics Lab", href: "#labs/photoelectric" },
   { id: "rotational", subject: "phys", title: "Rotational Dynamics", icon: icons.rotationalDynamics, ariaLabel: "Rotational Dynamics and Moment of Inertia Lab", href: "#labs/rotational" },
   { id: "conduction", subject: "phys", title: "Thermal Conduction", icon: icons.thermalConduction, ariaLabel: "Thermal Conduction and Fourier Law Lab", href: "#labs/conduction" },
   { id: "waves", subject: "phys", title: "Wave Interference & Slits", icon: icons.waveInterference, ariaLabel: "Wave Interference and Slits Lab", href: "#labs/waves" },
 
-  // Biology Laboratories (10) - Suite Navigation href="#labs/anatomy"
+  // Biology Laboratories (12) - Suite Navigation href="#labs/anatomy"
   { id: "anatomy", subject: "bio", title: "4K Human Anatomy Atlas", icon: "🏛️", ariaLabel: "4K Human Anatomy Atlas and Histology Lab", href: "#labs/anatomy" },
   { id: "actionpotential", subject: "bio", title: "Action Potential Patch Clamp", icon: icons.actionPotential, ariaLabel: "Neurobiology and Action Potential Patch Clamp Lab", href: "#labs/actionpotential" },
+  { id: "mitosis", subject: "bio", title: "Cell Cycle & Mitosis", icon: icons.mitosis, ariaLabel: "Cell Cycle and Mitosis Cytogenetics Lab", href: "#labs/mitosis" },
+  { id: "osmosis", subject: "bio", title: "Cell Membrane & Osmosis", icon: icons.osmosis, ariaLabel: "Cell Membrane and Osmosis Virtual Lab", href: "#labs/osmosis" },
   { id: "respiration", subject: "bio", title: "Cellular Respiration", icon: icons.respiration, ariaLabel: "Cellular Respiration and Respirometer Lab", href: "#labs/respiration" },
   { id: "dnaprotein", subject: "bio", title: "DNA & Protein Synthesis", icon: icons.dna, ariaLabel: "DNA and Protein Synthesis Lab", href: "#labs/dnaprotein" },
   { id: "enzymes", subject: "bio", title: "Enzyme Kinetics", icon: icons.enzymes, ariaLabel: "Enzyme Kinetics and Catalysis Lab", href: "#labs/enzymes" },
@@ -1072,10 +1077,15 @@ export function normalizeLabId(rawId) {
   if (str === "organic" || str.includes("organ") || str.includes("sn1") || str.includes("sn2")) return "organic";
   if (str === "electrophoresis" || str.includes("electrophor") || str.includes("gel") || str.includes("agarose")) return "electrophoresis";
   if (str === "ecology" || str.includes("ecol") || str.includes("populat") || str.includes("lotka") || str.includes("predat")) return "ecology";
-  if (str === "actionpotential" || str.includes("action") || str.includes("potent") || str.includes("neuron") || str.includes("patch")) return "actionpotential";
+  if (str === "kinetics" || str.includes("kinet") || str.includes("reaction") || str.includes("arrhen") || str.includes("rate-law")) return "kinetics";
+  if (str === "actionpotential" || str.includes("action-pot") || str.includes("actionpot") || str.includes("action_pot") || str.includes("neuron") || str.includes("patch") || str.includes("hodgkin")) return "actionpotential";
   if (str === "rotational" || str.includes("rotat") || str.includes("torque") || str.includes("inertia")) return "rotational";
   if (str === "conduction" || str.includes("conduct") || str.includes("fourier") || str.includes("heat")) return "conduction";
   if (str === "fluids" || str.includes("fluid") || str.includes("buoy") || str.includes("archimed") || str.includes("bernoulli")) return "fluids";
+  if (str === "collisions" || str.includes("collis") || str.includes("moment") || str.includes("airtrack")) return "collisions";
+  if (str === "induction" || str.includes("induct") || str.includes("faraday") || str.includes("lenz") || str.includes("solenoid")) return "induction";
+  if (str === "osmosis" || str.includes("osmo") || str.includes("tonicit") || str.includes("plasmol")) return "osmosis";
+  if (str === "mitosis" || str.includes("mitos") || str.includes("cellcycle") || str.includes("histol")) return "mitosis";
   if (str === "calorimetry" || str.includes("calorim")) return "calorimetry";
   if (str === "equilibrium" || str.includes("equilib") || str.includes("chatelier")) return "equilibrium";
   if (str === "electrochem" || str.includes("electro") || str.includes("galvan") || str.includes("voltaic")) return "electrochem";
@@ -1137,7 +1147,12 @@ function formatLabName(labKey) {
     "rotational": "Rotational Dynamics & Moment of Inertia",
     "conduction": "Thermal Conduction & Fourier's Law",
     "fluids": "Fluid Dynamics, Buoyancy & Bernoulli",
-    "anatomy": "4K Human Anatomy Atlas & Histology"
+    "anatomy": "4K Human Anatomy Atlas & Histology",
+    "kinetics": "Chemical Kinetics & Rates",
+    "collisions": "Linear Momentum & Collisions",
+    "induction": "Electromagnetic Induction & Faraday",
+    "osmosis": "Cell Membrane & Osmosis",
+    "mitosis": "Cell Cycle & Mitosis"
   };
   return map[norm] || "Virtual Laboratory";
 }
@@ -1968,7 +1983,19 @@ function mountActiveLab() {
     "anatomy": () => import("./labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("active-lab-mount")),
     "lab-anatomy": () => import("./labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("active-lab-mount")),
     "atlas": () => import("./labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("active-lab-mount")),
-    "anatomy-atlas": () => import("./labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("active-lab-mount"))
+    "anatomy-atlas": () => import("./labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("active-lab-mount")),
+    "kinetics": () => import("./labs/chem-reaction-kinetics.js").then(m => m.initReactionKineticsLab("active-lab-mount")),
+    "lab-kinetics": () => import("./labs/chem-reaction-kinetics.js").then(m => m.initReactionKineticsLab("active-lab-mount")),
+    "collisions": () => import("./labs/phys-collisions.js").then(m => m.initCollisionsLab("active-lab-mount")),
+    "lab-collisions": () => import("./labs/phys-collisions.js").then(m => m.initCollisionsLab("active-lab-mount")),
+    "momentum": () => import("./labs/phys-collisions.js").then(m => m.initCollisionsLab("active-lab-mount")),
+    "induction": () => import("./labs/phys-induction.js").then(m => m.initInductionLab("active-lab-mount")),
+    "lab-induction": () => import("./labs/phys-induction.js").then(m => m.initInductionLab("active-lab-mount")),
+    "faraday": () => import("./labs/phys-induction.js").then(m => m.initInductionLab("active-lab-mount")),
+    "osmosis": () => import("./labs/bio-osmosis.js").then(m => m.initOsmosisLab("active-lab-mount")),
+    "lab-osmosis": () => import("./labs/bio-osmosis.js").then(m => m.initOsmosisLab("active-lab-mount")),
+    "mitosis": () => import("./labs/bio-mitosis.js").then(m => m.initMitosisLab("active-lab-mount")),
+    "lab-mitosis": () => import("./labs/bio-mitosis.js").then(m => m.initMitosisLab("active-lab-mount"))
   };
 
   const loader = labLoaders[normId] || labLoaders["projectile"];
