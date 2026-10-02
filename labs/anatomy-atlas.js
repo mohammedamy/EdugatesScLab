@@ -3636,13 +3636,13 @@ export function initAnatomyAtlasLab(containerId) {
       const shiftY = (avDescent * 0.35 + atrialStrain * 0.015) * heartH * w * ventWeight;
 
       // Radial inward contraction:
-      // Atrial presystolic kick: gentle compliance in upper atrium (v ≈ 0.34)
+      // Atrial presystolic kick: gentle compliance in upper atrium (v ≈ 0.34) smoothly blended via w
       const atrialPulse = Math.sin(Math.PI * Math.min(1.0, (v - TOP_RIGID_V) / 0.14));
-      const scaleAtrial = 1.0 - atrialStrain * 0.03 * atrialPulse;
+      const scaleAtrial = 1.0 - atrialStrain * 0.03 * atrialPulse * w;
 
       // Ventricular systole: powerful inward squeeze of free walls (v ≈ 0.70)
       const ventPulse = Math.sin(Math.PI * Math.max(0.0, (v - 0.38) / 0.62));
-      const scaleVent = 1.0 - ventStrain * 0.09 * ventPulse;
+      const scaleVent = 1.0 - ventStrain * 0.09 * ventPulse * w;
 
       const blendVent = Math.max(0.0, Math.min(1.0, (v - 0.34) / 0.10));
       const scaleX = (1.0 - blendVent) * scaleAtrial + blendVent * scaleVent;
@@ -3680,26 +3680,14 @@ export function initAnatomyAtlasLab(containerId) {
       const srcW = imgHeartCoronal.naturalWidth;
       const srcH = imgHeartCoronal.naturalHeight;
 
-      // A. MONOLITHIC UN-SLICED UPPER GREAT VESSELS (v = 0.0 to 0.28)
-      // Drawn as ONE solid photographic block: ZERO slicing, ZERO split, ZERO seams
-      const srcTopH = srcH * TOP_RIGID_V;
-      const dstTopH = heartH * TOP_RIGID_V;
-      const topY = -heartH / 2;
-
-      targetCtx.drawImage(
-        imgHeartCoronal,
-        0, 0, srcW, srcTopH,
-        -heartW / 2, topY, heartW, dstTopH + 0.8
-      );
-
-      // B. CONTINUOUS NODAL MESH FOR CONTRACTING MYOCARDIUM (v = 0.28 to 1.0)
-      const NUM_MYO_SLICES = 28;
-      const myoVRange = 1.0 - TOP_RIGID_V;
-      const srcMyoSliceH = (srcH * myoVRange) / NUM_MYO_SLICES;
+      // UNIFIED CONTINUOUS-MESH SLICING (v = 0.0 to 1.0)
+      // Spans entire organ from upper great vessels to apex in one unified C^2 mesh: ZERO split, ZERO seams
+      const NUM_MYO_SLICES = 48;
+      const srcSliceH = srcH / NUM_MYO_SLICES;
 
       const myoNodes = [];
       for (let k = 0; k <= NUM_MYO_SLICES; k++) {
-        const v = TOP_RIGID_V + (k / NUM_MYO_SLICES) * myoVRange;
+        const v = k / NUM_MYO_SLICES;
         const d = getDeformation(v);
         const y = -heartH / 2 + v * heartH + d.shiftY;
         myoNodes.push({ y, scaleX: d.scaleX, shiftX: d.shiftX });
@@ -3709,10 +3697,10 @@ export function initAnatomyAtlasLab(containerId) {
         const topNode = myoNodes[s];
         const botNode = myoNodes[s + 1];
 
-        const sy = srcTopH + s * srcMyoSliceH;
+        const sy = s * srcSliceH;
         const dy = topNode.y;
-        // Mathematical sub-pixel overlap guarantees seamless boundary
-        const dh = (botNode.y - topNode.y) + 0.8;
+        // Mathematical sub-pixel overlap guarantees seamless boundary without artifacts
+        const dh = (botNode.y - topNode.y) + 0.85;
 
         const midScaleX = (topNode.scaleX + botNode.scaleX) * 0.5;
         const midShiftX = (topNode.shiftX + botNode.shiftX) * 0.5;
@@ -3722,7 +3710,7 @@ export function initAnatomyAtlasLab(containerId) {
 
         targetCtx.drawImage(
           imgHeartCoronal,
-          0, sy, srcW, srcMyoSliceH,
+          0, sy, srcW, srcSliceH,
           dx, dy, curW, dh
         );
       }
