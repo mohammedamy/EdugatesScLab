@@ -6,11 +6,23 @@ import { biologyCurriculum } from "./data/biology-curriculum.js";
 import { physicsCurriculum } from "./data/physics-curriculum.js";
 import { icons } from "./assets/icons.js";
 import { openModuleModal } from "./components/module-viewer.js";
-import { openProgressModal, ProgressStore } from "./components/progress-tracker.js";
+import { openProgressModal, ProgressStore, formatRelativeTime } from "./components/progress-tracker.js";
 import { renderMathInElement, renderLatex } from "./utils/math-renderer.js";
 import { getLessonInteractiveSpec } from "./data/lesson-interactive-specs.js";
 import { SoundFX } from "./utils/audio-synth.js";
 import { showToast, copyShareLink } from "./utils/toast.js";
+
+// Theme-Color Meta Tag Synchronizer
+export function syncThemeColor(theme) {
+  if (typeof document === "undefined") return;
+  let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  if (!metaThemeColor) {
+    metaThemeColor = document.createElement("meta");
+    metaThemeColor.name = "theme-color";
+    document.head.appendChild(metaThemeColor);
+  }
+  metaThemeColor.setAttribute("content", theme === "day" ? "#f8fafc" : "#070a12");
+}
 
 // Initialize Theme (Respect user preference or fallback to system color scheme)
 const userSavedTheme = typeof localStorage !== "undefined" ? localStorage.getItem("edugates_theme") : null;
@@ -18,11 +30,13 @@ const systemPrefersLight = typeof window !== "undefined" && window.matchMedia &&
 const savedTheme = userSavedTheme || (systemPrefersLight ? "day" : "night");
 if (typeof document !== "undefined" && document.documentElement) {
   document.documentElement.setAttribute("data-theme", savedTheme);
+  syncThemeColor(savedTheme);
   if (document.body) {
     document.body.setAttribute("data-theme", savedTheme);
   } else if (typeof window !== "undefined") {
     window.addEventListener("DOMContentLoaded", () => {
       if (document.body) document.body.setAttribute("data-theme", savedTheme);
+      syncThemeColor(savedTheme);
     });
   }
 }
@@ -130,6 +144,9 @@ function bootApp() {
     }
     setupDeviceDetection();
     renderAppShell();
+    if (typeof localStorage !== "undefined" && localStorage.getItem("edugates_focus_mode") === "true") {
+      document.body.classList.add("focus-mode");
+    }
     initCustomLogoDetector();
     bindGlobalEvents();
     bindAccessibilityEvents();
@@ -519,6 +536,7 @@ function setTheme(theme) {
     document.body.setAttribute("data-theme", theme);
   }
   localStorage.setItem("edugates_theme", theme);
+  syncThemeColor(theme);
   try {
     SoundFX.playClick();
   } catch (e) {}
@@ -638,13 +656,19 @@ function bindGlobalEvents() {
     }
   });
 
-  // Focus Presentation Mode Toggle & Exit
-  const toggleFocusMode = () => {
-    document.body.classList.toggle("focus-mode");
+  // Focus Presentation Mode Toggle & Exit with Persistence
+  const toggleFocusMode = (forceState) => {
+    const isNowFocus = typeof forceState === "boolean"
+      ? forceState
+      : !document.body.classList.contains("focus-mode");
+    document.body.classList.toggle("focus-mode", isNowFocus);
+    try {
+      localStorage.setItem("edugates_focus_mode", isNowFocus ? "true" : "false");
+    } catch (e) {}
     try { SoundFX.playPop(); } catch (e) {}
   };
-  document.getElementById("btn-toggle-focus-mode")?.addEventListener("click", toggleFocusMode);
-  document.getElementById("btn-exit-focus-mode")?.addEventListener("click", toggleFocusMode);
+  document.getElementById("btn-toggle-focus-mode")?.addEventListener("click", () => toggleFocusMode());
+  document.getElementById("btn-exit-focus-mode")?.addEventListener("click", () => toggleFocusMode(false));
 
   // Shift+F Keyboard Shortcut for Focus Mode
   document.addEventListener("keydown", (e) => {
@@ -652,8 +676,64 @@ function bindGlobalEvents() {
       e.preventDefault();
       toggleFocusMode();
     } else if (e.key === "Escape" && document.body.classList.contains("focus-mode")) {
-      document.body.classList.remove("focus-mode");
+      toggleFocusMode(false);
     }
+  });
+}
+
+export function openShortcutsModal() {
+  let overlay = document.getElementById("shortcuts-modal-overlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "shortcuts-modal-overlay";
+    overlay.className = "modal-overlay";
+    document.body.appendChild(overlay);
+  }
+  overlay.style.display = "flex";
+  document.body.style.overflow = "hidden";
+
+  overlay.innerHTML = `
+    <div class="modal-content-shell" role="dialog" aria-modal="true" aria-labelledby="modal-shortcuts-title" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-header-titles">
+          <div class="modal-category-badge" style="color: #38bdf8;">Classroom &amp; Power User Cheatsheet</div>
+          <div class="modal-title" id="modal-shortcuts-title">Keyboard &amp; Smartboard Shortcuts</div>
+        </div>
+        <button class="modal-close-btn" id="btn-close-shortcuts" aria-label="Close shortcuts cheatsheet">✕</button>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; font-size: 0.9rem;">
+        <div style="display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; align-items: center; background: var(--bg-surface-elevated); padding: 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+          <kbd style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-mono); font-weight: 700; color: #38bdf8;">Shift + F</kbd>
+          <span><strong>Focus Mode</strong> — Distraction-free smartboard presentation (hides header &amp; nav)</span>
+
+          <kbd style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-mono); font-weight: 700; color: #38bdf8;">Ctrl + K</kbd>
+          <span><strong>Search</strong> — Quick jump to curriculum search input</span>
+
+          <kbd style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-mono); font-weight: 700; color: #38bdf8;">Esc</kbd>
+          <span><strong>Exit / Close</strong> — Close open lesson modal, exit Fullscreen, or exit Focus mode</span>
+
+          <kbd style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-mono); font-weight: 700; color: #38bdf8;">1 – 6</kbd>
+          <span><strong>Subject Switcher</strong> — 1: Chem, 2: Bio, 3: Phys, 4: Labs, 5: Quiz, 6: Flashcards</span>
+
+          <kbd style="background: rgba(0,0,0,0.4); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-mono); font-weight: 700; color: #fbbf24;">P / H / E</kbd>
+          <span><strong>Smartboard Annotation</strong> — P: Pen, H: Highlighter, E: Eraser</span>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const closeShortcuts = () => {
+    overlay.style.display = "none";
+    document.body.style.overflow = "";
+    document.removeEventListener("keydown", keyHandler);
+  };
+  const keyHandler = (e) => {
+    if (e.key === "Escape") closeShortcuts();
+  };
+  document.addEventListener("keydown", keyHandler);
+  overlay.querySelector("#btn-close-shortcuts")?.addEventListener("click", closeShortcuts);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) closeShortcuts();
   });
 }
 
@@ -711,6 +791,10 @@ export function handleHashRoute() {
     if (window.closeActiveModuleModal) window.closeActiveModuleModal();
     if (window.closeActiveLessonPlanModal) window.closeActiveLessonPlanModal();
     if (window.closeActiveProgressModal) window.closeActiveProgressModal();
+
+    if (typeof window !== "undefined" && window.TouchZoom && typeof window.TouchZoom.setAllowed === "function") {
+      window.TouchZoom.setAllowed(route === "labs" || route === "lab");
+    }
 
     const targetTab = route === "lab" ? "labs" : route;
     if ((route === "labs" || route === "lab") && segments[1]) {
@@ -812,6 +896,12 @@ function switchTab(tabId, updateHash = true) {
     currentActiveQuizCleanup = null;
   }
 
+  // Sync touch zoom HUD: only allowed on labs tab or inside lesson/lab interactives
+  if (typeof window !== "undefined" && window.TouchZoom && typeof window.TouchZoom.setAllowed === "function") {
+    window.TouchZoom.setAllowed(tabId === "labs");
+  }
+
+  const prevTab = AppState.currentTab;
   AppState.currentTab = tabId;
   AppState.selectedUnit = "ALL";
   AppState.searchQuery = "";
@@ -860,14 +950,29 @@ function switchTab(tabId, updateHash = true) {
     blob1.style.background = sub.color;
   }
 
-  renderCurrentView();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  const container = document.getElementById("main-content-view");
+  const isCurriculumTab = ["chem", "bio", "phys"].includes(tabId);
+  const isDifferentTab = prevTab !== tabId;
 
-  // Programmatic Focus Management for Screen Readers & Assistive Tech
-  const mainView = document.getElementById("main-content-view");
-  if (mainView) {
-    mainView.focus({ preventScroll: true });
-    enhanceA11y(mainView);
+  if (container && isCurriculumTab && isDifferentTab) {
+    renderCurriculumSkeleton(container, tabId);
+    setTimeout(() => {
+      renderCurrentView();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      const mainView = document.getElementById("main-content-view");
+      if (mainView) {
+        mainView.focus({ preventScroll: true });
+        enhanceA11y(mainView);
+      }
+    }, 40);
+  } else {
+    renderCurrentView();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    const mainView = document.getElementById("main-content-view");
+    if (mainView) {
+      mainView.focus({ preventScroll: true });
+      enhanceA11y(mainView);
+    }
   }
 }
 
@@ -901,6 +1006,46 @@ if (typeof window !== "undefined") {
     };
     switchTab("flashcards");
   };
+}
+
+function renderCurriculumSkeleton(container, subjectKey) {
+  if (!container) return;
+  const color = subjectKey === "bio" ? "var(--bio-primary)" : (subjectKey === "phys" ? "var(--phys-primary)" : "var(--chem-primary)");
+  const name = subjectKey === "bio" ? "Biology" : (subjectKey === "phys" ? "Physics" : "Chemistry");
+  container.innerHTML = `
+    <div class="curriculum-skeleton-wrap" aria-busy="true" aria-label="Loading ${name} curriculum...">
+      <div class="hero-banner skeleton-hero" style="border-left: 4px solid ${color};">
+        <div class="skeleton-line shimmer" style="width: 140px; height: 16px; border-radius: 999px; margin-bottom: 12px;"></div>
+        <div class="skeleton-line shimmer" style="width: 280px; height: 32px; border-radius: 8px; margin-bottom: 16px;"></div>
+        <div class="skeleton-line shimmer" style="width: 70%; height: 18px; border-radius: 6px; margin-bottom: 24px;"></div>
+        <div class="hero-metrics skeleton-metrics" style="opacity: 0.6;">
+          <div class="metric-pill skeleton-pill shimmer"></div>
+          <div class="metric-pill skeleton-pill shimmer"></div>
+          <div class="metric-pill skeleton-pill shimmer"></div>
+          <div class="metric-pill skeleton-pill shimmer"></div>
+        </div>
+      </div>
+      <div class="modules-grid skeleton-grid">
+        ${Array.from({ length: 6 }).map(() => `
+          <div class="module-card skeleton-card">
+            <div class="module-card-banner is-loading" style="height: 180px; position: relative; overflow: hidden; background: var(--bg-surface-elevated, #131b2e); border-radius: 12px 12px 0 0;">
+              <div class="module-banner-skeleton" style="position: absolute; inset: 0;"></div>
+            </div>
+            <div class="module-card-body" style="padding: 16px;">
+              <div class="skeleton-line shimmer" style="width: 30%; height: 12px; border-radius: 4px; margin-bottom: 10px;"></div>
+              <div class="skeleton-line shimmer" style="width: 85%; height: 20px; border-radius: 6px; margin-bottom: 12px;"></div>
+              <div class="skeleton-line shimmer" style="width: 100%; height: 14px; border-radius: 4px; margin-bottom: 6px;"></div>
+              <div class="skeleton-line shimmer" style="width: 60%; height: 14px; border-radius: 4px; margin-bottom: 16px;"></div>
+              <div style="display: flex; gap: 8px; margin-top: 12px;">
+                <div class="skeleton-line shimmer" style="width: 48%; height: 28px; border-radius: 6px;"></div>
+                <div class="skeleton-line shimmer" style="width: 48%; height: 28px; border-radius: 6px;"></div>
+              </div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
 }
 
 function renderCurrentView() {
@@ -1224,18 +1369,42 @@ function renderSubjectView(container, curData, themeColor) {
   const isLessonsView = AppState.homeViewMode === "lessons";
   const totalLessonsCount = filtered.reduce((acc, m) => acc + m.lessons.length, 0);
 
-  const stats = ProgressStore.getStats();
+  // Subject-aware learning telemetry and resume point (Never show CHEM on BIO/PHYS)
+  const subjKey = curData.code.toLowerCase(); // "chem", "bio", "phys"
+  const subjStats = ProgressStore.getSubjectStats(subjKey);
+  const subjName = curData.subject;
   const showPresenterTip = localStorage.getItem("sb_hide_presenter_tip") !== "true";
 
-  // Determine Continue Learning module
+  // Preload top visible card images for this subject for instant above-the-fold first paint
+  if (curData && Array.isArray(curData.modules)) {
+    const topModules = curData.modules.slice(0, 6);
+    topModules.forEach(m => {
+      const href = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
+      if (typeof document !== "undefined") {
+        let existingLink = document.querySelector(`link[rel="preload"][href="${href}"]`);
+        if (!existingLink) {
+          const link = document.createElement("link");
+          link.rel = "preload";
+          link.as = "image";
+          link.href = href;
+          document.head.appendChild(link);
+        }
+      }
+    });
+  }
+
+  // Determine Continue Learning module for THIS curriculum
   let lastMod = null;
   let isResuming = false;
-  if (stats.modulesExplored && stats.modulesExplored.length > 0) {
-    const lastCode = stats.modulesExplored[stats.modulesExplored.length - 1];
-    const found = findModuleByCode(lastCode);
-    if (found) {
+  let lastOpenedTimeStr = "";
+  if (subjStats.lastCode) {
+    const found = findModuleByCode(subjStats.lastCode);
+    if (found && found.mod) {
       lastMod = found.mod;
       isResuming = true;
+      if (subjStats.lastTimestamp) {
+        lastOpenedTimeStr = formatRelativeTime(subjStats.lastTimestamp);
+      }
     }
   }
   if (!lastMod && curData.modules && curData.modules.length > 0) {
@@ -1282,31 +1451,35 @@ function renderSubjectView(container, curData, themeColor) {
         <div class="presenter-tip-content">
           <span>💡</span>
           <span><strong>Classroom Presenter Tip:</strong> Press <kbd style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); font-family: var(--font-mono, monospace);">Shift + F</kbd> anytime for distraction-free Focus Mode on smartboards and projectors.</span>
+          <button class="btn-shortcuts-cheatsheet" id="btn-open-shortcuts-cheatsheet" title="View all keyboard and smartboard shortcuts" aria-label="Open Keyboard Shortcuts Cheatsheet">⌨️ Shortcuts</button>
         </div>
         <button class="presenter-tip-dismiss" id="btn-dismiss-presenter-tip" aria-label="Dismiss presenter tip">✕</button>
       </div>
     ` : ''}
 
     ${lastMod ? `
-      <!-- Continue Learning Progress Strip -->
-      <div class="continue-learning-strip">
+      <!-- Continue Learning Progress Strip (Subject-Aware) -->
+      <div class="continue-learning-strip" data-subject="${subjKey}">
         <div class="continue-learning-left">
           <div class="continue-learning-pulse-dot"></div>
           <div class="continue-learning-text">
-            <span class="continue-learning-label">${isResuming ? 'Continue Where You Left Off' : 'Recommended Starting Chapter'}</span>
+            <span class="continue-learning-label">
+              ${isResuming ? 'Continue Where You Left Off' : 'Recommended Starting Chapter'}
+              ${lastOpenedTimeStr ? `<span class="last-opened-time">• Last opened ${lastOpenedTimeStr}</span>` : ''}
+            </span>
             <span class="continue-learning-target">${lastMod.code}: ${lastMod.title}</span>
           </div>
         </div>
         <div class="continue-learning-actions">
           <div class="continue-learning-meta">
-            ${stats.modulesExplored.length === 0 && stats.labsLaunched.length === 0 ? `
-              <span class="empty-journey-guide">✨ Welcome! Select Chapter 1 below or click Start Chapter to begin</span>
+            ${subjStats.modulesCount === 0 && subjStats.labsCount === 0 ? `
+              <span class="empty-journey-guide">✨ Welcome! Select Chapter 1 below or click Start Chapter to begin ${subjName}</span>
             ` : `
-              <span>${stats.modulesExplored.length} chapter${stats.modulesExplored.length === 1 ? '' : 's'} explored • ${stats.labsLaunched.length} lab${stats.labsLaunched.length === 1 ? '' : 's'} launched</span>
+              <span>${subjStats.modulesCount} chapter${subjStats.modulesCount === 1 ? '' : 's'} explored • ${subjStats.labsCount} lab${subjStats.labsCount === 1 ? '' : 's'} launched in ${subjName}</span>
             `}
           </div>
           <a href="#module/${lastMod.code}" class="btn-continue-resume" aria-label="${isResuming ? 'Resume' : 'Start'} Chapter ${lastMod.code}">
-            <span>${isResuming ? 'Resume Chapter' : 'Start Chapter'}</span>
+            <span>${isResuming ? 'Resume Chapter' : 'Start Chapter 1'}</span>
             <span>→</span>
           </a>
         </div>
@@ -1349,7 +1522,7 @@ function renderSubjectView(container, curData, themeColor) {
         ${filtered.map((m, mIdx) => {
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
           const fallbackSvg = getSubjectPlaceholderSvg(curData.code);
-          const isTopPriority = mIdx < 4;
+          const isTopPriority = mIdx < 6;
           return `
             <div class="module-card" data-mid="${m.id}" style="--card-accent: ${themeColor};">
               <!-- Textbook Chapter Opener Photo Banner with Skeleton & Robust Fallback -->
@@ -1430,7 +1603,7 @@ function renderSubjectView(container, curData, themeColor) {
           const iconEmoji = getLessonIconEmoji(spec.type);
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
           const fallbackSvg = getSubjectPlaceholderSvg(curData.code);
-          const isTopPriority = idx < 4;
+          const isTopPriority = idx < 6;
           return `
             <div class="lesson-card-full" data-mid="${m.id}" data-lid="${l.id}" style="--card-accent: ${themeColor};">
               <div class="lesson-card-banner is-loading">
@@ -1484,12 +1657,18 @@ function renderSubjectView(container, curData, themeColor) {
     `}
   `;
 
-  // Bind Classroom Presenter Tip Dismiss
+  // Bind Classroom Presenter Tip Dismiss & Shortcuts Cheatsheet
   const btnDismissTip = document.getElementById("btn-dismiss-presenter-tip");
   if (btnDismissTip) {
     btnDismissTip.addEventListener("click", () => {
       localStorage.setItem("sb_hide_presenter_tip", "true");
       document.getElementById("classroom-presenter-tip")?.remove();
+    });
+  }
+  const btnShortcuts = document.getElementById("btn-open-shortcuts-cheatsheet");
+  if (btnShortcuts) {
+    btnShortcuts.addEventListener("click", () => {
+      openShortcutsModal();
     });
   }
 

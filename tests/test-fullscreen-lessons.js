@@ -39,10 +39,10 @@ testAssert(
   "module-viewer.js renders modal-content-shell with permanent is-fullscreen class and unique workspace ID"
 );
 
-// 2. Elimination of Dialogue Box Semantics
+// 2. Accessible Chapter Dialog Semantics (WAI-ARIA Dialog with Modal Overlay)
 testAssert(
-  !viewerSrc.includes('role="dialog"') && viewerSrc.includes('role="main" aria-label="Lesson Full Browser Screen View"'),
-  "module-viewer.js replaces role='dialog' with role='main' full browser workspace"
+  viewerSrc.includes('role="dialog"') && viewerSrc.includes('aria-modal="true"') && viewerSrc.includes('aria-labelledby="modal-chapter-title"'),
+  "module-viewer.js implements accessible modal dialog semantics (role='dialog', aria-modal='true')"
 );
 
 // 3. Navigation & Exit Controls

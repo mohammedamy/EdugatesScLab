@@ -352,6 +352,13 @@ function createHudElement() {
   return hud;
 }
 
+let hudAllowed = false;
+
+export function setZoomHudAllowed(allowed) {
+  hudAllowed = !!allowed;
+  updateHudUI();
+}
+
 function updateHudUI() {
   if (!hudElement && typeof document !== "undefined") {
     hudElement = document.getElementById("touch-screen-zoom-controller");
@@ -359,6 +366,15 @@ function updateHudUI() {
   if (!hudElement) return;
 
   const pct = Math.round(currentScale * 100);
+  const isDeviated = Math.abs(currentScale - 1.0) >= 0.02 || Math.abs(currentPanX) > 2 || Math.abs(currentPanY) > 2;
+  const isFullscreen = typeof document !== "undefined" && !!(
+    document.fullscreenElement || 
+    document.webkitFullscreenElement || 
+    (document.body && document.body.classList && typeof document.body.classList.contains === "function" && document.body.classList.contains("modal-open"))
+  );
+  const shouldShow = hudAllowed || isDeviated || isFullscreen;
+
+  hudElement.style.display = shouldShow ? "flex" : "none";
 
   if (typeof hudElement.querySelector === "function") {
     const label = hudElement.querySelector("#touch-zoom-pct-label");
@@ -367,8 +383,6 @@ function updateHudUI() {
     if (label) {
       label.textContent = `${pct}%`;
     }
-
-    const isDeviated = Math.abs(currentScale - 1.0) >= 0.02 || Math.abs(currentPanX) > 2 || Math.abs(currentPanY) > 2;
 
     if (hudElement.classList && typeof hudElement.classList.toggle === "function") {
       hudElement.classList.toggle("is-active-zoom", isDeviated);
@@ -419,6 +433,7 @@ export function initTouchZoom(options = {}) {
     zoomIn,
     zoomOut,
     resetZoom,
-    panBy
+    panBy,
+    setAllowed: setZoomHudAllowed
   };
 }

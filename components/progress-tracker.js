@@ -1,5 +1,31 @@
 import { showToast } from "../utils/toast.js";
 
+export const LAB_SUBJECT_MAP = {
+  titration: "chem", beerlambert: "chem", calorimetry: "chem", kinetics: "chem",
+  colligative: "chem", electrochem: "chem", equilibrium: "chem", gaslaws: "chem",
+  ptable: "chem", decay: "chem", organic: "chem", vsepr: "chem",
+  circuits: "phys", induction: "phys", fluids: "phys", optics: "phys",
+  harmonic: "phys", projectile: "phys", collisions: "phys", magnetism: "phys",
+  photoelectric: "phys", rotational: "phys", conduction: "phys", waves: "phys",
+  anatomy: "bio", actionpotential: "bio", mitosis: "bio", osmosis: "bio",
+  respiration: "bio", dnaprotein: "bio", enzymes: "bio", electrophoresis: "bio",
+  photosynthesis: "bio", ecology: "bio", punnett: "bio", microscope: "bio"
+};
+
+export function formatRelativeTime(timestamp) {
+  if (!timestamp) return "";
+  const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+  if (diffSec < 60) return "just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDays = Math.floor(diffHr / 24);
+  if (diffDays === 1) return "yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return new Date(timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 export const ProgressStore = {
   getStats() {
     let raw = null;
@@ -14,7 +40,8 @@ export const ProgressStore = {
       quizzesTaken: 0,
       questionsAnswered: 0,
       correctAnswers: 0,
-      recentScores: []
+      recentScores: [],
+      lastOpenedPerSubject: {}
     };
 
     if (raw) {
@@ -30,6 +57,9 @@ export const ProgressStore = {
     if (!Array.isArray(stats.modulesExplored)) stats.modulesExplored = [];
     if (!Array.isArray(stats.labsLaunched)) stats.labsLaunched = [];
     if (!Array.isArray(stats.recentScores)) stats.recentScores = [];
+    if (!stats.lastOpenedPerSubject || typeof stats.lastOpenedPerSubject !== "object") {
+      stats.lastOpenedPerSubject = {};
+    }
     stats.quizzesTaken = Number(stats.quizzesTaken) || 0;
     stats.questionsAnswered = Number(stats.questionsAnswered) || 0;
     stats.correctAnswers = Number(stats.correctAnswers) || 0;
@@ -44,11 +74,62 @@ export const ProgressStore = {
   },
 
   recordModuleExplored(moduleCode) {
+    if (!moduleCode) return;
     const stats = this.getStats();
     if (!stats.modulesExplored.includes(moduleCode)) {
       stats.modulesExplored.push(moduleCode);
-      this.saveStats(stats);
     }
+    // Update last opened per subject
+    const prefix = String(moduleCode).toUpperCase();
+    const subj = prefix.startsWith("BIO") ? "bio" : prefix.startsWith("PHYS") ? "phys" : "chem";
+    stats.lastOpenedPerSubject[subj] = {
+      code: moduleCode,
+      timestamp: Date.now()
+    };
+    this.saveStats(stats);
+  },
+
+  recordModuleOpened(moduleCode) {
+    if (!moduleCode) return;
+    const stats = this.getStats();
+    const prefix = String(moduleCode).toUpperCase();
+    const subj = prefix.startsWith("BIO") ? "bio" : prefix.startsWith("PHYS") ? "phys" : "chem";
+    stats.lastOpenedPerSubject[subj] = {
+      code: moduleCode,
+      timestamp: Date.now()
+    };
+    this.saveStats(stats);
+  },
+
+  getSubjectStats(subjectId) {
+    const stats = this.getStats();
+    const sub = (subjectId || "chem").toLowerCase();
+    const prefix = sub === "bio" ? "BIO" : sub === "phys" ? "PHYS" : "CHEM";
+
+    const modules = stats.modulesExplored.filter(code => (code || "").toUpperCase().startsWith(prefix));
+
+    const labs = stats.labsLaunched.filter(labId => {
+      const cleanId = String(labId).toLowerCase().replace(/^lab[-_]?/, "");
+      return LAB_SUBJECT_MAP[cleanId] === sub || cleanId.startsWith(sub);
+    });
+
+    const lastEntry = stats.lastOpenedPerSubject && stats.lastOpenedPerSubject[sub];
+    let lastCode = lastEntry ? lastEntry.code : null;
+    let lastTime = lastEntry ? lastEntry.timestamp : null;
+
+    if (!lastCode && modules.length > 0) {
+      lastCode = modules[modules.length - 1];
+    }
+
+    return {
+      subject: sub,
+      modulesExplored: modules,
+      modulesCount: modules.length,
+      labsLaunched: labs,
+      labsCount: labs.length,
+      lastCode: lastCode,
+      lastTimestamp: lastTime
+    };
   },
 
   recordLabLaunched(labId) {

@@ -2171,6 +2171,104 @@ body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
   color: var(--text-main);
 }
 
+/* Modal Skip Navigation Link */
+.modal-skip-link {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 200099;
+  background: #0284c7;
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 700;
+  transform: translateY(-150%);
+  transition: transform 0.2s ease;
+}
+.modal-skip-link:focus {
+  transform: translateY(0);
+  outline: 2px solid #38bdf8;
+}
+
+/* Modal Header Actions Group */
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.btn-header-action {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.btn-header-annotate {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+.btn-header-fullscreen,
+.btn-header-share,
+.btn-header-lesson-plan {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+}
+.btn-header-back {
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  cursor: pointer;
+}
+.btn-header-back .back-label-short {
+  display: none;
+}
+
+/* Classroom Presenter Tip Cheatsheet Button & Last Opened Badge */
+.btn-shortcuts-cheatsheet {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+.btn-shortcuts-cheatsheet:hover {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+}
+.last-opened-time {
+  font-size: 0.76rem;
+  color: #38bdf8;
+  font-weight: 600;
+  margin-left: 6px;
+}
+[data-theme="day"] .last-opened-time {
+  color: #0284c7;
+}
+
 .modal-body {
   flex: 1 1 auto;
   overflow-y: auto;
@@ -3425,15 +3523,15 @@ body.modal-open .sb-toolbar-toggle {
     height: 44px;
   }
   .touch-zoom-hud {
-    bottom: 16px;
-    right: 70px; /* Safe spacing from .sb-toolbar-toggle (width 44px at right: 16px) */
+    bottom: 72px; /* Positioned safely above .sb-toolbar-toggle to avoid collision */
+    right: 16px;
   }
   body.sb-docked-active .touch-zoom-hud {
-    bottom: 68px;
+    bottom: 124px;
   }
   body.sb-toolbar-open .touch-zoom-hud,
   body:has(#smartboard-pen-bar.visible:not(.sb-minimized):not(.sb-is-docked)) .touch-zoom-hud {
-    bottom: 76px;
+    bottom: 136px;
   }
   .touch-zoom-pill {
     padding: 3px 5px;
@@ -3472,12 +3570,51 @@ body.modal-open .sb-toolbar-toggle {
     transform: translateX(-50%);
     width: 260px;
   }
+
+  /* Mobile Chapter Chrome Header (<768px) */
+  .modal-header {
+    padding: 8px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .modal-header-titles {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .modal-header-titles .modal-title {
+    font-size: 1.1rem;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+  .modal-header-actions {
+    flex: 1 1 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .btn-header-action {
+    padding: 5px 8px !important;
+    font-size: 0.75rem !important;
+  }
+  .btn-header-action .btn-action-label {
+    display: none; /* Collapse text labels into compact icon buttons on mobile */
+  }
+  .btn-header-back .back-label-long {
+    display: none;
+  }
+  .btn-header-back .back-label-short {
+    display: inline;
+  }
 }
 
 @media (max-width: 480px) {
   .touch-zoom-hud {
-    bottom: 14px;
-    right: 64px;
+    bottom: 68px;
+    right: 12px;
   }
   .touch-zoom-btn-reset .touch-zoom-reset-txt {
     display: none;
@@ -6864,6 +7001,35 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
     rgba(226, 232, 240, 0.95) 100%
   );
   background-size: 250% 100%;
+}
+
+/* Curriculum Skeleton Grid */
+.curriculum-skeleton-wrap {
+  animation: fadeIn 0.15s ease-out;
+  padding-bottom: 40px;
+}
+.skeleton-line {
+  background: rgba(255, 255, 255, 0.08);
+}
+[data-theme="day"] .skeleton-line {
+  background: rgba(0, 0, 0, 0.08);
+}
+.skeleton-metrics .skeleton-pill {
+  min-height: 58px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md, 8px);
+}
+[data-theme="day"] .skeleton-metrics .skeleton-pill {
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+.skeleton-card {
+  pointer-events: none;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+[data-theme="day"] .skeleton-card {
+  border-color: rgba(0, 0, 0, 0.08);
 }
 
 .module-banner-fallback-icon {

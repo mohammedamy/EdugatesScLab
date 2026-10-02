@@ -8,10 +8,77 @@
   <meta name="author" content="Edugates-ClipSAT Science Labs">
   <meta name="theme-color" content="#070a12">
 
-  <!-- Open Graph / Social Meta -->
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://mohammedamy.github.io/EdugatesScLab/">
+
+  <!-- Open Graph / Facebook Social Meta -->
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Edugates-ClipSAT Science Labs">
+  <meta property="og:url" content="https://mohammedamy.github.io/EdugatesScLab/">
   <meta property="og:title" content="Edugates-ClipSAT Science Labs | Interactive STEM Virtual Laboratories">
   <meta property="og:description" content="Master 74 modules across Inspire Chemistry, Biology, and Physics with interactive 60 FPS simulations, high-definition microscopy, and automated exam generation.">
+  <meta property="og:image" content="https://mohammedamy.github.io/EdugatesScLab/assets/hero-social-card-1200x630.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Edugates-ClipSAT Science Labs Virtual Laboratories Preview Banner">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://mohammedamy.github.io/EdugatesScLab/">
+  <meta name="twitter:title" content="Edugates-ClipSAT Science Labs | Interactive STEM Virtual Laboratories">
+  <meta name="twitter:description" content="Master 74 modules across Inspire Chemistry, Biology, and Physics with interactive 60 FPS simulations, high-definition microscopy, and automated exam generation.">
+  <meta name="twitter:image" content="https://mohammedamy.github.io/EdugatesScLab/assets/hero-social-card-1200x630.jpg">
+  <meta name="twitter:image:alt" content="Edugates-ClipSAT Science Labs Virtual Laboratories Banner">
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://mohammedamy.github.io/EdugatesScLab/#website",
+        "url": "https://mohammedamy.github.io/EdugatesScLab/",
+        "name": "Edugates-ClipSAT Science Labs",
+        "description": "Interactive STEM Virtual Laboratories covering Inspire Chemistry, Biology, and Physics curricula for Smartboards and Web.",
+        "inLanguage": "en"
+      },
+      {
+        "@type": "EducationalOrganization",
+        "@id": "https://mohammedamy.github.io/EdugatesScLab/#organization",
+        "name": "Edugates-ClipSAT Science Labs",
+        "url": "https://mohammedamy.github.io/EdugatesScLab/",
+        "logo": "https://mohammedamy.github.io/EdugatesScLab/assets/logo.png"
+      },
+      {
+        "@type": "Course",
+        "@id": "https://mohammedamy.github.io/EdugatesScLab/#stem-curriculum",
+        "name": "Inspire Science Curriculum Virtual Laboratories",
+        "description": "Comprehensive high-school STEM curriculum featuring 74 interactive chapters, 36 60 FPS virtual laboratory workbenches, and NGSS inquiry-aligned assessments.",
+        "provider": {
+          "@id": "https://mohammedamy.github.io/EdugatesScLab/#organization"
+        },
+        "hasCourseInstance": [
+          {
+            "@type": "CourseInstance",
+            "courseMode": "Online",
+            "name": "Inspire Chemistry Virtual Laboratories"
+          },
+          {
+            "@type": "CourseInstance",
+            "courseMode": "Online",
+            "name": "Inspire Biology Virtual Laboratories"
+          },
+          {
+            "@type": "CourseInstance",
+            "courseMode": "Online",
+            "name": "Inspire Physics Virtual Laboratories"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
 
   <title>Edugates-ClipSAT Science Labs | World-Class Virtual Labs &amp; STEM Curriculum</title>
 
@@ -47,6 +114,14 @@
         var isAndroidLargeScreen = /Android/i.test(ua) && ((window.screen && (window.screen.width >= 1024 || window.screen.height >= 720)) || (window.innerWidth >= 1024)) && (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
         var isAndroid = /Android/i.test(ua);
         var savedMode = localStorage.getItem("edugates_device_mode");
+        var savedTheme = localStorage.getItem("edugates_theme");
+        var prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+        var activeTheme = savedTheme || (prefersLight ? "day" : "night");
+        if (activeTheme === "day") {
+          document.documentElement.setAttribute("data-theme", "day");
+          var tcMeta = document.querySelector('meta[name="theme-color"]');
+          if (tcMeta) tcMeta.setAttribute("content", "#f8fafc");
+        }
 
         if (isAndroid) {
           document.documentElement.classList.add("is-android");

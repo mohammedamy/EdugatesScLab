@@ -51,11 +51,19 @@ function cleanupLessonInteractive(containerId) {
   }
 }
 
-export function openModuleModal(moduleData, subjectColor, initialLessonId) {
+export function openModuleModal(moduleData, subjectColor, initialLessonId, triggerElement) {
   if (typeof window.closeActiveModuleModal === "function") {
     try { window.closeActiveModuleModal(); } catch (err) {}
   }
+  const openerEl = triggerElement || (typeof document !== "undefined" ? document.activeElement : null);
   ProgressStore.recordModuleExplored(moduleData.code);
+  ProgressStore.recordModuleOpened(moduleData.code);
+
+  // Enable Touch Zoom HUD while inside lesson interactive / full-screen module
+  if (typeof window !== "undefined" && window.TouchZoom && typeof window.TouchZoom.setAllowed === "function") {
+    window.TouchZoom.setAllowed(true);
+  }
+
   let overlay = document.getElementById("module-modal-overlay");
   if (!overlay) {
     overlay = document.createElement("div");
@@ -125,6 +133,18 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     if (window.closeActiveModuleModal === closeModal) {
       window.closeActiveModuleModal = null;
     }
+
+    // Sync zoom HUD back to restricted state unless on labs route
+    if (typeof window !== "undefined" && window.TouchZoom && typeof window.TouchZoom.setAllowed === "function") {
+      const isLabsActive = typeof window.location !== "undefined" && window.location.hash.startsWith("#labs");
+      window.TouchZoom.setAllowed(isLabsActive);
+    }
+
+    // Return focus to trigger element that opened this chapter
+    if (openerEl && typeof openerEl.focus === "function") {
+      try { openerEl.focus(); } catch (err) {}
+    }
+
     // Sync hash back to parent subject tab if closing a deep-linked module or lesson
     if (window.location.hash.startsWith("#module/") || window.location.hash.startsWith("#lesson/")) {
       const curTab = moduleData.code.startsWith("CHEM") ? "chem" : (moduleData.code.startsWith("BIO") ? "bio" : "phys");
@@ -142,11 +162,12 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
 
   function handleKeydown(e) {
     if (e.key === "Escape") {
+      e.preventDefault();
       closeModal();
       return;
     }
     if (e.key === "Tab") {
-      const focusables = overlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      const focusables = overlay.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
       if (!focusables || focusables.length === 0) return;
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
@@ -177,33 +198,39 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
     const curSubName = moduleData.code.startsWith("CHEM") ? "Chemistry" : (moduleData.code.startsWith("BIO") ? "Biology" : "Physics");
 
     overlay.innerHTML = `
-      <div class="modal-content-shell is-fullscreen" id="lesson-fullscreen-workspace" role="main" aria-label="Lesson Full Browser Screen View">
+      <div class="modal-content-shell is-fullscreen" id="lesson-fullscreen-workspace" role="dialog" aria-modal="true" aria-labelledby="modal-chapter-title">
+        <a href="#modal-tab-content" class="skip-link modal-skip-link">Skip to lesson content</a>
         <div class="modal-header">
           <div class="modal-header-titles">
-            <nav class="modal-breadcrumbs" aria-label="Breadcrumbs" style="display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 4px;">
-              <button id="btn-header-back-curriculum" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.78rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer;" title="Back to Curriculum Grid">
-                <span>← Back to Curriculum</span>
+            <nav class="modal-breadcrumbs" aria-label="Breadcrumbs">
+              <button id="btn-header-back-curriculum" class="btn btn-secondary btn-header-back" title="Back to Curriculum Grid" aria-label="Back to Curriculum Grid">
+                <span class="back-arrow">←</span>
+                <span class="back-label-long">Back to Curriculum</span>
+                <span class="back-label-short">Back</span>
               </button>
-              <a href="#${curTabId}" class="breadcrumb-link" style="color: inherit; text-decoration: none;">${curSubName}</a>
+              <a href="#${curTabId}" class="breadcrumb-link">${curSubName}</a>
               <span aria-hidden="true" style="opacity: 0.4;">/</span>
               <span style="color: ${subjectColor}; font-weight: 700;">${moduleData.code}</span>
               ${activeTab === 'interactive' ? `<span aria-hidden="true" style="opacity: 0.4;">/</span><span style="color: var(--text-main);">Lesson ${currentLessonId}</span>` : ''}
             </nav>
-            <div class="modal-title" id="modal-chapter-title">${moduleData.title}</div>
+            <h2 class="modal-title" id="modal-chapter-title">${moduleData.title}</h2>
           </div>
-          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button class="btn btn-secondary btn-header-annotate" id="btn-header-annotate-modal" title="Toggle Smartboard Drawing Pen &amp; Highlighter over simulation" aria-label="Toggle In-Class Annotation" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; cursor: pointer;">
-              <span>✏️ Annotate</span>
+          <div class="modal-header-actions" role="toolbar" aria-label="Chapter Controls">
+            <button class="btn btn-secondary btn-header-action btn-header-annotate" id="btn-header-annotate-modal" title="Toggle Smartboard Drawing Pen &amp; Highlighter over simulation" aria-label="Toggle In-Class Annotation">
+              <span class="btn-action-icon">✏️</span>
+              <span class="btn-action-label">Annotate</span>
             </button>
-            <button class="btn btn-secondary btn-header-fullscreen" id="btn-header-fullscreen-modal" title="Toggle Fullscreen Display / Kiosk Mode" aria-label="Toggle Fullscreen Display" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
-              <span id="btn-fs-icon">⛶</span>
-              <span id="btn-fs-label">Display Fullscreen</span>
+            <button class="btn btn-secondary btn-header-action btn-header-fullscreen" id="btn-header-fullscreen-modal" title="Toggle Fullscreen Display / Kiosk Mode" aria-label="Toggle Fullscreen Display">
+              <span class="btn-action-icon" id="btn-fs-icon">⛶</span>
+              <span class="btn-action-label" id="btn-fs-label">Display Fullscreen</span>
             </button>
-            <button class="btn btn-secondary btn-header-share" id="btn-header-share-modal" title="Share to Google Classroom, Classera, or Copy Link" aria-label="Share to LMS or copy deep link" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
-              <span>📤 Share</span>
+            <button class="btn btn-secondary btn-header-action btn-header-share" id="btn-header-share-modal" title="Share to Google Classroom, Classera, or Copy Link" aria-label="Share to LMS or copy deep link">
+              <span class="btn-action-icon">📤</span>
+              <span class="btn-action-label">Share</span>
             </button>
-            <button class="btn btn-secondary btn-header-lesson-plan" id="btn-header-lesson-plan" title="Open 2-Page A4 Teacher Lesson Plan &amp; Export PDF" aria-label="Open 2-Page A4 Teacher Lesson Plan" style="padding: 6px 12px; font-size: 0.82rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; cursor: pointer;">
-              <span>📄 A4 Plan</span>
+            <button class="btn btn-secondary btn-header-action btn-header-lesson-plan" id="btn-header-lesson-plan" title="Open 2-Page A4 Teacher Lesson Plan &amp; Export PDF" aria-label="Open 2-Page A4 Teacher Lesson Plan">
+              <span class="btn-action-icon">📄</span>
+              <span class="btn-action-label">A4 Plan</span>
             </button>
             <button class="modal-close-btn" id="btn-close-modal" aria-label="Close lesson and return to curriculum" title="Exit to Curriculum (Esc)">✕</button>
           </div>
@@ -1003,4 +1030,10 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId) {
 
   overlay.style.display = "flex";
   renderContent();
+  setTimeout(() => {
+    const focusTarget = document.getElementById("btn-header-back-curriculum") || document.getElementById("btn-close-modal");
+    if (focusTarget && typeof focusTarget.focus === "function") {
+      try { focusTarget.focus(); } catch (err) {}
+    }
+  }, 40);
 }
