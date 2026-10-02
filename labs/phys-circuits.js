@@ -643,6 +643,7 @@ export function initCircuitsLab(containerId) {
       if (animId) cancelAnimationFrame(animId);
       return;
     }
+    const { current } = calculateCircuit();
     const isCircuitActive = (switchClosed && current > 0) || (sparks && sparks.length > 0);
     if (!isCircuitActive && !needsRedraw) {
       animId = requestAnimationFrame(renderLoop);

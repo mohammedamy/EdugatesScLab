@@ -4280,6 +4280,17 @@ body.modal-open .sb-toolbar-toggle {
     color: #000000 !important;
   }
 
+  .print-cer-box {
+    background: #fafafa !important;
+    border: 1.5px solid #000000 !important;
+    color: #000000 !important;
+    page-break-inside: avoid !important;
+  }
+
+  .print-cer-box * {
+    color: #000000 !important;
+  }
+
   /* Mathematical Typesetting & KaTeX in Print: 100% Solid Pure Black & Proportional Sizing */
   .katex,
   .katex *,

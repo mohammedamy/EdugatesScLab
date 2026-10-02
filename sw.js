@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v53";
+const CACHE_NAME = "amscilab-pwa-v54";
 
 const CORE_APP_SHELL = [
   "./",
@@ -104,6 +104,21 @@ const SECONDARY_ASSETS = [
   "./assets/labs/human_anatomy_urinary_8k.jpg",
   "./assets/labs/human_anatomy_cranial_8k.jpg",
   "./assets/labs/human_anatomy_histology_8k.jpg",
+  "./assets/labs/human_anatomy_male_reproductive_8k.jpg",
+  "./assets/labs/human_anatomy_female_reproductive_8k.jpg",
+  "./assets/labs/human_anatomy_heart_coronal_cross_section_8k.jpg",
+  "./assets/labs/human_anatomy_layer_skin.png",
+  "./assets/labs/human_anatomy_layer_muscular.png",
+  "./assets/labs/human_anatomy_layer_skeletal.png",
+  "./assets/labs/human_anatomy_layer_visceral.png",
+  "./assets/labs/human_anatomy_layer_circulatory.png",
+  "./assets/labs/human_anatomy_layer_nervous.png",
+  "./assets/labs/human_anatomy_female_layer_skin.png",
+  "./assets/labs/human_anatomy_female_layer_muscular.png",
+  "./assets/labs/human_anatomy_female_layer_skeletal.png",
+  "./assets/labs/human_anatomy_female_layer_visceral.png",
+  "./assets/labs/human_anatomy_female_layer_circulatory.png",
+  "./assets/labs/human_anatomy_female_layer_nervous.png",
   "./assets/labs/action_potential_bench.jpg",
   "./assets/labs/beer_lambert_bench.jpg",
   "./assets/labs/calorimetry_bench.jpg",

@@ -1341,12 +1341,44 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               `;
             }).join("")}
           </div>
-        ` : ""}
+        ` : (q.type === 'cer' ? `
+          <div class="cer-practice-card" style="margin-top: 10px; background: var(--bg-surface-elevated); border: 1.5px dashed #0284c7; border-radius: 8px; padding: 16px;">
+            <div style="font-weight: 800; font-size: 0.92rem; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+              <span>🔬</span>
+              <span>Scientific Inquiry: Claim • Evidence • Reasoning (CER)</span>
+            </div>
+            <div style="font-size: 0.84rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+              Synthesize a formal NGSS Claim with stoichiometric/experimental Evidence and theoretical Reasoning.
+            </div>
+            ${examMode === "practice" ? `
+              <button class="btn btn-secondary btn-sm btn-reveal-cer" data-qid="${q.id}" style="font-weight: 700;">
+                ${isAnswered ? "Hide Model CER Rubric" : "Self-Assess &amp; Reveal Model CER Rubric"}
+              </button>
+            ` : `
+              <div style="font-size: 0.82rem; color: #f59e0b; font-weight: 600;">
+                📝 In Exam Mode, complete your scientific reasoning response on your paper answer booklet.
+              </div>
+            `}
+          </div>
+        ` : "")}
 
         ${examMode === "practice" && isAnswered ? `
           <div class="explanation-box" style="background: rgba(16, 185, 129, 0.12); border-left: 4px solid #10b981; padding: 14px 18px; border-radius: 6px; margin-top: 8px;">
-            <div style="font-weight: 700; color: #10b981; margin-bottom: 4px; font-size: 0.9rem;">Pedagogical Solution &amp; Explanation:</div>
+            <div style="font-weight: 700; color: #10b981; margin-bottom: 4px; font-size: 0.9rem;">
+              ${q.type === 'cer' ? 'Model Scientific Argumentation &amp; Pedagogical Solution:' : 'Pedagogical Solution &amp; Explanation:'}
+            </div>
             <div style="font-size: 0.92rem; color: var(--text-main); line-height: 1.6;">${formatMathText(q.explanation).replace(/\n/g, '<br>')}</div>
+            ${q.rubricCER ? `
+              <div style="margin-top: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.18); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px;">
+                <div style="font-weight: 800; font-size: 0.85rem; color: #34d399; margin-bottom: 6px;">Scoring Rubric (10 Pts Total):</div>
+                <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px;">
+                  ${q.rubricCER.claim ? `<div><strong style="color: #f1f5f9;">Claim:</strong> ${q.rubricCER.claim}</div>` : ''}
+                  ${q.rubricCER.evidence ? `<div><strong style="color: #f1f5f9;">Evidence:</strong> ${q.rubricCER.evidence}</div>` : ''}
+                  ${q.rubricCER.reasoning ? `<div><strong style="color: #f1f5f9;">Reasoning:</strong> ${q.rubricCER.reasoning}</div>` : ''}
+                  ${q.rubricCER.scientificLanguage ? `<div><strong style="color: #f1f5f9;">Scientific Terminology:</strong> ${q.rubricCER.scientificLanguage}</div>` : ''}
+                </div>
+              </div>
+            ` : ''}
           </div>
         ` : ""}
       </div>
@@ -1354,6 +1386,22 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   }
 
   function bindQuestionEvents() {
+    document.querySelectorAll(".btn-reveal-cer").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const qid = btn.dataset.qid;
+        userAnswers[qid] = userAnswers[qid] ? undefined : true;
+        SoundFX.playClick();
+        const qIdx = activeQuestions.findIndex(q => q.id === qid);
+        const card = document.getElementById(`q-card-${qid}`);
+        if (card && qIdx !== -1) {
+          card.outerHTML = renderQuestionCard(activeQuestions[qIdx], qIdx);
+          bindQuestionEvents();
+          const updatedCard = document.getElementById(`q-card-${qid}`);
+          if (updatedCard) renderMathInElement(updatedCard);
+        }
+      });
+    });
+
     document.querySelectorAll(".q-option-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const qid = btn.dataset.qid;
@@ -1452,7 +1500,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           </div>
         ` : ""}
 
-        <!-- Large Touch Option Tiles -->
+        <!-- Large Touch Option Tiles or CER Discussion Board -->
         ${q.options ? `
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px;">
             ${q.options.map((opt, oIdx) => {
@@ -1527,7 +1575,39 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               `;
             }).join("")}
           </div>
-        ` : ""}
+        ` : (q.type === 'cer' ? `
+          <div class="presenter-cer-card" style="
+            background: var(--bg-surface-elevated);
+            border: 2px dashed #0284c7;
+            border-radius: var(--radius-md);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          ">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 8px;">
+                <span>🔬</span>
+                <span>Constructed Response • Claim • Evidence • Reasoning (CER)</span>
+              </div>
+              <span style="font-size: 0.85rem; font-weight: 700; color: #94a3b8; background: rgba(56, 189, 248, 0.1); padding: 4px 10px; border-radius: 6px;">Classroom Whiteboard Discourse</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;">
+              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px;">
+                <div style="font-weight: 800; color: #38bdf8; margin-bottom: 4px; font-size: 0.95rem;">1. Scientific Claim</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;">Direct, testable assertion answering the scientific prompt.</div>
+              </div>
+              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px;">
+                <div style="font-weight: 800; color: #f59e0b; margin-bottom: 4px; font-size: 0.95rem;">2. Empirical Evidence</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;">Stoichiometric values, reaction observations, or mathematical ratios.</div>
+              </div>
+              <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px;">
+                <div style="font-weight: 800; color: #10b981; margin-bottom: 4px; font-size: 0.95rem;">3. Scientific Reasoning</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.45;">Core scientific principles &amp; laws directly justifying the claim from evidence.</div>
+              </div>
+            </div>
+          </div>
+        ` : '')}
 
         <!-- Explanation Reveal Box -->
         ${presenterRevealed ? `
@@ -1539,11 +1619,22 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             animation: fadeIn 0.3s ease;
           ">
             <div style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #10b981; margin-bottom: 6px;">
-              Correct Answer: Option ${String.fromCharCode(65 + q.correctIndex)} — Pedagogical Solution
+              ${q.type === 'cer' || !q.options ? 'Scientific Inquiry &amp; CER Scoring Rubric' : `Correct Answer: Option ${String.fromCharCode(65 + q.correctIndex)} — Pedagogical Solution`}
             </div>
-            <div class="presenter-explanation-text" style="color: #f1f5f9; font-size: 1.1rem; line-height: 1.6; white-space: pre-line;">
+            <div class="presenter-explanation-text" style="color: #f1f5f9; font-size: 1.05rem; line-height: 1.6; white-space: pre-line;">
               ${formatMathText(q.explanation)}
             </div>
+            ${q.rubricCER ? `
+              <div style="margin-top: 14px; padding: 14px 18px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px;">
+                <div style="font-weight: 800; font-size: 0.95rem; color: #34d399; margin-bottom: 10px;">Official NGSS Scoring Rubric:</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; font-size: 0.86rem;">
+                  ${q.rubricCER.claim ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #38bdf8;">Claim:</strong> ${q.rubricCER.claim}</div>` : ''}
+                  ${q.rubricCER.evidence ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #f59e0b;">Evidence:</strong> ${q.rubricCER.evidence}</div>` : ''}
+                  ${q.rubricCER.reasoning ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #10b981;">Reasoning:</strong> ${q.rubricCER.reasoning}</div>` : ''}
+                  ${q.rubricCER.scientificLanguage ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #a78bfa;">Language:</strong> ${q.rubricCER.scientificLanguage}</div>` : ''}
+                </div>
+              </div>
+            ` : ''}
           </div>
         ` : ""}
 
@@ -1837,14 +1928,19 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       for (let i = 0; i < questions.length; i += colSize) {
         cols.push(questions.slice(i, i + colSize).map((q) => {
           const qNum = q.formIndex;
+          const isCer = q.type === 'cer' || !q.options;
           return `
             <div class="omr-q-row" style="display: flex; align-items: center; justify-content: flex-start; gap: 5px; margin-bottom: 5px; font-family: var(--font-mono), monospace; font-size: 0.84rem; width: fit-content; margin-right: auto; text-align: left;">
               <span class="omr-q-num" style="font-weight: 800; min-width: 24px; text-align: left; color: #000000; margin-right: 2px;">${qNum < 10 ? '0' + qNum : qNum}.</span>
               <div class="omr-bubbles-group" style="display: flex; gap: 5px; align-items: center; justify-content: flex-start; margin-left: 0; margin-right: auto;">
-                <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option A">A</span>
-                <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option B">B</span>
-                <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option C">C</span>
-                <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option D">D</span>
+                ${isCer ? `
+                  <span style="font-size: 0.65rem; font-weight: 700; color: #475569; background: #f1f5f9; border: 1px dashed #94a3b8; padding: 1px 6px; border-radius: 3px;">[ CER - SEE BOOKLET ]</span>
+                ` : `
+                  <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option A">A</span>
+                  <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option B">B</span>
+                  <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option C">C</span>
+                  <span class="omr-bubble" style="display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid #000000; font-size: 0.66rem; font-weight: 800; color: #000000; background: #ffffff;" title="Option D">D</span>
+                `}
               </div>
             </div>
           `;
@@ -2111,7 +2207,25 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                           </div>
                         `).join("")}
                       </div>
-                    ` : ""}
+                    ` : (q.type === 'cer' ? `
+                      <div class="print-cer-box" style="margin: 10px 0 6px 12px; border: 1.5px solid #000000; border-radius: 4px; padding: 10px 14px; background: #fafafa;">
+                        <div style="font-size: 0.84rem; font-weight: 800; margin-bottom: 6px; color: #000000; text-transform: uppercase; letter-spacing: 0.04em;">Scientific Argumentation (CER Construct):</div>
+                        <div style="margin-bottom: 8px; font-size: 0.82rem; color: #000000;">
+                          <strong>[Claim]</strong> Direct scientific assertion:
+                          <div style="border-bottom: 1px dashed #64748b; height: 22px; margin-top: 2px;"></div>
+                        </div>
+                        <div style="margin-bottom: 8px; font-size: 0.82rem; color: #000000;">
+                          <strong>[Evidence]</strong> Stoichiometry, mathematical values, or experimental observations:
+                          <div style="border-bottom: 1px dashed #64748b; height: 22px; margin-top: 2px;"></div>
+                          <div style="border-bottom: 1px dashed #64748b; height: 22px; margin-top: 2px;"></div>
+                        </div>
+                        <div style="font-size: 0.82rem; color: #000000;">
+                          <strong>[Reasoning]</strong> Scientific law or physical principle justifying why evidence supports claim:
+                          <div style="border-bottom: 1px dashed #64748b; height: 22px; margin-top: 2px;"></div>
+                          <div style="border-bottom: 1px dashed #64748b; height: 22px; margin-top: 2px;"></div>
+                        </div>
+                      </div>
+                    ` : "")}
                   </div>
                 `).join("")}
               </div>
@@ -2139,23 +2253,28 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
                 <!-- Answer Key Matrix Table -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 24px;">
-                  ${displayQuestions.map(q => `
+                  ${displayQuestions.map(q => {
+                    const isCer = q.type === 'cer' || !q.options;
+                    const badgeText = isCer ? 'CER' : String.fromCharCode(65 + q.formCorrectIdx);
+                    return `
                     <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; background: #f8fafc; display: flex; justify-content: flex-start; gap: 8px; align-items: center; font-size: 0.85rem; font-family: var(--font-mono);">
                       <span style="font-weight: 700; color: #475569; min-width: 32px;">Q${q.formIndex}:</span>
-                      <strong style="font-size: 1.05rem; color: #000000; background: #e2e8f0; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;">
-                        ${String.fromCharCode(65 + q.formCorrectIdx)}
+                      <strong style="font-size: ${isCer ? '0.78rem' : '1.05rem'}; color: #000000; background: ${isCer ? '#fed7aa' : '#e2e8f0'}; width: ${isCer ? 'auto' : '24px'}; height: 24px; padding: ${isCer ? '0 6px' : '0'}; display: inline-flex; align-items: center; justify-content: center; border-radius: ${isCer ? '4px' : '50%'}; font-weight: 800;">
+                        ${badgeText}
                       </strong>
                     </div>
-                  `).join("")}
+                  `;}).join("")}
                 </div>
 
                 <!-- Step-by-Step Derivations and Pedagogical Explanations -->
                 <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.9rem;">
-                  ${displayQuestions.map(q => `
+                  ${displayQuestions.map(q => {
+                    const isCer = q.type === 'cer' || !q.options;
+                    return `
                     <div class="teacher-solution-card" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px 16px; page-break-inside: avoid; color: #000000;">
                       <div style="display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 6px; color: #000000;">
                         <span style="color: #000000;">
-                          Question ${q.formIndex} Correct Answer: Option (${String.fromCharCode(65 + q.formCorrectIdx)})
+                          ${isCer ? `Question ${q.formIndex} Rubric: Scientific Inquiry &amp; CER Free Response` : `Question ${q.formIndex} Correct Answer: Option (${String.fromCharCode(65 + q.formCorrectIdx)})`}
                           ${q.origQIndex ? `<span style="font-size: 0.75rem; font-weight: 500; color: #64748b;">(Form A # ${q.origQIndex})</span>` : ''}
                         </span>
                         <span style="font-size: 0.78rem; color: #475569; font-weight: 600;">${q.subject} • ${q.moduleTitle}</span>
@@ -2163,8 +2282,19 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                       <div style="color: #0f172a; line-height: 1.5; font-size: 0.88rem;">
                         ${formatMathText(q.explanation)}
                       </div>
+                      ${q.rubricCER ? `
+                        <div style="margin-top: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #ffffff; padding: 8px 12px; font-size: 0.82rem;">
+                          <div style="font-weight: 700; margin-bottom: 4px; color: #0369a1;">Standard Scoring Rubric (CER):</div>
+                          <ul style="margin: 0; padding-left: 18px; color: #334155;">
+                            ${q.rubricCER.claim ? `<li><strong>Claim:</strong> ${q.rubricCER.claim}</li>` : ''}
+                            ${q.rubricCER.evidence ? `<li><strong>Evidence:</strong> ${q.rubricCER.evidence}</li>` : ''}
+                            ${q.rubricCER.reasoning ? `<li><strong>Reasoning:</strong> ${q.rubricCER.reasoning}</li>` : ''}
+                            ${q.rubricCER.scientificLanguage ? `<li><strong>Scientific Terminology:</strong> ${q.rubricCER.scientificLanguage}</li>` : ''}
+                          </ul>
+                        </div>
+                      ` : ''}
                     </div>
-                  `).join("")}
+                  `;}).join("")}
                 </div>
               </div>
             ` : ""}

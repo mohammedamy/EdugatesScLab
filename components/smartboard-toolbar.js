@@ -2419,6 +2419,9 @@ export function initSmartboardToolbar() {
   // 4. Universal Classroom Keyboard Shortcuts
   // -------------------------------------------------------------------------
   document.addEventListener("keydown", (e) => {
+    // Never intercept standard browser shortcuts (e.g. Cmd+C, Ctrl+C, Cmd+P, Ctrl+P, Cmd+S, Cmd+T, Cmd+R)
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
     const target = e.target;
     if (target) {
       const tag = target.tagName;
