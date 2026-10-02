@@ -40,17 +40,17 @@ import {
 } from "../data/human-anatomy-atlas-data.js";
 
 const systemKeys = Object.keys(ANATOMICAL_SYSTEMS);
-check(systemKeys.length === 10, `Anatomy database defines all 10 major organ systems (Found: ${systemKeys.length})`);
+check(systemKeys.length === 11, `Anatomy database defines all 11 major organ systems (Found: ${systemKeys.length})`);
 
-const expectedSystems = ["skeletal", "muscular", "circulatory", "nervous", "respiratory", "digestive", "urinary", "endocrine", "lymphatic", "integumentary"];
+const expectedSystems = ["skeletal", "muscular", "circulatory", "nervous", "respiratory", "digestive", "urinary", "endocrine", "lymphatic", "integumentary", "reproductive"];
 const allExpectedSystemsPresent = expectedSystems.every(s => ANATOMICAL_SYSTEMS[s] && ANATOMICAL_SYSTEMS[s].latinName);
-check(allExpectedSystemsPresent, "All 10 systems feature validated Terminologia Anatomica Latin nomenclature and summaries");
+check(allExpectedSystemsPresent, "All 11 systems feature validated Terminologia Anatomica Latin nomenclature and summaries");
 
 // ----------------------------------------------------
-// Test 2: 11 Museum-Grade 8K Anatomical Plates & Assets
+// Test 2: 13 Museum-Grade 8K Anatomical Plates & Assets
 // ----------------------------------------------------
 const plateKeys = Object.keys(ANATOMICAL_PLATES);
-check(plateKeys.length === 11, `Atlas defines 11 dedicated anatomical plates (Found: ${plateKeys.length})`);
+check(plateKeys.length === 13, `Atlas defines 13 dedicated anatomical plates (Found: ${plateKeys.length})`);
 
 let allPlatesValid = true;
 let allPlateFilesExist = true;
@@ -68,8 +68,8 @@ plateKeys.forEach(pk => {
     console.error("Missing plate asset file on disk:", fullPath);
   }
 });
-check(allPlatesValid, "All 11 anatomical plates feature verified system classifications, views, and aspect ratios");
-check(allPlateFilesExist, "All 11 8K Ultra-HD anatomical plate image assets are verified to exist on disk");
+check(allPlatesValid, "All 13 anatomical plates feature verified system classifications, views, and aspect ratios");
+check(allPlateFilesExist, "All 13 8K Ultra-HD anatomical plate image assets are verified to exist on disk");
 
 // ----------------------------------------------------
 // Test 3: Anatomical Structures & Multi-Region Coverage
@@ -136,7 +136,7 @@ check(atlasSource.includes("window.getLabDPR"), "anatomy-atlas.js shields all ca
 check(atlasSource.includes("drawHumanBodyVector") && atlasSource.includes("layerOpacities"), "anatomy-atlas.js implements multi-layer vector dissection engine");
 check(atlasSource.includes("drawAnatomicalPins") && atlasSource.includes("canvasToNormalizedCoords"), "anatomy-atlas.js implements interactive 4K coordinate pin picking");
 check(atlasSource.includes("getVisibleStructures"), "anatomy-atlas.js filters pin displays according to active plate and view");
-check(atlasSource.includes("switchAnatomicalPlate"), "anatomy-atlas.js implements dedicated 11-plate switcher with auto-selection");
+check(atlasSource.includes("switchAnatomicalPlate"), "anatomy-atlas.js implements dedicated 13-plate switcher with auto-selection");
 check(atlasSource.includes("isPinching") && atlasSource.includes("touchstart"), "anatomy-atlas.js implements multi-touch pinch-to-zoom & two-finger pan gestures");
 check(atlasSource.includes("export4kHighResDiagram"), "anatomy-atlas.js implements 3840x2160 UHD diagram PNG export");
 check(atlasSource.includes("playHeartSound"), "anatomy-atlas.js features synthesized S1/S2 heart sound valve acoustics");
@@ -151,7 +151,7 @@ const allPlatesCached = plateKeys.every(pk => {
   const p = ANATOMICAL_PLATES[pk];
   return swSource.includes(p.src);
 });
-check(allPlatesCached, "service-worker.js includes all 11 8K anatomical plates in offline precache manifest");
+check(allPlatesCached, "service-worker.js includes all 13 8K anatomical plates in offline precache manifest");
 
 const layerNames = ["skin", "muscular", "skeletal", "visceral", "circulatory", "nervous"];
 const allMaleCached = layerNames.every(l => swSource.includes(`human_anatomy_layer_${l}.png`));

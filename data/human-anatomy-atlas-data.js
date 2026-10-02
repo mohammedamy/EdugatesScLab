@@ -113,6 +113,16 @@ export const ANATOMICAL_SYSTEMS = {
     badgeBorder: "rgba(251, 146, 60, 0.4)",
     surfaceArea: "1.5 - 2.0 m²",
     summary: "The body's largest organ system comprising epidermis, dermis, hypodermis, hair, nails, and exocrine glands; furnishes mechanical barrier protection, thermoregulation, sensory reception, and vitamin D3 synthesis."
+  },
+  reproductive: {
+    id: "reproductive",
+    name: "Reproductive System",
+    latinName: "Systema genitale (Masculinum et Femininum)",
+    icon: "🚻",
+    color: "#ec4899",
+    badgeBg: "rgba(236, 72, 153, 0.15)",
+    badgeBorder: "rgba(236, 72, 153, 0.4)",
+    summary: "Male and female primary gonads (testes, ovaries), internal ductal networks (vas deferens, epididymis / fallopian tubes, uterus, cervix, vagina), and external genitalia executing gametogenesis, sex steroid synthesis, fertilization, and gestation."
   }
 };
 
@@ -528,6 +538,178 @@ export const ANATOMICAL_STRUCTURES = [
     vascularization: "Internal and external iliac arteries, superior and inferior gluteal arteries, obturator artery.",
     innervation: "Lumbar plexus (L1-L4) and Sacral plexus (L4-S4).",
     pathology: "Pelvic ring fractures from high-energy polytrauma (open-book pelvic fracture with life-threatening retroperitoneal hemorrhage), avascular necrosis of femoral head."
+  },
+
+  // --- MALE & FEMALE REPRODUCTIVE SYSTEM ---
+  {
+    id: "testis",
+    name: "Testis & Seminiferous Tubules",
+    latinName: "Testis / Orchis",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "male",
+    coords: { x: 490, y: 885 },
+    view: "anterior",
+    category: "Male Gonads",
+    description: "Paired ovoid male gonads suspended within the scrotum. Partitioned into ~250 lobules, each containing 1 to 4 tightly convoluted seminiferous tubules lined by proliferating spermatogenic cells and supportive Sertoli nurse cells.",
+    function: "Continuous spermatogenesis generating ~100-200 million spermatozoa daily; interstitial Leydig (interstitial endocrinocyte) cells synthesize testosterone in response to LH stimulation.",
+    vascularization: "Testicular artery (arising directly from abdominal aorta at L2 level); pampiniform venous plexus acting as a countercurrent heat exchanger.",
+    innervation: "Testicular autonomic plexus derived from renal and intermesenteric plexuses (T10 sympathetic spinal segments).",
+    pathology: "Testicular torsion (acute spermatic cord twisting causing ischemic infarction), testicular germ cell tumors (seminoma), cryptorchidism (undescended testis)."
+  },
+  {
+    id: "epididymis",
+    name: "Epididymis",
+    latinName: "Epididymis",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "male",
+    coords: { x: 512, y: 875 },
+    view: "anterior",
+    category: "Male Excretory Ducts",
+    description: "Crescent-shaped, 6-meter tightly coiled duct applied to the posterolateral aspect of each testis; structurally divided into head (caput), body (corpus), and tail (cauda).",
+    function: "Site of sperm physiological maturation over 10-14 days (acquisition of forward progressive motility and acrosome membrane stabilization); serves as reservoir for viable sperm in cauda.",
+    vascularization: "Testicular artery and deferential artery; drained by pampiniform plexus.",
+    innervation: "Inferior hypogastric plexus (sympathetic and parasympathetic autonomic fibers).",
+    pathology: "Acute epididymitis (bacterial infection with positive Prehn's sign; commonly C. trachomatis or E. coli), spermatocele (epididymal retention cyst)."
+  },
+  {
+    id: "vas_deferens",
+    name: "Vas Deferens (Ductus Deferens)",
+    latinName: "Ductus deferens",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "male",
+    coords: { x: 475, y: 850 },
+    view: "anterior",
+    category: "Male Ductal Conduit",
+    description: "Thick-walled muscular tube (45 cm) ascending in the spermatic cord through the inguinal canal, arching over the ureter, and dilating into the ampulla behind the urinary bladder base.",
+    function: "Propels spermatozoa from the epididymis to the prostatic urethra via powerful sympathetic peristaltic contractions of its 3-layer muscularis during emission.",
+    vascularization: "Deferential artery (arising from superior or inferior vesical artery).",
+    innervation: "Sympathetic fibers from the hypogastric plexus (alpha-1 adrenergic receptors mediating ejaculatory expulsion).",
+    pathology: "Congenital bilateral absence of the vas deferens (CBAVD, diagnostic of cystic fibrosis transmembrane conductance regulator CFTR mutations), target of elective surgical vasectomy."
+  },
+  {
+    id: "prostate_gland",
+    name: "Prostate Gland",
+    latinName: "Prostata",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "male",
+    coords: { x: 500, y: 852 },
+    view: "anterior",
+    category: "Male Accessory Glands",
+    description: "Inverted pyramid-shaped musculo-glandular organ encircling the bladder neck and proximal urethra. Divided into transition, central, and peripheral zones.",
+    function: "Secretes a slightly acidic, milky fluid (30% of semen volume) containing citric acid, proteolytic enzymes, and Prostate-Specific Antigen (PSA) that liquefies the seminal coagulum.",
+    vascularization: "Prostatic branches of inferior vesical and middle rectal arteries; drained by prostatic venous plexus into internal iliac veins.",
+    innervation: "Prostatic plexus derived from inferior hypogastric plexus (autonomic parasympathetic fibers facilitating cavernous erection).",
+    pathology: "Benign Prostatic Hyperplasia (BPH in transition zone causing bladder outlet obstruction), Prostatic adenocarcinoma (predominantly in peripheral zone, screened via serum PSA)."
+  },
+  {
+    id: "seminal_vesicle",
+    name: "Seminal Vesicle",
+    latinName: "Glandula vesiculosa",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "male",
+    coords: { x: 525, y: 838 },
+    view: "anterior",
+    category: "Male Accessory Glands",
+    description: "Paired saccular, coiled diverticula (5 cm long) nestled between the posterior bladder wall and rectum; duct joins ampulla of ductus deferens to form the common ejaculatory duct.",
+    function: "Produces 60-70% of seminal fluid: a viscous, alkaline secretion rich in fructose (nutrient energy for sperm flagellar motility), prostaglandins, and semenogelin clotting proteins.",
+    vascularization: "Inferior vesical and middle rectal arteries.",
+    innervation: "Pelvic plexus sympathetic postganglionic efferents.",
+    pathology: "Seminal vesiculitis (hematospermia / blood in ejaculate, perineal discomfort), seminal vesicle abscess."
+  },
+  {
+    id: "penis_corpora",
+    name: "Penis & Erectile Corpora",
+    latinName: "Penis & Corpora cavernosa",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "male",
+    coords: { x: 480, y: 890 },
+    view: "anterior",
+    category: "External Genitalia",
+    description: "Composed of three cylindrical fibroelastic bodies: paired dorsal Corpora Cavernosa enveloped in dense tunica albuginea, and a ventral midline Corpus Spongiosum transmitting the spongy urethra.",
+    function: "Copulation and urine expulsion. Erection is mediated by parasympathetic nitric oxide (NO) release relaxing helicine arteriolar smooth muscle; ejaculation is driven by sympathetic rhythmic perineal contractions.",
+    vascularization: "Internal pudendal artery branches: deep cavernosal arteries, dorsal penile arteries, and bulbourethral artery; deep dorsal vein of penis.",
+    innervation: "Dorsal nerve of penis (somatic sensory branch of pudendal S2-S4) and cavernous autonomic nerves from pelvic plexus.",
+    pathology: "Erectile dysfunction (ED), priapism (persistent painful ischemic erection exceeding 4 hours), Peyronie's disease (fibrous tunica albuginea plaque causing curvature)."
+  },
+  {
+    id: "ovary",
+    name: "Ovary & Ovarian Follicles",
+    latinName: "Ovarium",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "female",
+    coords: { x: 450, y: 825 },
+    view: "anterior",
+    category: "Female Gonads",
+    description: "Paired almond-shaped female gonads situated in the ovarian fossa of the lateral pelvic wall, suspended by the suspensory ligament, proper ovarian ligament, and broad ligament mesovarium.",
+    function: "Oogenesis (cyclical maturation of primary oocytes through primordial, primary, secondary, and dominant Graafian follicles) and endocrine synthesis of Estrogen (estradiol) and Progesterone.",
+    vascularization: "Ovarian artery (branch of abdominal aorta descending through suspensory infundibulopelvic ligament); ovarian venous plexus.",
+    innervation: "Ovarian autonomic plexus along ovarian vessels (T10 sympathetic spinal segments).",
+    pathology: "Polycystic Ovary Syndrome (PCOS with hyperandrogenism, chronic anovulation, multiple peripheral cysts), ovarian torsion (surgical emergency), ovarian serous cystadenocarcinoma."
+  },
+  {
+    id: "fallopian_tube",
+    name: "Fallopian Tube (Uterine Tube / Salpinx)",
+    latinName: "Tuba uterina / Salpinx",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "female",
+    coords: { x: 430, y: 805 },
+    view: "anterior",
+    category: "Female Ductal Conduit",
+    description: "Paired 10-12 cm muscular conduits stretching laterally from the superior uterine cornu to the ovaries; anatomically divided into fimbriae, infundibulum, dilated ampulla, and isthmus.",
+    function: "Fimbriae capture the ovulated secondary oocyte into the abdominal ostium; ampulla serves as the normal physiological site of fertilization; ciliated columnar cells transport the early conceptus to the uterus.",
+    vascularization: "Tubal branches of uterine artery and ovarian artery.",
+    innervation: "Hypogastric plexus and pelvic splanchnic autonomic nerves.",
+    pathology: "Ectopic tubal pregnancy (blastocyst implantation in ampulla carrying rupture and hemorrhage risk), acute salpingitis / Pelvic Inflammatory Disease (PID) leading to tubal scarring and infertility."
+  },
+  {
+    id: "uterus",
+    name: "Uterus & Endometrium",
+    latinName: "Uterus & Cavitas uteri",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "female",
+    coords: { x: 500, y: 818 },
+    view: "anterior",
+    category: "Internal Pelvic Viscera",
+    description: "Hollow, thick-walled muscular organ situated in the lesser pelvis between the bladder and rectum. Composed of an upper convex fundus, central corpus enclosing the uterine cavity, and inferior cervix.",
+    function: "Provides optimal histological niche for blastocyst implantation, formation of the hemochorial placenta, 40-week gestation, and powerful rhythmic myometrial contractions during labor.",
+    vascularization: "Uterine artery (branch of internal iliac artery passing superior to the ureter 'water under the bridge') and ovarian anastomoses.",
+    innervation: "Uterovaginal plexus (Frankenhäuser's plexus; T12-L2 sympathetic, S2-S4 parasympathetic).",
+    pathology: "Uterine leiomyomas (benign smooth muscle fibroids), endometriosis (ectopic endometrial glands causing dysmenorrhea and adhesions), endometrial carcinoma."
+  },
+  {
+    id: "cervix_vagina",
+    name: "Cervix Uteri & Vaginal Canal",
+    latinName: "Cervix uteri & Vagina",
+    system: "reproductive",
+    layer: 4,
+    region: "pelvis",
+    gender: "female",
+    coords: { x: 500, y: 855 },
+    view: "anterior",
+    category: "Internal Pelvic Viscera",
+    description: "Cylindrical fibromuscular lower uterine neck projecting into the upper vagina, featuring endocervical canal, internal/external os, and squamocolumnar transformation zone; opens into the 8-10 cm fibromuscular vaginal canal.",
+    function: "Secretes physiological cervical mucus regulating sperm penetration; expands during stage 1 of labor; vagina serves as copulatory canal and obstetric birth canal.",
+    vascularization: "Cervical and vaginal branches of uterine artery, vaginal artery, and internal pudendal artery.",
+    innervation: "Lower 1/4 vagina: Pudendal nerve (S2-S4 somatic, acute touch/pain sensitivity); Upper 3/4 vagina and cervix: Autonomic uterovaginal plexus.",
+    pathology: "Cervical intraepithelial neoplasia (CIN) and invasive cervical carcinoma (associated with oncogenic HPV 16/18, detected by cervical Pap cytology screening), vaginal prolapse."
   },
 
   // --- UPPER EXTREMITIES ---
@@ -1141,6 +1323,28 @@ export const ANATOMICAL_PLATES = {
     view: "anterior",
     aspectRatio: 4 / 3,
     description: "Stained high-power tissue histology: cardiac intercalated discs, renal glomerulus/tubules, and multipolar neurons."
+  },
+  male_reproductive: {
+    id: "male_reproductive",
+    name: "Male Reproductive System & Pelvic Viscera",
+    shortName: "Male Reproductive",
+    icon: "♂️",
+    src: "./assets/labs/human_anatomy_male_reproductive_8k.jpg",
+    system: "reproductive",
+    view: "anterior",
+    aspectRatio: 3 / 4,
+    description: "Sagittal cross-section of male pelvic anatomy: testis with seminiferous tubules, epididymis, ductus deferens, prostate, seminal vesicles, and erectile penile corpora."
+  },
+  female_reproductive: {
+    id: "female_reproductive",
+    name: "Female Reproductive System & Pelvic Viscera",
+    shortName: "Female Reproductive",
+    icon: "♀️",
+    src: "./assets/labs/human_anatomy_female_reproductive_8k.jpg",
+    system: "reproductive",
+    view: "anterior",
+    aspectRatio: 3 / 4,
+    description: "Coronal and sagittal sections of female reproductive anatomy: ovaries with follicular cycle, fallopian tubes, tripartite uterus (fundus, myometrium, endometrium), cervix, and vaginal canal."
   }
 };
 
@@ -1370,5 +1574,17 @@ export const ANATOMY_CHECKPOINTS = [
     ],
     correctIndex: 2,
     explanation: "Type II Pneumocytes secrete dipalmitoylphosphatidylcholine surfactant. According to Laplace's Law (P = 2T/r), a smaller radius (r) would create higher collapsing pressure (P) unless surface tension (T) is proportionally reduced. Surfactant reduces surface tension more in smaller alveoli, stabilizing alveolar volume."
+  },
+  {
+    id: "anat_q6",
+    question: "In the human female reproductive tract, in which anatomical region does physiological fertilization of the secondary oocyte typically occur?",
+    options: [
+      "Vaginal fornix",
+      "Endometrial cavity of the uterine fundus",
+      "Ampulla of the fallopian tube (salpinx)",
+      "Internal os of the cervix uteri"
+    ],
+    correctIndex: 2,
+    explanation: "Fertilization by a capacitated spermatozoon normally occurs in the ampulla of the fallopian tube (the widest and longest tubal segment), before the developing blastocyst travels into the uterine cavity for implantation around day 6-7."
   }
 ];
