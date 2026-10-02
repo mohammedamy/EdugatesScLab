@@ -8,10 +8,10 @@ An enterprise-grade, world-class virtual science laboratory and interactive STEM
 
 | Curriculum Domain | Modules / Chapters | Interactive Lessons | Question Bank Items | Dedicated Virtual Labs |
 | :--- | :---: | :---: | :---: | :---: |
-| 🧪 **Inspire Chemistry** | 23 | 89 | 2,757 | 10 Workbenches |
-| 🧬 **Inspire Biology** | 27 | 81 | 2,492 | 10 Workbenches |
-| ⚡ **Inspire Physics** | 24 | 72 | 2,043 | 10 Workbenches |
-| **Total Platform Scope** | **74 Chapters** | **242 Lessons** | **7,292 Questions** | **30 Virtual Labs** |
+| 🧪 **Inspire Chemistry** | 23 | 89 | 2,757 | 12 Workbenches |
+| 🧬 **Inspire Biology** | 27 | 81 | 2,492 | 12 Workbenches |
+| ⚡ **Inspire Physics** | 24 | 72 | 2,043 | 12 Workbenches |
+| **Total Platform Scope** | **74 Chapters** | **242 Lessons** | **7,292 Questions** | **36 Virtual Labs** |
 
 - **Zero-Drop Standard**: 100% curriculum coverage across all 74 NGSS and AP-aligned chapters.
 - **Formulas & Theory**: Every lesson features college-level physical mechanics, SI parameters, KaTeX math formulations, particulate mechanisms, and real-world STEM applications.
@@ -42,7 +42,7 @@ Guarantees uninterrupted classroom delivery in school networks with intermittent
 - **Live Connection Monitor**: Real-time online/offline detection with latency ping measurement.
 - **Storage Quota Inspection**: Uses `navigator.storage.estimate()` to report active cache footprint (MB used, GB quota, percentage meter).
 - **Persistent Storage Locking**: Calls `navigator.storage.persist()` to protect laboratory simulations and question banks from automated browser disk eviction.
-- **One-Click Field Trip Precaching**: Pre-caches all 30 virtual lab engines, curriculum theory databases, and media assets into CacheStorage (`amscilab-pwa-v42`).
+- **One-Click Field Trip Precaching**: Pre-caches all 36 virtual lab engines, curriculum theory databases, and media assets into CacheStorage (`amscilab-pwa-v53`).
 - **Offline Health Check**: Verifies 16 essential subsystems (HTML shell, CSS, engines, data, labs) with visual status indicators.
 - **Quick Access**: Open via Pen Toolbar button (`#sb-tool-offline`) or universal keyboard shortcut **`O`**.
 
@@ -61,12 +61,12 @@ Floating, draggable, and bottom-dockable teacher presentation suite:
 
 ---
 
-## 🔬 30 Virtual Laboratory Simulation Catalog
+## 🔬 36 Virtual Laboratory Simulation Catalog
 
-### 🧪 Chemistry Laboratory Workbenches (10 Workbenches)
+### 🧪 Chemistry Laboratory Workbenches (12 Workbenches)
 1. **Acid-Base Titration & pH Curve Analyzer** (`#labs/titration`): Real-time burette titrant drop simulation, strong/weak acid-base equilibria, Henderson-Hasselbalch buffer calculations, indicator color transitions, and automated derivative inflection titration curves.
-2. **Precision Periodic Table & Quantum Orbitals** (`#labs/periodic-table`): All 118 IUPAC elements with standard weights, electron configurations, Bohr models, real-world photographs, and periodic trends (electronegativity, ionization energy, atomic radius).
-3. **Ideal Gas Laws & Kinetic Molecular Theory** (`#labs/gas-laws`): Boyle's, Charles's, Gay-Lussac's, and Avogadro's laws with particle collision velocity histograms and piston pressure-volume dynamics.
+2. **Precision Periodic Table & Quantum Orbitals** (`#labs/ptable`): All 118 IUPAC elements with standard weights, electron configurations, Bohr models, real-world photographs, and periodic trends (electronegativity, ionization energy, atomic radius).
+3. **Ideal Gas Laws & Kinetic Molecular Theory** (`#labs/gaslaws`): Boyle's, Charles's, Gay-Lussac's, and Avogadro's laws with particle collision velocity histograms and piston pressure-volume dynamics.
 4. **Calorimetry & Enthalpy of Reaction** (`#labs/calorimetry`): Coffee-cup and bomb calorimeter simulations, specific heat determinations, and exothermic/endothermic dissolution curves ($q = mc\Delta T$).
 5. **Chemical Equilibrium & Le Chatelier Shifts** (`#labs/equilibrium`): Reversible Haber-Bosch and cobalt complex reactions with real-time stress response to temperature, pressure, and concentration shifts ($Q \text{ vs } K_{eq}$).
 6. **Electrochemistry & Galvanic Cells** (`#labs/electrochem`): Standard reduction potentials, zinc-copper Daniell cells, salt bridge ion migration, and Nernst equation voltage calculations.
@@ -74,30 +74,36 @@ Floating, draggable, and bottom-dockable teacher presentation suite:
 8. **VSEPR Molecular Geometry & Polarity** (`#labs/vsepr`): 3D interactive molecular geometry viewer across electron domains ($AX_2$ to $AX_6$), dipole moments, and hybridization states ($sp, sp^2, sp^3, sp^3d, sp^3d^2$).
 9. **Nuclear Decay & Radiometric Half-Life** (`#labs/decay`): Alpha, beta, and gamma radiation shielding, radioactive decay curves ($N(t) = N_0 e^{-\lambda t}$), and carbon-14 dating simulation.
 10. **Colligative Properties & Freezing-Point Depression** (`#labs/colligative`): Osmotic pressure, boiling point elevation, and cryoscopic freezing point depression with van 't Hoff factor calculations ($\Delta T_f = i K_f m$).
+11. **Chemical Kinetics & Reaction Rates** (`#labs/kinetics`): Real 4K laboratory bench, iodine clock reaction, spectrophotometric absorbance tracking, initial rates method, Arrhenius activation energy ($E_a$), and catalyst activation barrier reduction.
+12. **Organic Reaction Mechanisms & Stereochemistry** (`#labs/organic`): $S_N1, S_N2, E1, E2$ reaction pathways, carbocation intermediate stabilization, transition states, and enantiomer stereochemical inversion.
 
-### 🧬 Biology Laboratory Workbenches (10 Workbenches)
-1. **Virtual Compound Microscope & Micrograph Suite** (`#labs/microscope`): 40x, 100x, 400x, and 1000x oil-immersion lenses, fine/coarse focus knobs, slide stage translation, and cellular specimen library (onion epidermis, human blood smear, paramecium, chloroplasts).
-2. **DNA Transcription & Protein Translation** (`#labs/dna-protein`): Double-helix unzipping, RNA Polymerase transcription, mRNA ribosome translation, tRNA anticodon binding, and genetic code codon chart mapping.
-3. **Mendelian & Dihybrid Punnett Squares** (`#labs/punnett`): Monohybrid and dihybrid cross generators, phenotypic/genotypic probability distributions, and non-Mendelian incomplete dominance/codominance.
-4. **Photosynthesis & Cellular Respiration** (`#labs/photosynthesis`): Light-dependent thylakoid reactions, Calvin cycle, oxygen production vs light intensity/wavelength, and carbon dioxide consumption curves.
-5. **Enzyme Kinetics & Michaelis-Menten Metrology** (`#labs/enzymes`): Substrate concentration curves, $V_{\max}$ and $K_m$ calculation, competitive/non-competitive enzyme inhibition, and temperature/pH denaturation.
-6. **Cellular Respiration & Respirometry** (`#labs/respiration`): Seed germination respirometer, KOH carbon dioxide scrubber, and oxygen consumption rate quantification.
-7. **Agarose Gel Electrophoresis** (`#labs/electrophoresis`): DNA restriction digest fragment separation, UV transilluminator visualization, and base-pair molecular weight ladder comparison.
-8. **Population Ecology & Predator-Prey Dynamics** (`#labs/ecology`): Lotka-Volterra differential equations, carrying capacity ($K$), intrinsic growth rates ($r$), and environmental disturbance simulations.
-9. **Neuron Action Potential & Voltage-Gated Channels** (`#labs/action-potential`): Hodgkin-Huxley membrane electrophysiology, $\text{Na}^+$ activation / $\text{K}^+$ repolarization, resting potentials ($-70\text{ mV}$), and oscilloscope traces.
-10. **Cell Membrane Osmosis & Fluid Mosaic Model** (`#labs/osmosis`): Hypotonic, isotonic, and hypertonic solutions, cell crenation and turgor pressure, and water potential ($\Psi = \Psi_s + \Psi_p$).
+### 🧬 Biology Laboratory Workbenches (12 Workbenches)
+1. **4K Ultra-HD Human Anatomy & Histology Atlas** (`#labs/anatomy`): 13 dedicated 8K medical plates, dual male/female 6-strata dissection engine, real physiological 60 FPS cardiac cycle biomechanics with continuous nodal myocardial mesh and S1/S2 acoustic triggers, Nephron countercurrent multiplier, and interactive pin challenge.
+2. **Virtual Compound Microscope & Micrograph Suite** (`#labs/microscope`): 40x, 100x, 400x, and 1000x oil-immersion lenses, fine/coarse focus knobs, slide stage translation, and cellular specimen library (onion epidermis, human blood smear, paramecium, chloroplasts).
+3. **DNA Transcription & Protein Translation** (`#labs/dnaprotein`): Double-helix unzipping, RNA Polymerase transcription, mRNA ribosome translation, tRNA anticodon binding, and genetic code codon chart mapping.
+4. **Mendelian & Dihybrid Punnett Squares** (`#labs/punnett`): Monohybrid and dihybrid cross generators, phenotypic/genotypic probability distributions, and non-Mendelian incomplete dominance/codominance.
+5. **Photosynthesis & Cellular Respiration** (`#labs/photosynthesis`): Light-dependent thylakoid reactions, Calvin cycle, oxygen production vs light intensity/wavelength, and carbon dioxide consumption curves.
+6. **Enzyme Kinetics & Michaelis-Menten Metrology** (`#labs/enzymes`): Substrate concentration curves, $V_{\max}$ and $K_m$ calculation, competitive/non-competitive enzyme inhibition, and temperature/pH denaturation.
+7. **Cellular Respiration & Respirometry** (`#labs/respiration`): Seed germination respirometer, KOH carbon dioxide scrubber, and oxygen consumption rate quantification.
+8. **Agarose Gel Electrophoresis** (`#labs/electrophoresis`): DNA restriction digest fragment separation, UV transilluminator visualization, and base-pair molecular weight ladder comparison.
+9. **Population Ecology & Predator-Prey Dynamics** (`#labs/ecology`): Lotka-Volterra differential equations, carrying capacity ($K$), intrinsic growth rates ($r$), and environmental disturbance simulations.
+10. **Neuron Action Potential & Voltage-Gated Channels** (`#labs/actionpotential`): Hodgkin-Huxley membrane electrophysiology, $\text{Na}^+$ activation / $\text{K}^+$ repolarization, resting potentials ($-70\text{ mV}$), and oscilloscope traces.
+11. **Cell Membrane Osmosis & Tonicity Metrology** (`#labs/osmosis`): 4K laboratory bench, semi-permeable membrane U-tube osmometer, hypertonic/isotonic/hypotonic RBC and plant cell response, solute potential ($\Psi_s = -iCRT$), and real-time osmotic pressure tracking.
+12. **Cell Cycle Cytogenetics & Mitosis** (`#labs/mitosis`): 4K cytology microscope bench, interphase through cytokinesis, kinetochore spindle fiber dynamics, chromosome segregation, mitotic index quantification, and cancer oncogene checkpoint dysregulation.
 
-### ⚡ Physics Laboratory Workbenches (10 Workbenches)
+### ⚡ Physics Laboratory Workbenches (12 Workbenches)
 1. **Kinematics & 2D Projectile Motion** (`#labs/projectile`): Launch angle, initial velocity, air drag coefficient, gravitational acceleration ($g$), trajectory tracing, and range/apogee calculators.
 2. **DC Circuits & Kirchhoff's Metrology** (`#labs/circuits`): Interactive breadboard workbench with batteries, resistors, lamps, switches, ammeters, voltmeters, and Ohm's / Kirchhoff's circuit law calculators.
 3. **Geometric Optics, Snell's Law & Thin Lenses** (`#labs/optics`): Convex/concave lenses and mirrors, ray-tracing vectors, refraction indices ($n_1 \sin\theta_1 = n_2 \sin\theta_2$), focal lengths, and virtual/real image formation.
 4. **Mechanical Waves, Doppler Effect & Resonance** (`#labs/waves`): Transverse and longitudinal wave generator, constructive/destructive interference, standing wave harmonics, and sound frequency shifts.
 5. **Simple Harmonic Motion & Coupled Oscillators** (`#labs/harmonic`): Mass-spring systems and pendulum motion, damping coefficients, phase space diagrams, and kinetic/potential energy conservation graphs.
 6. **Photoelectric Effect & Quantum Physics** (`#labs/photoelectric`): Monochromatic photon emitter, metal cathode work function ($\Phi$), stopping voltage ($V_0$), and Planck's constant ($h$) measurement.
-7. **Electromagnetism, Lorentz Force & Induction** (`#labs/magnetism`): Magnetic field lines, charged particle cyclotron deflection ($\vec{F} = q\vec{v}\times\vec{B}$), and Faraday's law of electromagnetic induction.
-8. **Rotational Dynamics & Angular Momentum** (`#labs/rotational-dynamics`): Moment of inertia ($I$), torque ($\tau = I\alpha$), conservation of angular momentum, and gyroscopic precession.
-9. **Thermal Conduction & Heat Transfer** (`#labs/thermal-conduction`): Fourier's law of thermal conduction ($q = -k A \frac{dT}{dx}$), thermal conductivity across metal bars, and insulation modeling.
+7. **Electromagnetism, Lorentz Force & e/m Metrology** (`#labs/magnetism`): Magnetic field lines, charged particle cyclotron deflection ($\vec{F} = q\vec{v}\times\vec{B}$), and Thomson electron charge-to-mass ($e/m$) determination.
+8. **Rotational Dynamics & Angular Momentum** (`#labs/rotational`): Moment of inertia ($I$), torque ($\tau = I\alpha$), conservation of angular momentum, and gyroscopic precession.
+9. **Thermal Conduction & Heat Transfer** (`#labs/conduction`): Fourier's law of thermal conduction ($q = -k A \frac{dT}{dx}$), thermal conductivity across metal bars, and insulation modeling.
 10. **Fluid Dynamics & Hydrostatic Buoyancy** (`#labs/fluids`): Archimedes' principle, fluid displacement, buoyant force ($F_b = \rho g V$), and Bernoulli's equation for laminar fluid flow.
+11. **Linear Momentum & 1D/2D Collisions** (`#labs/collisions`): 4K collision dynamics bench, air track photogate timers, elastic and inelastic collisions, coefficient of restitution ($e$), center of mass velocity tracking, and kinetic energy loss analysis.
+12. **Electromagnetic Induction & Faraday-Lenz Law** (`#labs/induction`): 4K electromagnetic bench, multi-turn solenoid coils, neodymium bar magnet velocity sweeps, core permeability ($\mu_r$) shifts, magnetic flux ($\Phi_B = \vec{B}\cdot\vec{A}$), and induced electromotive force ($\mathcal{E} = -N \frac{d\Phi_B}{dt}$).
 
 ---
 
@@ -152,7 +158,7 @@ for f in tests/*.js; do node "$f"; done
 ### Test Suite Coverage:
 1. `tests/test-curriculum-integrity.js`: Validates 74 chapters, 242 lessons, and interactive spec mappings.
 2. `tests/test-question-bank.js`: Validates 7,292 questions across all lessons with answer keys and rubrics.
-3. `tests/test-virtual-labs.js`: Tests instantiation and cleanup of all 30 virtual lab workbenches.
+3. `tests/test-virtual-labs.js`: Tests instantiation and cleanup of all 36 virtual lab workbenches.
 4. `tests/test-worked-example-and-offline-diagnostics.js`: Tests step-by-step solver numerical tolerances, parsing engine, storage quota, and offline diagnostics.
 5. `tests/test-maxhub-optimizations.js`: Validates Smartboard Turbo profile, 30 FPS pacing, fullscreen zero-box mode, and annotation bar layering.
 6. `tests/test-periodic-table.js`: Audits all 118 elements, atomic weights, electron configurations, and media links.
