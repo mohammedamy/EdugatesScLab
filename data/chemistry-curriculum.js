@@ -214,7 +214,7 @@ export const chemistryCurriculum = {
         { id: 4, title: "Colligative Properties of Solutions", objectives: ["Vapor pressure lowering (Raoult's Law)", "Boiling point elevation ΔTb", "Freezing point depression ΔTf", "Van 't Hoff factor (i)"] }
       ],
       formulas: ["M = \\frac{\\text{mol solute}}{L \\text{ solution}}", "M_1 V_1 = M_2 V_2", "\\Delta T_b = i K_b m", "\\Delta T_f = i K_f m"],
-      lab: "lab-titration"
+      lab: "lab-colligative"
     },
     {
       id: 14,
@@ -247,7 +247,7 @@ export const chemistryCurriculum = {
         { id: 4, title: "Instantaneous Reaction Rates and Reaction Mechanisms", objectives: ["Elementary steps and molecularity", "Rate-determining step (RDS)", "Intermediates vs Catalysts in mechanisms"] }
       ],
       formulas: ["\\text{Rate} = -\\frac{\\Delta [A]}{\\Delta t}", "\\text{Rate} = k [A]^m [B]^n", "k = A e^{-E_a / RT}"],
-      lab: "lab-titration"
+      lab: "lab-kinetics"
     },
     {
       id: 16,
@@ -323,7 +323,7 @@ export const chemistryCurriculum = {
         { id: 4, title: "Aromatic Hydrocarbons", objectives: ["Benzene ring delocalized π electron cloud", "Polycyclic aromatic hydrocarbons"] }
       ],
       formulas: ["\\text{Alkane: } C_n H_{2n+2}", "\\text{Alkene: } C_n H_{2n}", "\\text{Alkyne: } C_n H_{2n-2}"],
-      lab: "lab-periodic-table"
+      lab: "lab-organic"
     },
     {
       id: 21,
@@ -338,7 +338,7 @@ export const chemistryCurriculum = {
         { id: 3, title: "Polymers", objectives: ["Addition polymerization (polyethylene, PVC)", "Condensation polymerization (nylon, polyester)", "Recycling codes"] }
       ],
       formulas: ["R-OH \\text{ (Alcohol)}", "R-COOH + R'-OH \\rightleftharpoons R-COO-R' + H_2O \\text{ (Ester)}"],
-      lab: "lab-titration"
+      lab: "lab-organic"
     },
     {
       id: 22,
@@ -354,7 +354,7 @@ export const chemistryCurriculum = {
         { id: 4, title: "Nucleic Acids", objectives: ["Nucleotide components (phosphate, sugar, nitrogenous base)", "DNA double helix vs RNA single strand"] },
         { id: 5, title: "Metabolism", objectives: ["Catabolism (glycolysis, ATP production) vs Anabolism", "Photosynthesis and cellular respiration energetics"] }
       ],
-      formulas: ["\\text{Peptide Bond: } -CO-NH-", "C_6H_{12}O_6 + 6O_2 \\rightarrow 6CO_2 + 6H_2O + 36\\text{ATP}"],
+      formulas: ["\\text{Peptide Bond: } -CO-NH-", "C_6H_{12}O_6 + 6O_2 \\rightarrow 6CO_2 + 6H_2O + 30\\text{--}32\\text{ ATP} \\quad (\\text{Max } \\sim 32\\text{ ATP})"],
       lab: "lab-dna-protein"
     },
     {
@@ -372,7 +372,7 @@ export const chemistryCurriculum = {
         { id: 5, title: "Applications and Hazards of Radiation", objectives: ["Radiation detection (Geiger-Müller counters, dosimeters)", "Medical radioisotopes (PET scans, radiotherapy)", "Nuclear waste storage"] }
       ],
       formulas: ["N(t) = N_0 \\left(\\frac{1}{2}\\right)^{\\frac{t}{t_{1/2}}}", "E = \\Delta m c^2"],
-      lab: "lab-periodic-table"
+      lab: "lab-decay"
     }
   ]
 };

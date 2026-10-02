@@ -4,7 +4,7 @@
 import { SoundFX } from "../utils/audio-synth.js";
 import { showToast } from "../utils/toast.js";
 
-const CURRENT_CACHE_NAME = "amscilab-pwa-v54";
+const CURRENT_CACHE_NAME = "amscilab-pwa-v56";
 
 // Core and Secondary assets to audit for 100% offline classroom readiness
 const AUDIT_TARGETS = [
@@ -20,6 +20,9 @@ const AUDIT_TARGETS = [
   { name: "Physics Curriculum Data", url: "./data/physics-curriculum.js", critical: true },
   { name: "Lesson Theory Database", url: "./data/lesson-theory-database.js", critical: true },
   { name: "7,292 Assessment Bank", url: "./data/question-bank.js", critical: true },
+  { name: "Chemistry Question Chunk", url: "./data/question-bank-chem.js", critical: false },
+  { name: "Biology Question Chunk", url: "./data/question-bank-bio.js", critical: false },
+  { name: "Physics Question Chunk", url: "./data/question-bank-phys.js", critical: false },
   { name: "Projectile Virtual Lab", url: "./labs/phys-projectile.js", critical: false },
   { name: "Titration Virtual Lab", url: "./labs/chem-titration.js", critical: false },
   { name: "Microscope Virtual Lab", url: "./labs/bio-microscope.js", critical: false },

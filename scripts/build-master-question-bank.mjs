@@ -487,7 +487,15 @@ function generateQuestionsForLesson(curriculum, module, lesson) {
   // --- ANGLE 13: Quantitative Calculation 2 (Numerical - AP/Olympiad) ---
   const valA = (20 + m.id * 4 + l.id * 3);
   const valB = (4 + l.id);
-  const multAns = (valA * valB).toFixed(1);
+  const strA = `${valA}.0`;
+  const strB = `${valB}.0`;
+  const sfA = valA >= 100 ? 4 : (valA >= 10 ? 3 : 2);
+  const sfB = valB >= 10 ? 3 : 2;
+  const targetSf = Math.min(sfA, sfB);
+  const rawProduct = valA * valB;
+  const roundedAnswer = Number(rawProduct.toPrecision(targetSf)).toString();
+  const unroundedAnswer = rawProduct.toFixed(1);
+
   questions.push(createNumerical({
     id: `${lKey}-Q13`,
     subject: subKey,
@@ -497,18 +505,18 @@ function generateQuestionsForLesson(curriculum, module, lesson) {
     lessonTitle: `Lesson ${m.id}.${l.id}: ${l.title}`,
     difficulty: "ap_olympiad",
     angle: "quantitative_2",
-    question: `In a multi-step analytical problem for "${l.title}", a system undergoing transformation possesses initial parameters $P_1 = ${valA}.0$ and multiplier factor $\\beta = ${valB}.0$. Calculate the total integrated output $Y = P_1 \\times \\beta$ adhering to standard significant figure rules.`,
-    correctAnswer: multAns,
+    question: `In a multi-step analytical calculation for "${l.title}", a student measures initial parameters $P_1 = ${strA}\\text{ ${p.calc1.unit || ''}}$ (${sfA} significant figures) and multiplier factor $\\beta = ${strB}$ (${sfB} significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering to standard scientific significant figure rules.`,
+    correctAnswer: roundedAnswer,
     tolerance: 0.5,
     unit: p.calc1.unit || "",
     options: [
-      `$${(multAns * 0.8).toFixed(1)}\\text{ ${p.calc1.unit}}$`,
-      `$${multAns}\\text{ ${p.calc1.unit}}$`,
-      `$${(multAns * 1.25).toFixed(1)}\\text{ ${p.calc1.unit}}$`,
-      `$${(multAns * 1.5).toFixed(1)}\\text{ ${p.calc1.unit}}$`
+      `$${unroundedAnswer}\\text{ ${p.calc1.unit}}$`,
+      `$${roundedAnswer}\\text{ ${p.calc1.unit}}$`,
+      `$${rawProduct}\\text{ ${p.calc1.unit}}$`,
+      `$${Number(rawProduct.toPrecision(1)).toString()}\\text{ ${p.calc1.unit}}$`
     ],
     correctIndex: 1,
-    explanation: `Step 1: Identify given parameters: $P_1 = ${valA}.0$, $\\beta = ${valB}.0$.\nStep 2: Calculate product: $$Y = P_1 \\times \\beta = ${valA}.0 \\times ${valB}.0 = ${multAns}\\text{ ${p.calc1.unit}}$$.\nStep 3: Verification: Product maintains three significant figures: $${multAns}\\text{ ${p.calc1.unit}}$.`
+    explanation: `Step 1: Identify given parameters and their precision: $P_1 = ${strA}\\text{ ${p.calc1.unit || ''}}$ (${sfA} significant figures), $\\beta = ${strB}$ (${sfB} significant figures).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (${strA})(${strB}) = ${rawProduct}\\text{ ${p.calc1.unit || ''}}$$.\nStep 3: Significant figures multiplication rule: The product is governed by the factor with the fewest significant figures ($\\beta = ${strB}$, having ${targetSf} significant figures). Rounding ${rawProduct} to ${targetSf} significant figures yields $${roundedAnswer}\\text{ ${p.calc1.unit || ''}}$ (not $${unroundedAnswer}$ or $${rawProduct}$).`
   }));
 
   // --- ANGLE 14: Historical Discovery & Empirical Milestone (MCQ - Foundational) ---

@@ -175,6 +175,12 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
     buildRutherfordInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("chem-stoichiometry")) {
     buildStoichiometryInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("chem-avogadro")) {
+    buildAvogadroWorkbenchInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("chem-empirical")) {
+    buildEmpiricalFormulaInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("chem-hydrate")) {
+    buildHydrateDehydrationInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("chem-gas-kinetics")) {
     buildGasPistonInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("chem-calorimetry")) {
@@ -211,6 +217,8 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
     buildHardyWeinbergInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-immune-response")) {
     buildImmuneResponseInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("phys-free-fall")) {
+    buildFreeFallInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("phys-kinematics")) {
     buildKinematics1DInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("phys-inclined")) {
@@ -3065,6 +3073,1348 @@ function buildStoichiometryInteractive(mountId, params) {
   });
 }
 
+/**
+ * Chemistry: Avogadro's Number & The Mole Workbench (CHEM-M09-L1)
+ * High-precision particle, mole, and mass dimensional analysis workbench with
+ * digital analytical balance and particle inspection chamber.
+ */
+function buildAvogadroWorkbenchInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+
+  const SUBSTANCES = {
+    c12: {
+      name: "Carbon-12 (C)",
+      formula: "C",
+      molarMass: 12.011,
+      type: "element",
+      atomsPerUnit: 1,
+      color: "#94a3b8",
+      atomRadius: 6,
+      density: 2.26,
+      description: "Monoatomic carbon allotrope standard defining the atomic mass unit."
+    },
+    h2o: {
+      name: "Water (H₂O)",
+      formula: "H₂O",
+      molarMass: 18.015,
+      type: "molecular",
+      atomsPerUnit: 3,
+      color: "#38bdf8",
+      atomRadius: 7,
+      density: 1.00,
+      description: "Polar covalent molecule consisting of 2 hydrogen atoms and 1 oxygen atom."
+    },
+    nacl: {
+      name: "Sodium Chloride (NaCl)",
+      formula: "NaCl",
+      molarMass: 58.443,
+      type: "ionic",
+      atomsPerUnit: 2,
+      color: "#fde047",
+      atomRadius: 8,
+      density: 2.16,
+      description: "Ionic crystal lattice consisting of alternating Na⁺ and Cl⁻ ions."
+    },
+    cu: {
+      name: "Copper (Cu)",
+      formula: "Cu",
+      molarMass: 63.546,
+      type: "metallic",
+      atomsPerUnit: 1,
+      color: "#fb923c",
+      atomRadius: 8,
+      density: 8.96,
+      description: "Transition metal with high thermal and electrical conductivity."
+    },
+    glucose: {
+      name: "D-Glucose (C₆H₁₂O₆)",
+      formula: "C₆H₁₂O₆",
+      molarMass: 180.156,
+      type: "molecular",
+      atomsPerUnit: 24,
+      color: "#a78bfa",
+      atomRadius: 10,
+      density: 1.54,
+      description: "Hexose monosaccharide essential for cellular aerobic respiration."
+    }
+  };
+
+  const AVOGADRO = 6.02214076e23;
+  let currentKey = params.substance || "h2o";
+  let sampleMass = params.mass !== undefined ? Number(params.mass) : 36.03; // grams
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #060913; border-radius: 8px; overflow: hidden; border: 1px solid #1e293b;">
+        <canvas id="${mountId}-canvas" width="800" height="540" style="width: 100%; height: 280px; display: block;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5;">
+          <div class="sim-badge" id="${mountId}-badge" style="background: rgba(15, 23, 42, 0.85); border: 1px solid #38bdf8; color: #38bdf8; font-size: 11px; padding: 4px 10px; border-radius: 12px; font-weight: 600;">
+            Avogadro Constant: N_A = 6.022 × 10²³ mol⁻¹
+          </div>
+        </div>
+      </div>
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;">
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Sample Mass (m):</span>
+            <span class="readout-val" id="${mountId}-val-mass" style="color: #38bdf8; font-weight: 700; font-size: 13px;">${sampleMass.toFixed(2)} g</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Molar Amount (n):</span>
+            <span class="readout-val" id="${mountId}-val-moles" style="color: #a78bfa; font-weight: 700; font-size: 13px;">-- mol</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Formula Units / Molecules (N):</span>
+            <span class="readout-val" id="${mountId}-val-particles" style="color: #34d399; font-weight: 700; font-size: 12px;">--</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Total Constituent Atoms:</span>
+            <span class="readout-val" id="${mountId}-val-atoms" style="color: #fb923c; font-weight: 700; font-size: 12px;">--</span>
+          </div>
+        </div>
+
+        <div style="margin: 6px 0;">
+          <label style="font-size: 10.5px; color: #94a3b8; display: block; margin-bottom: 4px;">Select Chemical Substance:</label>
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <button type="button" class="btn-sim-action" id="${mountId}-sub-c12" style="flex: 1; font-size: 10px; padding: 4px 6px;" aria-label="Carbon-12">C (12.01)</button>
+            <button type="button" class="btn-sim-action active" id="${mountId}-sub-h2o" style="flex: 1; font-size: 10px; padding: 4px 6px;" aria-label="Water H2O">H₂O (18.02)</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-sub-nacl" style="flex: 1; font-size: 10px; padding: 4px 6px;" aria-label="Sodium Chloride NaCl">NaCl (58.44)</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-sub-cu" style="flex: 1; font-size: 10px; padding: 4px 6px;" aria-label="Copper Cu">Cu (63.55)</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-sub-glucose" style="flex: 1; font-size: 10px; padding: 4px 6px;" aria-label="Glucose">Glucose (180.16)</button>
+          </div>
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Sample Mass (m):</span>
+            <strong id="${mountId}-lbl-mass">${sampleMass.toFixed(2)} g</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-slider-mass" min="1.0" max="250.0" step="0.5" value="${sampleMass}" aria-label="Sample mass in grams">
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Direct Molar Amount (n):</span>
+            <strong id="${mountId}-lbl-moles">2.00 mol</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-slider-moles" min="0.1" max="10.0" step="0.05" value="2.0" aria-label="Sample amount in moles">
+        </div>
+
+        <div class="sim-note" id="${mountId}-note-text" style="font-size: 10.5px; color: #94a3b8; background: rgba(30, 41, 59, 0.4); padding: 6px 8px; border-radius: 6px; border-left: 2px solid #38bdf8; margin-top: 4px;">
+          Calculation Bridge: <strong>n = m / M</strong> &emsp; <strong>N = n × N_A</strong>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const sliderMass = document.getElementById(`${mountId}-slider-mass`);
+  const lblMass = document.getElementById(`${mountId}-lbl-mass`);
+  const sliderMoles = document.getElementById(`${mountId}-slider-moles`);
+  const lblMoles = document.getElementById(`${mountId}-lbl-moles`);
+
+  const valMass = document.getElementById(`${mountId}-val-mass`);
+  const valMoles = document.getElementById(`${mountId}-val-moles`);
+  const valParticles = document.getElementById(`${mountId}-val-particles`);
+  const valAtoms = document.getElementById(`${mountId}-val-atoms`);
+  const noteText = document.getElementById(`${mountId}-note-text`);
+
+  const btnC12 = document.getElementById(`${mountId}-sub-c12`);
+  const btnH2O = document.getElementById(`${mountId}-sub-h2o`);
+  const btnNaCl = document.getElementById(`${mountId}-sub-nacl`);
+  const btnCu = document.getElementById(`${mountId}-sub-cu`);
+  const btnGlucose = document.getElementById(`${mountId}-sub-glucose`);
+
+  // Floating micro particles in the inspection chamber
+  const microParticles = [];
+  for (let i = 0; i < 40; i++) {
+    microParticles.push({
+      x: 100 + (Math.random() - 0.5) * 80,
+      y: 120 + (Math.random() - 0.5) * 80,
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: (Math.random() - 0.5) * 0.8,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+
+  function setSubstance(key) {
+    currentKey = key;
+    [btnC12, btnH2O, btnNaCl, btnCu, btnGlucose].forEach((b) => b && b.classList.remove("active"));
+    if (key === "c12" && btnC12) btnC12.classList.add("active");
+    if (key === "h2o" && btnH2O) btnH2O.classList.add("active");
+    if (key === "nacl" && btnNaCl) btnNaCl.classList.add("active");
+    if (key === "cu" && btnCu) btnCu.classList.add("active");
+    if (key === "glucose" && btnGlucose) btnGlucose.classList.add("active");
+
+    const sub = SUBSTANCES[currentKey];
+    sampleMass = Number((2.0 * sub.molarMass).toFixed(2));
+    if (sliderMass) sliderMass.value = sampleMass.toString();
+    if (sliderMoles) sliderMoles.value = "2.0";
+    updateValues();
+  }
+
+  function formatScientific(num) {
+    const exponent = Math.floor(Math.log10(num));
+    const mantissa = num / Math.pow(10, exponent);
+    return `${mantissa.toFixed(3)} × 10^{${exponent}}`;
+  }
+
+  function formatScientificPlain(num) {
+    const exponent = Math.floor(Math.log10(num));
+    const mantissa = num / Math.pow(10, exponent);
+    return `${mantissa.toFixed(3)} × 10^${exponent}`;
+  }
+
+  function updateValues() {
+    const sub = SUBSTANCES[currentKey];
+    const moles = sampleMass / sub.molarMass;
+    const particles = moles * AVOGADRO;
+    const atoms = particles * sub.atomsPerUnit;
+
+    if (lblMass) lblMass.innerText = `${sampleMass.toFixed(2)} g`;
+    if (lblMoles) lblMoles.innerText = `${moles.toFixed(3)} mol`;
+    if (sliderMoles) sliderMoles.value = Math.min(10.0, moles).toFixed(2);
+
+    if (valMass) valMass.innerText = `${sampleMass.toFixed(2)} g`;
+    if (valMoles) valMoles.innerText = `${moles.toFixed(4)} mol`;
+    if (valParticles) valParticles.innerText = formatScientificPlain(particles);
+    if (valAtoms) valAtoms.innerText = formatScientificPlain(atoms);
+
+    if (noteText) {
+      noteText.innerHTML = `<strong>${sub.name}</strong> (M = ${sub.molarMass.toFixed(3)} g/mol): <strong>${sampleMass.toFixed(2)} g</strong> contains <strong>${moles.toFixed(3)} moles</strong>, or <strong>${formatScientificPlain(particles)}</strong> formula units (${formatScientificPlain(atoms)} total atoms).`;
+    }
+  }
+
+  btnC12.addEventListener("click", () => setSubstance("c12"));
+  btnH2O.addEventListener("click", () => setSubstance("h2o"));
+  btnNaCl.addEventListener("click", () => setSubstance("nacl"));
+  btnCu.addEventListener("click", () => setSubstance("cu"));
+  btnGlucose.addEventListener("click", () => setSubstance("glucose"));
+
+  sliderMass.addEventListener("input", (e) => {
+    sampleMass = Number(e.target.value);
+    updateValues();
+  });
+
+  sliderMoles.addEventListener("input", (e) => {
+    const n = Number(e.target.value);
+    const sub = SUBSTANCES[currentKey];
+    sampleMass = Number((n * sub.molarMass).toFixed(2));
+    if (sliderMass) sliderMass.value = Math.min(250, sampleMass).toString();
+    updateValues();
+  });
+
+  let animId = null;
+  function render(time) {
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const sub = SUBSTANCES[currentKey];
+    const moles = sampleMass / sub.molarMass;
+    const particles = moles * AVOGADRO;
+
+    // Background Laboratory Bench
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+    bgGrad.addColorStop(0, "#080d1a");
+    bgGrad.addColorStop(0.65, "#0f172a");
+    bgGrad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Bench tabletop
+    const benchY = H - 75;
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(0, benchY, W, H - benchY);
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY);
+    ctx.lineTo(W, benchY);
+    ctx.stroke();
+
+    // 1. Digital Analytical Balance on the left (x: 50, y: benchY - 140, w: 260, h: 140)
+    const balX = 60;
+    const balY = benchY - 130;
+    const balW = 250;
+    const balH = 130;
+
+    // Balance Base
+    ctx.fillStyle = "#0f172a";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(balX, balY + 45, balW, balH - 45, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Stainless Steel Pan
+    ctx.fillStyle = "#cbd5e1";
+    ctx.beginPath();
+    ctx.ellipse(balX + balW / 2, balY + 45, 75, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Pan Stem
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(balX + balW / 2 - 8, balY + 45, 16, 15);
+
+    // Watch glass / beaker on pan
+    const glassW = 90;
+    const glassH = 35;
+    ctx.fillStyle = "rgba(224, 242, 254, 0.25)";
+    ctx.beginPath();
+    ctx.ellipse(balX + balW / 2, balY + 38, glassW / 2, glassH / 2, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+    ctx.stroke();
+
+    // Sample Pile in Watch Glass
+    const pileW = Math.min(60, 20 + sampleMass * 0.3);
+    const pileH = Math.min(22, 6 + sampleMass * 0.12);
+    ctx.fillStyle = sub.color;
+    ctx.beginPath();
+    ctx.ellipse(balX + balW / 2, balY + 36, pileW / 2, pileH / 2, 0, Math.PI, 0);
+    ctx.fill();
+
+    // Glowing LCD Display on Balance front
+    const lcdX = balX + 35;
+    const lcdY = balY + 75;
+    const lcdW = 180;
+    const lcdH = 42;
+
+    ctx.fillStyle = "#022c22";
+    ctx.strokeStyle = "#059669";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(lcdX, lcdY, lcdW, lcdH, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = "bold 22px 'Courier New', monospace";
+    ctx.fillStyle = "#34d399";
+    ctx.textAlign = "right";
+    ctx.fillText(`${sampleMass.toFixed(3)} g`, lcdX + lcdW - 12, lcdY + 28);
+    ctx.font = "10px Inter, sans-serif";
+    ctx.fillStyle = "#10b981";
+    ctx.textAlign = "left";
+    ctx.fillText("TARED • ANALYTICAL", lcdX + 8, lcdY + 14);
+
+    // 2. Microscopic Inspection Chamber on Right (Circle at x: 570, y: 145, r: 90)
+    const circX = 570;
+    const circY = 145;
+    const circR = 95;
+
+    // Magnifying Rim & Glass
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 3;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+    ctx.beginPath();
+    ctx.arc(circX, circY, circR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Crosshairs
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.2)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(circX - circR, circY);
+    ctx.lineTo(circX + circR, circY);
+    ctx.moveTo(circX, circY - circR);
+    ctx.lineTo(circX, circY + circR);
+    ctx.stroke();
+
+    // Clip to circle and draw micro particles
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(circX, circY, circR - 2, 0, Math.PI * 2);
+    ctx.clip();
+
+    const densityCount = Math.min(40, Math.max(10, Math.round(moles * 15)));
+    for (let i = 0; i < densityCount; i++) {
+      const p = microParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+
+      // Bounce within circle bounds
+      const dx = p.x - circX;
+      const dy = p.y - circY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > circR - sub.atomRadius - 4) {
+        const nx = dx / dist;
+        const ny = dy / dist;
+        p.x = circX + nx * (circR - sub.atomRadius - 4);
+        p.y = circY + ny * (circR - sub.atomRadius - 4);
+        p.vx = -p.vx * 0.9;
+        p.vy = -p.vy * 0.9;
+      }
+
+      ctx.fillStyle = sub.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, sub.atomRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    ctx.restore();
+
+    // Inspection Chamber label badge
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(circX - 90, circY + circR - 10, 180, 24, 12);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`Sub-Microscopic Particles (${sub.formula})`, circX, circY + circR + 6);
+
+    // 3. Central Dimensional Analysis Conversion Flow (x: 325, y: 70, w: 155, h: 180)
+    const flowX = 325;
+    const flowY = 55;
+
+    // Arrow 1: Mass -> Moles
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("÷ M (Molar Mass)", flowX + 75, flowY + 28);
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(flowX + 15, flowY + 36);
+    ctx.lineTo(flowX + 135, flowY + 36);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(flowX + 135, flowY + 36);
+    ctx.lineTo(flowX + 125, flowY + 31);
+    ctx.lineTo(flowX + 125, flowY + 41);
+    ctx.closePath();
+    ctx.fill();
+
+    // Arrow 2: Moles -> Particles
+    ctx.fillStyle = "#34d399";
+    ctx.fillText("× N_A (Avogadro)", flowX + 75, flowY + 95);
+    ctx.strokeStyle = "#34d399";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(flowX + 15, flowY + 103);
+    ctx.lineTo(flowX + 135, flowY + 103);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(flowX + 135, flowY + 103);
+    ctx.lineTo(flowX + 125, flowY + 98);
+    ctx.lineTo(flowX + 125, flowY + 108);
+    ctx.closePath();
+    ctx.fill();
+
+    // Formula summary card at bottom of canvas
+    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(W / 2 - 250, H - 48, 500, 36, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = "12px Inter, sans-serif";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.textAlign = "center";
+    ctx.fillText(`n = ${moles.toFixed(3)} mol  ⟹  N = (${moles.toFixed(3)}) × (6.022 × 10²³) = ${formatScientificPlain(particles)} particles`, W / 2, H - 26);
+
+    animId = requestAnimationFrame(render);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  updateValues();
+}
+
+/**
+ * Chemistry: Empirical & Molecular Formula Workbench (CHEM-M09-L4)
+ * Solves empirical and molecular formulas from elemental percent composition
+ * and molar mass using step-by-step stoichiometric deduction.
+ */
+function buildEmpiricalFormulaInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+
+  const PRESETS = {
+    glucose: {
+      name: "Glucose (Blood Sugar)",
+      elements: [
+        { sym: "C", name: "Carbon", pct: 40.00, molarMass: 12.011, color: "#94a3b8" },
+        { sym: "H", name: "Hydrogen", pct: 6.71, molarMass: 1.008, color: "#38bdf8" },
+        { sym: "O", name: "Oxygen", pct: 53.29, molarMass: 15.999, color: "#f87171" }
+      ],
+      molecularMolarMass: 180.16,
+      empiricalFormula: "CH₂O",
+      molecularFormula: "C₆H₁₂O₆",
+      multiplier: 6
+    },
+    benzene: {
+      name: "Benzene (Aromatic Ring)",
+      elements: [
+        { sym: "C", name: "Carbon", pct: 92.26, molarMass: 12.011, color: "#94a3b8" },
+        { sym: "H", name: "Hydrogen", pct: 7.74, molarMass: 1.008, color: "#38bdf8" }
+      ],
+      molecularMolarMass: 78.11,
+      empiricalFormula: "CH",
+      molecularFormula: "C₆H₆",
+      multiplier: 6
+    },
+    aceticAcid: {
+      name: "Acetic Acid (Vinegar)",
+      elements: [
+        { sym: "C", name: "Carbon", pct: 40.00, molarMass: 12.011, color: "#94a3b8" },
+        { sym: "H", name: "Hydrogen", pct: 6.71, molarMass: 1.008, color: "#38bdf8" },
+        { sym: "O", name: "Oxygen", pct: 53.29, molarMass: 15.999, color: "#f87171" }
+      ],
+      molecularMolarMass: 60.05,
+      empiricalFormula: "CH₂O",
+      molecularFormula: "C₂H₄O₂",
+      multiplier: 2
+    },
+    h2o2: {
+      name: "Hydrogen Peroxide",
+      elements: [
+        { sym: "H", name: "Hydrogen", pct: 5.93, molarMass: 1.008, color: "#38bdf8" },
+        { sym: "O", name: "Oxygen", pct: 94.07, molarMass: 15.999, color: "#f87171" }
+      ],
+      molecularMolarMass: 34.01,
+      empiricalFormula: "HO",
+      molecularFormula: "H₂O₂",
+      multiplier: 2
+    },
+    fe2o3: {
+      name: "Iron(III) Oxide (Rust)",
+      elements: [
+        { sym: "Fe", name: "Iron", pct: 69.94, molarMass: 55.845, color: "#fb923c" },
+        { sym: "O", name: "Oxygen", pct: 30.06, molarMass: 15.999, color: "#f87171" }
+      ],
+      molecularMolarMass: 159.69,
+      empiricalFormula: "Fe₂O₃",
+      molecularFormula: "Fe₂O₃",
+      multiplier: 1
+    }
+  };
+
+  let currentKey = params.compound || "glucose";
+  let curMolarMass = PRESETS[currentKey].molecularMolarMass;
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #060913; border-radius: 8px; overflow: hidden; border: 1px solid #1e293b;">
+        <canvas id="${mountId}-canvas" width="800" height="540" style="width: 100%; height: 280px; display: block;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5;">
+          <div class="sim-badge" id="${mountId}-badge" style="background: rgba(15, 23, 42, 0.85); border: 1px solid #38bdf8; color: #38bdf8; font-size: 11px; padding: 4px 10px; border-radius: 12px; font-weight: 600;">
+            Empirical vs Molecular Formula Determination
+          </div>
+        </div>
+      </div>
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;">
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Empirical Formula:</span>
+            <span class="readout-val" id="${mountId}-val-empirical" style="color: #38bdf8; font-weight: 700; font-size: 15px;">CH₂O</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Molecular Formula:</span>
+            <span class="readout-val" id="${mountId}-val-molecular" style="color: #34d399; font-weight: 700; font-size: 15px;">C₆H₁₂O₆</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Empirical Mass (M_emp):</span>
+            <span class="readout-val" id="${mountId}-val-emp-mass" style="color: #a78bfa; font-weight: 700; font-size: 12px;">30.03 g/mol</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Formula Multiplier (n):</span>
+            <span class="readout-val" id="${mountId}-val-multiplier" style="color: #fb923c; font-weight: 700; font-size: 13px;">n = 6</span>
+          </div>
+        </div>
+
+        <div style="margin: 6px 0;">
+          <label style="font-size: 10.5px; color: #94a3b8; display: block; margin-bottom: 4px;">Select Test Unknown Compound:</label>
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <button type="button" class="btn-sim-action active" id="${mountId}-btn-glucose" style="flex: 1; font-size: 10px; padding: 4px 4px;" aria-label="Glucose">Glucose</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-btn-benzene" style="flex: 1; font-size: 10px; padding: 4px 4px;" aria-label="Benzene">Benzene</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-btn-acetic" style="flex: 1; font-size: 10px; padding: 4px 4px;" aria-label="Acetic Acid">Acetic Acid</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-btn-h2o2" style="flex: 1; font-size: 10px; padding: 4px 4px;" aria-label="Hydrogen Peroxide">H₂O₂</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-btn-fe2o3" style="flex: 1; font-size: 10px; padding: 4px 4px;" aria-label="Iron(III) Oxide">Fe₂O₃</button>
+          </div>
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Molecular Molar Mass (Experimental):</span>
+            <strong id="${mountId}-lbl-mm">${curMolarMass.toFixed(1)} g/mol</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-slider-mm" min="20" max="250" step="1" value="${curMolarMass}" aria-label="Molecular Molar Mass in grams per mole">
+        </div>
+
+        <div class="sim-note" id="${mountId}-note-text" style="font-size: 10.5px; color: #94a3b8; background: rgba(30, 41, 59, 0.4); padding: 6px 8px; border-radius: 6px; border-left: 2px solid #38bdf8; margin-top: 4px;">
+          Empirical rule: Convert % composition in 100g sample to moles, divide by smallest mole value to find smallest whole-number ratio.
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const btnGlucose = document.getElementById(`${mountId}-btn-glucose`);
+  const btnBenzene = document.getElementById(`${mountId}-btn-benzene`);
+  const btnAcetic = document.getElementById(`${mountId}-btn-acetic`);
+  const btnH2O2 = document.getElementById(`${mountId}-btn-h2o2`);
+  const btnFe2O3 = document.getElementById(`${mountId}-btn-fe2o3`);
+
+  const sliderMM = document.getElementById(`${mountId}-slider-mm`);
+  const lblMM = document.getElementById(`${mountId}-lbl-mm`);
+
+  const valEmpirical = document.getElementById(`${mountId}-val-empirical`);
+  const valMolecular = document.getElementById(`${mountId}-val-molecular`);
+  const valEmpMass = document.getElementById(`${mountId}-val-emp-mass`);
+  const valMultiplier = document.getElementById(`${mountId}-val-multiplier`);
+  const noteText = document.getElementById(`${mountId}-note-text`);
+
+  function calculateStoichiometry() {
+    const comp = PRESETS[currentKey];
+    // Step 1 & 2: Moles in 100g
+    const elementData = comp.elements.map((el) => {
+      const moles = el.pct / el.molarMass;
+      return { ...el, mass100g: el.pct, moles };
+    });
+
+    const minMoles = Math.min(...elementData.map((e) => e.moles));
+    elementData.forEach((e) => {
+      e.ratio = e.moles / minMoles;
+    });
+
+    // Empirical formula mass
+    let empMass = 0;
+    comp.elements.forEach((el) => {
+      // Find subscript in empirical formula
+      if (currentKey === "glucose" || currentKey === "aceticAcid") {
+        if (el.sym === "C") empMass += 1 * 12.011;
+        if (el.sym === "H") empMass += 2 * 1.008;
+        if (el.sym === "O") empMass += 1 * 15.999;
+      } else if (currentKey === "benzene") {
+        if (el.sym === "C") empMass += 1 * 12.011;
+        if (el.sym === "H") empMass += 1 * 1.008;
+      } else if (currentKey === "h2o2") {
+        if (el.sym === "H") empMass += 1 * 1.008;
+        if (el.sym === "O") empMass += 1 * 15.999;
+      } else if (currentKey === "fe2o3") {
+        if (el.sym === "Fe") empMass += 2 * 55.845;
+        if (el.sym === "O") empMass += 3 * 15.999;
+      }
+    });
+
+    const multiplier = Math.max(1, Math.round(curMolarMass / empMass));
+
+    return {
+      elementData,
+      empMass,
+      multiplier,
+      comp
+    };
+  }
+
+  function setCompound(key) {
+    currentKey = key;
+    [btnGlucose, btnBenzene, btnAcetic, btnH2O2, btnFe2O3].forEach((b) => b && b.classList.remove("active"));
+    if (key === "glucose" && btnGlucose) btnGlucose.classList.add("active");
+    if (key === "benzene" && btnBenzene) btnBenzene.classList.add("active");
+    if (key === "aceticAcid" && btnAcetic) btnAcetic.classList.add("active");
+    if (key === "h2o2" && btnH2O2) btnH2O2.classList.add("active");
+    if (key === "fe2o3" && btnFe2O3) btnFe2O3.classList.add("active");
+
+    curMolarMass = PRESETS[currentKey].molecularMolarMass;
+    if (sliderMM) sliderMM.value = curMolarMass.toString();
+    updateUI();
+  }
+
+  function updateUI() {
+    const res = calculateStoichiometry();
+    if (lblMM) lblMM.innerText = `${curMolarMass.toFixed(1)} g/mol`;
+
+    if (valEmpirical) valEmpirical.innerText = res.comp.empiricalFormula;
+    if (valEmpMass) valEmpMass.innerText = `${res.empMass.toFixed(2)} g/mol`;
+    if (valMultiplier) valMultiplier.innerText = `n = ${res.multiplier} (${(curMolarMass / res.empMass).toFixed(2)})`;
+
+    let molecularForm = res.comp.molecularFormula;
+    if (res.multiplier === 1) {
+      molecularForm = res.comp.empiricalFormula;
+    }
+    if (valMolecular) valMolecular.innerText = molecularForm;
+
+    if (noteText) {
+      noteText.innerHTML = `<strong>${res.comp.name}</strong>: Empirical mass = <strong>${res.empMass.toFixed(2)} g/mol</strong>. Factor n = M_molecular / M_empirical = ${curMolarMass.toFixed(1)} / ${res.empMass.toFixed(2)} ≈ <strong>${res.multiplier}</strong> ⟹ Molecular Formula: <strong>${molecularForm}</strong>.`;
+    }
+  }
+
+  btnGlucose.addEventListener("click", () => setCompound("glucose"));
+  btnBenzene.addEventListener("click", () => setCompound("benzene"));
+  btnAcetic.addEventListener("click", () => setCompound("aceticAcid"));
+  btnH2O2.addEventListener("click", () => setCompound("h2o2"));
+  btnFe2O3.addEventListener("click", () => setCompound("fe2o3"));
+
+  sliderMM.addEventListener("input", (e) => {
+    curMolarMass = Number(e.target.value);
+    updateUI();
+  });
+
+  let animId = null;
+  function render() {
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const res = calculateStoichiometry();
+
+    // Background
+    ctx.fillStyle = "#090d1a";
+    ctx.fillRect(0, 0, W, H);
+
+    // Header banner
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(20, 16, W - 40, 36);
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(20, 16, W - 40, 36);
+
+    ctx.font = "bold 13px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "left";
+    ctx.fillText(`Percent Composition & Stoichiometric Ratio Table (${res.comp.name})`, 35, 39);
+
+    // Table Header
+    const tableX = 30;
+    const tableY = 68;
+    const colWidths = [120, 130, 140, 150, 180];
+    const headers = ["Element", "% by Mass (100g)", "Moles (m / M_r)", "Molar Ratio", "Whole-Number Ratio"];
+
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(tableX, tableY, W - 60, 28);
+    ctx.strokeStyle = "#334155";
+    ctx.strokeRect(tableX, tableY, W - 60, 28);
+
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.fillStyle = "#94a3b8";
+    let curX = tableX + 12;
+    headers.forEach((h, idx) => {
+      ctx.fillText(h, curX, tableY + 18);
+      curX += colWidths[idx];
+    });
+
+    // Table Rows
+    let rowY = tableY + 32;
+    res.elementData.forEach((el, rIdx) => {
+      ctx.fillStyle = rIdx % 2 === 0 ? "rgba(30, 41, 59, 0.4)" : "rgba(15, 23, 42, 0.4)";
+      ctx.fillRect(tableX, rowY, W - 60, 32);
+      ctx.strokeStyle = "rgba(51, 65, 85, 0.5)";
+      ctx.strokeRect(tableX, rowY, W - 60, 32);
+
+      let rx = tableX + 12;
+      // Col 1: Element Name & Symbol
+      ctx.fillStyle = el.color;
+      ctx.font = "bold 12px Inter, sans-serif";
+      ctx.fillText(`${el.sym} (${el.name})`, rx, rowY + 20);
+      rx += colWidths[0];
+
+      // Col 2: Mass %
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "12px monospace";
+      ctx.fillText(`${el.pct.toFixed(2)} g`, rx, rowY + 20);
+      rx += colWidths[1];
+
+      // Col 3: Moles
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillText(`${el.moles.toFixed(3)} mol`, rx, rowY + 20);
+      rx += colWidths[2];
+
+      // Col 4: Raw ratio
+      ctx.fillStyle = "#a78bfa";
+      ctx.fillText(`÷ ${Math.min(...res.elementData.map((e) => e.moles)).toFixed(3)} = ${el.ratio.toFixed(2)}`, rx, rowY + 20);
+      rx += colWidths[3];
+
+      // Col 5: Rounded whole number
+      ctx.fillStyle = "#34d399";
+      ctx.font = "bold 12px monospace";
+      ctx.fillText(`⟶ ${Math.round(el.ratio)}`, rx, rowY + 20);
+
+      rowY += 36;
+    });
+
+    // Bottom Visual Synthesis Card
+    const cardY = rowY + 20;
+    const cardH = H - cardY - 20;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(tableX, cardY, W - 60, cardH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = "bold 13px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "left";
+    ctx.fillText("Empirical to Molecular Formula Derivation:", tableX + 20, cardY + 28);
+
+    ctx.font = "12px Inter, sans-serif";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillText(`1. Empirical Unit Formula: `, tableX + 20, cardY + 54);
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 14px monospace";
+    ctx.fillText(res.comp.empiricalFormula, tableX + 185, cardY + 54);
+
+    ctx.font = "12px Inter, sans-serif";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillText(`2. Formula Unit Multiplier: `, tableX + 270, cardY + 54);
+    ctx.fillStyle = "#fb923c";
+    ctx.font = "bold 13px monospace";
+    ctx.fillText(`n = M_mol / M_emp = ${curMolarMass.toFixed(1)} / ${res.empMass.toFixed(2)} = ${res.multiplier}`, tableX + 440, cardY + 54);
+
+    ctx.fillStyle = "#34d399";
+    ctx.font = "bold 15px Inter, sans-serif";
+    ctx.fillText(`Molecular Formula: ${res.multiplier === 1 ? res.comp.empiricalFormula : res.comp.molecularFormula}`, tableX + 20, cardY + 88);
+
+    animId = requestAnimationFrame(render);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  updateUI();
+}
+
+/**
+ * Chemistry: Hydrates & Water of Crystallization (CHEM-M09-L5)
+ * Thermal dehydration in crucible over Bunsen burner, tracking mass loss
+ * to determine the stoichiometric formula of hydrates (e.g. CuSO₄ · 5H₂O).
+ */
+function buildHydrateDehydrationInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+
+  const HYDRATES = {
+    cuso4: {
+      name: "Copper(II) Sulfate Hydrate",
+      formula: "CuSO₄ · 5H₂O",
+      anhydrousFormula: "CuSO₄",
+      anhydrousMass: 159.609,
+      waterMolesExpected: 5,
+      hydratedColor: "#0284c7", // vibrant blue crystals
+      anhydrousColor: "#e2e8f0", // powdery ash white
+      steamColor: "rgba(224, 242, 254, 0.4)",
+      heatTempNeeded: 220
+    },
+    cocl2: {
+      name: "Cobalt(II) Chloride Hydrate",
+      formula: "CoCl₂ · 6H₂O",
+      anhydrousFormula: "CoCl₂",
+      anhydrousMass: 129.839,
+      waterMolesExpected: 6,
+      hydratedColor: "#ec4899", // magenta-pink
+      anhydrousColor: "#2563eb", // deep blue
+      steamColor: "rgba(244, 244, 245, 0.4)",
+      heatTempNeeded: 160
+    },
+    mgso4: {
+      name: "Magnesium Sulfate (Epsom Salt)",
+      formula: "MgSO₄ · 7H₂O",
+      anhydrousFormula: "MgSO₄",
+      anhydrousMass: 120.366,
+      waterMolesExpected: 7,
+      hydratedColor: "#f1f5f9", // clear crystalline
+      anhydrousColor: "#94a3b8", // chalky opaque white
+      steamColor: "rgba(241, 245, 249, 0.35)",
+      heatTempNeeded: 250
+    },
+    bacl2: {
+      name: "Barium Chloride Hydrate",
+      formula: "BaCl₂ · 2H₂O",
+      anhydrousFormula: "BaCl₂",
+      anhydrousMass: 208.233,
+      waterMolesExpected: 2,
+      hydratedColor: "#e0e7ff", // glassy white
+      anhydrousColor: "#cbd5e1", // white powder
+      steamColor: "rgba(224, 231, 255, 0.35)",
+      heatTempNeeded: 180
+    }
+  };
+
+  let currentKey = params.hydrate || "cuso4";
+  let sampleInitialGrams = 5.000;
+  let crucibleGrams = 24.320;
+  let heatPower = 0; // 0=off, 1=gentle, 2=strong
+  let dehydrateProgress = 0.0; // 0.0 (fully hydrated) to 1.0 (fully anhydrous)
+  let crucibleTemp = 25; // °C
+
+  const steamParticles = [];
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #060913; border-radius: 8px; overflow: hidden; border: 1px solid #1e293b;">
+        <canvas id="${mountId}-canvas" width="800" height="540" style="width: 100%; height: 280px; display: block;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5;">
+          <div class="sim-badge" id="${mountId}-status-badge" style="background: rgba(15, 23, 42, 0.85); border: 1px solid #38bdf8; color: #38bdf8; font-size: 11px; padding: 4px 10px; border-radius: 12px; font-weight: 600;">
+            Crystalline Hydrate: Intact Water of Hydration
+          </div>
+        </div>
+      </div>
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;">
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Crucible + Sample Mass:</span>
+            <span class="readout-val" id="${mountId}-val-total-mass" style="color: #38bdf8; font-weight: 700; font-size: 13px;">-- g</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Evaporated Water Loss:</span>
+            <span class="readout-val" id="${mountId}-val-water-loss" style="color: #f87171; font-weight: 700; font-size: 13px;">0.000 g</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Crucible Temperature:</span>
+            <span class="readout-val" id="${mountId}-val-temp" style="color: #fb923c; font-weight: 700; font-size: 13px;">25 °C</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Mole Ratio (x = n_H₂O/n_anh):</span>
+            <span class="readout-val" id="${mountId}-val-ratio" style="color: #34d399; font-weight: 700; font-size: 13px;">--</span>
+          </div>
+        </div>
+
+        <div style="margin: 6px 0;">
+          <label style="font-size: 10.5px; color: #94a3b8; display: block; margin-bottom: 4px;">Select Hydrate Compound:</label>
+          <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+            <button type="button" class="btn-sim-action active" id="${mountId}-btn-cuso4" style="flex: 1; font-size: 10px; padding: 4px 4px;" aria-label="Copper(II) Sulfate Hydrate">CuSO₄·5H₂O</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-btn-cocl2" style="flex: 1; font-size: 10px; padding: 4px 4px;" aria-label="Cobalt(II) Chloride Hydrate">CoCl₂·6H₂O</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-btn-mgso4" style="flex: 1; font-size: 10px; padding: 4px 4px;" aria-label="Magnesium Sulfate Hydrate">MgSO₄·7H₂O</button>
+            <button type="button" class="btn-sim-action" id="${mountId}-btn-bacl2" style="flex: 1; font-size: 10px; padding: 4px 4px;" aria-label="Barium Chloride Hydrate">BaCl₂·2H₂O</button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin: 4px 0;">
+          <button type="button" class="btn-sim-action active" id="${mountId}-heat-off" style="flex: 1; padding: 6px 8px; font-size: 11px;" aria-label="Extinguish Flame">Flame Off</button>
+          <button type="button" class="btn-sim-action" id="${mountId}-heat-gentle" style="flex: 1; padding: 6px 8px; font-size: 11px;" aria-label="Gentle Warmth">Gentle Heat</button>
+          <button type="button" class="btn-sim-action" id="${mountId}-heat-strong" style="flex: 1; padding: 6px 8px; font-size: 11px; background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #f87171;" aria-label="Roaring Blue Cone Heat">Strong Heat 🔥</button>
+          <button type="button" class="btn-sim-action" id="${mountId}-btn-reset" style="flex: 1; padding: 6px 8px; font-size: 11px;" aria-label="Reset Experiment">↺ Reset</button>
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Initial Hydrate Sample Mass:</span>
+            <strong id="${mountId}-lbl-sample">${sampleInitialGrams.toFixed(3)} g</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-slider-sample" min="2.0" max="10.0" step="0.1" value="${sampleInitialGrams}" aria-label="Initial hydrate sample mass in grams">
+        </div>
+
+        <div class="sim-note" id="${mountId}-note-text" style="font-size: 10.5px; color: #94a3b8; background: rgba(30, 41, 59, 0.4); padding: 6px 8px; border-radius: 6px; border-left: 2px solid #38bdf8; margin-top: 4px;">
+          Heating drives off water of crystallization. Weighing to constant mass reveals the anhydrous residue and exact water molar ratio.
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const btnCuSO4 = document.getElementById(`${mountId}-btn-cuso4`);
+  const btnCoCl2 = document.getElementById(`${mountId}-btn-cocl2`);
+  const btnMgSO4 = document.getElementById(`${mountId}-btn-mgso4`);
+  const btnBaCl2 = document.getElementById(`${mountId}-btn-bacl2`);
+
+  const heatOff = document.getElementById(`${mountId}-heat-off`);
+  const heatGentle = document.getElementById(`${mountId}-heat-gentle`);
+  const heatStrong = document.getElementById(`${mountId}-heat-strong`);
+  const btnReset = document.getElementById(`${mountId}-btn-reset`);
+
+  const sliderSample = document.getElementById(`${mountId}-slider-sample`);
+  const lblSample = document.getElementById(`${mountId}-lbl-sample`);
+
+  const valTotalMass = document.getElementById(`${mountId}-val-total-mass`);
+  const valWaterLoss = document.getElementById(`${mountId}-val-water-loss`);
+  const valTemp = document.getElementById(`${mountId}-val-temp`);
+  const valRatio = document.getElementById(`${mountId}-val-ratio`);
+  const statusBadge = document.getElementById(`${mountId}-status-badge`);
+  const noteText = document.getElementById(`${mountId}-note-text`);
+
+  function setHydrate(key) {
+    currentKey = key;
+    [btnCuSO4, btnCoCl2, btnMgSO4, btnBaCl2].forEach((b) => b && b.classList.remove("active"));
+    if (key === "cuso4" && btnCuSO4) btnCuSO4.classList.add("active");
+    if (key === "cocl2" && btnCoCl2) btnCoCl2.classList.add("active");
+    if (key === "mgso4" && btnMgSO4) btnMgSO4.classList.add("active");
+    if (key === "bacl2" && btnBaCl2) btnBaCl2.classList.add("active");
+
+    dehydrateProgress = 0.0;
+    crucibleTemp = 25;
+    heatPower = 0;
+    updateFlameButtons();
+    updateCalculations();
+  }
+
+  function updateFlameButtons() {
+    [heatOff, heatGentle, heatStrong].forEach((b) => b && b.classList.remove("active"));
+    if (heatPower === 0 && heatOff) heatOff.classList.add("active");
+    if (heatPower === 1 && heatGentle) heatGentle.classList.add("active");
+    if (heatPower === 2 && heatStrong) heatStrong.classList.add("active");
+  }
+
+  function updateCalculations() {
+    const hyd = HYDRATES[currentKey];
+    const totalMolarMass = hyd.anhydrousMass + hyd.waterMolesExpected * 18.015;
+    const waterMassFraction = (hyd.waterMolesExpected * 18.015) / totalMolarMass;
+    const maxWaterLoss = sampleInitialGrams * waterMassFraction;
+    const actualWaterLoss = maxWaterLoss * dehydrateProgress;
+    const currentSampleMass = sampleInitialGrams - actualWaterLoss;
+    const totalMass = crucibleGrams + currentSampleMass;
+
+    // Moles calculations
+    const anhydrousMassCurrent = currentSampleMass - (maxWaterLoss - actualWaterLoss);
+    const nAnhydrous = (sampleInitialGrams * (hyd.anhydrousMass / totalMolarMass)) / hyd.anhydrousMass;
+    const nWater = actualWaterLoss / 18.015;
+    const experimentalRatio = nAnhydrous > 0 ? (nWater / nAnhydrous) : 0;
+
+    if (valTotalMass) valTotalMass.innerText = `${totalMass.toFixed(3)} g`;
+    if (valWaterLoss) valWaterLoss.innerText = `${actualWaterLoss.toFixed(3)} g`;
+    if (valTemp) valTemp.innerText = `${crucibleTemp.toFixed(0)} °C`;
+    if (valRatio) {
+      valRatio.innerText = `${experimentalRatio.toFixed(2)} / 1.0 (Expected: ${hyd.waterMolesExpected})`;
+    }
+
+    if (dehydrateProgress >= 0.99) {
+      if (statusBadge) {
+        statusBadge.innerText = `Constant Mass Reached: Anhydrous ${hyd.anhydrousFormula} + ${hyd.waterMolesExpected} H₂O`;
+        statusBadge.style.color = "#34d399";
+        statusBadge.style.borderColor = "#10b981";
+      }
+      if (noteText) {
+        noteText.innerHTML = `Complete Dehydration: Heated to constant mass! <strong>${sampleInitialGrams.toFixed(3)} g</strong> hydrate yielded <strong>${(sampleInitialGrams - maxWaterLoss).toFixed(3)} g</strong> anhydrous <strong>${hyd.anhydrousFormula}</strong> and lost <strong>${maxWaterLoss.toFixed(3)} g</strong> steam (<strong>${hyd.waterMolesExpected} mol H₂O / mol salt</strong>). Formula: <strong>${hyd.formula}</strong>.`;
+      }
+    } else if (dehydrateProgress > 0) {
+      if (statusBadge) {
+        statusBadge.innerText = `Thermal Dehydration in Progress (${(dehydrateProgress * 100).toFixed(0)}% Complete)`;
+        statusBadge.style.color = "#fb923c";
+        statusBadge.style.borderColor = "#f59e0b";
+      }
+    } else {
+      if (statusBadge) {
+        statusBadge.innerText = `Crystalline Hydrate: Intact Water of Hydration (${hyd.formula})`;
+        statusBadge.style.color = "#38bdf8";
+        statusBadge.style.borderColor = "#38bdf8";
+      }
+      if (noteText) {
+        noteText.innerHTML = `Ready to dehydrate <strong>${hyd.name}</strong>. Apply Bunsen burner flame to drive off water vapor and measure mass loss.`;
+      }
+    }
+  }
+
+  btnCuSO4.addEventListener("click", () => setHydrate("cuso4"));
+  btnCoCl2.addEventListener("click", () => setHydrate("cocl2"));
+  btnMgSO4.addEventListener("click", () => setHydrate("mgso4"));
+  btnBaCl2.addEventListener("click", () => setHydrate("bacl2"));
+
+  heatOff.addEventListener("click", () => {
+    heatPower = 0;
+    updateFlameButtons();
+  });
+  heatGentle.addEventListener("click", () => {
+    heatPower = 1;
+    updateFlameButtons();
+  });
+  heatStrong.addEventListener("click", () => {
+    heatPower = 2;
+    updateFlameButtons();
+  });
+
+  btnReset.addEventListener("click", () => {
+    dehydrateProgress = 0.0;
+    crucibleTemp = 25;
+    heatPower = 0;
+    updateFlameButtons();
+    updateCalculations();
+  });
+
+  sliderSample.addEventListener("input", (e) => {
+    sampleInitialGrams = Number(e.target.value);
+    if (lblSample) lblSample.innerText = `${sampleInitialGrams.toFixed(3)} g`;
+    dehydrateProgress = 0.0;
+    crucibleTemp = 25;
+    updateCalculations();
+  });
+
+  let animId = null;
+  let lastTimestamp = null;
+
+  function render(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min(0.05, (timestamp - lastTimestamp) / 1000);
+    lastTimestamp = timestamp;
+
+    const hyd = HYDRATES[currentKey];
+
+    // Temperature kinetics
+    const targetTemp = heatPower === 0 ? 25 : (heatPower === 1 ? 140 : 280);
+    if (crucibleTemp < targetTemp) {
+      crucibleTemp += (targetTemp - crucibleTemp) * dt * 0.8;
+    } else if (crucibleTemp > targetTemp) {
+      crucibleTemp += (targetTemp - crucibleTemp) * dt * 0.4;
+    }
+
+    // Dehydration reaction kinetics
+    if (crucibleTemp > 90 && dehydrateProgress < 1.0) {
+      const rate = ((crucibleTemp - 80) / 180) * (heatPower === 2 ? 0.09 : 0.04);
+      dehydrateProgress = Math.min(1.0, dehydrateProgress + rate * dt);
+      updateCalculations();
+    }
+
+    // Canvas dimensions
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    // Dark Lab Background
+    ctx.fillStyle = "#070b16";
+    ctx.fillRect(0, 0, W, H);
+
+    // Bench tabletop
+    const benchY = H - 65;
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(0, benchY, W, H - benchY);
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY);
+    ctx.lineTo(W, benchY);
+    ctx.stroke();
+
+    // 1. Digital Balance on Left (x: 45, y: benchY - 110, w: 230, h: 110)
+    const balX = 45;
+    const balY = benchY - 110;
+    const balW = 230;
+    const balH = 110;
+
+    ctx.fillStyle = "#0f172a";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(balX, balY + 35, balW, balH - 35, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // Stainless steel weighing pan
+    ctx.fillStyle = "#94a3b8";
+    ctx.beginPath();
+    ctx.ellipse(balX + balW / 2, balY + 35, 65, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Digital LED display on balance
+    const totalMolarMass = hyd.anhydrousMass + hyd.waterMolesExpected * 18.015;
+    const waterMassFraction = (hyd.waterMolesExpected * 18.015) / totalMolarMass;
+    const maxWaterLoss = sampleInitialGrams * waterMassFraction;
+    const curMass = crucibleGrams + (sampleInitialGrams - maxWaterLoss * dehydrateProgress);
+
+    ctx.fillStyle = "#022c22";
+    ctx.fillRect(balX + 25, balY + 60, balW - 50, 36);
+    ctx.strokeStyle = "#059669";
+    ctx.strokeRect(balX + 25, balY + 60, balW - 50, 36);
+
+    ctx.font = "bold 18px 'Courier New', monospace";
+    ctx.fillStyle = "#34d399";
+    ctx.textAlign = "right";
+    ctx.fillText(`${curMass.toFixed(3)} g`, balX + balW - 35, balY + 84);
+    ctx.font = "10px Inter, sans-serif";
+    ctx.fillStyle = "#10b981";
+    ctx.textAlign = "left";
+    ctx.fillText("CRUCIBLE + SAMPLE", balX + 30, balY + 54);
+
+    // 2. Bunsen Burner & Crucible Apparatus on Right (Center X: 520)
+    const appX = 520;
+    const burnerBaseY = benchY;
+    const ringY = benchY - 170;
+
+    // Retort Stand Base & Rod
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(appX - 110, burnerBaseY - 14, 220, 14);
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(appX - 90, ringY - 80, 8, burnerBaseY - (ringY - 80));
+
+    // Clamp & Iron Ring
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(appX - 90, ringY, 80, 8);
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(appX, ringY, 50, 14, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Clay Triangle over ring
+    ctx.strokeStyle = "#d97706";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(appX - 35, ringY + 6);
+    ctx.lineTo(appX + 35, ringY + 6);
+    ctx.lineTo(appX, ringY - 10);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Bunsen Burner
+    const burnerH = 95;
+    const burnerTopY = burnerBaseY - burnerH;
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(appX - 22, burnerBaseY - 12, 44, 12);
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(appX - 8, burnerTopY, 16, burnerH - 12);
+
+    // Bunsen Flame
+    if (heatPower > 0) {
+      const flameH = heatPower === 1 ? 40 : 65;
+      const flameW = heatPower === 1 ? 16 : 24;
+
+      // Outer cone
+      const flameGrad = ctx.createLinearGradient(appX, burnerTopY, appX, burnerTopY - flameH);
+      flameGrad.addColorStop(0, "rgba(59, 130, 246, 0.85)");
+      flameGrad.addColorStop(0.4, "rgba(96, 165, 250, 0.9)");
+      flameGrad.addColorStop(1, "rgba(251, 146, 60, 0.2)");
+
+      ctx.fillStyle = flameGrad;
+      ctx.beginPath();
+      ctx.moveTo(appX - flameW / 2, burnerTopY);
+      ctx.quadraticCurveTo(appX - flameW * 0.7, burnerTopY - flameH * 0.6, appX, burnerTopY - flameH);
+      ctx.quadraticCurveTo(appX + flameW * 0.7, burnerTopY - flameH * 0.6, appX + flameW / 2, burnerTopY);
+      ctx.closePath();
+      ctx.fill();
+
+      // Inner roaring blue cone
+      if (heatPower === 2) {
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.moveTo(appX - 6, burnerTopY);
+        ctx.lineTo(appX, burnerTopY - 26);
+        ctx.lineTo(appX + 6, burnerTopY);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    // Porcelain Crucible seated in triangle
+    const crucY = ringY - 8;
+    const crucW = 54;
+    const crucH = 40;
+
+    // Crucible Body
+    ctx.fillStyle = "#f8fafc";
+    ctx.beginPath();
+    ctx.moveTo(appX - crucW / 2, crucY);
+    ctx.lineTo(appX - crucW * 0.35, crucY + crucH);
+    ctx.lineTo(appX + crucW * 0.35, crucY + crucH);
+    ctx.lineTo(appX + crucW / 2, crucY);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Sample inside crucible with color interpolation
+    const r1 = parseInt(hyd.hydratedColor.slice(1, 3), 16);
+    const g1 = parseInt(hyd.hydratedColor.slice(3, 5), 16);
+    const b1 = parseInt(hyd.hydratedColor.slice(5, 7), 16);
+
+    const r2 = parseInt(hyd.anhydrousColor.slice(1, 3), 16);
+    const g2 = parseInt(hyd.anhydrousColor.slice(3, 5), 16);
+    const b2 = parseInt(hyd.anhydrousColor.slice(5, 7), 16);
+
+    const curR = Math.round(r1 + (r2 - r1) * dehydrateProgress);
+    const curG = Math.round(g1 + (g2 - g1) * dehydrateProgress);
+    const curB = Math.round(b1 + (b2 - b1) * dehydrateProgress);
+
+    ctx.fillStyle = `rgb(${curR}, ${curG}, ${curB})`;
+    ctx.beginPath();
+    ctx.ellipse(appX, crucY + 12, crucW * 0.38, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Steam Vapor Particles rising during dehydration
+    if (crucibleTemp > 95 && dehydrateProgress < 0.99) {
+      if (Math.random() < 0.4) {
+        steamParticles.push({
+          x: appX + (Math.random() - 0.5) * 20,
+          y: crucY - 4,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: -1.2 - Math.random() * 1.5,
+          radius: 2 + Math.random() * 5,
+          life: 1.0
+        });
+      }
+    }
+
+    // Render Steam
+    for (let i = steamParticles.length - 1; i >= 0; i--) {
+      const p = steamParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.radius += 0.15;
+      p.life -= 0.02;
+      if (p.life <= 0) {
+        steamParticles.splice(i, 1);
+        continue;
+      }
+      ctx.fillStyle = hyd.steamColor;
+      ctx.globalAlpha = p.life * 0.5;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+    }
+
+    // Temperature Badge on top right of apparatus
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.strokeStyle = crucibleTemp > 100 ? "#ef4444" : "#38bdf8";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(appX + 80, ringY - 50, 110, 48, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.fillStyle = "#94a3b8";
+    ctx.textAlign = "left";
+    ctx.fillText("Crucible Temp:", appX + 90, ringY - 32);
+    ctx.font = "bold 14px monospace";
+    ctx.fillStyle = crucibleTemp > 100 ? "#f87171" : "#38bdf8";
+    ctx.fillText(`${crucibleTemp.toFixed(0)} °C`, appX + 90, ringY - 14);
+
+    animId = requestAnimationFrame(render);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  updateCalculations();
+}
 
 /**
  * 5. Chemistry: Gas Laws Piston Simulator
@@ -5249,6 +6599,719 @@ function buildKinematics1DInteractive(mountId, params) {
     statusBadge.style.borderColor = "rgba(56, 189, 248, 0.4)";
     statusText.innerText = "Parameters updated. Theoretical stopping time and distance recalculated.";
   });
+}
+
+/**
+ * Physics: Free Fall & Gravitational Acceleration (PHYS-M03-L3)
+ * Rigorous 1D Vertical Kinematics Simulation:
+ * Supports initial height y₀, signed initial velocity v₀, gravitational acceleration g,
+ * airless vacuum free-fall, apex calculation, and ground impact.
+ * Regression benchmark: y₀ = 80 m, v₀ = 0 m/s, g = 9.8 m/s² yields t_impact = 4.04 s, v_impact = -39.6 m/s.
+ */
+function buildFreeFallInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+  let y0 = params.y0 !== undefined ? Number(params.y0) : 80; // meters
+  let v0 = params.v0 !== undefined ? Number(params.v0) : 0; // m/s (signed: + upwards, - downwards)
+  let g = params.g !== undefined ? Number(params.g) : 9.8; // m/s²
+  let mass = params.mass !== undefined ? Number(params.mass) : 1.0; // kg
+
+  let simTime = 0.0;
+  let isRunning = false;
+  let hasImpacted = false;
+  let animId = null;
+  let lastTimestamp = null;
+
+  // Trail history and impact particle burst
+  const trail = [];
+  const impactDust = [];
+
+  function calcTheoretical() {
+    const disc = v0 * v0 + 2 * g * y0;
+    const tImpact = disc > 0 ? (v0 + Math.sqrt(disc)) / g : 0;
+    const vImpact = -Math.sqrt(Math.max(0, disc));
+    const tApex = v0 > 0 ? v0 / g : 0;
+    const yMax = v0 > 0 ? y0 + (v0 * v0) / (2 * g) : y0;
+    return { tImpact, vImpact, tApex, yMax };
+  }
+
+  function getKinematicsAt(t) {
+    const theo = calcTheoretical();
+    if (t >= theo.tImpact) {
+      return {
+        y: 0,
+        v: theo.vImpact,
+        impacted: true
+      };
+    }
+    const y = Math.max(0, y0 + v0 * t - 0.5 * g * t * t);
+    const v = v0 - g * t;
+    return {
+      y,
+      v,
+      impacted: false
+    };
+  }
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #060913; border-radius: 8px; overflow: hidden; border: 1px solid #1e293b;">
+        <canvas id="${mountId}-canvas" width="800" height="540" style="width: 100%; height: 280px; display: block;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5; flex-wrap: wrap;">
+          <div class="sim-badge" id="${mountId}-status-badge" style="background: rgba(15, 23, 42, 0.85); border: 1px solid #38bdf8; color: #38bdf8; font-size: 11px; padding: 4px 10px; border-radius: 12px; font-weight: 600;">
+            Hypothesis: Ground Impact at 4.04 s
+          </div>
+          <div class="sim-badge" id="${mountId}-celestial-badge" style="background: rgba(15, 23, 42, 0.85); border: 1px solid #64748b; color: #94a3b8; font-size: 11px; padding: 4px 10px; border-radius: 12px;">
+            Earth (g = 9.80 m/s²)
+          </div>
+        </div>
+      </div>
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;">
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Elapsed Time (t):</span>
+            <span class="readout-val" id="${mountId}-val-t" style="color: #38bdf8; font-weight: 700; font-size: 13px;">0.00 s</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Current Altitude (y):</span>
+            <span class="readout-val" id="${mountId}-val-y" style="color: #a78bfa; font-weight: 700; font-size: 13px;">${y0.toFixed(1)} m</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Instant Velocity (v):</span>
+            <span class="readout-val" id="${mountId}-val-v" style="color: #34d399; font-weight: 700; font-size: 13px;">${v0 >= 0 ? "+" : ""}${v0.toFixed(1)} m/s</span>
+          </div>
+          <div>
+            <span class="readout-label" style="font-size: 10px; color: #94a3b8; display: block;">Impact Velocity:</span>
+            <span class="readout-val" id="${mountId}-val-vimpact" style="color: #f87171; font-weight: 700; font-size: 13px;">--</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin: 4px 0;">
+          <button type="button" class="btn-sim-action active" id="${mountId}-btn-launch" style="flex: 2; padding: 7px 10px; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600;" aria-label="Release or Launch Object">
+            <span id="${mountId}-launch-icon">▶</span> <span id="${mountId}-launch-lbl">Release / Launch</span>
+          </button>
+          <button type="button" class="btn-sim-action" id="${mountId}-btn-step" style="flex: 1; padding: 7px 8px; font-size: 11px;" aria-label="Step forward 0.1 seconds">
+            +0.1s
+          </button>
+          <button type="button" class="btn-sim-action" id="${mountId}-btn-reset" style="flex: 1; padding: 7px 8px; font-size: 11px;" aria-label="Reset Free Fall simulation">
+            ↺ Reset
+          </button>
+        </div>
+
+        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+          <button type="button" class="btn-sim-action active" id="${mountId}-preset-earth" style="flex: 1; font-size: 10px; padding: 4px 2px;" aria-label="Earth Gravity 9.8 m/s²">Earth</button>
+          <button type="button" class="btn-sim-action" id="${mountId}-preset-moon" style="flex: 1; font-size: 10px; padding: 4px 2px;" aria-label="Moon Gravity 1.62 m/s²">Moon</button>
+          <button type="button" class="btn-sim-action" id="${mountId}-preset-mars" style="flex: 1; font-size: 10px; padding: 4px 2px;" aria-label="Mars Gravity 3.72 m/s²">Mars</button>
+          <button type="button" class="btn-sim-action" id="${mountId}-preset-jupiter" style="flex: 1; font-size: 10px; padding: 4px 2px;" aria-label="Jupiter Gravity 24.8 m/s²">Jupiter</button>
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Drop Altitude (y₀):</span>
+            <strong id="${mountId}-lbl-y0">${y0} m</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-slider-y0" min="5" max="150" step="1" value="${y0}" aria-label="Initial height y naught in meters">
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Initial Velocity (v₀, signed):</span>
+            <strong id="${mountId}-lbl-v0">${v0 >= 0 ? "+" : ""}${v0} m/s</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-slider-v0" min="-30" max="30" step="1" value="${v0}" aria-label="Initial velocity v naught in meters per second (positive upward, negative downward)">
+        </div>
+
+        <div class="control-slider-group">
+          <div class="slider-header">
+            <span>Gravity Acceleration (g):</span>
+            <strong id="${mountId}-lbl-g">${g.toFixed(1)} m/s²</strong>
+          </div>
+          <input type="range" class="range-slider" id="${mountId}-slider-g" min="1.0" max="25.0" step="0.1" value="${g}" aria-label="Gravitational acceleration g in meters per second squared">
+        </div>
+
+        <div class="sim-note" id="${mountId}-note-text" style="font-size: 10.5px; color: #94a3b8; background: rgba(30, 41, 59, 0.4); padding: 6px 8px; border-radius: 6px; border-left: 2px solid #38bdf8; margin-top: 4px;">
+          Analytical Benchmark: Dropping from 80 m on Earth (v₀ = 0, g = 9.8 m/s²) reaches ground impact at <strong>4.04 s</strong> with speed <strong>39.6 m/s</strong>.
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const btnLaunch = document.getElementById(`${mountId}-btn-launch`);
+  const btnStep = document.getElementById(`${mountId}-btn-step`);
+  const btnReset = document.getElementById(`${mountId}-btn-reset`);
+  const launchIcon = document.getElementById(`${mountId}-launch-icon`);
+  const launchLbl = document.getElementById(`${mountId}-launch-lbl`);
+  const statusBadge = document.getElementById(`${mountId}-status-badge`);
+  const celestialBadge = document.getElementById(`${mountId}-celestial-badge`);
+
+  const sliderY0 = document.getElementById(`${mountId}-slider-y0`);
+  const lblY0 = document.getElementById(`${mountId}-lbl-y0`);
+  const sliderV0 = document.getElementById(`${mountId}-slider-v0`);
+  const lblV0 = document.getElementById(`${mountId}-lbl-v0`);
+  const sliderG = document.getElementById(`${mountId}-slider-g`);
+  const lblG = document.getElementById(`${mountId}-lbl-g`);
+
+  const valT = document.getElementById(`${mountId}-val-t`);
+  const valY = document.getElementById(`${mountId}-val-y`);
+  const valV = document.getElementById(`${mountId}-val-v`);
+  const valVImpact = document.getElementById(`${mountId}-val-vimpact`);
+  const noteText = document.getElementById(`${mountId}-note-text`);
+
+  const presetEarth = document.getElementById(`${mountId}-preset-earth`);
+  const presetMoon = document.getElementById(`${mountId}-preset-moon`);
+  const presetMars = document.getElementById(`${mountId}-preset-mars`);
+  const presetJupiter = document.getElementById(`${mountId}-preset-jupiter`);
+
+  function updatePresetsActive(name) {
+    [presetEarth, presetMoon, presetMars, presetJupiter].forEach((b) => b && b.classList.remove("active"));
+    if (name === "earth" && presetEarth) presetEarth.classList.add("active");
+    if (name === "moon" && presetMoon) presetMoon.classList.add("active");
+    if (name === "mars" && presetMars) presetMars.classList.add("active");
+    if (name === "jupiter" && presetJupiter) presetJupiter.classList.add("active");
+  }
+
+  function updateStatusAndReadouts() {
+    const theo = calcTheoretical();
+    const cur = getKinematicsAt(simTime);
+
+    if (valT) valT.innerText = `${simTime.toFixed(2)} s`;
+    if (valY) valY.innerText = `${cur.y.toFixed(1)} m`;
+    if (valV) {
+      valV.innerText = `${cur.v >= 0 ? "+" : ""}${cur.v.toFixed(1)} m/s`;
+      valV.style.color = cur.v > 0.05 ? "#34d399" : (cur.v < -0.05 ? "#f87171" : "#38bdf8");
+    }
+    if (valVImpact) {
+      valVImpact.innerText = `${Math.abs(theo.vImpact).toFixed(1)} m/s (${theo.vImpact.toFixed(1)})`;
+    }
+
+    if (cur.impacted) {
+      if (statusBadge) {
+        statusBadge.innerText = `Ground Impact Reached: t = ${theo.tImpact.toFixed(2)} s, v = ${theo.vImpact.toFixed(1)} m/s`;
+        statusBadge.style.color = "#f87171";
+        statusBadge.style.borderColor = "#ef4444";
+      }
+      if (noteText) {
+        noteText.innerHTML = `Impact Verified: Reached ground (y = 0 m) at <strong>${theo.tImpact.toFixed(2)} s</strong> with velocity <strong>${theo.vImpact.toFixed(1)} m/s</strong> (speed <strong>${Math.abs(theo.vImpact).toFixed(1)} m/s</strong>). Max height: <strong>${theo.yMax.toFixed(1)} m</strong>.`;
+      }
+    } else if (simTime > 0) {
+      if (cur.v > 0) {
+        if (statusBadge) {
+          statusBadge.innerText = `Ascending to Apex (${theo.yMax.toFixed(1)} m at ${theo.tApex.toFixed(2)} s)`;
+          statusBadge.style.color = "#34d399";
+          statusBadge.style.borderColor = "#10b981";
+        }
+      } else {
+        if (statusBadge) {
+          statusBadge.innerText = `In Free Fall • Descending (Impact at ${theo.tImpact.toFixed(2)} s)`;
+          statusBadge.style.color = "#38bdf8";
+          statusBadge.style.borderColor = "#38bdf8";
+        }
+      }
+    } else {
+      if (statusBadge) {
+        statusBadge.innerText = `Hypothesis: Ground Impact at ${theo.tImpact.toFixed(2)} s (${Math.abs(theo.vImpact).toFixed(1)} m/s)`;
+        statusBadge.style.color = "#38bdf8";
+        statusBadge.style.borderColor = "#38bdf8";
+      }
+      if (noteText) {
+        noteText.innerHTML = `Predicted: Object dropped from ${y0} m with v₀ = ${v0} m/s and g = ${g.toFixed(1)} m/s² will hit ground at <strong>${theo.tImpact.toFixed(2)} s</strong> at <strong>${Math.abs(theo.vImpact).toFixed(1)} m/s</strong>.`;
+      }
+    }
+  }
+
+  function spawnImpactDust(x, y) {
+    impactDust.length = 0;
+    for (let i = 0; i < 28; i++) {
+      const angle = Math.PI + (Math.random() - 0.5) * Math.PI * 0.85;
+      const speed = 2 + Math.random() * 7;
+      impactDust.push({
+        x: x + (Math.random() - 0.5) * 16,
+        y: y - 2,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1.5,
+        life: 1.0,
+        radius: 2 + Math.random() * 4,
+        color: Math.random() > 0.4 ? "#f59e0b" : "#94a3b8"
+      });
+    }
+  }
+
+  function render() {
+    const W = canvas.width;
+    const H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const theo = calcTheoretical();
+    const cur = getKinematicsAt(simTime);
+
+    // Altitude coordinate transformation
+    const groundY = H - 55;
+    const topMargin = 40;
+    const availH = groundY - topMargin;
+    const maxScaleY = Math.max(100, theo.yMax * 1.15, y0 * 1.15);
+    const meterToPx = availH / maxScaleY;
+
+    function yToPx(yMeters) {
+      return groundY - yMeters * meterToPx;
+    }
+
+    // Sky Background gradient
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, groundY);
+    skyGrad.addColorStop(0, "#080d1a");
+    skyGrad.addColorStop(0.7, "#0f172a");
+    skyGrad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, W, groundY);
+
+    // Ground platform
+    const groundGrad = ctx.createLinearGradient(0, groundY, 0, H);
+    groundGrad.addColorStop(0, "#334155");
+    groundGrad.addColorStop(0.2, "#1e293b");
+    groundGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = groundGrad;
+    ctx.fillRect(0, groundY, W, H - groundY);
+
+    // Ground boundary line
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(W, groundY);
+    ctx.stroke();
+
+    // Altitude Ruler on Left (x: 45 to 80)
+    const rulerX = 65;
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(rulerX, topMargin);
+    ctx.lineTo(rulerX, groundY);
+    ctx.stroke();
+
+    const tickStep = maxScaleY > 120 ? 20 : (maxScaleY > 60 ? 10 : 5);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "10px Inter, monospace";
+    ctx.textAlign = "right";
+
+    for (let m = 0; m <= maxScaleY; m += tickStep) {
+      const py = yToPx(m);
+      if (py >= topMargin && py <= groundY) {
+        ctx.beginPath();
+        ctx.moveTo(rulerX - 6, py);
+        ctx.lineTo(rulerX + 6, py);
+        ctx.stroke();
+        ctx.fillText(`${m}m`, rulerX - 10, py + 3.5);
+      }
+    }
+
+    // Drop Tower / Cliff Structure
+    const cliffWidth = 140;
+    const cliffRightX = 260;
+    const cliffLeftX = cliffRightX - cliffWidth;
+    const cliffTopY = yToPx(y0);
+
+    ctx.fillStyle = "rgba(30, 41, 59, 0.75)";
+    ctx.fillRect(cliffLeftX, cliffTopY, cliffWidth, groundY - cliffTopY);
+
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(cliffLeftX, cliffTopY, cliffWidth, groundY - cliffTopY);
+
+    // Cliff top launch platform
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillRect(cliffLeftX, cliffTopY - 4, cliffWidth + 15, 6);
+
+    // Railing at platform
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cliffLeftX + 10, cliffTopY - 4);
+    ctx.lineTo(cliffLeftX + 10, cliffTopY - 22);
+    ctx.lineTo(cliffRightX - 10, cliffTopY - 22);
+    ctx.lineTo(cliffRightX - 10, cliffTopY - 4);
+    ctx.stroke();
+
+    // Release line label
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText(`Release Level y₀ = ${y0} m`, cliffLeftX + 10, cliffTopY - 26);
+
+    // Falling Ball setup
+    const ballX = cliffRightX + 65;
+    const ballRadius = 14;
+    const ballY = yToPx(cur.y) - ballRadius;
+
+    // Ground target crosshair at bottom
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(ballX, topMargin);
+    ctx.lineTo(ballX, groundY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Trail history points
+    if (simTime > 0) {
+      trail.push({ x: ballX, y: ballY + ballRadius, t: simTime });
+      if (trail.length > 50) trail.shift();
+
+      ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+      trail.forEach((pt, idx) => {
+        const rad = 2 + (idx / trail.length) * 3;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, rad, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Draw Falling Ball
+    const ballGrad = ctx.createRadialGradient(ballX - 4, ballY - 4, 2, ballX, ballY, ballRadius);
+    ballGrad.addColorStop(0, "#ffffff");
+    ballGrad.addColorStop(0.3, "#38bdf8");
+    ballGrad.addColorStop(0.85, "#0284c7");
+    ballGrad.addColorStop(1, "#0369a1");
+    ctx.fillStyle = ballGrad;
+    ctx.beginPath();
+    ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#e0f2fe";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Shadow on ground
+    const shadowDist = Math.max(0, groundY - (ballY + ballRadius));
+    const shadowOpacity = Math.max(0.1, 0.8 - shadowDist / 200);
+    const shadowScale = Math.max(0.3, 1.0 - shadowDist / 300);
+    ctx.fillStyle = `rgba(0, 0, 0, ${shadowOpacity})`;
+    ctx.beginPath();
+    ctx.ellipse(ballX, groundY - 1, ballRadius * shadowScale * 1.5, 4 * shadowScale, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Velocity Vector Arrow (Green)
+    const vScale = 1.8;
+    const vLen = cur.v * vScale;
+    if (Math.abs(vLen) > 3) {
+      const arrowStartX = ballX + 26;
+      const arrowStartY = ballY;
+      const arrowEndY = arrowStartY - vLen; // upward if v > 0, downward if v < 0
+
+      ctx.strokeStyle = cur.v >= 0 ? "#10b981" : "#f87171";
+      ctx.fillStyle = cur.v >= 0 ? "#10b981" : "#f87171";
+      ctx.lineWidth = 2.5;
+
+      ctx.beginPath();
+      ctx.moveTo(arrowStartX, arrowStartY);
+      ctx.lineTo(arrowStartX, arrowEndY);
+      ctx.stroke();
+
+      const headDir = cur.v >= 0 ? -1 : 1;
+      ctx.beginPath();
+      ctx.moveTo(arrowStartX, arrowEndY);
+      ctx.lineTo(arrowStartX - 4, arrowEndY - headDir * 7);
+      ctx.lineTo(arrowStartX + 4, arrowEndY - headDir * 7);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = "bold 11px Inter, monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`v = ${cur.v >= 0 ? "+" : ""}${cur.v.toFixed(1)} m/s`, arrowStartX + 8, (arrowStartY + arrowEndY) / 2);
+    }
+
+    // Acceleration Vector Arrow (Amber, always downwards)
+    const aScale = 2.5;
+    const aLen = g * aScale;
+    const aStartX = ballX - 26;
+    const aStartY = ballY - 10;
+    const aEndY = aStartY + aLen;
+
+    ctx.strokeStyle = "#f59e0b";
+    ctx.fillStyle = "#f59e0b";
+    ctx.lineWidth = 2.5;
+
+    ctx.beginPath();
+    ctx.moveTo(aStartX, aStartY);
+    ctx.lineTo(aStartX, aEndY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(aStartX, aEndY);
+    ctx.lineTo(aStartX - 4, aEndY - 7);
+    ctx.lineTo(aStartX + 4, aEndY - 7);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.font = "bold 10px Inter, monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(`g = ${g.toFixed(1)} m/s²`, aStartX - 6, (aStartY + aEndY) / 2);
+
+    // Impact Particles
+    if (impactDust.length > 0) {
+      for (let i = impactDust.length - 1; i >= 0; i--) {
+        const p = impactDust[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.25; // gravity
+        p.life -= 0.025;
+        if (p.life <= 0) {
+          impactDust.splice(i, 1);
+          continue;
+        }
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius * p.life, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
+    }
+
+    // Energy HUD Display on top right
+    const energyBoxX = W - 280;
+    const energyBoxY = 16;
+    const energyBoxW = 265;
+    const energyBoxH = 100;
+
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(energyBoxX, energyBoxY, energyBoxW, energyBoxH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    const ek = 0.5 * mass * cur.v * cur.v;
+    const ep = mass * g * cur.y;
+    const eTotal = 0.5 * mass * v0 * v0 + mass * g * y0;
+    const maxBarW = 120;
+    const ekBarW = eTotal > 0 ? (ek / eTotal) * maxBarW : 0;
+    const epBarW = eTotal > 0 ? (ep / eTotal) * maxBarW : 0;
+
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("Mechanical Energy Conservation", energyBoxX + 10, energyBoxY + 18);
+
+    // Ep Bar (Purple)
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "10px Inter, sans-serif";
+    ctx.fillText("Potential (mgy):", energyBoxX + 10, energyBoxY + 40);
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(energyBoxX + 100, energyBoxY + 31, maxBarW, 11);
+    ctx.fillStyle = "#a78bfa";
+    ctx.fillRect(energyBoxX + 100, energyBoxY + 31, epBarW, 11);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillText(`${ep.toFixed(0)} J`, energyBoxX + 225, energyBoxY + 40);
+
+    // Ek Bar (Cyan)
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText("Kinetic (½mv²):", energyBoxX + 10, energyBoxY + 62);
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(energyBoxX + 100, energyBoxY + 53, maxBarW, 11);
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillRect(energyBoxX + 100, energyBoxY + 53, ekBarW, 11);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillText(`${ek.toFixed(0)} J`, energyBoxX + 225, energyBoxY + 62);
+
+    // Total Energy
+    ctx.fillStyle = "#64748b";
+    ctx.fillText(`Total Mechanical: ${eTotal.toFixed(0)} J (Invariant)`, energyBoxX + 10, energyBoxY + 84);
+  }
+
+  function loop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min(0.05, (timestamp - lastTimestamp) / 1000);
+    lastTimestamp = timestamp;
+
+    if (isRunning) {
+      simTime += dt;
+      const theo = calcTheoretical();
+
+      if (simTime >= theo.tImpact) {
+        simTime = theo.tImpact;
+        isRunning = false;
+        hasImpacted = true;
+        if (launchIcon) launchIcon.innerText = "↺";
+        if (launchLbl) launchLbl.innerText = "Reset";
+        spawnImpactDust(325, canvas.height - 55);
+      }
+      updateStatusAndReadouts();
+    }
+
+    render();
+    animId = requestAnimationFrame(loop);
+  }
+
+  animId = requestAnimationFrame(loop);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  // Event Listeners
+  btnLaunch.addEventListener("click", () => {
+    const theo = calcTheoretical();
+    if (simTime >= theo.tImpact) {
+      // Reset
+      simTime = 0.0;
+      trail.length = 0;
+      impactDust.length = 0;
+      hasImpacted = false;
+      isRunning = false;
+      launchIcon.innerText = "▶";
+      launchLbl.innerText = "Release / Launch";
+    } else {
+      isRunning = !isRunning;
+      lastTimestamp = null;
+      if (isRunning) {
+        launchIcon.innerText = "⏸";
+        launchLbl.innerText = "Pause";
+      } else {
+        launchIcon.innerText = "▶";
+        launchLbl.innerText = "Resume";
+      }
+    }
+    updateStatusAndReadouts();
+  });
+
+  btnStep.addEventListener("click", () => {
+    const theo = calcTheoretical();
+    if (simTime < theo.tImpact) {
+      simTime = Math.min(theo.tImpact, simTime + 0.1);
+      if (simTime >= theo.tImpact) {
+        isRunning = false;
+        hasImpacted = true;
+        launchIcon.innerText = "↺";
+        launchLbl.innerText = "Reset";
+        spawnImpactDust(325, canvas.height - 55);
+      }
+      updateStatusAndReadouts();
+    }
+  });
+
+  btnReset.addEventListener("click", () => {
+    simTime = 0.0;
+    isRunning = false;
+    hasImpacted = false;
+    trail.length = 0;
+    impactDust.length = 0;
+    lastTimestamp = null;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Release / Launch";
+    updateStatusAndReadouts();
+  });
+
+  sliderY0.addEventListener("input", (e) => {
+    y0 = Number(e.target.value);
+    if (lblY0) lblY0.innerText = `${y0} m`;
+    simTime = 0.0;
+    isRunning = false;
+    hasImpacted = false;
+    trail.length = 0;
+    impactDust.length = 0;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Release / Launch";
+    updateStatusAndReadouts();
+  });
+
+  sliderV0.addEventListener("input", (e) => {
+    v0 = Number(e.target.value);
+    if (lblV0) lblV0.innerText = `${v0 >= 0 ? "+" : ""}${v0} m/s`;
+    simTime = 0.0;
+    isRunning = false;
+    hasImpacted = false;
+    trail.length = 0;
+    impactDust.length = 0;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Release / Launch";
+    updateStatusAndReadouts();
+  });
+
+  sliderG.addEventListener("input", (e) => {
+    g = Number(e.target.value);
+    if (lblG) lblG.innerText = `${g.toFixed(1)} m/s²`;
+    simTime = 0.0;
+    isRunning = false;
+    hasImpacted = false;
+    trail.length = 0;
+    impactDust.length = 0;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Release / Launch";
+    if (celestialBadge) celestialBadge.innerText = `Custom (g = ${g.toFixed(1)} m/s²)`;
+    updatePresetsActive("custom");
+    updateStatusAndReadouts();
+  });
+
+  presetEarth.addEventListener("click", () => {
+    g = 9.8;
+    sliderG.value = "9.8";
+    if (lblG) lblG.innerText = "9.8 m/s²";
+    if (celestialBadge) celestialBadge.innerText = "Earth (g = 9.80 m/s²)";
+    updatePresetsActive("earth");
+    simTime = 0.0;
+    isRunning = false;
+    hasImpacted = false;
+    trail.length = 0;
+    impactDust.length = 0;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Release / Launch";
+    updateStatusAndReadouts();
+  });
+
+  presetMoon.addEventListener("click", () => {
+    g = 1.62;
+    sliderG.value = "1.6";
+    if (lblG) lblG.innerText = "1.6 m/s²";
+    if (celestialBadge) celestialBadge.innerText = "Moon (g = 1.62 m/s²)";
+    updatePresetsActive("moon");
+    simTime = 0.0;
+    isRunning = false;
+    hasImpacted = false;
+    trail.length = 0;
+    impactDust.length = 0;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Release / Launch";
+    updateStatusAndReadouts();
+  });
+
+  presetMars.addEventListener("click", () => {
+    g = 3.72;
+    sliderG.value = "3.7";
+    if (lblG) lblG.innerText = "3.7 m/s²";
+    if (celestialBadge) celestialBadge.innerText = "Mars (g = 3.72 m/s²)";
+    updatePresetsActive("mars");
+    simTime = 0.0;
+    isRunning = false;
+    hasImpacted = false;
+    trail.length = 0;
+    impactDust.length = 0;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Release / Launch";
+    updateStatusAndReadouts();
+  });
+
+  presetJupiter.addEventListener("click", () => {
+    g = 24.79;
+    sliderG.value = "24.8";
+    if (lblG) lblG.innerText = "24.8 m/s²";
+    if (celestialBadge) celestialBadge.innerText = "Jupiter (g = 24.8 m/s²)";
+    updatePresetsActive("jupiter");
+    simTime = 0.0;
+    isRunning = false;
+    hasImpacted = false;
+    trail.length = 0;
+    impactDust.length = 0;
+    launchIcon.innerText = "▶";
+    launchLbl.innerText = "Release / Launch";
+    updateStatusAndReadouts();
+  });
+
+  updateStatusAndReadouts();
 }
 
 /**
@@ -12208,59 +14271,113 @@ function buildPhotosynthesisRespirationInteractive(mountId, params) {
   const mount = document.getElementById(mountId);
   if (!mount) return;
 
-  let mode = "photo"; // 'photo' vs 'resp'
-  let light = 75; // %
-  let co2 = 450; // ppm
+  params = params || {};
+  let mode = params.mode === "resp" ? "resp" : "photo"; // 'photo' vs 'resp'
+  let light = params.lightIntensity !== undefined ? Number(params.lightIntensity) : 75; // %
+  let co2 = params.co2Level !== undefined ? Number(params.co2Level) : 450; // ppm
 
   mount.innerHTML = `
     <div class="interactive-split-grid">
       <div class="sim-canvas-box" style="position: relative;">
         <canvas id="${mountId}-canvas" width="380" height="260" style="width: 100%; height: 260px;"></canvas>
+        <div id="${mountId}-mode-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.85); border: 1px solid ${mode === 'photo' ? '#10b981' : '#f59e0b'}; color: ${mode === 'photo' ? '#34d399' : '#fbbf24'}; pointer-events: none; backdrop-filter: blur(4px);">
+          ${mode === 'photo' ? 'Photosynthesis • Thylakoid Stroma' : 'Cellular Respiration • Mitochondria (30–32 ATP)'}
+        </div>
       </div>
       <div class="sim-controls-panel">
         <div class="sim-readout-pill">
-          <span class="readout-label" id="${mountId}-rate-label">Oxygen Release Rate:</span>
-          <span class="readout-val" id="${mountId}-rate-val" style="color: #10b981;">34.5 μmol O₂/min</span>
+          <span class="readout-label" id="${mountId}-rate-label">${mode === 'photo' ? 'Oxygen Release Rate (O₂):' : 'ATP Synthesis Rate (Chemiosmosis):'}</span>
+          <span class="readout-val" id="${mountId}-rate-val" style="color: ${mode === 'photo' ? '#10b981' : '#38bdf8'}; font-weight: 700;">--</span>
         </div>
         <div style="display: flex; gap: 8px;">
-          <button class="btn-sim-action active" id="${mountId}-btn-photo" style="flex: 1; padding: 6px;">Photosynthesis (Chloroplast)</button>
-          <button class="btn-sim-action" id="${mountId}-btn-resp" style="flex: 1; padding: 6px;">Respiration (Mitochondria)</button>
+          <button type="button" class="btn-sim-action ${mode === 'photo' ? 'active' : ''}" id="${mountId}-btn-photo" style="flex: 1; padding: 6px;" aria-label="Photosynthesis Mode in Chloroplast">Photosynthesis (Chloroplast)</button>
+          <button type="button" class="btn-sim-action ${mode === 'resp' ? 'active' : ''}" id="${mountId}-btn-resp" style="flex: 1; padding: 6px;" aria-label="Respiration Mode in Mitochondria">Respiration (Mitochondria)</button>
         </div>
         <div class="control-slider-group">
           <div class="slider-header">
             <span>Incident Light Intensity:</span>
             <strong id="${mountId}-light-lbl">${light}%</strong>
           </div>
-          <input type="range" class="range-slider" id="${mountId}-light-slider" min="0" max="100" step="5" value="${light}">
+          <input type="range" class="range-slider" id="${mountId}-light-slider" min="0" max="100" step="5" value="${light}" aria-label="Incident Light Intensity percentage">
         </div>
         <div class="control-slider-group">
           <div class="slider-header">
             <span>Ambient CO₂ Concentration:</span>
             <strong id="${mountId}-co2-lbl">${co2} ppm</strong>
           </div>
-          <input type="range" class="range-slider" id="${mountId}-co2-slider" min="150" max="900" step="25" value="${co2}">
+          <input type="range" class="range-slider" id="${mountId}-co2-slider" min="150" max="900" step="25" value="${co2}" aria-label="Ambient Carbon Dioxide Concentration in parts per million">
         </div>
       </div>
     </div>
   `;
 
   const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
   const ctx = canvas.getContext("2d");
+
+  const btnPhoto = document.getElementById(`${mountId}-btn-photo`);
+  const btnResp = document.getElementById(`${mountId}-btn-resp`);
+  const modeBadge = document.getElementById(`${mountId}-mode-badge`);
+  const lightSlider = document.getElementById(`${mountId}-light-slider`);
+  const lightLbl = document.getElementById(`${mountId}-light-lbl`);
+  const co2Slider = document.getElementById(`${mountId}-co2-slider`);
+  const co2Lbl = document.getElementById(`${mountId}-co2-lbl`);
+  const rateLabel = document.getElementById(`${mountId}-rate-label`);
+  const rateVal = document.getElementById(`${mountId}-rate-val`);
 
   let turbineAngle = 0;
   let animId;
+
+  btnPhoto.addEventListener("click", () => {
+    mode = "photo";
+    btnPhoto.classList.add("active");
+    btnResp.classList.remove("active");
+    if (modeBadge) {
+      modeBadge.innerText = "Photosynthesis • Thylakoid Stroma";
+      modeBadge.style.color = "#34d399";
+      modeBadge.style.borderColor = "#10b981";
+    }
+  });
+
+  btnResp.addEventListener("click", () => {
+    mode = "resp";
+    btnResp.classList.add("active");
+    btnPhoto.classList.remove("active");
+    if (modeBadge) {
+      modeBadge.innerText = "Cellular Respiration • Mitochondria (30–32 ATP)";
+      modeBadge.style.color = "#fbbf24";
+      modeBadge.style.borderColor = "#f59e0b";
+    }
+  });
+
+  lightSlider.addEventListener("input", (e) => {
+    light = Number(e.target.value);
+    if (lightLbl) lightLbl.innerText = `${light}%`;
+  });
+
+  co2Slider.addEventListener("input", (e) => {
+    co2 = Number(e.target.value);
+    if (co2Lbl) co2Lbl.innerText = `${co2} ppm`;
+  });
 
   function loop() {
     let rate = 0;
     if (mode === "photo") {
       rate = (light / 100) * (co2 / 400) * 45;
-      document.getElementById(`${mountId}-rate-label`).innerText = "Oxygen Release Rate (O₂):";
-      document.getElementById(`${mountId}-rate-val`).innerText = `${rate.toFixed(1)} μmol O₂/min`;
+      if (rateLabel) rateLabel.innerText = "Oxygen Release Rate (O₂):";
+      if (rateVal) {
+        rateVal.innerText = `${rate.toFixed(1)} μmol O₂/min`;
+        rateVal.style.color = "#10b981";
+      }
       turbineAngle += (rate / 45) * 0.15;
     } else {
-      rate = 38.0 * (1 - Math.exp(-co2 / 300));
-      document.getElementById(`${mountId}-rate-label`).innerText = "ATP Synthesis Rate:";
-      document.getElementById(`${mountId}-rate-val`).innerText = `${rate.toFixed(1)} ATP molecules/s`;
+      // Reconciled modern aerobic respiration standard: 30 to 32 ATP per glucose molecule
+      rate = 32.0 * (1 - Math.exp(-co2 / 300));
+      if (rateLabel) rateLabel.innerText = "ATP Synthesis Rate (Chemiosmosis):";
+      if (rateVal) {
+        rateVal.innerText = `${rate.toFixed(1)} ATP / glucose`;
+        rateVal.style.color = "#38bdf8";
+      }
       turbineAngle += 0.12;
     }
 
@@ -12319,7 +14436,7 @@ function buildPhotosynthesisRespirationInteractive(mountId, params) {
       ctx.fillText("Light Photons", 115, 54);
     } else {
       ctx.fillStyle = "#ec4899";
-      ctx.fillRect(60, 40, 60, 24);
+      ctx.fillRect(60, 40, 80, 24);
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 10px Inter, sans-serif";
       ctx.fillText("NADH / FADH₂", 65, 56);
@@ -12328,32 +14445,20 @@ function buildPhotosynthesisRespirationInteractive(mountId, params) {
     // Reaction Equation Badge at bottom
     ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
     ctx.fillRect(20, 215, 340, 36);
-    ctx.font = "11px Inter, sans-serif";
+    ctx.font = "10.5px Inter, sans-serif";
     ctx.fillStyle = "#38bdf8";
     if (mode === "photo") {
-      ctx.fillText("6 CO₂ + 6 H₂O + Light → C₆H₁₂O₆ + 6 O₂", 35, 237);
+      ctx.fillText("6 CO₂ + 6 H₂O + Light → C₆H₁₂O₆ + 6 O₂", 30, 237);
     } else {
-      ctx.fillText("C₆H₁₂O₆ + 6 O₂ → 6 CO₂ + 6 H₂O + 36 ATP", 35, 237);
+      ctx.fillText("C₆H₁₂O₆ + 6 O₂ → 6 CO₂ + 6 H₂O + 30–32 ATP", 30, 237);
     }
 
     animId = requestAnimationFrame(loop);
   }
 
   animId = requestAnimationFrame(loop);
-  activeSimulations.set(mountId, () => cancelAnimationFrame(animId));
-
-  const btnPhoto = document.getElementById(`${mountId}-btn-photo`);
-  const btnResp = document.getElementById(`${mountId}-btn-resp`);
-  btnPhoto.addEventListener("click", () => { mode = "photo"; btnPhoto.classList.add("active"); btnResp.classList.remove("active"); });
-  btnResp.addEventListener("click", () => { mode = "resp"; btnResp.classList.add("active"); btnPhoto.classList.remove("active"); });
-
-  document.getElementById(`${mountId}-light-slider`).addEventListener("input", (e) => {
-    light = parseInt(e.target.value, 10);
-    document.getElementById(`${mountId}-light-lbl`).innerText = `${light}%`;
-  });
-  document.getElementById(`${mountId}-co2-slider`).addEventListener("input", (e) => {
-    co2 = parseInt(e.target.value, 10);
-    document.getElementById(`${mountId}-co2-lbl`).innerText = `${co2} ppm`;
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
   });
 }
 

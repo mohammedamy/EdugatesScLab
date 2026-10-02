@@ -140,7 +140,7 @@ export const physicsCurriculum = {
         { id: 3, title: "Equilibrium", objectives: ["Translational equilibrium (ΣF = 0) and Rotational equilibrium (Στ = 0)", "Center of mass and rotational stability"] }
       ],
       formulas: ["\\tau = r F \\sin\\theta", "\\sum \\tau = I \\alpha", "L = I \\omega \\text{ (Conserved)}"],
-      lab: "lab-projectile"
+      lab: "lab-rotational"
     },
 
     // UNIT 3: MOMENTUM AND ENERGY
@@ -156,7 +156,7 @@ export const physicsCurriculum = {
         { id: 2, title: "Conservation of Momentum", objectives: ["Isolated and closed systems", "Elastic collisions (kinetic energy conserved) vs Inelastic collisions", "Recoil and propulsion mechanics", "Two-dimensional collisions"] }
       ],
       formulas: ["\\vec{p} = m \\vec{v}", "\\vec{J} = \\vec{F}\\Delta t = \\Delta\\vec{p}", "m_1 v_{1i} + m_2 v_{2i} = m_1 v_{1f} + m_2 v_{2f}"],
-      lab: "lab-projectile"
+      lab: "lab-collisions"
     },
     {
       id: 10,
@@ -186,7 +186,7 @@ export const physicsCurriculum = {
         { id: 2, title: "Changes of State and Thermodynamics", objectives: ["Latent heat of fusion (Q = mHf) and vaporization (Q = mHv)", "First Law of Thermodynamics ΔU = Q - W", "Second Law of Thermodynamics and irreversible entropy increase", "Heat engines and Carnot efficiency"] }
       ],
       formulas: ["Q = m c \\Delta T", "Q = m H_f, \\quad Q = m H_v", "\\Delta U = Q - W", "\\text{Carnot } e = 1 - \\frac{T_C}{T_H}"],
-      lab: "lab-gas-laws"
+      lab: "lab-conduction"
     },
     {
       id: 12,
@@ -202,7 +202,7 @@ export const physicsCurriculum = {
         { id: 4, title: "Solids", objectives: ["Thermal linear expansion ΔL = αL1ΔT", "Stress, strain, and Young's modulus elasticity"] }
       ],
       formulas: ["P = \\frac{F}{A}", "P = \\rho g h", "F_{\\text{buoyant}} = \\rho_{\\text{fluid}} V_{\\text{disp}} g", "P_1 + \\frac{1}{2}\\rho v_1^2 + \\rho g h_1 = \\text{const}"],
-      lab: "lab-gas-laws"
+      lab: "lab-fluids"
     },
 
     // UNIT 4: WAVES AND LIGHT
@@ -340,7 +340,7 @@ export const physicsCurriculum = {
         { id: 3, title: "Electric and Magnetic Fields in Space", objectives: ["Transformers: step-up vs step-down (Vs/Vp = Ns/Np = Ip/Is)", "Maxwell's electromagnetic wave equations prediction of light"] }
       ],
       formulas: ["\\Phi_B = B A \\cos\\theta", "\\mathcal{E} = -N \\frac{\\Delta\\Phi_B}{\\Delta t}", "\\frac{V_s}{V_p} = \\frac{N_s}{N_p} = \\frac{I_p}{I_s}"],
-      lab: "lab-circuits"
+      lab: "lab-induction"
     },
 
     // UNIT 6: SUBATOMIC PHYSICS
@@ -387,7 +387,7 @@ export const physicsCurriculum = {
         { id: 3, title: "The Building Blocks of Matter", objectives: ["Standard Model: Quarks (up, down, charm, strange, top, bottom)", "Leptons (electron, muon, tau, neutrinos)", "Gauge bosons (photon, gluon, W/Z bosons, Higgs boson)", "Antimatter and pair annihilation"] }
       ],
       formulas: ["\\Delta E = (\\Delta m) c^2", "1\\text{ u} = 931.5\\text{ MeV}", "\\text{Proton: } (uud), \\quad \\text{Neutron: } (udd)"],
-      lab: "lab-periodic-table"
+      lab: "lab-decay"
     }
   ]
 };

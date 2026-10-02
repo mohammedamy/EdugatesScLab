@@ -52,9 +52,11 @@ function cleanupLessonInteractive(containerId) {
 }
 
 export function openModuleModal(moduleData, subjectColor, initialLessonId, triggerElement) {
+  window._isOpeningModuleModal = true;
   if (typeof window.closeActiveModuleModal === "function") {
     try { window.closeActiveModuleModal(); } catch (err) {}
   }
+  window._isOpeningModuleModal = false;
   const openerEl = triggerElement || (typeof document !== "undefined" ? document.activeElement : null);
   ProgressStore.recordModuleExplored(moduleData.code);
   ProgressStore.recordModuleOpened(moduleData.code);
@@ -81,8 +83,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
   const penBar = document.getElementById("smartboard-pen-bar");
 
   // Active state
-  let currentLessonId = initialLessonId || (moduleData.lessons && moduleData.lessons.length > 0 ? moduleData.lessons[0].id : 1);
-  let activeTab = initialLessonId ? "interactive" : "overview"; // 'overview', 'interactive', 'concepts', 'lab'
+  const parsedLessonId = initialLessonId ? parseInt(initialLessonId, 10) : undefined;
+  let currentLessonId = parsedLessonId || (moduleData.lessons && moduleData.lessons.length > 0 ? moduleData.lessons[0].id : 1);
+  let activeTab = parsedLessonId ? "interactive" : "overview"; // 'overview', 'interactive', 'concepts', 'lab'
   let labMode = "module"; // 'module' or 'lesson'
   let currentLabCleanup = null;
   let currentSimZoom = 1.0;
@@ -97,7 +100,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
     if (btn) btn.title = isDisplayFs ? 'Exit Hardware Display Fullscreen (Esc)' : 'Expand to Fullscreen Display / Smartboard Kiosk Mode';
   }
 
-  function closeModal() {
+  function closeModal(options = {}) {
     if (typeof currentLabCleanup === "function") {
       currentLabCleanup();
       currentLabCleanup = null;
@@ -145,8 +148,9 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
       try { openerEl.focus(); } catch (err) {}
     }
 
-    // Sync hash back to parent subject tab if closing a deep-linked module or lesson
-    if (window.location.hash.startsWith("#module/") || window.location.hash.startsWith("#lesson/")) {
+    // Sync hash back to parent subject tab if closing a deep-linked module or lesson (unless transitioning to another route/modal)
+    const isTransition = Boolean((options && options.isTransition) || (typeof window !== "undefined" && window._isOpeningModuleModal));
+    if (!isTransition && (window.location.hash.startsWith("#module/") || window.location.hash.startsWith("#lesson/"))) {
       const curTab = moduleData.code.startsWith("CHEM") ? "chem" : (moduleData.code.startsWith("BIO") ? "bio" : "phys");
       if (window.location.hash !== "#" + curTab) {
         history.replaceState(null, "", "#" + curTab);
@@ -232,6 +236,30 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
               <span class="btn-action-icon">📄</span>
               <span class="btn-action-label">A4 Plan</span>
             </button>
+            <div class="modal-overflow-wrap">
+              <button class="btn btn-secondary btn-header-action btn-header-overflow" id="btn-header-overflow-modal" aria-haspopup="true" aria-expanded="false" aria-controls="modal-header-overflow-menu" aria-label="More chapter options" title="More Options">
+                <span class="btn-action-icon">⋮</span>
+                <span class="btn-action-label">More</span>
+              </button>
+              <div class="modal-overflow-menu" id="modal-header-overflow-menu" role="menu" aria-label="Additional Chapter Actions" hidden>
+                <button class="overflow-menu-item" id="btn-overflow-annotate" role="menuitem">
+                  <span class="btn-action-icon">✏️</span>
+                  <span>In-Class Annotation</span>
+                </button>
+                <button class="overflow-menu-item" id="btn-overflow-fullscreen" role="menuitem">
+                  <span class="btn-action-icon">⛶</span>
+                  <span>Fullscreen Display</span>
+                </button>
+                <button class="overflow-menu-item" id="btn-overflow-share" role="menuitem">
+                  <span class="btn-action-icon">📤</span>
+                  <span>Share Lesson</span>
+                </button>
+                <button class="overflow-menu-item" id="btn-overflow-lesson-plan" role="menuitem">
+                  <span class="btn-action-icon">📄</span>
+                  <span>Teacher A4 Plan</span>
+                </button>
+              </div>
+            </div>
             <button class="modal-close-btn" id="btn-close-modal" aria-label="Close lesson and return to curriculum" title="Exit to Curriculum (Esc)">✕</button>
           </div>
         </div>
@@ -358,6 +386,58 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
           m.openLessonPlanModal(moduleData.code, moduleData.id, currentLessonId);
         });
       });
+    }
+
+    // Header Overflow Menu Handler (Mobile / Compact Viewports)
+    const btnOverflow = document.getElementById("btn-header-overflow-modal");
+    const overflowMenu = document.getElementById("modal-header-overflow-menu");
+    if (btnOverflow && overflowMenu) {
+      const toggleOverflow = (show) => {
+        const isHidden = overflowMenu.hasAttribute("hidden");
+        const nextState = typeof show === "boolean" ? show : isHidden;
+        if (nextState) {
+          overflowMenu.removeAttribute("hidden");
+          btnOverflow.setAttribute("aria-expanded", "true");
+        } else {
+          overflowMenu.setAttribute("hidden", "");
+          btnOverflow.setAttribute("aria-expanded", "false");
+        }
+      };
+
+      btnOverflow.addEventListener("click", (e) => {
+        e.stopPropagation();
+        try { SoundFX.playClick(); } catch (err) {}
+        toggleOverflow();
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!overflowMenu.contains(e.target) && e.target !== btnOverflow) {
+          toggleOverflow(false);
+        }
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !overflowMenu.hasAttribute("hidden")) {
+          toggleOverflow(false);
+          btnOverflow.focus();
+        }
+      });
+
+      const wireOverflowItem = (itemId, targetBtn) => {
+        const item = document.getElementById(itemId);
+        if (item && targetBtn) {
+          item.addEventListener("click", (e) => {
+            e.stopPropagation();
+            toggleOverflow(false);
+            targetBtn.click();
+          });
+        }
+      };
+
+      wireOverflowItem("btn-overflow-annotate", btnAnnotate);
+      wireOverflowItem("btn-overflow-fullscreen", btnFs);
+      wireOverflowItem("btn-overflow-share", btnShare);
+      wireOverflowItem("btn-overflow-lesson-plan", btnHeaderPlan);
     }
 
     // Tab Switchers

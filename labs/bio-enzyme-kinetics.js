@@ -670,7 +670,19 @@ export function initEnzymeLab(containerId) {
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("enz-checkpoint-container", "enzymes");
 
-  return () => {
+  const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
   };
+  activeEnzymeCleanup = cleanup;
+  return cleanup;
 }
+
+let activeEnzymeCleanup = null;
+
+export function cleanupEnzymeLab() {
+  if (typeof activeEnzymeCleanup === "function") {
+    activeEnzymeCleanup();
+    activeEnzymeCleanup = null;
+  }
+}
+

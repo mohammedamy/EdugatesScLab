@@ -521,8 +521,8 @@ One mole of any chemical element contains exactly Avogadro's number of atoms and
         "5. Verify consistency: $(0.2498\\text{ mol}) \\times (100.09\\text{ g/mol}) = 25.00\\text{ g}$, confirming conservation of mass."
       ],
       answer: "n = 0.2498\\text{ mol}, \\quad N_{\\text{CaCO}_3} = 1.50 \\times 10^{23}\\text{ formula units}, \\quad N_{\\text{O}} = 4.51 \\times 10^{23}\\text{ oxygen atoms}",
-      status: "Specialist Verified Solution",
-      isVerified: true
+      status: "Curriculum Standard Reference Solution (Under Specialist Review)",
+      isVerified: false
     },
     applications: [
       "Pharmaceutical Drug Formulation & Dosages: Active pharmaceutical ingredients (APIs) are synthesized and dosed according to molecular mole ratios to ensure exact therapeutic receptor binding without toxic overdosing.",
@@ -1033,12 +1033,12 @@ export function getLessonComprehensiveTheory(subjectCode, moduleId, lessonId, le
       parameters: record.parameters,
       workedExample: {
         ...record.workedExample,
-        status: record.workedExample.status || "Specialist Verified Solution",
-        isVerified: true
+        status: record.workedExample.status || "Curriculum Standard Reference Solution (Under Specialist Review)",
+        isVerified: !!record.workedExample.isVerified
       },
       applications: record.applications,
       misconceptions: record.misconceptions,
-      isVerified: true
+      isVerified: !!record.isVerified
     };
   }
 

@@ -245,7 +245,9 @@ export function enhanceA11y(container) {
     slider.setAttribute("aria-valuenow", val);
 
     if (!slider.hasAttribute("aria-label")) {
-      const label = slider.closest(".control-group")?.querySelector(".control-label") || slider.parentElement?.querySelector("label");
+      const label = slider.closest(".control-group")?.querySelector(".control-label") || 
+                    slider.closest(".control-slider-group")?.querySelector(".slider-header span") ||
+                    slider.parentElement?.querySelector("label");
       if (label) {
         slider.setAttribute("aria-label", label.innerText.replace(/[\r\n]+/g, " ").trim());
       } else if (slider.id) {
@@ -258,6 +260,19 @@ export function enhanceA11y(container) {
       slider.addEventListener("input", () => {
         slider.setAttribute("aria-valuenow", slider.value);
       });
+    }
+  });
+
+  // 1b. Ensure select dropdowns and numeric inputs have aria-label
+  container.querySelectorAll('select, input[type="number"], input[type="text"]').forEach(input => {
+    if (!input.hasAttribute("aria-label") && !input.hasAttribute("aria-labelledby")) {
+      const label = input.closest(".control-group, .control-slider-group")?.querySelector("label, .control-label, .slider-header span") ||
+                    input.parentElement?.querySelector("label");
+      if (label) {
+        input.setAttribute("aria-label", label.innerText.replace(/[\r\n]+/g, " ").trim());
+      } else if (input.id) {
+        input.setAttribute("aria-label", input.id.replace(/[-_]+/g, " "));
+      }
     }
   });
 

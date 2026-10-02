@@ -46,7 +46,7 @@ export const biologyCurriculum = {
         { id: 3, title: "Cycling of Matter", objectives: ["Water cycle, Carbon/Oxygen cycle, Nitrogen cycle, Phosphorus cycle"] }
       ],
       formulas: ["E_{\\text{trophic}} = 0.10 \\times E_{\\text{lower trophic level}}"],
-      lab: "lab-punnett"
+      lab: "lab-ecology"
     },
     {
       id: 3,
@@ -61,7 +61,7 @@ export const biologyCurriculum = {
         { id: 3, title: "Aquatic Ecosystems", objectives: ["Freshwater rivers/lakes, transitional estuaries/wetlands, marine zones (photic, aphotic, abyssal)"] }
       ],
       formulas: ["\\text{Tolerance Zone: Optimum} > \\text{Physiological Stress} > \\text{Intolerance}"],
-      lab: "lab-microscope"
+      lab: "lab-ecology"
     },
     {
       id: 4,
@@ -75,7 +75,7 @@ export const biologyCurriculum = {
         { id: 2, title: "Human Population", objectives: ["Demographic transition model", "Age structure diagrams and global resource consumption"] }
       ],
       formulas: ["\\frac{dN}{dt} = rN \\left(1 - \\frac{N}{K}\\right)"],
-      lab: "lab-punnett"
+      lab: "lab-ecology"
     },
     {
       id: 5,
@@ -90,7 +90,7 @@ export const biologyCurriculum = {
         { id: 3, title: "Conserving Biodiversity", objectives: ["Renewable vs nonrenewable resources", "Bioremediation and biological augmentation", "Endangered species corridors"] }
       ],
       formulas: ["\\text{Simpson's Diversity Index: } D = 1 - \\sum (n/N)^2"],
-      lab: "lab-punnett"
+      lab: "lab-ecology"
     },
 
     // UNIT 2: THE CELL
@@ -138,8 +138,8 @@ export const biologyCurriculum = {
         { id: 2, title: "Photosynthesis", objectives: ["Chloroplast thylakoids and stroma", "Light-dependent reactions (Photosystems II & I, photolysis, ATP synthase)", "Calvin cycle (carbon fixation via RuBisCO, G3P synthesis)"] },
         { id: 3, title: "Cellular Respiration", objectives: ["Glycolysis in cytoplasm", "Krebs citric acid cycle in mitochondrial matrix", "Electron transport chain and chemiosmotic oxidative phosphorylation", "Fermentation: lactic acid vs alcoholic"] }
       ],
-      formulas: ["6CO_2 + 6H_2O \\xrightarrow{\\text{light}} C_6H_{12}O_6 + 6O_2", "C_6H_{12}O_6 + 6O_2 \\rightarrow 6CO_2 + 6H_2O + 36-38\\text{ ATP}"],
-      lab: "lab-photosynthesis"
+      formulas: ["6CO_2 + 6H_2O \\xrightarrow{\\text{light}} C_6H_{12}O_6 + 6O_2", "C_6H_{12}O_6 + 6O_2 \\rightarrow 6CO_2 + 6H_2O + 30\\text{--}32\\text{ ATP} \\quad (\\text{Historical: } 36\\text{--}38\\text{ ATP})"],
+      lab: "lab-respiration"
     },
     {
       id: 9,
@@ -202,7 +202,7 @@ export const biologyCurriculum = {
         { id: 2, title: "The Human Genome", objectives: ["Human Genome Project findings", "Bioinformatics, DNA microarrays, pharmacogenomics", "Gene therapy and ethical dimensions"] }
       ],
       formulas: ["\\text{PCR Yield} = N_0 \\times 2^n \\text{ (where } n = \\text{cycles)}"],
-      lab: "lab-dna-protein"
+      lab: "lab-electrophoresis"
     },
 
     // UNIT 4: HISTORY OF BIOLOGICAL DIVERSITY
@@ -372,7 +372,7 @@ export const biologyCurriculum = {
         { id: 4, title: "Effects of Drugs", objectives: ["Neurotransmitters: dopamine, serotonin, acetylcholine", "Agonists vs antagonists, tolerance, physical addiction mechanisms"] }
       ],
       formulas: ["E_{\\text{rest}} = -70\\text{ mV} \\quad \\rightarrow \\quad E_{\\text{peak}} = +30\\text{ mV}"],
-      lab: "lab-microscope"
+      lab: "lab-actionpotential"
     },
     {
       id: 24,

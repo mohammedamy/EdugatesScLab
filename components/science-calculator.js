@@ -58,7 +58,7 @@ export const STEM_FORMULA_SHEETS = {
     { title: "Solute Potential (Van 't Hoff)", formula: "Ψs = -i*C*R*T", latex: "\\Psi_s = -i C R T", note: "i: ionization, C: molarity, R: 0.0831, T: Kelvin" },
     { title: "Hardy-Weinberg Equilibrium", formula: "p^2 + 2pq + q^2 = 1", latex: "p^2 + 2pq + q^2 = 1, \\quad p + q = 1", note: "p: dominant allele, q: recessive allele" },
     { title: "Photosynthesis Overall Equation", formula: "6CO2 + 6H2O -> C6H12O6 + 6O2", latex: "6\\text{CO}_2 + 6\\text{H}_2\\text{O} \\xrightarrow{\\text{light}} \\text{C}_6\\text{H}_{12}\\text{O}_6 + 6\\text{O}_2", note: "Photolysis in thylakoid, Calvin cycle in stroma" },
-    { title: "Aerobic Cellular Respiration", formula: "C6H12O6 + 6O2 -> 6CO2 + 6H2O + ATP", latex: "\\text{C}_6\\text{H}_{12}\\text{O}_6 + 6\\text{O}_2 \\rightarrow 6\\text{CO}_2 + 6\\text{H}_2\\text{O} + 36\\text{-}38\\text{ ATP}", note: "Glycolysis, Krebs cycle, Oxidative Phosphorylation" }
+    { title: "Aerobic Cellular Respiration", formula: "C6H12O6 + 6O2 -> 6CO2 + 6H2O + ATP", latex: "\\text{C}_6\\text{H}_{12}\\text{O}_6 + 6\\text{O}_2 \\rightarrow 6\\text{CO}_2 + 6\\text{H}_2\\text{O} + 30\\text{--}32\\text{ ATP}", note: "Modern chemiosmotic yield (historical text: 36–38 ATP); Glycolysis, Krebs, Oxidative Phosphorylation" }
   ]
 };
 

@@ -121,6 +121,10 @@ assert(cssSrc.includes(".back-label-long") && cssSrc.includes(".back-label-short
   "index.css defines responsive long/short labels for Back button");
 assert(cssSrc.includes("bottom: 72px;") && cssSrc.includes(".sb-toolbar-toggle"),
   "index.css moves mobile touch zoom HUD above pen toggle to prevent collisions");
+assert(viewerSrc.includes('id="btn-header-overflow-modal"') && viewerSrc.includes('id="modal-header-overflow-menu"'),
+  "module-viewer.js implements accessible mobile chapter overflow menu (button and role='menu')");
+assert(cssSrc.includes(".modal-overflow-wrap") && cssSrc.includes("@media (max-width: 600px)"),
+  "index.css includes responsive rules for modal overflow menu on mobile viewports <=600px");
 
 // ----------------------------------------------------
 // 6. Curriculum Switch Skeleton & Shortcuts Modal (app.js)

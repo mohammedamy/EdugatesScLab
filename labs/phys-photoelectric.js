@@ -631,7 +631,19 @@ export function initPhotoelectricLab(containerId) {
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("pe-checkpoint-container", "photoelectric");
 
-  return () => {
+  const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
   };
+  activePhotoelectricCleanup = cleanup;
+  return cleanup;
 }
+
+let activePhotoelectricCleanup = null;
+
+export function cleanupPhotoelectricLab() {
+  if (typeof activePhotoelectricCleanup === "function") {
+    activePhotoelectricCleanup();
+    activePhotoelectricCleanup = null;
+  }
+}
+

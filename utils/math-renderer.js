@@ -354,6 +354,54 @@ function formatInner(s, isRoot = true) {
 }
 
 /**
+ * Converts common LaTeX markup into descriptive spoken text for screen readers (ARIA).
+ */
+export function cleanLatexForSpeech(latex) {
+  if (!latex) return "";
+  let s = String(latex).trim();
+  if (s.startsWith("$$") && s.endsWith("$$")) s = s.slice(2, -2).trim();
+  else if (s.startsWith("$") && s.endsWith("$")) s = s.slice(1, -1).trim();
+
+  s = s.replace(/\\text\{([^{}]+)\}/g, "$1");
+  s = s.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, "($1) over ($2)");
+  s = s.replace(/\\sqrt\{([^{}]+)\}/g, "square root of ($1)");
+  s = s.replace(/\\Delta\s*([a-zA-Z])/g, "change in $1");
+  s = s.replace(/\\Delta/g, "delta");
+  s = s.replace(/\\times/g, " times ");
+  s = s.replace(/\\cdot/g, " times ");
+  s = s.replace(/\\pm/g, " plus or minus ");
+  s = s.replace(/\\approx/g, " approximately equals ");
+  s = s.replace(/\\leq|\\le/g, " less than or equal to ");
+  s = s.replace(/\\geq|\\ge/g, " greater than or equal to ");
+  s = s.replace(/\\neq/g, " not equal to ");
+  s = s.replace(/\\longrightarrow|\\rightarrow/g, " yields ");
+  s = s.replace(/\\rightleftharpoons/g, " in dynamic equilibrium with ");
+  s = s.replace(/\\sum/g, " sum of ");
+  s = s.replace(/\\int/g, " integral of ");
+  s = s.replace(/\\infty/g, " infinity ");
+  s = s.replace(/\\alpha/g, " alpha ");
+  s = s.replace(/\\beta/g, " beta ");
+  s = s.replace(/\\gamma/g, " gamma ");
+  s = s.replace(/\\lambda/g, " lambda ");
+  s = s.replace(/\\mu/g, " micro ");
+  s = s.replace(/\\pi/g, " pi ");
+  s = s.replace(/\\theta/g, " theta ");
+  s = s.replace(/\\rho/g, " rho ");
+  s = s.replace(/\\sigma/g, " sigma ");
+  s = s.replace(/\\omega/g, " omega ");
+  s = s.replace(/\^2\b/g, " squared");
+  s = s.replace(/\^3\b/g, " cubed");
+  s = s.replace(/\^\{([^{}]+)\}/g, " to the power of $1");
+  s = s.replace(/\^([0-9a-zA-Z+-]+)/g, " to the power of $1");
+  s = s.replace(/_0\b|_\{0\}/g, " naught");
+  s = s.replace(/_\{([^{}]+)\}/g, " sub $1");
+  s = s.replace(/_([0-9a-zA-Z+-]+)/g, " sub $1");
+  s = s.replace(/\\[a-zA-Z]+/g, " ");
+  s = s.replace(/[{}]/g, "");
+  return s.replace(/\s+/g, " ").trim();
+}
+
+/**
  * Built-in fallback renderer: Converts a LaTeX string into semantic, publication-grade HTML
  */
 export function standaloneLatexToHtml(latex, displayMode = false) {
@@ -370,8 +418,9 @@ export function standaloneLatexToHtml(latex, displayMode = false) {
   const parsed = formatInner(s);
   const modeClass = displayMode ? "math-display" : "math-inline";
   const rawEsc = escapeHtmlAttr(s);
+  const speechLabel = cleanLatexForSpeech(s);
 
-  return `<span class="math-rendered ${modeClass}" data-latex="${rawEsc}" data-display="${displayMode}">${parsed}</span>`;
+  return `<span class="math-rendered ${modeClass}" role="math" aria-label="${escapeHtmlAttr(speechLabel)}" data-latex="${rawEsc}" data-display="${displayMode}">${parsed}</span>`;
 }
 
 // In-memory memoization cache for LaTeX rendering to prevent repetitive KaTeX computations on low-end CPUs
@@ -412,6 +461,7 @@ export function renderLatex(latex, displayMode = false) {
 
   const sanitized = sanitizeLatex(cleaned);
   const rawEsc = escapeHtmlAttr(cleaned);
+  const speechLabel = cleanLatexForSpeech(cleaned);
   let rendered = "";
 
   if (typeof window !== "undefined" && window.katex && typeof window.katex.renderToString === "function") {
@@ -419,12 +469,12 @@ export function renderLatex(latex, displayMode = false) {
       const katexHtml = window.katex.renderToString(sanitized, {
         displayMode,
         throwOnError: false,
-        output: "html"
+        output: "htmlAndMathml"
       });
       // KaTeX returns a span with class "katex-error" on parse failures when throwOnError is false.
       // If it failed, do not use the raw error text; fall back to standalone parser.
       if (katexHtml && !katexHtml.includes("katex-error")) {
-        rendered = `<span class="math-katex-wrapper ${displayMode ? 'math-display' : 'math-inline'}" data-latex="${rawEsc}" data-display="${displayMode}">${katexHtml}</span>`;
+        rendered = `<span class="math-katex-wrapper ${displayMode ? 'math-display' : 'math-inline'}" role="math" aria-label="${escapeHtmlAttr(speechLabel)}" data-latex="${rawEsc}" data-display="${displayMode}">${katexHtml}</span>`;
         mathCache.set(cacheKey, rendered);
         return rendered;
       }

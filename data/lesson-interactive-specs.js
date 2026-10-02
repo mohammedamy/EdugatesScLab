@@ -307,14 +307,14 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "CHEM-M09-L1": {
-    "type": "chem-stoichiometry",
+    "type": "chem-avogadro-workbench",
     "lessonBadge": "Lesson 1",
     "title": "Measuring Matter: Avogadro's Number Workbench",
-    "formula": "N = n \\times N_A \\quad (N_A = 6.022 \\times 10^{23} \\text{ particles/mol})",
-    "inquiry": "Convert representative particle quantities (atoms, molecules, ions) to macroscopic mole amounts.",
+    "formula": "N = n \\times N_A \\quad (N_A = 6.022 \\times 10^{23} \\text{ particles/mol}), \\quad m = n \\times M",
+    "inquiry": "Convert representative particle quantities (atoms, molecules, ions) to macroscopic mole amounts and weighed masses.",
     "defaultParams": {
-      "molAl": 1,
-      "molCl2": 1.5
+      "substance": "Fe",
+      "moles": 2.0
     }
   },
   "CHEM-M09-L2": {
@@ -340,26 +340,24 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "CHEM-M09-L4": {
-    "type": "chem-stoichiometry",
+    "type": "chem-empirical-formula",
     "lessonBadge": "Lesson 4",
     "title": "Empirical and Molecular Formula Determination",
-    "formula": "\\% \\text{ by mass} = \\frac{m_{\\text{element}}}{m_{\\text{compound}}} \\times 100\\%",
-    "inquiry": "Derive simplest whole-number empirical formulas from percent composition data and molar mass.",
+    "formula": "\\text{Empirical: } A_x B_y \\implies \\text{Molecular: } (A_x B_y)_n \\quad \\left(n = \\frac{M_{\\text{molecular}}}{M_{\\text{empirical}}}\\right)",
+    "inquiry": "Derive simplest whole-number empirical formulas from percent composition data and determine molecular formulas using molar mass.",
     "defaultParams": {
-      "molAl": 3,
-      "molCl2": 4.5
+      "preset": "glucose"
     }
   },
   "CHEM-M09-L5": {
-    "type": "chem-calorimetry",
+    "type": "chem-hydrate-dehydration",
     "lessonBadge": "Lesson 5",
     "title": "Formulas of Hydrates: Water of Crystallization",
-    "formula": "\\text{Hydrate Ratio } x = \\frac{n_{\\text{H}_2\\text{O}}}{n_{\\text{anhydrous salt}}}",
-    "inquiry": "Heat a hydrated copper sulfate salt to drive off crystalline water and determine the hydrate coefficient.",
+    "formula": "\\text{Hydrate Ratio } x = \\frac{n_{\\text{H}_2\\text{O}}}{n_{\\text{anhydrous salt}}} \\implies \\text{Salt} \\cdot x\\text{H}_2\\text{O}",
+    "inquiry": "Heat a hydrated salt in a crucible to drive off crystalline water and calculate the integer hydrate mole ratio.",
     "defaultParams": {
-      "metalMass": 50,
-      "metalTemp": 110,
-      "waterMass": 100
+      "salt": "CuSO4",
+      "initialMass": 15.0
     }
   },
   "CHEM-M10-L1": {
@@ -1190,10 +1188,11 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "type": "bio-photosynthesis-respiration",
     "lessonBadge": "Lesson 3",
     "title": "Cellular Respiration: Glycolysis, Krebs Cycle & ETC",
-    "formula": "\\text{C}_6\\text{H}_{12}\\text{O}_6 + 6\\text{O}_2 \\longrightarrow 6\\text{CO}_2 + 6\\text{H}_2\\text{O} + 36\\text{ ATP}",
-    "inquiry": "Track electron transport through mitochondrial inner membrane complexes driving ATP synthesis.",
+    "formula": "\\text{C}_6\\text{H}_{12}\\text{O}_6 + 6\\text{O}_2 \\longrightarrow 6\\text{CO}_2 + 6\\text{H}_2\\text{O} + 30\\text{--}32\\text{ ATP} \\quad (\\text{Modern Chemiosmotic P/O Yield})",
+    "inquiry": "Track electron transport through mitochondrial inner membrane complexes driving chemiosmotic ATP synthesis (reconciled modern standard 30–32 ATP per glucose).",
     "defaultParams": {
-      "lightIntensity": 50,
+      "mode": "resp",
+      "lightIntensity": 0,
       "co2Level": 400
     }
   },
@@ -1897,15 +1896,16 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "PHYS-M03-L3": {
-    "type": "phys-kinematics-1d",
+    "type": "phys-free-fall",
     "lessonBadge": "Lesson 3",
     "title": "Free Fall & Gravitational Acceleration",
-    "formula": "y(t) = y_0 + v_0 t - \\frac{1}{2}g t^2 \\quad (g = 9.80\\text{ m/s}^2)",
-    "inquiry": "Drop masses from rest to observe uniform downward gravitational acceleration in vacuum.",
+    "formula": "y(t) = y_0 + v_0 t - \\frac{1}{2}g t^2 \\quad \\text{and} \\quad v(t) = v_0 - g t",
+    "inquiry": "Drop or vertically launch objects with initial height y₀, signed velocity v₀, and gravitational acceleration g to observe free fall kinematics and ground impact.",
     "defaultParams": {
+      "y0": 80,
       "v0": 0,
-      "a": -9.8,
-      "x0": 80
+      "g": 9.8,
+      "mass": 1.0
     }
   },
   "PHYS-M04-L1": {

@@ -156,7 +156,7 @@ export function parseOrGenerateSolverSteps(workedExample) {
  * - "reference" (Full Standard Derivation)
  * - "solver" (Guided Interactive Calculation Step Solver)
  */
-export function renderWorkedExampleHTML(workedExample, isVerified = true, initialMode = "reference") {
+export function renderWorkedExampleHTML(workedExample, isVerified = false, initialMode = "reference") {
   if (!workedExample) return "";
 
   const statusLabel = workedExample.status || (isVerified ? "Specialist Verified Solution" : "Curriculum Standard Reference Solution (Under Specialist Review)");

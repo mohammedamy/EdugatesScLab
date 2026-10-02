@@ -742,7 +742,19 @@ export function initPhotosynthesisLab(containerId) {
 
   updateHUD();
 
-  return () => {
+  const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
   };
+  activePhotosynthesisCleanup = cleanup;
+  return cleanup;
 }
+
+let activePhotosynthesisCleanup = null;
+
+export function cleanupPhotosynthesisLab() {
+  if (typeof activePhotosynthesisCleanup === "function") {
+    activePhotosynthesisCleanup();
+    activePhotosynthesisCleanup = null;
+  }
+}
+

@@ -4,8 +4,33 @@
 
 let loadedQuestionBank = null;
 let loadingBankPromise = null;
+const subjectChunks = {
+  chem: null,
+  bio: null,
+  phys: null
+};
 
 export async function getQuestionBank() {
+  const subjectTrack = arguments[0] || null;
+  const norm = (subjectTrack || "").toLowerCase();
+  
+  // On-demand chunk loading if a single subject track is requested
+  if (!loadedQuestionBank && (norm === "chem" || norm === "bio" || norm === "phys")) {
+    if (subjectChunks[norm]) return subjectChunks[norm];
+    try {
+      let chunkModule = null;
+      if (norm === "chem") chunkModule = await import("../data/question-bank-chem.js");
+      else if (norm === "bio") chunkModule = await import("../data/question-bank-bio.js");
+      else if (norm === "phys") chunkModule = await import("../data/question-bank-phys.js");
+      if (chunkModule && chunkModule.questionBank) {
+        subjectChunks[norm] = chunkModule.questionBank;
+        return subjectChunks[norm];
+      }
+    } catch (err) {
+      console.warn(`[Quiz Engine] Chunk load failed for ${norm}, falling back to master bank:`, err);
+    }
+  }
+
   if (loadedQuestionBank) return loadedQuestionBank;
   if (!loadingBankPromise) {
     loadingBankPromise = import("../data/question-bank.js")
