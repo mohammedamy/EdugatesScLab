@@ -516,6 +516,8 @@ export function initSmartboardToolbar() {
       });
     }
 
+    updateToolbarStateClasses();
+
     if (save) {
       try {
         localStorage.setItem("sb_toolbar_docked", isDocked ? "1" : "0");
@@ -553,6 +555,8 @@ export function initSmartboardToolbar() {
         document.body.classList.add("sb-docked-active");
       }
     }
+
+    updateToolbarStateClasses();
 
     requestAnimationFrame(() => {
       const rect = bar.getBoundingClientRect();
@@ -714,6 +718,17 @@ export function initSmartboardToolbar() {
     document.body.appendChild(toggleBtn);
   }
 
+  function updateToolbarStateClasses() {
+    const isVisible = bar.classList.contains("visible") && !bar.classList.contains("sb-hidden");
+    const isFloating = isVisible && !isDocked && !isMinimized;
+    document.body.classList.toggle("sb-toolbar-open", isFloating);
+    if (isVisible && isDocked && !isMinimized) {
+      document.body.classList.add("sb-docked-active");
+    } else if (!isDocked || isMinimized || !isVisible) {
+      document.body.classList.remove("sb-docked-active");
+    }
+  }
+
   toggleBtn.addEventListener("click", () => {
     SoundFX.playClick();
     const isCurrentlyVisible = bar.classList.contains("visible") || (document.body.classList.contains("mode-smartboard") && !bar.classList.contains("sb-hidden"));
@@ -722,19 +737,16 @@ export function initSmartboardToolbar() {
       bar.classList.remove("visible");
       bar.classList.add("sb-hidden");
       toggleBtn.classList.remove("active");
-      document.body.classList.remove("sb-docked-active");
       closeSizePopover();
     } else {
       bar.classList.remove("sb-hidden");
       bar.classList.add("visible");
       toggleBtn.classList.add("active");
-      if (isDocked && !isMinimized) {
-        document.body.classList.add("sb-docked-active");
-      }
       if (currentTool !== "pointer") {
         canvas.style.display = "block";
       }
     }
+    updateToolbarStateClasses();
   });
 
   let isSyncing = false;
@@ -749,16 +761,11 @@ export function initSmartboardToolbar() {
       if (isSBMode && !isMobile && !bar.classList.contains("sb-hidden")) {
         if (!bar.classList.contains("visible")) bar.classList.add("visible");
         if (toggleBtn && !toggleBtn.classList.contains("active")) toggleBtn.classList.add("active");
-        if (isDocked && !isMinimized && !document.body.classList.contains("sb-docked-active")) {
-          document.body.classList.add("sb-docked-active");
-        }
       } else {
         if (bar.classList.contains("visible")) bar.classList.remove("visible");
         if (toggleBtn && toggleBtn.classList.contains("active")) toggleBtn.classList.remove("active");
-        if (document.body.classList.contains("sb-docked-active")) {
-          document.body.classList.remove("sb-docked-active");
-        }
       }
+      updateToolbarStateClasses();
     } finally {
       isSyncing = false;
     }

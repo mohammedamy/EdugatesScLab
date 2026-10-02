@@ -20,6 +20,7 @@ import {
   zoomIn, 
   zoomOut, 
   resetZoom, 
+  panBy,
   initTouchZoom 
 } from "../utils/touch-zoom.js";
 
@@ -188,11 +189,35 @@ const zoomedOut = getTouchZoomState();
 check(zoomedOut.scale === 0.65, `setScale(0.65) successfully shrinks whole screen smaller (Found: ${zoomedOut.scale})`);
 check(zoomedOut.isZoomed, "State reports isZoomed = true when whole screen is shrunk");
 
-// Test Reset Zoom (Fit whole screen back to 100%)
+// Test Reset Zoom (Fit whole screen back to 100% and center view)
 resetZoom(false);
 const resetState = getTouchZoomState();
 check(resetState.scale === 1.0, `resetZoom() returns scale to exactly 1.0 (Found: ${resetState.scale})`);
 check(!resetState.isZoomed, "resetZoom() clears isZoomed state");
+check(resetState.panX === 0 && resetState.panY === 0, `resetZoom() centralizes view to pan (0, 0) (Found: ${resetState.panX}, ${resetState.panY})`);
+
+// Test Center on Reset from Deviated Pan State
+panBy(150, -90);
+const pannedState = getTouchZoomState();
+check(pannedState.panX === 150 && pannedState.panY === -90, `panBy() shifts pan coordinates to (150, -90) (Found: ${pannedState.panX}, ${pannedState.panY})`);
+check(pannedState.isZoomed, "State reports isZoomed = true when panned off-center");
+
+resetZoom(false);
+const centeredState = getTouchZoomState();
+check(centeredState.scale === 1.0, "resetZoom() resets scale to 1.0");
+check(centeredState.panX === 0 && centeredState.panY === 0, `resetZoom() centralizes panned view back to (0, 0) (Found: ${centeredState.panX}, ${centeredState.panY})`);
+check(!centeredState.isZoomed, "resetZoom() clears isZoomed flag when centered");
+
+// Test 100% zoom option with focal coordinates also centralizes view
+setScale(1.8, 640, 360);
+panBy(-75, 45);
+check(getTouchZoomState().scale === 1.8, "Zoomed into 180%");
+// Emulate clicking 100% option (which passes winW/2, winH/2)
+setScale(1.0, 960, 540, false);
+const option100State = getTouchZoomState();
+check(option100State.scale === 1.0, `setScale(1.0) returns scale to 1.0 (Found: ${option100State.scale})`);
+check(option100State.panX === 0 && option100State.panY === 0, `setScale(1.0) centralizes view back to (0, 0) regardless of focal coordinates (Found: ${option100State.panX}, ${option100State.panY})`);
+check(!option100State.isZoomed, "setScale(1.0) clears isZoomed state");
 
 // Test Bounds: Min scale is clamped to 0.40 and Max scale is clamped to 3.50
 setScale(0.1);

@@ -40,19 +40,24 @@ export function applyScreenTransform(smooth = false) {
   if (!root) return;
 
   if (Math.abs(currentScale - 1.0) < 0.01 && Math.abs(currentPanX) < 1 && Math.abs(currentPanY) < 1) {
-    // Reset to pure native layout
+    // Reset to pure native layout centered
     root.style.transition = smooth ? "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)" : "";
-    root.style.transform = "";
-    root.style.transformOrigin = "";
-    document.body.classList.remove("is-screen-zoomed");
-    updateHudUI();
+    root.style.transformOrigin = "0 0";
     if (smooth) {
+      root.style.transform = "translate(0px, 0px) scale(1)";
       setTimeout(() => {
-        if (root && Math.abs(currentScale - 1.0) < 0.01) {
+        if (root && Math.abs(currentScale - 1.0) < 0.01 && Math.abs(currentPanX) < 1 && Math.abs(currentPanY) < 1) {
+          root.style.transform = "";
+          root.style.transformOrigin = "";
           root.style.transition = "";
         }
       }, 300);
+    } else {
+      root.style.transform = "";
+      root.style.transformOrigin = "";
     }
+    document.body.classList.remove("is-screen-zoomed");
+    updateHudUI();
     return;
   }
 
@@ -81,7 +86,8 @@ export function setScale(newScale, focalX, focalY, smooth = false) {
   const clampedScale = clamp(newScale, MIN_SCALE, MAX_SCALE);
   const targetScale = Math.abs(clampedScale - 1.0) <= SNAP_THRESHOLD ? 1.0 : clampedScale;
 
-  if (targetScale === 1.0 && focalX === undefined && focalY === undefined) {
+  // Whenever scale is set to 1.0 (100%), ALWAYS centralize view completely back to (0, 0)
+  if (Math.abs(targetScale - 1.0) < 0.001) {
     currentScale = 1.0;
     currentPanX = 0;
     currentPanY = 0;
@@ -114,6 +120,11 @@ export function resetZoom(smooth = true) {
   currentScale = 1.0;
   currentPanX = 0;
   currentPanY = 0;
+  if (typeof window !== "undefined") {
+    try {
+      window.scrollTo({ left: 0, top: 0, behavior: smooth ? "smooth" : "auto" });
+    } catch (_) {}
+  }
   applyScreenTransform(smooth);
 }
 
@@ -248,6 +259,7 @@ function createHudElement() {
       <button class="touch-zoom-badge" id="btn-touch-zoom-presets" title="Touch Zoom Level • Click for Presets" aria-label="Touch zoom level" aria-haspopup="true">
         <span class="touch-zoom-icon">🔍</span>
         <span class="touch-zoom-pct" id="touch-zoom-pct-label">100%</span>
+        <span class="touch-zoom-caret" aria-hidden="true" style="font-size: 0.65rem; opacity: 0.7; margin-left: 2px;">▾</span>
       </button>
 
       <!-- Zoom In Button -->
@@ -255,10 +267,13 @@ function createHudElement() {
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
 
-      <!-- Reset / Fit Button (Prominent when zoomed in or out) -->
-      <button class="touch-zoom-btn touch-zoom-btn-reset" id="btn-touch-zoom-reset" title="Reset Zoom to 100% / Fit Whole Screen" aria-label="Reset zoom to 100%">
-        <span>↺</span>
-        <span class="touch-zoom-reset-txt">Fit</span>
+      <!-- Reset & Center Button (Permanently available in zoom tools) -->
+      <button class="touch-zoom-btn touch-zoom-btn-reset" id="btn-touch-zoom-reset" title="Reset Zoom to 100% & Center View (↺)" aria-label="Reset zoom to 100% and center view">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        <span class="touch-zoom-reset-txt">100% Center</span>
       </button>
     </div>
 
@@ -268,11 +283,21 @@ function createHudElement() {
       <div class="touch-zoom-preset-grid">
         <button class="touch-zoom-preset-opt" data-scale="0.50">50% <span class="preset-tag">Mini</span></button>
         <button class="touch-zoom-preset-opt" data-scale="0.75">75% <span class="preset-tag">Fit All</span></button>
-        <button class="touch-zoom-preset-opt" data-scale="1.00">100% <span class="preset-tag">Normal</span></button>
+        <button class="touch-zoom-preset-opt preset-center-opt" data-scale="1.00">
+          <span>↺ 100%</span>
+          <span class="preset-tag preset-tag-center">Center</span>
+        </button>
         <button class="touch-zoom-preset-opt" data-scale="1.25">125% <span class="preset-tag">Large</span></button>
         <button class="touch-zoom-preset-opt" data-scale="1.50">150% <span class="preset-tag">Close</span></button>
         <button class="touch-zoom-preset-opt" data-scale="2.00">200% <span class="preset-tag">Macro</span></button>
       </div>
+      <button class="touch-zoom-preset-center-btn" id="btn-popover-reset-center" title="Reset to 100% and Center View">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        <span>Reset to 100% & Center View</span>
+      </button>
       <div class="touch-zoom-hint">💡 Pinch with two fingers anywhere on screen to zoom smoothly</div>
     </div>
   `;
@@ -284,11 +309,19 @@ function createHudElement() {
   const btnIn = hud.querySelector("#btn-touch-zoom-in");
   const btnReset = hud.querySelector("#btn-touch-zoom-reset");
   const btnPresets = hud.querySelector("#btn-touch-zoom-presets");
+  const btnPopoverReset = hud.querySelector("#btn-popover-reset-center");
   const popover = hud.querySelector("#touch-zoom-popover");
 
   btnOut?.addEventListener("click", () => zoomOut(0.12));
   btnIn?.addEventListener("click", () => zoomIn(0.12));
-  btnReset?.addEventListener("click", () => resetZoom(true));
+  btnReset?.addEventListener("click", () => {
+    resetZoom(true);
+    if (popover) popover.style.display = "none";
+  });
+  btnPopoverReset?.addEventListener("click", () => {
+    resetZoom(true);
+    if (popover) popover.style.display = "none";
+  });
 
   btnPresets?.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -299,9 +332,13 @@ function createHudElement() {
   hud.querySelectorAll(".touch-zoom-preset-opt").forEach(btn => {
     btn.addEventListener("click", () => {
       const sc = parseFloat(btn.dataset.scale || "1.0");
-      const winW = window.innerWidth;
-      const winH = window.innerHeight;
-      setScale(sc, winW / 2, winH / 2, true);
+      if (Math.abs(sc - 1.0) < 0.01) {
+        resetZoom(true);
+      } else {
+        const winW = typeof window !== "undefined" ? window.innerWidth : 1280;
+        const winH = typeof window !== "undefined" ? window.innerHeight : 800;
+        setScale(sc, winW / 2, winH / 2, true);
+      }
       popover.style.display = "none";
     });
   });
@@ -340,7 +377,7 @@ function updateHudUI() {
     }
 
     if (btnReset) {
-      btnReset.style.display = isDeviated ? "inline-flex" : "none";
+      btnReset.classList.toggle("is-deviated", isDeviated);
     }
   }
 }
