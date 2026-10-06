@@ -10,7 +10,7 @@ class SoundEffectEngine {
 
   getContext() {
     if (!this._ctx) {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const AudioCtx = typeof window !== "undefined" ? (window.AudioContext || window.webkitAudioContext) : null;
       if (AudioCtx) {
         this._ctx = new AudioCtx();
       }
@@ -28,9 +28,13 @@ class SoundEffectEngine {
   setMuted(muted) {
     this._muted = !!muted;
     try {
-      localStorage.setItem("edugates_sound_muted", String(this._muted));
+      if (typeof localStorage !== "undefined") {
+        localStorage.setItem("edugates_sound_muted", String(this._muted));
+      }
     } catch (e) {}
-    window.dispatchEvent(new CustomEvent("edugates_sound_muted_change", { detail: { muted: this._muted } }));
+    if (typeof window !== "undefined" && typeof CustomEvent === "function") {
+      window.dispatchEvent(new CustomEvent("edugates_sound_muted_change", { detail: { muted: this._muted } }));
+    }
   }
 
   toggleMute() {

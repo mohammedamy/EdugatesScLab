@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v57";
+const CACHE_NAME = "amscilab-pwa-v58";
 
 const CORE_APP_SHELL = [
   "./",
@@ -48,6 +48,7 @@ const CORE_APP_SHELL = [
   "./components/progress-tracker.js",
   "./components/quiz-engine.js",
   "./components/quiz-engine.js?v=3.1",
+  "./components/quiz-engine.js?v=3.2",
   "./components/smartboard-toolbar.js",
   "./components/science-calculator.js",
   "./components/flashcards.js",

@@ -1088,7 +1088,7 @@ function renderCurrentView() {
     container.innerHTML = `<div id="quiz-engine-mount"><div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading Assessment Engine & Question Bank...</div></div>`;
     const initialConfig = AppState.quizFilter || null;
     AppState.quizFilter = null;
-    import("./components/quiz-engine.js?v=3.1").then(m => {
+    import("./components/quiz-engine.js?v=3.2").then(m => {
       currentActiveQuizCleanup = m.renderQuizEngine("quiz-engine-mount", initialConfig);
     }).catch(err => {
       console.error("Quiz load error:", err);

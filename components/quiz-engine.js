@@ -837,6 +837,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         const modeVal = document.getElementById("cfg-mode")?.value || examMode;
         const scopeStr = [...selectedLessons].join(",");
         const lessonCountText = `${selectedLessons.size} ${selectedLessons.size === 1 ? 'Lesson' : 'Lessons'}`;
+        const hash = `#quiz?subj=${selectedSubject}&mode=${modeVal}&count=${countVal}&diff=${diffVal}&qtype=${qtypeVal}&scope=${encodeURIComponent(scopeStr)}`;
         openLmsShareModal({
           url: hash,
           title: `${selectedSubject} Custom Assessment (${lessonCountText})`,
@@ -1644,6 +1645,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           return;
         }
         activeQuestions = pickerPool.filter(q => pickerSelectedIds.has(q.id));
+        if (activeQuestions.length === 0) {
+          showToast("Selection Empty", "No valid questions matched your selection.", "warning");
+          return;
+        }
         userAnswers = {};
         examMode = "practice";
         renderTestView();
@@ -1666,14 +1671,17 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       btnGen.innerText = "⏳ Loading Question Bank...";
     }
 
-    const difficulty = document.getElementById("cfg-difficulty").value;
-    const countVal = document.getElementById("cfg-count").value;
-    const qTypeVal = document.getElementById("cfg-qtype").value;
-    examMode = document.getElementById("cfg-mode").value;
+    const difficulty = document.getElementById("cfg-difficulty")?.value || initialDifficulty || "ALL";
+    const countVal = document.getElementById("cfg-count")?.value || initialCount || "10";
+    const qTypeVal = document.getElementById("cfg-qtype")?.value || initialQType || "ALL";
+    examMode = document.getElementById("cfg-mode")?.value || examMode || "practice";
 
     let bank;
     try {
-      bank = await getQuestionBank();
+      bank = await getQuestionBank(selectedSubject);
+      if (!bank || !Array.isArray(bank) || bank.length === 0) {
+        bank = await getQuestionBank();
+      }
     } catch (err) {
       console.error("[Quiz Engine] Error loading question bank:", err);
       bank = [];
@@ -1687,14 +1695,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     // Parse selected lessons into structured objects
     const scopeLessons = [];
     selectedLessons.forEach(lKey => {
-      const parts = lKey.split("-"); // ['CHEM', 'M1', 'L2']
-      const subj = parts[0];
-      const mid = parseInt(parts[1].replace("M", ""), 10);
-      const lid = parseInt(parts[2].replace("L", ""), 10);
+      const parts = String(lKey || "").split("-"); // ['CHEM', 'M1', 'L2']
+      const subj = parts[0] || selectedSubject;
+      const mid = parts[1] ? parseInt(parts[1].replace("M", ""), 10) : 1;
+      const lid = parts[2] ? parseInt(parts[2].replace("L", ""), 10) : 1;
       const cur = curricula[subj];
-      if (cur) {
+      if (cur && cur.modules) {
         const mod = cur.modules.find(m => m.id === mid);
-        if (mod) {
+        if (mod && mod.lessons) {
           const les = mod.lessons.find(l => l.id === lid);
           if (les) {
             scopeLessons.push({ subj, mod, les, mid, lid });
@@ -1708,11 +1716,20 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     const selectedModIds = new Set(scopeLessons.map(sl => `${sl.subj}-${sl.mid}`));
 
     let pool = bank.filter(q => {
+      if (!q) return false;
       const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
       const matchScope = q.lessonId 
         ? selectedLessonKeys.has(qLessonKey) 
         : selectedModIds.has(`${q.subject}-${q.moduleId}`);
-      const matchDiff = difficulty === "ALL" || q.difficulty === difficulty;
+      const matchDiff = difficulty === "ALL" 
+        || q.difficulty === difficulty 
+        || q.difficultyTier === difficulty
+        || (difficulty === "foundational" && (q.difficulty === "foundational" || q.difficultyTier === "easy"))
+        || (difficulty === "honors" && (q.difficulty === "honors" || q.difficultyTier === "medium"))
+        || (difficulty === "ap_olympiad" && (q.difficulty === "ap_olympiad" || q.difficultyTier === "hard"))
+        || (difficulty === "easy" && (q.difficulty === "foundational" || q.difficultyTier === "easy"))
+        || (difficulty === "medium" && (q.difficulty === "honors" || q.difficultyTier === "medium"))
+        || (difficulty === "hard" && (q.difficulty === "ap_olympiad" || q.difficultyTier === "hard"));
       const matchType = qTypeVal === "ALL" 
         || (qTypeVal === "diagram" ? (q.type === "diagram" || q.hasDiagram || Boolean(q.diagram)) : q.type === qTypeVal);
       return matchScope && matchDiff && matchType;
@@ -1721,6 +1738,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     // If pool is empty due to ultra-restrictive difficulty/type combination, relax filter to ensure valid assessment
     if (pool.length === 0) {
       pool = bank.filter(q => {
+        if (!q) return false;
         const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
         const matchScope = q.lessonId 
           ? selectedLessonKeys.has(qLessonKey) 
@@ -1733,6 +1751,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
     if (pool.length === 0) {
       pool = bank.filter(q => {
+        if (!q) return false;
         const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
         return q.lessonId 
           ? selectedLessonKeys.has(qLessonKey) 
@@ -1750,14 +1769,22 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     }
 
+    if (pool.length === 0) {
+      showToast("No Questions Available", "Could not load or synthesize questions for the chosen scope. Please select another lesson.", "warning");
+      return;
+    }
+
     currentScopePool = pool;
 
     // Shuffle pool
     pool.sort(() => Math.random() - 0.5);
 
     // Limit count
-    const targetCount = countVal === "ALL" ? pool.length : Math.min(parseInt(countVal, 10), pool.length);
+    const targetCount = countVal === "ALL" ? pool.length : Math.min(parseInt(countVal, 10) || 10, pool.length);
     activeQuestions = pool.slice(0, Math.max(1, targetCount));
+    if (activeQuestions.length === 0 && pool.length > 0) {
+      activeQuestions = [pool[0]];
+    }
     userAnswers = {};
     presenterIndex = 0;
     presenterRevealed = false;
@@ -1844,12 +1871,17 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   function renderTestView() {
     viewState = "test";
     removePresenterKeyHandler();
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
 
     if (examMode === "timed") {
       timeRemaining = activeQuestions.length * 90; // 90 seconds per question
       timerInterval = setInterval(() => {
         if (!container || !container.isConnected) {
           clearInterval(timerInterval);
+          timerInterval = null;
           return;
         }
         timeRemaining--;
@@ -1864,6 +1896,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         }
         if (timeRemaining <= 0) {
           clearInterval(timerInterval);
+          timerInterval = null;
           SoundFX.playChime();
           finishExam();
         }
@@ -1916,9 +1949,9 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       </div>
     `;
 
-    document.getElementById("btn-back-config").addEventListener("click", showConfig);
-    document.getElementById("btn-submit-exam").addEventListener("click", finishExam);
-    document.getElementById("btn-switch-to-presenter").addEventListener("click", () => {
+    document.getElementById("btn-back-config")?.addEventListener("click", showConfig);
+    document.getElementById("btn-submit-exam")?.addEventListener("click", finishExam);
+    document.getElementById("btn-switch-to-presenter")?.addEventListener("click", () => {
       examMode = "presenter";
       renderPresenterSlide();
     });
@@ -1936,13 +1969,73 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     });
 
-    bindQuestionEvents();
+    // Delegated event listener on #questions-list to prevent listener accumulation and freezing
+    const qList = document.getElementById("questions-list");
+    if (qList) {
+      qList.addEventListener("click", (e) => {
+        // A. Toggle CER Rubric Reveal
+        const cerBtn = e.target.closest(".btn-reveal-cer");
+        if (cerBtn) {
+          e.preventDefault();
+          const qid = cerBtn.dataset.qid;
+          userAnswers[qid] = userAnswers[qid] ? undefined : true;
+          SoundFX.playClick();
+          const qIdx = activeQuestions.findIndex(q => q.id === qid);
+          const card = document.getElementById(`q-card-${qid}`);
+          if (card && qIdx !== -1) {
+            card.outerHTML = renderQuestionCard(activeQuestions[qIdx], qIdx);
+            const updatedCard = document.getElementById(`q-card-${qid}`);
+            if (updatedCard) renderMathInElement(updatedCard);
+          }
+          return;
+        }
+
+        // B. Option Button Selection
+        const optBtn = e.target.closest(".q-option-btn");
+        if (optBtn) {
+          e.preventDefault();
+          const qid = optBtn.dataset.qid;
+          const oidx = parseInt(optBtn.dataset.oidx, 10);
+          userAnswers[qid] = oidx;
+
+          if (examMode === "practice") {
+            const qIdx = activeQuestions.findIndex(q => q.id === qid);
+            if (qIdx !== -1) {
+              const isCorrect = oidx === activeQuestions[qIdx].correctIndex;
+              if (isCorrect) {
+                SoundFX.playSuccess();
+              } else {
+                SoundFX.playIncorrect();
+              }
+            }
+            const card = document.getElementById(`q-card-${qid}`);
+            if (card && qIdx !== -1) {
+              card.outerHTML = renderQuestionCard(activeQuestions[qIdx], qIdx);
+              const updatedCard = document.getElementById(`q-card-${qid}`);
+              if (updatedCard) renderMathInElement(updatedCard);
+            }
+          } else {
+            SoundFX.playClick();
+            const card = document.getElementById(`q-card-${qid}`);
+            if (card) {
+              card.querySelectorAll(".q-option-btn").forEach(b => b.classList.remove("selected"));
+            }
+            optBtn.classList.add("selected");
+          }
+        }
+      });
+    }
+
     renderMathInElement(container);
   }
 
   function renderQuestionCard(q, idx) {
+    if (!q) return "";
     const isAnswered = userAnswers[q.id] !== undefined;
     const selectedIdx = userAnswers[q.id];
+    const diffRaw = q.difficulty || q.difficultyTier || "foundational";
+    const diffClean = String(diffRaw).replace(/_/g, " ");
+    const diffColor = (diffRaw === "ap_olympiad" || diffRaw === "hard") ? "#ec4899" : ((diffRaw === "honors" || diffRaw === "medium") ? "#f59e0b" : "#10b981");
 
     return `
       <div class="question-card" id="q-card-${q.id}" style="background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: var(--radius-md); padding: 22px; display: flex; flex-direction: column; gap: 14px;">
@@ -1951,26 +2044,26 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             <span class="q-badge" style="background: rgba(56, 189, 248, 0.15); color: #0284c7; font-family: var(--font-mono); font-weight: 700; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem;">
               Question ${idx + 1} of ${activeQuestions.length}
             </span>
-            <span class="q-badge" style="color: var(--text-dim); font-size: 0.82rem;">${q.subject} • ${q.moduleTitle}</span>
+            <span class="q-badge" style="color: var(--text-dim); font-size: 0.82rem;">${q.subject || selectedSubject} • ${q.moduleTitle || 'General Module'}</span>
             ${q.lessonTitle ? `<span style="color: #10b981; font-size: 0.75rem; font-family: var(--font-mono);">[${q.lessonTitle}]</span>` : ""}
           </div>
-          <span class="q-badge" style="text-transform: uppercase; font-size: 0.72rem; font-weight: 700; color: ${q.difficulty === 'ap_olympiad' ? '#ec4899' : q.difficulty === 'honors' ? '#f59e0b' : '#10b981'};">
-            ${q.difficulty.replace('_', ' ')}
+          <span class="q-badge" style="text-transform: uppercase; font-size: 0.72rem; font-weight: 700; color: ${diffColor};">
+            ${diffClean}
           </span>
         </div>
 
         <div class="q-text" style="font-size: 1.05rem; line-height: 1.6; color: var(--text-main);">
-          ${formatMathText(q.question)}
+          ${formatMathText(q.question || "")}
         </div>
 
         ${q.diagram ? `
           <div class="q-diagram-container">
-            ${q.diagram.caption ? `<div class="q-diagram-caption">${q.diagram.caption}</div>` : ""}
-            <div class="q-diagram-svg">${q.diagram.svg}</div>
+            ${(typeof q.diagram === "object" && q.diagram !== null && q.diagram.caption) ? `<div class="q-diagram-caption">${q.diagram.caption}</div>` : ""}
+            <div class="q-diagram-svg">${(typeof q.diagram === "object" && q.diagram !== null) ? (q.diagram.svg || "") : String(q.diagram || "")}</div>
           </div>
         ` : ""}
 
-        ${q.options ? `
+        ${Array.isArray(q.options) && q.options.length > 0 ? `
           <div class="q-options-grid" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
             ${q.options.map((opt, oIdx) => {
               const letter = String.fromCharCode(65 + oIdx);
@@ -1985,12 +2078,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               return `
                 <button class="q-option-btn ${stateClass}" data-qid="${q.id}" data-oidx="${oIdx}">
                   <span class="q-option-letter">${letter}</span>
-                  <span style="flex: 1; text-align: left;">${formatMathText(opt)}</span>
+                  <span style="flex: 1; text-align: left;">${formatMathText(String(opt ?? ""))}</span>
                 </button>
               `;
             }).join("")}
           </div>
-        ` : (q.type === 'cer' ? `
+        ` : (q.type === 'cer' || q.rubricCER ? `
           <div class="cer-practice-card" style="margin-top: 10px; background: var(--bg-surface-elevated); border: 1.5px dashed #0284c7; border-radius: 8px; padding: 16px;">
             <div style="font-weight: 800; font-size: 0.92rem; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
               <span>🔬</span>
@@ -2016,7 +2109,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             <div style="font-weight: 700; color: #10b981; margin-bottom: 4px; font-size: 0.9rem;">
               ${q.type === 'cer' ? 'Model Scientific Argumentation &amp; Pedagogical Solution:' : 'Pedagogical Solution &amp; Explanation:'}
             </div>
-            <div style="font-size: 0.92rem; color: var(--text-main); line-height: 1.6;">${formatMathText(q.explanation).replace(/\n/g, '<br>')}</div>
+            <div style="font-size: 0.92rem; color: var(--text-main); line-height: 1.6;">${formatMathText(String(q.explanation || "")).replace(/\n/g, '<br>')}</div>
             ${q.rubricCER ? `
               <div style="margin-top: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.18); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px;">
                 <div style="font-weight: 800; font-size: 0.85rem; color: #34d399; margin-bottom: 6px;">Scoring Rubric (10 Pts Total):</div>
@@ -2034,61 +2127,25 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     `;
   }
 
-  function bindQuestionEvents() {
-    document.querySelectorAll(".btn-reveal-cer").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const qid = btn.dataset.qid;
-        userAnswers[qid] = userAnswers[qid] ? undefined : true;
-        SoundFX.playClick();
-        const qIdx = activeQuestions.findIndex(q => q.id === qid);
-        const card = document.getElementById(`q-card-${qid}`);
-        if (card && qIdx !== -1) {
-          card.outerHTML = renderQuestionCard(activeQuestions[qIdx], qIdx);
-          bindQuestionEvents();
-          const updatedCard = document.getElementById(`q-card-${qid}`);
-          if (updatedCard) renderMathInElement(updatedCard);
-        }
-      });
-    });
-
-    document.querySelectorAll(".q-option-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const qid = btn.dataset.qid;
-        const oidx = parseInt(btn.dataset.oidx, 10);
-        userAnswers[qid] = oidx;
-
-        if (examMode === "practice") {
-          const qIdx = activeQuestions.findIndex(q => q.id === qid);
-          if (qIdx !== -1) {
-            const isCorrect = oidx === activeQuestions[qIdx].correctIndex;
-            if (isCorrect) {
-              SoundFX.playSuccess();
-            } else {
-              SoundFX.playIncorrect();
-            }
-          }
-          const card = document.getElementById(`q-card-${qid}`);
-          if (card && qIdx !== -1) {
-            card.outerHTML = renderQuestionCard(activeQuestions[qIdx], qIdx);
-            bindQuestionEvents();
-            const updatedCard = document.getElementById(`q-card-${qid}`);
-            if (updatedCard) renderMathInElement(updatedCard);
-          }
-        } else {
-          SoundFX.playClick();
-          document.querySelectorAll(`button[data-qid="${qid}"]`).forEach(b => b.classList.remove("selected"));
-          btn.classList.add("selected");
-        }
-      });
-    });
-  }
-
   // --- SMARTBOARD CLASSROOM PRESENTER MODE ---
   function renderPresenterSlide() {
     viewState = "presenter";
     removePresenterKeyHandler();
 
+    if (!activeQuestions || activeQuestions.length === 0) {
+      showConfig();
+      return;
+    }
+
+    if (presenterIndex < 0) presenterIndex = 0;
+    if (presenterIndex >= activeQuestions.length) presenterIndex = activeQuestions.length - 1;
+
     const q = activeQuestions[presenterIndex];
+    if (!q) {
+      showConfig();
+      return;
+    }
+
     if (!presenterPolls[q.id]) {
       presenterPolls[q.id] = [0, 0, 0, 0];
     }
@@ -2122,7 +2179,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           </div>
 
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <span style="font-size: 0.9rem; color: #38bdf8; font-weight: 600;">${q.subject} • ${q.moduleTitle}</span>
+            <span style="font-size: 0.9rem; color: #38bdf8; font-weight: 600;">${q.subject || selectedSubject} • ${q.moduleTitle || 'General Module'}</span>
             <button class="btn btn-secondary" id="btn-presenter-calc" title="Scientific Pocket Calculator &amp; Constants (Hot-key: K)" style="padding: 8px 12px; display: flex; align-items: center; gap: 6px;">
               <span>🧮 Calc</span>
             </button>
@@ -2138,19 +2195,19 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         <!-- Question Prompt Area -->
         <div style="padding: 10px 0;">
           <div class="presenter-q-prompt" style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 800; line-height: 1.45;">
-            ${formatMathText(q.question)}
+            ${formatMathText(q.question || "")}
           </div>
         </div>
 
         ${q.diagram ? `
           <div class="presenter-diagram-container">
-            ${q.diagram.caption ? `<div class="presenter-diagram-caption">${q.diagram.caption}</div>` : ""}
-            <div class="presenter-diagram-svg">${q.diagram.svg}</div>
+            ${(typeof q.diagram === "object" && q.diagram !== null && q.diagram.caption) ? `<div class="presenter-diagram-caption">${q.diagram.caption}</div>` : ""}
+            <div class="presenter-diagram-svg">${(typeof q.diagram === "object" && q.diagram !== null) ? (q.diagram.svg || "") : String(q.diagram || "")}</div>
           </div>
         ` : ""}
 
         <!-- Large Touch Option Tiles or CER Discussion Board -->
-        ${q.options ? `
+        ${Array.isArray(q.options) && q.options.length > 0 ? `
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px;">
             ${q.options.map((opt, oIdx) => {
               const letter = String.fromCharCode(65 + oIdx);
@@ -2202,7 +2259,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                         ${letter}
                       </div>
                       <div class="presenter-opt-text" style="font-size: 1.25rem; font-weight: 600; line-height: 1.4;">
-                        ${formatMathText(opt)}
+                        ${formatMathText(String(opt ?? ""))}
                       </div>
                     </div>
 
@@ -2224,7 +2281,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               `;
             }).join("")}
           </div>
-        ` : (q.type === 'cer' ? `
+        ` : (q.type === 'cer' || q.rubricCER ? `
           <div class="presenter-cer-card" style="
             background: var(--bg-surface-elevated);
             border: 2px dashed #0284c7;
@@ -2268,10 +2325,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             animation: fadeIn 0.3s ease;
           ">
             <div style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: #10b981; margin-bottom: 6px;">
-              ${q.type === 'cer' || !q.options ? 'Scientific Inquiry &amp; CER Scoring Rubric' : `Correct Answer: Option ${String.fromCharCode(65 + q.correctIndex)} — Pedagogical Solution`}
+              ${q.type === 'cer' || !q.options ? 'Scientific Inquiry &amp; CER Scoring Rubric' : `Correct Answer: Option ${String.fromCharCode(65 + ((typeof q.correctIndex === 'number' && q.correctIndex >= 0) ? q.correctIndex : 0))} — Pedagogical Solution`}
             </div>
             <div class="presenter-explanation-text" style="color: #f1f5f9; font-size: 1.05rem; line-height: 1.6; white-space: pre-line;">
-              ${formatMathText(q.explanation)}
+              ${formatMathText(String(q.explanation || ""))}
             </div>
             ${q.rubricCER ? `
               <div style="margin-top: 14px; padding: 14px 18px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px;">
@@ -2321,7 +2378,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     `;
 
     function castPresenterVote(vidx) {
-      if (q.options && vidx < q.options.length) {
+      if (q && q.options && vidx < q.options.length) {
         presenterPolls[q.id][vidx]++;
         SoundFX.playClick();
         renderPresenterSlide();
@@ -2355,12 +2412,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       } else if (e.code === "KeyS") {
         e.preventDefault();
         const curQ = activeQuestions[presenterIndex];
-        const correctIdx = curQ.correctIndex;
-        presenterPolls[curQ.id] = [0, 0, 0, 0].map((_, idx) => {
-          return idx === correctIdx ? Math.floor(Math.random() * 10) + 15 : Math.floor(Math.random() * 6) + 1;
-        });
-        SoundFX.playClick();
-        renderPresenterSlide();
+        const correctIdx = (curQ && typeof curQ.correctIndex === "number") ? curQ.correctIndex : 0;
+        if (curQ) {
+          presenterPolls[curQ.id] = [0, 0, 0, 0].map((_, idx) => {
+            return idx === correctIdx ? Math.floor(Math.random() * 10) + 15 : Math.floor(Math.random() * 6) + 1;
+          });
+          SoundFX.playClick();
+          renderPresenterSlide();
+        }
       } else if (e.code === "KeyF") {
         e.preventDefault();
         if (!document.fullscreenElement) {
@@ -2386,7 +2445,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     window.addEventListener("keydown", presenterKeyHandler);
 
     // Presenter Event Listeners
-    document.getElementById("btn-exit-presenter").addEventListener("click", () => {
+    document.getElementById("btn-exit-presenter")?.addEventListener("click", () => {
       removePresenterKeyHandler();
       showConfig();
     });
@@ -2395,6 +2454,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     });
     document.getElementById("btn-presenter-share-lms")?.addEventListener("click", () => {
       const curQ = activeQuestions[presenterIndex];
+      if (!curQ) return;
       openLmsShareModal({
         url: `#quiz?scope=${curQ.lessonId || ''}&subj=${selectedSubject}`,
         title: `${curQ.subject}: ${curQ.moduleTitle} (Question ${presenterIndex + 1})`,
@@ -2402,7 +2462,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         description: curQ.question
       });
     });
-    document.getElementById("btn-prev-slide").addEventListener("click", () => {
+    document.getElementById("btn-prev-slide")?.addEventListener("click", () => {
       if (presenterIndex > 0) {
         presenterIndex--;
         presenterRevealed = false;
@@ -2410,7 +2470,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         renderPresenterSlide();
       }
     });
-    document.getElementById("btn-next-slide").addEventListener("click", () => {
+    document.getElementById("btn-next-slide")?.addEventListener("click", () => {
       if (presenterIndex < activeQuestions.length - 1) {
         presenterIndex++;
         presenterRevealed = false;
@@ -2418,14 +2478,15 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         renderPresenterSlide();
       }
     });
-    document.getElementById("btn-toggle-reveal").addEventListener("click", () => {
+    document.getElementById("btn-toggle-reveal")?.addEventListener("click", () => {
       presenterRevealed = !presenterRevealed;
       SoundFX.playSwitchSnap();
       renderPresenterSlide();
     });
-    document.getElementById("btn-simulate-poll").addEventListener("click", () => {
+    document.getElementById("btn-simulate-poll")?.addEventListener("click", () => {
       const curQ = activeQuestions[presenterIndex];
-      const correctIdx = curQ.correctIndex;
+      if (!curQ) return;
+      const correctIdx = (typeof curQ.correctIndex === "number") ? curQ.correctIndex : 0;
       presenterPolls[curQ.id] = [0, 0, 0, 0].map((_, idx) => {
         return idx === correctIdx ? Math.floor(Math.random() * 10) + 15 : Math.floor(Math.random() * 6) + 1;
       });
@@ -2436,9 +2497,11 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     document.querySelectorAll(".btn-vote").forEach(btn => {
       btn.addEventListener("click", () => {
         const vidx = parseInt(btn.dataset.vidx, 10);
-        presenterPolls[q.id][vidx]++;
-        SoundFX.playClick();
-        renderPresenterSlide();
+        if (q && presenterPolls[q.id]) {
+          presenterPolls[q.id][vidx] = (presenterPolls[q.id][vidx] || 0) + 1;
+          SoundFX.playClick();
+          renderPresenterSlide();
+        }
       });
     });
 
@@ -2460,17 +2523,21 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   function finishExam() {
     viewState = "results";
     removePresenterKeyHandler();
-    if (timerInterval) clearInterval(timerInterval);
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
 
     let correctCount = 0;
-    activeQuestions.forEach(q => {
-      if (userAnswers[q.id] === q.correctIndex) {
+    (activeQuestions || []).forEach(q => {
+      if (q && userAnswers[q.id] === q.correctIndex) {
         correctCount++;
       }
     });
 
-    const pct = Math.round((correctCount / activeQuestions.length) * 100);
-    ProgressStore.recordQuizResult(selectedSubject, activeQuestions.length, correctCount);
+    const totalQuestions = (activeQuestions && activeQuestions.length > 0) ? activeQuestions.length : 1;
+    const pct = Math.round((correctCount / totalQuestions) * 100);
+    ProgressStore.recordQuizResult(selectedSubject, activeQuestions ? activeQuestions.length : 0, correctCount);
 
     if (pct >= 70) {
       SoundFX.playChime();
