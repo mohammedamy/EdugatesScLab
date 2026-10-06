@@ -133,11 +133,47 @@ async function runTests() {
   assert(typeof quizModule.getQuestionBank === "function", "getQuestionBank is exported as an async function");
   assert(typeof quizModule.renderQuizEngine === "function", "renderQuizEngine is exported as a function");
 
-  // Test 3: Verify Question Bank loader
+  // Test 3: Verify Question Bank loader & Invariants (10e10m10h, 20% Diagrams, Zero Redundancy)
   try {
     const bank = await quizModule.getQuestionBank();
     assert(Array.isArray(bank), `Question bank resolves to an array (Count: ${bank.length})`);
-    assert(bank.length > 7000, `Question bank has rich comprehensive pool (>7,000 items, found ${bank.length})`);
+    assert(bank.length === 7260, `Question bank has exactly 7,260 items (found ${bank.length})`);
+
+    const idSet = new Set();
+    const lessonMap = new Map();
+    let hasDupId = false;
+
+    for (const q of bank) {
+      if (idSet.has(q.id)) hasDupId = true;
+      idSet.add(q.id);
+      const key = `${q.subject}-M${q.moduleId}-L${q.lessonId || 1}`;
+      if (!lessonMap.has(key)) lessonMap.set(key, []);
+      lessonMap.get(key).push(q);
+    }
+    assert(!hasDupId, "Question bank contains zero duplicate question IDs");
+    assert(lessonMap.size === 242, `Question bank covers all 242 curriculum lessons (found ${lessonMap.size})`);
+
+    let allCounts30 = true;
+    let all10e10m10h = true;
+    let allExact6Diag = true;
+    let allUniqueAngles = true;
+
+    for (const [key, qs] of lessonMap.entries()) {
+      if (qs.length !== 30) allCounts30 = false;
+      const easy = qs.filter(q => q.difficultyTier === "easy" || q.difficulty === "foundational");
+      const med = qs.filter(q => q.difficultyTier === "medium" || q.difficulty === "honors");
+      const hard = qs.filter(q => q.difficultyTier === "hard" || q.difficulty === "ap_olympiad");
+      if (easy.length !== 10 || med.length !== 10 || hard.length !== 10) all10e10m10h = false;
+      const diags = qs.filter(q => q.diagram && q.diagram.svg && q.diagram.svg.includes("<svg"));
+      if (diags.length !== 6) allExact6Diag = false;
+      const angleSet = new Set(qs.map(q => q.angle));
+      if (angleSet.size !== 30) allUniqueAngles = false;
+    }
+
+    assert(allCounts30, "Every lesson has exactly 30 questions (30 * 242 = 7,260)");
+    assert(all10e10m10h, "Every lesson has strict 10 Easy, 10 Medium, and 10 Hard questions (10e10m10h)");
+    assert(allExact6Diag, "Every lesson has exactly 6 questions with scientific diagrams (20% visual coverage)");
+    assert(allUniqueAngles, "Every lesson has 30 distinct pedagogical angles with zero duplicate ideas or repeated concepts");
   } catch (err) {
     assert(false, `Failed to load question bank: ${err.message}`);
   }
@@ -151,6 +187,7 @@ async function runTests() {
     assert(containerEl.innerHTML.includes("Interactive Assessment Studio"), "Assessment studio header markup is present");
     assert(containerEl.innerHTML.includes("Curriculum File Explorer Scope"), "Curriculum file explorer scope section is present");
     assert(containerEl.innerHTML.includes("btn-generate-exam"), "Generate Assessment button is present");
+    assert(containerEl.innerHTML.includes("btn-choose-questions"), "Teacher Question Selection Studio button ('btn-choose-questions') is present");
   } catch (err) {
     assert(false, `renderQuizEngine threw during initialization: ${err.message}`);
   }

@@ -208,6 +208,109 @@ function generateChemistryDiagram(m, l, p, type) {
     };
   }
 
+  if (type === "cycle") {
+    return {
+      id: `chem_diag_cycle_m${m.id}_l${l.id}`,
+      subject: "CHEM",
+      moduleId: m.id,
+      title: `${m.title} - ${l.title} Thermodynamic & Catalytic Cycle`,
+      caption: `Figure ${m.id}.${l.id}C: Closed Catalytic Reaction Cycle & Energy Transitions for ${l.title}`,
+      svg: `<svg viewBox="0 0 540 280" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <rect width="540" height="280" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+        <text x="270" y="28" fill="#38bdf8" font-size="12" font-weight="700" text-anchor="middle">Thermodynamic &amp; Catalytic Cycle: ${l.title}</text>
+        
+        <!-- Central Loop Ellipse / Circle -->
+        <ellipse cx="270" cy="148" rx="160" ry="85" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="6"/>
+        
+        <!-- Stage 1 (Top): Active Catalyst / Free State -->
+        <rect x="205" y="48" width="130" height="34" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+        <text x="270" y="69" fill="#38bdf8" font-size="11" font-weight="800" text-anchor="middle">State I: Catalyst [Cat]</text>
+        
+        <!-- Stage 2 (Right): Substrate Adsorption / Complex -->
+        <rect x="365" y="130" width="145" height="36" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+        <text x="437" y="152" fill="#f59e0b" font-size="10.5" font-weight="800" text-anchor="middle">State II: [Cat·Substrate]</text>
+        
+        <!-- Stage 3 (Bottom): Activated Intermediate / Transition -->
+        <rect x="195" y="212" width="150" height="36" rx="6" fill="#1e293b" stroke="#ef4444" stroke-width="2"/>
+        <text x="270" y="234" fill="#ef4444" font-size="10.5" font-weight="800" text-anchor="middle">State III: [Cat·Intermed]‡</text>
+        
+        <!-- Stage 4 (Left): Product Release -->
+        <rect x="30" y="130" width="145" height="36" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+        <text x="102" y="152" fill="#10b981" font-size="10.5" font-weight="800" text-anchor="middle">State IV: Product + [Cat]</text>
+        
+        <!-- Directional Flow Arrows -->
+        <path d="M 335 65 Q 420 85 435 125" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+        <polygon points="437,125 430,117 440,119" fill="#38bdf8"/>
+        <text x="400" y="85" fill="#94a3b8" font-size="9" font-weight="700">+ Reactants</text>
+        
+        <path d="M 435 170 Q 410 215 350 228" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+        <polygon points="350,228 358,222 360,232" fill="#f59e0b"/>
+        <text x="410" y="208" fill="#f59e0b" font-size="9" font-weight="700">Activation Eₐ</text>
+        
+        <path d="M 195 228 Q 130 215 110 170" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
+        <polygon points="110,170 112,180 119,173" fill="#ef4444"/>
+        <text x="110" y="208" fill="#10b981" font-size="9" font-weight="700">- Product (ΔH)</text>
+        
+        <path d="M 105 125 Q 120 85 200 65" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+        <polygon points="200,65 190,67 197,73" fill="#10b981"/>
+        <text x="130" y="85" fill="#38bdf8" font-size="9" font-weight="700">Regeneration</text>
+        
+        <!-- Center Conservation Callout -->
+        <circle cx="270" cy="148" r="32" fill="#0f172a" stroke="#06b6d4" stroke-width="1.5"/>
+        <text x="270" y="145" fill="#38bdf8" font-size="9.5" font-weight="800" text-anchor="middle">Steady-State</text>
+        <text x="270" y="158" fill="#10b981" font-size="9" font-weight="700" text-anchor="middle">ΔG_net &lt; 0</text>
+      </svg>`
+    };
+  }
+
+  if (type === "spectrometry") {
+    return {
+      id: `chem_diag_spec_m${m.id}_l${l.id}`,
+      subject: "CHEM",
+      moduleId: m.id,
+      title: `${m.title} - ${l.title} Spectrometric & Analytical Profile`,
+      caption: `Figure ${m.id}.${l.id}M: Analytical Mass & Optical Absorption Spectrum for ${l.title}`,
+      svg: `<svg viewBox="0 0 540 280" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <rect width="540" height="280" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+        <text x="270" y="28" fill="#38bdf8" font-size="12" font-weight="700" text-anchor="middle">Spectrometric Profile: ${l.title}</text>
+        
+        <!-- Axes -->
+        <line x1="70" y1="230" x2="70" y2="50" stroke="#94a3b8" stroke-width="2"/>
+        <line x1="60" y1="230" x2="500" y2="230" stroke="#94a3b8" stroke-width="2"/>
+        
+        <text x="25" y="140" fill="#38bdf8" font-size="11" font-weight="700" transform="rotate(-90 25 140)" text-anchor="middle">Relative Abundance / Absorbance (%)</text>
+        <text x="280" y="255" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">Mass-to-Charge (m/z) / Wavelength (nm)</text>
+        
+        <!-- Gridlines -->
+        <line x1="70" y1="185" x2="490" y2="185" stroke="#1e293b" stroke-width="1" stroke-dasharray="3"/>
+        <line x1="70" y1="140" x2="490" y2="140" stroke="#1e293b" stroke-width="1" stroke-dasharray="3"/>
+        <line x1="70" y1="95" x2="490" y2="95" stroke="#1e293b" stroke-width="1" stroke-dasharray="3"/>
+        
+        <text x="60" y="98" fill="#64748b" font-size="9" text-anchor="end">100%</text>
+        <text x="60" y="143" fill="#64748b" font-size="9" text-anchor="end">50%</text>
+        <text x="60" y="188" fill="#64748b" font-size="9" text-anchor="end">25%</text>
+        
+        <!-- Peak 1: Base Peak (Tallest) -->
+        <line x1="160" y1="230" x2="160" y2="95" stroke="#38bdf8" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="160" cy="95" r="4" fill="#38bdf8"/>
+        <text x="160" y="85" fill="#38bdf8" font-size="10" font-weight="800" text-anchor="middle">Peak A (100%)</text>
+        <text x="160" y="244" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">m/z = 35</text>
+        
+        <!-- Peak 2: Secondary Isotope Peak -->
+        <line x1="280" y1="230" x2="280" y2="185" stroke="#10b981" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="280" cy="185" r="4" fill="#10b981"/>
+        <text x="280" y="175" fill="#10b981" font-size="10" font-weight="800" text-anchor="middle">Peak B (32%)</text>
+        <text x="280" y="244" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">m/z = 37</text>
+        
+        <!-- Peak 3: Molecular Fragment Peak -->
+        <line x1="420" y1="230" x2="420" y2="140" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="420" cy="140" r="4" fill="#f59e0b"/>
+        <text x="420" y="130" fill="#f59e0b" font-size="10" font-weight="800" text-anchor="middle">Molecular Ion (54%)</text>
+        <text x="420" y="244" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">m/z = 70</text>
+      </svg>`
+    };
+  }
+
   // Default: Coordinate curve
   const yLabel = (m.id >= 14 && m.id <= 16) ? "Energy (kJ/mol)" : (m.id >= 11 && m.id <= 12 ? "Pressure (atm)" : "Concentration [M]");
   const xLabel = (m.id >= 14 && m.id <= 16) ? "Reaction Progress" : (m.id >= 11 && m.id <= 12 ? "Volume (L)" : "Time (minutes)");
@@ -425,6 +528,119 @@ function generateBiologyDiagram(m, l, p, type) {
     };
   }
 
+  if (type === "cycle") {
+    return {
+      id: `bio_diag_cycle_m${m.id}_l${l.id}`,
+      subject: "BIO",
+      moduleId: m.id,
+      title: `${m.title} - ${l.title} Biochemical & Feedback Cycle`,
+      caption: `Figure ${m.id}.${l.id}C: Cybernetic Negative Feedback & Metabolic Cycle for ${l.title}`,
+      svg: `<svg viewBox="0 0 540 280" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <rect width="540" height="280" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+        <text x="270" y="28" fill="#10b981" font-size="12" font-weight="700" text-anchor="middle">Biochemical &amp; Metabolic Cycle: ${l.title}</text>
+        
+        <!-- Central Loop Circular Orbit -->
+        <circle cx="270" cy="148" r="75" fill="none" stroke="#334155" stroke-width="2" stroke-dasharray="5"/>
+        
+        <!-- Center Pool Annotation -->
+        <circle cx="270" cy="148" r="28" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+        <text x="270" y="145" fill="#38bdf8" font-size="9.5" font-weight="800" text-anchor="middle">ATP / ADP</text>
+        <text x="270" y="158" fill="#10b981" font-size="8.5" font-weight="700" text-anchor="middle">Coupled Pool</text>
+        
+        <!-- Node 1 (Top): Substrate Binding -->
+        <rect x="200" y="45" width="140" height="34" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="2"/>
+        <text x="270" y="66" fill="#38bdf8" font-size="10.5" font-weight="800" text-anchor="middle">Phase 1: Substrate Influx</text>
+        
+        <!-- Node 2 (Right): Enzymatic Phosphorylation -->
+        <rect x="365" y="130" width="145" height="34" rx="6" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+        <text x="437" y="151" fill="#f59e0b" font-size="10.5" font-weight="800" text-anchor="middle">Phase 2: Enzymatic Step</text>
+        
+        <!-- Node 3 (Bottom): Electron Transport / Energy Yield -->
+        <rect x="195" y="215" width="150" height="34" rx="6" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+        <text x="270" y="236" fill="#10b981" font-size="10.5" font-weight="800" text-anchor="middle">Phase 3: High-Energy Yield</text>
+        
+        <!-- Node 4 (Left): Precursor Regeneration -->
+        <rect x="30" y="130" width="145" height="34" rx="6" fill="#1e293b" stroke="#a855f7" stroke-width="2"/>
+        <text x="102" y="151" fill="#a855f7" font-size="10.5" font-weight="800" text-anchor="middle">Phase 4: Regeneration</text>
+        
+        <!-- Flow Arrows -->
+        <path d="M 335 62 Q 410 75 430 125" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+        <polygon points="432,125 425,117 435,119" fill="#38bdf8"/>
+        
+        <path d="M 435 168 Q 410 215 350 228" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+        <polygon points="350,228 358,222 360,232" fill="#f59e0b"/>
+        
+        <path d="M 195 228 Q 130 215 110 168" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+        <polygon points="110,168 112,178 119,171" fill="#10b981"/>
+        
+        <path d="M 105 125 Q 120 75 195 62" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round"/>
+        <polygon points="195,62 185,64 192,70" fill="#a855f7"/>
+        
+        <text x="270" y="266" fill="#94a3b8" font-size="9.5" text-anchor="middle">Stoichiometric Conservation: 1 Turn Yields 2 CO₂ + 3 NADH + 1 FADH₂ + 1 ATP</text>
+      </svg>`
+    };
+  }
+
+  if (type === "spectrometry") {
+    return {
+      id: `bio_diag_spec_m${m.id}_l${l.id}`,
+      subject: "BIO",
+      moduleId: m.id,
+      title: `${m.title} - ${l.title} Gel Electrophoresis`,
+      caption: `Figure ${m.id}.${l.id}G: Agarose Gel Electrophoresis Sizing Assay for ${l.title}`,
+      svg: `<svg viewBox="0 0 540 280" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <rect width="540" height="280" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+        <text x="270" y="28" fill="#10b981" font-size="12" font-weight="700" text-anchor="middle">Agarose Gel Electrophoresis: ${l.title}</text>
+        
+        <!-- Gel Bed Frame -->
+        <rect x="100" y="45" width="340" height="200" fill="#1e293b" fill-opacity="0.8" rx="8" stroke="#475569" stroke-width="2"/>
+        
+        <!-- Electrodes (+ / -) -->
+        <text x="80" y="70" fill="#ef4444" font-size="14" font-weight="900">-</text>
+        <text x="80" y="235" fill="#10b981" font-size="14" font-weight="900">+</text>
+        
+        <!-- Loading Wells -->
+        <rect x="135" y="60" width="40" height="12" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/>
+        <rect x="210" y="60" width="40" height="12" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/>
+        <rect x="285" y="60" width="40" height="12" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/>
+        <rect x="360" y="60" width="40" height="12" fill="#0f172a" stroke="#64748b" stroke-width="1.5"/>
+        
+        <text x="155" y="55" fill="#94a3b8" font-size="9" text-anchor="middle">Ladder</text>
+        <text x="230" y="55" fill="#94a3b8" font-size="9" text-anchor="middle">Wild Type</text>
+        <text x="305" y="55" fill="#94a3b8" font-size="9" text-anchor="middle">Sample A</text>
+        <text x="380" y="55" fill="#94a3b8" font-size="9" text-anchor="middle">Sample B</text>
+        
+        <!-- Fluorescent Molecular Bands -->
+        <!-- Lane 1: Ladder -->
+        <rect x="140" y="95" width="30" height="4" fill="#38bdf8" rx="2"/>
+        <rect x="140" y="125" width="30" height="4" fill="#38bdf8" rx="2"/>
+        <rect x="140" y="160" width="30" height="4" fill="#38bdf8" rx="2"/>
+        <rect x="140" y="200" width="30" height="4" fill="#38bdf8" rx="2"/>
+        <text x="125" y="99" fill="#94a3b8" font-size="8" text-anchor="end">1000 bp</text>
+        <text x="125" y="129" fill="#94a3b8" font-size="8" text-anchor="end">750 bp</text>
+        <text x="125" y="164" fill="#94a3b8" font-size="8" text-anchor="end">500 bp</text>
+        <text x="125" y="204" fill="#94a3b8" font-size="8" text-anchor="end">250 bp</text>
+        
+        <!-- Lane 2: Wild Type Sample -->
+        <rect x="215" y="125" width="30" height="5" fill="#10b981" rx="2"/>
+        
+        <!-- Lane 3: Sample A -->
+        <rect x="290" y="160" width="30" height="5" fill="#f59e0b" rx="2"/>
+        <rect x="290" y="200" width="30" height="5" fill="#f59e0b" rx="2"/>
+        
+        <!-- Lane 4: Sample B -->
+        <rect x="365" y="125" width="30" height="5" fill="#10b981" rx="2"/>
+        
+        <!-- Migration Vector Arrow -->
+        <line x1="455" y1="90" x2="455" y2="210" stroke="#38bdf8" stroke-width="2"/>
+        <polygon points="455,215 450,205 460,205" fill="#38bdf8"/>
+        <text x="465" y="155" fill="#38bdf8" font-size="9" font-weight="700">Migration</text>
+        
+        <text x="270" y="260" fill="#94a3b8" font-size="9.5" text-anchor="middle">Electrolyte: 1X TAE Buffer | Agarose: 1.2% w/v</text>
+      </svg>`
+    };
+  }
+
   // Default: Sigmoidal population/growth curve
   const isPopOrEco = m.id <= 5;
   const yLabel = isPopOrEco ? "Population Size (N)" : "Relative Metabolic Rate";
@@ -602,6 +818,103 @@ function generatePhysicsDiagram(m, l, p, type) {
         <!-- Angle of Refraction θ2 -->
         <path d="M 270 180 A 40 40 0 0 0 295 168" fill="none" stroke="#10b981" stroke-width="1.5"/>
         <text x="295" y="195" fill="#10b981" font-size="10" font-weight="800">θ₂ = 28°</text>
+      </svg>`
+    };
+  }
+
+  if (type === "cycle") {
+    return {
+      id: `phys_diag_cycle_m${m.id}_l${l.id}`,
+      subject: "PHYS",
+      moduleId: m.id,
+      title: `${m.title} - ${l.title} Thermodynamic Heat Engine Cycle`,
+      caption: `Figure ${m.id}.${l.id}C: Ideal P-V Thermodynamic Carnot & Reversible Cycle for ${l.title}`,
+      svg: `<svg viewBox="0 0 540 280" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <rect width="540" height="280" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+        <text x="270" y="28" fill="#38bdf8" font-size="12" font-weight="700" text-anchor="middle">Thermodynamic P-V Engine Cycle: ${l.title}</text>
+        
+        <!-- P-V Coordinate Axes -->
+        <line x1="70" y1="230" x2="70" y2="45" stroke="#94a3b8" stroke-width="2"/>
+        <line x1="60" y1="230" x2="490" y2="230" stroke="#94a3b8" stroke-width="2"/>
+        <polygon points="70,40 65,50 75,50" fill="#94a3b8"/>
+        <polygon points="495,230 485,225 485,235" fill="#94a3b8"/>
+        <text x="25" y="130" fill="#38bdf8" font-size="11" font-weight="700" transform="rotate(-90 25 130)" text-anchor="middle">Pressure P (kPa)</text>
+        <text x="280" y="255" fill="#38bdf8" font-size="11" font-weight="700" text-anchor="middle">Volume V (L)</text>
+        
+        <!-- Closed Loop Cycle (States 1 -> 2 -> 3 -> 4 -> 1) -->
+        <!-- Path 1->2: Isothermal Expansion (Q_H In) -->
+        <path d="M 140 70 Q 220 85 280 115" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+        <polygon points="215,92 205,88 208,98" fill="#ef4444"/>
+        <text x="200" y="75" fill="#ef4444" font-size="10" font-weight="800">1→2: Q_H Absorbed (T_H)</text>
+        
+        <!-- Path 2->3: Adiabatic Expansion -->
+        <path d="M 280 115 Q 360 160 410 200" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+        <polygon points="350,160 345,150 355,152" fill="#f59e0b"/>
+        <text x="380" y="145" fill="#f59e0b" font-size="9.5" font-weight="700">2→3: Adiabatic</text>
+        
+        <!-- Path 3->4: Isothermal Compression (Q_C Out) -->
+        <path d="M 410 200 Q 320 185 240 165" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+        <polygon points="325,186 335,190 332,180" fill="#38bdf8"/>
+        <text x="325" y="218" fill="#38bdf8" font-size="10" font-weight="800">3→4: Q_C Exhaust (T_C)</text>
+        
+        <!-- Path 4->1: Adiabatic Compression -->
+        <path d="M 240 165 Q 180 115 140 70" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+        <polygon points="185,115 190,125 180,123" fill="#10b981"/>
+        <text x="145" y="130" fill="#10b981" font-size="9.5" font-weight="700">4→1: Compression</text>
+        
+        <!-- States Markers -->
+        <circle cx="140" cy="70" r="5" fill="#ef4444"/>
+        <text x="130" y="65" fill="#ffffff" font-size="10" font-weight="800">1</text>
+        <circle cx="280" cy="115" r="5" fill="#f59e0b"/>
+        <text x="290" y="115" fill="#ffffff" font-size="10" font-weight="800">2</text>
+        <circle cx="410" cy="200" r="5" fill="#38bdf8"/>
+        <text x="420" y="200" fill="#ffffff" font-size="10" font-weight="800">3</text>
+        <circle cx="240" cy="165" r="5" fill="#10b981"/>
+        <text x="230" y="175" fill="#ffffff" font-size="10" font-weight="800">4</text>
+        
+        <!-- Enclosed Net Work Callout -->
+        <text x="270" y="145" fill="#facc15" font-size="11" font-weight="900" text-anchor="middle">W_net = ∮ P·dV</text>
+        <text x="270" y="160" fill="#94a3b8" font-size="9" text-anchor="middle">Efficiency η = 1 - T_C / T_H</text>
+      </svg>`
+    };
+  }
+
+  if (type === "spectrometry") {
+    return {
+      id: `phys_diag_spec_m${m.id}_l${l.id}`,
+      subject: "PHYS",
+      moduleId: m.id,
+      title: `${m.title} - ${l.title} Wave Interference & Diffraction Intensity`,
+      caption: `Figure ${m.id}.${l.id}I: Monochromatic Wave Interference Fringe Intensity Distribution for ${l.title}`,
+      svg: `<svg viewBox="0 0 540 280" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" style="max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <rect width="540" height="280" fill="#0f172a" rx="10" stroke="#334155" stroke-width="1.5"/>
+        <text x="270" y="28" fill="#38bdf8" font-size="12" font-weight="700" text-anchor="middle">Wave Interference &amp; Spectral Intensity: ${l.title}</text>
+        
+        <!-- Intensity Baseline -->
+        <line x1="70" y1="210" x2="490" y2="210" stroke="#94a3b8" stroke-width="2"/>
+        <line x1="270" y1="220" x2="270" y2="50" stroke="#64748b" stroke-width="1" stroke-dasharray="3"/>
+        <text x="270" y="44" fill="#f59e0b" font-size="10" font-weight="800" text-anchor="middle">Central Maximum (m = 0)</text>
+        
+        <!-- Intensity Distribution Curve (Sinc² Modulation + Cos² Fringes) -->
+        <path d="M 70 210 Q 110 205 130 190 Q 150 170 170 205 Q 190 195 210 150 Q 230 110 250 190 Q 260 110 270 65 Q 280 110 290 190 Q 310 110 330 150 Q 350 195 370 205 Q 390 170 410 190 Q 430 205 470 210" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+        
+        <!-- Shaded Area Under Central Peak -->
+        <path d="M 230 210 Q 250 190 260 110 Q 270 65 Q 280 110 290 190 Q 310 210 310 210 Z" fill="rgba(56, 189, 248, 0.2)"/>
+        
+        <!-- Order Callouts -->
+        <text x="170" y="225" fill="#94a3b8" font-size="9" text-anchor="middle">m = -2</text>
+        <text x="220" y="225" fill="#94a3b8" font-size="9" text-anchor="middle">m = -1</text>
+        <text x="270" y="225" fill="#f59e0b" font-size="10" font-weight="800" text-anchor="middle">m = 0</text>
+        <text x="320" y="225" fill="#94a3b8" font-size="9" text-anchor="middle">m = +1</text>
+        <text x="370" y="225" fill="#94a3b8" font-size="9" text-anchor="middle">m = +2</text>
+        
+        <!-- Fringe Spacing Callout -->
+        <line x1="270" y1="120" x2="320" y2="120" stroke="#f59e0b" stroke-width="1.5"/>
+        <polygon points="270,120 276,117 276,123" fill="#f59e0b"/>
+        <polygon points="320,120 314,117 314,123" fill="#f59e0b"/>
+        <text x="295" y="112" fill="#f59e0b" font-size="9" font-weight="800" text-anchor="middle">Δy = λL / d</text>
+        
+        <text x="270" y="255" fill="#94a3b8" font-size="9.5" text-anchor="middle">Condition for Constructive Interference: d·sin(θ) = m·λ</text>
       </svg>`
     };
   }

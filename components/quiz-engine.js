@@ -351,6 +351,9 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               <button class="btn btn-secondary" id="btn-config-share-lms" title="Share this Quiz preset to Google Classroom or Classera" style="padding: 12px 20px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
                 <span>📤 Share to LMS</span>
               </button>
+              <button class="btn btn-secondary" id="btn-choose-questions" style="padding: 12px 24px; font-weight: 800; font-size: 1.0rem; display: flex; align-items: center; gap: 8px; border: 1.5px solid #0284c7; color: #0284c7; background: rgba(2, 132, 199, 0.08);" title="Review, hand-pick, and reorder exact questions before generating print or quiz">
+                <span>📋 Choose &amp; Customize Questions</span>
+              </button>
               <button class="btn btn-accent" id="btn-generate-exam" style="padding: 12px 32px; font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 10px; box-shadow: 0 0 25px rgba(245, 158, 11, 0.4);">
                 <span>⚡ Generate Assessment Now</span>
               </button>
@@ -843,6 +846,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     }
 
+    // Choose & Customize Questions Button
+    const btnChoose = document.getElementById("btn-choose-questions");
+    if (btnChoose) {
+      btnChoose.addEventListener("click", openQuestionPickerFromConfig);
+    }
+
     // Generate Exam Button
     const btnGen = document.getElementById("btn-generate-exam");
     if (btnGen) {
@@ -1031,6 +1040,619 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   }
 
   // --- DYNAMIC QUESTION GENERATION & POOL RESOLUTION ---
+  let currentScopePool = [];
+
+  // Helper to gather all questions for selected lessons
+  function resolveScopePool(bank, includeAll = false) {
+    if (!bank || !Array.isArray(bank) || selectedLessons.size === 0) return [];
+
+    const difficulty = document.getElementById("cfg-difficulty")?.value || initialDifficulty;
+    const qTypeVal = document.getElementById("cfg-qtype")?.value || initialQType;
+
+    const selectedLessonKeys = new Set(selectedLessons);
+    const selectedModIds = new Set();
+    selectedLessons.forEach(lKey => {
+      const parts = lKey.split("-");
+      if (parts.length >= 2) selectedModIds.add(`${parts[0]}-${parts[1]}`);
+    });
+
+    return bank.filter(q => {
+      const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
+      const matchScope = q.lessonId 
+        ? selectedLessonKeys.has(qLessonKey) 
+        : selectedModIds.has(`${q.subject}-M${q.moduleId}`);
+      if (!matchScope) return false;
+      if (includeAll) return true;
+
+      const matchDiff = difficulty === "ALL" || q.difficulty === difficulty || q.difficultyTier === difficulty;
+      const matchType = qTypeVal === "ALL" 
+        || (qTypeVal === "diagram" ? (q.type === "diagram" || q.hasDiagram || Boolean(q.diagram)) : q.type === qTypeVal);
+      return matchDiff && matchType;
+    });
+  }
+
+  // Helper to build a balanced preset selection (easy, medium, hard, diagrams)
+  function getBalancedPresetSelection(pool, targetCount) {
+    if (!pool || pool.length === 0) return new Set();
+    if (targetCount >= pool.length) return new Set(pool.map(q => q.id));
+
+    const easyPool = pool.filter(q => q.difficultyTier === "easy" || q.difficulty === "foundational");
+    const medPool = pool.filter(q => q.difficultyTier === "medium" || q.difficulty === "honors");
+    const hardPool = pool.filter(q => q.difficultyTier === "hard" || q.difficulty === "ap_olympiad");
+
+    let nEasy = Math.round(targetCount / 3);
+    let nMed = Math.round(targetCount / 3);
+    let nHard = targetCount - nEasy - nMed;
+
+    function pickFromTier(tierPool, count) {
+      if (tierPool.length === 0) return [];
+      const diags = tierPool.filter(q => q.type === "diagram" || q.diagram || q.hasDiagram);
+      const nonDiags = tierPool.filter(q => q.type !== "diagram" && !q.diagram && !q.hasDiagram);
+      const diagTarget = Math.max(1, Math.round(count * 0.2));
+      const chosenDiags = diags.slice(0, diagTarget);
+      const remainingNeeded = count - chosenDiags.length;
+      const chosenNonDiags = nonDiags.slice(0, remainingNeeded);
+      const combined = [...chosenDiags, ...chosenNonDiags];
+      if (combined.length < count && diags.length > chosenDiags.length) {
+        combined.push(...diags.slice(chosenDiags.length, count));
+      }
+      return combined;
+    }
+
+    const selected = [
+      ...pickFromTier(easyPool, nEasy),
+      ...pickFromTier(medPool, nMed),
+      ...pickFromTier(hardPool, nHard)
+    ];
+
+    const selectedIds = new Set(selected.map(q => q.id));
+    for (const q of pool) {
+      if (selectedIds.size >= targetCount) break;
+      selectedIds.add(q.id);
+    }
+
+    return selectedIds;
+  }
+
+  async function openQuestionPickerFromConfig() {
+    if (selectedLessons.size === 0) {
+      showToast("Scope Required", "Please select at least one lesson to establish the assessment scope.", "warning");
+      return;
+    }
+
+    const btnChoose = document.getElementById("btn-choose-questions");
+    const origText = btnChoose ? btnChoose.innerHTML : "";
+    if (btnChoose) {
+      btnChoose.disabled = true;
+      btnChoose.innerHTML = `<span>⏳ Loading Questions...</span>`;
+    }
+
+    let bank;
+    try {
+      bank = await getQuestionBank();
+    } catch (err) {
+      console.error("[Quiz Engine] Error loading question bank:", err);
+      bank = [];
+    } finally {
+      if (btnChoose) {
+        btnChoose.disabled = false;
+        btnChoose.innerHTML = origText;
+      }
+    }
+
+    const pool = resolveScopePool(bank, true);
+    if (pool.length === 0) {
+      showToast("No Questions", "No questions matched the selected lessons.", "warning");
+      return;
+    }
+    currentScopePool = pool;
+
+    const countVal = document.getElementById("cfg-count") ? document.getElementById("cfg-count").value : "ALL";
+    const targetCount = countVal === "ALL" ? Math.min(30, pool.length) : Math.min(parseInt(countVal, 10), pool.length);
+
+    let initialSelected;
+    if (activeQuestions.length > 0 && activeQuestions.every(q => pool.some(p => p.id === q.id))) {
+      initialSelected = new Set(activeQuestions.map(q => q.id));
+    } else {
+      initialSelected = getBalancedPresetSelection(pool, targetCount);
+    }
+
+    renderQuestionPicker(pool, initialSelected);
+  }
+
+  async function openQuestionPickerFromPrint() {
+    let bank;
+    try {
+      bank = await getQuestionBank();
+    } catch (err) {
+      bank = [];
+    }
+    let pool = resolveScopePool(bank, true);
+    if (pool.length === 0) {
+      pool = [...activeQuestions];
+    }
+    currentScopePool = pool;
+    const initialSelected = new Set(activeQuestions.map(q => q.id));
+    renderQuestionPicker(pool, initialSelected);
+  }
+
+  // --- TEACHER QUESTION SELECTION STUDIO ---
+  function renderQuestionPicker(pool, initialSelectedIds) {
+    viewState = "picker";
+    removePresenterKeyHandler();
+
+    let pickerPool = [...pool];
+    let pickerSelectedIds = new Set(initialSelectedIds);
+    let filterStatus = "ALL"; // 'ALL', 'SELECTED', 'UNSELECTED'
+    let filterDiff = "ALL"; // 'ALL', 'easy', 'medium', 'hard'
+    let filterType = "ALL"; // 'ALL', 'diagram', 'mcq', 'numerical', 'cer'
+    let searchQuery = "";
+    let expandedDiagrams = new Set();
+    let expandedExpls = new Set();
+
+    function renderDOM() {
+      // Calculate selection stats
+      const totalSelected = pickerSelectedIds.size;
+      const selectedList = pickerPool.filter(q => pickerSelectedIds.has(q.id));
+      let easySelected = 0, medSelected = 0, hardSelected = 0, diagSelected = 0;
+
+      selectedList.forEach(q => {
+        if (q.difficultyTier === "easy" || q.difficulty === "foundational") easySelected++;
+        else if (q.difficultyTier === "medium" || q.difficulty === "honors") medSelected++;
+        else if (q.difficultyTier === "hard" || q.difficulty === "ap_olympiad") hardSelected++;
+        if (q.type === "diagram" || q.diagram || q.hasDiagram) diagSelected++;
+      });
+
+      // Filter visible questions
+      const queryTokens = searchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      const visibleQuestions = pickerPool.filter(q => {
+        // Status filter
+        const isSel = pickerSelectedIds.has(q.id);
+        if (filterStatus === "SELECTED" && !isSel) return false;
+        if (filterStatus === "UNSELECTED" && isSel) return false;
+
+        // Difficulty filter
+        if (filterDiff !== "ALL") {
+          const diff = q.difficultyTier || (q.difficulty === "foundational" ? "easy" : (q.difficulty === "honors" ? "medium" : "hard"));
+          if (diff !== filterDiff) return false;
+        }
+
+        // Type filter
+        if (filterType !== "ALL") {
+          if (filterType === "diagram") {
+            if (q.type !== "diagram" && !q.diagram && !q.hasDiagram) return false;
+          } else if (q.type !== filterType) {
+            return false;
+          }
+        }
+
+        // Search query filter
+        if (queryTokens.length > 0) {
+          const searchable = [
+            q.id,
+            q.question || q.prompt || "",
+            (q.options || []).join(" "),
+            q.explanation || "",
+            q.lessonTitle || "",
+            q.moduleTitle || "",
+            q.angle || ""
+          ].join(" ").toLowerCase();
+          const matches = queryTokens.every(tok => searchable.includes(tok));
+          if (!matches) return false;
+        }
+
+        return true;
+      });
+
+      container.innerHTML = `
+        <div class="question-picker-container">
+          <!-- Top Sticky Header -->
+          <div class="picker-header-bar">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+                  <button class="btn btn-secondary btn-sm" id="btn-picker-back-top" style="padding: 5px 12px; font-weight: 700; border-radius: 9999px;">
+                    ← Back to Assessment Setup
+                  </button>
+                  <span style="font-size: 0.8rem; font-family: var(--font-mono); color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 10px; border-radius: 9999px; font-weight: 700;">
+                    ${selectedSubject} Scope • ${selectedLessons.size} Lessons
+                  </span>
+                </div>
+                <h2 style="font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin: 0 0 4px 0;">
+                  📋 Teacher Question Selection Studio
+                </h2>
+                <div style="font-size: 0.9rem; color: var(--text-muted);">
+                  Select exact questions to include in your assessment. Calibrated scientific diagrams and full step-by-step teacher solutions are previewed below.
+                </div>
+              </div>
+
+              <!-- Live Selection Stats Pill -->
+              <div class="picker-stats-pill">
+                <span>Selected: <strong id="stat-total" style="color: #38bdf8; font-size: 1.05rem;">${totalSelected}</strong> / ${pickerPool.length} Questions</span>
+                <span class="picker-stat-badge easy">🟢 Easy: <span id="stat-easy">${easySelected}</span></span>
+                <span class="picker-stat-badge med">🟡 Med: <span id="stat-med">${medSelected}</span></span>
+                <span class="picker-stat-badge hard">🟣 Hard: <span id="stat-hard">${hardSelected}</span></span>
+                <span class="picker-stat-badge diag">📊 Diagrams: <span id="stat-diag">${diagSelected}</span></span>
+              </div>
+            </div>
+
+            <!-- Quick Presets -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 0.76rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Balanced Presets:</span>
+                <button class="picker-preset-btn" id="preset-balanced-30" title="Select 10 Easy, 10 Medium, 10 Hard questions with 6 diagrams">
+                  <span>⚡ Balanced 30 (10E-10M-10H)</span>
+                </button>
+                <button class="picker-preset-btn" id="preset-balanced-15" title="Select 5 Easy, 5 Medium, 5 Hard questions">
+                  <span>⚡ Balanced 15 (5E-5M-5H)</span>
+                </button>
+                <button class="picker-preset-btn" id="preset-balanced-10" title="Select 3 Easy, 4 Medium, 3 Hard questions">
+                  <span>⚡ Quick 10 (3E-4M-3H)</span>
+                </button>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <button class="picker-preset-btn" id="btn-select-all-filtered">
+                  <span>✓ Select All Filtered</span>
+                </button>
+                <button class="picker-preset-btn" id="btn-deselect-all">
+                  <span>✕ Deselect All</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters Row -->
+          <div class="picker-filters-row">
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+              <div style="position: relative; flex: 1; min-width: 260px;">
+                <input type="text" id="picker-search-input" value="${searchQuery}" placeholder="🔍 Search question prompt, concepts, formulas, answers..." style="width: 100%; padding: 9px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.88rem;">
+              </div>
+              
+              <!-- Status Filter -->
+              <div class="picker-chips-group">
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Status:</span>
+                <button class="picker-filter-chip ${filterStatus === 'ALL' ? 'active' : ''}" data-fstatus="ALL">All (${pickerPool.length})</button>
+                <button class="picker-filter-chip ${filterStatus === 'SELECTED' ? 'active' : ''}" data-fstatus="SELECTED">Selected (${totalSelected})</button>
+                <button class="picker-filter-chip ${filterStatus === 'UNSELECTED' ? 'active' : ''}" data-fstatus="UNSELECTED">Unselected (${pickerPool.length - totalSelected})</button>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+              <!-- Difficulty Filter -->
+              <div class="picker-chips-group">
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Difficulty:</span>
+                <button class="picker-filter-chip ${filterDiff === 'ALL' ? 'active' : ''}" data-fdiff="ALL">All Difficulties</button>
+                <button class="picker-filter-chip ${filterDiff === 'easy' ? 'active' : ''}" data-fdiff="easy">🟢 Easy (Foundational)</button>
+                <button class="picker-filter-chip ${filterDiff === 'medium' ? 'active' : ''}" data-fdiff="medium">🟡 Medium (Honors)</button>
+                <button class="picker-filter-chip ${filterDiff === 'hard' ? 'active' : ''}" data-fdiff="hard">🟣 Hard (AP/Olympiad)</button>
+              </div>
+
+              <!-- Type Filter -->
+              <div class="picker-chips-group">
+                <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Type:</span>
+                <button class="picker-filter-chip ${filterType === 'ALL' ? 'active' : ''}" data-ftype="ALL">All Types</button>
+                <button class="picker-filter-chip ${filterType === 'diagram' ? 'active' : ''}" data-ftype="diagram">📊 Diagrams Only</button>
+                <button class="picker-filter-chip ${filterType === 'mcq' ? 'active' : ''}" data-ftype="mcq">MCQ</button>
+                <button class="picker-filter-chip ${filterType === 'numerical' ? 'active' : ''}" data-ftype="numerical">Numerical</button>
+                <button class="picker-filter-chip ${filterType === 'cer' ? 'active' : ''}" data-ftype="cer">CER</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Questions Grid / List -->
+          <div class="picker-questions-grid">
+            ${visibleQuestions.length === 0 ? `
+              <div style="text-align: center; padding: 48px; background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">
+                <div style="font-size: 2.2rem; margin-bottom: 8px;">🔍</div>
+                <div style="font-weight: 800; font-size: 1.15rem; color: var(--text-main);">No questions match the current filter</div>
+                <div style="color: var(--text-muted); font-size: 0.88rem; margin-top: 4px;">Try clearing your search query or switching filters above.</div>
+              </div>
+            ` : visibleQuestions.map((q, vIdx) => {
+              const isSelected = pickerSelectedIds.has(q.id);
+              const selectedIdx = isSelected ? selectedList.findIndex(x => x.id === q.id) + 1 : -1;
+              const hasDiag = q.diagram || q.type === "diagram" || q.hasDiagram;
+              const isDiagOpen = expandedDiagrams.has(q.id);
+              const isExplOpen = expandedExpls.has(q.id);
+
+              const diffTier = q.difficultyTier || (q.difficulty === "foundational" ? "easy" : (q.difficulty === "honors" ? "medium" : "hard"));
+              const diffLabel = diffTier === "easy" ? "🟢 Easy" : (diffTier === "medium" ? "🟡 Medium" : "🟣 Hard");
+              const diffClass = `diff-${diffTier}`;
+
+              return `
+                <div class="q-picker-card ${isSelected ? 'is-selected' : ''}" data-qid="${q.id}">
+                  <!-- Card Header -->
+                  <div class="q-picker-top">
+                    <div class="q-picker-left-ctrl">
+                      <input type="checkbox" class="q-picker-checkbox" data-qid="${q.id}" ${isSelected ? 'checked' : ''} title="Include this question in assessment">
+                      <span class="q-picker-index-pill">
+                        ${isSelected ? `Selected #${selectedIdx}` : `Available (${vIdx + 1})`}
+                      </span>
+                      <div class="q-picker-badges">
+                        <span class="q-picker-badge ${diffClass}">${diffLabel}</span>
+                        ${hasDiag ? `<span class="q-picker-badge type-diag">📊 Diagram</span>` : ""}
+                        <span class="q-picker-badge" style="background: rgba(255,255,255,0.06); color: var(--text-muted);">${q.type.toUpperCase()}</span>
+                        <span style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-dim);">${q.subject}-M${q.moduleId}-L${q.lessonId || 1}</span>
+                      </div>
+                    </div>
+
+                    <!-- Right Controls: Move Up/Down (if selected) & Tag -->
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      ${isSelected ? `
+                        <button class="btn btn-secondary btn-sm btn-move-q-up" data-qid="${q.id}" style="padding: 2px 8px; font-size: 0.75rem;" title="Move earlier in exam order">▲</button>
+                        <button class="btn btn-secondary btn-sm btn-move-q-down" data-qid="${q.id}" style="padding: 2px 8px; font-size: 0.75rem;" title="Move later in exam order">▼</button>
+                      ` : ""}
+                      <span style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">${q.angle ? q.angle.replace(/_/g, ' ') : ''}</span>
+                    </div>
+                  </div>
+
+                  <!-- Prompt -->
+                  <div class="q-picker-prompt">
+                    ${formatMathText(q.question || q.prompt || "")}
+                  </div>
+
+                  <!-- Scientific Diagram Preview (Collapsible) -->
+                  ${hasDiag && q.diagram ? `
+                    <div style="margin: 4px 0;">
+                      <button class="btn btn-secondary btn-sm btn-toggle-diag" data-qid="${q.id}" style="font-size: 0.8rem; padding: 4px 12px; display: inline-flex; align-items: center; gap: 6px;">
+                        <span>${isDiagOpen ? '▼ Hide Diagram' : '▶ 📊 View Scientific Diagram'}</span>
+                        <span style="color: #38bdf8; font-weight: 700;">${q.diagram.caption || q.diagram.title || 'Vector Graphic'}</span>
+                      </button>
+                      ${isDiagOpen ? `
+                        <div class="q-picker-diagram-box">
+                          ${q.diagram.caption ? `<div style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">${q.diagram.caption}</div>` : ''}
+                          <div style="max-height: 220px; overflow: hidden; display: flex; justify-content: center;">
+                            ${q.diagram.svg}
+                          </div>
+                        </div>
+                      ` : ''}
+                    </div>
+                  ` : ''}
+
+                  <!-- Options / Teacher Key -->
+                  ${q.options && q.options.length > 0 ? `
+                    <div class="q-picker-options-grid">
+                      ${q.options.map((opt, oIdx) => {
+                        const isCorrect = oIdx === q.correctIndex;
+                        return `
+                          <div class="q-picker-option-row ${isCorrect ? 'is-correct' : ''}">
+                            <strong style="min-width: 22px;">(${String.fromCharCode(65 + oIdx)})</strong>
+                            <div style="flex: 1;">
+                              ${formatMathText(opt)}
+                              ${isCorrect ? `<span style="font-size: 0.68rem; font-weight: 800; background: #10b981; color: #ffffff; padding: 1px 6px; border-radius: 3px; margin-left: 6px; display: inline-block;">✓ TEACHER KEY</span>` : ''}
+                            </div>
+                          </div>
+                        `;
+                      }).join("")}
+                    </div>
+                  ` : (q.type === 'cer' ? `
+                    <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 6px; padding: 10px 14px; font-size: 0.85rem; color: var(--text-main);">
+                      <strong style="color: #c084fc;">[Claim-Evidence-Reasoning Qualitative Inquiry]</strong>
+                      <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Student constructs free-response scientific argument with 10-point AP rubric.</div>
+                    </div>
+                  ` : '')}
+
+                  <!-- Explanation Box -->
+                  <div style="margin-top: 4px;">
+                    <button class="btn btn-secondary btn-sm btn-toggle-expl" data-qid="${q.id}" style="font-size: 0.78rem; padding: 3px 10px; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);">
+                      ${isExplOpen ? '▲ Hide Teacher Solution & Explanation' : '▼ View Teacher Solution & Explanation'}
+                    </button>
+                    ${isExplOpen ? `
+                      <div class="q-picker-expl-box" style="margin-top: 8px;">
+                        <strong style="color: #38bdf8;">Pedagogical Rationale:</strong>
+                        <div style="margin-top: 4px; white-space: pre-line;">${formatMathText(q.explanation || "Curriculum standard solution.")}</div>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+
+          <!-- Fixed Bottom Action Bar -->
+          <div class="picker-bottom-bar">
+            <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+              <span style="font-weight: 800; font-size: 1.05rem; color: #ffffff;">
+                Selected: <span id="bar-stat-total" style="color: #38bdf8;">${totalSelected}</span> Questions
+              </span>
+              <span style="font-size: 0.85rem; color: #94a3b8; font-family: var(--font-mono);">
+                (🟢 ${easySelected} Easy • 🟡 ${medSelected} Med • 🟣 ${hardSelected} Hard • 📊 ${diagSelected} Diag)
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <button class="btn btn-secondary" id="btn-picker-cancel" style="padding: 10px 18px; font-weight: 700;">
+                Cancel
+              </button>
+              <button class="btn btn-secondary" id="btn-picker-test" style="padding: 10px 20px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                <span>⚡ Start Computer Quiz</span>
+              </button>
+              <button class="btn btn-primary" id="btn-picker-print" style="padding: 10px 24px; font-weight: 800; display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; box-shadow: 0 4px 18px rgba(37, 99, 235, 0.4);">
+                <span>🖨️ Produce Final Printed Exam (${totalSelected} Qs)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      bindPickerEvents();
+      renderMathInElement(container);
+    }
+
+    function bindPickerEvents() {
+      // Top back button
+      document.getElementById("btn-picker-back-top")?.addEventListener("click", showConfig);
+      document.getElementById("btn-picker-cancel")?.addEventListener("click", showConfig);
+
+      // Checkbox click
+      document.querySelectorAll(".q-picker-checkbox").forEach(cb => {
+        cb.addEventListener("change", (e) => {
+          e.stopPropagation();
+          const qid = cb.dataset.qid;
+          if (cb.checked) {
+            pickerSelectedIds.add(qid);
+          } else {
+            pickerSelectedIds.delete(qid);
+          }
+          renderDOM();
+        });
+      });
+
+      // Quick Balanced Presets
+      document.getElementById("preset-balanced-30")?.addEventListener("click", () => {
+        pickerSelectedIds = getBalancedPresetSelection(pickerPool, 30);
+        showToast("Balanced 30 Selected", "Selected 10 Easy, 10 Medium, 10 Hard questions with 6 diagrams.", "success");
+        renderDOM();
+      });
+
+      document.getElementById("preset-balanced-15")?.addEventListener("click", () => {
+        pickerSelectedIds = getBalancedPresetSelection(pickerPool, 15);
+        showToast("Balanced 15 Selected", "Selected 5 Easy, 5 Medium, 5 Hard questions.", "success");
+        renderDOM();
+      });
+
+      document.getElementById("preset-balanced-10")?.addEventListener("click", () => {
+        pickerSelectedIds = getBalancedPresetSelection(pickerPool, 10);
+        showToast("Quick 10 Selected", "Selected 3 Easy, 4 Medium, 3 Hard questions.", "success");
+        renderDOM();
+      });
+
+      document.getElementById("btn-select-all-filtered")?.addEventListener("click", () => {
+        document.querySelectorAll(".q-picker-card").forEach(card => {
+          const qid = card.dataset.qid;
+          if (qid) pickerSelectedIds.add(qid);
+        });
+        showToast("Selected Filtered", `Selected all visible questions in current filter.`, "info");
+        renderDOM();
+      });
+
+      document.getElementById("btn-deselect-all")?.addEventListener("click", () => {
+        pickerSelectedIds.clear();
+        showToast("Deselected", "Cleared question selection.", "info");
+        renderDOM();
+      });
+
+      // Reorder buttons
+      document.querySelectorAll(".btn-move-q-up").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const qid = btn.dataset.qid;
+          const idx = pickerPool.findIndex(q => q.id === qid);
+          if (idx > 0) {
+            const temp = pickerPool[idx];
+            pickerPool[idx] = pickerPool[idx - 1];
+            pickerPool[idx - 1] = temp;
+            renderDOM();
+          }
+        });
+      });
+
+      document.querySelectorAll(".btn-move-q-down").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const qid = btn.dataset.qid;
+          const idx = pickerPool.findIndex(q => q.id === qid);
+          if (idx !== -1 && idx < pickerPool.length - 1) {
+            const temp = pickerPool[idx];
+            pickerPool[idx] = pickerPool[idx + 1];
+            pickerPool[idx + 1] = temp;
+            renderDOM();
+          }
+        });
+      });
+
+      // Diagram toggle
+      document.querySelectorAll(".btn-toggle-diag").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const qid = btn.dataset.qid;
+          if (expandedDiagrams.has(qid)) {
+            expandedDiagrams.delete(qid);
+          } else {
+            expandedDiagrams.add(qid);
+          }
+          renderDOM();
+        });
+      });
+
+      // Explanation toggle
+      document.querySelectorAll(".btn-toggle-expl").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const qid = btn.dataset.qid;
+          if (expandedExpls.has(qid)) {
+            expandedExpls.delete(qid);
+          } else {
+            expandedExpls.add(qid);
+          }
+          renderDOM();
+        });
+      });
+
+      // Filter chips
+      document.querySelectorAll("[data-fstatus]").forEach(chip => {
+        chip.addEventListener("click", () => {
+          filterStatus = chip.dataset.fstatus;
+          renderDOM();
+        });
+      });
+
+      document.querySelectorAll("[data-fdiff]").forEach(chip => {
+        chip.addEventListener("click", () => {
+          filterDiff = chip.dataset.fdiff;
+          renderDOM();
+        });
+      });
+
+      document.querySelectorAll("[data-ftype]").forEach(chip => {
+        chip.addEventListener("click", () => {
+          filterType = chip.dataset.ftype;
+          renderDOM();
+        });
+      });
+
+      // Search input
+      const searchInp = document.getElementById("picker-search-input");
+      if (searchInp) {
+        searchInp.addEventListener("input", (e) => {
+          searchQuery = e.target.value;
+          renderDOM();
+          const freshInp = document.getElementById("picker-search-input");
+          if (freshInp) {
+            freshInp.focus();
+            freshInp.setSelectionRange(searchQuery.length, searchQuery.length);
+          }
+        });
+      }
+
+      // Action: Produce Final Printed Exam
+      document.getElementById("btn-picker-print")?.addEventListener("click", () => {
+        if (pickerSelectedIds.size === 0) {
+          showToast("Selection Required", "Please select at least one question before producing the printed exam.", "warning");
+          return;
+        }
+        activeQuestions = pickerPool.filter(q => pickerSelectedIds.has(q.id));
+        userAnswers = {};
+        examMode = "print";
+        renderPrintView();
+      });
+
+      // Action: Start Computer Quiz
+      document.getElementById("btn-picker-test")?.addEventListener("click", () => {
+        if (pickerSelectedIds.size === 0) {
+          showToast("Selection Required", "Please select at least one question before starting the quiz.", "warning");
+          return;
+        }
+        activeQuestions = pickerPool.filter(q => pickerSelectedIds.has(q.id));
+        userAnswers = {};
+        examMode = "practice";
+        renderTestView();
+      });
+    }
+
+    renderDOM();
+  }
+
   async function generateExam() {
     if (selectedLessons.size === 0) {
       showToast("Scope Required", "Please select at least one lesson to establish the assessment scope.", "warning");
@@ -1127,6 +1749,8 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         }
       });
     }
+
+    currentScopePool = pool;
 
     // Shuffle pool
     pool.sort(() => Math.random() - 0.5);
@@ -2087,9 +2711,13 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           <!-- Top Control & Customization Bar (Excluded during printing) -->
           <div class="print-actions-bar no-print" style="display: flex; flex-direction: column; gap: 12px; background: var(--bg-card); padding: 16px 20px; border-radius: var(--radius-md); border: 1.5px solid var(--border-color); box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-              <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                 <button class="btn btn-secondary" id="btn-exit-print" style="font-weight: 700;">
                   ← Exit Print Studio
+                </button>
+                <button class="btn btn-secondary" id="btn-print-reselect" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #38bdf8; background: rgba(56, 189, 248, 0.1);" title="Open Question Picker to add, remove, or re-order questions">
+                  <span>📋</span>
+                  <span>Choose / Edit Questions</span>
                 </button>
                 <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-family: var(--font-mono);">
                   ${displayQuestions.length} Questions • ${selectedLessons.size} Lessons
@@ -2210,11 +2838,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               <!-- Questions Container (Single or Two-Column Paper Saver Layout) -->
               <div class="print-questions-wrapper ${printLayout === 'two-col' ? 'print-two-col' : ''}" style="${printLayout === 'two-col' ? 'column-count: 2; column-gap: 32px; column-rule: 1px solid #e2e8f0;' : 'display: flex; flex-direction: column; gap: 24px;'}">
                 ${displayQuestions.map((q) => `
-                  <div class="print-q-card" style="break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; color: #000000;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-                      <span style="font-weight: 800; font-size: 1.02rem; color: #000000;">
+                  <div class="print-q-card" data-qid="${q.id}" style="break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; color: #000000; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px;">
+                      <span style="font-weight: 800; font-size: 1.02rem; color: #000000; flex: 1;">
                         ${q.formIndex}. ${formatMathText(q.question)}
                       </span>
+                      <button class="btn btn-sm btn-exclude-q no-print" data-qid="${q.id}" style="font-size: 0.72rem; padding: 2px 8px; background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap;" title="Exclude this question from printout">
+                        ✕ Exclude
+                      </button>
                     </div>
 
                     ${q.diagram ? `
@@ -2330,6 +2961,24 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
       // Event Bindings
       document.getElementById("btn-exit-print")?.addEventListener("click", showConfig);
+
+      document.getElementById("btn-print-reselect")?.addEventListener("click", () => {
+        openQuestionPickerFromPrint();
+      });
+
+      document.querySelectorAll(".btn-exclude-q").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const qid = btn.dataset.qid;
+          if (activeQuestions.length <= 1) {
+            showToast("Cannot Exclude", "Exam must contain at least 1 question.", "warning");
+            return;
+          }
+          activeQuestions = activeQuestions.filter(q => q.id !== qid);
+          showToast("Question Excluded", `Removed question. ${activeQuestions.length} remaining.`, "info");
+          renderDOM();
+        });
+      });
 
       document.getElementById("btn-print-form-a")?.addEventListener("click", () => {
         printForm = "A";

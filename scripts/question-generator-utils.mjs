@@ -17,6 +17,13 @@ export function shuffleOptions(options, correctIndex) {
   };
 }
 
+export function getDifficultyTier(diff) {
+  if (diff === "foundational" || diff === "easy") return { difficulty: "foundational", difficultyTier: "easy" };
+  if (diff === "honors" || diff === "medium") return { difficulty: "honors", difficultyTier: "medium" };
+  if (diff === "ap_olympiad" || diff === "hard") return { difficulty: "ap_olympiad", difficultyTier: "hard" };
+  return { difficulty: diff || "honors", difficultyTier: "medium" };
+}
+
 /**
  * Creates a validated Multiple-Choice Question (MCQ)
  */
@@ -37,6 +44,7 @@ export function createMCQ({
   diagram = null
 }) {
   const shuffled = shuffleOptions(options, correctIndex);
+  const diffInfo = getDifficultyTier(difficulty);
   return {
     id,
     subject,
@@ -45,7 +53,8 @@ export function createMCQ({
     moduleTitle,
     lessonTitle,
     type,
-    difficulty,
+    difficulty: diffInfo.difficulty,
+    difficultyTier: diffInfo.difficultyTier,
     angle,
     question,
     options: shuffled.options,
@@ -78,6 +87,7 @@ export function createNumerical({
   explanation
 }) {
   const shuffled = shuffleOptions(options, correctIndex);
+  const diffInfo = getDifficultyTier(difficulty);
   return {
     id,
     subject,
@@ -86,7 +96,8 @@ export function createNumerical({
     moduleTitle,
     lessonTitle,
     type: "numerical",
-    difficulty,
+    difficulty: diffInfo.difficulty,
+    difficultyTier: diffInfo.difficultyTier,
     angle,
     question,
     correctAnswer: String(correctAnswer),
@@ -115,6 +126,7 @@ export function createCER({
   explanation,
   rubricCER
 }) {
+  const diffInfo = getDifficultyTier(difficulty);
   return {
     id,
     subject,
@@ -123,7 +135,8 @@ export function createCER({
     moduleTitle,
     lessonTitle,
     type: "cer",
-    difficulty,
+    difficulty: diffInfo.difficulty,
+    difficultyTier: diffInfo.difficultyTier,
     angle,
     question,
     options: null,

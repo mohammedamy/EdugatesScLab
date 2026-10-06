@@ -181,6 +181,33 @@ assert(
   `Every single lesson has at least 30 questions (Min: ${minQuestionsPerLesson}, Failing: ${lessonsBelowThreshold.join(", ") || "None"})`
 );
 
+// Verify exact 10 Easy, 10 Medium, 10 Hard and 6 diagrams (20%) per lesson
+let diffDistributionValid = true;
+let diagramDistributionValid = true;
+[chemistryCurriculum, biologyCurriculum, physicsCurriculum].forEach(cur => {
+  cur.modules.forEach(m => {
+    m.lessons.forEach(l => {
+      const lessonQuestions = questionBank.filter(q => 
+        q.subject === cur.code && 
+        q.moduleId === m.id && 
+        (q.lessonId === undefined || q.lessonId === l.id)
+      );
+      const easy = lessonQuestions.filter(q => q.difficultyTier === "easy" || q.difficulty === "foundational");
+      const med = lessonQuestions.filter(q => q.difficultyTier === "medium" || q.difficulty === "honors");
+      const hard = lessonQuestions.filter(q => q.difficultyTier === "hard" || q.difficulty === "ap_olympiad");
+      if (easy.length !== 10 || med.length !== 10 || hard.length !== 10) {
+        diffDistributionValid = false;
+      }
+      const diags = lessonQuestions.filter(q => q.diagram && q.diagram.svg && q.diagram.svg.includes("<svg"));
+      if (diags.length !== 6) {
+        diagramDistributionValid = false;
+      }
+    });
+  });
+});
+assert(diffDistributionValid, `Every lesson has exact 10 Easy, 10 Medium, and 10 Hard distribution (10e10m10h)`);
+assert(diagramDistributionValid, `Every lesson has exactly 6 scientific diagrams (20% visual diagrams)`);
+
 
 // ----------------------------------------------------
 // Test 5: Virtual Laboratories Interface Compliance
