@@ -75,8 +75,8 @@ assert.strictEqual(moduleOverviewCount, 74, "Expected exactly 74 module overview
 assert.strictEqual(coreHighYieldCount, 18, "Expected 18 core high-yield cards");
 assert.strictEqual(lessonCardsMap.size, 242, "All 242 lessons must have cards in the deck");
 
-// 5. Verify every single lesson has AT LEAST 5 cards and meets relevance requirements
-const requiredCardTypes = ["concept", "formulation", "mechanism", "application", "misconception"];
+// 5. Verify every single lesson has AT LEAST 5 cards (now 6 comprehensive archetypes) and meets relevance requirements
+const requiredCardTypes = ["concept", "formulation", "mechanism", "application", "misconception", "investigation"];
 
 expectedLessonKeys.forEach(lessonKey => {
   const cards = lessonCardsMap.get(lessonKey);
@@ -100,6 +100,7 @@ expectedLessonKeys.forEach(lessonKey => {
   });
 });
 
-console.log(`  ✅ PASS: Every single lesson (242/242) has at least 5 complete, relevant, structured flashcards`);
-console.log(`  ✅ Total lesson cards: ${lessonCardsCount} (exactly 242 × 5 = 1,210 cards)`);
+console.log(`  ✅ PASS: Every single lesson (242/242) has at least 5 complete, relevant, structured flashcards (now 6 cards per lesson)`);
+console.log(`  ✅ Total lesson cards: ${lessonCardsCount} (242 × 6 = 1,452 lesson cards)`);
 console.log(`  ✅ All assertions passed successfully!`);
+

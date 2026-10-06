@@ -419,7 +419,19 @@ function renderAppShell() {
 
       <!-- Semantic Main Navigation Landmark -->
       <nav class="app-nav-container app-nav-center" aria-label="Main Navigation">
-        <!-- Navigation Subject Dropdown Menu -->
+        <!-- Responsive Segmented Subject Tabs (Desktop & Large Touch / MAXHUB screens >= 960px) -->
+        <div class="nav-subject-tabs" role="tablist" aria-label="Curriculum Subjects and Laboratories">
+          ${NAV_SUBJECTS.map(sub => `
+            <a href="#${sub.id}" class="nav-subject-tab-pill ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
+               data-tab="${sub.id}" role="tab" aria-selected="${AppState.currentTab === sub.id ? 'true' : 'false'}"
+               title="${sub.name}: ${sub.tagline}" aria-label="${sub.name}: ${sub.tagline}">
+              <span class="tab-pill-icon" aria-hidden="true">${sub.icon}</span>
+              <span class="tab-pill-text">${sub.name}</span>
+            </a>
+          `).join('')}
+        </div>
+
+        <!-- Navigation Subject Dropdown Menu (Mobile / Compact Viewports) -->
         <div class="nav-dropdown-wrapper" id="nav-dropdown-wrapper">
           <button class="nav-dropdown-trigger ${curSub.themeClass}" id="nav-dropdown-trigger" 
                   aria-haspopup="true" aria-expanded="false" 
@@ -466,6 +478,12 @@ function renderAppShell() {
 
       <!-- Right Controls & Device Mode -->
       <div class="nav-right-controls" role="toolbar" aria-label="Display &amp; Hardware Mode Settings">
+        <!-- Quick 1-Click Lab Mode Launcher Button -->
+        <a href="#labs" class="nav-btn-lab-mode" id="btn-nav-lab-mode" title="Quick Lab Mode - 36 Interactive Virtual Laboratories" aria-label="Quick launch Lab Mode">
+          <span class="lab-mode-sparkle" aria-hidden="true">⚡</span>
+          <span class="lab-mode-text">Lab Mode</span>
+        </a>
+
         <!-- Day / Night Mode Toggle Switch -->
         <button class="theme-toggle-btn" id="btn-theme-toggle" title="Switch Day/Night Mode (Light/Dark)" aria-label="Toggle Day or Night theme">
           <div class="theme-toggle-track">
@@ -957,7 +975,13 @@ function switchTab(tabId, updateHash = true) {
   const curBadge = document.getElementById("nav-dropdown-current-badge");
   if (curBadge) curBadge.textContent = sub.badge;
 
-  // Update active state in dropdown items
+  // Update active state in segmented tabs and dropdown items
+  document.querySelectorAll(".nav-subject-tab-pill").forEach(pill => {
+    const isActive = pill.dataset.tab === tabId;
+    pill.classList.toggle("active", isActive);
+    pill.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
   document.querySelectorAll(".nav-dropdown-item").forEach(item => {
     const isActive = item.dataset.tab === tabId;
     item.classList.toggle("active", isActive);
@@ -1405,7 +1429,7 @@ function renderSubjectView(container, curData, themeColor) {
 
   // Preload top visible card images for this subject for instant above-the-fold first paint
   if (curData && Array.isArray(curData.modules)) {
-    const topModules = curData.modules.slice(0, 12);
+    const topModules = curData.modules.slice(0, 6);
     topModules.forEach(m => {
       const href = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
       if (typeof document !== "undefined") {
@@ -1573,13 +1597,21 @@ function renderSubjectView(container, curData, themeColor) {
     </div>
 
     <!-- Cards Display Area -->
-    ${!isLessonsView ? `
+    ${filtered.length === 0 ? `
+      <!-- Friendly Empty State when Search or Unit Filter yields 0 matches -->
+      <div class="empty-search-state" role="status" aria-live="polite">
+        <div class="empty-search-icon" aria-hidden="true">🔍</div>
+        <h3 class="empty-search-title">No Matching Chapters Found</h3>
+        <p class="empty-search-desc">We couldn't find any chapters or lessons matching "<strong>${AppState.searchQuery.replace(/</g, "&lt;")}</strong>" in ${curData.subject}. Try adjusting your keywords or clearing filters.</p>
+        <button class="btn btn-primary btn-clear-search" id="btn-empty-clear-search">Clear Search &amp; Filters</button>
+      </div>
+    ` : (!isLessonsView ? `
       <!-- Chapters / Modules Grid with Textbook Opener Banners & Lesson Miniatures -->
       <div class="modules-grid" id="modules-cards-container">
         ${filtered.map((m, mIdx) => {
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
           const fallbackSvg = getSubjectPlaceholderSvg(curData.code);
-          const isTopPriority = mIdx < 12;
+          const isTopPriority = mIdx < 6;
           return `
             <div class="module-card" data-mid="${m.id}" tabindex="0" role="article" aria-label="Chapter ${m.code}: ${m.title}, ${m.lessons.length} lessons. Press Enter to explore chapter." style="--card-accent: ${themeColor};">
               <!-- Textbook Chapter Opener Photo Banner with Skeleton & Robust Fallback -->
@@ -1588,7 +1620,7 @@ function renderSubjectView(container, curData, themeColor) {
                 <div class="module-banner-fallback-icon" aria-hidden="true">
                   ${curData.code === 'CHEM' ? icons.chemistry : (curData.code === 'BIO' ? icons.biology : icons.physics)}
                 </div>
-                <img src="${imgPath}" alt="${m.title}" class="module-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}"
+                <img src="${imgPath}" alt="Chapter ${m.code}: ${m.title} cover" class="module-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'auto'}"
                   onload="this.classList.add('loaded'); this.parentElement.classList.remove('is-loading');"
                   onerror="if (!this.dataset.errored) { this.dataset.errored = '1'; this.src = '${fallbackSvg}'; this.alt = 'Chapter image placeholder'; } else { this.style.display='none'; } this.parentElement.classList.remove('is-loading'); this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="module-banner-overlay"></div>
@@ -1660,7 +1692,7 @@ function renderSubjectView(container, curData, themeColor) {
           const iconEmoji = getLessonIconEmoji(spec.type);
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
           const fallbackSvg = getSubjectPlaceholderSvg(curData.code);
-          const isTopPriority = idx < 12;
+          const isTopPriority = idx < 6;
           return `
             <div class="lesson-card-full" data-mid="${m.id}" data-lid="${l.id}" tabindex="0" role="article" aria-label="Lesson ${l.id}: ${l.title} - Chapter ${m.code}. Press Enter to launch interactive." style="--card-accent: ${themeColor};">
               <div class="lesson-card-banner is-loading">
@@ -1668,7 +1700,7 @@ function renderSubjectView(container, curData, themeColor) {
                 <div class="module-banner-fallback-icon" aria-hidden="true">
                   ${curData.code === 'CHEM' ? icons.chemistry : (curData.code === 'BIO' ? icons.biology : icons.physics)}
                 </div>
-                <img src="${imgPath}" alt="${l.title}" class="lesson-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}"
+                <img src="${imgPath}" alt="Lesson ${l.id}: ${l.title} illustration" class="lesson-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'auto'}"
                   onload="this.classList.add('loaded'); this.parentElement.classList.remove('is-loading');"
                   onerror="if (!this.dataset.errored) { this.dataset.errored = '1'; this.src = '${fallbackSvg}'; this.alt = 'Lesson placeholder'; } else { this.style.display='none'; } this.parentElement.classList.remove('is-loading'); this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="lesson-banner-overlay"></div>
@@ -1711,7 +1743,7 @@ function renderSubjectView(container, curData, themeColor) {
           `;
         }).join("")}
       </div>
-    `}
+    `)}
   `;
 
   // Bind Classroom Presenter Tip Dismiss & Shortcuts Cheatsheet
@@ -1945,30 +1977,38 @@ function renderSubjectView(container, curData, themeColor) {
     });
   });
 
-  // Resilient check for loaded / browser-cached chapter banner images
-  container.querySelectorAll(".module-banner-img, .lesson-banner-img").forEach(img => {
-    const banner = img.parentElement;
-    const markLoaded = () => {
-      img.classList.add("loaded");
-      if (banner) banner.classList.remove("is-loading");
-    };
-    const markFallback = () => {
-      if (banner) {
-        banner.classList.remove("is-loading");
-        banner.classList.add("has-fallback-pattern");
-      }
-    };
-    if (img.complete) {
-      if (img.naturalWidth > 0) {
-        markLoaded();
-      } else if (img.dataset.errored) {
-        markFallback();
-      }
-    } else {
-      img.addEventListener("load", markLoaded, { once: true });
-      img.addEventListener("error", markFallback, { once: true });
-    }
-  });
+  // Bind Clear Search button from Empty State if rendered
+  const btnEmptyClear = container.querySelector("#btn-empty-clear-search");
+  if (btnEmptyClear) {
+    btnEmptyClear.addEventListener("click", () => {
+      AppState.searchQuery = "";
+      AppState.selectedUnit = "ALL";
+      renderSubjectView(container, curData, themeColor);
+      const searchInput = document.getElementById("search-modules-input");
+      if (searchInput) searchInput.value = "";
+    });
+  }
+
+  // Bind Continue Learning actions to sync progress
+  const btnContinueResume = container.querySelector(".btn-continue-resume");
+  if (btnContinueResume && lastMod) {
+    btnContinueResume.addEventListener("click", () => {
+      ProgressStore.recordModuleOpened(lastMod.code);
+      ProgressStore.recordModuleExplored(lastMod.code);
+    });
+  }
+  const btnContinueLab = container.querySelector(".btn-continue-lab");
+  if (btnContinueLab && lastMod) {
+    btnContinueLab.addEventListener("click", () => {
+      ProgressStore.recordLabLaunched(normalizeLabId(lastMod.lab));
+    });
+  }
+
+  // High-reliability image loading with decoding, intersection prefetching, and safety fallback
+  setupChapterImageLoading(container);
+
+  // Classroom & Smartboard spatial keyboard navigation (arrow keys across cards)
+  setupCardSpatialNavigation(container);
 
   // Prefetch chapter assets on hover / focus for instant transitions
   document.querySelectorAll(".module-card, .lesson-row-card").forEach(el => {
@@ -1981,19 +2021,160 @@ function renderSubjectView(container, curData, themeColor) {
     }, { once: true, passive: true });
   });
 
-  // Background idle pre-fetch for remaining chapters (chapters 12+) so fast scrolling never encounters blank images
+  // Background idle pre-fetch for remaining chapters so fast scrolling never encounters blank images
   const scheduleIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 60));
-  if (curData && Array.isArray(curData.modules) && curData.modules.length > 12) {
-    const remaining = curData.modules.slice(12);
+  if (curData && Array.isArray(curData.modules) && curData.modules.length > 6) {
+    const remaining = curData.modules.slice(6);
     remaining.forEach((m, idx) => {
       scheduleIdle(() => {
         const preImg = new Image();
         preImg.src = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
-      }, { timeout: 180 + idx * 50 });
+      }, { timeout: 150 + idx * 40 });
     });
   }
 
   renderMathInElement(container);
+}
+
+/**
+ * Robust chapter image loader that eliminates lazy-loading race conditions,
+ * decodes off-thread, and guarantees cards never stay in a blank loading state.
+ */
+function setupChapterImageLoading(container) {
+  if (!container) return;
+
+  const images = Array.from(container.querySelectorAll(".module-banner-img, .lesson-banner-img"));
+  if (images.length === 0) return;
+
+  const markLoaded = (img) => {
+    img.classList.add("loaded");
+    const banner = img.closest(".module-card-banner, .lesson-card-banner");
+    if (banner) {
+      banner.classList.remove("is-loading");
+    }
+  };
+
+  const markFallback = (img) => {
+    const banner = img.closest(".module-card-banner, .lesson-card-banner");
+    if (banner) {
+      banner.classList.remove("is-loading");
+      banner.classList.add("has-fallback-pattern");
+    }
+  };
+
+  let observer = null;
+  if (typeof IntersectionObserver !== "undefined") {
+    observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const img = entry.target;
+          obs.unobserve(img);
+          if (img.loading === "lazy") {
+            img.loading = "eager";
+          }
+          if (img.decode) {
+            img.decode().then(() => markLoaded(img)).catch(() => {});
+          }
+        }
+      });
+    }, { rootMargin: "450px 0px" });
+  }
+
+  images.forEach((img, idx) => {
+    if (observer) {
+      observer.observe(img);
+    }
+
+    // Unconditionally attach event listeners
+    img.addEventListener("load", () => markLoaded(img), { once: true });
+    img.addEventListener("error", () => markFallback(img), { once: true });
+
+    // Handle cached or already-complete images
+    if (img.complete) {
+      if (img.naturalWidth > 0) {
+        markLoaded(img);
+      } else if (img.dataset.errored) {
+        markFallback(img);
+      } else if (img.decode) {
+        img.decode().then(() => markLoaded(img)).catch(() => {});
+      }
+    }
+
+    // Safety timeout: Never leave any card in blank shimmer state
+    setTimeout(() => {
+      if (img.naturalWidth > 0) {
+        markLoaded(img);
+      } else {
+        const banner = img.closest(".module-card-banner, .lesson-card-banner");
+        if (banner && banner.classList.contains("is-loading")) {
+          banner.classList.remove("is-loading");
+          if (img.complete && img.naturalWidth > 0) {
+            img.classList.add("loaded");
+          } else {
+            banner.classList.add("has-fallback-pattern");
+          }
+        }
+      }
+    }, 1200 + Math.min(idx * 25, 1000));
+  });
+}
+
+/**
+ * Spatial keyboard navigation across curriculum chapter and lesson cards
+ * Enables teachers and students to use presentation clickers and Arrow keys
+ */
+function setupCardSpatialNavigation(container) {
+  if (!container) return;
+  const cards = Array.from(container.querySelectorAll(".module-card, .lesson-card-full"));
+  if (cards.length === 0) return;
+
+  cards.forEach((card, idx) => {
+    card.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+
+      let targetIdx = -1;
+      if (e.key === "ArrowRight") {
+        e.preventDefault();
+        targetIdx = idx + 1 < cards.length ? idx + 1 : 0;
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        targetIdx = idx - 1 >= 0 ? idx - 1 : cards.length - 1;
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        for (let i = idx + 1; i < cards.length; i++) {
+          if (Math.abs(cards[i].offsetLeft - card.offsetLeft) < 25) {
+            targetIdx = i;
+            break;
+          }
+        }
+        if (targetIdx === -1) {
+          targetIdx = Math.min(cards.length - 1, idx + 3);
+        }
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        for (let i = idx - 1; i >= 0; i--) {
+          if (Math.abs(cards[i].offsetLeft - card.offsetLeft) < 25) {
+            targetIdx = i;
+            break;
+          }
+        }
+        if (targetIdx === -1) {
+          targetIdx = Math.max(0, idx - 3);
+        }
+      } else if (e.key === "Home" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        targetIdx = 0;
+      } else if (e.key === "End" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        targetIdx = cards.length - 1;
+      }
+
+      if (targetIdx >= 0 && targetIdx < cards.length) {
+        cards[targetIdx].focus();
+        cards[targetIdx].scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    });
+  });
 }
 
 export function renderClassifiedLabNavHTML(activeLabId, filterSubject = "all") {

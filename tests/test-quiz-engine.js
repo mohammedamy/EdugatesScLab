@@ -188,6 +188,8 @@ async function runTests() {
     assert(containerEl.innerHTML.includes("Curriculum File Explorer Scope"), "Curriculum file explorer scope section is present");
     assert(containerEl.innerHTML.includes("btn-generate-exam"), "Generate Assessment button is present");
     assert(containerEl.innerHTML.includes("btn-choose-questions"), "Teacher Question Selection Studio button ('btn-choose-questions') is present");
+    assert(containerEl.innerHTML.includes('value="25"'), "Question count dropdown includes '25 Questions' option");
+    assert(containerEl.innerHTML.includes('value="30"'), "Question count dropdown includes '30 Questions' option");
   } catch (err) {
     assert(false, `renderQuizEngine threw during initialization: ${err.message}`);
   }

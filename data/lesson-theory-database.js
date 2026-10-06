@@ -1356,7 +1356,40 @@ function generateCurriculumWorkedExample(code, title, phenom, formula, mData) {
   }
 
   if (code === "BIO") {
-    if (t.includes("population") || t.includes("ecology") || f.includes("n")) {
+    if (mId === 1 || t.includes("study of life") || t.includes("microscope")) {
+      return {
+        problem: `A biology student observes an onion epidermal cell using a compound light microscope. The ocular lens has a magnification of $10\\times$, and the high-power objective lens has a magnification of $40\\times$. If the diameter of the field of view under low power ($100\\times$ total) is $1,800\\ \\mu\\text{m}$, calculate the total magnification under high power and the actual length of a single cell that occupies approximately $\\frac{1}{6}$ of the high-power field diameter.`,
+        given: "M_{\\text{ocular}} = 10\\times, \\quad M_{\\text{obj}} = 40\\times, \\quad \\text{FOV}_{100\\times} = 1,800\\ \\mu\\text{m}, \\quad \\text{Fraction} = \\frac{1}{6}",
+        steps: [
+          "1. Calculate total high-power magnification: $M_{\\text{total}} = M_{\\text{ocular}} \\times M_{\\text{objective}} = 10 \\times 40 = 400\\times$.",
+          "2. Apply inverse magnification scaling to find high-power field diameter: $\\text{FOV}_{400\\times} = \\text{FOV}_{100\\times} \\times \\left(\\frac{100}{400}\\right) = 1,800\\ \\mu\\text{m} \\times 0.25 = 450\\ \\mu\\text{m}$.",
+          "3. Calculate individual cell length: $L_{\\text{cell}} = \\frac{\\text{FOV}_{400\\times}}{6} = \\frac{450\\ \\mu\\text{m}}{6} = 75\\ \\mu\\text{m}$."
+        ],
+        answer: "M_{\\text{total}} = 400\\times, \\quad L_{\\text{cell}} = 75\\ \\mu\\text{m}",
+        parameters: [
+          { sym: "M", name: "Total Magnification", unit: "\\times", desc: "Product of ocular and objective lens powers" },
+          { sym: "L_{\\text{cell}}", name: "Cellular Length", unit: "\\mu\\text{m}", desc: "True physical length of examined specimen" }
+        ]
+      };
+    }
+    if (mId === 2 || t.includes("principles of ecology") || t.includes("trophic") || f.includes("0.10")) {
+      return {
+        problem: `In an open grassland ecosystem, primary producers (grasses) synthesize $24,000\\text{ kcal/(m}^2\\cdot\\text{yr)}$ of gross chemical energy via photosynthesis. According to Lindeman's 10% ecological trophic efficiency rule, calculate the energy available to the primary consumers (herbivorous zebra) and to the tertiary consumers (apex predator lions, trophic level 4).`,
+        given: "E_{\\text{producer}} = 24,000\\text{ kcal/(m}^2\\cdot\\text{yr)}, \\quad \\text{Transfer Efficiency} = 10\\% = 0.10",
+        steps: [
+          "1. Calculate energy assimilated by primary consumers (Trophic Level 2): $E_{\\text{herbivore}} = 24,000 \\times 0.10 = 2,400\\text{ kcal/(m}^2\\cdot\\text{yr)}$.",
+          "2. Calculate energy available to secondary consumers (Trophic Level 3): $E_{\\text{carnivore}} = 2,400 \\times 0.10 = 240\\text{ kcal/(m}^2\\cdot\\text{yr)}$.",
+          "3. Calculate energy available to tertiary consumers (Trophic Level 4): $E_{\\text{apex}} = 240 \\times 0.10 = 24.0\\text{ kcal/(m}^2\\cdot\\text{yr)}$.",
+          "4. Interpret trophic pyramid thermodynamics: Approximately $99.9\\%$ of original solar energy is dissipated as metabolic heat and entropy across the 3 trophic transfers."
+        ],
+        answer: "E_{\\text{herbivore}} = 2,400\\text{ kcal}, \\quad E_{\\text{apex}} = 24.0\\text{ kcal/(m}^2\\cdot\\text{yr)}",
+        parameters: [
+          { sym: "E", name: "Trophic Energy", unit: "\\text{kcal/(m}^2\\cdot\\text{yr)}", desc: "Energy flow per unit area per year" },
+          { sym: "\\eta", name: "Trophic Efficiency", unit: "\\%", desc: "Percentage of energy transferred between trophic tiers" }
+        ]
+      };
+    }
+    if (mId === 4 || t.includes("population") || t.includes("growth")) {
       return {
         problem: `An isolated population of organisms begins with an initial count of $N_0 = 450$ individuals and increases exponentially at an intrinsic growth rate of $r = 0.14\\text{ yr}^{-1}$. Calculate the projected population size $N(t)$ after $t = 5.0\\text{ years}$.`,
         given: "N_0 = 450, \\quad r = 0.14\\text{ yr}^{-1}, \\quad t = 5.0\\text{ yr}",
@@ -1373,7 +1406,92 @@ function generateCurriculumWorkedExample(code, title, phenom, formula, mData) {
         ]
       };
     }
-    if (t.includes("genetic") || t.includes("heredity") || t.includes("hardy") || t.includes("punnett")) {
+    if (mId === 7 || t.includes("cellular structure") || t.includes("osmosis") || t.includes("transport")) {
+      return {
+        problem: `A plant cell containing a solute concentration of $C = 0.30\\text{ M}$ sucrose is placed into an open beaker of pure distilled water at temperature $T = 20.0^\\circ\\text{C}$ ($293.15\\text{ K}$). Assuming the ionization constant for sucrose is $i = 1$ and $R = 0.0831\\text{ L}\\cdot\\text{bar/(mol}\\cdot\\text{K)}$, calculate the initial solute potential ($\\Psi_s$) of the plant cell and predict the direction of net water movement.`,
+        given: "i = 1, \\quad C = 0.30\\text{ mol/L}, \\quad R = 0.0831\\text{ L}\\cdot\\text{bar/(mol}\\cdot\\text{K)}, \\quad T = 293.15\\text{ K}, \\quad \\Psi_{\\text{water}} = 0\\text{ bar}",
+        steps: [
+          "1. State the solute potential formula: $\\Psi_s = -i C R T$.",
+          "2. Substitute values: $\\Psi_s = -(1)(0.30\\text{ mol/L})(0.0831\\text{ L}\\cdot\\text{bar/(mol}\\cdot\\text{K)})(293.15\\text{ K})$.",
+          "3. Compute solute potential: $\\Psi_s = -7.31\\text{ bar}$.",
+          "4. Determine net osmotic direction: Since $\\Psi_{\\text{cell}} = -7.31\\text{ bar} < \\Psi_{\\text{pure water}} = 0\\text{ bar}$, water diffuses down its water potential gradient into the cell, creating turgor pressure."
+        ],
+        answer: "\\Psi_s = -7.31\\text{ bar} \\quad (\\text{Water moves into cell})",
+        parameters: [
+          { sym: "\\Psi_s", name: "Solute Potential", unit: "\\text{bar}", desc: "Osmotic component reducing free water chemical potential" },
+          { sym: "C", name: "Molar Concentration", unit: "\\text{mol/L}", desc: "Osmotically active solute concentration" }
+        ]
+      };
+    }
+    if (mId === 8 || t.includes("cellular energy") || t.includes("photosynthesis") || t.includes("respiration")) {
+      return {
+        problem: `During aerobic cellular respiration, complete catabolism of one molecule of glucose ($\\text{C}_6\\text{H}_{12}\\text{O}_6$) yields approximately $32\\text{ ATP}$ equivalents. If hydrolysis of each mole of ATP releases $\\Delta G^\\circ = -30.5\\text{ kJ/mol}$, and complete combustion of glucose releases $\\Delta H_c = -2,870\\text{ kJ/mol}$, calculate the thermodynamic efficiency of cellular ATP energy capture.`,
+        given: "N_{\\text{ATP}} = 32\\text{ mol ATP/mol glucose}, \\quad \\Delta G_{\\text{ATP}} = 30.5\\text{ kJ/mol}, \\quad \\Delta H_{\\text{glucose}} = 2,870\\text{ kJ/mol}",
+        steps: [
+          "1. Calculate total useful energy stored in ATP: $E_{\\text{stored}} = 32 \\times 30.5\\text{ kJ} = 976.0\\text{ kJ}$.",
+          "2. State formulation for thermodynamic metabolic efficiency: $\\eta = \\frac{E_{\\text{stored}}}{E_{\\text{combustion}}} \\times 100\\%$.",
+          "3. Substitute values: $\\eta = \\frac{976.0\\text{ kJ}}{2,870\\text{ kJ}} \\times 100\\%$.",
+          "4. Compute efficiency percentage: $\\eta \\approx 34.0\\%$. The remaining $66\\%$ is dissipated as thermal energy to maintain endothermic body temperature."
+        ],
+        answer: "\\eta = 34.0\\% \\text{ efficiency} \\quad (976\\text{ kJ ATP captured})",
+        parameters: [
+          { sym: "\\eta", name: "Metabolic Efficiency", unit: "\\%", desc: "Percentage of fuel chemical energy conserved as ATP" },
+          { sym: "E_{\\text{stored}}", name: "Conserved Energy", unit: "\\text{kJ}", desc: "Free energy harnessed in phosphodiester bonds" }
+        ]
+      };
+    }
+    if (mId === 9 || t.includes("cellular reproduction") || t.includes("mitosis")) {
+      return {
+        problem: `Under a microscope, an allium (onion root tip) tissue sample has $800$ total counted cells. Microscopic classification reveals: $640$ cells in interphase, $88$ in prophase, $40$ in metaphase, $20$ in anaphase, and $12$ in telophase. Calculate the Mitotic Index ($\\text{MI}$) of this meristematic tissue and estimate the duration of metaphase if the complete cell cycle takes $T = 24.0\\text{ hours}$.`,
+        given: "N_{\\text{total}} = 800, \\quad N_{\\text{mitosis}} = 88 + 40 + 20 + 12 = 160, \\quad N_{\\text{metaphase}} = 40, \\quad T_{\\text{cycle}} = 24.0\\text{ h}",
+        steps: [
+          "1. State the Mitotic Index formula: $\\text{MI} = \\frac{N_{\\text{mitosis}}}{N_{\\text{total}}} \\times 100\\%$.",
+          "2. Compute mitotic index: $\\text{MI} = \\frac{160}{800} \\times 100\\% = 20.0\\%$.",
+          "3. Calculate fraction of cells in metaphase: $f_{\\text{meta}} = \\frac{40}{800} = 0.050$ ($5.0\\%$).",
+          "4. Estimate metaphase duration: $t_{\\text{meta}} = f_{\\text{meta}} \\times 24.0\\text{ h} = 0.050 \\times 24.0 = 1.20\\text{ hours} = 72\\text{ minutes}$."
+        ],
+        answer: "\\text{MI} = 20.0\\%, \\quad t_{\\text{metaphase}} = 72\\text{ min}",
+        parameters: [
+          { sym: "\\text{MI}", name: "Mitotic Index", unit: "\\%", desc: "Proportion of dividing cells in active mitosis" },
+          { sym: "t", name: "Phase Duration", unit: "\\text{min}", desc: "Temporal span occupied by specific mitotic phase" }
+        ]
+      };
+    }
+    if (mId === 10 || t.includes("sexual reproduction") || t.includes("meiosis") || t.includes("punnett")) {
+      return {
+        problem: `In pea plants, tall stem ($T$) is dominant over dwarf stem ($t$), and yellow seeds ($Y$) are dominant over green seeds ($y$). In a dihybrid test cross between two heterozygous plants ($TtYy \\times TtYy$), calculate the theoretical probability of producing an offspring that is both dwarf and green ($ttyy$), and determine the expected number of tall yellow plants in a harvest of $640$ seeds.`,
+        given: "\\text{Genotypes: } TtYy \\times TtYy, \\quad \\text{Total Seeds} = 640",
+        steps: [
+          "1. Apply Mendelian Law of Independent Assortment to determine individual probabilities: $P(tt) = \\frac{1}{4}$, $P(yy) = \\frac{1}{4}$.",
+          "2. Multiply independent probabilities for homozygous recessive: $P(ttyy) = \\frac{1}{4} \\times \\frac{1}{4} = \\frac{1}{16} = 0.0625$ ($6.25\\%$).",
+          "3. Determine probability of dominant phenotype ($T\\_Y\\_$): $P(T\\_) = \\frac{3}{4}$, $P(Y\\_) = \\frac{3}{4} \\implies P(T\\_Y\\_) = \\frac{3}{4} \\times \\frac{3}{4} = \\frac{9}{16}$.",
+          "4. Compute expected count of tall yellow offspring: $N = \\frac{9}{16} \\times 640 = 9 \\times 40 = 360$ plants."
+        ],
+        answer: "P(ttyy) = \\frac{1}{16} \\ (6.25\\%), \\quad N(T\\_Y\\_) = 360 \\text{ plants}",
+        parameters: [
+          { sym: "P", name: "Genotypic Probability", unit: "\\text{ratio}", desc: "Statistical likelihood of inherited allele combination" },
+          { sym: "N", name: "Expected Offspring", unit: "\\text{individuals}", desc: "Anticipated phenotypic progeny count" }
+        ]
+      };
+    }
+    if (mId === 12 || t.includes("biotechnology") || t.includes("electrophoresis")) {
+      return {
+        problem: `In an agarose gel electrophoresis experiment running at $100\\text{ V}$ for $45\\text{ minutes}$, DNA fragments migrate toward the positive anode inversely proportional to the logarithm of their molecular size: $D = -m \\log_{10}(\\text{bp}) + b$. A DNA molecular ladder gives migration distances of $D_1 = 30.0\\text{ mm}$ for $2,000\\text{ bp}$ and $D_2 = 60.0\\text{ mm}$ for $200\\text{ bp}$. Calculate the size of an unknown restriction fragment that migrated $45.0\\text{ mm}$.`,
+        given: "D_1 = 30.0\\text{ mm} \\ (2,000\\text{ bp}), \\quad D_2 = 60.0\\text{ mm} \\ (200\\text{ bp}), \\quad D_x = 45.0\\text{ mm}",
+        steps: [
+          "1. Compute log sizes: $\\log_{10}(2,000) = 3.301$, $\\log_{10}(200) = 2.301$.",
+          "2. Calculate slope $m$: $m = \\frac{\\Delta D}{\\Delta \\log(\\text{bp})} = \\frac{60.0 - 30.0}{2.301 - 3.301} = \\frac{30.0}{-1.000} = -30.0\\text{ mm/decade}$.",
+          "3. Since $D_x = 45.0\\text{ mm}$ is exactly halfway between $30.0\\text{ mm}$ and $60.0\\text{ mm}$, $\\log_{10}(\\text{bp}_x)$ is halfway between $3.301$ and $2.301$: $\\log_{10}(\\text{bp}_x) = 2.801$.",
+          "4. Compute unknown fragment size: $\\text{bp}_x = 10^{2.801} \\approx 632\\text{ base pairs}$."
+        ],
+        answer: "\\text{Fragment Size} \\approx 632\\text{ bp} \\quad (\\text{Curriculum Standard Reference Solution})",
+        parameters: [
+          { sym: "D", name: "Migration Distance", unit: "\\text{mm}", desc: "Linear distance traveled through agarose matrix" },
+          { sym: "\\text{bp}", name: "Base Pairs", unit: "\\text{bp}", desc: "Length of double-stranded DNA fragment" }
+        ]
+      };
+    }
+    if (mId === 14 || t.includes("evolution") || t.includes("hardy")) {
       return {
         problem: `In a diploid population under Hardy-Weinberg equilibrium, a recessive phenotype occurs with frequency $q^2 = 0.04$ ($4\\%$). Calculate the frequency of the recessive allele ($q$), the dominant allele ($p$), and the percentage of heterozygous carriers ($2pq$).`,
         given: "q^2 = 0.04, \\quad p + q = 1, \\quad p^2 + 2pq + q^2 = 1",
@@ -1387,6 +1505,40 @@ function generateCurriculumWorkedExample(code, title, phenom, formula, mData) {
         parameters: [
           { sym: "p, q", name: "Allele Frequencies", unit: "\\text{decimal}", desc: "Relative frequencies of dominant and recessive alleles" },
           { sym: "2pq", name: "Heterozygous Frequency", unit: "\\text{proportion}", desc: "Frequency of carrier genotypes in population" }
+        ]
+      };
+    }
+    if (mId === 23 || t.includes("nervous") || t.includes("action potential")) {
+      return {
+        problem: `In a mammalian neuron at $37.0^\\circ\\text{C}$ ($310.15\\text{ K}$), intracellular potassium concentration is $[\\text{K}^+]_{\\text{in}} = 140.0\\text{ mM}$ while extracellular concentration is $[\\text{K}^+]_{\\text{out}} = 5.0\\text{ mM}$. Using the Nernst Equation $E_{\\text{K}} = \\frac{R T}{z F} \\ln\\left(\\frac{[\\text{K}^+]_{\\text{out}}}{[\\text{K}^+]_{\\text{in}}}\\right)$, calculate the equilibrium potential for potassium ($E_{\\text{K}}$) in millivolts. ($R = 8.314\\text{ J/(mol}\\cdot\\text{K)}, F = 96,485\\text{ C/mol}, z = +1$).`,
+        given: "[\\text{K}^+]_{\\text{in}} = 140.0\\text{ mM}, \\quad [\\text{K}^+]_{\\text{out}} = 5.0\\text{ mM}, \\quad T = 310.15\\text{ K}, \\quad z = +1",
+        steps: [
+          "1. State the Nernst potential equation at $37^\\circ\\text{C}$: $E = 61.5\\text{ mV} \\times \\log_{10}\\left(\\frac{[\\text{K}^+]_{\\text{out}}}{[\\text{K}^+]_{\\text{in}}}\\right)$.",
+          "2. Calculate concentration ratio: $\\frac{[\\text{K}^+]_{\\text{out}}}{[\\text{K}^+]_{\\text{in}}} = \\frac{5.0\\text{ mM}}{140.0\\text{ mM}} \\approx 0.03571$.",
+          "3. Compute logarithm: $\\log_{10}(0.03571) = -1.447$.",
+          "4. Compute resting potassium equilibrium potential: $E_{\\text{K}} = 61.5\\text{ mV} \\times (-1.447) \\approx -89.0\\text{ mV}$."
+        ],
+        answer: "E_{\\text{K}} = -89.0\\text{ mV} \\quad (\\text{Hyperpolarized Resting Potential})",
+        parameters: [
+          { sym: "E_{\\text{K}}", name: "Nernst Potential", unit: "\\text{mV}", desc: "Electrical potential balancing chemical concentration gradient" },
+          { sym: "[\\text{K}^+]", name: "Ion Concentration", unit: "\\text{mM}", desc: "Potassium concentration inside/outside membrane" }
+        ]
+      };
+    }
+    if (mId === 24 || t.includes("circulatory") || t.includes("cardiac")) {
+      return {
+        problem: `A high school athlete during peak aerobic exercise has a measured heart rate of $\\text{HR} = 160\\text{ beats/min}$ and an echocardiogram-measured stroke volume of $\\text{SV} = 115\\text{ mL/beat}$. Calculate the athlete's total Cardiac Output ($\\text{CO}$) in liters per minute ($\\text{L/min}$).`,
+        given: "\\text{HR} = 160\\text{ bpm}, \\quad \\text{SV} = 115\\text{ mL/beat} = 0.115\\text{ L/beat}",
+        steps: [
+          "1. State the hemodynamic Cardiac Output formula: $\\text{CO} = \\text{HR} \\times \\text{SV}$.",
+          "2. Substitute heart rate and stroke volume: $\\text{CO} = 160\\text{ beats/min} \\times 0.115\\text{ L/beat}$.",
+          "3. Compute cardiac output: $\\text{CO} = 18.4\\text{ L/min}$.",
+          "4. Compare to basal resting output: Basal cardiac output is approximately $5.0\\text{ L/min}$, representing a $3.7\\times$ perfusion increase to working skeletal muscle."
+        ],
+        answer: "\\text{CO} = 18.4\\text{ L/min} \\quad (\\text{Peak Exercise Hemodynamics})",
+        parameters: [
+          { sym: "\\text{CO}", name: "Cardiac Output", unit: "\\text{L/min}", desc: "Volume of blood pumped by heart per minute" },
+          { sym: "\\text{SV}", name: "Stroke Volume", unit: "\\text{mL/beat}", desc: "Volume ejected by left ventricle per contraction" }
         ]
       };
     }
@@ -1611,6 +1763,94 @@ function generateCurriculumWorkedExample(code, title, phenom, formula, mData) {
         parameters: [
           { sym: "E_b", name: "Nuclear Binding Energy", unit: "\\text{MeV}", desc: "Energy required to completely dissociate nucleus into nucleons" },
           { sym: "\\Delta m", name: "Mass Defect", unit: "\\text{u}", desc: "Difference between constituent nucleons and bonded nucleus mass" }
+        ]
+      };
+    }
+    if (mId === 6 || t.includes("projectile") || t.includes("two dimensions")) {
+      return {
+        problem: `A soccer ball is kicked from ground level with an initial velocity of $v_0 = 22.0\\text{ m/s}$ at an launch angle of $\\theta = 35.0^\\circ$ above the horizontal across a level playing field ($g = 9.80\\text{ m/s}^2$). Neglecting air resistance, calculate the maximum apex height ($H$) reached by the ball and the total horizontal range ($R$).`,
+        given: "v_0 = 22.0\\text{ m/s}, \\quad \\theta = 35.0^\\circ, \\quad g = 9.80\\text{ m/s}^2",
+        steps: [
+          "1. Resolve initial velocity components: $v_{0x} = v_0 \\cos(35^\\circ) = 22.0 \\times 0.8192 = 18.02\\text{ m/s}$; $v_{0y} = v_0 \\sin(35^\\circ) = 22.0 \\times 0.5736 = 12.62\\text{ m/s}$.",
+          "2. Calculate maximum apex height: $H = \\frac{v_{0y}^2}{2g} = \\frac{(12.62)^2}{2 \\times 9.80} = \\frac{159.26}{19.60} = 8.13\\text{ m}$.",
+          "3. Calculate total flight duration to ground: $t = \\frac{2 v_{0y}}{g} = \\frac{2 \\times 12.62}{9.80} = 2.576\\text{ s}$.",
+          "4. Compute horizontal range: $R = v_{0x} \\times t = 18.02\\text{ m/s} \\times 2.576\\text{ s} = 46.4\\text{ m}$."
+        ],
+        answer: "H = 8.13\\text{ m}, \\quad R = 46.4\\text{ m}",
+        parameters: [
+          { sym: "H", name: "Peak Height", unit: "\\text{m}", desc: "Maximum vertical altitude attained" },
+          { sym: "R", name: "Horizontal Range", unit: "\\text{m}", desc: "Total displacement along horizontal ground axis" },
+          { sym: "v_0", name: "Muzzle Velocity", unit: "\\text{m/s}", desc: "Initial launch speed" }
+        ]
+      };
+    }
+    if (mId === 8 || t.includes("rotational") || t.includes("torque") || t.includes("centripetal")) {
+      return {
+        problem: `A $1,200\\text{ kg}$ automobile rounds an unbanked circular curve of radius $r = 65.0\\text{ m}$ on a dry asphalt roadway. The coefficient of static friction between the rubber tires and the pavement is $\\mu_s = 0.750$ ($g = 9.80\\text{ m/s}^2$). Calculate the maximum safe speed ($v_{\\max}$) the car can maintain without skidding off the curve.`,
+        given: "m = 1,200\\text{ kg}, \\quad r = 65.0\\text{ m}, \\quad \\mu_s = 0.750, \\quad g = 9.80\\text{ m/s}^2",
+        steps: [
+          "1. Equate maximum static frictional force to required centripetal force: $f_{s,\\max} = F_c \\implies \\mu_s m g = \\frac{m v_{\\max}^2}{r}$.",
+          "2. Cancel vehicle mass $m$ from both sides: $\\mu_s g = \\frac{v_{\\max}^2}{r}$.",
+          "3. Isolate maximum cornering velocity: $v_{\\max} = \\sqrt{\\mu_s g r}$.",
+          "4. Substitute parameters and evaluate: $v_{\\max} = \\sqrt{0.750 \\times 9.80\\text{ m/s}^2 \\times 65.0\\text{ m}} = \\sqrt{477.75} \\approx 21.9\\text{ m/s}$ ($78.8\\text{ km/h}$)."
+        ],
+        answer: "v_{\\max} = 21.9\\text{ m/s} \\quad (78.8\\text{ km/h})",
+        parameters: [
+          { sym: "v_{\\max}", name: "Maximum Speed", unit: "\\text{m/s}", desc: "Upper velocity limit before loss of traction" },
+          { sym: "r", name: "Curve Radius", unit: "\\text{m}", desc: "Radius of circular curvature" },
+          { sym: "\\mu_s", name: "Static Friction Coefficient", unit: "\\text{dimensionless}", desc: "Pavement tire adhesion index" }
+        ]
+      };
+    }
+    if (mId === 14 || t.includes("sound") || t.includes("doppler")) {
+      return {
+        problem: `An emergency ambulance siren emits an acoustic frequency of $f = 650.0\\text{ Hz}$ as it drives at $v_s = 30.0\\text{ m/s}$ toward a stationary pedestrian bystander ($v_o = 0\\text{ m/s}$). The ambient speed of sound in air is $v = 343.0\\text{ m/s}$. Using the Doppler Effect formula $f' = f \\left(\\frac{v}{v - v_s}\\right)$, calculate the observed pitch frequency ($f'$) heard as the ambulance approaches.`,
+        given: "f = 650.0\\text{ Hz}, \\quad v = 343.0\\text{ m/s}, \\quad v_s = 30.0\\text{ m/s}, \\quad v_o = 0\\text{ m/s}",
+        steps: [
+          "1. State the Doppler shift equation for an approaching source: $f' = f \\left(\\frac{v}{v - v_s}\\right)$.",
+          "2. Compute denominator: $v - v_s = 343.0\\text{ m/s} - 30.0\\text{ m/s} = 313.0\\text{ m/s}$.",
+          "3. Calculate frequency multiplier ratio: $\\frac{343.0}{313.0} \\approx 1.0958$.",
+          "4. Compute shifted frequency: $f' = 650.0\\text{ Hz} \\times 1.0958 = 712.3\\text{ Hz}$ (Higher acoustic pitch)."
+        ],
+        answer: "f' = 712.3\\text{ Hz} \\quad (\\text{Approaching Doppler Shift})",
+        parameters: [
+          { sym: "f'", name: "Observed Frequency", unit: "\\text{Hz}", desc: "Shifted frequency perceived by listener" },
+          { sym: "f", name: "Source Frequency", unit: "\\text{Hz}", desc: "True emitted acoustic frequency" },
+          { sym: "v_s", name: "Source Velocity", unit: "\\text{m/s}", desc: "Velocity of approaching sound emitter" }
+        ]
+      };
+    }
+    if (mId === 16 || t.includes("mirrors") || t.includes("lenses") || t.includes("thin lens")) {
+      return {
+        problem: `An object of height $h_o = 4.00\\text{ cm}$ is placed at a distance of $d_o = 30.0\\text{ cm}$ in front of a thin converging (convex) lens with focal length $f = +10.0\\text{ cm}$. Calculate the image distance ($d_i$), the optical magnification ($m$), and the image height ($h_i$), and determine whether the image is real or virtual.`,
+        given: "f = +10.0\\text{ cm}, \\quad d_o = 30.0\\text{ cm}, \\quad h_o = 4.00\\text{ cm}",
+        steps: [
+          "1. State Thin Lens equation: $\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i} \\implies \\frac{1}{d_i} = \\frac{1}{f} - \\frac{1}{d_o}$.",
+          "2. Substitute focal length and object distance: $\\frac{1}{d_i} = \\frac{1}{10.0} - \\frac{1}{30.0} = \\frac{3 - 1}{30.0} = \\frac{2}{30.0} = \\frac{1}{15.0}$.",
+          "3. Solve for image distance: $d_i = +15.0\\text{ cm}$. Since $d_i > 0$, the image is real and inverted on opposite side of lens.",
+          "4. Calculate magnification and height: $m = -\\frac{d_i}{d_o} = -\\frac{15.0}{30.0} = -0.500$; $h_i = m \\times h_o = -0.500 \\times 4.00 = -2.00\\text{ cm}$."
+        ],
+        answer: "d_i = +15.0\\text{ cm}, \\quad m = -0.500, \\quad h_i = -2.00\\text{ cm} \\quad (\\text{Real, Inverted})",
+        parameters: [
+          { sym: "d_i", name: "Image Distance", unit: "\\text{cm}", desc: "Linear distance from lens center to focused image" },
+          { sym: "m", name: "Magnification", unit: "\\text{dimensionless}", desc: "Ratio of image height to object height" }
+        ]
+      };
+    }
+    if (mId === 22 || t.includes("photoelectric") || t.includes("quantum")) {
+      return {
+        problem: `Ultraviolet photons of wavelength $\\lambda = 240.0\\text{ nm} = 2.400 \\times 10^{-7}\\text{ m}$ strike a clean cesium metal target having a work function of $\\Phi = 2.14\\text{ eV}$ in a vacuum phototube. Given Planck's constant $h = 6.626 \\times 10^{-34}\\text{ J}\\cdot\\text{s}$, $c = 3.00 \\times 10^8\\text{ m/s}$, and $1\\text{ eV} = 1.602 \\times 10^{-19}\\text{ J}$, calculate the incident photon energy in $\\text{eV}$ and the maximum kinetic energy ($K_{\\max}$) of the ejected photoelectrons.`,
+        given: "\\lambda = 2.400 \\times 10^{-7}\\text{ m}, \\quad \\Phi = 2.14\\text{ eV}, \\quad h = 6.626 \\times 10^{-34}\\text{ J}\\cdot\\text{s}",
+        steps: [
+          "1. Calculate incident photon energy in Joules: $E_{\\text{photon}} = \\frac{h c}{\\lambda} = \\frac{(6.626 \\times 10^{-34})(3.00 \\times 10^8)}{2.400 \\times 10^{-7}} = 8.2825 \\times 10^{-19}\\text{ J}$.",
+          "2. Convert photon energy to electron-volts: $E = \\frac{8.2825 \\times 10^{-19}\\text{ J}}{1.602 \\times 10^{-19}\\text{ J/eV}} = 5.17\\text{ eV}$.",
+          "3. Apply Einstein's Photoelectric Equation: $K_{\\max} = E_{\\text{photon}} - \\Phi$.",
+          "4. Compute maximum kinetic energy: $K_{\\max} = 5.17\\text{ eV} - 2.14\\text{ eV} = 3.03\\text{ eV}$ (Electrons are ejected)."
+        ],
+        answer: "E_{\\text{photon}} = 5.17\\text{ eV}, \\quad K_{\\max} = 3.03\\text{ eV}",
+        parameters: [
+          { sym: "K_{\\max}", name: "Maximum Kinetic Energy", unit: "\\text{eV}", desc: "Peak energy of photoelectrons emitted" },
+          { sym: "\\Phi", name: "Work Function", unit: "\\text{eV}", desc: "Minimum binding energy binding electrons to metal surface" }
         ]
       };
     }

@@ -56,6 +56,40 @@ html.mode-smartboard,
   -webkit-overflow-scrolling: touch;
 }
 
+/* TABLET ERGONOMICS & TOUCH PROFILE (iPads, Android Galaxy Tabs, Surface Pro) */
+[data-mode="tablet"],
+body.mode-tablet,
+html.mode-tablet {
+  --nav-height: 88px;
+  --touch-target: 48px;
+  font-size: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-mode="tablet"] .modules-grid,
+body.mode-tablet .modules-grid {
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 18px;
+}
+
+[data-mode="tablet"] .module-card-banner,
+body.mode-tablet .module-card-banner {
+  height: 155px;
+}
+
+[data-mode="tablet"] .lesson-row-card,
+body.mode-tablet .lesson-row-card {
+  min-height: 48px;
+  padding: 8px 12px;
+}
+
+[data-mode="tablet"] .btn,
+body.mode-tablet .btn,
+[data-mode="tablet"] .nav-action-btn,
+body.mode-tablet .nav-action-btn {
+  min-height: 44px;
+}
+
 /* 1. Eliminate 100% of GPU fill-rate bottlenecks: Remove all backdrop-filters across the entire DOM */
 [data-mode="smartboard"] *,
 body.mode-smartboard *,
@@ -1315,6 +1349,184 @@ a.lesson-row-card {
   border-color: rgba(236, 72, 153, 0.4);
 }
 .nav-dropdown-item.tab-flashcards.active .nav-item-check { color: #ec4899; }
+
+/* Responsive Segmented Subject Switcher Bar */
+.nav-subject-tabs {
+  display: none;
+  align-items: center;
+  gap: 3px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  list-style: none;
+  margin: 0;
+}
+
+[data-theme="day"] .nav-subject-tabs {
+  background: rgba(241, 245, 249, 0.92);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+}
+
+@media (min-width: 960px) {
+  .nav-subject-tabs {
+    display: inline-flex;
+  }
+  .nav-dropdown-wrapper {
+    display: none;
+  }
+}
+
+.nav-subject-tab-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  border: 1px solid transparent;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.nav-subject-tab-pill:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="day"] .nav-subject-tab-pill {
+  color: #475569;
+}
+
+[data-theme="day"] .nav-subject-tab-pill:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #0f172a;
+}
+
+.nav-subject-tab-pill.active {
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.nav-subject-tab-pill.tab-chem.active {
+  background: var(--chem-primary);
+  border-color: rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 16px var(--chem-glow);
+}
+.nav-subject-tab-pill.tab-bio.active {
+  background: var(--bio-primary);
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 16px var(--bio-glow);
+}
+.nav-subject-tab-pill.tab-phys.active {
+  background: var(--phys-primary);
+  border-color: rgba(99, 102, 241, 0.6);
+  box-shadow: 0 0 16px var(--phys-glow);
+}
+.nav-subject-tab-pill.tab-labs.active {
+  background: #0284c7;
+  border-color: rgba(2, 132, 199, 0.6);
+  box-shadow: 0 0 16px rgba(2, 132, 199, 0.35);
+}
+.nav-subject-tab-pill.tab-quiz.active {
+  background: #d97706;
+  border-color: rgba(217, 119, 6, 0.6);
+  box-shadow: 0 0 16px rgba(217, 119, 6, 0.35);
+}
+.nav-subject-tab-pill.tab-flashcards.active {
+  background: #db2777;
+  border-color: rgba(219, 39, 119, 0.6);
+  box-shadow: 0 0 16px rgba(219, 39, 119, 0.35);
+}
+
+.nav-tab-badge {
+  font-size: 0.68rem;
+  padding: 1px 5px;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.22);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+[data-theme="day"] .nav-subject-tab-pill:not(.active) .nav-tab-badge {
+  background: rgba(0, 0, 0, 0.08);
+  color: #64748b;
+}
+
+.nav-btn-lab-mode {
+  background: rgba(56, 189, 248, 0.12) !important;
+  color: #38bdf8 !important;
+  border-color: rgba(56, 189, 248, 0.35) !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+.nav-btn-lab-mode:hover {
+  background: rgba(56, 189, 248, 0.22) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.35);
+}
+
+/* Empty Search / Filter State */
+.empty-search-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--bg-card);
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  margin: 12px 0 32px;
+  animation: fadeIn 0.25s ease-out;
+}
+.empty-search-icon {
+  font-size: 38px;
+  margin-bottom: 12px;
+  opacity: 0.85;
+}
+.empty-search-title {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0 0 8px;
+}
+.empty-search-desc {
+  font-size: 0.90rem;
+  color: var(--text-muted);
+  max-width: 480px;
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+.btn-clear-search {
+  cursor: pointer;
+  background: var(--chem-gradient);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+}
+.btn-clear-search:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(6, 182, 212, 0.45);
+}
 
 /* Legacy Fallback Classes for Nav */
 .nav-center-tabs {
@@ -7340,16 +7552,16 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   width: 100%;
   height: 145px;
   overflow: hidden;
-  background: radial-gradient(circle at 75% 25%, rgba(56, 189, 248, 0.12) 0%, transparent 60%),
-              linear-gradient(135deg, #091222 0%, #0f172a 60%, #06192a 100%);
+  background: radial-gradient(circle at 75% 25%, rgba(56, 189, 248, 0.18) 0%, transparent 60%),
+              linear-gradient(135deg, #091222 0%, #0f172a 60%, #081d33 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="day"] .module-card-banner,
 [data-theme="day"] .lesson-card-banner {
-  background: radial-gradient(circle at 75% 25%, rgba(2, 132, 199, 0.1) 0%, transparent 60%),
-              linear-gradient(135deg, #f0f9ff 0%, #e2e8f0 60%, #f8fafc 100%);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: radial-gradient(circle at 75% 25%, rgba(2, 132, 199, 0.18) 0%, transparent 60%),
+              linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 55%, #e0f2fe 100%);
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.08);
 }
 
 /* Shimmer Skeleton during Image Loading */
@@ -7358,26 +7570,29 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(30, 41, 59, 0.95) 0%,
-    rgba(51, 65, 85, 0.98) 20%,
+    rgba(15, 23, 42, 0.95) 0%,
+    rgba(30, 41, 59, 0.98) 20%,
     rgba(56, 189, 248, 0.25) 45%,
     rgba(255, 255, 255, 0.3) 50%,
     rgba(56, 189, 248, 0.25) 55%,
-    rgba(51, 65, 85, 0.98) 80%,
-    rgba(30, 41, 59, 0.95) 100%
+    rgba(30, 41, 59, 0.98) 80%,
+    rgba(15, 23, 42, 0.95) 100%
   );
   background-size: 250% 100%;
   animation: bannerSkeletonShimmer 1.6s infinite ease-in-out;
   opacity: 1;
   pointer-events: none;
   z-index: 1;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
 .module-card-banner:not(.is-loading) .module-banner-skeleton,
-.lesson-card-banner:not(.is-loading) .module-banner-skeleton {
-  opacity: 0;
-  visibility: hidden;
+.lesson-card-banner:not(.is-loading) .module-banner-skeleton,
+.module-card-banner:has(.loaded) .module-banner-skeleton,
+.lesson-card-banner:has(.loaded) .module-banner-skeleton {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none;
 }
 
 @keyframes bannerSkeletonShimmer {
@@ -7388,13 +7603,13 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 [data-theme="day"] .module-banner-skeleton {
   background: linear-gradient(
     90deg,
-    rgba(226, 232, 240, 0.95) 0%,
+    rgba(226, 232, 240, 0.92) 0%,
     rgba(203, 213, 225, 0.95) 20%,
-    rgba(186, 230, 253, 0.5) 45%,
-    rgba(255, 255, 255, 0.8) 50%,
-    rgba(186, 230, 253, 0.5) 55%,
+    rgba(186, 230, 253, 0.55) 45%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(186, 230, 253, 0.55) 55%,
     rgba(203, 213, 225, 0.95) 80%,
-    rgba(226, 232, 240, 0.95) 100%
+    rgba(226, 232, 240, 0.92) 100%
   );
   background-size: 250% 100%;
 }
@@ -7486,7 +7701,9 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 }
 
 .module-banner-img.loaded,
-.lesson-banner-img.loaded {
+.lesson-banner-img.loaded,
+.module-card-banner:not(.is-loading) .module-banner-img,
+.lesson-card-banner:not(.is-loading) .lesson-banner-img {
   opacity: 1;
 }
 
@@ -13949,6 +14166,136 @@ body.focus-mode .btn-focus-mode-exit {
   border-color: #a7f3d0 !important;
 }
 
+/* ========================================================
+   Custom Modals (Custom Questions, Bank Browser, Flashcards)
+======================================================== */
+.custom-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(2, 6, 23, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  z-index: 200200 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+  animation: customModalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
+@keyframes customModalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 
+.custom-modal-shell {
+  background: #0f172a;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 18px;
+  width: 100%;
+  max-height: 92vh;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: customModalScaleIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
+@keyframes customModalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.cq-math-toolbar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.btn-math-chip {
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono), monospace;
+  font-weight: 700;
+  border-radius: 5px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: rgba(56, 189, 248, 0.1);
+  color: #38bdf8;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.btn-math-chip:hover {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: #38bdf8;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-math-chip:active {
+  transform: scale(0.94);
+}
+
+.btn-bank-toggle-add {
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  cursor: pointer;
+}
+
+.btn-bank-toggle-add:hover {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+.btn-bank-toggle-add:active {
+  transform: scale(0.96);
+}
+
+.btn-bank-toggle-add.is-in-assessment:hover {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Day Mode / High Contrast Overrides for Custom Modals */
+[data-theme="day"] .custom-modal-shell {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 25px 65px rgba(15, 23, 42, 0.2) !important;
+}
+
+[data-theme="day"] .custom-modal-header {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="day"] .custom-modal-footer {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="day"] .btn-math-chip {
+  background: #e0f2fe !important;
+  color: #0369a1 !important;
+  border-color: #7dd3fc !important;
+}
+
+[data-theme="day"] .btn-math-chip:hover {
+  background: #bae6fd !important;
+  color: #0284c7 !important;
+}

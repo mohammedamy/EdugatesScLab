@@ -62,6 +62,848 @@ import { polishDiagramForPrint } from "../utils/diagram-print-polisher.js";
 
 export { polishDiagramForPrint };
 
+/**
+ * Escapes HTML characters for safe attribute and DOM insertion
+ */
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
+ * Storage Helpers for Teacher/User Custom Authored Questions
+ */
+export function getUserCustomQuestions() {
+  if (typeof window === "undefined" || !window.localStorage) return [];
+  try {
+    return JSON.parse(localStorage.getItem("clipsat_user_custom_questions") || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+export function saveUserCustomQuestion(question) {
+  if (typeof window === "undefined" || !window.localStorage) return false;
+  try {
+    if (question.isUserCustom === undefined) {
+      question.isUserCustom = true;
+    }
+    const list = getUserCustomQuestions();
+    const idx = list.findIndex(q => q.id === question.id);
+    if (idx >= 0) {
+      list[idx] = question;
+    } else {
+      list.unshift(question);
+    }
+    localStorage.setItem("clipsat_user_custom_questions", JSON.stringify(list));
+    return true;
+  } catch (e) {
+    console.error("[Quiz Engine] Error saving custom question:", e);
+    return false;
+  }
+}
+
+export function deleteUserCustomQuestion(questionId) {
+  if (typeof window === "undefined" || !window.localStorage) return false;
+  try {
+    const list = getUserCustomQuestions().filter(q => q.id !== questionId);
+    localStorage.setItem("clipsat_user_custom_questions", JSON.stringify(list));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Author a custom teacher/user question with live KaTeX preview
+ */
+export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
+  const existing = document.getElementById("custom-q-modal-overlay");
+  if (existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "custom-q-modal-overlay";
+  overlay.className = "custom-modal-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "Write Custom Science Question");
+
+  let curSub = initialData?.subject || "CHEM";
+  let curMod = initialData?.moduleId || 1;
+  let curLes = initialData?.lessonId || 1;
+  let curType = initialData?.type || "mcq";
+  let curDiff = initialData?.difficultyTier || "medium";
+  let correctIdx = initialData?.correctIndex !== undefined && initialData.correctIndex !== null ? initialData.correctIndex : 0;
+
+  const trackCurricula = {
+    CHEM: chemistryCurriculum,
+    BIO: biologyCurriculum,
+    PHYS: physicsCurriculum
+  };
+
+  function getModuleOptions(sub) {
+    const cur = trackCurricula[sub] || chemistryCurriculum;
+    return cur.modules.map(m => `<option value="${m.id}" ${m.id === parseInt(curMod, 10) ? 'selected' : ''}>${m.code}: ${escapeHtml(m.title)}</option>`).join("");
+  }
+
+  function getLessonOptions(sub, modId) {
+    const cur = trackCurricula[sub] || chemistryCurriculum;
+    const mod = cur.modules.find(m => m.id === parseInt(modId, 10));
+    if (!mod || !mod.lessons) return `<option value="1">Lesson 1: General Core</option>`;
+    return mod.lessons.map(l => `<option value="${l.id}" ${l.id === parseInt(curLes, 10) ? 'selected' : ''}>Lesson ${l.id}: ${escapeHtml(l.title)}</option>`).join("");
+  }
+
+  overlay.innerHTML = `
+    <div class="custom-modal-shell custom-q-modal" style="max-width: 820px; width: 94%; max-height: 92vh; display: flex; flex-direction: column;">
+      <!-- Header -->
+      <div class="custom-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 16px 24px; background: rgba(0,0,0,0.15);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.5rem;">✍️</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.28rem; font-weight: 800; color: var(--text-main);">
+              ${initialData ? 'Edit Custom Question' : 'Write Custom Science Question'}
+            </h3>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+              Author your own assessment item with publication-grade KaTeX mathematical typesetting and teacher solution.
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-close-cq-modal" style="background: transparent; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer;" aria-label="Close dialog">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div class="custom-modal-body" style="padding: 20px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px;">
+        <!-- Track & Module / Lesson Row -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Subject Track</label>
+            <select id="cq-subject" class="select-input" style="width: 100%;">
+              <option value="CHEM" ${curSub === 'CHEM' ? 'selected' : ''}>Inspire Chemistry</option>
+              <option value="BIO" ${curSub === 'BIO' ? 'selected' : ''}>Inspire Biology</option>
+              <option value="PHYS" ${curSub === 'PHYS' ? 'selected' : ''}>Inspire Physics</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Curriculum Module</label>
+            <select id="cq-module" class="select-input" style="width: 100%;">
+              ${getModuleOptions(curSub)}
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Lesson Alignment</label>
+            <select id="cq-lesson" class="select-input" style="width: 100%;">
+              ${getLessonOptions(curSub, curMod)}
+            </select>
+          </div>
+        </div>
+
+        <!-- Question Type & Difficulty Row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Question Type</label>
+            <select id="cq-type" class="select-input" style="width: 100%;">
+              <option value="mcq" ${curType === 'mcq' ? 'selected' : ''}>Multiple Choice (MCQ)</option>
+              <option value="numerical" ${curType === 'numerical' ? 'selected' : ''}>Numerical / Quantitative Calculation</option>
+              <option value="cer" ${curType === 'cer' ? 'selected' : ''}>Claim-Evidence-Reasoning (Inquiry)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Difficulty Tier</label>
+            <select id="cq-difficulty" class="select-input" style="width: 100%;">
+              <option value="easy" ${curDiff === 'easy' ? 'selected' : ''}>🟢 Easy (Foundational Core)</option>
+              <option value="medium" ${curDiff === 'medium' ? 'selected' : ''}>🟡 Medium (Honors Standard)</option>
+              <option value="hard" ${curDiff === 'hard' ? 'selected' : ''}>🟣 Hard (AP / Olympiad Rigor)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Question Prompt -->
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);">
+              Question Prompt (Markdown &amp; LaTeX formulas supported) *
+            </label>
+            <span style="font-size: 0.74rem; color: #38bdf8; font-family: var(--font-mono);">Use $...$ for inline math or $$...$$ for display</span>
+          </div>
+          
+          <!-- LaTeX Helper Toolbar -->
+          <div class="cq-math-toolbar" style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; padding: 6px 8px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color);">
+            <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); align-self: center; margin-right: 4px;">Insert Math:</span>
+            <button type="button" class="btn-math-chip" data-insert="$x^2$">$x^2$</button>
+            <button type="button" class="btn-math-chip" data-insert="$\\frac{a}{b}$">$\\frac{a}{b}$</button>
+            <button type="button" class="btn-math-chip" data-insert="$\\Delta$">&Delta;</button>
+            <button type="button" class="btn-math-chip" data-insert="$\\rightarrow$">&rarr;</button>
+            <button type="button" class="btn-math-chip" data-insert="$\\rightleftharpoons$">&rightleftharpoons;</button>
+            <button type="button" class="btn-math-chip" data-insert="$\\pm$">&plusmn;</button>
+            <button type="button" class="btn-math-chip" data-insert="$\\approx$">&approx;</button>
+            <button type="button" class="btn-math-chip" data-insert="^\\circ">°</button>
+            <button type="button" class="btn-math-chip" data-insert="\\text{H}_2\\text{O}">H₂O</button>
+            <button type="button" class="btn-math-chip" data-insert="\\text{CO}_2">CO₂</button>
+          </div>
+
+          <textarea id="cq-prompt" rows="3" placeholder="Enter question scenario or problem... e.g. A 2.50 kg cart moves at $4.00\\text{ m/s}$ and collides with..." style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.95rem; line-height: 1.5; resize: vertical;">${escapeHtml(initialData?.question || "")}</textarea>
+        </div>
+
+        <!-- Options Container (MCQ & Numerical) -->
+        <div id="cq-options-section" style="${curType === 'cer' ? 'display: none;' : ''}">
+          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 6px;">
+            Answer Options (Select the radio button next to the correct answer) *
+          </label>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${['A', 'B', 'C', 'D'].map((letter, idx) => {
+              const optVal = initialData?.options && initialData.options[idx] ? initialData.options[idx] : "";
+              const isChecked = correctIdx === idx;
+              return `
+                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.18); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                  <input type="radio" name="cq-correct-radio" id="cq-radio-${idx}" value="${idx}" ${isChecked ? 'checked' : ''} style="cursor: pointer;" title="Mark Option ${letter} as Correct Key">
+                  <label for="cq-radio-${idx}" style="font-weight: 800; font-family: var(--font-heading); color: ${isChecked ? '#10b981' : 'var(--text-muted)'}; min-width: 24px; cursor: pointer;">(${letter})</label>
+                  <input type="text" class="cq-option-input" id="cq-opt-${idx}" value="${escapeHtml(optVal)}" placeholder="Option ${letter} text or formula..." style="flex: 1; padding: 7px 10px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 0.9rem;">
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+
+        <!-- Rubric Section (CER) -->
+        <div id="cq-rubric-section" style="${curType !== 'cer' ? 'display: none;' : ''}">
+          <label style="font-size: 0.82rem; font-weight: 700; color: #c084fc; display: block; margin-bottom: 4px;">
+            Claim-Evidence-Reasoning Scoring Rubric &amp; Criteria
+          </label>
+          <textarea id="cq-rubric" rows="2" placeholder="Specify expected Claim, Evidence requirements, and Scientific Reasoning..." style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.88rem; line-height: 1.4; resize: vertical;">${escapeHtml(initialData?.rubricCER || "")}</textarea>
+        </div>
+
+        <!-- Explanation / Teacher Solution -->
+        <div class="form-group">
+          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">
+            Teacher Solution &amp; Pedagogical Rationale *
+          </label>
+          <textarea id="cq-explanation" rows="2" placeholder="Step-by-step mathematical derivation, theoretical principle, or error analysis..." style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.88rem; line-height: 1.5; resize: vertical;">${escapeHtml(initialData?.explanation || "")}</textarea>
+        </div>
+
+        <!-- Live Instant KaTeX Preview Card -->
+        <div style="border-top: 1px solid var(--border-color); padding-top: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 0.78rem; font-weight: 800; text-transform: uppercase; color: #38bdf8; letter-spacing: 0.05em;">
+              👁️ Live Typeset Assessment Preview
+            </span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Updates in real-time</span>
+          </div>
+          <div id="cq-live-preview" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 18px; min-height: 80px;">
+            <div style="color: var(--text-muted); font-size: 0.85rem; font-style: italic;">Live preview will appear here as you type...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="custom-modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.15); flex-wrap: wrap; gap: 10px;">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-cq">Cancel</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button type="button" class="btn btn-secondary" id="btn-save-cq-bank-only" style="font-weight: 700; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+            <span>💾 Save to Bank Only</span>
+          </button>
+          <button type="button" class="btn btn-primary" id="btn-save-cq-add-exam" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-weight: 800; padding: 10px 22px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+            <span>✓ Save &amp; Add to Assessment</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Cascading selects
+  const subSelect = overlay.querySelector("#cq-subject");
+  const modSelect = overlay.querySelector("#cq-module");
+  const lesSelect = overlay.querySelector("#cq-lesson");
+  const typeSelect = overlay.querySelector("#cq-type");
+  const diffSelect = overlay.querySelector("#cq-difficulty");
+  const promptEl = overlay.querySelector("#cq-prompt");
+  const explEl = overlay.querySelector("#cq-explanation");
+  const rubricEl = overlay.querySelector("#cq-rubric");
+  const previewEl = overlay.querySelector("#cq-live-preview");
+
+  subSelect.addEventListener("change", (e) => {
+    curSub = e.target.value;
+    modSelect.innerHTML = getModuleOptions(curSub);
+    curMod = modSelect.value;
+    lesSelect.innerHTML = getLessonOptions(curSub, curMod);
+    curLes = lesSelect.value;
+    updatePreview();
+  });
+
+  modSelect.addEventListener("change", (e) => {
+    curMod = e.target.value;
+    lesSelect.innerHTML = getLessonOptions(curSub, curMod);
+    curLes = lesSelect.value;
+    updatePreview();
+  });
+
+  lesSelect.addEventListener("change", (e) => {
+    curLes = e.target.value;
+    updatePreview();
+  });
+
+  typeSelect.addEventListener("change", (e) => {
+    curType = e.target.value;
+    const optSec = overlay.querySelector("#cq-options-section");
+    const rubSec = overlay.querySelector("#cq-rubric-section");
+    if (curType === "cer") {
+      if (optSec) optSec.style.display = "none";
+      if (rubSec) rubSec.style.display = "block";
+    } else {
+      if (optSec) optSec.style.display = "block";
+      if (rubSec) rubSec.style.display = "none";
+    }
+    updatePreview();
+  });
+
+  diffSelect.addEventListener("change", (e) => {
+    curDiff = e.target.value;
+    updatePreview();
+  });
+
+  // Math helper insertion
+  overlay.querySelectorAll(".btn-math-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const ins = btn.dataset.insert;
+      const start = promptEl.selectionStart || promptEl.value.length;
+      const end = promptEl.selectionEnd || promptEl.value.length;
+      promptEl.value = promptEl.value.substring(0, start) + ins + promptEl.value.substring(end);
+      promptEl.focus();
+      promptEl.selectionStart = promptEl.selectionEnd = start + ins.length;
+      updatePreview();
+    });
+  });
+
+  // Live preview updates
+  function updatePreview() {
+    const promptText = promptEl.value.trim() || "Question prompt text...";
+    const diffBadge = curDiff === "easy" ? "🟢 Easy" : (curDiff === "medium" ? "🟡 Medium" : "🟣 Hard");
+    const diffClass = `diff-${curDiff}`;
+    const selectedRadio = overlay.querySelector('input[name="cq-correct-radio"]:checked');
+    const checkedIdx = selectedRadio ? parseInt(selectedRadio.value, 10) : 0;
+
+    let optionsHtml = "";
+    if (curType !== "cer") {
+      const opts = [0, 1, 2, 3].map(i => overlay.querySelector(`#cq-opt-${i}`)?.value || `Option ${String.fromCharCode(65 + i)}`);
+      optionsHtml = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; margin-top: 10px;">
+          ${opts.map((opt, i) => `
+            <div style="display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; background: ${i === checkedIdx ? 'rgba(16, 185, 129, 0.15)' : 'rgba(0,0,0,0.1)'}; border: 1px solid ${i === checkedIdx ? '#10b981' : 'var(--border-color)'};">
+              <strong style="color: ${i === checkedIdx ? '#10b981' : 'var(--text-muted)'}; min-width: 20px;">(${String.fromCharCode(65 + i)})</strong>
+              <div style="flex: 1; font-size: 0.88rem; color: var(--text-main);">${formatMathText(opt)}</div>
+              ${i === checkedIdx ? '<span style="font-size: 0.65rem; font-weight: 800; background: #10b981; color: #fff; padding: 1px 5px; border-radius: 3px;">KEY</span>' : ''}
+            </div>
+          `).join("")}
+        </div>
+      `;
+    } else {
+      optionsHtml = `
+        <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 6px; padding: 8px 12px; margin-top: 10px; font-size: 0.82rem; color: var(--text-main);">
+          <strong style="color: #c084fc;">[Claim-Evidence-Reasoning Free Response]</strong>
+          <div style="margin-top: 4px; color: var(--text-muted);">${formatMathText(rubricEl.value.trim() || "Scientific argumentation rubric.")}</div>
+        </div>
+      `;
+    }
+
+    const explText = explEl.value.trim();
+    previewEl.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span class="q-picker-badge ${diffClass}" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">${diffBadge}</span>
+          <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight: 700;">${curType.toUpperCase()}</span>
+          <span style="font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-dim);">${curSub}-M${curMod}-L${lesSelect.value || curLes}</span>
+          <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">✍️ User Custom</span>
+        </div>
+      </div>
+      <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); line-height: 1.5;">
+        ${formatMathText(promptText)}
+      </div>
+      ${optionsHtml}
+      ${explText ? `
+        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 0.82rem; color: var(--text-muted);">
+          <strong style="color: #38bdf8;">Solution Rationale:</strong>
+          <div style="margin-top: 2px; white-space: pre-line;">${formatMathText(explText)}</div>
+        </div>
+      ` : ''}
+    `;
+
+    renderMathInElement(previewEl);
+  }
+
+  promptEl.addEventListener("input", updatePreview);
+  explEl.addEventListener("input", updatePreview);
+  rubricEl.addEventListener("input", updatePreview);
+  overlay.querySelectorAll(".cq-option-input").forEach(inp => inp.addEventListener("input", updatePreview));
+  overlay.querySelectorAll('input[name="cq-correct-radio"]').forEach(rad => rad.addEventListener("change", updatePreview));
+
+  const close = () => overlay.remove();
+  overlay.querySelector("#btn-close-cq-modal").addEventListener("click", close);
+  overlay.querySelector("#btn-cancel-cq").addEventListener("click", close);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+
+  // Save Question Handler
+  function handleSave(addToAssessment) {
+    const promptVal = promptEl.value.trim();
+    if (!promptVal || promptVal.length < 5) {
+      showToast("Prompt Required", "Please enter a valid question prompt.", "warning");
+      promptEl.focus();
+      return;
+    }
+
+    const cur = trackCurricula[curSub];
+    const modObj = cur?.modules?.find(m => m.id === parseInt(curMod, 10));
+    const lesObj = modObj?.lessons?.find(l => l.id === parseInt(lesSelect.value, 10));
+
+    let options = [];
+    let correctIndex = 0;
+    if (curType !== "cer") {
+      const optA = overlay.querySelector("#cq-opt-0")?.value.trim() || "";
+      const optB = overlay.querySelector("#cq-opt-1")?.value.trim() || "";
+      const optC = overlay.querySelector("#cq-opt-2")?.value.trim() || "";
+      const optD = overlay.querySelector("#cq-opt-3")?.value.trim() || "";
+      if (!optA || !optB) {
+        showToast("Options Required", "Please provide at least Options A and B.", "warning");
+        return;
+      }
+      options = [optA, optB, optC || "None of the above", optD || "All of the above"];
+      const rad = overlay.querySelector('input[name="cq-correct-radio"]:checked');
+      correctIndex = rad ? parseInt(rad.value, 10) : 0;
+    }
+
+    const qId = initialData?.id || `CUSTOM-${curSub}-M${curMod}-L${lesSelect.value}-${Date.now().toString(36)}`;
+    const newQuestion = {
+      id: qId,
+      subject: curSub,
+      moduleId: parseInt(curMod, 10),
+      lessonId: parseInt(lesSelect.value, 10) || 1,
+      moduleTitle: modObj?.title || `${curSub}-M${curMod}`,
+      lessonTitle: lesObj?.title || `Lesson ${lesSelect.value}`,
+      type: curType,
+      difficulty: curDiff === "easy" ? "foundational" : (curDiff === "medium" ? "honors" : "ap_olympiad"),
+      difficultyTier: curDiff,
+      angle: "user_custom_question",
+      question: promptVal,
+      options,
+      correctIndex: curType === "cer" ? null : correctIndex,
+      explanation: explEl.value.trim() || "Teacher custom solution.",
+      rubricCER: curType === "cer" ? (rubricEl.value.trim() || "10-point AP Claim, Evidence, and Scientific Reasoning Rubric.") : null,
+      hasDiagram: false,
+      diagram: null,
+      isUserCustom: true
+    };
+
+    saveUserCustomQuestion(newQuestion);
+    SoundFX.playChime();
+    showToast("Question Saved", `Custom question "${qId}" saved successfully!`, "success");
+    close();
+
+    if (typeof onQuestionSaved === "function") {
+      onQuestionSaved(newQuestion, addToAssessment);
+    }
+  }
+
+  overlay.querySelector("#btn-save-cq-add-exam").addEventListener("click", () => handleSave(true));
+  overlay.querySelector("#btn-save-cq-bank-only").addEventListener("click", () => handleSave(false));
+
+  updatePreview();
+}
+
+/**
+ * Master Question Bank Search & Browser Modal
+ * Allows searching the full 7,260-item question bank across all curriculum lessons
+ * and single-click addition into the current assessment.
+ */
+export async function openMasterBankBrowserModal(options = {}) {
+  const {
+    currentSelectedIds = new Set(),
+    onAddQuestion = () => {},
+    onRemoveQuestion = () => {},
+    onClose = () => {}
+  } = options;
+
+  const existing = document.getElementById("master-bank-modal-overlay");
+  if (existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "master-bank-modal-overlay";
+  overlay.className = "custom-modal-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "Browse Master Question Bank");
+
+  overlay.innerHTML = `
+    <div class="custom-modal-shell master-bank-modal" style="max-width: 950px; width: 95%; height: 92vh; display: flex; flex-direction: column;">
+      <!-- Header -->
+      <div class="custom-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 16px 24px; background: rgba(0,0,0,0.15);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 1.6rem;">🔍</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.3rem; font-weight: 800; color: var(--text-main);">
+              Master Question Bank Browser
+            </h3>
+            <div style="font-size: 0.82rem; color: var(--text-muted);">
+              Browse all 7,260 McGraw-Hill Inspire Science questions and hand-pick any question into your assessment.
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span id="bank-in-exam-count" style="font-size: 0.85rem; font-family: var(--font-mono); font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 4px 12px; border-radius: 9999px;">
+            In Assessment: ${currentSelectedIds.size} Qs
+          </span>
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-close-bank-modal" style="font-weight: 700; border-radius: 9999px; padding: 6px 14px;">
+            Done ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Search Bar -->
+      <div style="padding: 14px 24px; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <div style="position: relative; flex: 1; min-width: 260px;">
+            <input type="text" id="bank-search-input" placeholder="🔍 Search by prompt, keyword, concept, formula, answer, ID..." style="width: 100%; padding: 9px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.9rem;">
+          </div>
+
+          <!-- Subject Track Tabs -->
+          <div class="picker-chips-group">
+            <button class="picker-filter-chip bank-sub-chip active" data-bsub="ALL">All Tracks</button>
+            <button class="picker-filter-chip bank-sub-chip" data-bsub="CHEM">Chemistry</button>
+            <button class="picker-filter-chip bank-sub-chip" data-bsub="BIO">Biology</button>
+            <button class="picker-filter-chip bank-sub-chip" data-bsub="PHYS">Physics</button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <!-- Difficulty Chips -->
+          <div class="picker-chips-group">
+            <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Difficulty:</span>
+            <button class="picker-filter-chip bank-diff-chip active" data-bdiff="ALL">All</button>
+            <button class="picker-filter-chip bank-diff-chip" data-bdiff="easy">🟢 Easy</button>
+            <button class="picker-filter-chip bank-diff-chip" data-bdiff="medium">🟡 Medium</button>
+            <button class="picker-filter-chip bank-diff-chip" data-bdiff="hard">🟣 Hard</button>
+          </div>
+
+          <!-- Type Chips -->
+          <div class="picker-chips-group">
+            <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); margin-right: 4px;">Type:</span>
+            <button class="picker-filter-chip bank-type-chip active" data-btype="ALL">All</button>
+            <button class="picker-filter-chip bank-type-chip" data-btype="diagram">📊 Diagrams</button>
+            <button class="picker-filter-chip bank-type-chip" data-btype="mcq">MCQ</button>
+            <button class="picker-filter-chip bank-type-chip" data-btype="numerical">Numerical</button>
+            <button class="picker-filter-chip bank-type-chip" data-btype="cer">CER</button>
+            <button class="picker-filter-chip bank-type-chip" data-btype="custom">✍️ Custom Only</button>
+          </div>
+
+          <!-- Status Indicator -->
+          <span id="bank-result-counter" style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono);">
+            Loading questions...
+          </span>
+        </div>
+      </div>
+
+      <!-- Question Cards List Container -->
+      <div id="bank-cards-container" style="flex: 1; overflow-y: auto; padding: 18px 24px; display: flex; flex-direction: column; gap: 14px;">
+        <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+          <div style="font-size: 1.8rem; margin-bottom: 8px;">⏳</div>
+          <div>Loading Question Bank...</div>
+        </div>
+      </div>
+
+      <!-- Footer Bar -->
+      <div class="custom-modal-footer" style="padding: 14px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.15);">
+        <div style="font-size: 0.82rem; color: var(--text-muted);">
+          Questions added here are instantly merged into your current test and selection studio.
+        </div>
+        <button type="button" class="btn btn-primary" id="btn-bank-done" style="padding: 9px 22px; font-weight: 800; background: linear-gradient(135deg, #0284c7, #2563eb); border: none;">
+          <span>✓ Done &amp; Return to Assessment</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Close handlers
+  const close = () => {
+    overlay.remove();
+    onClose();
+  };
+  overlay.querySelector("#btn-close-bank-modal").addEventListener("click", close);
+  overlay.querySelector("#btn-bank-done").addEventListener("click", close);
+
+  // Fetch full question bank and user custom questions
+  let fullBank = [];
+  try {
+    const rawBank = await getQuestionBank();
+    const userCustoms = getUserCustomQuestions();
+    fullBank = [...userCustoms, ...(rawBank || [])];
+  } catch (err) {
+    console.error("[Quiz Engine] Failed to load bank browser items:", err);
+    fullBank = [];
+  }
+
+  let filterSub = "ALL";
+  let filterDiff = "ALL";
+  let filterType = "ALL";
+  let searchStr = "";
+  let renderedCount = 50; // Slice limit for performance
+  let openDiagrams = new Set();
+  let openExpls = new Set();
+
+  function getFilteredQuestions() {
+    const tokens = searchStr.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    return fullBank.filter(q => {
+      if (!q) return false;
+      if (filterSub !== "ALL" && q.subject !== filterSub) return false;
+      
+      if (filterDiff !== "ALL") {
+        const diff = q.difficultyTier || (q.difficulty === "foundational" ? "easy" : (q.difficulty === "honors" ? "medium" : "hard"));
+        if (diff !== filterDiff) return false;
+      }
+
+      if (filterType !== "ALL") {
+        if (filterType === "custom") {
+          if (!q.isUserCustom) return false;
+        } else if (filterType === "diagram") {
+          if (q.type !== "diagram" && !q.diagram && !q.hasDiagram) return false;
+        } else if (q.type !== filterType) {
+          return false;
+        }
+      }
+
+      if (tokens.length > 0) {
+        const searchable = [
+          q.id,
+          q.question || q.prompt || "",
+          (q.options || []).join(" "),
+          q.explanation || "",
+          q.lessonTitle || "",
+          q.moduleTitle || "",
+          q.angle || ""
+        ].join(" ").toLowerCase();
+        return tokens.every(tok => searchable.includes(tok));
+      }
+
+      return true;
+    });
+  }
+
+  function renderList() {
+    const listContainer = overlay.querySelector("#bank-cards-container");
+    const countEl = overlay.querySelector("#bank-result-counter");
+    const inExamEl = overlay.querySelector("#bank-in-exam-count");
+    if (!listContainer) return;
+
+    const filtered = getFilteredQuestions();
+    if (countEl) {
+      countEl.innerText = `Showing ${Math.min(renderedCount, filtered.length)} of ${filtered.length} questions`;
+    }
+    if (inExamEl) {
+      inExamEl.innerText = `In Assessment: ${currentSelectedIds.size} Qs`;
+    }
+
+    if (filtered.length === 0) {
+      listContainer.innerHTML = `
+        <div style="text-align: center; padding: 48px 16px; color: var(--text-muted); background: rgba(0,0,0,0.12); border-radius: 8px; border: 1px dashed var(--border-color);">
+          <div style="font-size: 2rem; margin-bottom: 6px;">🔍</div>
+          <div style="font-weight: 700; font-size: 1.05rem; color: var(--text-main);">No questions match your filter</div>
+          <div style="font-size: 0.84rem; margin-top: 4px;">Try searching for a different term or reset filters.</div>
+        </div>
+      `;
+      return;
+    }
+
+    const visibleSlice = filtered.slice(0, renderedCount);
+    let html = visibleSlice.map((q) => {
+      const isSelected = currentSelectedIds.has(q.id);
+      const hasDiag = q.diagram || q.type === "diagram" || q.hasDiagram;
+      const isDiagOpen = openDiagrams.has(q.id);
+      const isExplOpen = openExpls.has(q.id);
+      const diffTier = q.difficultyTier || (q.difficulty === "foundational" ? "easy" : (q.difficulty === "honors" ? "medium" : "hard"));
+      const diffLabel = diffTier === "easy" ? "🟢 Easy" : (diffTier === "medium" ? "🟡 Medium" : "🟣 Hard");
+      const diffClass = `diff-${diffTier}`;
+
+      return `
+        <div class="q-picker-card ${isSelected ? 'is-selected' : ''}" data-qid="${q.id}" style="padding: 14px 18px; border-radius: 8px; background: var(--bg-card); border: 1px solid ${isSelected ? '#10b981' : 'var(--border-color)'};">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+              <span class="q-picker-badge ${diffClass}" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">${diffLabel}</span>
+              ${hasDiag ? `<span class="q-picker-badge type-diag" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px;">📊 Diagram</span>` : ''}
+              <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.06); color: var(--text-muted); font-weight: 700;">${q.type.toUpperCase()}</span>
+              <span style="font-size: 0.76rem; font-family: var(--font-mono); color: var(--text-dim);">${q.subject}-M${q.moduleId}-L${q.lessonId || 1}</span>
+              ${q.isUserCustom ? `<span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">✍️ Custom</span>` : ''}
+            </div>
+
+            <button type="button" class="btn btn-sm btn-bank-toggle-add ${isSelected ? 'is-in-assessment' : ''}" data-qid="${q.id}" style="padding: 5px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 6px; ${isSelected ? 'border: 1px solid #10b981; color: #10b981; background: rgba(16, 185, 129, 0.12);' : 'background: linear-gradient(135deg, #0284c7, #2563eb); border: none; color: #ffffff;'}">
+              <span>${isSelected ? '✓ In Assessment (Remove)' : '➕ Add to Assessment'}</span>
+            </button>
+          </div>
+
+          <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); line-height: 1.5; margin-bottom: 8px;">
+            ${formatMathText(q.question || q.prompt || "")}
+          </div>
+
+          ${hasDiag && q.diagram ? `
+            <div style="margin: 6px 0;">
+              <button type="button" class="btn btn-secondary btn-sm btn-bank-diag-toggle" data-qid="${q.id}" style="font-size: 0.75rem; padding: 3px 10px;">
+                ${isDiagOpen ? '▼ Hide Diagram' : '▶ 📊 View Scientific Diagram'}
+              </button>
+              ${isDiagOpen ? `
+                <div style="margin-top: 8px; max-height: 220px; overflow: hidden; display: flex; justify-content: center; background: #ffffff; border-radius: 6px; padding: 6px; border: 1px solid #cbd5e1;">
+                  ${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}
+                </div>
+              ` : ''}
+            </div>
+          ` : ''}
+
+          ${q.options && q.options.length > 0 ? `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 6px; margin: 8px 0;">
+              ${q.options.map((opt, oIdx) => {
+                const isCorrect = oIdx === q.correctIndex;
+                return `
+                  <div style="display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 4px; font-size: 0.85rem; background: ${isCorrect ? 'rgba(16, 185, 129, 0.12)' : 'rgba(0,0,0,0.06)'}; border: 1px solid ${isCorrect ? '#10b981' : 'transparent'};">
+                    <strong style="color: ${isCorrect ? '#10b981' : 'var(--text-muted)'};">(${String.fromCharCode(65 + oIdx)})</strong>
+                    <div style="flex: 1; color: var(--text-main);">${formatMathText(opt)}</div>
+                    ${isCorrect ? `<span style="font-size: 0.65rem; font-weight: 800; background: #10b981; color: #ffffff; padding: 1px 4px; border-radius: 3px;">KEY</span>` : ''}
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          ` : (q.type === 'cer' ? `
+            <div style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 6px; padding: 6px 10px; font-size: 0.8rem; color: var(--text-muted); margin: 6px 0;">
+              <strong style="color: #c084fc;">[Claim-Evidence-Reasoning Qualitative Inquiry]</strong>
+            </div>
+          ` : '')}
+
+          <div style="margin-top: 4px;">
+            <button type="button" class="btn btn-secondary btn-sm btn-bank-expl-toggle" data-qid="${q.id}" style="font-size: 0.74rem; padding: 2px 8px; background: transparent; border: 1px solid var(--border-color); color: var(--text-muted);">
+              ${isExplOpen ? '▲ Hide Solution' : '▼ View Solution & Explanation'}
+            </button>
+            ${isExplOpen ? `
+              <div style="margin-top: 6px; padding: 8px 12px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.84rem; color: var(--text-main); white-space: pre-line;">
+                <strong style="color: #38bdf8;">Explanation:</strong>
+                <div style="margin-top: 2px;">${formatMathText(q.explanation || "Standard scientific derivation.")}</div>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    if (filtered.length > renderedCount) {
+      html += `
+        <div style="text-align: center; padding: 14px 0;">
+          <button type="button" class="btn btn-secondary" id="btn-bank-load-more" style="padding: 9px 24px; font-weight: 700; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+            <span>⬇ Load Next 50 Questions (${filtered.length - renderedCount} remaining)</span>
+          </button>
+        </div>
+      `;
+    }
+
+    listContainer.innerHTML = html;
+    renderMathInElement(listContainer);
+
+    // Bind item action buttons
+    listContainer.querySelectorAll(".btn-bank-toggle-add").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const qid = btn.dataset.qid;
+        const targetQ = fullBank.find(x => x && x.id === qid);
+        if (!targetQ) return;
+
+        if (currentSelectedIds.has(qid)) {
+          currentSelectedIds.delete(qid);
+          onRemoveQuestion(qid);
+          SoundFX.playClick();
+          showToast("Question Removed", `Question ${qid} removed from assessment.`, "info");
+        } else {
+          currentSelectedIds.add(qid);
+          onAddQuestion(targetQ);
+          SoundFX.playChime();
+          showToast("Question Added", `Question ${qid} added to assessment!`, "success");
+        }
+        renderList();
+      });
+    });
+
+    listContainer.querySelectorAll(".btn-bank-diag-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const qid = btn.dataset.qid;
+        if (openDiagrams.has(qid)) openDiagrams.delete(qid);
+        else openDiagrams.add(qid);
+        renderList();
+      });
+    });
+
+    listContainer.querySelectorAll(".btn-bank-expl-toggle").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const qid = btn.dataset.qid;
+        if (openExpls.has(qid)) openExpls.delete(qid);
+        else openExpls.add(qid);
+        renderList();
+      });
+    });
+
+    const loadMoreBtn = listContainer.querySelector("#btn-bank-load-more");
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener("click", () => {
+        renderedCount += 50;
+        renderList();
+      });
+    }
+  }
+
+  // Filter bindings
+  overlay.querySelectorAll(".bank-sub-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      overlay.querySelectorAll(".bank-sub-chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      filterSub = chip.dataset.bsub;
+      renderedCount = 50;
+      renderList();
+    });
+  });
+
+  overlay.querySelectorAll(".bank-diff-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      overlay.querySelectorAll(".bank-diff-chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      filterDiff = chip.dataset.bdiff;
+      renderedCount = 50;
+      renderList();
+    });
+  });
+
+  overlay.querySelectorAll(".bank-type-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      overlay.querySelectorAll(".bank-type-chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      filterType = chip.dataset.btype;
+      renderedCount = 50;
+      renderList();
+    });
+  });
+
+  const searchInp = overlay.querySelector("#bank-search-input");
+  let searchTimeout = null;
+  searchInp.addEventListener("input", (e) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      searchStr = e.target.value;
+      renderedCount = 50;
+      renderList();
+    }, 200);
+  });
+
+  renderList();
+}
+
 export function renderQuizEngine(containerId, initialConfig = null) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -80,6 +922,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   let presenterRevealed = false;
   let presenterPolls = {}; // { qId: [countA, countB, countC, countD] }
   let presenterKeyHandler = null;
+  let manuallyAddedQuestions = []; // Tracks user-authored custom questions and questions hand-picked from full master bank
 
   // Curriculum Scope State (File Explorer)
   let selectedSubject = (initialConfig && initialConfig.subj) ? initialConfig.subj.toUpperCase() : "CHEM"; // 'CHEM', 'BIO', 'PHYS', 'ALL'
@@ -318,6 +1161,8 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                   <option value="10" ${initialCount === '10' ? 'selected' : ''}>10 Questions (Standard Quiz)</option>
                   <option value="15" ${initialCount === '15' ? 'selected' : ''}>15 Questions (Module Test)</option>
                   <option value="20" ${initialCount === '20' ? 'selected' : ''}>20 Questions (Quarterly Exam)</option>
+                  <option value="25" ${initialCount === '25' ? 'selected' : ''}>25 Questions (Comprehensive Assessment)</option>
+                  <option value="30" ${initialCount === '30' ? 'selected' : ''}>30 Questions (Full Benchmark Exam)</option>
                   <option value="ALL" ${initialCount === 'ALL' ? 'selected' : ''}>All Available in Selected Scope</option>
                 </select>
               </div>
@@ -348,11 +1193,17 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           <!-- Generate Action Button -->
           <div style="display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; border-top: 1px solid var(--border-color); padding-top: 20px;">
             <div style="font-size: 0.88rem; color: #94a3b8;">
-              Ready to generate: <strong id="summary-ready-count" style="color: #38bdf8;">${initialCount === 'ALL' ? 'all matching' : `${initialCount} questions`}</strong> from <strong id="summary-scope-count" style="color: #10b981;">${selectedLessons.size} selected lessons</strong>.
+              Ready to generate: <strong id="summary-ready-count" style="color: #38bdf8;">${initialCount === 'ALL' ? 'all matching' : `${initialCount} questions`}</strong> from <strong id="summary-scope-count" style="color: #10b981;">${selectedLessons.size} selected lessons</strong>${manuallyAddedQuestions.length > 0 ? ` <span style="color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 9999px; border: 1px solid rgba(16, 185, 129, 0.3);">+ ${manuallyAddedQuestions.length} custom/picked</span>` : ''}.
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-              <button class="btn btn-secondary" id="btn-config-share-lms" title="Share this Quiz preset to Google Classroom or Classera" style="padding: 12px 20px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+              <button class="btn btn-secondary" id="btn-config-share-lms" title="Share this Quiz preset to Google Classroom or Classera" style="padding: 12px 18px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
                 <span>📤 Share to LMS</span>
+              </button>
+              <button class="btn btn-secondary" id="btn-add-custom-question" style="padding: 12px 18px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; border: 1.5px solid #10b981; color: #10b981; background: rgba(16, 185, 129, 0.08);" title="Write and author your own custom STEM question with LaTeX math formulas and diagrams">
+                <span>✍️ Write Question</span>
+              </button>
+              <button class="btn btn-secondary" id="btn-browse-bank" style="padding: 12px 18px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; border: 1.5px solid #38bdf8; color: #38bdf8; background: rgba(56, 189, 248, 0.08);" title="Search and add any question from the full 7,260-item master question bank">
+                <span>🔍 Browse Full Bank</span>
               </button>
               <button class="btn btn-secondary" id="btn-choose-questions" style="padding: 12px 24px; font-weight: 800; font-size: 1.0rem; display: flex; align-items: center; gap: 8px; border: 1.5px solid #0284c7; color: #0284c7; background: rgba(2, 132, 199, 0.08);" title="Review, hand-pick, and reorder exact questions before generating print or quiz">
                 <span>📋 Choose &amp; Customize Questions</span>
@@ -850,6 +1701,51 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
     }
 
+    // Author User Custom Question Button
+    const btnAddCustom = document.getElementById("btn-add-custom-question");
+    if (btnAddCustom) {
+      btnAddCustom.addEventListener("click", () => {
+        openCustomQuestionModal((newQ, addToExam) => {
+          if (addToExam) {
+            if (!manuallyAddedQuestions.some(m => m.id === newQ.id)) {
+              manuallyAddedQuestions.push(newQ);
+            }
+            if (!activeQuestions.some(m => m.id === newQ.id)) {
+              activeQuestions.push(newQ);
+            }
+            showToast("Added to Assessment", `Custom question "${(newQ.question || "").slice(0, 45)}..." added to active assessment queue.`, "success");
+            showConfig();
+          }
+        }, { subject: selectedSubject });
+      });
+    }
+
+    // Browse Master Question Bank Button
+    const btnBrowseBank = document.getElementById("btn-browse-bank");
+    if (btnBrowseBank) {
+      btnBrowseBank.addEventListener("click", () => {
+        const currentSel = new Set(manuallyAddedQuestions.map(q => q.id));
+        openMasterBankBrowserModal({
+          currentSelectedIds: currentSel,
+          onAddQuestion: (targetQ) => {
+            if (!manuallyAddedQuestions.some(m => m.id === targetQ.id)) {
+              manuallyAddedQuestions.push(targetQ);
+            }
+            if (!activeQuestions.some(m => m.id === targetQ.id)) {
+              activeQuestions.push(targetQ);
+            }
+          },
+          onRemoveQuestion: (qid) => {
+            manuallyAddedQuestions = manuallyAddedQuestions.filter(m => m.id !== qid);
+            activeQuestions = activeQuestions.filter(m => m.id !== qid);
+          },
+          onClose: () => {
+            showConfig();
+          }
+        });
+      });
+    }
+
     // Choose & Customize Questions Button
     const btnChoose = document.getElementById("btn-choose-questions");
     if (btnChoose) {
@@ -1046,12 +1942,27 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   // --- DYNAMIC QUESTION GENERATION & POOL RESOLUTION ---
   let currentScopePool = [];
 
-  // Helper to gather all questions for selected lessons
+  // Helper to gather all questions for selected lessons + custom and hand-picked questions
   function resolveScopePool(bank, includeAll = false) {
-    if (!bank || !Array.isArray(bank) || selectedLessons.size === 0) return [];
+    if (!bank || !Array.isArray(bank)) bank = [];
 
     const difficulty = document.getElementById("cfg-difficulty")?.value || initialDifficulty;
     const qTypeVal = document.getElementById("cfg-qtype")?.value || initialQType;
+
+    // Load persisted user custom questions
+    const userCustoms = getUserCustomQuestions();
+    const mergedBank = [
+      ...manuallyAddedQuestions,
+      ...userCustoms.filter(uc => !manuallyAddedQuestions.some(m => m.id === uc.id)),
+      ...bank.filter(b => !manuallyAddedQuestions.some(m => m.id === b.id))
+    ];
+
+    if (selectedLessons.size === 0) {
+      if (manuallyAddedQuestions.length > 0) {
+        return [...manuallyAddedQuestions];
+      }
+      return [];
+    }
 
     const selectedLessonKeys = new Set(selectedLessons);
     const selectedModIds = new Set();
@@ -1060,7 +1971,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       if (parts.length >= 2) selectedModIds.add(`${parts[0]}-${parts[1]}`);
     });
 
-    return bank.filter(q => {
+    return mergedBank.filter(q => {
+      // Manually added questions are always included
+      if (manuallyAddedQuestions.some(m => m.id === q.id)) return true;
+
       const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
       const matchScope = q.lessonId 
         ? selectedLessonKeys.has(qLessonKey) 
@@ -1070,6 +1984,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
       const matchDiff = difficulty === "ALL" || q.difficulty === difficulty || q.difficultyTier === difficulty;
       const matchType = qTypeVal === "ALL" 
+        || (qTypeVal === "custom" ? q.isUserCustom : false)
         || (qTypeVal === "diagram" ? (q.type === "diagram" || q.hasDiagram || Boolean(q.diagram)) : q.type === qTypeVal);
       return matchDiff && matchType;
     });
@@ -1119,8 +2034,8 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   }
 
   async function openQuestionPickerFromConfig() {
-    if (selectedLessons.size === 0) {
-      showToast("Scope Required", "Please select at least one lesson to establish the assessment scope.", "warning");
+    if (selectedLessons.size === 0 && manuallyAddedQuestions.length === 0) {
+      showToast("Scope Required", "Please select at least one lesson, write a custom question, or add a question from the bank.", "warning");
       return;
     }
 
@@ -1159,6 +2074,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       initialSelected = new Set(activeQuestions.map(q => q.id));
     } else {
       initialSelected = getBalancedPresetSelection(pool, targetCount);
+      manuallyAddedQuestions.forEach(mq => initialSelected.add(mq.id));
     }
 
     renderQuestionPicker(pool, initialSelected);
@@ -1223,7 +2139,9 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
         // Type filter
         if (filterType !== "ALL") {
-          if (filterType === "diagram") {
+          if (filterType === "custom") {
+            if (!q.isUserCustom) return false;
+          } else if (filterType === "diagram") {
             if (q.type !== "diagram" && !q.diagram && !q.hasDiagram) return false;
           } else if (q.type !== filterType) {
             return false;
@@ -1280,12 +2198,15 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               </div>
             </div>
 
-            <!-- Quick Presets -->
+            <!-- Quick Presets & Tool Actions -->
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                 <span style="font-size: 0.76rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em;">Balanced Presets:</span>
                 <button class="picker-preset-btn" id="preset-balanced-30" title="Select 10 Easy, 10 Medium, 10 Hard questions with 6 diagrams">
                   <span>⚡ Balanced 30 (10E-10M-10H)</span>
+                </button>
+                <button class="picker-preset-btn" id="preset-balanced-25" title="Select 8 Easy, 8 Medium, 9 Hard questions with 5 diagrams">
+                  <span>⚡ Balanced 25 (8E-8M-9H)</span>
                 </button>
                 <button class="picker-preset-btn" id="preset-balanced-15" title="Select 5 Easy, 5 Medium, 5 Hard questions">
                   <span>⚡ Balanced 15 (5E-5M-5H)</span>
@@ -1295,7 +2216,13 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 </button>
               </div>
 
-              <div style="display: flex; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <button class="picker-preset-btn" id="btn-picker-add-custom" style="border: 1.5px solid #10b981; color: #10b981; background: rgba(16, 185, 129, 0.1); font-weight: 700;" title="Write a custom question directly into this studio">
+                  <span>✍️ Write Custom Q</span>
+                </button>
+                <button class="picker-preset-btn" id="btn-picker-browse-bank" style="border: 1.5px solid #38bdf8; color: #38bdf8; background: rgba(56, 189, 248, 0.1); font-weight: 700;" title="Browse full 7,260-item master bank and pick questions">
+                  <span>🔍 Add from Bank</span>
+                </button>
                 <button class="picker-preset-btn" id="btn-select-all-filtered">
                   <span>✓ Select All Filtered</span>
                 </button>
@@ -1340,6 +2267,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 <button class="picker-filter-chip ${filterType === 'mcq' ? 'active' : ''}" data-ftype="mcq">MCQ</button>
                 <button class="picker-filter-chip ${filterType === 'numerical' ? 'active' : ''}" data-ftype="numerical">Numerical</button>
                 <button class="picker-filter-chip ${filterType === 'cer' ? 'active' : ''}" data-ftype="cer">CER</button>
+                <button class="picker-filter-chip ${filterType === 'custom' ? 'active' : ''}" data-ftype="custom">✍️ Custom (${pickerPool.filter(q => q.isUserCustom).length})</button>
               </div>
             </div>
           </div>
@@ -1514,6 +2442,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         renderDOM();
       });
 
+      document.getElementById("preset-balanced-25")?.addEventListener("click", () => {
+        pickerSelectedIds = getBalancedPresetSelection(pickerPool, 25);
+        showToast("Balanced 25 Selected", "Selected 8 Easy, 8 Medium, 9 Hard questions with 5 diagrams.", "success");
+        renderDOM();
+      });
+
       document.getElementById("preset-balanced-15")?.addEventListener("click", () => {
         pickerSelectedIds = getBalancedPresetSelection(pickerPool, 15);
         showToast("Balanced 15 Selected", "Selected 5 Easy, 5 Medium, 5 Hard questions.", "success");
@@ -1524,6 +2458,48 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         pickerSelectedIds = getBalancedPresetSelection(pickerPool, 10);
         showToast("Quick 10 Selected", "Selected 3 Easy, 4 Medium, 3 Hard questions.", "success");
         renderDOM();
+      });
+
+      // Write Custom Question from Studio
+      document.getElementById("btn-picker-add-custom")?.addEventListener("click", () => {
+        openCustomQuestionModal((newQ, addToExam) => {
+          if (!pickerPool.some(p => p.id === newQ.id)) {
+            pickerPool.unshift(newQ);
+          }
+          if (addToExam) {
+            pickerSelectedIds.add(newQ.id);
+            if (!manuallyAddedQuestions.some(m => m.id === newQ.id)) {
+              manuallyAddedQuestions.push(newQ);
+            }
+          }
+          showToast("Custom Question Created", `"${(newQ.question || "").slice(0, 45)}..." added to studio.`, "success");
+          renderDOM();
+        }, { subject: selectedSubject });
+      });
+
+      // Browse Master Bank from Studio
+      document.getElementById("btn-picker-browse-bank")?.addEventListener("click", () => {
+        openMasterBankBrowserModal({
+          currentSelectedIds: pickerSelectedIds,
+          onAddQuestion: (targetQ) => {
+            if (!pickerPool.some(p => p.id === targetQ.id)) {
+              pickerPool.unshift(targetQ);
+            }
+            pickerSelectedIds.add(targetQ.id);
+            if (!manuallyAddedQuestions.some(m => m.id === targetQ.id)) {
+              manuallyAddedQuestions.push(targetQ);
+            }
+            renderDOM();
+          },
+          onRemoveQuestion: (qid) => {
+            pickerSelectedIds.delete(qid);
+            manuallyAddedQuestions = manuallyAddedQuestions.filter(m => m.id !== qid);
+            renderDOM();
+          },
+          onClose: () => {
+            renderDOM();
+          }
+        });
       });
 
       document.getElementById("btn-select-all-filtered")?.addEventListener("click", () => {
@@ -1667,8 +2643,8 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   }
 
   async function generateExam() {
-    if (selectedLessons.size === 0) {
-      showToast("Scope Required", "Please select at least one lesson to establish the assessment scope.", "warning");
+    if (selectedLessons.size === 0 && manuallyAddedQuestions.length === 0) {
+      showToast("Scope Required", "Please select at least one lesson, write a custom question, or add a question from the bank.", "warning");
       return;
     }
 
@@ -1700,81 +2676,103 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       }
     }
 
-    // Parse selected lessons into structured objects
-    const scopeLessons = [];
-    selectedLessons.forEach(lKey => {
-      const parts = String(lKey || "").split("-"); // ['CHEM', 'M1', 'L2']
-      const subj = parts[0] || selectedSubject;
-      const mid = parts[1] ? parseInt(parts[1].replace("M", ""), 10) : 1;
-      const lid = parts[2] ? parseInt(parts[2].replace("L", ""), 10) : 1;
-      const cur = curricula[subj];
-      if (cur && cur.modules) {
-        const mod = cur.modules.find(m => m.id === mid);
-        if (mod && mod.lessons) {
-          const les = mod.lessons.find(l => l.id === lid);
-          if (les) {
-            scopeLessons.push({ subj, mod, les, mid, lid });
+    // Incorporate user custom questions and manually added bank questions
+    const userCustoms = getUserCustomQuestions();
+    const fullSourceBank = [
+      ...manuallyAddedQuestions,
+      ...userCustoms.filter(uc => !manuallyAddedQuestions.some(m => m.id === uc.id)),
+      ...bank.filter(b => !manuallyAddedQuestions.some(m => m.id === b.id))
+    ];
+
+    let pool = [];
+
+    if (selectedLessons.size === 0 && manuallyAddedQuestions.length > 0) {
+      pool = [...manuallyAddedQuestions];
+    } else {
+      // Parse selected lessons into structured objects
+      const scopeLessons = [];
+      selectedLessons.forEach(lKey => {
+        const parts = String(lKey || "").split("-"); // ['CHEM', 'M1', 'L2']
+        const subj = parts[0] || selectedSubject;
+        const mid = parts[1] ? parseInt(parts[1].replace("M", ""), 10) : 1;
+        const lid = parts[2] ? parseInt(parts[2].replace("L", ""), 10) : 1;
+        const cur = curricula[subj];
+        if (cur && cur.modules) {
+          const mod = cur.modules.find(m => m.id === mid);
+          if (mod && mod.lessons) {
+            const les = mod.lessons.find(l => l.id === lid);
+            if (les) {
+              scopeLessons.push({ subj, mod, les, mid, lid });
+            }
           }
         }
-      }
-    });
+      });
 
-    // 1. Gather questions that match the selected lessons (exact lesson-level scope)
-    const selectedLessonKeys = new Set(scopeLessons.map(sl => `${sl.subj}-M${sl.mid}-L${sl.lid}`));
-    const selectedModIds = new Set(scopeLessons.map(sl => `${sl.subj}-${sl.mid}`));
+      // 1. Gather questions that match the selected lessons (exact lesson-level scope)
+      const selectedLessonKeys = new Set(scopeLessons.map(sl => `${sl.subj}-M${sl.mid}-L${sl.lid}`));
+      const selectedModIds = new Set(scopeLessons.map(sl => `${sl.subj}-${sl.mid}`));
 
-    let pool = bank.filter(q => {
-      if (!q) return false;
-      const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
-      const matchScope = q.lessonId 
-        ? selectedLessonKeys.has(qLessonKey) 
-        : selectedModIds.has(`${q.subject}-${q.moduleId}`);
-      const matchDiff = difficulty === "ALL" 
-        || q.difficulty === difficulty 
-        || q.difficultyTier === difficulty
-        || (difficulty === "foundational" && (q.difficulty === "foundational" || q.difficultyTier === "easy"))
-        || (difficulty === "honors" && (q.difficulty === "honors" || q.difficultyTier === "medium"))
-        || (difficulty === "ap_olympiad" && (q.difficulty === "ap_olympiad" || q.difficultyTier === "hard"))
-        || (difficulty === "easy" && (q.difficulty === "foundational" || q.difficultyTier === "easy"))
-        || (difficulty === "medium" && (q.difficulty === "honors" || q.difficultyTier === "medium"))
-        || (difficulty === "hard" && (q.difficulty === "ap_olympiad" || q.difficultyTier === "hard"));
-      const matchType = qTypeVal === "ALL" 
-        || (qTypeVal === "diagram" ? (q.type === "diagram" || q.hasDiagram || Boolean(q.diagram)) : q.type === qTypeVal);
-      return matchScope && matchDiff && matchType;
-    });
-
-    // If pool is empty due to ultra-restrictive difficulty/type combination, relax filter to ensure valid assessment
-    if (pool.length === 0) {
-      pool = bank.filter(q => {
+      pool = fullSourceBank.filter(q => {
         if (!q) return false;
+        if (manuallyAddedQuestions.some(m => m.id === q.id)) return true;
+
         const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
         const matchScope = q.lessonId 
           ? selectedLessonKeys.has(qLessonKey) 
           : selectedModIds.has(`${q.subject}-${q.moduleId}`);
+        const matchDiff = difficulty === "ALL" 
+          || q.difficulty === difficulty 
+          || q.difficultyTier === difficulty
+          || (difficulty === "foundational" && (q.difficulty === "foundational" || q.difficultyTier === "easy"))
+          || (difficulty === "honors" && (q.difficulty === "honors" || q.difficultyTier === "medium"))
+          || (difficulty === "ap_olympiad" && (q.difficulty === "ap_olympiad" || q.difficultyTier === "hard"))
+          || (difficulty === "easy" && (q.difficulty === "foundational" || q.difficultyTier === "easy"))
+          || (difficulty === "medium" && (q.difficulty === "honors" || q.difficultyTier === "medium"))
+          || (difficulty === "hard" && (q.difficulty === "ap_olympiad" || q.difficultyTier === "hard"));
         const matchType = qTypeVal === "ALL" 
+          || (qTypeVal === "custom" ? q.isUserCustom : false)
           || (qTypeVal === "diagram" ? (q.type === "diagram" || q.hasDiagram || Boolean(q.diagram)) : q.type === qTypeVal);
-        return matchScope && matchType;
+        return matchScope && matchDiff && matchType;
       });
-    }
 
-    if (pool.length === 0) {
-      pool = bank.filter(q => {
-        if (!q) return false;
-        const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
-        return q.lessonId 
-          ? selectedLessonKeys.has(qLessonKey) 
-          : selectedModIds.has(`${q.subject}-${q.moduleId}`);
-      });
-    }
+      // If pool is empty due to ultra-restrictive difficulty/type combination, relax filter to ensure valid assessment
+      if (pool.length === 0) {
+        pool = fullSourceBank.filter(q => {
+          if (!q) return false;
+          if (manuallyAddedQuestions.some(m => m.id === q.id)) return true;
 
-    // Fallback synthesis if still empty
-    if (pool.length === 0) {
-      scopeLessons.forEach((sl, idx) => {
-        const synthQ = synthesizeCurriculumQuestion(sl, difficulty, idx);
-        if (qTypeVal === "ALL" || synthQ.type === qTypeVal) {
-          pool.push(synthQ);
-        }
-      });
+          const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
+          const matchScope = q.lessonId 
+            ? selectedLessonKeys.has(qLessonKey) 
+            : selectedModIds.has(`${q.subject}-${q.moduleId}`);
+          const matchType = qTypeVal === "ALL" 
+            || (qTypeVal === "custom" ? q.isUserCustom : false)
+            || (qTypeVal === "diagram" ? (q.type === "diagram" || q.hasDiagram || Boolean(q.diagram)) : q.type === qTypeVal);
+          return matchScope && matchType;
+        });
+      }
+
+      if (pool.length === 0) {
+        pool = fullSourceBank.filter(q => {
+          if (!q) return false;
+          if (manuallyAddedQuestions.some(m => m.id === q.id)) return true;
+
+          const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
+          return q.lessonId 
+            ? selectedLessonKeys.has(qLessonKey) 
+            : selectedModIds.has(`${q.subject}-${q.moduleId}`);
+        });
+      }
+
+      // Fallback synthesis if still empty
+      if (pool.length === 0) {
+        scopeLessons.forEach((sl, idx) => {
+          const synthQ = synthesizeCurriculumQuestion(sl, difficulty, idx);
+          if (qTypeVal === "ALL" || synthQ.type === qTypeVal) {
+            pool.push(synthQ);
+          }
+        });
+      }
     }
 
     if (pool.length === 0) {
@@ -1784,14 +2782,17 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
     currentScopePool = pool;
 
-    // Shuffle pool
-    pool.sort(() => Math.random() - 0.5);
+    // Prioritize manually added questions in final question set
+    const manualInPool = pool.filter(q => manuallyAddedQuestions.some(m => m.id === q.id));
+    const nonManualInPool = pool.filter(q => !manuallyAddedQuestions.some(m => m.id === q.id));
+    nonManualInPool.sort(() => Math.random() - 0.5);
+    const combinedPool = [...manualInPool, ...nonManualInPool];
 
     // Limit count
-    const targetCount = countVal === "ALL" ? pool.length : Math.min(parseInt(countVal, 10) || 10, pool.length);
-    activeQuestions = pool.slice(0, Math.max(1, targetCount));
-    if (activeQuestions.length === 0 && pool.length > 0) {
-      activeQuestions = [pool[0]];
+    const targetCount = countVal === "ALL" ? combinedPool.length : Math.min(parseInt(countVal, 10) || 10, combinedPool.length);
+    activeQuestions = combinedPool.slice(0, Math.max(1, targetCount));
+    if (activeQuestions.length === 0 && combinedPool.length > 0) {
+      activeQuestions = [combinedPool[0]];
     }
     userAnswers = {};
     presenterIndex = 0;
@@ -2820,6 +3821,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                   <span>📋</span>
                   <span>Choose / Edit Questions</span>
                 </button>
+                <button class="btn btn-secondary" id="btn-print-add-custom" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid #10b981; color: #10b981; background: rgba(16, 185, 129, 0.1);" title="Write a custom question and immediately append to this printed exam">
+                  <span>✍️</span>
+                  <span>Add Custom Q</span>
+                </button>
+                <button class="btn btn-secondary" id="btn-print-browse-bank" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #38bdf8; background: rgba(56, 189, 248, 0.1);" title="Search master bank and add any question directly into this printed exam">
+                  <span>🔍</span>
+                  <span>Add from Bank</span>
+                </button>
                 ${printExcludedHistory.length > 0 ? `
                   <button class="btn btn-secondary" id="btn-print-undo" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid #22c55e; color: #4ade80; background: rgba(34, 197, 94, 0.12);" title="Undo last excluded question and restore to both Form A and Form B">
                     <span>↩</span>
@@ -3138,6 +4147,45 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
       document.getElementById("btn-print-reselect")?.addEventListener("click", () => {
         openQuestionPickerFromPrint();
+      });
+
+      // Add Custom Question from Print Studio
+      document.getElementById("btn-print-add-custom")?.addEventListener("click", () => {
+        openCustomQuestionModal((newQ, addToExam) => {
+          if (addToExam) {
+            if (!manuallyAddedQuestions.some(m => m.id === newQ.id)) {
+              manuallyAddedQuestions.push(newQ);
+            }
+            activeQuestions.push(newQ);
+            showToast("Question Added to Exam", `Custom question "${newQ.id}" added to Form A & Form B.`, "success");
+            renderDOM();
+          }
+        }, { subject: selectedSubject });
+      });
+
+      // Browse Master Bank from Print Studio
+      document.getElementById("btn-print-browse-bank")?.addEventListener("click", () => {
+        const currentSel = new Set(activeQuestions.map(q => q.id));
+        openMasterBankBrowserModal({
+          currentSelectedIds: currentSel,
+          onAddQuestion: (targetQ) => {
+            if (!manuallyAddedQuestions.some(m => m.id === targetQ.id)) {
+              manuallyAddedQuestions.push(targetQ);
+            }
+            if (!activeQuestions.some(m => m.id === targetQ.id)) {
+              activeQuestions.push(targetQ);
+            }
+            renderDOM();
+          },
+          onRemoveQuestion: (qid) => {
+            manuallyAddedQuestions = manuallyAddedQuestions.filter(m => m.id !== qid);
+            activeQuestions = activeQuestions.filter(m => m.id !== qid);
+            renderDOM();
+          },
+          onClose: () => {
+            renderDOM();
+          }
+        });
       });
 
       // Undo Exclude Button

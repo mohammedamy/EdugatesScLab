@@ -700,12 +700,109 @@ export function buildComprehensiveFlashcardDeck() {
             isCoreMastery: false,
             cardType: "misconception"
           });
+
+          // Card 6: Scientific Inquiry & Experimental Investigation (Virtual Lab Workbench Focus)
+          const inqPrompt = spec.inquiry || (theory.workedExample && theory.workedExample.problem) || `Empirical investigation protocol and hypothesis testing for ${l.title}.`;
+          const inqObjectives = [
+            `Independent Variable: Manipulated experimental parameters governing ${l.title}.`,
+            `Dependent Variable: Measurable physical, chemical, or biological system response.`,
+            `Experimental Controls: Invariant baseline standards maintaining test validity.`,
+            `Hypothesis Testing: Empirically verifying theoretical model predictions against virtual lab observation.`
+          ];
+          const inqExplanation = `Empirical Investigation & Scientific Modeling Protocol:\n\n1. Formulate testable quantitative hypothesis relating ${l.title} governing parameters.\n2. Calibrate laboratory sensors and establish baseline control group.\n3. Execute controlled perturbations while logging data in the STEM Workbench.\n4. Correlate empirical results with governing theoretical models.`;
+
+          deck.push({
+            id: `${track.code.toLowerCase()}-m${m.id}-l${l.id}-investigation`,
+            subject: track.code,
+            subjectName: track.name,
+            trackTitle: track.data.subject,
+            moduleId: m.id,
+            moduleCode: m.code,
+            moduleTitle: m.title,
+            unit: m.unit,
+            lessonId: l.id,
+            lessonTitle: l.title,
+            category: `${baseCat} [Investigation]`,
+            front: `Scientific Inquiry & Experimental Investigation: ${l.title}`,
+            backTitle: `Empirical Methodology, Hypothesis Testing & Virtual Workbench`,
+            conceptFocus: "Experimental Design, Variable Controls & Empirical Modeling",
+            formula: formulaVal,
+            objectivesTitle: "🔬 Experimental Parameters & Variable Controls",
+            objectives: inqObjectives,
+            explanationTitle: "🧪 Empirical Investigation & Virtual Lab Workbench",
+            coreExplanation: inqExplanation,
+            inquiry: inqPrompt,
+            hint: `Virtual Lab: ${m.lab || "STEM Simulation Workbench"} • Lesson ${l.id}`,
+            isModuleOverview: false,
+            isLessonCard: true,
+            isCoreMastery: false,
+            cardType: "investigation"
+          });
         });
       }
     });
   });
 
+  // Load User Custom Flashcards from localStorage
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      const customs = JSON.parse(localStorage.getItem("clipsat_custom_flashcards") || "[]");
+      if (Array.isArray(customs)) {
+        customs.forEach(c => {
+          if (c && c.id) {
+            c.isUserCustom = true;
+            deck.push(c);
+          }
+        });
+      }
+    } catch (e) {}
+  }
+
   return deck;
+}
+
+/**
+ * Custom User Flashcard Storage Helpers
+ */
+export function getUserCustomFlashcards() {
+  if (typeof window === "undefined" || !window.localStorage) return [];
+  try {
+    return JSON.parse(localStorage.getItem("clipsat_custom_flashcards") || "[]");
+  } catch (e) {
+    return [];
+  }
+}
+
+export function saveUserCustomFlashcard(card) {
+  if (typeof window === "undefined" || !window.localStorage) return false;
+  try {
+    if (card.isUserCustom === undefined) {
+      card.isUserCustom = true;
+    }
+    const list = getUserCustomFlashcards();
+    const idx = list.findIndex(c => c.id === card.id);
+    if (idx >= 0) {
+      list[idx] = card;
+    } else {
+      list.unshift(card);
+    }
+    localStorage.setItem("clipsat_custom_flashcards", JSON.stringify(list));
+    return true;
+  } catch (e) {
+    console.error("Failed to save custom flashcard:", e);
+    return false;
+  }
+}
+
+export function deleteUserCustomFlashcard(cardId) {
+  if (typeof window === "undefined" || !window.localStorage) return false;
+  try {
+    const list = getUserCustomFlashcards().filter(c => c.id !== cardId);
+    localStorage.setItem("clipsat_custom_flashcards", JSON.stringify(list));
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
 
 // Global cached full deck for fast access
@@ -891,6 +988,226 @@ function speakCard(card, isFlipped, isReverseMode) {
   };
 
   window.speechSynthesis.speak(utterance);
+}
+
+/**
+ * Modal to Author and Save a Custom Flashcard
+ */
+export function openCustomFlashcardModal(defaultContext = {}, onCardSaved = null) {
+  const existing = document.getElementById("custom-fc-modal-overlay");
+  if (existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "custom-fc-modal-overlay";
+  overlay.className = "custom-modal-overlay";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "Create Custom Scientific Flashcard");
+
+  let curSub = defaultContext.subject && defaultContext.subject !== "ALL" ? defaultContext.subject : "CHEM";
+  let curMod = defaultContext.moduleId && defaultContext.moduleId !== "ALL" ? defaultContext.moduleId : 1;
+  let curLes = defaultContext.lessonId && defaultContext.lessonId !== "ALL" && defaultContext.lessonId !== "OVERVIEW" ? defaultContext.lessonId : 1;
+
+  const trackCurricula = {
+    CHEM: chemistryCurriculum,
+    BIO: biologyCurriculum,
+    PHYS: physicsCurriculum
+  };
+
+  function getModuleOptions(sub) {
+    const cur = trackCurricula[sub] || chemistryCurriculum;
+    return cur.modules.map(m => `<option value="${m.id}" ${m.id === parseInt(curMod, 10) ? 'selected' : ''}>${m.code}: ${escapeHtml(m.title)}</option>`).join("");
+  }
+
+  function getLessonOptions(sub, modId) {
+    const cur = trackCurricula[sub] || chemistryCurriculum;
+    const mod = cur.modules.find(m => m.id === parseInt(modId, 10));
+    if (!mod || !mod.lessons) return `<option value="1">Lesson 1: General Core</option>`;
+    return mod.lessons.map(l => `<option value="${l.id}" ${l.id === parseInt(curLes, 10) ? 'selected' : ''}>Lesson ${l.id}: ${escapeHtml(l.title)}</option>`).join("");
+  }
+
+  overlay.innerHTML = `
+    <div class="custom-modal-shell" style="max-width: 680px; width: 92%; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="custom-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 16px 24px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">✍️</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-main);">Create Custom Scientific Flashcard</h3>
+            <div style="font-size: 0.8rem; color: var(--text-muted);">Author your own study card with LaTeX formulas, core principles, and Leitner spaced repetition.</div>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-close-fc-modal" style="background: transparent; border: none; font-size: 1.4rem; color: var(--text-muted); cursor: pointer;" aria-label="Close dialog">✕</button>
+      </div>
+
+      <div class="custom-modal-body" style="padding: 20px 24px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px;">
+        <!-- Track & Module / Lesson Row -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Subject Track</label>
+            <select id="cfc-subject" class="fc-custom-select" style="width: 100%;">
+              <option value="CHEM" ${curSub === 'CHEM' ? 'selected' : ''}>Inspire Chemistry</option>
+              <option value="BIO" ${curSub === 'BIO' ? 'selected' : ''}>Inspire Biology</option>
+              <option value="PHYS" ${curSub === 'PHYS' ? 'selected' : ''}>Inspire Physics</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Curriculum Module</label>
+            <select id="cfc-module" class="fc-custom-select" style="width: 100%;">
+              ${getModuleOptions(curSub)}
+            </select>
+          </div>
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Lesson Alignment</label>
+            <select id="cfc-lesson" class="fc-custom-select" style="width: 100%;">
+              ${getLessonOptions(curSub, curMod)}
+            </select>
+          </div>
+        </div>
+
+        <!-- Front Text -->
+        <div class="form-group">
+          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">
+            Card Front (Scientific Term, Law, or Challenge Prompt) *
+          </label>
+          <input type="text" id="cfc-front" placeholder="e.g. Gibbs Free Energy (ΔG) Spontaneity Criterion" style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.95rem;">
+        </div>
+
+        <!-- Concept Focus & Hint -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Concept Focus Area</label>
+            <input type="text" id="cfc-focus" placeholder="e.g. Thermodynamics &amp; Spontaneous Reactions" style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.88rem;">
+          </div>
+          <div class="form-group">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">Memory Hint / Cue</label>
+            <input type="text" id="cfc-hint" placeholder="e.g. ΔG &lt; 0 is exergonic &amp; spontaneous" style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.88rem;">
+          </div>
+        </div>
+
+        <!-- Mathematical / Scientific Formulation -->
+        <div class="form-group">
+          <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span>Key Mathematical or Scientific Formulation (LaTeX supported)</span>
+            <span style="font-size: 0.72rem; color: #38bdf8;">e.g. \\Delta G = \\Delta H - T\\Delta S</span>
+          </label>
+          <input type="text" id="cfc-formula" placeholder="e.g. \\Delta G = \\Delta H - T\\Delta S" style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.9rem; font-family: var(--font-mono);">
+        </div>
+
+        <!-- Objectives / Bullet Points -->
+        <div class="form-group">
+          <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">
+            Key Takeaways &amp; Bullet Points (Enter one point per line)
+          </label>
+          <textarea id="cfc-objectives" rows="3" placeholder="• ΔG &lt; 0 indicates exergonic, thermodynamically favored transformation&#10;• Enthalpy (ΔH) and Entropy (ΔS) oppose at temperature T = ΔH/ΔS&#10;• Dynamic equilibrium occurs when ΔG = 0" style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.88rem; line-height: 1.5; resize: vertical;"></textarea>
+        </div>
+
+        <!-- Deep Explanation -->
+        <div class="form-group">
+          <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">
+            In-Depth Theoretical Explanation &amp; Rationale *
+          </label>
+          <textarea id="cfc-explanation" rows="3" placeholder="Explain the core underlying physical or biological mechanism..." style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.88rem; line-height: 1.5; resize: vertical;"></textarea>
+        </div>
+      </div>
+
+      <div class="custom-modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 10px; background: rgba(0,0,0,0.15);">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-fc">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-save-fc" style="background: linear-gradient(135deg, #10b981, #059669); border: none; font-weight: 800; padding: 10px 22px;">
+          <span>✓ Save Custom Flashcard</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  // Cascading selects
+  const subSelect = overlay.querySelector("#cfc-subject");
+  const modSelect = overlay.querySelector("#cfc-module");
+  const lesSelect = overlay.querySelector("#cfc-lesson");
+
+  subSelect.addEventListener("change", (e) => {
+    curSub = e.target.value;
+    modSelect.innerHTML = getModuleOptions(curSub);
+    curMod = modSelect.value;
+    lesSelect.innerHTML = getLessonOptions(curSub, curMod);
+    curLes = lesSelect.value;
+  });
+
+  modSelect.addEventListener("change", (e) => {
+    curMod = e.target.value;
+    lesSelect.innerHTML = getLessonOptions(curSub, curMod);
+    curLes = lesSelect.value;
+  });
+
+  const close = () => overlay.remove();
+  overlay.querySelector("#btn-close-fc-modal").addEventListener("click", close);
+  overlay.querySelector("#btn-cancel-fc").addEventListener("click", close);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+
+  // Save handler
+  overlay.querySelector("#btn-save-fc").addEventListener("click", () => {
+    const front = overlay.querySelector("#cfc-front").value.trim();
+    const explanation = overlay.querySelector("#cfc-explanation").value.trim();
+    if (!front || front.length < 3) {
+      showToast("Title Required", "Please enter a valid title or concept for the card front.", "warning");
+      return;
+    }
+    if (!explanation || explanation.length < 5) {
+      showToast("Explanation Required", "Please provide a theoretical explanation for the card.", "warning");
+      return;
+    }
+
+    const focus = overlay.querySelector("#cfc-focus").value.trim() || front;
+    const hint = overlay.querySelector("#cfc-hint").value.trim() || "Review key principles";
+    const formula = overlay.querySelector("#cfc-formula").value.trim();
+    const rawObjectives = overlay.querySelector("#cfc-objectives").value.trim();
+    const objectives = rawObjectives ? rawObjectives.split("\n").map(s => s.replace(/^[•\-\*]\s*/, '').trim()).filter(Boolean) : [front];
+
+    const cur = trackCurricula[curSub];
+    const modObj = cur?.modules?.find(m => m.id === parseInt(curMod, 10));
+    const lesObj = modObj?.lessons?.find(l => l.id === parseInt(lesSelect.value, 10));
+
+    const newCard = {
+      id: `custom-fc-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      subject: curSub,
+      subjectName: cur?.subject || curSub,
+      trackTitle: cur?.subject || curSub,
+      moduleId: parseInt(curMod, 10),
+      moduleCode: modObj?.code || `${curSub}-M${curMod}`,
+      moduleTitle: modObj?.title || `Module ${curMod}`,
+      unit: modObj?.unit || "Custom Unit",
+      lessonId: lesObj?.id || parseInt(lesSelect.value, 10) || 1,
+      lessonTitle: lesObj?.title || `Lesson ${lesSelect.value}`,
+      category: `Inspire ${curSub} • Custom Flashcard`,
+      front,
+      backTitle: front,
+      conceptFocus: focus,
+      formula,
+      objectivesTitle: "🎯 Core Key Points & Takeaways",
+      objectives,
+      explanationTitle: "🔬 Theoretical Explanation",
+      coreExplanation: explanation,
+      hint,
+      isModuleOverview: false,
+      isLessonCard: true,
+      isCoreMastery: false,
+      isUserCustom: true,
+      cardType: "custom"
+    };
+
+    saveUserCustomFlashcard(newCard);
+    flashcardDeck.unshift(newCard);
+    SoundFX.playChime();
+    showToast("Flashcard Created", `Added custom card: "${front}"`, "success");
+    close();
+
+    if (typeof onCardSaved === "function") {
+      onCardSaved(newCard);
+    }
+  });
 }
 
 /**
@@ -1176,8 +1493,8 @@ export function renderFlashcards(containerId, initialFilter = {}) {
         const subMods = availableModules.filter(m => m.subject === sub);
         moduleOptionsHtml += `<optgroup label="Inspire ${trackMap[sub].subject}">`;
         subMods.forEach(m => {
-          const selected = currentModuleId !== "ALL" && parseInt(currentModuleId, 10) === m.id ? "selected" : "";
-          moduleOptionsHtml += `<option value="${m.id}" ${selected}>${m.code}: ${m.title}</option>`;
+          const selected = currentModuleId !== "ALL" && currentSubject === sub && parseInt(currentModuleId, 10) === m.id ? "selected" : "";
+          moduleOptionsHtml += `<option value="${m.subject}:${m.id}" ${selected}>${m.code}: ${m.title}</option>`;
         });
         moduleOptionsHtml += `</optgroup>`;
       });
@@ -1269,6 +1586,9 @@ export function renderFlashcards(containerId, initialFilter = {}) {
               <span>Adjust Track, Module & Lessons</span>
             </div>
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-secondary" id="btn-add-custom-flashcard" title="Author your own study flashcard" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
+                <span>✍️ Add Flashcard</span>
+              </button>
               <button class="btn btn-secondary" id="btn-fc-lms-share" title="Assign this flashcard practice deck to Google Classroom, Classera, Canvas, or Teams" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-color: rgba(236, 72, 153, 0.4); color: #ec4899;">
                 <span>📤 Assign to LMS</span>
               </button>
@@ -1820,11 +2140,34 @@ export function renderFlashcards(containerId, initialFilter = {}) {
       });
     });
 
+    // Add Custom Flashcard Button
+    const btnAddCustomFc = document.getElementById("btn-add-custom-flashcard");
+    if (btnAddCustomFc) {
+      btnAddCustomFc.addEventListener("click", () => {
+        openCustomFlashcardModal({
+          subject: currentSubject !== "ALL" ? currentSubject : "CHEM",
+          moduleId: currentModuleId !== "ALL" ? currentModuleId : 1,
+          lessonId: currentLessonId !== "ALL" && currentLessonId !== "OVERVIEW" ? currentLessonId : 1
+        }, () => {
+          renderView();
+        });
+      });
+    }
+
     // Cascading Module Dropdown
     const modSelect = document.getElementById("fc-module-select");
     if (modSelect) {
       modSelect.addEventListener("change", (e) => {
-        currentModuleId = e.target.value === "ALL" ? "ALL" : parseInt(e.target.value, 10);
+        const val = e.target.value;
+        if (val === "ALL") {
+          currentModuleId = "ALL";
+        } else if (val.includes(":")) {
+          const [sub, mId] = val.split(":");
+          currentSubject = sub;
+          currentModuleId = parseInt(mId, 10);
+        } else {
+          currentModuleId = parseInt(val, 10);
+        }
         currentLessonId = "ALL";
         currentIndex = 0;
         isFlipped = false;

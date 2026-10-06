@@ -163,8 +163,11 @@ async function testInteractions() {
 
   assert(mountEl.innerHTML.includes("Teacher Question Selection Studio"), "Navigated to Teacher Question Selection Studio");
   assert(mountEl.innerHTML.includes("preset-balanced-30"), "Found Balanced 30 preset");
+  assert(mountEl.innerHTML.includes("preset-balanced-25"), "Found Balanced 25 preset");
   assert(mountEl.innerHTML.includes("preset-balanced-15"), "Found Balanced 15 preset");
   assert(mountEl.innerHTML.includes("preset-balanced-10"), "Found Quick 10 preset");
+  assert(mountEl.innerHTML.includes("btn-picker-add-custom"), "Found '✍️ Write Custom Q' button in Selection Studio");
+  assert(mountEl.innerHTML.includes("btn-picker-browse-bank"), "Found '🔍 Add from Bank' button in Selection Studio");
   assert(mountEl.innerHTML.includes("btn-picker-print"), "Found Produce Final Printed Exam button");
 
   // Test Print Navigation
@@ -174,6 +177,8 @@ async function testInteractions() {
 
   assert(mountEl.innerHTML.includes("print-actions-bar"), "Print Studio loaded with toolbar");
   assert(mountEl.innerHTML.includes("btn-print-reselect"), "Print Studio has 'Choose / Edit Questions' button");
+  assert(mountEl.innerHTML.includes("btn-print-add-custom"), "Print Studio has '✍️ Add Custom Q' button");
+  assert(mountEl.innerHTML.includes("btn-print-browse-bank"), "Print Studio has '🔍 Add from Bank' button");
   assert(mountEl.innerHTML.includes("btn-exclude-q"), "Print Studio question cards have '✕ Exclude' buttons");
   assert(mountEl.innerHTML.includes("STANDARD OPTICAL MARK RECOGNITION (OMR) RESPONSE SHEET"), "Print Studio includes OMR Bubble Sheet");
   assert(mountEl.innerHTML.includes("Teacher Scoring Guide &amp; Detailed Solutions Key"), "Print Studio includes Teacher Solutions Key");
