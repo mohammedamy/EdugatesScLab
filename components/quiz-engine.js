@@ -58,6 +58,9 @@ import { generateQRSvg } from "../utils/qr-code.js";
 import { openLmsShareModal } from "../utils/lms-share.js";
 import { toggleScienceCalculator } from "./science-calculator.js";
 import { exportToDocx } from "../utils/docx-export.js";
+import { polishDiagramForPrint } from "../utils/diagram-print-polisher.js";
+
+export { polishDiagramForPrint };
 
 export function renderQuizEngine(containerId, initialConfig = null) {
   const container = document.getElementById(containerId);
@@ -1401,9 +1404,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                       </button>
                       ${isDiagOpen ? `
                         <div class="q-picker-diagram-box">
-                          ${q.diagram.caption ? `<div style="font-size: 0.8rem; font-weight: 700; color: #94a3b8; margin-bottom: 6px;">${q.diagram.caption}</div>` : ''}
-                          <div style="max-height: 220px; overflow: hidden; display: flex; justify-content: center;">
-                            ${q.diagram.svg}
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                            ${q.diagram.caption ? `<div style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);">${q.diagram.caption}</div>` : '<div></div>'}
+                            <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; font-weight: 700;">
+                              🖨️ High-Contrast Print &amp; Copier Ready
+                            </span>
+                          </div>
+                          <div style="max-height: 240px; overflow: hidden; display: flex; justify-content: center; background: #ffffff; border-radius: 6px; padding: 6px; border: 1px solid #cbd5e1;">
+                            ${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}
                           </div>
                         </div>
                       ` : ''}
@@ -3002,9 +3010,9 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                     </div>
 
                     ${q.diagram ? `
-                      <div class="print-diagram-container" style="margin: 10px 0; text-align: center;">
-                        ${q.diagram.caption ? `<div class="print-diagram-caption" style="font-size: 0.82rem; font-weight: 700; color: #475569; margin-bottom: 4px;">${q.diagram.caption}</div>` : ""}
-                        <div class="print-diagram-svg" style="max-height: 220px; display: inline-block;">${q.diagram.svg}</div>
+                      <div class="print-diagram-container" style="margin: 10px 0; text-align: center; background: #ffffff; border: 1.5px solid #000000; border-radius: 6px; padding: 10px;">
+                        ${q.diagram.caption ? `<div class="print-diagram-caption" style="font-size: 0.84rem; font-weight: 800; color: #000000; margin-bottom: 6px;">${q.diagram.caption}</div>` : ""}
+                        <div class="print-diagram-svg" style="max-height: 230px; display: inline-block;">${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}</div>
                       </div>
                     ` : ""}
 

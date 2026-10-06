@@ -4,6 +4,7 @@
 // Compatible with Microsoft Word, Google Docs, Apple Pages, and LibreOffice.
 
 import { showToast } from "./toast.js";
+import { polishDiagramForPrint } from "./diagram-print-polisher.js";
 
 /**
  * Exports an HTML fragment or document element to an editable .docx file.
@@ -52,6 +53,14 @@ export function exportToDocx({ title, filename, content, subject = "Science", or
           span.innerHTML = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
         }
         inp.replaceWith(span);
+      });
+
+      // Sanitize and polish all SVGs for Word and paper printing
+      clone.querySelectorAll(".print-diagram-svg, .q-diagram-svg, .presenter-diagram-svg, .q-picker-diagram-box").forEach(container => {
+        const svgEl = container.querySelector("svg");
+        if (svgEl) {
+          container.innerHTML = polishDiagramForPrint(container.innerHTML);
+        }
       });
 
       // Inline SVGs: ensure they have explicit width & height attributes for Word

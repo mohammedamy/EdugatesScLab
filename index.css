@@ -11735,28 +11735,31 @@ mark.search-highlight {
   display: block;
 }
 
-/* 3. Printable Test Paper View */
+/* 3. Printable Test Paper View & High-Contrast Photocopier Line-Art */
 .print-diagram-container {
   margin: 12px 0 16px 0;
   text-align: center;
-  border: 1.5px solid #cbd5e1;
+  border: 1.5px solid #000000;
   border-radius: 6px;
   padding: 10px;
   background: #ffffff;
+  color: #000000;
   page-break-inside: avoid;
 }
 
 .print-diagram-caption {
   font-size: 0.86rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-weight: 800;
+  color: #000000;
   margin-bottom: 8px;
+  text-align: center;
 }
 
 .print-diagram-svg {
   display: flex;
   justify-content: center;
   align-items: center;
+  background: #ffffff;
 }
 
 .print-diagram-svg svg {
@@ -11764,20 +11767,69 @@ mark.search-highlight {
   max-height: 240px;
   width: 100%;
   height: auto;
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Photocopier & Laser Printer Strict Line-Art Enforcements */
+.print-diagram-svg svg rect:first-child {
+  fill: #ffffff !important;
+  stroke: #000000 !important;
+}
+
+.print-diagram-svg svg text {
+  fill: #000000 !important;
+  font-weight: 700 !important;
 }
 
 @media print {
-  .print-diagram-container {
-    border: 1px solid #64748b !important;
+  .print-diagram-container,
+  .q-diagram-container,
+  .presenter-diagram-container {
+    border: 1.5px solid #000000 !important;
     background: #ffffff !important;
-    page-break-inside: avoid !important;
-  }
-  .print-diagram-caption {
     color: #000000 !important;
+    page-break-inside: avoid !important;
+    box-shadow: none !important;
   }
-  .print-diagram-svg svg {
+  .print-diagram-caption,
+  .q-diagram-caption,
+  .presenter-diagram-caption {
+    color: #000000 !important;
+    font-weight: 800 !important;
+  }
+  .print-diagram-svg,
+  .q-diagram-svg,
+  .presenter-diagram-svg {
+    background: #ffffff !important;
+  }
+  .print-diagram-svg svg,
+  .q-diagram-svg svg,
+  .presenter-diagram-svg svg {
     max-width: 420px !important;
     max-height: 220px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .print-diagram-svg svg rect:first-child,
+  .q-diagram-svg svg rect:first-child,
+  .presenter-diagram-svg svg rect:first-child {
+    fill: #ffffff !important;
+    stroke: #000000 !important;
+  }
+  .print-diagram-svg svg text,
+  .q-diagram-svg svg text,
+  .presenter-diagram-svg svg text {
+    fill: #000000 !important;
+    font-weight: 700 !important;
+  }
+  /* Invert/sanitize dark panels on copiers */
+  .print-diagram-svg svg [fill="#0f172a"],
+  .q-diagram-svg svg [fill="#0f172a"],
+  .print-diagram-svg svg [fill="#1e293b"],
+  .q-diagram-svg svg [fill="#1e293b"] {
+    fill: #f8fafc !important;
+    stroke: #000000 !important;
   }
 }
 
