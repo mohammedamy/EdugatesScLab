@@ -167,9 +167,15 @@ it("sw.js, service-worker.js, and offline-diagnostics.js have synchronized cache
   const swMain = fs.readFileSync(path.join(rootDir, "service-worker.js"), "utf8");
   const diag = fs.readFileSync(path.join(rootDir, "components", "offline-diagnostics.js"), "utf8");
 
-  assert(sw.includes('const CACHE_NAME = "amscilab-pwa-v62";'), "sw.js bumped to v62");
-  assert(swMain.includes('const CACHE_NAME = "amscilab-pwa-v62";'), "service-worker.js bumped to v62");
-  assert(diag.includes('const CURRENT_CACHE_NAME = "amscilab-pwa-v62";'), "offline-diagnostics.js bumped to v62");
+  const swMatch = sw.match(/const CACHE_NAME = "([^"]+)";/);
+  const swMainMatch = swMain.match(/const CACHE_NAME = "([^"]+)";/);
+  const diagMatch = diag.match(/const CURRENT_CACHE_NAME = "([^"]+)";/);
+
+  assert(swMatch && swMatch[1], "sw.js defines CACHE_NAME");
+  assert(swMainMatch && swMainMatch[1], "service-worker.js defines CACHE_NAME");
+  assert(diagMatch && diagMatch[1], "offline-diagnostics.js defines CURRENT_CACHE_NAME");
+  assert.strictEqual(swMatch[1], swMainMatch[1], "sw.js and service-worker.js have matching CACHE_NAME");
+  assert.strictEqual(swMatch[1], diagMatch[1], "sw.js and offline-diagnostics.js have matching cache versions");
 });
 
 console.log("\n========================================================");

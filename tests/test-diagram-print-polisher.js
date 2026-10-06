@@ -181,6 +181,24 @@ check(
   "Polished diagram includes data-print-polished flag and responsive max-width: 560px styling"
 );
 
+// 10. Clean Subtle Outer Stroke (Eradicate heavy black borders)
+check(
+  samplePolished.includes('stroke="#cbd5e1"'),
+  "Outer canvas rect uses clean subtle border (stroke='#cbd5e1') instead of heavy black ink border"
+);
+
+// 11. Zero Dark / Black Background Fills Across All Flagships
+let zeroDarkFills = true;
+for (const [key, diag] of Object.entries(SCIENTIFIC_DIAGRAMS)) {
+  const p = polishDiagramForPrint(diag.svg);
+  const darkMatches = p.match(/fill=["'](#0f172a|#1e293b|#334155|#475569|#090d16|#020617|rgba\(\s*(?:15|30|51|71))/gi);
+  if (darkMatches) {
+    zeroDarkFills = false;
+    console.error(`  ${key} still contains dark fills:`, darkMatches);
+  }
+}
+check(zeroDarkFills, "Zero dark or black background fills (#0f172a, #1e293b, #334155, #475569, rgba) across all diagrams");
+
 console.log("\n========================================================");
 console.log(`📊 Diagram Print Optimization Suite: ${passed} Passed, ${failed} Failed`);
 console.log("========================================================\n");

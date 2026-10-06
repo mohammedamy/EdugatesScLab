@@ -12269,7 +12269,7 @@ mark.search-highlight {
 .print-diagram-container {
   margin: 12px 0 16px 0;
   text-align: center;
-  border: 1.5px solid #000000;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding: 10px;
   background: #ffffff;
@@ -12303,9 +12303,11 @@ mark.search-highlight {
 }
 
 /* Photocopier & Laser Printer Strict Line-Art Enforcements */
-.print-diagram-svg svg rect:first-child {
+.print-diagram-svg svg rect:first-child,
+.print-diagram-svg svg rect:first-of-type {
   fill: #ffffff !important;
-  stroke: #000000 !important;
+  stroke: #cbd5e1 !important;
+  stroke-width: 1px !important;
 }
 
 .print-diagram-svg svg text {
@@ -12317,7 +12319,7 @@ mark.search-highlight {
   .print-diagram-container,
   .q-diagram-container,
   .presenter-diagram-container {
-    border: 1.5px solid #000000 !important;
+    border: 1px solid #e2e8f0 !important;
     background: #ffffff !important;
     color: #000000 !important;
     page-break-inside: avoid !important;
@@ -12347,10 +12349,14 @@ mark.search-highlight {
     color: #000000 !important;
   }
   .print-diagram-svg svg rect:first-child,
+  .print-diagram-svg svg rect:first-of-type,
   .q-diagram-svg svg rect:first-child,
-  .presenter-diagram-svg svg rect:first-child {
+  .q-diagram-svg svg rect:first-of-type,
+  .presenter-diagram-svg svg rect:first-child,
+  .presenter-diagram-svg svg rect:first-of-type {
     fill: #ffffff !important;
-    stroke: #000000 !important;
+    stroke: #cbd5e1 !important;
+    stroke-width: 1px !important;
   }
   .print-diagram-svg svg text,
   .q-diagram-svg svg text,
@@ -12361,10 +12367,18 @@ mark.search-highlight {
   /* Invert/sanitize dark panels on copiers */
   .print-diagram-svg svg [fill="#0f172a"],
   .q-diagram-svg svg [fill="#0f172a"],
+  .presenter-diagram-svg svg [fill="#0f172a"],
   .print-diagram-svg svg [fill="#1e293b"],
-  .q-diagram-svg svg [fill="#1e293b"] {
-    fill: #f8fafc !important;
-    stroke: #000000 !important;
+  .q-diagram-svg svg [fill="#1e293b"],
+  .presenter-diagram-svg svg [fill="#1e293b"],
+  .print-diagram-svg svg [fill="#334155"],
+  .q-diagram-svg svg [fill="#334155"],
+  .presenter-diagram-svg svg [fill="#334155"],
+  .print-diagram-svg svg [fill="#475569"],
+  .q-diagram-svg svg [fill="#475569"],
+  .presenter-diagram-svg svg [fill="#475569"] {
+    fill: #ffffff !important;
+    stroke: #cbd5e1 !important;
   }
   /* Two-column print diagram optimizations */
   .print-two-col .print-diagram-container {

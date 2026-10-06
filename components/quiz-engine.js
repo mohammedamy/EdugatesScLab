@@ -3068,7 +3068,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         ${q.diagram ? `
           <div class="q-diagram-container">
             ${(typeof q.diagram === "object" && q.diagram !== null && q.diagram.caption) ? `<div class="q-diagram-caption">${q.diagram.caption}</div>` : ""}
-            <div class="q-diagram-svg">${(typeof q.diagram === "object" && q.diagram !== null) ? (q.diagram.svg || "") : String(q.diagram || "")}</div>
+            <div class="q-diagram-svg">${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}</div>
           </div>
         ` : ""}
 
@@ -4019,7 +4019,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                     </div>
 
                     ${q.diagram ? `
-                      <div class="print-diagram-container" style="margin: 10px 0; text-align: center; background: #ffffff; border: 1.5px solid #000000; border-radius: 6px; padding: 10px;">
+                      <div class="print-diagram-container" style="margin: 10px 0; text-align: center; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px;">
                         ${q.diagram.caption ? `<div class="print-diagram-caption" style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 8px;">${q.diagram.caption}</div>` : ""}
                         <div class="print-diagram-svg" style="max-height: 300px; width: 100%; display: flex; justify-content: center; align-items: center;">${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}</div>
                       </div>

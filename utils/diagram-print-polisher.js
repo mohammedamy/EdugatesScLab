@@ -20,22 +20,22 @@
  */
 function boostFontSizeForPrint(val) {
   const num = parseFloat(val);
-  if (isNaN(num) || num <= 0) return "16px";
-  // Subscripts & tiny annotations (6 - 8px) -> 12.5px - 14.5px
-  if (num <= 6.5) return "12.5px";
-  if (num <= 7.5) return "13.5px";
-  if (num <= 8.5) return "14.5px";
-  // Secondary labels / ticks / units (9 - 10.5px) -> 15.5px - 16.5px
-  if (num <= 9.5) return "15.5px";
-  if (num <= 10.5) return "16.5px";
-  if (num <= 11.5) return "17.5px";
-  // Primary axis / region labels (12 - 13px) -> 18.5px - 19.5px
-  if (num <= 12.5) return "18.5px";
-  if (num <= 13.5) return "19.5px";
-  // Main headings / prominent callouts (14px+) -> 20.5px - 22px
-  if (num <= 15) return "20.5px";
-  if (num <= 16.5) return "22px";
-  return `${Math.min(25, Math.round(num * 1.25))}px`;
+  if (isNaN(num) || num <= 0) return "17px";
+  // Subscripts & tiny annotations (6 - 8.5px) -> 14px - 15.5px
+  if (num <= 6.5) return "14px";
+  if (num <= 7.5) return "14.5px";
+  if (num <= 8.5) return "15.5px";
+  // Secondary labels / ticks / units (9 - 11.5px) -> 16.5px - 18.5px
+  if (num <= 9.5) return "16.5px";
+  if (num <= 10.5) return "17.5px";
+  if (num <= 11.5) return "18.5px";
+  // Primary axis / region labels (12 - 13.5px) -> 19.5px - 21px
+  if (num <= 12.5) return "19.5px";
+  if (num <= 13.5) return "21px";
+  // Main headings / prominent callouts (14px+) -> 22.5px - 25px
+  if (num <= 15) return "22.5px";
+  if (num <= 16.5) return "24px";
+  return `${Math.min(28, Math.round(num * 1.35))}px`;
 }
 
 /**
@@ -54,7 +54,7 @@ export function polishDiagramForPrint(svgStr) {
   const isAlreadyPolished = s.includes('data-print-polished="true"');
 
   // 1. Root <svg> element style adjustments
-  // Ensure the SVG itself has a white background, sharp black text baseline, and responsive scaling
+  // Ensure the SVG itself has a pure white background, sharp black text baseline, and responsive scaling
   if (!isAlreadyPolished) {
     s = s.replace(/<svg\b([^>]*)>/i, (match, attrs) => {
       let newAttrs = attrs;
@@ -76,14 +76,30 @@ export function polishDiagramForPrint(svgStr) {
 
   // 2. Outer canvas background rectangle
   // Replaces the prominent dark canvas rect: <rect width="540" ... fill="#0f172a" ...>
+  // Unconditionally converts dark canvas fills to clean pure white (#ffffff) with subtle border
   s = s.replace(
-    /(<rect\b[^>]*?\bwidth=["'](540|100%|520)["'][^>]*?)(fill=["']#(0f172a|1e293b|090d16|020617|000000)["'])([^>]*?>)/gi,
+    /(<rect\b[^>]*?\bwidth=["'](540|100%|520|500|480|560)["'][^>]*?)(fill=["']#(0f172a|1e293b|090d16|020617|0b1120|000000)["'])([^>]*?>)/gi,
     (match, prefix, w, fillAttr, hex, suffix) => {
-      // Clean up stroke on outer border to crisp black/dark gray
       let updated = prefix + `fill="#ffffff"` + suffix;
-      updated = updated.replace(/stroke=["']#[a-f0-9]+["']/gi, 'stroke="#000000"');
+      updated = updated.replace(/stroke=["']#[a-f0-9]+["']/gi, 'stroke="#cbd5e1"');
       if (!/stroke=/i.test(updated)) {
-        updated = updated.replace(/\/>$/, ' stroke="#000000" stroke-width="1.5"/>');
+        updated = updated.replace(/\/>$/, ' stroke="#cbd5e1" stroke-width="1"/>');
+      } else {
+        updated = updated.replace(/stroke-width=["'][^"']*["']/gi, 'stroke-width="1"');
+      }
+      return updated;
+    }
+  );
+
+  s = s.replace(
+    /(<rect\b[^>]*?\bfill=["']#(0f172a|1e293b|090d16|020617|0b1120|000000)["'][^>]*?)(width=["'](540|100%|520|500|480|560)["'])([^>]*?>)/gi,
+    (match, prefix, hex, wAttr, w, suffix) => {
+      let updated = prefix.replace(/fill=["']#[a-f0-9]+["']/gi, 'fill="#ffffff"') + wAttr + suffix;
+      updated = updated.replace(/stroke=["']#[a-f0-9]+["']/gi, 'stroke="#cbd5e1"');
+      if (!/stroke=/i.test(updated)) {
+        updated = updated.replace(/\/>$/, ' stroke="#cbd5e1" stroke-width="1"/>');
+      } else {
+        updated = updated.replace(/stroke-width=["'][^"']*["']/gi, 'stroke-width="1"');
       }
       return updated;
     }
@@ -91,28 +107,30 @@ export function polishDiagramForPrint(svgStr) {
 
   // Catch any other full-size background rect at the very beginning of the SVG
   s = s.replace(
-    /(<svg[^>]*>[\s\n]*)(<rect\b[^>]*?\bfill=["']#(0f172a|1e293b|090d16|020617|0b1120)["'][^>]*?>)/gi,
+    /(<svg\b[^>]*>[\s\S]*?)(<rect\b[^>]*?\bfill=["']#(0f172a|1e293b|090d16|020617|0b1120)["'][^>]*?>)/i,
     (match, svgTag, rectTag) => {
       let cleanRect = rectTag
         .replace(/fill=["']#[a-f0-9]+["']/gi, 'fill="#ffffff"')
-        .replace(/stroke=["']#[a-f0-9]+["']/gi, 'stroke="#000000"');
+        .replace(/stroke=["']#[a-f0-9]+["']/gi, 'stroke="#cbd5e1"');
       if (!/stroke=/i.test(cleanRect)) {
-        cleanRect = cleanRect.replace(/\/>$/, ' stroke="#000000" stroke-width="1.5"/>');
+        cleanRect = cleanRect.replace(/\/>$/, ' stroke="#cbd5e1" stroke-width="1"/>');
+      } else {
+        cleanRect = cleanRect.replace(/stroke-width=["'][^"']*["']/gi, 'stroke-width="1"');
       }
       return svgTag + cleanRect;
     }
   );
 
   // 3. Inner dark containers, panels, boxes, and instrument frames
-  // Dark fills (#0f172a, #1e293b, #090d16, #020617, #334155, rgba(15, 23, 42, ...)) -> #f8fafc or #ffffff
+  // Convert any remaining dark fills (#0f172a, #1e293b, #090d16, #020617, #0b1120, #030712, #334155, #475569, rgba(15, 23, 42, ...), rgba(30, 41, 59, ...)) -> #ffffff
   s = s.replace(
-    /\bfill=["'](#0f172a|#1e293b|#090d16|#020617|#0b1120|#030712|#000000|rgba\(\s*15\s*,\s*23\s*,\s*42\s*,\s*[\d\.]+\))["']/gi,
-    'fill="#f8fafc"'
+    /\bfill=["'](#0f172a|#1e293b|#090d16|#020617|#0b1120|#030712|#334155|#475569|rgba\(\s*(?:15|30|51|71)\s*,\s*[\d\.]+\s*,\s*[\d\.]+\s*,\s*[\d\.]+\))["']/gi,
+    'fill="#ffffff"'
   );
 
   // 4. Subtle framing strokes on panels & boxes
-  // stroke="#334155", stroke="#475569", stroke="#1e293b" -> stroke="#000000" or stroke="#475569"
-  s = s.replace(/\bstroke=["']#(334155|475569|1e293b|0f172a)["']/gi, 'stroke="#000000"');
+  // stroke="#334155", stroke="#475569", stroke="#1e293b" -> clean light gray outline stroke="#94a3b8"
+  s = s.replace(/\bstroke=["']#(334155|475569|1e293b|0f172a)["']/gi, 'stroke="#94a3b8"');
 
   // 5. Gridlines: dark gridlines (#1e293b, #334155) -> crisp light gray (#cbd5e1)
   // Look for dashed gridlines or coordinate grid
@@ -136,7 +154,7 @@ export function polishDiagramForPrint(svgStr) {
   // 7. Wires, Circuit Connectors, Rays, Vectors, and Indicators
   // Convert colored strokes on paths, lines, and rects to solid jet black for printing
   s = s.replace(
-    /(<(?:path|line|rect|polygon)\b[^>]*?\bstroke=["'])#(?:facc15|f59e0b|fbbf24|38bdf8|2dd4bf|06b6d4|0284c7|10b981|34d399|60a5fa|818cf8|a5b4fc|ef4444|ec4899|f43f5e|cbd5e1)(["'])/gi,
+    /(<(?:path|line|rect|polygon)\b[^>]*?\bstroke=["'])#(?:facc15|f59e0b|fbbf24|38bdf8|2dd4bf|06b6d4|0284c7|10b981|34d399|60a5fa|818cf8|a5b4fc|ef4444|ec4899|f43f5e)(["'])/gi,
     '$1#000000$2'
   );
   s = s.replace(
@@ -260,22 +278,22 @@ export function polishDiagramForPrint(svgStr) {
 
   // 14. Inject embedded CSS print override stylesheet inside the SVG
   // This guarantees that any SVG rendering engine (browser print, PDF generator, Word/DOCX)
-  // strictly enforces publication textbook styles even if any inline style remains.
+  // strictly enforces clean publication white background and large, crystal-clear typography.
   const printStyleBlock = `
   <style>
-    /* Textbook Publication Mode: High-Contrast Black & White Line-Art with Enhanced Typography */
+    /* Clean White Paper Mode: Pure White Background & Large High-Legibility Typography */
     svg { background-color: #ffffff !important; }
+    rect:first-of-type, rect:first-child { fill: #ffffff !important; stroke: #cbd5e1 !important; stroke-width: 1px !important; }
     text {
       fill: #000000 !important;
       font-weight: 800 !important;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
       paint-order: stroke fill;
       stroke: #ffffff;
-      stroke-width: 1.5px;
+      stroke-width: 2px;
       stroke-linejoin: round;
     }
     tspan { fill: #000000 !important; font-weight: 800 !important; }
-    rect:first-child { fill: #ffffff !important; stroke: #000000 !important; }
   </style>`;
 
   if (!s.includes("<style>")) {
