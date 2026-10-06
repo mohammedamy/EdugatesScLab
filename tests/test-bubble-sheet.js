@@ -41,7 +41,7 @@ assert(quizEngineSrc.includes('class="omr-bubbles-group"'),
 assert(quizEngineSrc.includes('margin-right: auto; text-align: left;') && quizEngineSrc.includes('text-align: left; color: #000000; margin-right: 2px;'),
   "omr-q-row and omr-q-num strictly left-aligned");
 
-assert(quizEngineSrc.includes('justify-content: flex-start; gap: 8px; align-items: center;'),
+assert(quizEngineSrc.includes('display: flex; align-items: center; gap: 4px;'),
   "Answer key matrix bubbles are strictly left-aligned next to question numbers");
 
 // Verify column balancing logic

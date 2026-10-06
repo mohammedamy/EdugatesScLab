@@ -150,7 +150,8 @@ assert(appSrc.includes("window.TouchZoom.setAllowed(tabId === \"labs\")"),
 // ----------------------------------------------------
 const swPath = path.resolve("sw.js");
 const swSrc = fs.readFileSync(swPath, "utf-8");
-assert(swSrc.includes("amscilab-pwa-v55") || swSrc.includes("amscilab-pwa-v56"),
+const vMatch = swSrc.match(/amscilab-pwa-v(\d+)/);
+assert(vMatch && parseInt(vMatch[1], 10) >= 55,
   "sw.js cache bumped to v55 or newer");
 assert(swSrc.includes("./404.html") && swSrc.includes("./assets/hero-social-card-1200x630.jpg"),
   "sw.js caches 404.html and hero social card");
