@@ -1433,7 +1433,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                     <div class="flashcard-category-tag" style="font-size: 0.82rem; font-weight: 700; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px;">
                       ⚡ REVERSE CHALLENGE • ${card.category}
                     </div>
-                    <div style="font-family: var(--font-heading); font-size: 1.45rem; font-weight: 800; color: #f8fafc; line-height: 1.3; max-width: 680px; margin-bottom: 12px;">
+                    <div style="font-family: var(--font-heading); font-size: 1.45rem; font-weight: 800; color: var(--text-main); line-height: 1.3; max-width: 680px; margin-bottom: 12px;">
                       What STEM Law, Principle, or Term is described below?
                     </div>
                     ${card.formula ? `
@@ -1456,7 +1456,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                       </div>
                     ` : ''}
                     ${card.hint ? `
-                      <div class="flashcard-topic-pill" style="border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); color: #fbbf24;">
+                      <div class="flashcard-topic-pill flashcard-topic-pill-reverse" style="border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); color: #fbbf24;">
                         <span>💡 Clue: ${card.hint}</span>
                       </div>
                     ` : ''}
@@ -1499,7 +1499,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                       <span class="speech-icon">🔊</span>
                       <span class="fc-speech-text">Pronounce</span>
                     </button>
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 10px; border-radius: 999px;">
+                    <div class="flashcard-revealed-badge" style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 3px 10px; border-radius: 999px;">
                       <span>⟲</span> ${isReverseMode ? 'Concept Revealed' : 'Answer & Breakdown'}
                     </div>
                   </div>
@@ -1507,12 +1507,12 @@ export function renderFlashcards(containerId, initialFilter = {}) {
 
                 <!-- Scrollable Body -->
                 <div class="flashcard-back-body">
-                  <div style="font-family: var(--font-heading); font-size: ${isReverseMode ? '1.5rem' : '1.25rem'}; font-weight: 800; color: var(--text-main); line-height: 1.3; margin-bottom: 6px; background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                  <div class="flashcard-back-title" style="font-family: var(--font-heading); font-size: ${isReverseMode ? '1.5rem' : '1.25rem'}; font-weight: 800; line-height: 1.3; margin-bottom: 6px;">
                     ${card.front}
                   </div>
 
                   ${card.conceptFocus && card.conceptFocus !== card.front ? `
-                    <div style="font-size: 0.9rem; color: #38bdf8; font-weight: 600; margin-bottom: 10px;">
+                    <div class="flashcard-focus-tag" style="font-size: 0.9rem; color: #38bdf8; font-weight: 600; margin-bottom: 10px;">
                       🔬 Focus: ${card.conceptFocus}
                     </div>
                   ` : ''}
@@ -1573,11 +1573,11 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                   ${card.coreExplanation ? `
                     <div style="margin: 12px 0;">
                       ${card.explanationTitle ? `
-                        <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
+                        <div class="flashcard-exp-title" style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
                           ${card.explanationTitle}
                         </div>
                       ` : ''}
-                      <div style="font-size: 0.95rem; color: var(--text-main); line-height: 1.6; white-space: pre-line; background: rgba(15, 23, 42, 0.35); padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                      <div class="flashcard-exp-box" style="font-size: 0.95rem; color: var(--text-main); line-height: 1.6; white-space: pre-line; background: rgba(15, 23, 42, 0.35); padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06);">
                         ${formatMathText(card.coreExplanation)}
                       </div>
                     </div>
@@ -1588,7 +1588,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                 <div class="flashcard-footer">
                   <div style="font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 65%;">
                     <span>💡 Hint:</span>
-                    <span style="color: #cbd5e1;">${card.hint || "Review key principles"}</span>
+                    <span class="flashcard-hint-text" style="color: #cbd5e1;">${card.hint || "Review key principles"}</span>
                   </div>
                   <div style="font-size: 0.82rem; color: var(--text-dim); display: flex; align-items: center; gap: 4px;">
                     <span>👆 Tap or Space to flip back</span>
