@@ -694,6 +694,19 @@ function bindGlobalEvents() {
       toggleFocusMode(false);
     }
   });
+
+  // Direct Subject Switcher Shortcuts: 1: Chem, 2: Bio, 3: Phys, 4: Labs, 5: Quiz, 6: Flashcards
+  document.addEventListener("keydown", (e) => {
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName) || document.activeElement?.isContentEditable) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    if (document.querySelector(".modal-overlay:not([style*='display: none'])")) return;
+    const keyMap = { "1": "chem", "2": "bio", "3": "phys", "4": "labs", "5": "quiz", "6": "flashcards" };
+    if (keyMap[e.key]) {
+      e.preventDefault();
+      try { SoundFX.playClick(); } catch (err) {}
+      switchTab(keyMap[e.key], true);
+    }
+  });
 }
 
 export function openShortcutsModal() {
@@ -1041,19 +1054,19 @@ function renderCurriculumSkeleton(container, subjectKey) {
         </div>
       </div>
       <div class="modules-grid skeleton-grid">
-        ${Array.from({ length: 6 }).map(() => `
-          <div class="module-card skeleton-card">
-            <div class="module-card-banner is-loading" style="height: 180px; position: relative; overflow: hidden; background: var(--bg-surface-elevated, #131b2e); border-radius: 12px 12px 0 0;">
+        ${Array.from({ length: 8 }).map(() => `
+          <div class="module-card skeleton-card" style="pointer-events: none;">
+            <div class="module-card-banner is-loading" style="height: 145px; position: relative; overflow: hidden; border-radius: 10px 10px 0 0;">
               <div class="module-banner-skeleton" style="position: absolute; inset: 0;"></div>
             </div>
-            <div class="module-card-body" style="padding: 16px;">
-              <div class="skeleton-line shimmer" style="width: 30%; height: 12px; border-radius: 4px; margin-bottom: 10px;"></div>
-              <div class="skeleton-line shimmer" style="width: 85%; height: 20px; border-radius: 6px; margin-bottom: 12px;"></div>
+            <div class="module-card-content" style="padding: 16px;">
+              <div class="skeleton-line shimmer" style="width: 32%; height: 14px; border-radius: 4px; margin-bottom: 10px;"></div>
+              <div class="skeleton-line shimmer" style="width: 85%; height: 22px; border-radius: 6px; margin-bottom: 12px;"></div>
               <div class="skeleton-line shimmer" style="width: 100%; height: 14px; border-radius: 4px; margin-bottom: 6px;"></div>
-              <div class="skeleton-line shimmer" style="width: 60%; height: 14px; border-radius: 4px; margin-bottom: 16px;"></div>
-              <div style="display: flex; gap: 8px; margin-top: 12px;">
-                <div class="skeleton-line shimmer" style="width: 48%; height: 28px; border-radius: 6px;"></div>
-                <div class="skeleton-line shimmer" style="width: 48%; height: 28px; border-radius: 6px;"></div>
+              <div class="skeleton-line shimmer" style="width: 65%; height: 14px; border-radius: 4px; margin-bottom: 16px;"></div>
+              <div style="display: flex; gap: 8px; margin-top: 14px;">
+                <div class="skeleton-line shimmer" style="flex: 1; height: 32px; border-radius: 6px;"></div>
+                <div class="skeleton-line shimmer" style="flex: 1; height: 32px; border-radius: 6px;"></div>
               </div>
             </div>
           </div>
@@ -1392,7 +1405,7 @@ function renderSubjectView(container, curData, themeColor) {
 
   // Preload top visible card images for this subject for instant above-the-fold first paint
   if (curData && Array.isArray(curData.modules)) {
-    const topModules = curData.modules.slice(0, 6);
+    const topModules = curData.modules.slice(0, 12);
     topModules.forEach(m => {
       const href = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
       if (typeof document !== "undefined") {
@@ -1426,6 +1439,8 @@ function renderSubjectView(container, curData, themeColor) {
     lastMod = curData.modules[0];
   }
 
+  const percentExplored = curData.totalModules ? Math.min(100, Math.round((subjStats.modulesCount / curData.totalModules) * 100)) : 0;
+
   container.innerHTML = `
     <!-- Subject Hero Banner -->
     <div class="hero-banner">
@@ -1458,6 +1473,22 @@ function renderSubjectView(container, curData, themeColor) {
           <div class="metric-label">NGSS Inquiry<br>Aligned</div>
         </div>
       </div>
+
+      <!-- Quick Action Navigation Toolbar -->
+      <div class="hero-quick-actions" role="toolbar" aria-label="Classroom and lab shortcuts" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px;">
+        <a href="#labs" class="btn-quick-hero hero-btn-lab" aria-label="Launch Virtual Labs Suite" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1.5px solid rgba(56, 189, 248, 0.35); transition: all 0.2s ease;">
+          <span>🔬</span>
+          <span>Open Virtual Labs</span>
+        </a>
+        <a href="#quiz" class="btn-quick-hero hero-btn-quiz" aria-label="Open Quiz & Exam Generator" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1.5px solid rgba(245, 158, 11, 0.35); transition: all 0.2s ease;">
+          <span>📝</span>
+          <span>Exam Generator</span>
+        </a>
+        <a href="#flashcards" class="btn-quick-hero hero-btn-flashcards" aria-label="Open STEM Flashcards" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 10px; font-weight: 700; font-size: 0.88rem; background: rgba(236, 72, 153, 0.12); color: #ec4899; border: 1.5px solid rgba(236, 72, 153, 0.35); transition: all 0.2s ease;">
+          <span>🎴</span>
+          <span>Flashcards</span>
+        </a>
+      </div>
     </div>
 
     ${showPresenterTip ? `
@@ -1483,6 +1514,14 @@ function renderSubjectView(container, curData, themeColor) {
               ${lastOpenedTimeStr ? `<span class="last-opened-time">• Last opened ${lastOpenedTimeStr}</span>` : ''}
             </span>
             <span class="continue-learning-target">${lastMod.code}: ${lastMod.title}</span>
+            ${subjStats.modulesCount > 0 ? `
+              <div class="continue-learning-progress-row" style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
+                <div class="continue-progress-track" title="${subjStats.modulesCount} of ${curData.totalModules} chapters explored (${percentExplored}%)" style="width: 130px; height: 5px; background: rgba(255,255,255,0.12); border-radius: 9999px; overflow: hidden;">
+                  <div class="continue-progress-fill" style="width: ${percentExplored}%; height: 100%; background: ${themeColor}; border-radius: 9999px;"></div>
+                </div>
+                <span style="font-size: 0.74rem; color: var(--text-dim); font-weight: 600;">${percentExplored}% explored</span>
+              </div>
+            ` : ''}
           </div>
         </div>
         <div class="continue-learning-actions">
@@ -1493,6 +1532,9 @@ function renderSubjectView(container, curData, themeColor) {
               <span>${subjStats.modulesCount} chapter${subjStats.modulesCount === 1 ? '' : 's'} explored • ${subjStats.labsCount} lab${subjStats.labsCount === 1 ? '' : 's'} launched in ${subjName}</span>
             `}
           </div>
+          <a href="#labs/${normalizeLabId(lastMod.lab)}" class="btn-continue-lab" aria-label="Launch Virtual Lab for Chapter ${lastMod.code}" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1.5px solid rgba(56, 189, 248, 0.4); color: #38bdf8; background: rgba(56, 189, 248, 0.08); font-weight: 700; font-size: 0.85rem;">
+            <span>🔬 Launch Lab</span>
+          </a>
           <a href="#module/${lastMod.code}" class="btn-continue-resume" aria-label="${isResuming ? 'Resume' : 'Start'} Chapter ${lastMod.code}">
             <span>${isResuming ? 'Resume Chapter' : 'Start Chapter 1'}</span>
             <span>→</span>
@@ -1537,9 +1579,9 @@ function renderSubjectView(container, curData, themeColor) {
         ${filtered.map((m, mIdx) => {
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
           const fallbackSvg = getSubjectPlaceholderSvg(curData.code);
-          const isTopPriority = mIdx < 6;
+          const isTopPriority = mIdx < 12;
           return `
-            <div class="module-card" data-mid="${m.id}" style="--card-accent: ${themeColor};">
+            <div class="module-card" data-mid="${m.id}" tabindex="0" role="article" aria-label="Chapter ${m.code}: ${m.title}, ${m.lessons.length} lessons. Press Enter to explore chapter." style="--card-accent: ${themeColor};">
               <!-- Textbook Chapter Opener Photo Banner with Skeleton & Robust Fallback -->
               <div class="module-card-banner is-loading">
                 <div class="module-banner-skeleton" aria-hidden="true"></div>
@@ -1548,7 +1590,7 @@ function renderSubjectView(container, curData, themeColor) {
                 </div>
                 <img src="${imgPath}" alt="${m.title}" class="module-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}"
                   onload="this.classList.add('loaded'); this.parentElement.classList.remove('is-loading');"
-                  onerror="if (!this.dataset.errored) { this.dataset.errored = '1'; this.src = '${fallbackSvg}'; this.alt = 'Chapter image unavailable'; } else { this.style.display='none'; } this.parentElement.classList.remove('is-loading'); this.parentElement.classList.add('has-fallback-pattern');">
+                  onerror="if (!this.dataset.errored) { this.dataset.errored = '1'; this.src = '${fallbackSvg}'; this.alt = 'Chapter image placeholder'; } else { this.style.display='none'; } this.parentElement.classList.remove('is-loading'); this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="module-banner-overlay"></div>
               </div>
 
@@ -1618,9 +1660,9 @@ function renderSubjectView(container, curData, themeColor) {
           const iconEmoji = getLessonIconEmoji(spec.type);
           const imgPath = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
           const fallbackSvg = getSubjectPlaceholderSvg(curData.code);
-          const isTopPriority = idx < 6;
+          const isTopPriority = idx < 12;
           return `
-            <div class="lesson-card-full" data-mid="${m.id}" data-lid="${l.id}" style="--card-accent: ${themeColor};">
+            <div class="lesson-card-full" data-mid="${m.id}" data-lid="${l.id}" tabindex="0" role="article" aria-label="Lesson ${l.id}: ${l.title} - Chapter ${m.code}. Press Enter to launch interactive." style="--card-accent: ${themeColor};">
               <div class="lesson-card-banner is-loading">
                 <div class="module-banner-skeleton" aria-hidden="true"></div>
                 <div class="module-banner-fallback-icon" aria-hidden="true">
@@ -1628,7 +1670,7 @@ function renderSubjectView(container, curData, themeColor) {
                 </div>
                 <img src="${imgPath}" alt="${l.title}" class="lesson-banner-img" loading="${isTopPriority ? 'eager' : 'lazy'}" decoding="async" fetchpriority="${isTopPriority ? 'high' : 'low'}"
                   onload="this.classList.add('loaded'); this.parentElement.classList.remove('is-loading');"
-                  onerror="if (!this.dataset.errored) { this.dataset.errored = '1'; this.src = '${fallbackSvg}'; this.alt = 'Lesson image unavailable'; } else { this.style.display='none'; } this.parentElement.classList.remove('is-loading'); this.parentElement.classList.add('has-fallback-pattern');">
+                  onerror="if (!this.dataset.errored) { this.dataset.errored = '1'; this.src = '${fallbackSvg}'; this.alt = 'Lesson placeholder'; } else { this.style.display='none'; } this.parentElement.classList.remove('is-loading'); this.parentElement.classList.add('has-fallback-pattern');">
                 <div class="lesson-banner-overlay"></div>
                 <div class="lesson-card-pic-circle" title="${spec.title}">
                   ${iconEmoji}
@@ -1803,6 +1845,16 @@ function renderSubjectView(container, curData, themeColor) {
       const lid = parseInt(card.dataset.lid, 10);
       launchLessonInteractive(mid, lid);
     });
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        if (e.target.closest(".btn-launch-lesson-plan")) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const mid = parseInt(card.dataset.mid, 10);
+        const lid = parseInt(card.dataset.lid, 10);
+        launchLessonInteractive(mid, lid);
+      }
+    });
   });
 
   // Bind direct Launch Interactive buttons on Standalone Lesson Cards
@@ -1854,6 +1906,15 @@ function renderSubjectView(container, curData, themeColor) {
       const mid = parseInt(card.dataset.mid, 10);
       launchModuleChapter(mid);
     });
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        if (e.target.closest("a, button, .lesson-row-card, .lab-indicator")) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const mid = parseInt(card.dataset.mid, 10);
+        launchModuleChapter(mid);
+      }
+    });
   });
 
   // Bind Module Explore Links ("Explore Chapter →")
@@ -1884,11 +1945,28 @@ function renderSubjectView(container, curData, themeColor) {
     });
   });
 
-  // Immediate check for already loaded / browser-cached chapter banner images
+  // Resilient check for loaded / browser-cached chapter banner images
   container.querySelectorAll(".module-banner-img, .lesson-banner-img").forEach(img => {
-    if (img.complete && img.naturalWidth > 0) {
+    const banner = img.parentElement;
+    const markLoaded = () => {
       img.classList.add("loaded");
-      img.parentElement?.classList.remove("is-loading");
+      if (banner) banner.classList.remove("is-loading");
+    };
+    const markFallback = () => {
+      if (banner) {
+        banner.classList.remove("is-loading");
+        banner.classList.add("has-fallback-pattern");
+      }
+    };
+    if (img.complete) {
+      if (img.naturalWidth > 0) {
+        markLoaded();
+      } else if (img.dataset.errored) {
+        markFallback();
+      }
+    } else {
+      img.addEventListener("load", markLoaded, { once: true });
+      img.addEventListener("error", markFallback, { once: true });
     }
   });
 
@@ -1903,15 +1981,15 @@ function renderSubjectView(container, curData, themeColor) {
     }, { once: true, passive: true });
   });
 
-  // Background idle pre-fetch for remaining chapters (chapters 5+) so fast scrolling never encounters blank images
-  const scheduleIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 120));
-  if (curData && Array.isArray(curData.modules) && curData.modules.length > 4) {
-    const remaining = curData.modules.slice(4);
+  // Background idle pre-fetch for remaining chapters (chapters 12+) so fast scrolling never encounters blank images
+  const scheduleIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 60));
+  if (curData && Array.isArray(curData.modules) && curData.modules.length > 12) {
+    const remaining = curData.modules.slice(12);
     remaining.forEach((m, idx) => {
       scheduleIdle(() => {
         const preImg = new Image();
         preImg.src = `assets/chapters/${curData.code.toLowerCase()}_m${mCode(m.id)}.jpg`;
-      }, { timeout: 1500 + idx * 180 });
+      }, { timeout: 180 + idx * 50 });
     });
   }
 

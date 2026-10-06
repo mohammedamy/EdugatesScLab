@@ -1739,17 +1739,21 @@ a.lesson-row-card {
   border: 1px solid var(--border-color);
   border-top: 2.5px solid var(--card-accent, #38bdf8);
   border-radius: var(--radius-md);
-  padding: 24px;
+  padding: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 16px;
   cursor: pointer;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
   overflow: hidden;
-  content-visibility: auto;
-  contain-intrinsic-size: auto 420px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.module-card:focus-visible {
+  outline: 3px solid var(--card-accent, #38bdf8);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.25), 0 16px 36px -4px rgba(0, 0, 0, 0.4);
+  transform: translateY(-4px);
 }
 .module-card::after {
   content: '';
@@ -7039,14 +7043,23 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   border-color: var(--card-accent, #0284c7);
 }
 
-/* Textbook Chapter Opener Photo Banner */
+/* Textbook Chapter Opener Photo Banner with Rich Thematic Backdrops */
 .module-card-banner,
 .lesson-card-banner {
   position: relative;
   width: 100%;
   height: 145px;
   overflow: hidden;
-  background: radial-gradient(circle at top right, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+  background: radial-gradient(circle at 75% 25%, rgba(56, 189, 248, 0.12) 0%, transparent 60%),
+              linear-gradient(135deg, #091222 0%, #0f172a 60%, #06192a 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="day"] .module-card-banner,
+[data-theme="day"] .lesson-card-banner {
+  background: radial-gradient(circle at 75% 25%, rgba(2, 132, 199, 0.1) 0%, transparent 60%),
+              linear-gradient(135deg, #f0f9ff 0%, #e2e8f0 60%, #f8fafc 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 /* Shimmer Skeleton during Image Loading */
@@ -7133,13 +7146,18 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   width: 68px;
   height: 68px;
   color: var(--card-accent, #38bdf8);
-  opacity: 0.2;
+  opacity: 0.35;
   pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: opacity 0.3s ease, transform 0.3s ease;
   z-index: 1;
+}
+
+[data-theme="day"] .module-banner-fallback-icon {
+  opacity: 0.3;
+  color: var(--card-accent, #0284c7);
 }
 
 .module-banner-fallback-icon svg {
@@ -7564,8 +7582,13 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   justify-content: space-between;
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
   box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.25);
-  content-visibility: auto;
-  contain-intrinsic-size: auto 380px;
+}
+
+.lesson-card-full:focus-visible {
+  outline: 3px solid var(--card-accent, #38bdf8);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.25), 0 18px 38px -6px rgba(0, 0, 0, 0.55);
+  transform: translateY(-5px);
 }
 
 [data-theme="day"] .lesson-card-full {

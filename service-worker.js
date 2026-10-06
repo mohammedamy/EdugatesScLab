@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v60";
+const CACHE_NAME = "amscilab-pwa-v61";
 
 const CORE_APP_SHELL = [
   "./",
@@ -56,6 +56,89 @@ const CORE_APP_SHELL = [
   "./components/worked-example-solver.js",
   "./components/offline-diagnostics.js",
   "./labs/lab-telemetry-exporter.js"
+];
+
+// All 74 Textbook Chapter Opener Photos across Chemistry, Biology & Physics
+const CHAPTER_ASSETS = [
+  // Chemistry Chapters (1-23)
+  "./assets/chapters/chem_m01.jpg",
+  "./assets/chapters/chem_m02.jpg",
+  "./assets/chapters/chem_m03.jpg",
+  "./assets/chapters/chem_m04.jpg",
+  "./assets/chapters/chem_m05.jpg",
+  "./assets/chapters/chem_m06.jpg",
+  "./assets/chapters/chem_m07.jpg",
+  "./assets/chapters/chem_m08.jpg",
+  "./assets/chapters/chem_m09.jpg",
+  "./assets/chapters/chem_m10.jpg",
+  "./assets/chapters/chem_m11.jpg",
+  "./assets/chapters/chem_m12.jpg",
+  "./assets/chapters/chem_m13.jpg",
+  "./assets/chapters/chem_m14.jpg",
+  "./assets/chapters/chem_m15.jpg",
+  "./assets/chapters/chem_m16.jpg",
+  "./assets/chapters/chem_m17.jpg",
+  "./assets/chapters/chem_m18.jpg",
+  "./assets/chapters/chem_m19.jpg",
+  "./assets/chapters/chem_m20.jpg",
+  "./assets/chapters/chem_m21.jpg",
+  "./assets/chapters/chem_m22.jpg",
+  "./assets/chapters/chem_m23.jpg",
+
+  // Biology Chapters (1-27)
+  "./assets/chapters/bio_m01.jpg",
+  "./assets/chapters/bio_m02.jpg",
+  "./assets/chapters/bio_m03.jpg",
+  "./assets/chapters/bio_m04.jpg",
+  "./assets/chapters/bio_m05.jpg",
+  "./assets/chapters/bio_m06.jpg",
+  "./assets/chapters/bio_m07.jpg",
+  "./assets/chapters/bio_m08.jpg",
+  "./assets/chapters/bio_m09.jpg",
+  "./assets/chapters/bio_m10.jpg",
+  "./assets/chapters/bio_m11.jpg",
+  "./assets/chapters/bio_m12.jpg",
+  "./assets/chapters/bio_m13.jpg",
+  "./assets/chapters/bio_m14.jpg",
+  "./assets/chapters/bio_m15.jpg",
+  "./assets/chapters/bio_m16.jpg",
+  "./assets/chapters/bio_m17.jpg",
+  "./assets/chapters/bio_m18.jpg",
+  "./assets/chapters/bio_m19.jpg",
+  "./assets/chapters/bio_m20.jpg",
+  "./assets/chapters/bio_m21.jpg",
+  "./assets/chapters/bio_m22.jpg",
+  "./assets/chapters/bio_m23.jpg",
+  "./assets/chapters/bio_m24.jpg",
+  "./assets/chapters/bio_m25.jpg",
+  "./assets/chapters/bio_m26.jpg",
+  "./assets/chapters/bio_m27.jpg",
+
+  // Physics Chapters (1-24)
+  "./assets/chapters/phys_m01.jpg",
+  "./assets/chapters/phys_m02.jpg",
+  "./assets/chapters/phys_m03.jpg",
+  "./assets/chapters/phys_m04.jpg",
+  "./assets/chapters/phys_m05.jpg",
+  "./assets/chapters/phys_m06.jpg",
+  "./assets/chapters/phys_m07.jpg",
+  "./assets/chapters/phys_m08.jpg",
+  "./assets/chapters/phys_m09.jpg",
+  "./assets/chapters/phys_m10.jpg",
+  "./assets/chapters/phys_m11.jpg",
+  "./assets/chapters/phys_m12.jpg",
+  "./assets/chapters/phys_m13.jpg",
+  "./assets/chapters/phys_m14.jpg",
+  "./assets/chapters/phys_m15.jpg",
+  "./assets/chapters/phys_m16.jpg",
+  "./assets/chapters/phys_m17.jpg",
+  "./assets/chapters/phys_m18.jpg",
+  "./assets/chapters/phys_m19.jpg",
+  "./assets/chapters/phys_m20.jpg",
+  "./assets/chapters/phys_m21.jpg",
+  "./assets/chapters/phys_m22.jpg",
+  "./assets/chapters/phys_m23.jpg",
+  "./assets/chapters/phys_m24.jpg"
 ];
 
 const SECONDARY_ASSETS = [
@@ -163,9 +246,9 @@ const SECONDARY_ASSETS = [
   "./assets/labs/mitosis_bench.jpg"
 ];
 
-const CORE_ASSETS = [...CORE_APP_SHELL, ...SECONDARY_ASSETS];
+const CORE_ASSETS = [...CORE_APP_SHELL, ...CHAPTER_ASSETS, ...SECONDARY_ASSETS];
 
-// Install: Pre-cache core shell first, then stream secondary lab modules non-blockingly
+// Install: Pre-cache core shell first, then stream chapter cover photos & secondary lab modules non-blockingly
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
@@ -173,13 +256,20 @@ self.addEventListener("install", (event) => {
       await cache.addAll(CORE_APP_SHELL).catch((err) => {
         console.warn("[AmScLab PWA] Core shell precache non-fatal warning:", err);
       });
-      // Stage 2: Secondary Lab Benches & Media (Non-blocking streaming without stalling install)
+      // Stage 2: Stream all 74 Chapter Cover Photos into cache
+      const chapterPromises = CHAPTER_ASSETS.map((assetUrl) =>
+        cache.add(assetUrl).catch((err) => {
+          console.warn("[AmScLab PWA] Chapter image background cache deferred for:", assetUrl, err?.message);
+        })
+      );
+      // Stage 3: Secondary Lab Benches & Media (Non-blocking streaming without stalling install)
       const secondaryPromises = SECONDARY_ASSETS.map((assetUrl) =>
         cache.add(assetUrl).catch((err) => {
           console.warn("[AmScLab PWA] Secondary asset background cache deferred for:", assetUrl, err?.message);
         })
       );
-      // Stream secondary assets asynchronously without delaying shell installation
+      // Stream assets asynchronously without delaying shell installation
+      Promise.allSettled(chapterPromises);
       Promise.allSettled(secondaryPromises);
     }).then(() => self.skipWaiting())
   );
@@ -274,6 +364,11 @@ self.addEventListener("fetch", (event) => {
           return networkResponse;
         }).catch((err) => {
           console.warn("[AmScLab PWA] Offline fetch fallback for:", req.url, err);
+          if (url.pathname.includes("/assets/chapters/")) {
+            if (url.pathname.includes("bio_")) return caches.match("./assets/placeholder-dna.svg");
+            if (url.pathname.includes("phys_")) return caches.match("./assets/placeholder-atom.svg");
+            return caches.match("./assets/placeholder-flask.svg");
+          }
         });
       });
     })
