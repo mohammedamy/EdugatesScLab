@@ -4020,8 +4020,8 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
                     ${q.diagram ? `
                       <div class="print-diagram-container" style="margin: 10px 0; text-align: center; background: #ffffff; border: 1.5px solid #000000; border-radius: 6px; padding: 10px;">
-                        ${q.diagram.caption ? `<div class="print-diagram-caption" style="font-size: 0.84rem; font-weight: 800; color: #000000; margin-bottom: 6px;">${q.diagram.caption}</div>` : ""}
-                        <div class="print-diagram-svg" style="max-height: 230px; display: inline-block;">${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}</div>
+                        ${q.diagram.caption ? `<div class="print-diagram-caption" style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 8px;">${q.diagram.caption}</div>` : ""}
+                        <div class="print-diagram-svg" style="max-height: 300px; width: 100%; display: flex; justify-content: center; align-items: center;">${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}</div>
                       </div>
                     ` : ""}
 

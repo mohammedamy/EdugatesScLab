@@ -12278,7 +12278,7 @@ mark.search-highlight {
 }
 
 .print-diagram-caption {
-  font-size: 0.86rem;
+  font-size: 0.95rem;
   font-weight: 800;
   color: #000000;
   margin-bottom: 8px;
@@ -12290,11 +12290,12 @@ mark.search-highlight {
   justify-content: center;
   align-items: center;
   background: #ffffff;
+  width: 100%;
 }
 
 .print-diagram-svg svg {
-  max-width: 480px;
-  max-height: 240px;
+  max-width: 560px;
+  max-height: 300px;
   width: 100%;
   height: auto;
   background: #ffffff !important;
@@ -12309,7 +12310,7 @@ mark.search-highlight {
 
 .print-diagram-svg svg text {
   fill: #000000 !important;
-  font-weight: 700 !important;
+  font-weight: 800 !important;
 }
 
 @media print {
@@ -12327,17 +12328,21 @@ mark.search-highlight {
   .presenter-diagram-caption {
     color: #000000 !important;
     font-weight: 800 !important;
+    font-size: 0.95rem !important;
   }
   .print-diagram-svg,
   .q-diagram-svg,
   .presenter-diagram-svg {
     background: #ffffff !important;
+    width: 100% !important;
   }
   .print-diagram-svg svg,
   .q-diagram-svg svg,
   .presenter-diagram-svg svg {
-    max-width: 420px !important;
-    max-height: 220px !important;
+    max-width: 560px !important;
+    max-height: 300px !important;
+    width: 100% !important;
+    height: auto !important;
     background: #ffffff !important;
     color: #000000 !important;
   }
@@ -12351,7 +12356,7 @@ mark.search-highlight {
   .q-diagram-svg svg text,
   .presenter-diagram-svg svg text {
     fill: #000000 !important;
-    font-weight: 700 !important;
+    font-weight: 800 !important;
   }
   /* Invert/sanitize dark panels on copiers */
   .print-diagram-svg svg [fill="#0f172a"],
@@ -12360,6 +12365,17 @@ mark.search-highlight {
   .q-diagram-svg svg [fill="#1e293b"] {
     fill: #f8fafc !important;
     stroke: #000000 !important;
+  }
+  /* Two-column print diagram optimizations */
+  .print-two-col .print-diagram-container {
+    margin: 8px 0 10px 0 !important;
+    padding: 6px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .print-two-col .print-diagram-svg svg {
+    max-width: 100% !important;
+    max-height: 250px !important;
   }
 }
 

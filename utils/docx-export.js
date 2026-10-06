@@ -65,8 +65,8 @@ export function exportToDocx({ title, filename, content, subject = "Science", or
 
       // Inline SVGs: ensure they have explicit width & height attributes for Word
       clone.querySelectorAll("svg").forEach(svg => {
-        if (!svg.getAttribute("width")) svg.setAttribute("width", "420");
-        if (!svg.getAttribute("height")) svg.setAttribute("height", "220");
+        if (!svg.getAttribute("width") || svg.getAttribute("width") === "100%") svg.setAttribute("width", "540");
+        if (!svg.getAttribute("height") || svg.getAttribute("height") === "100%") svg.setAttribute("height", "280");
       });
 
       htmlContent = clone.innerHTML;

@@ -10,28 +10,69 @@
  * @param {string} svgStr - Raw SVG markup
  * @returns {string} Clean, publication-grade SVG markup for printing & copiers
  */
+/**
+ * Calculates a boosted, highly legible font-size for paper printing and toner copiers.
+ * Transforms tiny micro-labels (6-9px) into readable textbook text (12.5-15.5px),
+ * and primary labels/titles (10-14px) into crisp high-visibility headers (16.5-20.5px).
+ *
+ * @param {string|number} val - Original font size (px, pt, or numeric string)
+ * @returns {string} Boosted font size with px unit
+ */
+function boostFontSizeForPrint(val) {
+  const num = parseFloat(val);
+  if (isNaN(num) || num <= 0) return "16px";
+  // Subscripts & tiny annotations (6 - 8px) -> 12.5px - 14.5px
+  if (num <= 6.5) return "12.5px";
+  if (num <= 7.5) return "13.5px";
+  if (num <= 8.5) return "14.5px";
+  // Secondary labels / ticks / units (9 - 10.5px) -> 15.5px - 16.5px
+  if (num <= 9.5) return "15.5px";
+  if (num <= 10.5) return "16.5px";
+  if (num <= 11.5) return "17.5px";
+  // Primary axis / region labels (12 - 13px) -> 18.5px - 19.5px
+  if (num <= 12.5) return "18.5px";
+  if (num <= 13.5) return "19.5px";
+  // Main headings / prominent callouts (14px+) -> 20.5px - 22px
+  if (num <= 15) return "20.5px";
+  if (num <= 16.5) return "22px";
+  return `${Math.min(25, Math.round(num * 1.25))}px`;
+}
+
+/**
+ * Transforms an SVG string into a high-contrast, pure-white-background,
+ * publication-grade textbook diagram optimized for paper printing and toner copiers.
+ *
+ * @param {string} svgStr - Raw SVG markup
+ * @returns {string} Clean, publication-grade SVG markup for printing & copiers
+ */
 export function polishDiagramForPrint(svgStr) {
   if (!svgStr || typeof svgStr !== "string" || !svgStr.includes("<svg")) {
     return svgStr || "";
   }
 
   let s = svgStr;
+  const isAlreadyPolished = s.includes('data-print-polished="true"');
 
   // 1. Root <svg> element style adjustments
-  // Ensure the SVG itself has a white background and sharp black text baseline
-  s = s.replace(/<svg\b([^>]*)>/i, (match, attrs) => {
-    let newAttrs = attrs;
-    const styleMatch = newAttrs.match(/style=(["'])([\s\S]*?)\1/i);
-    if (styleMatch) {
-      const quote = styleMatch[1];
-      const cleanSt = styleMatch[2].replace(/background(-color)?\s*:[^;]+;?/gi, "").trim();
-      const replacement = `style=${quote}background: #ffffff; color: #000000; border-radius: 6px; ${cleanSt}${quote}`;
-      newAttrs = newAttrs.replace(styleMatch[0], replacement);
-    } else {
-      newAttrs += ` style="background: #ffffff; color: #000000; border-radius: 6px;"`;
-    }
-    return `<svg${newAttrs}>`;
-  });
+  // Ensure the SVG itself has a white background, sharp black text baseline, and responsive scaling
+  if (!isAlreadyPolished) {
+    s = s.replace(/<svg\b([^>]*)>/i, (match, attrs) => {
+      let newAttrs = attrs;
+      const styleMatch = newAttrs.match(/style=(["'])([\s\S]*?)\1/i);
+      if (styleMatch) {
+        const quote = styleMatch[1];
+        const cleanSt = styleMatch[2]
+          .replace(/background(-color)?\s*:[^;]+;?/gi, "")
+          .replace(/max-width\s*:[^;]+;?/gi, "")
+          .trim();
+        const replacement = `style=${quote}background: #ffffff; color: #000000; border-radius: 6px; max-width: 560px; width: 100%; height: auto; ${cleanSt}${quote}`;
+        newAttrs = newAttrs.replace(styleMatch[0], replacement);
+      } else {
+        newAttrs += ` style="background: #ffffff; color: #000000; border-radius: 6px; max-width: 560px; width: 100%; height: auto;"`;
+      }
+      return `<svg data-print-polished="true"${newAttrs}>`;
+    });
+  }
 
   // 2. Outer canvas background rectangle
   // Replaces the prominent dark canvas rect: <rect width="540" ... fill="#0f172a" ...>
@@ -129,7 +170,10 @@ export function polishDiagramForPrint(svgStr) {
   );
 
   // 10. All Text Elements: Convert to Pure Solid Black (#000000) with High Contrast Font-Weight
-  // In printing & copiers, light-colored or white text is completely illegible or washed out.
+  // and Boosted Readability Font-Size for Paper Printing & Toner Photocopiers.
+  // In printing & copiers, light-colored or white text is completely illegible or washed out,
+  // and small diagram text (6-11px) scales down to unreadable 3-6pt on physical printouts.
+  // We boost font sizes systematically so every label, axis tick, and callout is crisp and readable.
   s = s.replace(/<text\b([^>]*)>(.*?)<\/text>/gis, (match, attrs, content) => {
     let cleanAttrs = attrs;
     // Replace fill color with #000000
@@ -139,15 +183,53 @@ export function polishDiagramForPrint(svgStr) {
       cleanAttrs += ' fill="#000000"';
     }
 
-    // Ensure font-weight is at least 700 for razor-sharp photocopier reproduction
+    // Strip any colored or fuzzy outline stroke directly from text tag
+    cleanAttrs = cleanAttrs.replace(/\bstroke=["'][^"']*["']/gi, '');
+
+    // Ensure font-weight is at least 800 for razor-sharp photocopier reproduction
     if (/\bfont-weight=["'][^"']*["']/i.test(cleanAttrs)) {
-      cleanAttrs = cleanAttrs.replace(/\bfont-weight=["'][^"']*["']/gi, 'font-weight="700"');
+      cleanAttrs = cleanAttrs.replace(/\bfont-weight=["'][^"']*["']/gi, 'font-weight="800"');
     } else {
-      cleanAttrs += ' font-weight="700"';
+      cleanAttrs += ' font-weight="800"';
+    }
+
+    // Boost font size for paper readability if not already polished
+    if (!isAlreadyPolished) {
+      if (/\bfont-size=["']([\d\.]+)(?:px|pt)?["']/i.test(cleanAttrs)) {
+        cleanAttrs = cleanAttrs.replace(/\bfont-size=["']([\d\.]+)(?:px|pt)?["']/gi, (m, val) => {
+          return `font-size="${boostFontSizeForPrint(val)}"`;
+        });
+      }
+      if (/\bstyle=["'][^"']*font-size\s*:\s*[\d\.]+/i.test(cleanAttrs)) {
+        cleanAttrs = cleanAttrs.replace(/(font-size\s*:\s*)([\d\.]+)(?:px|pt)?/gi, (m, pre, val) => {
+          return `${pre}${boostFontSizeForPrint(val)}`;
+        });
+      }
+      if (!/\bfont-size=/i.test(cleanAttrs) && !/font-size\s*:/i.test(cleanAttrs)) {
+        cleanAttrs += ' font-size="16.5px"';
+      }
     }
 
     return `<text${cleanAttrs}>${content}</text>`;
   });
+
+  // Boost any <tspan> elements inside text
+  if (!isAlreadyPolished) {
+    s = s.replace(/<tspan\b([^>]*)>/gi, (match, attrs) => {
+      let clean = attrs;
+      if (/\bfont-size=["']([\d\.]+)(?:px|pt)?["']/i.test(clean)) {
+        clean = clean.replace(/\bfont-size=["']([\d\.]+)(?:px|pt)?["']/gi, (m, val) => {
+          return `font-size="${boostFontSizeForPrint(val)}"`;
+        });
+      }
+      if (/\bfill=["'][^"']*["']/i.test(clean)) {
+        clean = clean.replace(/\bfill=["'][^"']*["']/gi, 'fill="#000000"');
+      } else {
+        clean += ' fill="#000000"';
+      }
+      return `<tspan${clean}>`;
+    });
+  }
 
   // 11. Digital monitor/meter displays:
   // e.g. voltmeter circle, thermometer bulb, digital LED text
@@ -176,14 +258,23 @@ export function polishDiagramForPrint(svgStr) {
     '$1fill="#000000" stroke="#000000"'
   );
 
-  // 13. Inject embedded CSS print override stylesheet inside the SVG
+  // 14. Inject embedded CSS print override stylesheet inside the SVG
   // This guarantees that any SVG rendering engine (browser print, PDF generator, Word/DOCX)
   // strictly enforces publication textbook styles even if any inline style remains.
   const printStyleBlock = `
   <style>
-    /* Textbook Publication Mode: High-Contrast Black & White Line-Art */
+    /* Textbook Publication Mode: High-Contrast Black & White Line-Art with Enhanced Typography */
     svg { background-color: #ffffff !important; }
-    text { fill: #000000 !important; font-weight: 700 !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important; }
+    text {
+      fill: #000000 !important;
+      font-weight: 800 !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      paint-order: stroke fill;
+      stroke: #ffffff;
+      stroke-width: 1.5px;
+      stroke-linejoin: round;
+    }
+    tspan { fill: #000000 !important; font-weight: 800 !important; }
     rect:first-child { fill: #ffffff !important; stroke: #000000 !important; }
   </style>`;
 

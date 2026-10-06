@@ -136,6 +136,51 @@ check(
   "polishDiagramForPrint is idempotent and safely handles pre-polished SVGs"
 );
 
+// 7. Typography Legibility & Font-Size Boost Verification
+let allLabelsBoosted = true;
+let totalLabelsChecked = 0;
+let minDetectedFontSize = 999;
+
+for (const [key, diag] of Object.entries(SCIENTIFIC_DIAGRAMS)) {
+  const polished = polishDiagramForPrint(diag.svg);
+  const textTags = polished.match(/<text\b[^>]*>/g) || [];
+  for (const tag of textTags) {
+    totalLabelsChecked++;
+    const fsMatch = tag.match(/font-size=["']([\d\.]+)(?:px)?["']/);
+    if (fsMatch) {
+      const sz = parseFloat(fsMatch[1]);
+      if (sz < minDetectedFontSize) minDetectedFontSize = sz;
+      if (sz < 12.0) {
+        allLabelsBoosted = false;
+        console.error(`  Label in ${key} is too small: ${tag}`);
+      }
+    } else {
+      allLabelsBoosted = false;
+      console.error(`  Missing font-size in ${key}: ${tag}`);
+    }
+    if (!tag.includes('font-weight="800"')) {
+      allLabelsBoosted = false;
+      console.error(`  Missing font-weight="800" in ${key}: ${tag}`);
+    }
+  }
+}
+
+check(
+  allLabelsBoosted && totalLabelsChecked > 100 && minDetectedFontSize >= 12.0,
+  `All diagram labels (${totalLabelsChecked} checked across all flagships) have font-size boosted (min: ${minDetectedFontSize}px >= 12px) and font-weight="800"`
+);
+
+// 8. Idempotent Font Size Boost Check
+const fs1 = (samplePolished.match(/font-size=["'][^"']*["']/g) || []).join("|");
+const fs2 = (doublePolished.match(/font-size=["'][^"']*["']/g) || []).join("|");
+check(fs1 === fs2 && fs1.length > 0, "polishDiagramForPrint is font-size idempotent (running twice does not multiply font sizes)");
+
+// 9. Responsive Print Sizing & Flag Verification
+check(
+  samplePolished.includes('data-print-polished="true"') && samplePolished.includes("max-width: 560px"),
+  "Polished diagram includes data-print-polished flag and responsive max-width: 560px styling"
+);
+
 console.log("\n========================================================");
 console.log(`📊 Diagram Print Optimization Suite: ${passed} Passed, ${failed} Failed`);
 console.log("========================================================\n");
