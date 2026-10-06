@@ -8,6 +8,7 @@ import { chemistryCurriculum } from "../data/chemistry-curriculum.js";
 import { biologyCurriculum } from "../data/biology-curriculum.js";
 import { physicsCurriculum } from "../data/physics-curriculum.js";
 import { getLessonInteractiveSpec } from "../data/lesson-interactive-specs.js";
+import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
 import { SoundFX } from "../utils/audio-synth.js";
 import { showToast, copyShareLink } from "../utils/toast.js";
 import { openLmsShareModal } from "../utils/lms-share.js";
@@ -528,11 +529,15 @@ export function buildComprehensiveFlashcardDeck() {
         isCoreMastery: false
       });
 
-      // 2. Individual Lesson Cards (Objectives + Interactive Workbench + Formulation)
+      // 2. Individual Lesson Cards (At least 5 comprehensive, highly relevant cards per lesson)
       if (m.lessons) {
         m.lessons.forEach(l => {
           const spec = getLessonInteractiveSpec(track.code, m.id, l.id);
+          const theory = getLessonComprehensiveTheory(track.code, m.id, l.id) || {};
           const formulaVal = spec.formula || (m.formulas && m.formulas.length > 0 ? m.formulas[0] : "");
+          const baseCat = `Inspire ${track.name} • ${m.code} • Lesson ${l.id}`;
+
+          // Card 1: Core Concept & Phenomenological Foundations (Backwards-compatible primary card ID)
           deck.push({
             id: `${track.code.toLowerCase()}-m${m.id}-l${l.id}`,
             subject: track.code,
@@ -544,17 +549,156 @@ export function buildComprehensiveFlashcardDeck() {
             unit: m.unit,
             lessonId: l.id,
             lessonTitle: l.title,
-            category: `Inspire ${track.name} • ${m.code} • Lesson ${l.id}`,
-            front: `Lesson ${l.id}: ${l.title}`,
+            category: `${baseCat} [Concept]`,
+            front: `Lesson ${l.id}: ${l.title} — Core Scientific Principles`,
             backTitle: `${l.title}`,
             conceptFocus: spec.title || l.title,
             formula: formulaVal,
+            objectivesTitle: "🎯 Core Objectives & Curriculum Takeaways",
             objectives: l.objectives || [],
+            explanationTitle: "🔬 Deep Theoretical Principles",
+            coreExplanation: theory.coreTheory || "",
             inquiry: spec.inquiry || m.phenomenon || "",
-            hint: `Module ${m.id}: ${m.title}`,
+            hint: `Module ${m.id}: ${m.title} • Core Concept`,
             isModuleOverview: false,
             isLessonCard: true,
-            isCoreMastery: false
+            isCoreMastery: false,
+            cardType: "concept"
+          });
+
+          // Card 2: Mathematical Formulation & Parameter Breakdown
+          const paramList = theory.parameters && theory.parameters.length > 0
+            ? theory.parameters.map(p => `$${p.sym}$: ${p.name}${p.unit ? ' (' + p.unit + ')' : ''} — ${p.desc}`)
+            : (formulaVal ? [`Governing formulation: $${formulaVal}$`] : []);
+          const workedProb = theory.workedExample && theory.workedExample.problem
+            ? `Problem Scenario:\n${theory.workedExample.problem}\n\nWorked Solution & Analysis:\n${theory.workedExample.solution}`
+            : (spec.inquiry || "");
+
+          deck.push({
+            id: `${track.code.toLowerCase()}-m${m.id}-l${l.id}-formula`,
+            subject: track.code,
+            subjectName: track.name,
+            trackTitle: track.data.subject,
+            moduleId: m.id,
+            moduleCode: m.code,
+            moduleTitle: m.title,
+            unit: m.unit,
+            lessonId: l.id,
+            lessonTitle: l.title,
+            category: `${baseCat} [Formulation]`,
+            front: `Governing Formulation & Quantitative Model: ${l.title}`,
+            backTitle: `Mathematical Formulation: ${l.title}`,
+            conceptFocus: "Mathematical Relationships & Variable Analysis",
+            formula: formulaVal,
+            objectivesTitle: "📐 Parameter Breakdown & Physical Units",
+            objectives: paramList,
+            explanationTitle: "📊 Quantitative Problem-Solving Analysis",
+            coreExplanation: workedProb,
+            hint: `Formula & Parameters for ${l.title}`,
+            isModuleOverview: false,
+            isLessonCard: true,
+            isCoreMastery: false,
+            cardType: "formulation"
+          });
+
+          // Card 3: Mechanistic Dynamics & Molecular/System Driving Forces
+          const mechSteps = Array.isArray(theory.mechanism) && theory.mechanism.length > 0
+            ? theory.mechanism
+            : [spec.inquiry || `Investigate dynamic interactions and rate-limiting steps governing ${l.title}.`];
+          const mechText = mechSteps.map((step, idx) => `Step ${idx + 1}: ${step}`).join("\n\n");
+
+          deck.push({
+            id: `${track.code.toLowerCase()}-m${m.id}-l${l.id}-mechanism`,
+            subject: track.code,
+            subjectName: track.name,
+            trackTitle: track.data.subject,
+            moduleId: m.id,
+            moduleCode: m.code,
+            moduleTitle: m.title,
+            unit: m.unit,
+            lessonId: l.id,
+            lessonTitle: l.title,
+            category: `${baseCat} [Mechanism]`,
+            front: `Mechanistic Driving Forces & Process Dynamics: ${l.title}`,
+            backTitle: `Mechanistic Principles & Dynamic Equilibrium`,
+            conceptFocus: "Particulate, Cellular & Thermodynamic Mechanisms",
+            formula: formulaVal,
+            objectivesTitle: "⚙️ Sequential Mechanistic Progression",
+            objectives: mechSteps,
+            explanationTitle: "🔬 Mechanistic Process Breakdown",
+            coreExplanation: mechText,
+            inquiry: spec.inquiry || "",
+            hint: `Associated Workbench: ${m.lab || "STEM Virtual Lab"}`,
+            isModuleOverview: false,
+            isLessonCard: true,
+            isCoreMastery: false,
+            cardType: "mechanism"
+          });
+
+          // Card 4: Modern STEM Applications & Technological Impact
+          const appList = Array.isArray(theory.applications) && theory.applications.length > 0
+            ? theory.applications
+            : [`Applied engineering and environmental measurement technologies utilizing ${l.title}.`];
+          const appText = appList.map((app, idx) => `Application ${idx + 1}: ${app}`).join("\n\n");
+
+          deck.push({
+            id: `${track.code.toLowerCase()}-m${m.id}-l${l.id}-application`,
+            subject: track.code,
+            subjectName: track.name,
+            trackTitle: track.data.subject,
+            moduleId: m.id,
+            moduleCode: m.code,
+            moduleTitle: m.title,
+            unit: m.unit,
+            lessonId: l.id,
+            lessonTitle: l.title,
+            category: `${baseCat} [Application]`,
+            front: `Modern STEM Applications & Industry Practice: ${l.title}`,
+            backTitle: `Real-World Engineering, Clinical & Environmental Applications`,
+            conceptFocus: "Applied Engineering, Medical Diagnostics & Advanced Technology",
+            formula: formulaVal,
+            objectivesTitle: "🚀 Real-World STEM Deployments",
+            objectives: appList,
+            explanationTitle: "🌍 Practical & Industrial Case Studies",
+            coreExplanation: appText,
+            hint: `STEM & Real-World Application for ${l.title}`,
+            isModuleOverview: false,
+            isLessonCard: true,
+            isCoreMastery: false,
+            cardType: "application"
+          });
+
+          // Card 5: Conceptual Traps & Common Student Misconceptions
+          const miscList = Array.isArray(theory.misconceptions) && theory.misconceptions.length > 0
+            ? theory.misconceptions
+            : [`Avoid confusing kinetic rates with thermodynamic spontaneity in ${l.title}.`];
+          const miscText = miscList.map((item, idx) => `Misconception Alert ${idx + 1}: ${item}`).join("\n\n");
+
+          deck.push({
+            id: `${track.code.toLowerCase()}-m${m.id}-l${l.id}-misconception`,
+            subject: track.code,
+            subjectName: track.name,
+            trackTitle: track.data.subject,
+            moduleId: m.id,
+            moduleCode: m.code,
+            moduleTitle: m.title,
+            unit: m.unit,
+            lessonId: l.id,
+            lessonTitle: l.title,
+            category: `${baseCat} [Misconceptions]`,
+            front: `Common Misconceptions & Exam Pitfalls: ${l.title}`,
+            backTitle: `Conceptual Pitfalls & Rigorous Scientific Clarification`,
+            conceptFocus: "Scientific Rigor & Error Avoidance",
+            formula: formulaVal,
+            objectivesTitle: "⚠️ Crucial Clarifications vs. Fallacies",
+            objectives: miscList,
+            explanationTitle: "🧠 Diagnostic Analysis & Error Avoidance",
+            coreExplanation: miscText,
+            hint: `Conceptual Trap & Exam Clarification for ${l.title}`,
+            isModuleOverview: false,
+            isLessonCard: true,
+            isCoreMastery: false,
+            cardType: "misconception"
           });
         });
       }
@@ -1405,7 +1549,7 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                   ${card.objectives && card.objectives.length > 0 ? `
                     <div style="margin: 12px 0;">
                       <div style="font-size: 0.78rem; font-weight: 700; color: #059669; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
-                        🎯 Core Objectives & Key Takeaways
+                        ${card.objectivesTitle || "🎯 Core Objectives & Key Takeaways"}
                       </div>
                       <ul style="margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px;">
                         ${card.objectives.map(obj => `
@@ -1427,8 +1571,15 @@ export function renderFlashcards(containerId, initialFilter = {}) {
                   ` : ''}
 
                   ${card.coreExplanation ? `
-                    <div style="font-size: 0.95rem; color: var(--text-main); line-height: 1.6; margin: 10px 0; white-space: pre-line;">
-                      ${formatMathText(card.coreExplanation)}
+                    <div style="margin: 12px 0;">
+                      ${card.explanationTitle ? `
+                        <div style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px;">
+                          ${card.explanationTitle}
+                        </div>
+                      ` : ''}
+                      <div style="font-size: 0.95rem; color: var(--text-main); line-height: 1.6; white-space: pre-line; background: rgba(15, 23, 42, 0.35); padding: 12px 14px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                        ${formatMathText(card.coreExplanation)}
+                      </div>
                     </div>
                   ` : ''}
                 </div>
