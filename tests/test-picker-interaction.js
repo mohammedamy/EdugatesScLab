@@ -65,8 +65,12 @@ class MockNode {
       const fullTag = match[0];
       const node = new MockNode(tag);
       node.className = cls;
-      const qidMatch = /data-qid="([^"]+)"/.exec(fullTag);
-      if (qidMatch) node.dataset.qid = qidMatch[1];
+      const dataRegex = /data-([a-z0-9_-]+)="([^"]+)"/gi;
+      let dMatch;
+      while ((dMatch = dataRegex.exec(fullTag)) !== null) {
+        const key = dMatch[1].replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+        node.dataset[key] = dMatch[2];
+      }
       this.children.push(node);
     }
   }
@@ -183,6 +187,64 @@ async function testInteractions() {
 
   const freshExcludeBtns = document.querySelectorAll(".btn-exclude-q");
   assert(freshExcludeBtns.length === initialPrintCount - 1, `Live exclusion successfully decremented print questions from ${initialPrintCount} to ${freshExcludeBtns.length}`);
+  assert(mountEl.innerHTML.includes("btn-print-undo"), "Undo Exclude button is visible when questions are excluded");
+  assert(mountEl.innerHTML.includes("print-excluded-tray"), "Excluded Questions Tray is visible when questions are excluded");
+
+  // Test Undo Exclude
+  const btnUndo = document.getElementById("btn-print-undo");
+  assert(btnUndo !== null, "Found 'Undo Exclude' button in toolbar");
+  btnUndo.click();
+  await new Promise(r => setTimeout(r, 100));
+
+  const undoneExcludeBtns = document.querySelectorAll(".btn-exclude-q");
+  assert(undoneExcludeBtns.length === initialPrintCount, `Undo successfully restored question back to exam (Count: ${undoneExcludeBtns.length})`);
+
+  // Test Form A and Form B Equivalence Management
+  const btnFormB = document.getElementById("btn-print-form-b");
+  assert(btnFormB !== null, "Found Form B (Anti-Cheat) button");
+  btnFormB.click();
+  await new Promise(r => setTimeout(r, 100));
+
+  const formBExcludeBtns = document.querySelectorAll(".btn-exclude-q");
+  assert(formBExcludeBtns.length === initialPrintCount, `Form B maintains identical question count to Form A (${formBExcludeBtns.length} Qs)`);
+  assert(mountEl.innerHTML.includes("Form A #"), "Form B questions clearly cross-reference equivalent Form A question numbers");
+  assert(mountEl.innerHTML.includes("Forms A &amp; B Equivalent"), "Model Equivalence badge is present");
+
+  // Exclude while viewing Form B
+  formBExcludeBtns[0].click();
+  await new Promise(r => setTimeout(r, 100));
+  const formBAfterExclude = document.querySelectorAll(".btn-exclude-q");
+  assert(formBAfterExclude.length === initialPrintCount - 1, `Exclusion in Form B decrements question count to ${formBAfterExclude.length}`);
+
+  // Switch to Form A and verify exact same exclusion is reflected
+  const btnFormA = document.getElementById("btn-print-form-a");
+  btnFormA.click();
+  await new Promise(r => setTimeout(r, 100));
+  const formAAfterFormBExclude = document.querySelectorAll(".btn-exclude-q");
+  assert(formAAfterFormBExclude.length === initialPrintCount - 1, `Form A reflects identical exclusion made in Form B (Count: ${formAAfterFormBExclude.length})`);
+
+  // Test Restore from Tray
+  const restoreSingleBtn = document.querySelectorAll(".btn-restore-single-q")[0];
+  assert(restoreSingleBtn !== undefined, "Found individual Restore button in Excluded Questions Tray");
+  restoreSingleBtn.click();
+  await new Promise(r => setTimeout(r, 100));
+  const restoredBtns = document.querySelectorAll(".btn-exclude-q");
+  assert(restoredBtns.length === initialPrintCount, `Restore from tray restored question to both Form A and Form B (Count: ${restoredBtns.length})`);
+
+  // Test Multiple Exclusions and Restore All
+  const multiExBtns = document.querySelectorAll(".btn-exclude-q");
+  multiExBtns[0].click();
+  await new Promise(r => setTimeout(r, 50));
+  const multiExBtns2 = document.querySelectorAll(".btn-exclude-q");
+  multiExBtns2[0].click();
+  await new Promise(r => setTimeout(r, 50));
+  assert(document.querySelectorAll(".btn-exclude-q").length === initialPrintCount - 2, "Excluded 2 questions");
+
+  const btnRestoreAll = document.getElementById("btn-restore-all");
+  assert(btnRestoreAll !== null, "Found 'Restore All' button in Excluded Questions Tray");
+  btnRestoreAll.click();
+  await new Promise(r => setTimeout(r, 100));
+  assert(document.querySelectorAll(".btn-exclude-q").length === initialPrintCount, `Restore All restored all questions (Count: ${document.querySelectorAll(".btn-exclude-q").length})`);
 
   // Test Return to Picker from Print Studio
   const btnReselect = document.getElementById("btn-print-reselect");

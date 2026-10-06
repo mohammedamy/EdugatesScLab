@@ -2533,6 +2533,17 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   let printShowKey = true;
   let printSchoolName = "Edugates-ClipSAT Science Labs";
   let printExamTitle = "Comprehensive STEM Examination";
+  let printExcludedHistory = []; // Stack of { question, originalIndex, formAIndex, formBIndex, timestamp }
+
+  function getStableQuestionShift(qId, numOptions) {
+    if (numOptions <= 1) return 0;
+    let hash = 0;
+    const str = String(qId || "");
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+    }
+    return (Math.abs(hash) % (numOptions - 1)) + 1;
+  }
 
   function renderPrintView() {
     viewState = "print";
@@ -2540,15 +2551,28 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
     function getFormQuestions(formKey) {
       if (formKey === "A") {
-        return activeQuestions.map((q, idx) => ({ ...q, formIndex: idx + 1, formCorrectIdx: q.correctIndex }));
+        return activeQuestions.map((q, idx) => ({
+          ...q,
+          formIndex: idx + 1,
+          formCorrectIdx: q.correctIndex,
+          equivFormBIndex: activeQuestions.length - idx
+        }));
       }
       // Form B: deterministic scramble of question order and option letters for anti-cheating
+      // Strictly equivalent question set to Form A, with stable question-hash-based option rotation
       return activeQuestions.map((q, idx) => {
+        const formAIndex = idx + 1;
         if (!q.options || q.options.length <= 1) {
-          return { ...q, formIndex: idx + 1, formCorrectIdx: q.correctIndex, origQIndex: idx + 1 };
+          return {
+            ...q,
+            formIndex: idx + 1,
+            formCorrectIdx: q.correctIndex,
+            origQIndex: formAIndex,
+            origCorrectIdx: q.correctIndex,
+            equivFormAIndex: formAIndex
+          };
         }
-        // Shift options cyclically by (idx % 3 + 1)
-        const shift = (idx % (q.options.length - 1)) + 1;
+        const shift = getStableQuestionShift(q.id, q.options.length);
         const newOptions = [];
         let newCorrectIndex = q.correctIndex;
         for (let i = 0; i < q.options.length; i++) {
@@ -2562,7 +2586,9 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           ...q,
           options: newOptions,
           formCorrectIdx: newCorrectIndex,
-          origQIndex: idx + 1
+          origQIndex: formAIndex,
+          origCorrectIdx: q.correctIndex,
+          equivFormAIndex: formAIndex
         };
       }).reverse().map((q, idx) => ({
         ...q,
@@ -2719,9 +2745,19 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                   <span>📋</span>
                   <span>Choose / Edit Questions</span>
                 </button>
+                ${printExcludedHistory.length > 0 ? `
+                  <button class="btn btn-secondary" id="btn-print-undo" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid #22c55e; color: #4ade80; background: rgba(34, 197, 94, 0.12);" title="Undo last excluded question and restore to both Form A and Form B">
+                    <span>↩</span>
+                    <span>Undo Exclude (${printExcludedHistory.length})</span>
+                  </button>
+                ` : ''}
                 <span class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-family: var(--font-mono);">
                   ${displayQuestions.length} Questions • ${selectedLessons.size} Lessons
                 </span>
+                <div class="model-equiv-badge" title="Forms A &amp; B are 100% equivalent in content, rigor, and question count with anti-cheat permutation">
+                  <span>⚖️</span>
+                  <span>Forms A &amp; B Equivalent</span>
+                </div>
               </div>
 
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
@@ -2790,6 +2826,45 @@ export function renderQuizEngine(containerId, initialConfig = null) {
             </div>
           </div>
 
+          <!-- Excluded Questions Tray (Visible only when questions were excluded, hidden during printing) -->
+          ${printExcludedHistory.length > 0 ? `
+            <div class="print-excluded-tray no-print" style="display: flex; flex-direction: column; gap: 10px; background: rgba(239, 68, 68, 0.08); border: 1.5px dashed rgba(239, 68, 68, 0.4); padding: 12px 18px; border-radius: var(--radius-md);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 1.1rem;">🗑️</span>
+                  <strong style="font-size: 0.92rem; color: #f87171;">Excluded Questions Pool (${printExcludedHistory.length})</strong>
+                  <span style="font-size: 0.78rem; color: var(--text-muted);">— Excluded from both Form A &amp; Form B. Click 'Restore' to return any question back into the exam.</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <button class="btn btn-sm btn-secondary" id="btn-restore-all" style="border: 1px solid #22c55e; color: #4ade80; font-weight: 700; padding: 4px 12px;" title="Restore all excluded questions back to the exam">
+                    ↩ Restore All (${printExcludedHistory.length})
+                  </button>
+                  <button class="btn btn-sm btn-secondary" id="btn-clear-tray" style="font-size: 0.75rem; color: var(--text-muted); padding: 4px 8px;" title="Dismiss this tray">
+                    ✕ Dismiss Tray
+                  </button>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto;">
+                ${printExcludedHistory.map((item, hIdx) => `
+                  <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.06); padding: 6px 12px; border-radius: 6px; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                      <span class="badge" style="background: rgba(239,68,68,0.2); color: #f87171; font-family: var(--font-mono); font-size: 0.72rem; flex-shrink: 0;">
+                        Was Form A #${item.formAIndex} • Form B #${item.formBIndex}
+                      </span>
+                      <span style="font-size: 0.82rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${formatMathText(item.question.question || item.question.prompt || "")}
+                      </span>
+                    </div>
+                    <button class="btn btn-sm btn-secondary btn-restore-single-q" data-hidx="${hIdx}" style="border: 1px solid #22c55e; color: #4ade80; font-weight: 700; padding: 2px 10px; font-size: 0.74rem; flex-shrink: 0;">
+                      ↩ Restore
+                    </button>
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          ` : ''}
+
           <!-- Printable Document Container (Pure Black on White) -->
           <div class="print-test-container" style="background: #ffffff; color: #000000; padding: 40px; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.15);">
             
@@ -2843,9 +2918,20 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                       <span style="font-weight: 800; font-size: 1.02rem; color: #000000; flex: 1;">
                         ${q.formIndex}. ${formatMathText(q.question)}
                       </span>
-                      <button class="btn btn-sm btn-exclude-q no-print" data-qid="${q.id}" style="font-size: 0.72rem; padding: 2px 8px; background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap;" title="Exclude this question from printout">
-                        ✕ Exclude
-                      </button>
+                      <div class="no-print" style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                        ${printForm === "B" ? `
+                          <span class="badge" style="font-size: 0.7rem; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; font-family: var(--font-mono); font-weight: 700;" title="Equivalent question in Form A">
+                            Form A #${q.equivFormAIndex}
+                          </span>
+                        ` : `
+                          <span class="badge" style="font-size: 0.7rem; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-family: var(--font-mono); font-weight: 700;" title="Equivalent question in Form B">
+                            Form B #${q.equivFormBIndex}
+                          </span>
+                        `}
+                        <button class="btn btn-sm btn-exclude-q" data-qid="${q.id}" style="font-size: 0.72rem; padding: 2px 8px; background: #fee2e2; color: #b91c1c; border: 1px solid #f87171; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap;" title="Exclude this question from both Form A and Form B printout">
+                          ✕ Exclude
+                        </button>
+                      </div>
                     </div>
 
                     ${q.diagram ? `
@@ -2908,16 +2994,22 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 </div>
 
                 <!-- Answer Key Matrix Table -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 24px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 24px;">
                   ${displayQuestions.map(q => {
                     const isCer = q.type === 'cer' || !q.options;
                     const badgeText = isCer ? 'CER' : String.fromCharCode(65 + q.formCorrectIdx);
+                    const equivText = printForm === "B" ? `(A#${q.equivFormAIndex})` : `(B#${q.equivFormBIndex})`;
                     return `
-                    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; background: #f8fafc; display: flex; justify-content: flex-start; gap: 8px; align-items: center; font-size: 0.85rem; font-family: var(--font-mono);">
-                      <span style="font-weight: 700; color: #475569; min-width: 32px;">Q${q.formIndex}:</span>
-                      <strong style="font-size: ${isCer ? '0.78rem' : '1.05rem'}; color: #000000; background: ${isCer ? '#fed7aa' : '#e2e8f0'}; width: ${isCer ? 'auto' : '24px'}; height: 24px; padding: ${isCer ? '0 6px' : '0'}; display: inline-flex; align-items: center; justify-content: center; border-radius: ${isCer ? '4px' : '50%'}; font-weight: 800;">
-                        ${badgeText}
-                      </strong>
+                    <div style="border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px 10px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-family: var(--font-mono);">
+                      <div style="display: flex; align-items: center; gap: 4px;">
+                        <span style="font-weight: 700; color: #475569;">Q${q.formIndex}:</span>
+                        <strong style="font-size: ${isCer ? '0.78rem' : '1.05rem'}; color: #000000; background: ${isCer ? '#fed7aa' : '#e2e8f0'}; width: ${isCer ? 'auto' : '24px'}; height: 24px; padding: ${isCer ? '0 6px' : '0'}; display: inline-flex; align-items: center; justify-content: center; border-radius: ${isCer ? '4px' : '50%'}; font-weight: 800;">
+                          ${badgeText}
+                        </strong>
+                      </div>
+                      <span style="font-size: 0.7rem; color: #0284c7; font-weight: 600;" title="Equivalent in other form">
+                        ${equivText}
+                      </span>
                     </div>
                   `;}).join("")}
                 </div>
@@ -2926,12 +3018,19 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                 <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.9rem;">
                   ${displayQuestions.map(q => {
                     const isCer = q.type === 'cer' || !q.options;
+                    const answerLabel = isCer
+                      ? `Question ${q.formIndex} Rubric: Scientific Inquiry &amp; CER Free Response`
+                      : `Question ${q.formIndex} Correct Answer: Option (${String.fromCharCode(65 + q.formCorrectIdx)})`;
+                    const crossRefLabel = printForm === "B"
+                      ? `<span style="font-size: 0.75rem; font-weight: 600; color: #0284c7;">(Equivalent to Form A # ${q.equivFormAIndex} • Option ${String.fromCharCode(65 + q.origCorrectIdx)})</span>`
+                      : `<span style="font-size: 0.75rem; font-weight: 600; color: #059669;">(Equivalent to Form B # ${q.equivFormBIndex})</span>`;
+
                     return `
                     <div class="teacher-solution-card" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 12px 16px; page-break-inside: avoid; color: #000000;">
-                      <div style="display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 6px; color: #000000;">
+                      <div style="display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 6px; color: #000000; flex-wrap: wrap; gap: 8px;">
                         <span style="color: #000000;">
-                          ${isCer ? `Question ${q.formIndex} Rubric: Scientific Inquiry &amp; CER Free Response` : `Question ${q.formIndex} Correct Answer: Option (${String.fromCharCode(65 + q.formCorrectIdx)})`}
-                          ${q.origQIndex ? `<span style="font-size: 0.75rem; font-weight: 500; color: #64748b;">(Form A # ${q.origQIndex})</span>` : ''}
+                          ${answerLabel}
+                          ${crossRefLabel}
                         </span>
                         <span style="font-size: 0.78rem; color: #475569; font-weight: 600;">${q.subject} • ${q.moduleTitle}</span>
                       </div>
@@ -2966,16 +3065,69 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         openQuestionPickerFromPrint();
       });
 
+      // Undo Exclude Button
+      document.getElementById("btn-print-undo")?.addEventListener("click", () => {
+        if (printExcludedHistory.length === 0) return;
+        const lastItem = printExcludedHistory.pop();
+        const insertIdx = Math.min(lastItem.originalIndex, activeQuestions.length);
+        activeQuestions.splice(insertIdx, 0, lastItem.question);
+        showToast("Question Restored", `Restored "${(lastItem.question.question || "").slice(0, 45)}..." back into Form A & Form B.`, "success");
+        renderDOM();
+      });
+
+      // Restore Single Question from Tray
+      document.querySelectorAll(".btn-restore-single-q").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const hIdx = parseInt(btn.dataset.hidx, 10);
+          if (isNaN(hIdx) || hIdx < 0 || hIdx >= printExcludedHistory.length) return;
+          const [restored] = printExcludedHistory.splice(hIdx, 1);
+          const insertIdx = Math.min(restored.originalIndex, activeQuestions.length);
+          activeQuestions.splice(insertIdx, 0, restored.question);
+          showToast("Question Restored", `Restored "${(restored.question.question || "").slice(0, 45)}..." back into Form A & Form B.`, "success");
+          renderDOM();
+        });
+      });
+
+      // Restore All Questions
+      document.getElementById("btn-restore-all")?.addEventListener("click", () => {
+        if (printExcludedHistory.length === 0) return;
+        const count = printExcludedHistory.length;
+        printExcludedHistory.sort((a, b) => a.originalIndex - b.originalIndex);
+        printExcludedHistory.forEach(item => {
+          const insertIdx = Math.min(item.originalIndex, activeQuestions.length);
+          activeQuestions.splice(insertIdx, 0, item.question);
+        });
+        printExcludedHistory = [];
+        showToast("All Questions Restored", `Successfully restored all ${count} questions to Form A & Form B.`, "success");
+        renderDOM();
+      });
+
+      // Clear Tray
+      document.getElementById("btn-clear-tray")?.addEventListener("click", () => {
+        printExcludedHistory = [];
+        renderDOM();
+      });
+
       document.querySelectorAll(".btn-exclude-q").forEach(btn => {
         btn.addEventListener("click", (e) => {
           e.stopPropagation();
           const qid = btn.dataset.qid;
+          const qIndex = activeQuestions.findIndex(q => q.id === qid);
+          if (qIndex === -1) return;
           if (activeQuestions.length <= 1) {
             showToast("Cannot Exclude", "Exam must contain at least 1 question.", "warning");
             return;
           }
-          activeQuestions = activeQuestions.filter(q => q.id !== qid);
-          showToast("Question Excluded", `Removed question. ${activeQuestions.length} remaining.`, "info");
+          const removedQ = activeQuestions[qIndex];
+          printExcludedHistory.push({
+            question: removedQ,
+            originalIndex: qIndex,
+            formAIndex: qIndex + 1,
+            formBIndex: activeQuestions.length - qIndex,
+            timestamp: Date.now()
+          });
+          activeQuestions.splice(qIndex, 1);
+          showToast("Question Excluded", `Removed from Form A & Form B (${activeQuestions.length} remaining). Click 'Undo' to restore.`, "info");
           renderDOM();
         });
       });

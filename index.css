@@ -13530,6 +13530,32 @@ body.focus-mode .btn-focus-mode-exit {
   color: #ffffff !important;
 }
 
+.print-excluded-tray {
+  transition: all 0.2s ease;
+}
+
+.btn-restore-single-q {
+  transition: all 0.15s ease;
+}
+
+.btn-restore-single-q:hover {
+  background: #22c55e !important;
+  color: #ffffff !important;
+}
+
+.model-equiv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
 /* Day Mode / High Contrast Overrides */
 [data-theme="day"] .q-picker-card.is-selected {
   background: #f0fdf4 !important;
@@ -13545,6 +13571,17 @@ body.focus-mode .btn-focus-mode-exit {
   background: #ffffff !important;
   border-top-color: #cbd5e1 !important;
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12) !important;
+}
+
+[data-theme="day"] .print-excluded-tray {
+  background: #fff1f2 !important;
+  border-color: #f87171 !important;
+}
+
+[data-theme="day"] .model-equiv-badge {
+  background: #ecfdf5 !important;
+  color: #047857 !important;
+  border-color: #a7f3d0 !important;
 }
 
 
