@@ -3,22 +3,18 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v71";
+const CACHE_NAME = "amscilab-pwa-v72";
 
 const CORE_APP_SHELL = [
   "./",
   "./index.html",
   "./404.html",
   "./index.css",
-  "./index.css?v=4.6",
-  "./index.css?v=4.7",
-  "./index.css?v=4.8",
-  "./index.css?v=4.9",
+  "./index.css?v=5.1",
+  "./index.css?v=5.2",
   "./app.js",
-  "./app.js?v=4.5",
-  "./app.js?v=4.6",
-  "./app.js?v=4.7",
-  "./app.js?v=4.8",
+  "./app.js?v=5.1",
+  "./app.js?v=5.2",
   "./manifest.json",
   "./service-worker.js",
   "./sw.js",
@@ -60,6 +56,8 @@ const CORE_APP_SHELL = [
   "./components/flashcards.js",
   "./components/worked-example-solver.js",
   "./components/offline-diagnostics.js",
+  "./components/teacher-guide-modal.js",
+  "./Edugates_STEM_Labs_Teacher_Guide.pdf",
   "./labs/lab-telemetry-exporter.js"
 ];
 

@@ -6,6 +6,7 @@ Thumbs.db
 
 # Large PDF Textbook Editions (>100MB exceeds GitHub limits)
 *.pdf
+!Edugates_STEM_Labs_Teacher_Guide.pdf
 
 # Environment & Dependencies
 node_modules/

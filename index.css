@@ -1350,6 +1350,69 @@ a.lesson-row-card {
 }
 .nav-dropdown-item.tab-flashcards.active .nav-item-check { color: #ec4899; }
 
+/* Dropdown Footer Actions (Teacher Implementation Guide & Staff PPTX) */
+.nav-dropdown-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-dropdown-guide-action {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.12), rgba(99, 102, 241, 0.12));
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-dropdown-guide-action:hover,
+.btn-dropdown-guide-action:focus-visible {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(99, 102, 241, 0.22));
+  border-color: rgba(6, 182, 212, 0.55);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2);
+}
+
+.btn-dropdown-guide-action:active {
+  transform: translateY(0);
+}
+
+.guide-action-icon {
+  font-size: 1.1rem;
+}
+
+.guide-action-label {
+  letter-spacing: 0.02em;
+}
+
+[data-theme="day"] .nav-dropdown-footer {
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="day"] .btn-dropdown-guide-action {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.1), rgba(79, 70, 229, 0.08));
+  border-color: rgba(2, 132, 199, 0.3);
+  color: #0f172a;
+}
+
+[data-theme="day"] .btn-dropdown-guide-action:hover,
+[data-theme="day"] .btn-dropdown-guide-action:focus-visible {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.18), rgba(79, 70, 229, 0.16));
+  border-color: rgba(2, 132, 199, 0.5);
+}
+
 /* Responsive Segmented Subject Switcher Bar */
 .nav-subject-tabs {
   display: none;
@@ -14650,4 +14713,64 @@ body.focus-mode .btn-focus-mode-exit {
 [data-theme="day"] .btn-math-chip:hover {
   background: #bae6fd !important;
   color: #0284c7 !important;
+}
+
+/* Teacher Guide & Staff Presentation Modal Animations & Polish */
+@keyframes tgModalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.teacher-guide-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+
+.btn-tg-download:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.btn-tg-download:active {
+  transform: translateY(0);
+}
+
+/* Day Mode Optimizations for Teacher Guide Modal */
+[data-theme="day"] .teacher-guide-card {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 25px 70px rgba(15, 23, 42, 0.2) !important;
+}
+
+[data-theme="day"] .tg-modal-header {
+  background: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+[data-theme="day"] .tg-modal-header h2 {
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .tg-downloads-banner {
+  background: linear-gradient(135deg, #e0f2fe, #ede9fe) !important;
+  border-bottom-color: #cbd5e1 !important;
+}
+
+[data-theme="day"] .tg-modal-nav {
+  background: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+[data-theme="day"] .tg-tab-pane h3 {
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .tg-tab-pane > div > div {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
 }

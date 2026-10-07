@@ -4,7 +4,7 @@
 import { SoundFX } from "../utils/audio-synth.js";
 import { showToast } from "../utils/toast.js";
 
-const CURRENT_CACHE_NAME = "amscilab-pwa-v71";
+const CURRENT_CACHE_NAME = "amscilab-pwa-v72";
 
 // Core and Secondary assets to audit for 100% offline classroom readiness
 const AUDIT_TARGETS = [
@@ -13,6 +13,8 @@ const AUDIT_TARGETS = [
   { name: "Main Application Engine", url: "./app.js", critical: true },
   { name: "Math Renderer Engine", url: "./utils/math-renderer.js", critical: true },
   { name: "Smartboard Classroom Toolbar", url: "./components/smartboard-toolbar.js", critical: true },
+  { name: "Teacher Implementation Guide Modal", url: "./components/teacher-guide-modal.js", critical: false },
+  { name: "Teacher Implementation Guide (PDF)", url: "./Edugates_STEM_Labs_Teacher_Guide.pdf", critical: false },
   { name: "Worked Example Solver", url: "./components/worked-example-solver.js", critical: true },
   { name: "Lesson Module Viewer", url: "./components/module-viewer.js", critical: true },
   { name: "Chemistry Curriculum Data", url: "./data/chemistry-curriculum.js", critical: true },

@@ -194,6 +194,9 @@ function bootApp() {
       window.openOfflineDiagnosticsModal = () => {
         import("./components/offline-diagnostics.js").then(m => m.openOfflineDiagnosticsModal());
       };
+      window.openTeacherGuideModal = () => {
+        import("./components/teacher-guide-modal.js").then(m => m.openTeacherGuideModal());
+      };
     }
 
     // Defer floating smartboard pen bar canvas initialization slightly so first paint is instantaneous
@@ -498,6 +501,13 @@ function renderAppShell() {
                   </a>
                 `).join('')}
               </div>
+
+              <div class="nav-dropdown-footer">
+                <button type="button" class="btn-dropdown-guide-action" id="btn-dropdown-open-guide-desktop" title="Teacher Implementation Guide (PDF) &amp; Staff Presentation (PPTX)">
+                  <span class="guide-action-icon">📚</span>
+                  <span class="guide-action-label">Teacher Guide &amp; Staff PPT</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -568,6 +578,13 @@ function renderAppShell() {
                 </a>
               `).join('')}
             </div>
+
+            <div class="nav-dropdown-footer">
+              <button type="button" class="btn-dropdown-guide-action" id="btn-dropdown-open-guide-mobile" title="Teacher Implementation Guide (PDF) &amp; Staff Presentation (PPTX)">
+                <span class="guide-action-icon">📚</span>
+                <span class="guide-action-label">Teacher Guide &amp; Staff PPT</span>
+              </button>
+            </div>
           </div>
         </div>
       </nav>
@@ -601,6 +618,12 @@ function renderAppShell() {
         <button class="btn btn-secondary nav-action-btn" id="btn-toggle-focus-mode" title="Focus Presentation Mode (Hide Navigation Chrome, Shift+F)" aria-label="Toggle Focus Presentation Mode">
           <span class="nav-btn-icon">🎯</span>
           <span class="nav-btn-label">Focus</span>
+        </button>
+
+        <!-- Teacher Implementation Guide & Staff Presentation Resources Button -->
+        <button class="btn btn-secondary nav-action-btn" id="btn-open-teacher-guide" title="Teacher Implementation Guide (PDF) &amp; Staff Presentation (PPTX)" aria-label="Open Teacher Implementation Guide and Staff Presentation">
+          <span class="nav-btn-icon">📚</span>
+          <span class="nav-btn-label">Guide</span>
         </button>
 
         <div class="device-mode-toggle" role="group" aria-label="Screen Optimization &amp; Hardware Profile" title="Screen Optimization &amp; Hardware Profile">
@@ -827,6 +850,22 @@ function bindGlobalEvents() {
     });
   }
 
+  // Teacher Implementation Guide & Staff Presentation Resources Modal
+  const triggerTeacherGuide = () => {
+    import("./components/teacher-guide-modal.js").then(m => m.openTeacherGuideModal()).catch(err => {
+      console.error("Failed to load teacher guide modal:", err);
+    });
+  };
+  document.getElementById("btn-open-teacher-guide")?.addEventListener("click", triggerTeacherGuide);
+  document.getElementById("btn-dropdown-open-guide-desktop")?.addEventListener("click", () => {
+    closeSubjectsDropdown();
+    triggerTeacherGuide();
+  });
+  document.getElementById("btn-dropdown-open-guide-mobile")?.addEventListener("click", () => {
+    closeMobileDropdown();
+    triggerTeacherGuide();
+  });
+
   // Instant Client-Side Search Shortcut (Ctrl+K, Cmd+K, or / when not typing)
   document.addEventListener("keydown", (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -843,6 +882,9 @@ function bindGlobalEvents() {
         inp.focus();
         inp.select();
       }
+    } else if (e.key === "?" && !["INPUT", "TEXTAREA"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      triggerTeacherGuide();
     }
   });
 
