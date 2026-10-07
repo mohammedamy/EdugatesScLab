@@ -1379,6 +1379,113 @@ a.lesson-row-card {
   }
 }
 
+/* Desktop Subjects Dropdown */
+.nav-subjects-dropdown {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.nav-subjects-dropdown-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-heading);
+  outline: none;
+}
+
+.nav-subjects-dropdown-btn .tab-pill-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+.nav-subjects-dropdown-btn .tab-pill-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.nav-subjects-dropdown-btn .tab-pill-chevron {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.75;
+}
+
+.nav-subjects-dropdown-btn .tab-pill-chevron svg {
+  width: 12px;
+  height: 12px;
+}
+
+.nav-subjects-dropdown.open .nav-subjects-dropdown-btn .tab-pill-chevron {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+.nav-subjects-dropdown.open .nav-subjects-dropdown-btn:not(.active) {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+[data-theme="day"] .nav-subjects-dropdown.open .nav-subjects-dropdown-btn:not(.active) {
+  background: rgba(0, 0, 0, 0.08);
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.subjects-active-sep {
+  opacity: 0.45;
+  margin: 0 1px;
+}
+
+.subjects-active-name {
+  font-weight: 700;
+}
+
+@media (min-width: 960px) and (max-width: 1180px) {
+  .nav-subjects-dropdown-btn .subjects-active-sep,
+  .nav-subjects-dropdown-btn .subjects-label {
+    display: none !important;
+  }
+}
+
+.nav-subjects-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  transform: translateY(-8px);
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  z-index: 1100;
+}
+
+.nav-subjects-dropdown.open .nav-subjects-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-subjects-dropdown:hover .nav-subjects-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .nav-subjects-dropdown:hover .nav-subjects-dropdown-btn .tab-pill-chevron {
+    transform: rotate(180deg);
+    opacity: 1;
+  }
+}
+
 .nav-subject-tab-pill {
   display: inline-flex;
   align-items: center;

@@ -133,6 +133,10 @@ export const NAV_SUBJECTS = [
   }
 ];
 
+export const CURRICULUM_SUBJECT_IDS = ["chem", "bio", "phys"];
+export const CURRICULUM_SUBJECTS = NAV_SUBJECTS.filter(s => CURRICULUM_SUBJECT_IDS.includes(s.id));
+export const TOOL_TABS = NAV_SUBJECTS.filter(s => !CURRICULUM_SUBJECT_IDS.includes(s.id));
+
 // Initialize App with fast boot execution and error boundary
 function bootApp() {
   try {
@@ -390,6 +394,7 @@ function setDeviceMode(mode) {
 function renderAppShell() {
   const root = document.getElementById("app-root");
   const curSub = NAV_SUBJECTS.find(s => s.id === AppState.currentTab) || NAV_SUBJECTS[0];
+  const isCurriculum = CURRICULUM_SUBJECT_IDS.includes(AppState.currentTab);
 
   root.innerHTML = `
     <!-- Ambient Lighting Glows -->
@@ -421,7 +426,58 @@ function renderAppShell() {
       <nav class="app-nav-container app-nav-center" aria-label="Main Navigation">
         <!-- Responsive Segmented Subject Tabs (Desktop & Large Touch / MAXHUB screens >= 960px) -->
         <div class="nav-subject-tabs" role="tablist" aria-label="Curriculum Subjects and Laboratories">
-          ${NAV_SUBJECTS.map(sub => `
+          <!-- Subjects Dropdown Menu Pill (Collects Chemistry, Biology, Physics) -->
+          <div class="nav-subjects-dropdown" id="nav-subjects-dropdown">
+            <button class="nav-subject-tab-pill nav-subjects-dropdown-btn ${isCurriculum ? curSub.themeClass + ' active' : ''}" 
+                    id="nav-subjects-dropdown-btn" 
+                    type="button"
+                    aria-haspopup="true" 
+                    aria-expanded="false" 
+                    aria-controls="nav-subjects-menu"
+                    title="Curriculum Subjects: Chemistry, Biology, Physics" 
+                    aria-label="Curriculum Subjects Dropdown Menu${isCurriculum ? '. Current: ' + curSub.name : ''}">
+              <span class="tab-pill-icon" id="nav-subjects-btn-icon" aria-hidden="true">${isCurriculum ? curSub.icon : icons.book}</span>
+              <span class="tab-pill-text" id="nav-subjects-btn-text">
+                <span class="subjects-label">Subjects</span>
+                <span class="subjects-active-sep" style="${isCurriculum ? '' : 'display: none;'}">•</span>
+                <span class="subjects-active-name" id="nav-subjects-btn-active-name">${isCurriculum ? curSub.name : ''}</span>
+              </span>
+              <span class="tab-pill-chevron" id="nav-subjects-btn-chevron" aria-hidden="true">
+                ${icons.chevronDown}
+              </span>
+            </button>
+
+            <!-- Desktop Subjects Dropdown Menu Flyout -->
+            <div class="nav-subjects-menu nav-dropdown-menu" id="nav-subjects-menu" role="menu" aria-label="Curriculum Subjects Menu">
+              <div class="nav-dropdown-header">
+                <span class="nav-dropdown-header-title">Curriculum Subjects</span>
+                <span class="nav-dropdown-header-count">3 Subjects</span>
+              </div>
+              <div class="nav-dropdown-list">
+                ${CURRICULUM_SUBJECTS.map(sub => `
+                  <a href="#${sub.id}" class="nav-dropdown-item ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
+                     data-tab="${sub.id}" role="menuitem" aria-label="${sub.name}: ${sub.tagline}" style="text-decoration: none; color: inherit;">
+                    <div class="nav-item-icon-box">
+                      ${sub.icon}
+                    </div>
+                    <div class="nav-item-content">
+                      <div class="nav-item-top">
+                        <span class="nav-item-title">${sub.name}</span>
+                        <span class="nav-item-badge">${sub.badge} Modules</span>
+                      </div>
+                      <span class="nav-item-tagline">${sub.tagline}</span>
+                    </div>
+                    <div class="nav-item-check" aria-hidden="true">
+                      ${icons.check}
+                    </div>
+                  </a>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <!-- Sibling Interactive Tool Tabs (Virtual Labs, Quiz & Exams, Flashcards) -->
+          ${TOOL_TABS.map(sub => `
             <a href="#${sub.id}" class="nav-subject-tab-pill ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
                data-tab="${sub.id}" role="tab" aria-selected="${AppState.currentTab === sub.id ? 'true' : 'false'}"
                title="${sub.name}: ${sub.tagline}" aria-label="${sub.name}: ${sub.tagline}">
@@ -449,13 +505,38 @@ function renderAppShell() {
           <!-- Dropdown Menu Panel -->
           <div class="nav-dropdown-menu" id="nav-dropdown-menu" role="menu" aria-label="Curriculum and Laboratories Menu">
             <div class="nav-dropdown-header">
-              <span class="nav-dropdown-header-title">Select Curriculum or Lab</span>
-              <span class="nav-dropdown-header-count">6 Available</span>
+              <span class="nav-dropdown-header-title">Curriculum Subjects</span>
+              <span class="nav-dropdown-header-count">3 Subjects</span>
             </div>
             <div class="nav-dropdown-list">
-              ${NAV_SUBJECTS.map(sub => `
+              ${CURRICULUM_SUBJECTS.map(sub => `
                 <a href="#${sub.id}" class="nav-dropdown-item ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
-                        data-tab="${sub.id}" role="menuitem" aria-label="${sub.name}: ${sub.tagline}" style="text-decoration: none; color: inherit;">
+                   data-tab="${sub.id}" role="menuitem" aria-label="${sub.name}: ${sub.tagline}" style="text-decoration: none; color: inherit;">
+                  <div class="nav-item-icon-box">
+                    ${sub.icon}
+                  </div>
+                  <div class="nav-item-content">
+                    <div class="nav-item-top">
+                      <span class="nav-item-title">${sub.name}</span>
+                      <span class="nav-item-badge">${sub.badge} Modules</span>
+                    </div>
+                    <span class="nav-item-tagline">${sub.tagline}</span>
+                  </div>
+                  <div class="nav-item-check" aria-hidden="true">
+                    ${icons.check}
+                  </div>
+                </a>
+              `).join('')}
+            </div>
+
+            <div class="nav-dropdown-header" style="margin-top: 8px;">
+              <span class="nav-dropdown-header-title">Interactive STEM Tools</span>
+              <span class="nav-dropdown-header-count">3 Tools</span>
+            </div>
+            <div class="nav-dropdown-list">
+              ${TOOL_TABS.map(sub => `
+                <a href="#${sub.id}" class="nav-dropdown-item ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
+                   data-tab="${sub.id}" role="menuitem" aria-label="${sub.name}: ${sub.tagline}" style="text-decoration: none; color: inherit;">
                   <div class="nav-item-icon-box">
                     ${sub.icon}
                   </div>
@@ -531,6 +612,32 @@ function renderAppShell() {
   `;
 }
 
+export function toggleSubjectsDropdown(forceState) {
+  const wrapper = document.getElementById("nav-subjects-dropdown");
+  const trigger = document.getElementById("nav-subjects-dropdown-btn");
+  if (!wrapper || !trigger) return;
+
+  const isOpen = forceState !== undefined ? forceState : !wrapper.classList.contains("open");
+  wrapper.classList.toggle("open", isOpen);
+  trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
+  if (isOpen) {
+    const activeItem = wrapper.querySelector(".nav-dropdown-item.active") || wrapper.querySelector(".nav-dropdown-item");
+    if (activeItem) {
+      setTimeout(() => activeItem.focus(), 50);
+    }
+  }
+}
+
+export function closeSubjectsDropdown() {
+  const wrapper = document.getElementById("nav-subjects-dropdown");
+  const trigger = document.getElementById("nav-subjects-dropdown-btn");
+  if (wrapper && wrapper.classList.contains("open")) {
+    wrapper.classList.remove("open");
+    if (trigger) trigger.setAttribute("aria-expanded", "false");
+  }
+}
+
 export function toggleSubjectDropdown(forceState) {
   const wrapper = document.getElementById("nav-dropdown-wrapper");
   const trigger = document.getElementById("nav-dropdown-trigger");
@@ -555,6 +662,7 @@ export function closeSubjectDropdown() {
     wrapper.classList.remove("open");
     if (trigger) trigger.setAttribute("aria-expanded", "false");
   }
+  closeSubjectsDropdown();
 }
 
 function toggleDayNightTheme() {
@@ -595,7 +703,25 @@ function bindGlobalEvents() {
     window.location.hash = "chem";
   });
 
-  // Dropdown Trigger Toggle
+  // Desktop Subjects Dropdown Trigger Toggle
+  const subjectsTrigger = document.getElementById("nav-subjects-dropdown-btn");
+  if (subjectsTrigger) {
+    subjectsTrigger.addEventListener("click", (e) => {
+      e.stopPropagation();
+      try { SoundFX.playClick(); } catch (e) {}
+      toggleSubjectsDropdown();
+    });
+
+    subjectsTrigger.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        try { SoundFX.playClick(); } catch (e) {}
+        toggleSubjectsDropdown(true);
+      }
+    });
+  }
+
+  // Mobile Dropdown Trigger Toggle
   const dropdownTrigger = document.getElementById("nav-dropdown-trigger");
   if (dropdownTrigger) {
     dropdownTrigger.addEventListener("click", (e) => {
@@ -617,25 +743,41 @@ function bindGlobalEvents() {
 
   // Light Dismiss on outside pointerdown
   document.addEventListener("pointerdown", (e) => {
-    const wrapper = document.getElementById("nav-dropdown-wrapper");
-    if (wrapper && wrapper.classList.contains("open")) {
-      if (!wrapper.contains(e.target)) {
+    const mobileWrapper = document.getElementById("nav-dropdown-wrapper");
+    if (mobileWrapper && mobileWrapper.classList.contains("open")) {
+      if (!mobileWrapper.contains(e.target)) {
         closeSubjectDropdown();
+      }
+    }
+    const subjectsWrapper = document.getElementById("nav-subjects-dropdown");
+    if (subjectsWrapper && subjectsWrapper.classList.contains("open")) {
+      if (!subjectsWrapper.contains(e.target)) {
+        closeSubjectsDropdown();
       }
     }
   });
 
   // Keyboard navigation & Escape dismiss
   document.addEventListener("keydown", (e) => {
-    const wrapper = document.getElementById("nav-dropdown-wrapper");
-    if (!wrapper || !wrapper.classList.contains("open")) return;
+    const desktopWrapper = document.getElementById("nav-subjects-dropdown");
+    const mobileWrapper = document.getElementById("nav-dropdown-wrapper");
+    const openWrapper = (desktopWrapper && desktopWrapper.classList.contains("open"))
+      ? desktopWrapper
+      : ((mobileWrapper && mobileWrapper.classList.contains("open")) ? mobileWrapper : null);
+
+    if (!openWrapper) return;
 
     if (e.key === "Escape") {
-      closeSubjectDropdown();
-      dropdownTrigger?.focus();
+      if (openWrapper === desktopWrapper) {
+        closeSubjectsDropdown();
+        subjectsTrigger?.focus();
+      } else {
+        closeSubjectDropdown();
+        dropdownTrigger?.focus();
+      }
     } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
       e.preventDefault();
-      const items = Array.from(wrapper.querySelectorAll(".nav-dropdown-item"));
+      const items = Array.from(openWrapper.querySelectorAll(".nav-dropdown-item"));
       const currentIndex = items.indexOf(document.activeElement);
       let nextIndex = 0;
       if (e.key === "ArrowDown") {
@@ -961,8 +1103,9 @@ function switchTab(tabId, updateHash = true) {
   }
 
   const sub = NAV_SUBJECTS.find(s => s.id === tabId) || NAV_SUBJECTS[0];
+  const isCurriculum = CURRICULUM_SUBJECT_IDS.includes(tabId);
 
-  // Update dropdown trigger button appearance
+  // Update mobile dropdown trigger button appearance
   const trigger = document.getElementById("nav-dropdown-trigger");
   if (trigger) {
     trigger.classList.remove("tab-chem", "tab-bio", "tab-phys", "tab-labs", "tab-quiz", "tab-flashcards");
@@ -975,8 +1118,30 @@ function switchTab(tabId, updateHash = true) {
   const curBadge = document.getElementById("nav-dropdown-current-badge");
   if (curBadge) curBadge.textContent = sub.badge;
 
+  // Update desktop Subjects dropdown button appearance and active state
+  const subjectsBtn = document.getElementById("nav-subjects-dropdown-btn");
+  if (subjectsBtn) {
+    subjectsBtn.classList.remove("tab-chem", "tab-bio", "tab-phys", "active");
+    if (isCurriculum) {
+      subjectsBtn.classList.add(sub.themeClass, "active");
+      subjectsBtn.setAttribute("aria-selected", "true");
+      subjectsBtn.setAttribute("title", `Curriculum Subject: ${sub.name}`);
+      subjectsBtn.setAttribute("aria-label", `Curriculum Subjects: ${sub.name}`);
+    } else {
+      subjectsBtn.setAttribute("aria-selected", "false");
+      subjectsBtn.setAttribute("title", "Curriculum Subjects: Chemistry, Biology, Physics");
+      subjectsBtn.setAttribute("aria-label", "Curriculum Subjects Dropdown Menu");
+    }
+    const btnIcon = document.getElementById("nav-subjects-btn-icon");
+    if (btnIcon) btnIcon.innerHTML = isCurriculum ? sub.icon : icons.book;
+    const btnActiveName = document.getElementById("nav-subjects-btn-active-name");
+    if (btnActiveName) btnActiveName.textContent = isCurriculum ? sub.name : "";
+    const btnSep = subjectsBtn.querySelector(".subjects-active-sep");
+    if (btnSep) btnSep.style.display = isCurriculum ? "inline" : "none";
+  }
+
   // Update active state in segmented tabs and dropdown items
-  document.querySelectorAll(".nav-subject-tab-pill").forEach(pill => {
+  document.querySelectorAll(".nav-subject-tab-pill[data-tab]").forEach(pill => {
     const isActive = pill.dataset.tab === tabId;
     pill.classList.toggle("active", isActive);
     pill.setAttribute("aria-selected", isActive ? "true" : "false");
@@ -995,6 +1160,7 @@ function switchTab(tabId, updateHash = true) {
 
   // Close dropdown menu
   closeSubjectDropdown();
+  closeSubjectsDropdown();
 
   // Shift atmospheric glow color
   const blob1 = document.querySelector(".blob-1");
