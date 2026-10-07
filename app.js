@@ -428,19 +428,19 @@ function renderAppShell() {
         <div class="nav-subject-tabs" role="tablist" aria-label="Curriculum Subjects and Laboratories">
           <!-- Subjects Dropdown Menu Pill (Collects Chemistry, Biology, Physics) -->
           <div class="nav-subjects-dropdown" id="nav-subjects-dropdown">
-            <button class="nav-subject-tab-pill nav-subjects-dropdown-btn ${isCurriculum ? curSub.themeClass + ' active' : ''}" 
+            <button class="nav-subject-tab-pill nav-subjects-dropdown-btn ${curSub.themeClass} active" 
                     id="nav-subjects-dropdown-btn" 
                     type="button"
                     aria-haspopup="true" 
                     aria-expanded="false" 
                     aria-controls="nav-subjects-menu"
                     title="Curriculum Subjects & Tools: Chemistry, Biology, Physics, Labs, Quizzes, Flashcards" 
-                    aria-label="Subjects Dropdown Menu${isCurriculum ? '. Current: ' + curSub.name : ''}">
-              <span class="tab-pill-icon" id="nav-subjects-btn-icon" aria-hidden="true">${isCurriculum ? curSub.icon : icons.book}</span>
+                    aria-label="Subjects Dropdown Menu. Current: ${curSub.name}">
+              <span class="tab-pill-icon" id="nav-subjects-btn-icon" aria-hidden="true">${curSub.icon}</span>
               <span class="tab-pill-text" id="nav-subjects-btn-text">
                 <span class="subjects-label">Subjects</span>
-                <span class="subjects-active-sep" style="${isCurriculum ? '' : 'display: none;'}">•</span>
-                <span class="subjects-active-name" id="nav-subjects-btn-active-name">${isCurriculum ? curSub.name : ''}</span>
+                <span class="subjects-active-sep">•</span>
+                <span class="subjects-active-name" id="nav-subjects-btn-active-name">${curSub.name}</span>
               </span>
               <span class="tab-pill-chevron" id="nav-subjects-btn-chevron" aria-hidden="true">
                 ${icons.chevronDown}
@@ -500,16 +500,6 @@ function renderAppShell() {
               </div>
             </div>
           </div>
-
-          <!-- Sibling Interactive Tool Tabs (Virtual Labs, Quiz & Exams, Flashcards) -->
-          ${TOOL_TABS.map(sub => `
-            <a href="#${sub.id}" class="nav-subject-tab-pill ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
-               data-tab="${sub.id}" role="tab" aria-selected="${AppState.currentTab === sub.id ? 'true' : 'false'}"
-               title="${sub.name}: ${sub.tagline}" aria-label="${sub.name}: ${sub.tagline}">
-              <span class="tab-pill-icon" aria-hidden="true">${sub.icon}</span>
-              <span class="tab-pill-text">${sub.name}</span>
-            </a>
-          `).join('')}
         </div>
 
         <!-- Navigation Subject Dropdown Menu (Mobile / Compact Viewports) -->
@@ -1147,22 +1137,17 @@ function switchTab(tabId, updateHash = true) {
   const subjectsBtn = document.getElementById("nav-subjects-dropdown-btn");
   if (subjectsBtn) {
     subjectsBtn.classList.remove("tab-chem", "tab-bio", "tab-phys", "tab-labs", "tab-quiz", "tab-flashcards", "active");
-    if (isCurriculum) {
-      subjectsBtn.classList.add(sub.themeClass, "active");
-      subjectsBtn.setAttribute("aria-selected", "true");
-      subjectsBtn.setAttribute("title", `Curriculum Subject: ${sub.name}`);
-      subjectsBtn.setAttribute("aria-label", `Curriculum Subjects: ${sub.name}`);
-    } else {
-      subjectsBtn.setAttribute("aria-selected", "false");
-      subjectsBtn.setAttribute("title", "Curriculum Subjects & Tools: Chemistry, Biology, Physics, Labs, Quizzes, Flashcards");
-      subjectsBtn.setAttribute("aria-label", "Subjects Dropdown Menu");
-    }
+    subjectsBtn.classList.add(sub.themeClass, "active");
+    subjectsBtn.setAttribute("aria-selected", "true");
+    subjectsBtn.setAttribute("title", `Curriculum Subjects & Tools. Current: ${sub.name}`);
+    subjectsBtn.setAttribute("aria-label", `Subjects Menu. Current: ${sub.name}`);
+
     const btnIcon = document.getElementById("nav-subjects-btn-icon");
-    if (btnIcon) btnIcon.innerHTML = isCurriculum ? sub.icon : icons.book;
+    if (btnIcon) btnIcon.innerHTML = sub.icon;
     const btnActiveName = document.getElementById("nav-subjects-btn-active-name");
-    if (btnActiveName) btnActiveName.textContent = isCurriculum ? sub.name : "";
+    if (btnActiveName) btnActiveName.textContent = sub.name;
     const btnSep = subjectsBtn.querySelector(".subjects-active-sep");
-    if (btnSep) btnSep.style.display = isCurriculum ? "inline" : "none";
+    if (btnSep) btnSep.style.display = "inline";
   }
 
   // Update active state in segmented tabs and dropdown items

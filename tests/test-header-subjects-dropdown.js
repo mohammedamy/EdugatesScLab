@@ -87,6 +87,11 @@ testAssert(
   "app.js includes flash cards, virtual labs, and quizzes inside the subjects dropdown menu flyout"
 );
 
+testAssert(
+  !appSource.includes('<!-- Sibling Interactive Tool Tabs'),
+  "app.js eliminated standalone tool tabs from header navbar so only the dropdown menu remains"
+);
+
 // 3. Dropdown Interaction & Event Logic
 console.log("\n🔄 Dropdown Lifecycle & Event Handlers:");
 testAssert(
