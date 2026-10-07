@@ -1222,6 +1222,80 @@ export const icons = {
     <circle cx="18" cy="12" r="1" fill="#f59e0b"/>
     <line x1="6" y1="12" x2="9" y2="12" stroke="#f59e0b" stroke-dasharray="1 1"/>
     <line x1="15" y1="12" x2="18" y2="12" stroke="#f59e0b" stroke-dasharray="1 1"/>
+  </svg>`,
+
+  flameTest: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 2c.5 3 3.5 5.5 3.5 9 0 3-2 5.5-4.5 6.5-1.5.6-2.5 1.5-2.5 3 0 .3 0 .7.1 1-3.6-1.5-5.6-5.5-4.6-9.5C5 7.5 8 4 12 2z" stroke="#f59e0b" fill="rgba(245, 158, 11, 0.25)"/>
+    <path d="M12 12c1.5 1.5 2 3 1.5 4.5-.5 1-1.5 1.5-2.5 1.5-1.5 0-2.5-1-2.5-2.5 0-1.5 1-2.5 2-3.5" stroke="#ef4444" fill="rgba(239, 68, 68, 0.35)"/>
+    <line x1="18" y1="19" x2="22" y2="19" stroke="#94a3b8" stroke-width="2"/>
+    <circle cx="16" cy="19" r="1.5" stroke="#38bdf8" fill="#38bdf8"/>
+  </svg>`,
+
+  precipitation: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 2h8v4H8z" stroke="#94a3b8"/>
+    <path d="M9 6v12a3 3 0 0 0 6 0V6" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="12" cy="12" r="1" fill="#facc15"/>
+    <circle cx="11" cy="14" r="1.2" fill="#facc15"/>
+    <circle cx="13" cy="15" r="1" fill="#facc15"/>
+    <path d="M10 17h4v1.5a2 2 0 0 1-4 0z" fill="#f59e0b"/>
+  </svg>`,
+
+  activitySeries: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="10" width="18" height="11" rx="2" stroke="#475569" fill="rgba(56, 189, 248, 0.15)"/>
+    <rect x="7" y="5" width="4" height="11" rx="1" stroke="#f59e0b" fill="#f59e0b"/>
+    <path d="M14 6l3 3-3 3" stroke="#38bdf8" stroke-width="2"/>
+    <circle cx="15" cy="16" r="1" fill="#ffffff"/>
+    <circle cx="17" cy="14" r="1" fill="#ffffff"/>
+  </svg>`,
+
+  antibiotic: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="9" stroke="#10b981" stroke-width="2" fill="rgba(16, 185, 129, 0.1)"/>
+    <circle cx="12" cy="12" r="5" stroke="#38bdf8" stroke-dasharray="2 2"/>
+    <circle cx="12" cy="12" r="2" fill="#ffffff" stroke="#94a3b8"/>
+    <path d="M7 6l1 1M17 6l-1 1M7 18l1-1M17 18l-1-1" stroke="#10b981" stroke-width="1.5"/>
+  </svg>`,
+
+  elisa: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="16" rx="2" stroke="#38bdf8" stroke-width="1.5"/>
+    <circle cx="7" cy="8" r="1.5" fill="#facc15"/>
+    <circle cx="12" cy="8" r="1.5" fill="#facc15"/>
+    <circle cx="17" cy="8" r="1.5" fill="#38bdf8"/>
+    <circle cx="7" cy="12" r="1.5" fill="#facc15"/>
+    <circle cx="12" cy="12" r="1.5" fill="#38bdf8"/>
+    <circle cx="17" cy="12" r="1.5" fill="#38bdf8"/>
+    <circle cx="7" cy="16" r="1.5" fill="#38bdf8"/>
+    <circle cx="12" cy="16" r="1.5" fill="#38bdf8"/>
+    <circle cx="17" cy="16" r="1.5" fill="#38bdf8"/>
+  </svg>`,
+
+  transpiration: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 21a9 9 0 0 0 9-9c0-4-4-8-9-10-5 2-9 6-9 10a9 9 0 0 0 9 9z" stroke="#10b981" stroke-width="2" fill="rgba(16, 185, 129, 0.15)"/>
+    <path d="M12 3v18" stroke="#10b981" stroke-width="1.5"/>
+    <path d="M12 8l5 3M12 13l5 3M12 10l-5 3M12 15l-5 3" stroke="#10b981" stroke-width="1.5"/>
+    <circle cx="18" cy="6" r="1" fill="#38bdf8"/>
+    <circle cx="19.5" cy="9" r="1" fill="#38bdf8"/>
+  </svg>`,
+
+  orbital: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="12" cy="12" rx="9" ry="5" transform="rotate(-25 12 12)" stroke="#818cf8" stroke-width="2"/>
+    <circle cx="11" cy="12" r="3" fill="#38bdf8" stroke="#0284c7"/>
+    <circle cx="18" cy="8" r="1.5" fill="#fbbf24"/>
+    <line x1="18" y1="8" x2="20" y2="7" stroke="#fbbf24" stroke-width="1.5"/>
+  </svg>`,
+
+  soundResonance: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 4v16M19 4v16" stroke="#94a3b8" stroke-width="2"/>
+    <path d="M5 16h14v4H5z" fill="rgba(56, 189, 248, 0.35)" stroke="#38bdf8"/>
+    <path d="M7 6c3 3 7 3 10 0M7 11c3 3 7 3 10 0M7 16c3 3 7 3 10 0" stroke="#818cf8" stroke-width="1.5"/>
+  </svg>`,
+
+  electrostatics: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="7" cy="12" r="4" stroke="#ef4444" stroke-width="2" fill="rgba(239, 68, 68, 0.2)"/>
+    <line x1="5.5" y1="12" x2="8.5" y2="12" stroke="#ef4444" stroke-width="2"/>
+    <line x1="7" y1="10.5" x2="7" y2="13.5" stroke="#ef4444" stroke-width="2"/>
+    <circle cx="17" cy="12" r="4" stroke="#3b82f6" stroke-width="2" fill="rgba(59, 130, 246, 0.2)"/>
+    <line x1="15.5" y1="12" x2="18.5" y2="12" stroke="#3b82f6" stroke-width="2"/>
+    <path d="M11 9c1 1.5 1 4.5 0 6M13 9c-1 1.5-1 4.5 0 6" stroke="#fbbf24" stroke-width="1.5"/>
   </svg>`
 };
 

@@ -23,7 +23,7 @@ export async function getQuestionBank() {
       else if (norm === "bio") chunkModule = await import("../data/question-bank-bio.js");
       else if (norm === "phys") chunkModule = await import("../data/question-bank-phys.js");
       if (chunkModule && chunkModule.questionBank) {
-        subjectChunks[norm] = chunkModule.questionBank;
+        subjectChunks[norm] = deduplicateQuestions(chunkModule.questionBank);
         return subjectChunks[norm];
       }
     } catch (err) {
@@ -35,7 +35,7 @@ export async function getQuestionBank() {
   if (!loadingBankPromise) {
     loadingBankPromise = import("../data/question-bank.js")
       .then(m => {
-        loadedQuestionBank = m.questionBank;
+        loadedQuestionBank = deduplicateQuestions(m.questionBank);
         return loadedQuestionBank;
       })
       .catch(err => {
@@ -76,12 +76,84 @@ function escapeHtml(str) {
 }
 
 /**
+ * Normalizes question text for robust deduplication across formatting, KaTeX, and Markdown variants.
+ */
+export function normalizeQuestionText(text) {
+  if (!text) return "";
+  let clean = String(text)
+    .replace(/<[^>]*>/g, "")
+    .replace(/&[a-z0-9#]+;/gi, " ")
+    .replace(/\$\$([^$]+)\$\$/g, "$1")
+    .replace(/\$([^$]+)\$/g, "$1");
+
+  // Recursively strip LaTeX text/font formatting wrappers: \text{...}, \mathrm{...}, \mathbf{...}, etc.
+  for (let i = 0; i < 3; i++) {
+    clean = clean.replace(/\\(?:text|mathrm|mathbf|mathit|textbf|textit|mathsf|mathtt|underline|bm)\{([^}]*)\}/g, "$1");
+  }
+
+  return clean
+    .replace(/[*_#`~]/g, "")
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'\\]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Returns a normalized fingerprint key for a question item.
+ */
+export function getQuestionFingerprint(q) {
+  if (!q) return { id: "", text: "" };
+  const id = q.id ? String(q.id).trim().toLowerCase() : "";
+  const text = normalizeQuestionText(q.question || q.prompt || q.text || q.stem || "");
+  return { id, text };
+}
+
+/**
+ * Checks whether two questions represent the exact same assessment item.
+ */
+export function isSameQuestion(q1, q2) {
+  if (!q1 || !q2) return false;
+  if (q1 === q2) return true;
+  const fp1 = getQuestionFingerprint(q1);
+  const fp2 = getQuestionFingerprint(q2);
+  if (fp1.id && fp2.id && fp1.id === fp2.id) return true;
+  if (fp1.text && fp2.text && fp1.text === fp2.text) return true;
+  return false;
+}
+
+/**
+ * Deduplicates an array of questions while preserving original order.
+ * Strictly guarantees that no question appears twice by ID or by prompt text.
+ */
+export function deduplicateQuestions(questions) {
+  if (!Array.isArray(questions)) return [];
+  const seenIds = new Set();
+  const seenTexts = new Set();
+  const unique = [];
+
+  for (const q of questions) {
+    if (!q) continue;
+    const { id, text } = getQuestionFingerprint(q);
+    if (id && seenIds.has(id)) continue;
+    if (text && seenTexts.has(text)) continue;
+
+    if (id) seenIds.add(id);
+    if (text) seenTexts.add(text);
+    unique.push(q);
+  }
+
+  return unique;
+}
+
+/**
  * Storage Helpers for Teacher/User Custom Authored Questions
  */
 export function getUserCustomQuestions() {
   if (typeof window === "undefined" || !window.localStorage) return [];
   try {
-    return JSON.parse(localStorage.getItem("clipsat_user_custom_questions") || "[]");
+    const list = JSON.parse(localStorage.getItem("clipsat_user_custom_questions") || "[]");
+    return deduplicateQuestions(list);
   } catch (e) {
     return [];
   }
@@ -94,13 +166,13 @@ export function saveUserCustomQuestion(question) {
       question.isUserCustom = true;
     }
     const list = getUserCustomQuestions();
-    const idx = list.findIndex(q => q.id === question.id);
+    const idx = list.findIndex(q => isSameQuestion(q, question));
     if (idx >= 0) {
       list[idx] = question;
     } else {
       list.unshift(question);
     }
-    localStorage.setItem("clipsat_user_custom_questions", JSON.stringify(list));
+    localStorage.setItem("clipsat_user_custom_questions", JSON.stringify(deduplicateQuestions(list)));
     return true;
   } catch (e) {
     console.error("[Quiz Engine] Error saving custom question:", e);
@@ -112,7 +184,7 @@ export function deleteUserCustomQuestion(questionId) {
   if (typeof window === "undefined" || !window.localStorage) return false;
   try {
     const list = getUserCustomQuestions().filter(q => q.id !== questionId);
-    localStorage.setItem("clipsat_user_custom_questions", JSON.stringify(list));
+    localStorage.setItem("clipsat_user_custom_questions", JSON.stringify(deduplicateQuestions(list)));
     return true;
   } catch (e) {
     return false;
@@ -642,8 +714,9 @@ export async function openMasterBankBrowserModal(options = {}) {
   let fullBank = [];
   try {
     const rawBank = await getQuestionBank();
-    const userCustoms = getUserCustomQuestions();
-    fullBank = [...userCustoms, ...(rawBank || [])];
+    const userCustoms = deduplicateQuestions(getUserCustomQuestions());
+    const nonCustomBank = (rawBank || []).filter(b => !userCustoms.some(uc => isSameQuestion(uc, b)));
+    fullBank = deduplicateQuestions([...userCustoms, ...nonCustomBank]);
   } catch (err) {
     console.error("[Quiz Engine] Failed to load bank browser items:", err);
     fullBank = [];
@@ -1707,12 +1780,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       btnAddCustom.addEventListener("click", () => {
         openCustomQuestionModal((newQ, addToExam) => {
           if (addToExam) {
-            if (!manuallyAddedQuestions.some(m => m.id === newQ.id)) {
+            if (!manuallyAddedQuestions.some(m => isSameQuestion(m, newQ))) {
               manuallyAddedQuestions.push(newQ);
             }
-            if (!activeQuestions.some(m => m.id === newQ.id)) {
+            if (!activeQuestions.some(m => isSameQuestion(m, newQ))) {
               activeQuestions.push(newQ);
             }
+            manuallyAddedQuestions = deduplicateQuestions(manuallyAddedQuestions);
+            activeQuestions = deduplicateQuestions(activeQuestions);
             showToast("Added to Assessment", `Custom question "${(newQ.question || "").slice(0, 45)}..." added to active assessment queue.`, "success");
             showConfig();
           }
@@ -1728,12 +1803,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         openMasterBankBrowserModal({
           currentSelectedIds: currentSel,
           onAddQuestion: (targetQ) => {
-            if (!manuallyAddedQuestions.some(m => m.id === targetQ.id)) {
+            if (!manuallyAddedQuestions.some(m => isSameQuestion(m, targetQ))) {
               manuallyAddedQuestions.push(targetQ);
             }
-            if (!activeQuestions.some(m => m.id === targetQ.id)) {
+            if (!activeQuestions.some(m => isSameQuestion(m, targetQ))) {
               activeQuestions.push(targetQ);
             }
+            manuallyAddedQuestions = deduplicateQuestions(manuallyAddedQuestions);
+            activeQuestions = deduplicateQuestions(activeQuestions);
           },
           onRemoveQuestion: (qid) => {
             manuallyAddedQuestions = manuallyAddedQuestions.filter(m => m.id !== qid);
@@ -1950,16 +2027,21 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     const qTypeVal = document.getElementById("cfg-qtype")?.value || initialQType;
 
     // Load persisted user custom questions
-    const userCustoms = getUserCustomQuestions();
-    const mergedBank = [
+    const userCustoms = deduplicateQuestions(getUserCustomQuestions());
+    const nonManualCustoms = userCustoms.filter(uc => !manuallyAddedQuestions.some(m => isSameQuestion(m, uc)));
+    const nonManualBank = bank.filter(b => 
+      !manuallyAddedQuestions.some(m => isSameQuestion(m, b)) &&
+      !nonManualCustoms.some(uc => isSameQuestion(uc, b))
+    );
+    const mergedBank = deduplicateQuestions([
       ...manuallyAddedQuestions,
-      ...userCustoms.filter(uc => !manuallyAddedQuestions.some(m => m.id === uc.id)),
-      ...bank.filter(b => !manuallyAddedQuestions.some(m => m.id === b.id))
-    ];
+      ...nonManualCustoms,
+      ...nonManualBank
+    ]);
 
     if (selectedLessons.size === 0) {
       if (manuallyAddedQuestions.length > 0) {
-        return [...manuallyAddedQuestions];
+        return deduplicateQuestions([...manuallyAddedQuestions]);
       }
       return [];
     }
@@ -1971,9 +2053,9 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       if (parts.length >= 2) selectedModIds.add(`${parts[0]}-${parts[1]}`);
     });
 
-    return mergedBank.filter(q => {
+    const res = mergedBank.filter(q => {
       // Manually added questions are always included
-      if (manuallyAddedQuestions.some(m => m.id === q.id)) return true;
+      if (manuallyAddedQuestions.some(m => isSameQuestion(m, q))) return true;
 
       const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
       const matchScope = q.lessonId 
@@ -1988,16 +2070,19 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         || (qTypeVal === "diagram" ? (q.type === "diagram" || q.hasDiagram || Boolean(q.diagram)) : q.type === qTypeVal);
       return matchDiff && matchType;
     });
+
+    return deduplicateQuestions(res);
   }
 
   // Helper to build a balanced preset selection (easy, medium, hard, diagrams)
   function getBalancedPresetSelection(pool, targetCount) {
     if (!pool || pool.length === 0) return new Set();
-    if (targetCount >= pool.length) return new Set(pool.map(q => q.id));
+    const sanitizedPool = deduplicateQuestions(pool);
+    if (targetCount >= sanitizedPool.length) return new Set(sanitizedPool.map(q => q.id));
 
-    const easyPool = pool.filter(q => q.difficultyTier === "easy" || q.difficulty === "foundational");
-    const medPool = pool.filter(q => q.difficultyTier === "medium" || q.difficulty === "honors");
-    const hardPool = pool.filter(q => q.difficultyTier === "hard" || q.difficulty === "ap_olympiad");
+    const easyPool = sanitizedPool.filter(q => q.difficultyTier === "easy" || q.difficulty === "foundational");
+    const medPool = sanitizedPool.filter(q => q.difficultyTier === "medium" || q.difficulty === "honors");
+    const hardPool = sanitizedPool.filter(q => q.difficultyTier === "hard" || q.difficulty === "ap_olympiad");
 
     let nEasy = Math.round(targetCount / 3);
     let nMed = Math.round(targetCount / 3);
@@ -2018,16 +2103,21 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       return combined;
     }
 
-    const selected = [
+    const selected = deduplicateQuestions([
       ...pickFromTier(easyPool, nEasy),
       ...pickFromTier(medPool, nMed),
       ...pickFromTier(hardPool, nHard)
-    ];
+    ]);
 
     const selectedIds = new Set(selected.map(q => q.id));
-    for (const q of pool) {
+    const selectedTexts = new Set(selected.map(q => normalizeQuestionText(q.question || q.prompt)).filter(Boolean));
+
+    for (const q of sanitizedPool) {
       if (selectedIds.size >= targetCount) break;
+      const normTxt = normalizeQuestionText(q.question || q.prompt);
+      if (selectedIds.has(q.id) || (normTxt && selectedTexts.has(normTxt))) continue;
       selectedIds.add(q.id);
+      if (normTxt) selectedTexts.add(normTxt);
     }
 
     return selectedIds;
@@ -2059,7 +2149,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       }
     }
 
-    const pool = resolveScopePool(bank, true);
+    const pool = deduplicateQuestions(resolveScopePool(bank, true));
     if (pool.length === 0) {
       showToast("No Questions", "No questions matched the selected lessons.", "warning");
       return;
@@ -2070,11 +2160,18 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     const targetCount = countVal === "ALL" ? Math.min(30, pool.length) : Math.min(parseInt(countVal, 10), pool.length);
 
     let initialSelected;
-    if (activeQuestions.length > 0 && activeQuestions.every(q => pool.some(p => p.id === q.id))) {
+    if (activeQuestions.length > 0 && activeQuestions.every(q => pool.some(p => isSameQuestion(p, q)))) {
       initialSelected = new Set(activeQuestions.map(q => q.id));
     } else {
       initialSelected = getBalancedPresetSelection(pool, targetCount);
-      manuallyAddedQuestions.forEach(mq => initialSelected.add(mq.id));
+      manuallyAddedQuestions.forEach(mq => {
+        for (const p of pool) {
+          if (p.id !== mq.id && isSameQuestion(p, mq) && initialSelected.has(p.id)) {
+            initialSelected.delete(p.id);
+          }
+        }
+        initialSelected.add(mq.id);
+      });
     }
 
     renderQuestionPicker(pool, initialSelected);
@@ -2087,9 +2184,9 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     } catch (err) {
       bank = [];
     }
-    let pool = resolveScopePool(bank, true);
+    let pool = deduplicateQuestions(resolveScopePool(bank, true));
     if (pool.length === 0) {
-      pool = [...activeQuestions];
+      pool = deduplicateQuestions([...activeQuestions]);
     }
     currentScopePool = pool;
     const initialSelected = new Set(activeQuestions.map(q => q.id));
@@ -2101,7 +2198,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     viewState = "picker";
     removePresenterKeyHandler();
 
-    let pickerPool = [...pool];
+    let pickerPool = deduplicateQuestions([...pool]);
     let pickerSelectedIds = new Set(initialSelectedIds);
     let filterStatus = "ALL"; // 'ALL', 'SELECTED', 'UNSELECTED'
     let filterDiff = "ALL"; // 'ALL', 'easy', 'medium', 'hard'
@@ -2427,6 +2524,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           e.stopPropagation();
           const qid = cb.dataset.qid;
           if (cb.checked) {
+            const targetQ = pickerPool.find(x => x && x.id === qid);
+            if (targetQ) {
+              pickerPool.forEach(p => {
+                if (p.id !== qid && isSameQuestion(p, targetQ)) {
+                  pickerSelectedIds.delete(p.id);
+                }
+              });
+            }
             pickerSelectedIds.add(qid);
           } else {
             pickerSelectedIds.delete(qid);
@@ -2463,14 +2568,16 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       // Write Custom Question from Studio
       document.getElementById("btn-picker-add-custom")?.addEventListener("click", () => {
         openCustomQuestionModal((newQ, addToExam) => {
-          if (!pickerPool.some(p => p.id === newQ.id)) {
+          if (!pickerPool.some(p => isSameQuestion(p, newQ))) {
             pickerPool.unshift(newQ);
           }
+          pickerPool = deduplicateQuestions(pickerPool);
           if (addToExam) {
             pickerSelectedIds.add(newQ.id);
-            if (!manuallyAddedQuestions.some(m => m.id === newQ.id)) {
+            if (!manuallyAddedQuestions.some(m => isSameQuestion(m, newQ))) {
               manuallyAddedQuestions.push(newQ);
             }
+            manuallyAddedQuestions = deduplicateQuestions(manuallyAddedQuestions);
           }
           showToast("Custom Question Created", `"${(newQ.question || "").slice(0, 45)}..." added to studio.`, "success");
           renderDOM();
@@ -2482,13 +2589,15 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         openMasterBankBrowserModal({
           currentSelectedIds: pickerSelectedIds,
           onAddQuestion: (targetQ) => {
-            if (!pickerPool.some(p => p.id === targetQ.id)) {
+            if (!pickerPool.some(p => isSameQuestion(p, targetQ))) {
               pickerPool.unshift(targetQ);
             }
+            pickerPool = deduplicateQuestions(pickerPool);
             pickerSelectedIds.add(targetQ.id);
-            if (!manuallyAddedQuestions.some(m => m.id === targetQ.id)) {
+            if (!manuallyAddedQuestions.some(m => isSameQuestion(m, targetQ))) {
               manuallyAddedQuestions.push(targetQ);
             }
+            manuallyAddedQuestions = deduplicateQuestions(manuallyAddedQuestions);
             renderDOM();
           },
           onRemoveQuestion: (qid) => {
@@ -2503,10 +2612,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       });
 
       document.getElementById("btn-select-all-filtered")?.addEventListener("click", () => {
+        const addedList = [];
         document.querySelectorAll(".q-picker-card").forEach(card => {
           const qid = card.dataset.qid;
-          if (qid) pickerSelectedIds.add(qid);
+          const qObj = pickerPool.find(x => x && x.id === qid);
+          if (qObj) addedList.push(qObj);
         });
+        const cleanAdded = deduplicateQuestions(addedList);
+        cleanAdded.forEach(q => pickerSelectedIds.add(q.id));
         showToast("Selected Filtered", `Selected all visible questions in current filter.`, "info");
         renderDOM();
       });
@@ -2616,7 +2729,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           showToast("Selection Required", "Please select at least one question before producing the printed exam.", "warning");
           return;
         }
-        activeQuestions = pickerPool.filter(q => pickerSelectedIds.has(q.id));
+        activeQuestions = deduplicateQuestions(pickerPool.filter(q => pickerSelectedIds.has(q.id)));
         userAnswers = {};
         examMode = "print";
         renderPrintView();
@@ -2628,7 +2741,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           showToast("Selection Required", "Please select at least one question before starting the quiz.", "warning");
           return;
         }
-        activeQuestions = pickerPool.filter(q => pickerSelectedIds.has(q.id));
+        activeQuestions = deduplicateQuestions(pickerPool.filter(q => pickerSelectedIds.has(q.id)));
         if (activeQuestions.length === 0) {
           showToast("Selection Empty", "No valid questions matched your selection.", "warning");
           return;
@@ -2677,17 +2790,22 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     }
 
     // Incorporate user custom questions and manually added bank questions
-    const userCustoms = getUserCustomQuestions();
-    const fullSourceBank = [
+    const userCustoms = deduplicateQuestions(getUserCustomQuestions());
+    const nonManualCustoms = userCustoms.filter(uc => !manuallyAddedQuestions.some(m => isSameQuestion(m, uc)));
+    const nonManualBank = bank.filter(b => 
+      !manuallyAddedQuestions.some(m => isSameQuestion(m, b)) &&
+      !nonManualCustoms.some(uc => isSameQuestion(uc, b))
+    );
+    const fullSourceBank = deduplicateQuestions([
       ...manuallyAddedQuestions,
-      ...userCustoms.filter(uc => !manuallyAddedQuestions.some(m => m.id === uc.id)),
-      ...bank.filter(b => !manuallyAddedQuestions.some(m => m.id === b.id))
-    ];
+      ...nonManualCustoms,
+      ...nonManualBank
+    ]);
 
     let pool = [];
 
     if (selectedLessons.size === 0 && manuallyAddedQuestions.length > 0) {
-      pool = [...manuallyAddedQuestions];
+      pool = deduplicateQuestions([...manuallyAddedQuestions]);
     } else {
       // Parse selected lessons into structured objects
       const scopeLessons = [];
@@ -2714,7 +2832,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
       pool = fullSourceBank.filter(q => {
         if (!q) return false;
-        if (manuallyAddedQuestions.some(m => m.id === q.id)) return true;
+        if (manuallyAddedQuestions.some(m => isSameQuestion(m, q))) return true;
 
         const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
         const matchScope = q.lessonId 
@@ -2739,7 +2857,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       if (pool.length === 0) {
         pool = fullSourceBank.filter(q => {
           if (!q) return false;
-          if (manuallyAddedQuestions.some(m => m.id === q.id)) return true;
+          if (manuallyAddedQuestions.some(m => isSameQuestion(m, q))) return true;
 
           const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
           const matchScope = q.lessonId 
@@ -2755,7 +2873,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       if (pool.length === 0) {
         pool = fullSourceBank.filter(q => {
           if (!q) return false;
-          if (manuallyAddedQuestions.some(m => m.id === q.id)) return true;
+          if (manuallyAddedQuestions.some(m => isSameQuestion(m, q))) return true;
 
           const qLessonKey = `${q.subject}-M${q.moduleId}-L${q.lessonId}`;
           return q.lessonId 
@@ -2775,6 +2893,8 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       }
     }
 
+    pool = deduplicateQuestions(pool);
+
     if (pool.length === 0) {
       showToast("No Questions Available", "Could not load or synthesize questions for the chosen scope. Please select another lesson.", "warning");
       return;
@@ -2783,14 +2903,21 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     currentScopePool = pool;
 
     // Prioritize manually added questions in final question set
-    const manualInPool = pool.filter(q => manuallyAddedQuestions.some(m => m.id === q.id));
-    const nonManualInPool = pool.filter(q => !manuallyAddedQuestions.some(m => m.id === q.id));
+    const manualInPool = deduplicateQuestions(pool.filter(q => manuallyAddedQuestions.some(m => isSameQuestion(m, q))));
+    const nonManualInPool = deduplicateQuestions(pool.filter(q => !manuallyAddedQuestions.some(m => isSameQuestion(m, q))));
     nonManualInPool.sort(() => Math.random() - 0.5);
-    const combinedPool = [...manualInPool, ...nonManualInPool];
+    const combinedPool = deduplicateQuestions([...manualInPool, ...nonManualInPool]);
 
-    // Limit count
+    // Limit count - strictly enforce unique questions without repeats
     const targetCount = countVal === "ALL" ? combinedPool.length : Math.min(parseInt(countVal, 10) || 10, combinedPool.length);
-    activeQuestions = combinedPool.slice(0, Math.max(1, targetCount));
+    const chosen = [];
+    for (const q of combinedPool) {
+      if (chosen.length >= targetCount) break;
+      if (!chosen.some(c => isSameQuestion(c, q))) {
+        chosen.push(q);
+      }
+    }
+    activeQuestions = deduplicateQuestions(chosen);
     if (activeQuestions.length === 0 && combinedPool.length > 0) {
       activeQuestions = [combinedPool[0]];
     }
@@ -2861,7 +2988,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     const newCorrect = paired.findIndex(p => p.isCorrect);
 
     return {
-      id: `SYNTH-${subj}-${mid}-${lid}-${Date.now() % 10000}`,
+      id: `SYNTH-${subj}-${mid}-${lid}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
       subject: subj,
       moduleId: mid,
       moduleTitle: `${mod.code}: ${mod.title}`,
@@ -2878,6 +3005,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
   // --- INTERACTIVE TEST VIEW ---
   function renderTestView() {
+    activeQuestions = deduplicateQuestions(activeQuestions);
     viewState = "test";
     removePresenterKeyHandler();
     if (timerInterval) {
@@ -3138,6 +3266,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
   // --- SMARTBOARD CLASSROOM PRESENTER MODE ---
   function renderPresenterSlide() {
+    activeQuestions = deduplicateQuestions(activeQuestions);
     viewState = "presenter";
     removePresenterKeyHandler();
 
@@ -3622,21 +3751,23 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   }
 
   function renderPrintView() {
+    activeQuestions = deduplicateQuestions(activeQuestions);
     viewState = "print";
     removePresenterKeyHandler();
 
     function getFormQuestions(formKey) {
+      const sanitized = deduplicateQuestions(activeQuestions);
       if (formKey === "A") {
-        return activeQuestions.map((q, idx) => ({
+        return sanitized.map((q, idx) => ({
           ...q,
           formIndex: idx + 1,
           formCorrectIdx: q.correctIndex,
-          equivFormBIndex: activeQuestions.length - idx
+          equivFormBIndex: sanitized.length - idx
         }));
       }
       // Form B: deterministic scramble of question order and option letters for anti-cheating
       // Strictly equivalent question set to Form A, with stable question-hash-based option rotation
-      return activeQuestions.map((q, idx) => {
+      return sanitized.map((q, idx) => {
         const formAIndex = idx + 1;
         if (!q.options || q.options.length <= 1) {
           return {
@@ -4153,10 +4284,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       document.getElementById("btn-print-add-custom")?.addEventListener("click", () => {
         openCustomQuestionModal((newQ, addToExam) => {
           if (addToExam) {
-            if (!manuallyAddedQuestions.some(m => m.id === newQ.id)) {
+            if (!manuallyAddedQuestions.some(m => isSameQuestion(m, newQ))) {
               manuallyAddedQuestions.push(newQ);
             }
-            activeQuestions.push(newQ);
+            if (!activeQuestions.some(m => isSameQuestion(m, newQ))) {
+              activeQuestions.push(newQ);
+            }
+            manuallyAddedQuestions = deduplicateQuestions(manuallyAddedQuestions);
+            activeQuestions = deduplicateQuestions(activeQuestions);
             showToast("Question Added to Exam", `Custom question "${newQ.id}" added to Form A & Form B.`, "success");
             renderDOM();
           }
@@ -4169,12 +4304,14 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         openMasterBankBrowserModal({
           currentSelectedIds: currentSel,
           onAddQuestion: (targetQ) => {
-            if (!manuallyAddedQuestions.some(m => m.id === targetQ.id)) {
+            if (!manuallyAddedQuestions.some(m => isSameQuestion(m, targetQ))) {
               manuallyAddedQuestions.push(targetQ);
             }
-            if (!activeQuestions.some(m => m.id === targetQ.id)) {
+            if (!activeQuestions.some(m => isSameQuestion(m, targetQ))) {
               activeQuestions.push(targetQ);
             }
+            manuallyAddedQuestions = deduplicateQuestions(manuallyAddedQuestions);
+            activeQuestions = deduplicateQuestions(activeQuestions);
             renderDOM();
           },
           onRemoveQuestion: (qid) => {
@@ -4192,8 +4329,11 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       document.getElementById("btn-print-undo")?.addEventListener("click", () => {
         if (printExcludedHistory.length === 0) return;
         const lastItem = printExcludedHistory.pop();
-        const insertIdx = Math.min(lastItem.originalIndex, activeQuestions.length);
-        activeQuestions.splice(insertIdx, 0, lastItem.question);
+        if (!activeQuestions.some(q => isSameQuestion(q, lastItem.question))) {
+          const insertIdx = Math.min(lastItem.originalIndex, activeQuestions.length);
+          activeQuestions.splice(insertIdx, 0, lastItem.question);
+        }
+        activeQuestions = deduplicateQuestions(activeQuestions);
         showToast("Question Restored", `Restored "${(lastItem.question.question || "").slice(0, 45)}..." back into Form A & Form B.`, "success");
         renderDOM();
       });
@@ -4204,8 +4344,11 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           const hIdx = parseInt(btn.dataset.hidx, 10);
           if (isNaN(hIdx) || hIdx < 0 || hIdx >= printExcludedHistory.length) return;
           const [restored] = printExcludedHistory.splice(hIdx, 1);
-          const insertIdx = Math.min(restored.originalIndex, activeQuestions.length);
-          activeQuestions.splice(insertIdx, 0, restored.question);
+          if (!activeQuestions.some(q => isSameQuestion(q, restored.question))) {
+            const insertIdx = Math.min(restored.originalIndex, activeQuestions.length);
+            activeQuestions.splice(insertIdx, 0, restored.question);
+          }
+          activeQuestions = deduplicateQuestions(activeQuestions);
           showToast("Question Restored", `Restored "${(restored.question.question || "").slice(0, 45)}..." back into Form A & Form B.`, "success");
           renderDOM();
         });
@@ -4217,9 +4360,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
         const count = printExcludedHistory.length;
         printExcludedHistory.sort((a, b) => a.originalIndex - b.originalIndex);
         printExcludedHistory.forEach(item => {
-          const insertIdx = Math.min(item.originalIndex, activeQuestions.length);
-          activeQuestions.splice(insertIdx, 0, item.question);
+          if (!activeQuestions.some(q => isSameQuestion(q, item.question))) {
+            const insertIdx = Math.min(item.originalIndex, activeQuestions.length);
+            activeQuestions.splice(insertIdx, 0, item.question);
+          }
         });
+        activeQuestions = deduplicateQuestions(activeQuestions);
         printExcludedHistory = [];
         showToast("All Questions Restored", `Successfully restored all ${count} questions to Form A & Form B.`, "success");
         renderDOM();

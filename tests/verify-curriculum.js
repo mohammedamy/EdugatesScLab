@@ -249,7 +249,16 @@ const virtualLabFiles = [
   "labs/phys-collisions.js",
   "labs/phys-induction.js",
   "labs/bio-osmosis.js",
-  "labs/bio-mitosis.js"
+  "labs/bio-mitosis.js",
+  "labs/chem-flame-test.js",
+  "labs/chem-precipitation.js",
+  "labs/chem-activity-series.js",
+  "labs/bio-antibiotic-resistance.js",
+  "labs/bio-immune-elisa.js",
+  "labs/bio-plant-transpiration.js",
+  "labs/phys-orbital-mechanics.js",
+  "labs/phys-sound-resonance.js",
+  "labs/phys-electrostatics.js"
 ];
 
 let allLabsImported = true;

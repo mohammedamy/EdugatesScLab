@@ -107,8 +107,8 @@ export const NAV_SUBJECTS = [
   {
     id: "labs",
     name: "Virtual Labs",
-    badge: "36 Labs",
-    tagline: "36 Interactive STEM Workbenches",
+    badge: "45 Labs",
+    tagline: "45 Interactive STEM Workbenches",
     icon: icons.microscope,
     themeClass: "tab-labs",
     color: "#38bdf8"
@@ -479,7 +479,7 @@ function renderAppShell() {
       <!-- Right Controls & Device Mode -->
       <div class="nav-right-controls" role="toolbar" aria-label="Display &amp; Hardware Mode Settings">
         <!-- Quick 1-Click Lab Mode Launcher Button -->
-        <a href="#labs" class="nav-btn-lab-mode" id="btn-nav-lab-mode" title="Quick Lab Mode - 36 Interactive Virtual Laboratories" aria-label="Quick launch Lab Mode">
+        <a href="#labs" class="nav-btn-lab-mode" id="btn-nav-lab-mode" title="Quick Lab Mode - 45 Interactive Virtual Laboratories" aria-label="Quick launch Lab Mode">
           <span class="lab-mode-sparkle" aria-hidden="true">⚡</span>
           <span class="lab-mode-text">Lab Mode</span>
         </a>
@@ -1125,7 +1125,7 @@ function renderCurrentView() {
     container.innerHTML = `<div id="quiz-engine-mount"><div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading Assessment Engine & Question Bank...</div></div>`;
     const initialConfig = AppState.quizFilter || null;
     AppState.quizFilter = null;
-    import("./components/quiz-engine.js?v=3.2").then(m => {
+    import("./components/quiz-engine.js?v=3.3").then(m => {
       currentActiveQuizCleanup = m.renderQuizEngine("quiz-engine-mount", initialConfig);
     }).catch(err => {
       console.error("Quiz load error:", err);
@@ -1166,7 +1166,7 @@ function getSubjectPlaceholderSvg(code) {
 // Master Registry of Virtual Laboratories (Classified by Chemistry, Physics, Biology)
 // Adding new labs here or via registerVirtualLab() automatically categorizes and sorts them alphabetically (A-Z).
 export const VIRTUAL_LABS_REGISTRY = [
-  // Chemistry Laboratories (12)
+  // Chemistry Laboratories (15)
   { id: "titration", subject: "chem", title: "Acid-Base Titration", icon: icons.titration, ariaLabel: "Acid-Base Titration Virtual Lab", href: "#labs/titration" },
   { id: "beerlambert", subject: "chem", title: "Beer-Lambert Law", icon: icons.beerLambert, ariaLabel: "Spectrophotometry and Beer-Lambert Law Lab", href: "#labs/beerlambert" },
   { id: "calorimetry", subject: "chem", title: "Calorimetry & ΔH", icon: icons.calorimetry, ariaLabel: "Calorimetry and Thermochemistry Virtual Lab", href: "#labs/calorimetry" },
@@ -1174,13 +1174,17 @@ export const VIRTUAL_LABS_REGISTRY = [
   { id: "colligative", subject: "chem", title: "Colligative Properties", icon: icons.colligative, ariaLabel: "Colligative Properties and Freezing Point Lab", href: "#labs/colligative" },
   { id: "electrochem", subject: "chem", title: "Electrochemistry & Voltaic", icon: icons.electrochem, ariaLabel: "Electrochemistry and Voltaic Cells Lab", href: "#labs/electrochem" },
   { id: "equilibrium", subject: "chem", title: "Equilibrium & Le Chatelier", icon: icons.equilibrium, ariaLabel: "Chemical Equilibrium and Le Chatelier Lab", href: "#labs/equilibrium" },
+  { id: "flametest", subject: "chem", title: "Flame Test & Spectroscopy", icon: icons.flameTest, ariaLabel: "Flame Test and Atomic Emission Spectroscopy Lab", href: "#labs/flametest" },
   { id: "gaslaws", subject: "chem", title: "Gas Laws & Kinetic Theory", icon: icons.gasLaws, ariaLabel: "Gas Laws and Kinetic Theory Lab", href: "#labs/gaslaws" },
   { id: "ptable", subject: "chem", title: "Interactive Periodic Table", icon: icons.periodicTable, ariaLabel: "Interactive Periodic Table Lab", href: "#labs/ptable" },
+  { id: "activityseries", subject: "chem", title: "Metal Activity Series", icon: icons.activitySeries, ariaLabel: "Metal Activity Series and Single Displacement Lab", href: "#labs/activityseries" },
   { id: "decay", subject: "chem", title: "Nuclear Decay & Kinetics", icon: icons.nuclearDecay, ariaLabel: "Radioactive Decay and Nuclear Kinetics Lab", href: "#labs/decay" },
   { id: "organic", subject: "chem", title: "Organic Mechanisms", icon: icons.organicReactions, ariaLabel: "Organic Reaction Mechanisms Lab", href: "#labs/organic" },
+  { id: "precipitation", subject: "chem", title: "Precipitation & Solubility", icon: icons.precipitation, ariaLabel: "Precipitation and Solubility Rules Lab", href: "#labs/precipitation" },
   { id: "vsepr", subject: "chem", title: "VSEPR 3D Modeler", icon: icons.vsepr, ariaLabel: "VSEPR 3D Modeler Lab", href: "#labs/vsepr" },
 
-  // Physics Laboratories (12)
+  // Physics Laboratories (15)
+  { id: "electrostatics", subject: "phys", title: "Coulomb & Electric Fields", icon: icons.electrostatics, ariaLabel: "Coulomb's Law and Electrostatic Field Mapping Lab", href: "#labs/electrostatics" },
   { id: "circuits", subject: "phys", title: "DC Circuits & Ohm's Law", icon: icons.circuit, ariaLabel: "DC Circuits and Ohm's Law Lab", href: "#labs/circuits" },
   { id: "induction", subject: "phys", title: "Electromagnetic Induction & Faraday", icon: icons.induction, ariaLabel: "Electromagnetic Induction and Faraday Lab", href: "#labs/induction" },
   { id: "fluids", subject: "phys", title: "Fluid Dynamics & Buoyancy", icon: icons.fluidsBuoyancy, ariaLabel: "Fluid Dynamics and Buoyancy Lab", href: "#labs/fluids" },
@@ -1189,21 +1193,26 @@ export const VIRTUAL_LABS_REGISTRY = [
   { id: "projectile", subject: "phys", title: "Kinematics & Projectiles", icon: icons.projectile, ariaLabel: "Kinematics and Projectiles Virtual Lab", href: "#labs/projectile" },
   { id: "collisions", subject: "phys", title: "Linear Momentum & Collisions", icon: icons.collisions, ariaLabel: "Linear Momentum and Collisions Virtual Lab", href: "#labs/collisions" },
   { id: "magnetism", subject: "phys", title: "Magnetic Force & e/m", icon: icons.magnetism, ariaLabel: "Magnetic Force and Lorentz e/m Lab", href: "#labs/magnetism" },
+  { id: "orbital", subject: "phys", title: "Orbital Mechanics & Kepler", icon: icons.orbital, ariaLabel: "Keplerian Orbital Mechanics and Gravitation Lab", href: "#labs/orbital" },
   { id: "photoelectric", subject: "phys", title: "Photoelectric Effect", icon: icons.photoelectric, ariaLabel: "Photoelectric Effect and Quantum Physics Lab", href: "#labs/photoelectric" },
   { id: "rotational", subject: "phys", title: "Rotational Dynamics", icon: icons.rotationalDynamics, ariaLabel: "Rotational Dynamics and Moment of Inertia Lab", href: "#labs/rotational" },
+  { id: "resonance", subject: "phys", title: "Sound Resonance Tube", icon: icons.soundResonance, ariaLabel: "Acoustic Resonance Tube and Speed of Sound Lab", href: "#labs/resonance" },
   { id: "conduction", subject: "phys", title: "Thermal Conduction", icon: icons.thermalConduction, ariaLabel: "Thermal Conduction and Fourier Law Lab", href: "#labs/conduction" },
   { id: "waves", subject: "phys", title: "Wave Interference & Slits", icon: icons.waveInterference, ariaLabel: "Wave Interference and Slits Lab", href: "#labs/waves" },
 
-  // Biology Laboratories (12) - Suite Navigation href="#labs/anatomy"
+  // Biology Laboratories (15) - Suite Navigation href="#labs/anatomy"
   { id: "anatomy", subject: "bio", title: "4K Human Anatomy Atlas", icon: "🏛️", ariaLabel: "4K Human Anatomy Atlas and Histology Lab", href: "#labs/anatomy" },
   { id: "actionpotential", subject: "bio", title: "Action Potential Patch Clamp", icon: icons.actionPotential, ariaLabel: "Neurobiology and Action Potential Patch Clamp Lab", href: "#labs/actionpotential" },
   { id: "mitosis", subject: "bio", title: "Cell Cycle & Mitosis", icon: icons.mitosis, ariaLabel: "Cell Cycle and Mitosis Cytogenetics Lab", href: "#labs/mitosis" },
   { id: "osmosis", subject: "bio", title: "Cell Membrane & Osmosis", icon: icons.osmosis, ariaLabel: "Cell Membrane and Osmosis Virtual Lab", href: "#labs/osmosis" },
   { id: "respiration", subject: "bio", title: "Cellular Respiration", icon: icons.respiration, ariaLabel: "Cellular Respiration and Respirometer Lab", href: "#labs/respiration" },
   { id: "dnaprotein", subject: "bio", title: "DNA & Protein Synthesis", icon: icons.dna, ariaLabel: "DNA and Protein Synthesis Lab", href: "#labs/dnaprotein" },
+  { id: "elisa", subject: "bio", title: "ELISA Immunoassay", icon: icons.elisa, ariaLabel: "ELISA Antigen-Antibody Immunoassay Lab", href: "#labs/elisa" },
   { id: "enzymes", subject: "bio", title: "Enzyme Kinetics", icon: icons.enzymes, ariaLabel: "Enzyme Kinetics and Catalysis Lab", href: "#labs/enzymes" },
   { id: "electrophoresis", subject: "bio", title: "Gel Electrophoresis", icon: icons.gelElectrophoresis, ariaLabel: "Agarose Gel Electrophoresis Lab", href: "#labs/electrophoresis" },
+  { id: "antibiotic", subject: "bio", title: "Kirby-Bauer Antibiotic", icon: icons.antibiotic, ariaLabel: "Kirby-Bauer Antibiotic Resistance Lab", href: "#labs/antibiotic" },
   { id: "photosynthesis", subject: "bio", title: "Photosynthesis & Bioenergetics", icon: icons.photosynthesis, ariaLabel: "Photosynthesis and Bioenergetics Lab", href: "#labs/photosynthesis" },
+  { id: "transpiration", subject: "bio", title: "Plant Transpiration & Stomata", icon: icons.transpiration, ariaLabel: "Plant Transpiration Potometer and Stomata Lab", href: "#labs/transpiration" },
   { id: "ecology", subject: "bio", title: "Population Ecology", icon: icons.populationEcology, ariaLabel: "Population Ecology and Lotka-Volterra Lab", href: "#labs/ecology" },
   { id: "punnett", subject: "bio", title: "Punnett Genetics Cross", icon: icons.punnett, ariaLabel: "Punnett Genetics Cross Lab", href: "#labs/punnett" },
   { id: "microscope", subject: "bio", title: "Ultra-HD Microscope", icon: icons.microscope, ariaLabel: "Ultra-HD Microscope Virtual Lab", href: "#labs/microscope" }
@@ -1268,6 +1277,15 @@ export function getClassifiedVirtualLabs() {
 export function normalizeLabId(rawId) {
   if (!rawId) return "projectile";
   const str = String(rawId).toLowerCase().trim().replace(/^lab[-_]?/, "");
+  if (str === "flametest" || str === "flame-test" || str.includes("flame")) return "flametest";
+  if (str === "precipitation" || str.includes("precip") || str.includes("solubil")) return "precipitation";
+  if (str === "activityseries" || str === "activity-series" || str.includes("activity") || str.includes("displace")) return "activityseries";
+  if (str === "antibiotic" || str.includes("antibiot") || str.includes("kirby") || str.includes("bauer")) return "antibiotic";
+  if (str === "elisa" || str.includes("elisa") || str.includes("immuno")) return "elisa";
+  if (str === "transpiration" || str.includes("transpir") || str.includes("potometer") || str.includes("stoma")) return "transpiration";
+  if (str === "orbital" || str.includes("orbital") || str.includes("kepler") || str.includes("orbit")) return "orbital";
+  if (str === "resonance" || str.includes("resonan") || str.includes("soundtube") || str.includes("sound-tube")) return "resonance";
+  if (str === "electrostatics" || str.includes("electrostat") || str.includes("coulomb")) return "electrostatics";
   if (str === "beerlambert" || str.includes("beer") || str.includes("lambert") || str.includes("spectro")) return "beerlambert";
   if (str === "decay" || str.includes("decay") || str.includes("nuclear") || str.includes("radioact")) return "decay";
   if (str === "colligative" || str.includes("collig") || str.includes("freez") || str.includes("boil")) return "colligative";
@@ -1349,7 +1367,16 @@ function formatLabName(labKey) {
     "collisions": "Linear Momentum & Collisions",
     "induction": "Electromagnetic Induction & Faraday",
     "osmosis": "Cell Membrane & Osmosis",
-    "mitosis": "Cell Cycle & Mitosis"
+    "mitosis": "Cell Cycle & Mitosis",
+    "flametest": "Flame Test & Spectroscopy",
+    "precipitation": "Precipitation & Solubility Rules",
+    "activityseries": "Metal Activity Series & Redox",
+    "antibiotic": "Kirby-Bauer Antibiotic Resistance",
+    "elisa": "ELISA Immunoassay & Diagnostics",
+    "transpiration": "Plant Transpiration & Stomata",
+    "orbital": "Orbital Mechanics & Kepler's Laws",
+    "resonance": "Acoustic Resonance & Speed of Sound",
+    "electrostatics": "Coulomb's Law & Electric Fields"
   };
   return map[norm] || "Virtual Laboratory";
 }
@@ -2448,7 +2475,28 @@ function mountActiveLab() {
     "osmosis": () => import("./labs/bio-osmosis.js").then(m => m.initOsmosisLab("active-lab-mount")),
     "lab-osmosis": () => import("./labs/bio-osmosis.js").then(m => m.initOsmosisLab("active-lab-mount")),
     "mitosis": () => import("./labs/bio-mitosis.js").then(m => m.initMitosisLab("active-lab-mount")),
-    "lab-mitosis": () => import("./labs/bio-mitosis.js").then(m => m.initMitosisLab("active-lab-mount"))
+    "lab-mitosis": () => import("./labs/bio-mitosis.js").then(m => m.initMitosisLab("active-lab-mount")),
+    "flametest": () => import("./labs/chem-flame-test.js").then(m => m.initFlameTestLab("active-lab-mount")),
+    "lab-flame-test": () => import("./labs/chem-flame-test.js").then(m => m.initFlameTestLab("active-lab-mount")),
+    "flame-test": () => import("./labs/chem-flame-test.js").then(m => m.initFlameTestLab("active-lab-mount")),
+    "precipitation": () => import("./labs/chem-precipitation.js").then(m => m.initPrecipitationLab("active-lab-mount")),
+    "lab-precipitation": () => import("./labs/chem-precipitation.js").then(m => m.initPrecipitationLab("active-lab-mount")),
+    "activityseries": () => import("./labs/chem-activity-series.js").then(m => m.initActivitySeriesLab("active-lab-mount")),
+    "lab-activity-series": () => import("./labs/chem-activity-series.js").then(m => m.initActivitySeriesLab("active-lab-mount")),
+    "activity-series": () => import("./labs/chem-activity-series.js").then(m => m.initActivitySeriesLab("active-lab-mount")),
+    "antibiotic": () => import("./labs/bio-antibiotic-resistance.js").then(m => m.initAntibioticResistanceLab("active-lab-mount")),
+    "lab-antibiotic": () => import("./labs/bio-antibiotic-resistance.js").then(m => m.initAntibioticResistanceLab("active-lab-mount")),
+    "elisa": () => import("./labs/bio-immune-elisa.js").then(m => m.initElisaLab("active-lab-mount")),
+    "lab-elisa": () => import("./labs/bio-immune-elisa.js").then(m => m.initElisaLab("active-lab-mount")),
+    "transpiration": () => import("./labs/bio-plant-transpiration.js").then(m => m.initPlantTranspirationLab("active-lab-mount")),
+    "lab-transpiration": () => import("./labs/bio-plant-transpiration.js").then(m => m.initPlantTranspirationLab("active-lab-mount")),
+    "orbital": () => import("./labs/phys-orbital-mechanics.js").then(m => m.initOrbitalMechanicsLab("active-lab-mount")),
+    "lab-orbital": () => import("./labs/phys-orbital-mechanics.js").then(m => m.initOrbitalMechanicsLab("active-lab-mount")),
+    "resonance": () => import("./labs/phys-sound-resonance.js").then(m => m.initSoundResonanceLab("active-lab-mount")),
+    "lab-sound-resonance": () => import("./labs/phys-sound-resonance.js").then(m => m.initSoundResonanceLab("active-lab-mount")),
+    "sound-resonance": () => import("./labs/phys-sound-resonance.js").then(m => m.initSoundResonanceLab("active-lab-mount")),
+    "electrostatics": () => import("./labs/phys-electrostatics.js").then(m => m.initElectrostaticsLab("active-lab-mount")),
+    "lab-electrostatics": () => import("./labs/phys-electrostatics.js").then(m => m.initElectrostaticsLab("active-lab-mount"))
   };
 
   const loader = labLoaders[normId] || labLoaders["projectile"];

@@ -1792,6 +1792,357 @@ export const LAB_CHECKPOINTS = {
       correctIndex: 1,
       explanation: "Without functional spindle microtubules to generate tension on kinetochores, the Spindle Assembly Checkpoint (SAC) remains persistently active, arresting cells at the equatorial Metaphase plate."
     }
+  ],
+
+  flametest: [
+    {
+      id: "q1",
+      question: "During a flame test, why does sodium chloride produce an intense, persistent golden-yellow flame whereas copper(II) chloride yields an emerald blue-green flame?",
+      options: [
+        "Sodium chloride undergoes combustion while copper chloride absorbs atmospheric oxygen",
+        "Thermal energy excites outer valence electrons; when electrons drop back to lower energy orbitals, they emit photons of specific quantized wavelengths ΔE = hc/λ characteristic of each element",
+        "The chlorine anions emit the visible light, while metal cations merely act as inert thermal catalysts",
+        "Copper chloride burns hotter than sodium chloride, shifting blackbody radiation into shorter ultraviolet wavelengths"
+      ],
+      correctIndex: 1,
+      explanation: "Thermal excitation promotes valence electrons to higher quantized Bohr energy levels. Relaxation back to lower eigenstates emits discrete photons whose wavelength λ corresponds precisely to the transition energy difference ΔE = hc/λ."
+    },
+    {
+      id: "q2",
+      question: "Why is a cobalt blue glass filter used when performing a flame test on an unknown potassium salt?",
+      options: [
+        "To absorb high-energy ultraviolet radiation and protect the experimenter's retinas",
+        "To absorb the intense 589 nm yellow light emitted by ubiquitous trace sodium contamination, allowing the faint lilac emission of potassium to be observed",
+        "To polarize the emitted light and determine electron spin angular momentum",
+        "To cool the flame temperature and prevent boiling of the wire loop"
+      ],
+      correctIndex: 1,
+      explanation: "Cobalt glass contains Co²⁺ ions that absorb yellow light around 589 nm (sodium D-lines) while transmitting red and violet wavelengths, revealing potassium's characteristic faint lilac flame even in the presence of trace sodium."
+    },
+    {
+      id: "q3",
+      question: "A flame emission spectrometer records a sharp line at λ = 670.8 nm for lithium. Using h = 6.626 × 10⁻³⁴ J·s and c = 3.00 × 10⁸ m/s, what is the quantum energy difference (ΔE) of this electron transition?",
+      options: [
+        "ΔE ≈ 1.85 eV (2.96 × 10⁻¹⁹ J)",
+        "ΔE ≈ 3.10 eV (4.96 × 10⁻¹⁹ J)",
+        "ΔE ≈ 0.50 eV (8.01 × 10⁻²⁰ J)",
+        "ΔE ≈ 13.6 eV (2.18 × 10⁻¹⁸ J)"
+      ],
+      correctIndex: 0,
+      explanation: "ΔE = hc / λ = (6.626 × 10⁻³⁴ × 3.00 × 10⁸) / (670.8 × 10⁻⁹) ≈ 2.964 × 10⁻¹⁹ J. Converting to electron-volts: 2.964 × 10⁻¹⁹ / (1.602 × 10⁻¹⁹) ≈ 1.85 eV."
+    }
+  ],
+
+  precipitation: [
+    {
+      id: "q1",
+      question: "If equal volumes of 0.020 M Pb(NO₃)₂ and 0.020 M KI are mixed at 25°C, will a precipitate of PbI₂ form given Ksp(PbI₂) = 9.8 × 10⁻⁹?",
+      options: [
+        "No, because the reaction quotient Q = 1.0 × 10⁻⁶ < Ksp",
+        "Yes, because after dilution [Pb²⁺] = 0.010 M and [I⁻] = 0.010 M, giving Q = [Pb²⁺][I⁻]² = 1.0 × 10⁻⁶ > Ksp",
+        "No, because all nitrates and iodides are completely soluble in water",
+        "Yes, because Ksp is greater than the total molar mass of the mixture"
+      ],
+      correctIndex: 1,
+      explanation: "Upon mixing equal volumes, concentrations are halved: [Pb²⁺] = 0.010 M, [I⁻] = 0.010 M. The ion product Q = [Pb²⁺][I⁻]² = (0.010)(0.010)² = 1.0 × 10⁻⁶. Since Q (1.0 × 10⁻⁶) > Ksp (9.8 × 10⁻⁹), supersaturation occurs and golden PbI₂ precipitates."
+    },
+    {
+      id: "q2",
+      question: "What is the correct Net Ionic Equation for the precipitation reaction between aqueous silver nitrate and sodium chloride?",
+      options: [
+        "AgNO₃(aq) + NaCl(aq) ⟶ AgCl(s)↓ + NaNO₃(aq)",
+        "Na⁺(aq) + NO₃⁻(aq) ⟶ NaNO₃(s)↓",
+        "Ag⁺(aq) + Cl⁻(aq) ⟶ AgCl(s)↓",
+        "Ag⁺(aq) + NO₃⁻(aq) + Na⁺(aq) + Cl⁻(aq) ⟶ AgCl(s)↓ + Na⁺(aq) + NO₃⁻(aq)"
+      ],
+      correctIndex: 2,
+      explanation: "Sodium (Na⁺) and nitrate (NO₃⁻) ions remain completely dissociated in solution as spectator ions and cancel from both sides, leaving the net ionic equation Ag⁺(aq) + Cl⁻(aq) ⟶ AgCl(s)↓."
+    },
+    {
+      id: "q3",
+      question: "In the famous 'Golden Rain' experiment, a yellow precipitate of PbI₂ dissolves upon heating the aqueous mixture to boiling and recrystallizes upon slow cooling. Why does this occur?",
+      options: [
+        "The reaction is exothermic (ΔH° < 0), so heating lowers Ksp according to Le Chatelier's principle",
+        "Dissolution of PbI₂ is endothermic (ΔH° > 0); increasing temperature increases Ksp, allowing dissolution, while slow cooling reduces solubility and nucleates glistening golden crystals",
+        "Boiling evaporates the iodine gas, turning the solution clear",
+        "Heating oxidizes Pb²⁺ to insoluble Pb⁴⁺ oxide"
+      ],
+      correctIndex: 1,
+      explanation: "The dissolution PbI₂(s) ⇌ Pb²⁺(aq) + 2I⁻(aq) has a positive enthalpy of solution (ΔH° > 0). According to the van 't Hoff equation, higher temperature increases Ksp, dissolving the solid. Cooling causes controlled recrystallization into sparkling golden hexagonal platelets."
+    }
+  ],
+
+  activityseries: [
+    {
+      id: "q1",
+      question: "A strip of polished zinc metal is submerged into a 0.50 M copper(II) sulfate (CuSO₄) solution. Given E°(Zn²⁺/Zn) = -0.76 V and E°(Cu²⁺/Cu) = +0.34 V, what is observed?",
+      options: [
+        "No reaction occurs because copper is more reactive than zinc",
+        "A spontaneous redox reaction occurs: zinc dissolves as Zn²⁺ and reddish-brown copper plates onto the strip with ΔE°cell = +1.10 V",
+        "Vigorous evolution of oxygen gas bubbles without any change to the strip",
+        "The solution turns deep purple and the zinc strip catches fire"
+      ],
+      correctIndex: 1,
+      explanation: "Since Zn is higher in the activity series (more negative E° = -0.76 V), it oxidizes: Zn(s) ⟶ Zn²⁺ + 2e⁻. Cu²⁺ reduces: Cu²⁺ + 2e⁻ ⟶ Cu(s) (E° = +0.34 V). The cell potential ΔE°cell = 0.34 - (-0.76) = +1.10 V > 0, indicating spontaneous single displacement."
+    },
+    {
+      id: "q2",
+      question: "Which of the following metals will NOT react with dilute 1.0 M hydrochloric acid (HCl) to produce hydrogen gas (H₂)?",
+      options: [
+        "Magnesium (Mg)",
+        "Zinc (Zn)",
+        "Iron (Fe)",
+        "Copper (Cu)"
+      ],
+      correctIndex: 3,
+      explanation: "Hydrogen has a standard reduction potential of E° = 0.00 V. Copper has a positive reduction potential (E° = +0.34 V) and lies below hydrogen in the activity series, meaning Cu cannot spontaneously reduce H⁺ ions to H₂(g)."
+    },
+    {
+      id: "q3",
+      question: "When a copper wire is suspended in a colorless solution of silver nitrate (AgNO₃), lustrous needle-like silver crystals form and the solution turns pale blue. What explains the blue color?",
+      options: [
+        "Silver nitrate turns blue upon exposure to light",
+        "Oxidation of copper wire releases hydrated Cu²⁺(aq) complex ions into the solution",
+        "Nitrate ions decompose into nitrogen dioxide gas",
+        "Hydrogen ions from water react with silver to form colloidal silver sol"
+      ],
+      correctIndex: 1,
+      explanation: "Copper displaces silver: Cu(s) + 2Ag⁺(aq) ⟶ Cu²⁺(aq) + 2Ag(s). The release of Cu²⁺ ions forms hydrated hexaaquacopper(II) complexes [Cu(H₂O)₆]²⁺ which absorb red light and impart a characteristic clear blue color."
+    }
+  ],
+
+  antibiotic: [
+    {
+      id: "q1",
+      question: "In a Kirby-Bauer disk diffusion assay, how does an antibiotic disk generate a circular Zone of Inhibition (ZOI) around itself on Mueller-Hinton agar?",
+      options: [
+        "The paper disk releases heat that denatures bacterial enzymes in a radial radius",
+        "Antibiotic molecules diffuse radially outward establishing a Fickian concentration gradient; bacteria cannot grow where the concentration exceeds the Minimum Inhibitory Concentration (MIC)",
+        "Bacteria actively swim away from the antibiotic disk by negative chemotaxis",
+        "The disk consumes all glucose and agar nutrients within a fixed perimeter"
+      ],
+      correctIndex: 1,
+      explanation: "Radial molecular diffusion through the agar creates a decreasing concentration gradient C(r). The edge of the inhibition zone corresponds precisely to the critical threshold where local antibiotic concentration equals the organism's Minimum Inhibitory Concentration (MIC)."
+    },
+    {
+      id: "q2",
+      question: "Testing MRSA (Methicillin-Resistant Staphylococcus aureus) with an Ampicillin (AMP-10) disk produces a zone diameter of 6.0 mm (equal to the disk diameter). According to CLSI M100 standards (R ≤ 13 mm, S ≥ 17 mm), how is this strain classified?",
+      options: [
+        "Susceptible (S)",
+        "Intermediate (I)",
+        "Resistant (R)",
+        "Synergistic"
+      ],
+      correctIndex: 2,
+      explanation: "A zone diameter of 6.0 mm indicates zero clearance beyond the disk boundary. Because 6 mm ≤ 13 mm (CLSI Resistant breakpoint), the organism is classified as fully Resistant (R), caused by the mecA gene encoding PBP2a."
+    },
+    {
+      id: "q3",
+      question: "Why are Gram-negative bacilli such as E. coli intrinsically resistant to vancomycin, showing little to no zone of inhibition?",
+      options: [
+        "Gram-negative bacteria lack a peptidoglycan cell wall completely",
+        "Vancomycin is a large, bulky glycopeptide molecule (~1449 Da) that cannot pass through the outer membrane porin channels of Gram-negative bacteria to reach its peptidoglycan target",
+        "Gram-negative bacteria secrete beta-lactamase which hydrolyzes vancomycin",
+        "Vancomycin only binds 70S ribosomes found exclusively in Gram-positive cells"
+      ],
+      correctIndex: 1,
+      explanation: "Vancomycin's large molecular weight (~1449 Da) prevents it from traversing the outer membrane porins of Gram-negative bacteria, rendering them intrinsically resistant despite having a peptidoglycan layer."
+    }
+  ],
+
+  elisa: [
+    {
+      id: "q1",
+      question: "In an indirect ELISA for detecting anti-viral antibodies, what is the purpose of adding Bovine Serum Albumin (BSA) in the blocking step?",
+      options: [
+        "To act as the chromogenic substrate that changes color in the presence of enzyme",
+        "To coat all remaining unoccupied hydrophobic sites on the polystyrene well surface, preventing non-specific binding of primary or secondary antibodies",
+        "To lyse viral particles and release internal genetic material",
+        "To adjust the pH of the wash buffer to neutrality"
+      ],
+      correctIndex: 1,
+      explanation: "Polystyrene plastic has high non-specific protein binding affinity. Blocking with an irrelevant protein like BSA saturates open hydrophobic sites, preventing subsequent antibodies from sticking non-specifically and causing false-positive background signal."
+    },
+    {
+      id: "q2",
+      question: "In an HRP-based ELISA, what chemical reaction causes the color to change from clear to blue upon addition of TMB, and subsequently to yellow upon addition of 1.0 M H₂SO₄?",
+      options: [
+        "HRP reduces water to hydrogen gas, shifting the pH indicator from red to blue",
+        "Horseradish peroxidase catalyzes the oxidation of TMB by H₂O₂ to a blue diimine cation; addition of sulfuric acid protonates the diimine to a stable yellow diamine and stops the enzyme reaction",
+        "The antigen decomposes into yellow amino acids upon acid hydrolysis",
+        "The antibody heavy chains unfold and crystallize into yellow pigment"
+      ],
+      correctIndex: 1,
+      explanation: "HRP uses hydrogen peroxide to oxidize TMB into a charge-transfer blue diimine complex (peak at 650 nm). Adding sulfuric acid terminates enzymatic activity by denaturing HRP and acidifies the product to a stable yellow diamine measured at 450 nm."
+    },
+    {
+      id: "q3",
+      question: "In clinical serology, if three negative control wells yield OD₄₅₀ values of 0.050, 0.055, and 0.060 (mean = 0.055, SD = 0.005), what is the diagnostic Cutoff threshold calculated as Mean(Neg) + 3·SD?",
+      options: [
+        "Cutoff OD = 0.070",
+        "Cutoff OD = 0.165",
+        "Cutoff OD = 0.055",
+        "Cutoff OD = 1.000"
+      ],
+      correctIndex: 0,
+      explanation: "Cutoff = Mean(Neg) + 3 × SD = 0.055 + 3 × (0.005) = 0.055 + 0.015 = 0.070. Any patient sample with an optical density greater than 0.070 is classified as seropositive."
+    }
+  ],
+
+  transpiration: [
+    {
+      id: "q1",
+      question: "In a Ganong potometer experiment measuring plant transpiration, what does the rate of movement of the air bubble meniscus along the graduated capillary tube directly measure?",
+      options: [
+        "The rate of photosynthetic oxygen production by the leafy shoot",
+        "The rate of water uptake by the leafy shoot, which closely approximates the transpiration rate under steady-state conditions",
+        "The respiratory consumption of carbon dioxide in the root zone",
+        "The atmospheric air pressure inside the laboratory"
+      ],
+      correctIndex: 1,
+      explanation: "The potometer measures water uptake by the cut stem. Because over 95-98% of water absorbed by a leafy shoot is lost via stomatal transpiration, the rate of meniscus movement is an accurate proxy for transpiration rate."
+    },
+    {
+      id: "q2",
+      question: "How do guard cells open the stomatal aperture in response to light, and how does increased relative humidity affect the overall transpiration rate?",
+      options: [
+        "Guard cells lose water, shrink, and pull the pore open; high humidity accelerates transpiration",
+        "Active proton pumping drives K⁺ and Cl⁻ uptake into guard cells, lowering osmotic potential (Ψs) so water enters by osmosis, increasing turgor pressure to bow open the thick inner walls; higher relative humidity decreases the vapor pressure deficit (VPD), reducing transpiration",
+        "Light causes guard cells to synthesize cellulose which physically pushes the stoma open",
+        "Guard cells open by plasmolysis in dry air and seal shut in humid air"
+      ],
+      correctIndex: 1,
+      explanation: "Light activates H⁺-ATPases, hyperpolarizing the membrane and driving K⁺/anion influx. Water follows by endosmosis, generating hydrostatic turgor pressure that bows the guard cells open. Higher humidity lowers VPD (es - ea), reducing the driving force for vapor diffusion."
+    },
+    {
+      id: "q3",
+      question: "Why does turning on an electric fan (increasing wind speed from 0 to 4 m/s) significantly increase the transpiration rate of a leafy shoot in still air?",
+      options: [
+        "Wind cools the leaves below their freezing point",
+        "Wind blows away the stagnant humid boundary layer of water vapor adhering to the leaf surface, steepening the water vapor concentration gradient across the stomata",
+        "Wind physically pulls water out of the xylem vessels by Bernoulli suction",
+        "Wind increases the atmospheric vapor pressure deficit to infinity"
+      ],
+      correctIndex: 1,
+      explanation: "In still air, transpired vapor accumulates in an unstirred boundary layer adjacent to the epidermis, slowing diffusion. Wind sweeps away this layer, reducing boundary layer resistance (rb) and steepening the vapor gradient from leaf interior to ambient air."
+    }
+  ],
+
+  orbital: [
+    {
+      id: "q1",
+      question: "According to Kepler's First and Second Laws of Planetary Motion, what are the geometry of an orbit and the relationship between orbital speed and distance from the primary focus?",
+      options: [
+        "Orbits are perfect circles centered on the primary; orbital speed is strictly constant throughout",
+        "Orbits are ellipses with the primary mass at one focus; an orbiting body sweeps out equal areas in equal intervals of time, moving fastest at periapsis and slowest at apoapsis",
+        "Orbits are parabolas that spiral inward until crashing into the primary body",
+        "The primary body sits at the geometric center of the ellipse, and speed maximizes at apoapsis"
+      ],
+      correctIndex: 1,
+      explanation: "Kepler's 1st Law states orbits are ellipses with the attractor at one focus. Kepler's 2nd Law (dA/dt = L/2m = constant) requires equal areas swept in equal time, meaning angular momentum conservation causes velocity to peak at periapsis (closest) and reach a minimum at apoapsis (farthest)."
+    },
+    {
+      id: "q2",
+      question: "Using the Vis-Viva equation v² = GM(2/r - 1/a), how does the velocity of a spacecraft at periapsis (rp) compare to the local circular orbit speed at that same radius?",
+      options: [
+        "Periapsis speed is always lower than circular orbit speed",
+        "Periapsis speed is always greater than circular orbit speed because the semi-major axis a > rp",
+        "Periapsis speed is exactly equal to the escape velocity vesc = √(2GM/r)",
+        "Periapsis speed is zero because the spacecraft stops instantaneously to turn around"
+      ],
+      correctIndex: 1,
+      explanation: "For an ellipse, a > rp, so (2/rp - 1/a) > (2/rp - 1/rp) = 1/rp. Therefore, v² = GM(2/rp - 1/a) > GM/rp = v_circ², meaning periapsis speed is always greater than circular orbital speed."
+    },
+    {
+      id: "q3",
+      question: "Kepler's Third Law states that T²/a³ = 4π²/(GM). If a satellite's semi-major axis (a) is quadrupled (a₂ = 4a₁), by what factor does its orbital period (T) increase?",
+      options: [
+        "2 times",
+        "4 times",
+        "8 times (2³ = 8, since T ∝ a^(3/2))",
+        "16 times"
+      ],
+      correctIndex: 2,
+      explanation: "From T ∝ a^(3/2), if a is increased by a factor of 4, the new period T₂ = (4)^(3/2) · T₁ = (√4)³ · T₁ = 2³ · T₁ = 8 · T₁."
+    }
+  ],
+
+  resonance: [
+    {
+      id: "q1",
+      question: "In a closed-open acoustic resonance tube of length L containing a variable water column, what boundary conditions dictate standing sound wave formation at resonance?",
+      options: [
+        "Displacement antinodes at both ends of the tube",
+        "A displacement node (pressure antinode) at the water surface boundary and a displacement antinode (pressure node) near the open top",
+        "Displacement nodes at both the water surface and the open top",
+        "Pressure nodes at both ends without any displacement variation"
+      ],
+      correctIndex: 1,
+      explanation: "The rigid water surface prevents air molecule displacement, creating a displacement node (pressure antinode). At the open tube top, air molecules oscillate freely into ambient air, creating a displacement antinode (pressure node)."
+    },
+    {
+      id: "q2",
+      question: "In a resonance tube experiment with a 512 Hz tuning fork, the first two resonant air column lengths are measured at L₁ = 15.5 cm and L₂ = 48.5 cm. What is the experimental speed of sound (v)?",
+      options: [
+        "v = 338.0 m/s [using v = 2f·(L₂ - L₁)]",
+        "v = 170.0 m/s",
+        "v = 512.0 m/s",
+        "v = 300.0 m/s"
+      ],
+      correctIndex: 0,
+      explanation: "The difference between consecutive harmonics is half a wavelength: L₂ - L₁ = λ/2 = 48.5 - 15.5 = 33.0 cm = 0.33 m, giving λ = 0.66 m. Then v = f · λ = 512 Hz × 0.66 m = 337.92 m/s ≈ 338.0 m/s. This formula also eliminates the end correction c!"
+    },
+    {
+      id: "q3",
+      question: "How does an increase in air temperature from 0°C to 25°C affect the speed of sound in air, according to v(T) = 331.3·√(1 + T/273.15)?",
+      options: [
+        "The speed of sound decreases because warmer air has higher relative humidity",
+        "The speed of sound increases from 331.3 m/s to approximately 346.2 m/s because warmer air molecules have higher root-mean-square thermal velocities",
+        "The speed of sound remains strictly constant because sound is a mechanical wave",
+        "The speed of sound doubles every 10°C increase in temperature"
+      ],
+      correctIndex: 1,
+      explanation: "Speed of sound in an ideal gas depends on temperature: v = √(γRT/M). At 25°C (298.15 K), v = 331.3 × √(298.15 / 273.15) ≈ 331.3 × 1.0447 ≈ 346.1 m/s, demonstrating an increase of approximately 0.6 m/s per °C."
+    }
+  ],
+
+  electrostatics: [
+    {
+      id: "q1",
+      question: "According to Coulomb's Law F = ke·|q₁q₂|/r², if the separation distance r between two point charges is tripled (r₂ = 3r₁), what happens to the electrostatic force between them?",
+      options: [
+        "The force increases by a factor of 3",
+        "The force decreases to 1/9 of its original magnitude (inverse-square law)",
+        "The force decreases to 1/3 of its original magnitude",
+        "The force remains unchanged because charge magnitudes are conserved"
+      ],
+      correctIndex: 1,
+      explanation: "Coulomb's Law follows an inverse-square dependence on distance: F ∝ 1/r². Tripling the distance (3r) results in a force of 1/(3)² = 1/9 of the initial value."
+    },
+    {
+      id: "q2",
+      question: "What is the geometric and physical relationship between electric field vector lines (E) and equipotential lines (V = constant)?",
+      options: [
+        "Electric field lines are always parallel to equipotential lines",
+        "Electric field lines are always mutually perpendicular (orthogonal) to equipotential lines, pointing in the direction of steepest decreasing electric potential (E = -∇V)",
+        "Electric field lines only exist where electric potential V is zero",
+        "Equipotential lines spiral inward along the direction of magnetic flux"
+      ],
+      correctIndex: 1,
+      explanation: "Because moving a charge along an equipotential line requires zero work (dW = -q E · dr = 0), the component of E tangent to the surface must be zero. Hence, E is always perpendicular to equipotentials and points from high potential to low potential (E = -∇V)."
+    },
+    {
+      id: "q3",
+      question: "For an electric dipole consisting of +q at (x = -d/2) and -q at (x = +d/2), what is the electric potential (V) along the entire perpendicular bisector line (x = 0)?",
+      options: [
+        "V = +∞",
+        "V = 0 Volts everywhere along the plane, because any point on the bisector is equidistant from +q and -q (V = ke·q/r + ke·(-q)/r = 0)",
+        "V fluctuates sinusoidally between +ke·q/d and -ke·q/d",
+        "V depends strictly on the test charge mass"
+      ],
+      correctIndex: 1,
+      explanation: "Every point on the perpendicular bisecting axis is equidistant (r₊ = r₋ = r) from both charges. The net potential is V = ke·(+q)/r + ke·(-q)/r = 0 V. The perpendicular bisector is thus the planar V = 0 equipotential surface."
+    }
   ]
 };
 
@@ -1808,6 +2159,15 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
     if (LAB_CHECKPOINTS[raw]) return LAB_CHECKPOINTS[raw];
     if (LAB_CHECKPOINTS[clean]) return LAB_CHECKPOINTS[clean];
     if (LAB_CHECKPOINTS[clean + "s"]) return LAB_CHECKPOINTS[clean + "s"];
+    if (clean.includes("flame") || clean.includes("spectro")) return LAB_CHECKPOINTS.flametest;
+    if (clean.includes("precip") || clean.includes("solubil")) return LAB_CHECKPOINTS.precipitation;
+    if (clean.includes("activity") || clean.includes("displace") || clean.includes("redox")) return LAB_CHECKPOINTS.activityseries;
+    if (clean.includes("antibiot") || clean.includes("kirby") || clean.includes("bauer")) return LAB_CHECKPOINTS.antibiotic;
+    if (clean.includes("elisa") || clean.includes("immuno") || clean.includes("antibody")) return LAB_CHECKPOINTS.elisa;
+    if (clean.includes("transpir") || clean.includes("potometer") || clean.includes("stoma")) return LAB_CHECKPOINTS.transpiration;
+    if (clean.includes("orbital") || clean.includes("kepler") || clean.includes("orbit")) return LAB_CHECKPOINTS.orbital;
+    if (clean.includes("resonan") || clean.includes("soundtube") || clean.includes("acoust")) return LAB_CHECKPOINTS.resonance;
+    if (clean.includes("electrostat") || clean.includes("coulomb") || clean.includes("charge")) return LAB_CHECKPOINTS.electrostatics;
     if (clean.includes("kinet") || clean.includes("rate") || clean.includes("arrhen")) return LAB_CHECKPOINTS.kinetics;
     if (clean.includes("collis") || clean.includes("moment") || clean.includes("airtrack")) return LAB_CHECKPOINTS.collisions;
     if (clean.includes("induct") || clean.includes("faraday") || clean.includes("lenz") || clean.includes("solenoid")) return LAB_CHECKPOINTS.induction;

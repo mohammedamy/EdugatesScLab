@@ -45,12 +45,12 @@ console.log("========================================================\n");
 // Test 1: Registry Integrity & Subject Classification
 // ----------------------------------------------------
 check(Array.isArray(VIRTUAL_LABS_REGISTRY), "VIRTUAL_LABS_REGISTRY is an array");
-check(VIRTUAL_LABS_REGISTRY.length === 36, `VIRTUAL_LABS_REGISTRY contains all 36 platform laboratories (Found: ${VIRTUAL_LABS_REGISTRY.length})`);
+check(VIRTUAL_LABS_REGISTRY.length === 45, `VIRTUAL_LABS_REGISTRY contains all 45 platform laboratories (Found: ${VIRTUAL_LABS_REGISTRY.length})`);
 
 const classified = getClassifiedVirtualLabs();
-check(Array.isArray(classified.chem) && classified.chem.length === 12, `Chemistry classification contains exactly 12 laboratories (Found: ${classified.chem?.length})`);
-check(Array.isArray(classified.phys) && classified.phys.length === 12, `Physics classification contains exactly 12 laboratories (Found: ${classified.phys?.length})`);
-check(Array.isArray(classified.bio) && classified.bio.length === 12, `Biology classification contains exactly 12 laboratories (Found: ${classified.bio?.length})`);
+check(Array.isArray(classified.chem) && classified.chem.length === 15, `Chemistry classification contains exactly 15 laboratories (Found: ${classified.chem?.length})`);
+check(Array.isArray(classified.phys) && classified.phys.length === 15, `Physics classification contains exactly 15 laboratories (Found: ${classified.phys?.length})`);
+check(Array.isArray(classified.bio) && classified.bio.length === 15, `Biology classification contains exactly 15 laboratories (Found: ${classified.bio?.length})`);
 
 // ----------------------------------------------------
 // Test 2: Strict Alphabetical Ordering (A to Z)
@@ -75,7 +75,7 @@ check(isSortedAlphabetically(classified.bio), "Biology laboratories are strictly
 check(classified.chem[0].title === "Acid-Base Titration", `Chemistry starts with "Acid-Base Titration" (Found: "${classified.chem[0].title}")`);
 check(classified.chem[classified.chem.length - 1].title === "VSEPR 3D Modeler", `Chemistry ends with "VSEPR 3D Modeler" (Found: "${classified.chem[classified.chem.length - 1].title}")`);
 
-check(classified.phys[0].title === "DC Circuits & Ohm's Law", `Physics starts with "DC Circuits & Ohm's Law" (Found: "${classified.phys[0].title}")`);
+check(classified.phys[0].title === "Coulomb & Electric Fields", `Physics starts with "Coulomb & Electric Fields" (Found: "${classified.phys[0].title}")`);
 check(classified.phys[classified.phys.length - 1].title === "Wave Interference & Slits", `Physics ends with "Wave Interference & Slits" (Found: "${classified.phys[classified.phys.length - 1].title}")`);
 
 check(classified.bio[0].title === "4K Human Anatomy Atlas", `Biology starts with "4K Human Anatomy Atlas" (Found: "${classified.bio[0].title}")`);

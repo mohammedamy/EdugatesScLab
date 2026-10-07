@@ -70,7 +70,7 @@ export const chemistryCurriculum = {
         { id: 3, title: "Electron Configuration", objectives: ["Aufbau principle", "Pauli exclusion principle", "Hund's rule", "Orbital diagrams and noble gas notation"] }
       ],
       formulas: ["c = \\lambda \\nu", "E = h\\nu", "\\lambda = \\frac{h}{mv}"],
-      lab: "lab-periodic-table"
+      lab: "lab-flame-test"
     },
     {
       id: 5,
@@ -133,7 +133,7 @@ export const chemistryCurriculum = {
         { id: 3, title: "Reactions in Aqueous Solutions", objectives: ["Dissociation of ionic solutes", "Complete ionic equations", "Spectator ions and Net ionic equations", "Precipitation, water-forming, and gas-forming reactions"] }
       ],
       formulas: ["aA + bB \\rightarrow cC + dD", "\\text{Net Ionic: } Ag^+(aq) + Cl^-(aq) \\rightarrow AgCl(s)"],
-      lab: "lab-titration"
+      lab: "lab-precipitation"
     },
     {
       id: 9,
@@ -292,7 +292,7 @@ export const chemistryCurriculum = {
         { id: 2, title: "Balancing Redox Equations", objectives: ["Oxidation-number method", "Half-reaction method in acidic and basic aqueous solutions"] }
       ],
       formulas: ["\\text{Oxidation: } Zn \\rightarrow Zn^{2+} + 2e^-", "\\text{Reduction: } Cu^{2+} + 2e^- \\rightarrow Cu"],
-      lab: "lab-titration"
+      lab: "lab-activity-series"
     },
     {
       id: 19,

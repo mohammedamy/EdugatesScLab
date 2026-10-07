@@ -3,18 +3,20 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v65";
+const CACHE_NAME = "amscilab-pwa-v68";
 
 const CORE_APP_SHELL = [
   "./",
   "./index.html",
   "./404.html",
   "./index.css",
-  "./index.css?v=4.5",
   "./index.css?v=4.6",
+  "./index.css?v=4.7",
+  "./index.css?v=4.8",
   "./app.js",
   "./app.js?v=4.5",
   "./app.js?v=4.6",
+  "./app.js?v=4.7",
   "./manifest.json",
   "./service-worker.js",
   "./sw.js",
@@ -50,6 +52,7 @@ const CORE_APP_SHELL = [
   "./components/quiz-engine.js",
   "./components/quiz-engine.js?v=3.1",
   "./components/quiz-engine.js?v=3.2",
+  "./components/quiz-engine.js?v=3.3",
   "./components/smartboard-toolbar.js",
   "./components/science-calculator.js",
   "./components/flashcards.js",
@@ -182,6 +185,15 @@ const SECONDARY_ASSETS = [
   "./labs/phys-induction.js",
   "./labs/bio-osmosis.js",
   "./labs/bio-mitosis.js",
+  "./labs/chem-flame-test.js",
+  "./labs/chem-precipitation.js",
+  "./labs/chem-activity-series.js",
+  "./labs/bio-antibiotic-resistance.js",
+  "./labs/bio-immune-elisa.js",
+  "./labs/bio-plant-transpiration.js",
+  "./labs/phys-orbital-mechanics.js",
+  "./labs/phys-sound-resonance.js",
+  "./labs/phys-electrostatics.js",
   "./data/human-anatomy-atlas-data.js",
   "./assets/labs/human_anatomy_anterior_8k.jpg",
   "./assets/labs/human_anatomy_posterior_8k.jpg",
@@ -243,7 +255,16 @@ const SECONDARY_ASSETS = [
   "./assets/labs/collisions_bench.jpg",
   "./assets/labs/induction_bench.jpg",
   "./assets/labs/osmosis_bench.jpg",
-  "./assets/labs/mitosis_bench.jpg"
+  "./assets/labs/mitosis_bench.jpg",
+  "./assets/labs/flame_test_bench.jpg",
+  "./assets/labs/precipitation_bench.jpg",
+  "./assets/labs/activity_series_bench.jpg",
+  "./assets/labs/antibiotic_bench.jpg",
+  "./assets/labs/elisa_bench.jpg",
+  "./assets/labs/transpiration_bench.jpg",
+  "./assets/labs/orbital_bench.jpg",
+  "./assets/labs/sound_resonance_bench.jpg",
+  "./assets/labs/electrostatics_bench.jpg"
 ];
 
 const CORE_ASSETS = [...CORE_APP_SHELL, ...CHAPTER_ASSETS, ...SECONDARY_ASSETS];

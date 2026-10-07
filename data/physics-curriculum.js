@@ -125,7 +125,7 @@ export const physicsCurriculum = {
         { id: 2, title: "Using the Law of Universal Gravitation", objectives: ["Orbital speed v = √(GM/r) and orbital period of satellites", "Gravitational field strength g = GM/r²", "Inertial mass vs gravitational mass", "Einstein's general relativistic spacetime curvature concept"] }
       ],
       formulas: ["F_g = G \\frac{m_1 m_2}{r^2}", "v = \\sqrt{\\frac{GM}{r}}", "T^2 = \\left(\\frac{4\\pi^2}{GM}\\right) r^3"],
-      lab: "lab-projectile"
+      lab: "lab-orbital"
     },
     {
       id: 8,
@@ -233,7 +233,7 @@ export const physicsCurriculum = {
         { id: 2, title: "The Physics of Music", objectives: ["Resonance in open and closed organ pipes", "Harmonic frequencies (fundamental and overtones)", "Acoustic beats frequency fbeat = |f1 - f2|", "Timbre and Fourier harmonics"] }
       ],
       formulas: ["f_d = f_s \\left(\\frac{v \\pm v_d}{v \\mp v_s}\\right)", "f_{\\text{beat}} = |f_1 - f_2|", "\\lambda_n = \\frac{2L}{n} \\text{ (Open pipe)}"],
-      lab: "lab-optics"
+      lab: "lab-sound-resonance"
     },
     {
       id: 15,
@@ -295,7 +295,7 @@ export const physicsCurriculum = {
         { id: 4, title: "Applications of Electric Fields", objectives: ["Electric potential difference ΔV = ΔPE/q (Volts)", "Equipotential surfaces and uniform fields ΔV = Ed", "Millikan oil drop experiment", "Capacitance C = q/ΔV and parallel-plate capacitors"] }
       ],
       formulas: ["F_e = k \\frac{|q_1 q_2|}{r^2}", "E = \\frac{F}{q} = k\\frac{Q}{r^2}", "\\Delta V = -E d", "C = \\frac{q}{\\Delta V} = \\epsilon_0 \\frac{A}{d}"],
-      lab: "lab-circuits"
+      lab: "lab-electrostatics"
     },
     {
       id: 19,

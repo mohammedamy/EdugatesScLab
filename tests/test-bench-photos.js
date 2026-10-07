@@ -63,10 +63,19 @@ const expectedBenchImages = [
   "collisions_bench.jpg",
   "induction_bench.jpg",
   "osmosis_bench.jpg",
-  "mitosis_bench.jpg"
+  "mitosis_bench.jpg",
+  "flame_test_bench.jpg",
+  "precipitation_bench.jpg",
+  "activity_series_bench.jpg",
+  "antibiotic_bench.jpg",
+  "elisa_bench.jpg",
+  "transpiration_bench.jpg",
+  "orbital_bench.jpg",
+  "sound_resonance_bench.jpg",
+  "electrostatics_bench.jpg"
 ];
 
-console.log("📁 Test 1: Verifying 35 Lab Bench Image Files in assets/labs/");
+console.log("📁 Test 1: Verifying 44 Lab Bench Image Files in assets/labs/");
 expectedBenchImages.forEach((filename) => {
   const filePath = path.join(rootDir, "assets", "labs", filename);
   const exists = fs.existsSync(filePath);
@@ -190,6 +199,69 @@ const newLabConfigs = [
     simBtn: "btn-view-sim",
     photoBtn: "btn-view-photo",
     overlay: "photo-overlay"
+  },
+  {
+    file: "labs/chem-flame-test.js",
+    image: "assets/labs/flame_test_bench.jpg",
+    simBtn: "view-mode-flame-sim",
+    photoBtn: "view-mode-flame-photo",
+    overlay: "flame-photo-overlay"
+  },
+  {
+    file: "labs/chem-precipitation.js",
+    image: "assets/labs/precipitation_bench.jpg",
+    simBtn: "view-mode-precip-sim",
+    photoBtn: "view-mode-precip-photo",
+    overlay: "precip-photo-overlay"
+  },
+  {
+    file: "labs/chem-activity-series.js",
+    image: "assets/labs/activity_series_bench.jpg",
+    simBtn: "view-mode-activity-sim",
+    photoBtn: "view-mode-activity-photo",
+    overlay: "activity-photo-overlay"
+  },
+  {
+    file: "labs/bio-antibiotic-resistance.js",
+    image: "assets/labs/antibiotic_bench.jpg",
+    simBtn: "view-mode-antibiotic-sim",
+    photoBtn: "view-mode-antibiotic-photo",
+    overlay: "antibiotic-photo-overlay"
+  },
+  {
+    file: "labs/bio-immune-elisa.js",
+    image: "assets/labs/elisa_bench.jpg",
+    simBtn: "view-mode-elisa-sim",
+    photoBtn: "view-mode-elisa-photo",
+    overlay: "elisa-photo-overlay"
+  },
+  {
+    file: "labs/bio-plant-transpiration.js",
+    image: "assets/labs/transpiration_bench.jpg",
+    simBtn: "view-mode-transp-sim",
+    photoBtn: "view-mode-transp-photo",
+    overlay: "transp-photo-overlay"
+  },
+  {
+    file: "labs/phys-orbital-mechanics.js",
+    image: "assets/labs/orbital_bench.jpg",
+    simBtn: "view-mode-orbital-sim",
+    photoBtn: "view-mode-orbital-photo",
+    overlay: "orbital-photo-overlay"
+  },
+  {
+    file: "labs/phys-sound-resonance.js",
+    image: "assets/labs/sound_resonance_bench.jpg",
+    simBtn: "view-mode-sound-sim",
+    photoBtn: "view-mode-sound-photo",
+    overlay: "sound-photo-overlay"
+  },
+  {
+    file: "labs/phys-electrostatics.js",
+    image: "assets/labs/electrostatics_bench.jpg",
+    simBtn: "view-mode-electro-sim",
+    photoBtn: "view-mode-electro-photo",
+    overlay: "electro-photo-overlay"
   }
 ];
 

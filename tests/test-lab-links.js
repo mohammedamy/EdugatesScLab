@@ -207,7 +207,25 @@ const testCases = [
   { input: "cellcycle", expected: "mitosis" },
   { input: "lab-anatomy", expected: "anatomy" },
   { input: "anatomy", expected: "anatomy" },
-  { input: "atlas", expected: "anatomy" }
+  { input: "atlas", expected: "anatomy" },
+  { input: "lab-flame-test", expected: "flametest" },
+  { input: "flametest", expected: "flametest" },
+  { input: "lab-precipitation", expected: "precipitation" },
+  { input: "precipitation", expected: "precipitation" },
+  { input: "lab-activity-series", expected: "activityseries" },
+  { input: "activityseries", expected: "activityseries" },
+  { input: "lab-antibiotic", expected: "antibiotic" },
+  { input: "antibiotic", expected: "antibiotic" },
+  { input: "lab-elisa", expected: "elisa" },
+  { input: "elisa", expected: "elisa" },
+  { input: "lab-transpiration", expected: "transpiration" },
+  { input: "transpiration", expected: "transpiration" },
+  { input: "lab-orbital", expected: "orbital" },
+  { input: "orbital", expected: "orbital" },
+  { input: "lab-sound-resonance", expected: "resonance" },
+  { input: "resonance", expected: "resonance" },
+  { input: "lab-electrostatics", expected: "electrostatics" },
+  { input: "electrostatics", expected: "electrostatics" }
 ];
 
 let allNormalized = true;
@@ -230,7 +248,10 @@ const expectedLabIds = [
   "beerlambert", "decay", "colligative", "organic",
   "electrophoresis", "ecology", "actionpotential", "rotational",
   "conduction", "fluids", "kinetics", "collisions",
-  "induction", "osmosis", "mitosis", "anatomy"
+  "induction", "osmosis", "mitosis", "anatomy",
+  "flametest", "precipitation", "activityseries",
+  "antibiotic", "elisa", "transpiration",
+  "orbital", "resonance", "electrostatics"
 ];
 
 let allModulesMapValid = true;
@@ -309,7 +330,16 @@ const labLoaders = [
   { name: "induction", loader: () => import("../labs/phys-induction.js").then(m => m.initInductionLab("test-mount")) },
   { name: "osmosis", loader: () => import("../labs/bio-osmosis.js").then(m => m.initOsmosisLab("test-mount")) },
   { name: "mitosis", loader: () => import("../labs/bio-mitosis.js").then(m => m.initMitosisLab("test-mount")) },
-  { name: "anatomy", loader: () => import("../labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("test-mount")) }
+  { name: "anatomy", loader: () => import("../labs/anatomy-atlas.js").then(m => m.initAnatomyAtlasLab("test-mount")) },
+  { name: "flametest", loader: () => import("../labs/chem-flame-test.js").then(m => m.initFlameTestLab("test-mount")) },
+  { name: "precipitation", loader: () => import("../labs/chem-precipitation.js").then(m => m.initPrecipitationLab("test-mount")) },
+  { name: "activityseries", loader: () => import("../labs/chem-activity-series.js").then(m => m.initActivitySeriesLab("test-mount")) },
+  { name: "antibiotic", loader: () => import("../labs/bio-antibiotic-resistance.js").then(m => m.initAntibioticResistanceLab("test-mount")) },
+  { name: "elisa", loader: () => import("../labs/bio-immune-elisa.js").then(m => m.initElisaLab("test-mount")) },
+  { name: "transpiration", loader: () => import("../labs/bio-plant-transpiration.js").then(m => m.initTranspirationLab("test-mount")) },
+  { name: "orbital", loader: () => import("../labs/phys-orbital-mechanics.js").then(m => m.initOrbitalMechanicsLab("test-mount")) },
+  { name: "resonance", loader: () => import("../labs/phys-sound-resonance.js").then(m => m.initSoundResonanceLab("test-mount")) },
+  { name: "electrostatics", loader: () => import("../labs/phys-electrostatics.js").then(m => m.initElectrostaticsLab("test-mount")) }
 ];
 
 let allLabsInitCleanly = true;
@@ -330,8 +360,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appJsContent = fs.readFileSync(path.join(__dirname, "../app.js"), "utf-8");
-assert(/badge:\s*"36 Labs"/.test(appJsContent), 'Virtual Labs navigation tab badge displays "36 Labs"');
-assert(/tagline:\s*"36 Interactive STEM Workbenches"/.test(appJsContent), 'Virtual Labs navigation tab tagline displays "36 Interactive STEM Workbenches"');
+assert(/badge:\s*"45 Labs"/.test(appJsContent), 'Virtual Labs navigation tab badge displays "45 Labs"');
+assert(/tagline:\s*"45 Interactive STEM Workbenches"/.test(appJsContent), 'Virtual Labs navigation tab tagline displays "45 Interactive STEM Workbenches"');
 
 console.log("\n========================================================");
 console.log(`📊 Lab Links Tests: ${passed} Passed, ${failed} Failed`);

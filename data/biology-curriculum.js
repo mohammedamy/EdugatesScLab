@@ -279,7 +279,7 @@ export const biologyCurriculum = {
         { id: 2, title: "Viruses and Prions", objectives: ["Viral structure: capsid and nucleic acid core", "Lytic cycle vs Lysogenic cycle", "Retroviruses (reverse transcriptase)", "Prions and transmissible spongiform encephalopathies"] }
       ],
       formulas: ["N = N_0 \\times 2^{t/g} \\text{ (Bacterial doubling)}"],
-      lab: "lab-microscope"
+      lab: "lab-antibiotic"
     },
     {
       id: 18,
@@ -310,7 +310,7 @@ export const biologyCurriculum = {
         { id: 3, title: "Plant Reproduction", objectives: ["Alternation of generations (gametophyte n vs sporophyte 2n)", "Flower anatomy (stamen, carpel/pistil, petals, sepals)", "Pollination and double fertilization forming 3n endosperm", "Seed dispersal adaptations"] }
       ],
       formulas: ["\\text{Double Fertilization: } (1n + 1n = 2n \\text{ zygote}) \\quad \\& \\quad (1n + 2n = 3n \\text{ endosperm})"],
-      lab: "lab-microscope"
+      lab: "lab-transpiration"
     },
     {
       id: 20,
@@ -432,7 +432,7 @@ export const biologyCurriculum = {
         { id: 3, title: "Noninfectious Disorders", objectives: ["Genetic disorders, degenerative diseases, metabolic disorders", "Allergies and anaphylaxis (histamine release)", "Autoimmune diseases (Type 1 diabetes, rheumatoid arthritis, lupus)", "Immunodeficiency (HIV/AIDS targeting helper T cells)"] }
       ],
       formulas: ["\\text{Antibody: } \\text{Two heavy chains} + \\text{Two light chains} \\text{ (Variable antigen-binding Fab region)}"],
-      lab: "lab-microscope"
+      lab: "lab-elisa"
     }
   ]
 };
