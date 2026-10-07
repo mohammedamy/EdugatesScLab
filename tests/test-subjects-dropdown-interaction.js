@@ -97,6 +97,14 @@ testAssert(chemSub.badge === "23" && chemSub.themeClass === "tab-chem", "Chemist
 testAssert(bioSub.badge === "27" && bioSub.themeClass === "tab-bio", "Biology specifies 27 modules and tab-bio theme");
 testAssert(physSub.badge === "24" && physSub.themeClass === "tab-phys", "Physics specifies 24 modules and tab-phys theme");
 
+const labsSub = NAV_SUBJECTS.find(s => s.id === "labs");
+const quizSub = NAV_SUBJECTS.find(s => s.id === "quiz");
+const flashSub = NAV_SUBJECTS.find(s => s.id === "flashcards");
+
+testAssert(labsSub && labsSub.themeClass === "tab-labs", "Virtual Labs tool available in NAV_SUBJECTS with tab-labs theme");
+testAssert(quizSub && quizSub.themeClass === "tab-quiz", "Quiz & Exams tool available in NAV_SUBJECTS with tab-quiz theme");
+testAssert(flashSub && flashSub.themeClass === "tab-flashcards", "Flashcards tool available in NAV_SUBJECTS with tab-flashcards theme");
+
 // Verify toggle logic simulation
 console.log("\n🔄 Toggle Subjects Dropdown Simulation:");
 const mockWrapper = new FakeElement("div", "nav-subjects-dropdown", "nav-subjects-dropdown");

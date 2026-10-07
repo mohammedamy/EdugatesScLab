@@ -77,7 +77,14 @@ testAssert(
 testAssert(
   appSource.includes("CURRICULUM_SUBJECTS.map(sub =>") &&
   appSource.includes("TOOL_TABS.map(sub =>"),
-  "app.js separates curriculum subjects into dropdown while rendering tool tabs (labs, quiz, cards)"
+  "app.js maps both CURRICULUM_SUBJECTS and TOOL_TABS (labs, quiz, flashcards)"
+);
+
+testAssert(
+  appSource.includes('id="nav-subjects-menu"') &&
+  appSource.includes("Interactive STEM Tools") &&
+  appSource.includes("Curriculum Subjects"),
+  "app.js includes flash cards, virtual labs, and quizzes inside the subjects dropdown menu flyout"
 );
 
 // 3. Dropdown Interaction & Event Logic

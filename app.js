@@ -434,8 +434,8 @@ function renderAppShell() {
                     aria-haspopup="true" 
                     aria-expanded="false" 
                     aria-controls="nav-subjects-menu"
-                    title="Curriculum Subjects: Chemistry, Biology, Physics" 
-                    aria-label="Curriculum Subjects Dropdown Menu${isCurriculum ? '. Current: ' + curSub.name : ''}">
+                    title="Curriculum Subjects & Tools: Chemistry, Biology, Physics, Labs, Quizzes, Flashcards" 
+                    aria-label="Subjects Dropdown Menu${isCurriculum ? '. Current: ' + curSub.name : ''}">
               <span class="tab-pill-icon" id="nav-subjects-btn-icon" aria-hidden="true">${isCurriculum ? curSub.icon : icons.book}</span>
               <span class="tab-pill-text" id="nav-subjects-btn-text">
                 <span class="subjects-label">Subjects</span>
@@ -448,7 +448,7 @@ function renderAppShell() {
             </button>
 
             <!-- Desktop Subjects Dropdown Menu Flyout -->
-            <div class="nav-subjects-menu nav-dropdown-menu" id="nav-subjects-menu" role="menu" aria-label="Curriculum Subjects Menu">
+            <div class="nav-subjects-menu nav-dropdown-menu" id="nav-subjects-menu" role="menu" aria-label="Curriculum Subjects and Interactive Tools Menu">
               <div class="nav-dropdown-header">
                 <span class="nav-dropdown-header-title">Curriculum Subjects</span>
                 <span class="nav-dropdown-header-count">3 Subjects</span>
@@ -464,6 +464,31 @@ function renderAppShell() {
                       <div class="nav-item-top">
                         <span class="nav-item-title">${sub.name}</span>
                         <span class="nav-item-badge">${sub.badge} Modules</span>
+                      </div>
+                      <span class="nav-item-tagline">${sub.tagline}</span>
+                    </div>
+                    <div class="nav-item-check" aria-hidden="true">
+                      ${icons.check}
+                    </div>
+                  </a>
+                `).join('')}
+              </div>
+
+              <div class="nav-dropdown-header" style="margin-top: 8px;">
+                <span class="nav-dropdown-header-title">Interactive STEM Tools</span>
+                <span class="nav-dropdown-header-count">3 Tools</span>
+              </div>
+              <div class="nav-dropdown-list">
+                ${TOOL_TABS.map(sub => `
+                  <a href="#${sub.id}" class="nav-dropdown-item ${sub.themeClass} ${AppState.currentTab === sub.id ? 'active' : ''}" 
+                     data-tab="${sub.id}" role="menuitem" aria-label="${sub.name}: ${sub.tagline}" style="text-decoration: none; color: inherit;">
+                    <div class="nav-item-icon-box">
+                      ${sub.icon}
+                    </div>
+                    <div class="nav-item-content">
+                      <div class="nav-item-top">
+                        <span class="nav-item-title">${sub.name}</span>
+                        <span class="nav-item-badge">${sub.badge}</span>
                       </div>
                       <span class="nav-item-tagline">${sub.tagline}</span>
                     </div>
@@ -1121,7 +1146,7 @@ function switchTab(tabId, updateHash = true) {
   // Update desktop Subjects dropdown button appearance and active state
   const subjectsBtn = document.getElementById("nav-subjects-dropdown-btn");
   if (subjectsBtn) {
-    subjectsBtn.classList.remove("tab-chem", "tab-bio", "tab-phys", "active");
+    subjectsBtn.classList.remove("tab-chem", "tab-bio", "tab-phys", "tab-labs", "tab-quiz", "tab-flashcards", "active");
     if (isCurriculum) {
       subjectsBtn.classList.add(sub.themeClass, "active");
       subjectsBtn.setAttribute("aria-selected", "true");
@@ -1129,8 +1154,8 @@ function switchTab(tabId, updateHash = true) {
       subjectsBtn.setAttribute("aria-label", `Curriculum Subjects: ${sub.name}`);
     } else {
       subjectsBtn.setAttribute("aria-selected", "false");
-      subjectsBtn.setAttribute("title", "Curriculum Subjects: Chemistry, Biology, Physics");
-      subjectsBtn.setAttribute("aria-label", "Curriculum Subjects Dropdown Menu");
+      subjectsBtn.setAttribute("title", "Curriculum Subjects & Tools: Chemistry, Biology, Physics, Labs, Quizzes, Flashcards");
+      subjectsBtn.setAttribute("aria-label", "Subjects Dropdown Menu");
     }
     const btnIcon = document.getElementById("nav-subjects-btn-icon");
     if (btnIcon) btnIcon.innerHTML = isCurriculum ? sub.icon : icons.book;

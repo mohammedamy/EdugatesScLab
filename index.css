@@ -1463,6 +1463,9 @@ a.lesson-row-card {
   transform: translateY(-8px);
   width: 320px;
   max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 85px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   z-index: 1100;
 }
 
