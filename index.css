@@ -35,6 +35,12 @@
   --text-muted: #94a3b8;
   --text-dim: #64748b;
 
+  /* Mobile Safe Area Insets (iOS Safari Notch/Dynamic Island & Home Indicator) */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+
   /* Dimensions & Spacing */
   --nav-height: 84px;
   --radius-sm: 8px;
@@ -87,6 +93,40 @@ body.mode-tablet .lesson-row-card {
 body.mode-tablet .btn,
 [data-mode="tablet"] .nav-action-btn,
 body.mode-tablet .nav-action-btn {
+  min-height: 44px;
+}
+
+/* MOBILE PHONE ERGONOMICS & HARDWARE PROFILE (iPhones, Android Galaxy, Google Pixel) */
+[data-mode="mobile"],
+body.mode-mobile,
+html.mode-mobile {
+  --nav-height: 60px;
+  --touch-target: 44px;
+  font-size: 15px;
+  -webkit-overflow-scrolling: touch;
+}
+
+[data-mode="mobile"] .modules-grid,
+body.mode-mobile .modules-grid {
+  grid-template-columns: 1fr !important;
+  gap: 14px;
+}
+
+[data-mode="mobile"] .module-card-banner,
+body.mode-mobile .module-card-banner {
+  height: 135px;
+}
+
+[data-mode="mobile"] .lesson-row-card,
+body.mode-mobile .lesson-row-card {
+  min-height: 44px;
+  padding: 8px 12px;
+}
+
+[data-mode="mobile"] .btn,
+body.mode-mobile .btn,
+[data-mode="mobile"] .nav-action-btn,
+body.mode-mobile .nav-action-btn {
   min-height: 44px;
 }
 
@@ -5362,10 +5402,18 @@ body.modal-open .sb-toolbar-toggle {
 
 /* Tier 5: Mobile Phones (< 600px) */
 @media (max-width: 600px) {
+  /* Prevent horizontal slipping/scrolling */
+  html, body {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+  }
+
+  /* Safe Area Aware Top Navigation */
   .app-navbar {
     height: auto;
-    min-height: 60px;
-    padding: 8px 12px;
+    min-height: 58px;
+    padding: max(8px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px));
     flex-wrap: wrap;
     gap: 8px 10px;
   }
@@ -5380,7 +5428,7 @@ body.modal-open .sb-toolbar-toggle {
     border-radius: 8px;
   }
   .brand-text h1 {
-    font-size: 0.96rem;
+    font-size: 0.94rem;
     line-height: 1.2;
     white-space: normal;
   }
@@ -5390,6 +5438,15 @@ body.modal-open .sb-toolbar-toggle {
   .nav-right-controls {
     flex: 0 0 auto;
     gap: 6px;
+  }
+  .nav-action-btn {
+    min-height: 38px;
+    padding: 4px 10px;
+    font-size: 0.74rem;
+  }
+  .icon-action-btn {
+    width: 38px;
+    height: 38px;
   }
   .device-mode-toggle {
     display: none !important;
@@ -5407,8 +5464,8 @@ body.modal-open .sb-toolbar-toggle {
   .nav-dropdown-trigger {
     width: 100%;
     justify-content: space-between;
-    min-height: 42px;
-    padding: 6px 14px 6px 10px;
+    min-height: 44px;
+    padding: 6px 14px 6px 12px;
   }
   .nav-dropdown-menu {
     left: 8px;
@@ -5420,6 +5477,340 @@ body.modal-open .sb-toolbar-toggle {
   }
   .nav-dropdown-wrapper.open .nav-dropdown-menu {
     transform: translateY(0);
+  }
+
+  /* Safe Area Aware Main Viewport */
+  .app-main {
+    padding: 16px max(12px, env(safe-area-inset-left, 0px)) max(28px, calc(16px + env(safe-area-inset-bottom, 0px))) max(12px, env(safe-area-inset-right, 0px)) !important;
+  }
+
+  /* Hero Banner & Curriculum Metrics (2x2 Balanced Grid) */
+  .hero-banner {
+    padding: 18px 14px !important;
+    border-radius: 14px !important;
+    margin-bottom: 20px !important;
+  }
+  .hero-title {
+    font-size: clamp(1.3rem, 5.2vw, 1.65rem) !important;
+    line-height: 1.25 !important;
+    margin-bottom: 8px !important;
+  }
+  .hero-desc {
+    font-size: 0.88rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 16px !important;
+  }
+  .hero-metrics {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .metric-pill {
+    padding: 8px 12px !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    border-radius: 10px !important;
+  }
+  .metric-num {
+    font-size: 1.15rem !important;
+  }
+  .metric-label {
+    font-size: 0.74rem !important;
+  }
+
+  /* Search Bar & Unit Filters Touch Strip */
+  .filter-search-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    margin-bottom: 20px !important;
+  }
+  .search-box-wrapper {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  .search-input {
+    height: 44px !important;
+    padding: 0 42px 0 40px !important;
+    font-size: 0.92rem !important;
+  }
+  .search-kbd-hint {
+    display: none !important;
+  }
+  .unit-filters-scroll {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding: 4px 2px 8px !important;
+    gap: 8px !important;
+  }
+  .unit-filters-scroll::-webkit-scrollbar {
+    display: none !important;
+  }
+  .unit-filter-chip {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    min-height: 38px !important;
+    padding: 8px 14px !important;
+    font-size: 0.82rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Modules Grid - Seamless Single Column Mobile Feed */
+  .modules-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+  .module-card {
+    border-radius: 12px !important;
+  }
+  .module-card-banner {
+    height: 135px !important;
+  }
+  .module-card-body {
+    padding: 14px 16px !important;
+  }
+  .lesson-row-card {
+    min-height: 44px !important;
+    padding: 8px 10px !important;
+  }
+
+  /* Lesson Viewer Modal & Mobile Tabs Strip */
+  .modal-content-shell,
+  #module-modal-overlay .modal-content-shell {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100% !important;
+    max-height: 100dvh !important;
+  }
+  .modal-header {
+    padding: max(8px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px)) !important;
+    gap: 8px !important;
+  }
+  .modal-title {
+    font-size: clamp(1rem, 3.8vw, 1.2rem) !important;
+    line-height: 1.25 !important;
+  }
+  .modal-close-btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  .modal-tabs-header {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding: 0 10px !important;
+  }
+  .modal-tabs-header::-webkit-scrollbar {
+    display: none !important;
+  }
+  .modal-tab-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    min-height: 44px !important;
+    padding: 11px 13px !important;
+    font-size: 0.85rem !important;
+  }
+  .modal-body {
+    padding: 12px 12px max(16px, calc(16px + env(safe-area-inset-bottom, 0px))) 12px !important;
+  }
+
+  /* Virtual Lab Workbench Scaling on Mobile */
+  .lab-container {
+    gap: 12px !important;
+  }
+  .lab-canvas-area canvas {
+    height: min(320px, 48vh) !important;
+    max-height: 48vh !important;
+  }
+  .lab-controls-panel {
+    grid-template-columns: 1fr !important;
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+  .custom-slider,
+  .range-slider {
+    min-height: 38px !important;
+  }
+  .range-slider::-webkit-slider-thumb {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  /* Interactive Split Simulations */
+  .interactive-split-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+  .sim-canvas-box {
+    min-height: 220px !important;
+  }
+  .sim-canvas-box canvas {
+    height: min(240px, 42vh) !important;
+  }
+  .interactive-lesson-pills-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+  }
+  .modal-lesson-select {
+    min-height: 44px !important;
+  }
+
+  /* Quiz Generator & Practice Studio */
+  .quiz-config-card {
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+  }
+  .quiz-config-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    margin-top: 14px !important;
+  }
+  .question-card {
+    padding: 14px 12px !important;
+    border-radius: 12px !important;
+  }
+  .q-text {
+    font-size: 0.98rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 14px !important;
+  }
+  .q-options-grid {
+    gap: 8px !important;
+  }
+  .q-option-btn {
+    min-height: 48px !important;
+    padding: 10px 14px !important;
+    font-size: 0.92rem !important;
+    gap: 10px !important;
+  }
+  .q-option-letter {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* Question Bank, Custom Question & Diagram Picker Sheets */
+  .custom-modal-overlay {
+    padding: 0 !important;
+    align-items: stretch !important;
+    justify-content: stretch !important;
+  }
+  .custom-modal-shell,
+  .diag-picker-modal-shell,
+  .custom-q-modal,
+  .master-bank-modal,
+  .lp-modal-shell,
+  .lms-share-modal-shell {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100% !important;
+    max-height: 100dvh !important;
+    min-height: 100dvh !important;
+    border-radius: 0 !important;
+    border: none !important;
+  }
+  .custom-modal-header {
+    padding: max(12px, env(safe-area-inset-top, 0px)) 14px 12px 14px !important;
+  }
+  .custom-modal-body {
+    padding: 14px 12px !important;
+  }
+  .custom-modal-footer {
+    padding: 12px 14px max(14px, calc(10px + env(safe-area-inset-bottom, 0px))) 14px !important;
+  }
+  .diag-picker-search-bar {
+    padding: 10px 12px !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .diag-picker-search-input {
+    min-width: 0 !important;
+    width: 100% !important;
+    height: 42px !important;
+    font-size: 0.9rem !important;
+  }
+  #diag-picker-track-filters {
+    display: flex !important;
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 4px !important;
+    gap: 6px !important;
+    scrollbar-width: none !important;
+  }
+  #diag-picker-track-filters::-webkit-scrollbar {
+    display: none !important;
+  }
+  .btn-diag-filter {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    min-height: 36px !important;
+  }
+  .diag-picker-grid {
+    grid-template-columns: 1fr !important;
+    padding: 12px 10px !important;
+    gap: 12px !important;
+  }
+  .diag-picker-card {
+    min-height: 280px !important;
+  }
+  .diag-picker-preview-box {
+    height: 160px !important;
+    min-height: 160px !important;
+    max-height: 160px !important;
+  }
+  .cq-option-row {
+    padding: 10px 12px !important;
+    min-height: 48px !important;
+  }
+  .cq-option-row input[type="radio"] {
+    width: 22px !important;
+    height: 22px !important;
+    accent-color: #10b981 !important;
+    flex-shrink: 0 !important;
+  }
+  .cq-option-input {
+    min-height: 40px !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* Flashcards 3D Interactive Layout */
+  .flashcard-inner {
+    height: min(440px, 62vh) !important;
+  }
+  .flashcard-face {
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+  }
+
+  /* Floating Toolbars & Controls Safe Insets */
+  .touch-zoom-hud {
+    bottom: max(16px, calc(68px + env(safe-area-inset-bottom, 0px))) !important;
+    right: max(12px, calc(12px + env(safe-area-inset-right, 0px))) !important;
+  }
+  .sb-toolbar-toggle {
+    bottom: max(16px, calc(16px + env(safe-area-inset-bottom, 0px))) !important;
+    right: max(14px, calc(14px + env(safe-area-inset-right, 0px))) !important;
+  }
+  .btn-focus-mode-exit {
+    top: max(12px, calc(12px + env(safe-area-inset-top, 0px))) !important;
+    right: max(12px, calc(12px + env(safe-area-inset-right, 0px))) !important;
+    min-height: 44px !important;
+    padding: 8px 14px !important;
   }
 }
 

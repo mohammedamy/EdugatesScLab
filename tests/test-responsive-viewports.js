@@ -91,6 +91,65 @@ testAssert(
   "Overflow menu traps and handles Escape key for keyboard accessibility"
 );
 
+testAssert(
+  cssSrc.includes("--safe-top: env(safe-area-inset-top, 0px);") &&
+  cssSrc.includes("--safe-bottom: env(safe-area-inset-bottom, 0px);"),
+  "CSS defines safe-area-inset CSS variables for notch/island & home gesture bar"
+);
+
+testAssert(
+  cssSrc.includes('[data-mode="mobile"]') &&
+  cssSrc.includes("body.mode-mobile") &&
+  cssSrc.includes("--nav-height: 60px;"),
+  "CSS implements dedicated mobile phone hardware profile and ergonomics (data-mode='mobile')"
+);
+
+testAssert(
+  cssSrc.includes(".hero-metrics {") &&
+  cssSrc.includes("grid-template-columns: repeat(2, 1fr) !important;"),
+  "CSS balances curriculum metrics into a clean 2x2 grid on mobile screens"
+);
+
+testAssert(
+  cssSrc.includes(".unit-filters-scroll {") &&
+  cssSrc.includes("overflow-x: auto !important;") &&
+  cssSrc.includes("-webkit-overflow-scrolling: touch !important;"),
+  "Unit filter bar provides a native horizontal touch-scrolling strip on mobile"
+);
+
+testAssert(
+  cssSrc.includes(".modal-tabs-header {") &&
+  cssSrc.includes("overflow-x: auto !important;") &&
+  cssSrc.includes("flex-wrap: nowrap !important;"),
+  "Modal tabs header implements horizontal touch-scrolling without line-breaking"
+);
+
+testAssert(
+  cssSrc.includes(".modules-grid {") &&
+  cssSrc.includes("grid-template-columns: 1fr !important;"),
+  "Modules grid renders as a clean single-column card feed on mobile"
+);
+
+testAssert(
+  cssSrc.includes(".lab-canvas-area canvas {") &&
+  cssSrc.includes("height: min(320px, 48vh) !important;"),
+  "Simulation workbench canvas scales to 48vh on mobile, keeping controls visible"
+);
+
+testAssert(
+  cssSrc.includes(".q-option-btn {") &&
+  cssSrc.includes("min-height: 48px !important;"),
+  "Quiz option buttons satisfy 48px touch target ergonomics for mobile thumbs"
+);
+
+testAssert(
+  cssSrc.includes(".custom-modal-shell,") &&
+  cssSrc.includes(".diag-picker-modal-shell,") &&
+  cssSrc.includes("height: 100% !important;") &&
+  cssSrc.includes("width: 100vw !important;"),
+  "Modals and diagram picker expand to full-screen sheets on mobile viewports"
+);
+
 // ----------------------------------------------------
 // 2. Tablet Viewport (768px - iPad Portrait)
 // ----------------------------------------------------
