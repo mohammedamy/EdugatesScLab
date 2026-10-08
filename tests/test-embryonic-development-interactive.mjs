@@ -114,10 +114,64 @@ assert(
   "buildMitosisCellCycleInteractive is upgraded with 3D chromosomes, kinetochores, centrioles, and asters"
 );
 
+// 7. Meiosis & Crossing-Over Simulator
+assert(
+  specsSrc.includes('"BIO-M09-L2": {') &&
+  specsSrc.includes('"type": "bio-meiosis-crossing-over"'),
+  "BIO-M09-L2 maps to 'bio-meiosis-crossing-over'"
+);
+assert(
+  interactivesSrc.includes("function buildMeiosisCrossingOverInteractive(mountId, params)") &&
+  interactivesSrc.includes("Synapsis & Chiasmata") &&
+  interactivesSrc.includes("drawChromatid"),
+  "lesson-interactives implements buildMeiosisCrossingOverInteractive with synapsis and tetrads"
+);
+
+// 8. Gel Electrophoresis Rig
+assert(
+  specsSrc.includes('"BIO-M12-L1": {') &&
+  specsSrc.includes('"type": "bio-gel-electrophoresis"'),
+  "BIO-M12-L1 maps to 'bio-gel-electrophoresis'"
+);
+assert(
+  interactivesSrc.includes("function buildGelElectrophoresisInteractive(mountId, params)") &&
+  interactivesSrc.includes("UV Transilluminator: 365 nm ON") &&
+  interactivesSrc.includes("EcoRI Digest") &&
+  interactivesSrc.includes("HindIII Digest"),
+  "lesson-interactives implements buildGelElectrophoresisInteractive with UV transilluminator and digests"
+);
+
+// 9. Gametogenesis: Spermatogenesis vs Oogenesis
+assert(
+  specsSrc.includes('"BIO-M26-L1": {') &&
+  specsSrc.includes('"type": "bio-gametogenesis-oogenesis"'),
+  "BIO-M26-L1 maps to 'bio-gametogenesis-oogenesis'"
+);
+assert(
+  interactivesSrc.includes("function buildGametogenesisInteractive(mountId, params)") &&
+  interactivesSrc.includes("Spermatogenesis") &&
+  interactivesSrc.includes("Oogenesis"),
+  "lesson-interactives implements buildGametogenesisInteractive with dual symmetric vs asymmetric pathways"
+);
+
+// 10. DNA B-Form Double Helix
+assert(
+  specsSrc.includes('"BIO-M11-L1": {') &&
+  specsSrc.includes('"type": "bio-dna-double-helix"'),
+  "BIO-M11-L1 maps to 'bio-dna-double-helix'"
+);
+assert(
+  interactivesSrc.includes("function buildDnaDoubleHelixInteractive(mountId, params)") &&
+  interactivesSrc.includes("B-Form DNA: 5'→3' Antiparallel") &&
+  interactivesSrc.includes("Chargaff Ratio"),
+  "lesson-interactives implements buildDnaDoubleHelixInteractive with 3D rotation and Chargaff rules"
+);
+
 console.log("\n========================================================");
-console.log(`📊 Embryonic Engine Verification: ${passed} Passed, ${failed} Failed`);
+console.log(`📊 Embryonic & Advanced Biology Engine Verification: ${passed} Passed, ${failed} Failed`);
 console.log("========================================================\n");
 
 if (failed > 0) {
   process.exit(1);
 }
+

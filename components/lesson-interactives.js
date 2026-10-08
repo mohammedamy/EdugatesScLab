@@ -213,6 +213,14 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
     buildDnaReplicationInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-embryonic") || spec.type.startsWith("bio-cleavage")) {
     buildEmbryonicDevelopmentInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("bio-meiosis") || spec.type.startsWith("bio-crossing-over")) {
+    buildMeiosisCrossingOverInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("bio-gel-electrophoresis") || spec.type.startsWith("bio-restriction")) {
+    buildGelElectrophoresisInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("bio-gametogenesis") || spec.type.startsWith("bio-oogenesis") || spec.type.startsWith("bio-spermatogenesis")) {
+    buildGametogenesisInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("bio-dna-double-helix") || spec.type.startsWith("bio-dna-structure")) {
+    buildDnaDoubleHelixInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-mitosis") || spec.type.startsWith("bio-cell-cycle")) {
     buildMitosisCellCycleInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-hardy-weinberg") || spec.type.startsWith("bio-natural-selection")) {
@@ -16579,6 +16587,1180 @@ function buildEmbryonicDevelopmentInteractive(mountId, params) {
       btnToggleScale.classList.toggle("active", showScale);
     });
   }
+/**
+ * 28C. Biology: Meiosis & Crossing Over Recombination Simulator
+ * Realistic 60 FPS homologous synapsis, chiasmata recombination, independent assortment,
+ * and reductional vs equational division yielding 4 unique recombinant gametes.
+ */
+function buildMeiosisCrossingOverInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  const stages = [
+    {
+      id: "prophase1",
+      name: "Prophase I: Synapsis & Chiasmata",
+      short: "1. Prophase I",
+      desc: "Homologous chromosomes pair up along their entire length (synapsis) via the synaptonemal complex to form tetrads. Non-sister chromatids physically cross over at chiasmata, exchanging genetic segments to create recombinant chromosomes."
+    },
+    {
+      id: "metaphase1",
+      name: "Metaphase I: Bivalent Alignment",
+      short: "2. Metaphase I",
+      desc: "Homologous pairs (bivalents) align along the equatorial metaphase plate. Independent assortment occurs as the orientation of maternal and paternal homologues towards either spindle pole is completely random (2²³ combinations in humans)."
+    },
+    {
+      id: "anaphase1",
+      name: "Anaphase I: Reductional Division",
+      short: "3. Anaphase I",
+      desc: "Homologous chromosome pairs separate and are pulled to opposite cell poles by shortening spindle fibers. Sister chromatids remain joined at their centromeres, reducing cell ploidy from diploid (2n) to haploid (1n)."
+    },
+    {
+      id: "meiosis2",
+      name: "Meiosis II & 4 Recombinant Gametes",
+      short: "4. Meiosis II",
+      desc: "Sister chromatids separate during the equational division. Four genetically unique haploid (1n) gametes are produced: two parental genotypes (non-recombinant) and two recombinant mosaic genotypes resulting from crossing-over."
+    }
+  ];
+
+  let currentStageIdx = 0;
+  let isAutoAdvancing = false;
+  let autoTimer = 0;
+  let crossoverOccurred = true;
+  let recombSparkles = [];
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #050811;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5;">
+          <span id="${mountId}-stage-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(168,85,247,0.5); color: #c084fc; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; backdrop-filter: blur(6px);">
+            Prophase I: Synapsis & Chiasmata
+          </span>
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.45); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            2n → 4 × (1n)
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(168,85,247,0.4);">
+          <span class="readout-label">Meiotic Division:</span>
+          <span class="readout-val" id="${mountId}-div-val" style="color: #c084fc; font-weight: 800;">Reductional (2n → 1n)</span>
+        </div>
+
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim); margin-top: 6px; margin-bottom: 4px;">Select Meiosis Stage:</div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px;" id="${mountId}-stage-btns">
+          ${stages.map((s, i) => `
+            <button class="btn-sim-action ${i === currentStageIdx ? 'active' : ''}" data-idx="${i}" id="${mountId}-stage-${i}" style="padding: 6px 4px; font-size: 0.74rem;">${s.short}</button>
+          `).join("")}
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 8px;">
+          <button class="btn btn-primary" id="${mountId}-btn-recomb" style="flex: 1.2; padding: 7px 6px; font-weight: 700; font-size: 0.76rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            ⚡ Trigger Crossing-Over
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-auto" style="flex: 1; padding: 7px 6px; font-size: 0.76rem;">
+            <span id="${mountId}-auto-icon">▶</span> Auto-Cycle
+          </button>
+        </div>
+
+        <div id="${mountId}-stage-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.81rem; line-height: 1.45;">
+          <div style="font-weight: 800; color: #c084fc; margin-bottom: 3px;" id="${mountId}-telemetry-title">${stages[currentStageIdx].name}</div>
+          <div id="${mountId}-telemetry-text">${stages[currentStageIdx].desc}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const btnRecomb = document.getElementById(`${mountId}-btn-recomb`);
+  const btnAuto = document.getElementById(`${mountId}-btn-auto`);
+  const autoIcon = document.getElementById(`${mountId}-auto-icon`);
+  const stageBadge = document.getElementById(`${mountId}-stage-badge`);
+  const divVal = document.getElementById(`${mountId}-div-val`);
+  const stageDesc = document.getElementById(`${mountId}-stage-desc`);
+  const telemetryTitle = document.getElementById(`${mountId}-telemetry-title`);
+  const telemetryText = document.getElementById(`${mountId}-telemetry-text`);
+
+  function setStage(idx) {
+    currentStageIdx = (idx + stages.length) % stages.length;
+    for (let i = 0; i < stages.length; i++) {
+      const b = document.getElementById(`${mountId}-stage-${i}`);
+      if (b) b.classList.toggle("active", i === currentStageIdx);
+    }
+    const stage = stages[currentStageIdx];
+    if (stageBadge) stageBadge.innerText = stage.name;
+    if (telemetryTitle) telemetryTitle.innerText = stage.name;
+    if (telemetryText) telemetryText.innerText = stage.desc;
+    if (divVal) {
+      divVal.innerText = currentStageIdx < 3 ? "Reductional (2n → 1n)" : "Equational Division (1n → 4 × 1n)";
+    }
+  }
+
+  let t = 0;
+  let animId;
+  let lastTimestamp = null;
+
+  function render(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+    lastTimestamp = timestamp;
+
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    if (stageDesc) {
+      stageDesc.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      stageDesc.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(168, 85, 247, 0.28)";
+      stageDesc.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+
+    t += 0.035;
+
+    if (isAutoAdvancing) {
+      autoTimer += dt;
+      if (autoTimer >= 3.6) {
+        autoTimer = 0;
+        setStage(currentStageIdx + 1);
+      }
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Darkfield Cell Cytoplasm
+    const bgGrad = ctx.createRadialGradient(220, 140, 20, 220, 140, 220);
+    bgGrad.addColorStop(0, isDay ? "#0f172a" : "#080d1a");
+    bgGrad.addColorStop(1, "#020409");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = 220, cy = 140;
+
+    // Helper: Draw Chromatid with potential recombinant tip
+    function drawChromatid(x, y, len, width, baseColor, tipColor, isTipped = false) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      const half = len / 2;
+      const tipLen = len * 0.35;
+
+      // Base body
+      ctx.fillStyle = baseColor;
+      ctx.strokeStyle = "rgba(15,23,42,0.6)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(-width / 2, -half, width, len - (isTipped ? tipLen : 0), 4);
+      ctx.fill();
+      ctx.stroke();
+
+      // Recombinant tip
+      if (isTipped) {
+        ctx.fillStyle = tipColor;
+        ctx.beginPath();
+        ctx.roundRect(-width / 2, half - tipLen, width, tipLen, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        // Chiasma boundary line
+        ctx.strokeStyle = "#fbbf24";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(-width / 2, half - tipLen);
+        ctx.lineTo(width / 2, half - tipLen);
+        ctx.stroke();
+      }
+
+      // Centromere dot
+      ctx.fillStyle = "#fbbf24";
+      ctx.beginPath();
+      ctx.arc(0, 0, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    if (currentStageIdx === 0) {
+      // PROPHASE I: Synaptonemal Complex & Tetrad Chiasmata
+      // Cell membrane
+      ctx.strokeStyle = "rgba(168, 85, 247, 0.4)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 115, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Synaptonemal Complex Ladder (Central zipper protein)
+      ctx.strokeStyle = "rgba(251, 191, 36, 0.65)";
+      ctx.lineWidth = 1.2;
+      for (let y = cy - 65; y <= cy + 65; y += 7) {
+        ctx.beginPath();
+        ctx.moveTo(cx - 8, y);
+        ctx.lineTo(cx + 8, y);
+        ctx.stroke();
+      }
+
+      // Maternal Chromosome Pair (Left, Magenta)
+      drawChromatid(cx - 22, cy, 120, 9, "#ec4899", null, false); // Outer non-crossover
+      drawChromatid(cx - 10, cy, 120, 9, "#ec4899", "#38bdf8", crossoverOccurred); // Inner crossover
+
+      // Paternal Chromosome Pair (Right, Cyan)
+      drawChromatid(cx + 10, cy, 120, 9, "#38bdf8", "#ec4899", crossoverOccurred); // Inner crossover
+      drawChromatid(cx + 22, cy, 120, 9, "#38bdf8", null, false); // Outer non-crossover
+
+      // Allele gene markers
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText("A", cx - 35, cy - 35);
+      ctx.fillText("B", cx - 35, cy + 40);
+      ctx.fillText("a", cx + 30, cy - 35);
+      ctx.fillText("b", cx + 30, cy + 40);
+
+      // Chiasma intersection glow
+      if (crossoverOccurred) {
+        ctx.fillStyle = "rgba(251, 191, 36, 0.85)";
+        ctx.shadowColor = "#fbbf24";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(cx, cy + 28, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+    } else if (currentStageIdx === 1) {
+      // METAPHASE I: Bivalents Aligned at Equator
+      // Cell membrane
+      ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 120, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Poles & Centrosomes
+      [-105, 105].forEach(offset => {
+        ctx.fillStyle = "#fbbf24";
+        ctx.beginPath();
+        ctx.arc(cx, cy + offset, 6, 0, Math.PI * 2);
+        ctx.fill();
+        // Spindle fibers
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.35)";
+        ctx.lineWidth = 1;
+        for (let f = -3; f <= 3; f++) {
+          ctx.beginPath();
+          ctx.moveTo(cx, cy + offset);
+          ctx.lineTo(cx + f * 15, cy);
+          ctx.stroke();
+        }
+      });
+
+      // Bivalents at equator
+      drawChromatid(cx - 24, cy, 75, 8, "#ec4899", null, false);
+      drawChromatid(cx - 12, cy, 75, 8, "#ec4899", "#38bdf8", crossoverOccurred);
+      drawChromatid(cx + 12, cy, 75, 8, "#38bdf8", "#ec4899", crossoverOccurred);
+      drawChromatid(cx + 24, cy, 75, 8, "#38bdf8", null, false);
+
+    } else if (currentStageIdx === 2) {
+      // ANAPHASE I: Homologues Pulled Apart (Reductional Division)
+      // Elongated dumbbell cell
+      ctx.strokeStyle = "rgba(168, 85, 247, 0.6)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy - 50, 68, 0, Math.PI * 2);
+      ctx.arc(cx, cy + 50, 68, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Maternal pair moving up
+      drawChromatid(cx - 12, cy - 55, 65, 8, "#ec4899", null, false);
+      drawChromatid(cx + 12, cy - 55, 65, 8, "#ec4899", "#38bdf8", crossoverOccurred);
+
+      // Paternal pair moving down
+      drawChromatid(cx - 12, cy + 55, 65, 8, "#38bdf8", "#ec4899", crossoverOccurred);
+      drawChromatid(cx + 12, cy + 55, 65, 8, "#38bdf8", null, false);
+
+    } else if (currentStageIdx === 3) {
+      // MEIOSIS II: 4 Distinct Haploid Recombinant Gametes
+      const gameteCenters = [
+        { x: cx - 110, y: cy, label: "Parental (AB)", tipped: false, col: "#ec4899", tip: null },
+        { x: cx - 36, y: cy, label: "Recombinant (Ab)", tipped: true, col: "#ec4899", tip: "#38bdf8" },
+        { x: cx + 36, y: cy, label: "Recombinant (aB)", tipped: true, col: "#38bdf8", tip: "#ec4899" },
+        { x: cx + 110, y: cy, label: "Parental (ab)", tipped: false, col: "#38bdf8", tip: null }
+      ];
+
+      gameteCenters.forEach(g => {
+        // Gamete cell membrane
+        ctx.fillStyle = "rgba(168, 85, 247, 0.12)";
+        ctx.strokeStyle = "#a855f7";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(g.x, g.y, 32, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Chromatid inside gamete
+        drawChromatid(g.x, g.y, 42, 6.5, g.col, g.tip, g.tipped && crossoverOccurred);
+
+        // Genotype Label below
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "bold 9px Inter, sans-serif";
+        const tw = ctx.measureText(g.label).width;
+        ctx.fillText(g.label, g.x - tw / 2, g.y + 46);
+      });
+    }
+
+    // Dynamic recombination sparkles
+    recombSparkles.forEach((s, idx) => {
+      s.life -= dt * 1.5;
+      s.x += s.vx;
+      s.y += s.vy;
+      if (s.life > 0) {
+        ctx.fillStyle = `rgba(251, 191, 36, ${s.life})`;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r * s.life, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+    recombSparkles = recombSparkles.filter(s => s.life > 0);
+
+    animId = requestAnimationFrame(render);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isAutoAdvancing = false;
+  });
+
+  stages.forEach((s, idx) => {
+    const btn = document.getElementById(`${mountId}-stage-${idx}`);
+    if (btn) {
+      btn.addEventListener("click", () => {
+        isAutoAdvancing = false;
+        autoIcon.innerText = "▶";
+        setStage(idx);
+      });
+    }
+  });
+
+  btnRecomb.addEventListener("click", () => {
+    crossoverOccurred = !crossoverOccurred;
+    btnRecomb.innerText = crossoverOccurred ? "⚡ Crossing-Over: ON" : "⚪ Crossing-Over: OFF";
+    btnRecomb.classList.toggle("active", crossoverOccurred);
+
+    // Spawn recombination sparkles
+    for (let i = 0; i < 30; i++) {
+      recombSparkles.push({
+        x: 220 + (Math.random() - 0.5) * 20,
+        y: 168 + (Math.random() - 0.5) * 20,
+        vx: (Math.random() - 0.5) * 3,
+        vy: (Math.random() - 0.5) * 3,
+        r: 2 + Math.random() * 2.5,
+        life: 1.0
+      });
+    }
+  });
+
+  btnAuto.addEventListener("click", () => {
+    isAutoAdvancing = !isAutoAdvancing;
+    autoIcon.innerText = isAutoAdvancing ? "⏸" : "▶";
+    btnAuto.classList.toggle("active", isAutoAdvancing);
+    autoTimer = 0;
+  });
+}
+
+/**
+ * 28D. Biology: Recombinant DNA & Agarose Gel Electrophoresis Rig
+ * Realistic submarine gel electrophoresis tank with DNA ladder, restriction enzyme digests
+ * (EcoRI, HindIII), platinum electrode gas electrolysis, and UV transilluminator fluorophores.
+ */
+function buildGelElectrophoresisInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  let isRunning = true;
+  let uvLampOn = true;
+  let voltage = 100; // Volts
+  let agarosePercent = 1.0; // 0.8% to 2.0%
+  let runTime = 0; // Simulated seconds
+
+  // DNA lanes & bands definition
+  const lanes = [
+    {
+      name: "DNA Ladder",
+      bands: [
+        { bp: 10000, relMob: 0.12 },
+        { bp: 6000, relMob: 0.22 },
+        { bp: 4000, relMob: 0.34 },
+        { bp: 3000, relMob: 0.44 },
+        { bp: 2000, relMob: 0.56 },
+        { bp: 1500, relMob: 0.66 },
+        { bp: 1000, relMob: 0.78 },
+        { bp: 500, relMob: 0.90 }
+      ]
+    },
+    {
+      name: "Uncut Plasmid",
+      bands: [
+        { bp: 6000, relMob: 0.20, desc: "Nicked Relaxed" },
+        { bp: 4200, relMob: 0.48, desc: "Supercoiled" }
+      ]
+    },
+    {
+      name: "EcoRI Digest",
+      bands: [
+        { bp: 4200, relMob: 0.32, desc: "4.2 kb fragment" },
+        { bp: 1800, relMob: 0.60, desc: "1.8 kb fragment" }
+      ]
+    },
+    {
+      name: "HindIII Digest",
+      bands: [
+        { bp: 3500, relMob: 0.38, desc: "3.5 kb fragment" },
+        { bp: 2500, relMob: 0.50, desc: "2.5 kb fragment" }
+      ]
+    },
+    {
+      name: "Double Digest",
+      bands: [
+        { bp: 3500, relMob: 0.38, desc: "3.5 kb fragment" },
+        { bp: 1800, relMob: 0.60, desc: "1.8 kb fragment" },
+        { bp: 700, relMob: 0.85, desc: "0.7 kb fragment" }
+      ]
+    }
+  ];
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #030611;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5;">
+          <span class="badge" id="${mountId}-uv-badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(16,185,129,0.5); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            UV Transilluminator: 365 nm ON
+          </span>
+          <span class="badge" id="${mountId}-volt-badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.45); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            100 V • Running
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56,189,248,0.4);">
+          <span class="readout-label">Migration Distance:</span>
+          <span class="readout-val" id="${mountId}-mig-val" style="color: #38bdf8; font-weight: 800;">d ∝ 1/log₁₀(bp)</span>
+        </div>
+
+        <div style="margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Electrophoresis Voltage:</span>
+            <span id="${mountId}-volt-lbl" style="color: #38bdf8; font-weight: 800;">100 V</span>
+          </div>
+          <input type="range" id="${mountId}-volt-slider" min="60" max="140" step="10" value="100" style="width: 100%; accent-color: #38bdf8; cursor: pointer;">
+        </div>
+
+        <div style="margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Agarose Concentration:</span>
+            <span id="${mountId}-agarose-lbl" style="color: #ec4899; font-weight: 800;">1.0% (Medium sieving)</span>
+          </div>
+          <input type="range" id="${mountId}-agarose-slider" min="0.8" max="2.0" step="0.2" value="1.0" style="width: 100%; accent-color: #ec4899; cursor: pointer;">
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 8px;">
+          <button class="btn btn-primary" id="${mountId}-btn-power" style="flex: 1.2; padding: 7px 6px; font-weight: 700; font-size: 0.76rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span id="${mountId}-power-icon">⏸</span> <span id="${mountId}-power-lbl">Pause Run</span>
+          </button>
+          <button class="btn-sim-action active" id="${mountId}-btn-uv" style="flex: 1; padding: 7px 6px; font-size: 0.76rem;">
+            💡 UV Light
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-reset" style="padding: 7px 10px; font-size: 0.76rem;">
+            ⟲ Reload
+          </button>
+        </div>
+
+        <div id="${mountId}-stage-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.81rem; line-height: 1.45;">
+          <strong>Restriction Digest Mechanics:</strong> DNA fragments have uniform negative charge-to-mass ratios due to phosphate backbones and migrate toward the positive anode (red terminal). Smaller fragments sieve faster through the porous agarose matrix.
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const btnPower = document.getElementById(`${mountId}-btn-power`);
+  const btnUv = document.getElementById(`${mountId}-btn-uv`);
+  const btnReset = document.getElementById(`${mountId}-btn-reset`);
+  const voltSlider = document.getElementById(`${mountId}-volt-slider`);
+  const voltLbl = document.getElementById(`${mountId}-volt-lbl`);
+  const agaroseSlider = document.getElementById(`${mountId}-agarose-slider`);
+  const agaroseLbl = document.getElementById(`${mountId}-agarose-lbl`);
+  const uvBadge = document.getElementById(`${mountId}-uv-badge`);
+  const voltBadge = document.getElementById(`${mountId}-volt-badge`);
+  const migVal = document.getElementById(`${mountId}-mig-val`);
+
+  let bubbles = [];
+  for (let i = 0; i < 30; i++) {
+    bubbles.push({
+      x: 30 + Math.random() * 380,
+      y: 250 + Math.random() * 20,
+      vy: 0.4 + Math.random() * 0.8,
+      r: 1 + Math.random() * 1.5
+    });
+  }
+
+  let t = 0;
+  let animId;
+  let lastTimestamp = null;
+
+  function render(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+    lastTimestamp = timestamp;
+
+    t += 0.035;
+
+    if (isRunning) {
+      runTime += dt * (voltage / 100) * (1.2 / agarosePercent);
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Submarine Chamber Background (UV vs White Light)
+    if (uvLampOn) {
+      ctx.fillStyle = "#02040a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // UV transilluminator deep glow
+      const uvGrad = ctx.createRadialGradient(220, 140, 20, 220, 140, 200);
+      uvGrad.addColorStop(0, "rgba(79, 70, 229, 0.15)");
+      uvGrad.addColorStop(1, "rgba(30, 27, 75, 0.45)");
+      ctx.fillStyle = uvGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Agarose Gel Slab Border (30, 35, width: 380, height: 215)
+    const gelX = 30, gelY = 35, gelW = 380, gelH = 215;
+    ctx.fillStyle = uvLampOn ? "rgba(15, 23, 42, 0.85)" : "rgba(30, 41, 59, 0.65)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.fillRect(gelX, gelY, gelW, gelH);
+    ctx.strokeRect(gelX, gelY, gelW, gelH);
+
+    // Cathode (Negative - Top, Black) & Anode (Positive - Bottom, Red)
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(gelX, gelY - 8); ctx.lineTo(gelX + gelW, gelY - 8);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#ef4444";
+    ctx.beginPath();
+    ctx.moveTo(gelX, gelY + gelH + 8); ctx.lineTo(gelX + gelW, gelY + gelH + 8);
+    ctx.stroke();
+
+    // Electrode polarity badges
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText("(-) Cathode (Black)", gelX + 6, gelY - 12);
+    ctx.fillStyle = "#ef4444";
+    ctx.fillText("(+) Anode (Red)", gelX + 6, gelY + gelH + 22);
+
+    // Electrolysis bubbles when running
+    if (isRunning) {
+      bubbles.forEach(b => {
+        b.y -= b.vy;
+        if (b.y < gelY + gelH - 4) b.y = gelY + gelH + 12;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // 5 Wells and Lanes
+    const laneW = gelW / lanes.length;
+    lanes.forEach((lane, lIdx) => {
+      const wellX = gelX + lIdx * laneW + laneW / 2;
+      const wellY = gelY + 18;
+
+      // Loading Well
+      ctx.fillStyle = "#020617";
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+      ctx.lineWidth = 1.2;
+      ctx.fillRect(wellX - 22, wellY - 6, 44, 10);
+      ctx.strokeRect(wellX - 22, wellY - 6, 44, 10);
+
+      // Lane Title
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillStyle = "#38bdf8";
+      const titleW = ctx.measureText(lane.name).width;
+      ctx.fillText(lane.name, wellX - titleW / 2, wellY - 10);
+
+      // DNA Bands Migration
+      lane.bands.forEach(b => {
+        // Migration distance calculation based on relative mobility and runtime
+        const maxDist = gelH - 50;
+        const currentMob = Math.min(1.0, (runTime * 0.08) * b.relMob);
+        const bandY = wellY + 12 + currentMob * maxDist;
+
+        if (uvLampOn) {
+          // Fluorescent Ethidium Bromide / GelGreen Band
+          const bandGrad = ctx.createLinearGradient(wellX - 18, bandY, wellX + 18, bandY);
+          bandGrad.addColorStop(0, "rgba(52, 211, 153, 0.15)");
+          bandGrad.addColorStop(0.5, "#34d399"); // Bright green fluorescence
+          bandGrad.addColorStop(1, "rgba(52, 211, 153, 0.15)");
+
+          ctx.fillStyle = bandGrad;
+          ctx.shadowColor = "#34d399";
+          ctx.shadowBlur = 8;
+          ctx.fillRect(wellX - 18, bandY - 2.5, 36, 5);
+          ctx.shadowBlur = 0;
+
+          // bp marker text on Ladder lane
+          if (lIdx === 0 && currentMob > 0.05) {
+            ctx.fillStyle = "#a7f3d0";
+            ctx.font = "8px Inter, sans-serif";
+            ctx.fillText(`${b.bp} bp`, wellX + 22, bandY + 2.5);
+          }
+        } else {
+          // Faint bromophenol blue tracking dye in white light
+          ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+          ctx.fillRect(wellX - 18, bandY - 1.5, 36, 3);
+        }
+      });
+    });
+
+    animId = requestAnimationFrame(render);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isRunning = false;
+  });
+
+  btnPower.addEventListener("click", () => {
+    isRunning = !isRunning;
+    const powerIcon = document.getElementById(`${mountId}-power-icon`);
+    const powerLbl = document.getElementById(`${mountId}-power-lbl`);
+    if (powerIcon) powerIcon.innerText = isRunning ? "⏸" : "▶";
+    if (powerLbl) powerLbl.innerText = isRunning ? "Pause Run" : "Start Run";
+    if (voltBadge) {
+      voltBadge.innerText = isRunning ? `${voltage} V • Running` : `${voltage} V • Paused`;
+    }
+  });
+
+  btnUv.addEventListener("click", () => {
+    uvLampOn = !uvLampOn;
+    btnUv.classList.toggle("active", uvLampOn);
+    if (uvBadge) {
+      uvBadge.innerText = uvLampOn ? "UV Transilluminator: 365 nm ON" : "White Light Mode (UV OFF)";
+      uvBadge.style.color = uvLampOn ? "#34d399" : "#94a3b8";
+    }
+  });
+
+  btnReset.addEventListener("click", () => {
+    runTime = 0;
+  });
+
+  voltSlider.addEventListener("input", (e) => {
+    voltage = parseInt(e.target.value, 10);
+    voltLbl.innerText = `${voltage} V`;
+    if (voltBadge && isRunning) voltBadge.innerText = `${voltage} V • Running`;
+  });
+
+  agaroseSlider.addEventListener("input", (e) => {
+    agarosePercent = parseFloat(e.target.value);
+    agaroseLbl.innerText = `${agarosePercent.toFixed(1)}% (${agarosePercent < 1.0 ? 'Loose mesh' : 'Dense sieving'})`;
+  });
+}
+
+/**
+ * 28E. Biology: Human Gametogenesis: Spermatogenesis vs Asymmetric Oogenesis
+ * High-fidelity comparative cellular pathway showing symmetric meiotic production of 4 motile
+ * spermatozoa vs asymmetric conservation of cytoplasm in 1 massive ovum + 3 polar bodies.
+ */
+function buildGametogenesisInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  let mode = "dual"; // "sperm", "ovum", "dual"
+  let animId;
+  let t = 0;
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #050811;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5;">
+          <span id="${mountId}-mode-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(236,72,153,0.5); color: #f472b6; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Dual Pathway: Spermatogenesis vs Oogenesis
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(236,72,153,0.4);">
+          <span class="readout-label">Cytoplasmic Partitioning:</span>
+          <span class="readout-val" id="${mountId}-part-val" style="color: #ec4899; font-weight: 800;">Asymmetric (1 Ovum + 3 Polar Bodies)</span>
+        </div>
+
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim); margin-top: 6px; margin-bottom: 4px;">Pathway View:</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+          <button class="btn-sim-action" id="${mountId}-btn-sperm" style="padding: 6px 4px; font-size: 0.73rem;">Spermatogenesis</button>
+          <button class="btn-sim-action" id="${mountId}-btn-ovum" style="padding: 6px 4px; font-size: 0.73rem;">Oogenesis</button>
+          <button class="btn-sim-action active" id="${mountId}-btn-dual" style="padding: 6px 4px; font-size: 0.73rem;">Side-by-Side</button>
+        </div>
+
+        <div id="${mountId}-stage-desc" class="sim-telemetry-box" style="margin-top: 8px; font-family: var(--font-body); font-size: 0.81rem; line-height: 1.45;">
+          <strong>Adaptive Significance:</strong> Spermatogenesis prioritizes motility and numbers (millions/day, 4 equal gametes). Oogenesis prioritizes maternal cytoplasm, ribosomes, and mitochondria in a single gigantic ovum to support cleavage before implantation.
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const btnSperm = document.getElementById(`${mountId}-btn-sperm`);
+  const btnOvum = document.getElementById(`${mountId}-btn-ovum`);
+  const btnDual = document.getElementById(`${mountId}-btn-dual`);
+  const modeBadge = document.getElementById(`${mountId}-mode-badge`);
+  const partVal = document.getElementById(`${mountId}-part-val`);
+
+  function render() {
+    t += 0.04;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Deep Darkfield Canvas
+    const bgGrad = ctx.createRadialGradient(220, 140, 20, 220, 140, 220);
+    bgGrad.addColorStop(0, "#0a1122");
+    bgGrad.addColorStop(1, "#020409");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (mode === "sperm" || mode === "dual") {
+      const startX = mode === "sperm" ? 220 : 110;
+
+      // Spermatogenesis Header
+      ctx.font = "bold 11px Inter, sans-serif";
+      ctx.fillStyle = "#38bdf8";
+      ctx.fillText("♂ Spermatogenesis (1 → 4)", startX - 60, 24);
+
+      // Primary Spermatocyte (2n)
+      ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(startX, 58, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillText("2n", startX - 5, 61);
+
+      // Meiosis I: 2 Secondary Spermatocytes (1n)
+      [-32, 32].forEach(off => {
+        ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
+        ctx.beginPath();
+        ctx.arc(startX + off, 120, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText("1n", startX + off - 5, 123);
+      });
+
+      // Meiosis II: 4 Motile Flagellated Spermatozoa
+      const spermX = [-52, -18, 18, 52];
+      spermX.forEach((off, idx) => {
+        const sx = startX + off;
+        const sy = 195;
+
+        // Head (Oval with acrosome cap)
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, 5, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Acrosome cap
+        ctx.fillStyle = "#93c5fd";
+        ctx.beginPath();
+        ctx.arc(sx, sy - 4, 3.5, Math.PI, 0);
+        ctx.fill();
+
+        // Undulating Flagellum Tail (Sinusoidal wave)
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy + 8);
+        for (let y = sy + 8; y <= sy + 58; y += 3) {
+          const wave = Math.sin(t * 8 - (y - sy) * 0.2 + idx) * 4;
+          ctx.lineTo(sx + wave, y);
+        }
+        ctx.stroke();
+      });
+    }
+
+    if (mode === "ovum" || mode === "dual") {
+      const startX = mode === "ovum" ? 220 : 330;
+
+      // Oogenesis Header
+      ctx.font = "bold 11px Inter, sans-serif";
+      ctx.fillStyle = "#ec4899";
+      ctx.fillText("♀ Oogenesis (1 → 1 + 3 PB)", startX - 70, 24);
+
+      // Primary Oocyte (2n, massive cytoplasm)
+      ctx.fillStyle = "rgba(236, 72, 153, 0.28)";
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(startX, 60, 24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillText("2n", startX - 5, 63);
+
+      // Meiosis I: Asymmetric Division
+      // Secondary Oocyte (Huge 1n)
+      ctx.fillStyle = "rgba(236, 72, 153, 0.32)";
+      ctx.beginPath();
+      ctx.arc(startX - 18, 130, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText("1n", startX - 23, 133);
+
+      // 1st Polar Body (Tiny 1n, discarded)
+      ctx.fillStyle = "rgba(244, 114, 182, 0.6)";
+      ctx.strokeStyle = "#f43f5e";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(startX + 35, 130, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#f43f5e";
+      ctx.font = "8px Inter, sans-serif";
+      ctx.fillText("1st PB", startX + 24, 146);
+
+      // Meiosis II: Mature Ovum + 2nd Polar Body
+      // Mature Ovum (1n - 99% cytoplasm conservation)
+      const ovumX = startX - 25, ovumY = 215;
+      const ovumGrad = ctx.createRadialGradient(ovumX, ovumY, 5, ovumX, ovumY, 32);
+      ovumGrad.addColorStop(0, "rgba(244, 114, 182, 0.5)");
+      ovumGrad.addColorStop(0.85, "rgba(236, 72, 153, 0.3)");
+      ovumGrad.addColorStop(1, "rgba(236, 72, 153, 0.7)");
+      ctx.fillStyle = ovumGrad;
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(ovumX, ovumY, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Nucleus of ovum
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(ovumX, ovumY, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#0f172a";
+      ctx.fillText("1n", ovumX - 4, ovumY + 3);
+
+      // 2nd Polar Body (Tiny, degenerates)
+      ctx.fillStyle = "rgba(244, 114, 182, 0.6)";
+      ctx.strokeStyle = "#f43f5e";
+      ctx.beginPath();
+      ctx.arc(startX + 35, 215, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#f43f5e";
+      ctx.fillText("2nd PB", startX + 24, 230);
+    }
+
+    animId = requestAnimationFrame(render);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => cancelAnimationFrame(animId));
+
+  btnSperm.addEventListener("click", () => {
+    mode = "sperm";
+    btnSperm.classList.add("active");
+    btnOvum.classList.remove("active");
+    btnDual.classList.remove("active");
+    modeBadge.innerText = "♂ Spermatogenesis: Symmetric (4 Viable Gametes)";
+    partVal.innerText = "Symmetric (4 Equal Flagellated Spermatozoa)";
+  });
+
+  btnOvum.addEventListener("click", () => {
+    mode = "ovum";
+    btnOvum.classList.add("active");
+    btnSperm.classList.remove("active");
+    btnDual.classList.remove("active");
+    modeBadge.innerText = "♀ Oogenesis: Asymmetric (1 Ovum + Polar Bodies)";
+    partVal.innerText = "Asymmetric (1 Nutrient-Rich Ovum + 3 Polar Bodies)";
+  });
+
+  btnDual.addEventListener("click", () => {
+    mode = "dual";
+    btnDual.classList.add("active");
+    btnSperm.classList.remove("active");
+    btnOvum.classList.remove("active");
+    modeBadge.innerText = "Dual Pathway: Spermatogenesis vs Oogenesis";
+    partVal.innerText = "Comparison: Symmetric (♂) vs Asymmetric (♀)";
+  });
+}
+
+/**
+ * 28F. Biology: DNA Double Helix Structure & Chargaff Base-Pairing
+ * 3D rotating antiparallel B-form double helix with complementary hydrogen bonding
+ * (A=T with 2 H-bonds, G≡C with 3 H-bonds), major/minor grooves, and thermal denaturation.
+ */
+function buildDnaDoubleHelixInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  let rotAngle = 0;
+  let isRotating = true;
+  let tempC = 37; // Temperature in Celsius (25 to 95)
+  let animId;
+
+  // Base pair sequence
+  const sequence = [
+    { a: "A", b: "T", h: 2, cA: "#10b981", cB: "#facc15" },
+    { a: "G", b: "C", h: 3, cA: "#ec4899", cB: "#38bdf8" },
+    { a: "C", b: "G", h: 3, cA: "#38bdf8", cB: "#ec4899" },
+    { a: "T", b: "A", h: 2, cA: "#facc15", cB: "#10b981" },
+    { a: "A", b: "T", h: 2, cA: "#10b981", cB: "#facc15" },
+    { a: "G", b: "C", h: 3, cA: "#ec4899", cB: "#38bdf8" },
+    { a: "A", b: "T", h: 2, cA: "#10b981", cB: "#facc15" },
+    { a: "C", b: "G", h: 3, cA: "#38bdf8", cB: "#ec4899" },
+    { a: "T", b: "A", h: 2, cA: "#facc15", cB: "#10b981" },
+    { a: "G", b: "C", h: 3, cA: "#ec4899", cB: "#38bdf8" }
+  ];
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #050811;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5;">
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.5); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            B-Form DNA: 5'→3' Antiparallel
+          </span>
+          <span id="${mountId}-melt-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(16,185,129,0.5); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Double Stranded (Native)
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56,189,248,0.4);">
+          <span class="readout-label">Chargaff Ratio:</span>
+          <span class="readout-val" style="color: #38bdf8; font-weight: 800;">[A]/[T] = 1.00 • [G]/[C] = 1.00</span>
+        </div>
+
+        <div style="margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Thermal Denaturation (Temp):</span>
+            <span id="${mountId}-temp-lbl" style="color: #fbbf24; font-weight: 800;">37 °C (Physiological)</span>
+          </div>
+          <input type="range" id="${mountId}-temp-slider" min="25" max="95" step="1" value="37" style="width: 100%; accent-color: #fbbf24; cursor: pointer;">
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 8px;">
+          <button class="btn btn-primary active" id="${mountId}-btn-rot" style="flex: 1.2; padding: 7px 6px; font-weight: 700; font-size: 0.76rem;">
+            ⟳ 3D Rotation: ON
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-rand" style="flex: 1; padding: 7px 6px; font-size: 0.76rem;">
+            🔀 Random Sequence
+          </button>
+        </div>
+
+        <div id="${mountId}-stage-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.81rem; line-height: 1.45;">
+          <strong>Molecular Architecture:</strong> Right-handed double helix has a 3.4 nm pitch with 10.5 bp per turn. Adenine pairs with Thymine via 2 hydrogen bonds; Guanine pairs with Cytosine via 3 hydrogen bonds. Heating past Tm (~85°C) breaks H-bonds, melting strands apart.
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const btnRot = document.getElementById(`${mountId}-btn-rot`);
+  const btnRand = document.getElementById(`${mountId}-btn-rand`);
+  const tempSlider = document.getElementById(`${mountId}-temp-slider`);
+  const tempLbl = document.getElementById(`${mountId}-temp-lbl`);
+  const meltBadge = document.getElementById(`${mountId}-melt-badge`);
+
+  function render() {
+    if (isRotating) rotAngle += 0.025;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Deep Obsidian Backdrop
+    const bgGrad = ctx.createRadialGradient(220, 140, 20, 220, 140, 220);
+    bgGrad.addColorStop(0, "#080d1a");
+    bgGrad.addColorStop(1, "#020408");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = 220;
+    const isDenatured = tempC >= 85;
+    const denatOffset = isDenatured ? (tempC - 84) * 1.8 : 0;
+
+    if (meltBadge) {
+      if (isDenatured) {
+        meltBadge.innerText = `Denatured (Single Strands, ${tempC}°C)`;
+        meltBadge.style.color = "#ef4444";
+        meltBadge.style.borderColor = "rgba(239, 68, 68, 0.5)";
+      } else {
+        meltBadge.innerText = `Double Stranded (Native, ${tempC}°C)`;
+        meltBadge.style.color = "#34d399";
+        meltBadge.style.borderColor = "rgba(16, 185, 129, 0.5)";
+      }
+    }
+
+    const radius = 62;
+    const strand1Points = [];
+    const strand2Points = [];
+
+    // Render 10 Base Pairs along vertical helical axis
+    sequence.forEach((bp, i) => {
+      const y = 35 + i * 22;
+      const angle = rotAngle + i * 0.62; // ~35° twist per base pair
+
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+
+      // 3D perspective coordinates
+      const x1 = cx - cosA * radius - denatOffset;
+      const x2 = cx + cosA * radius + denatOffset;
+      const zDepth = sinA; // -1 (back) to +1 (front)
+
+      strand1Points.push({ x: x1, y: y, z: zDepth });
+      strand2Points.push({ x: x2, y: y, z: -zDepth });
+
+      // Complementary Base Pair Rung
+      if (!isDenatured) {
+        // Strand 1 Base
+        ctx.strokeStyle = bp.cA;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(cx - 10, y);
+        ctx.stroke();
+
+        // Strand 2 Base
+        ctx.strokeStyle = bp.cB;
+        ctx.beginPath();
+        ctx.moveTo(cx + 10, y);
+        ctx.lineTo(x2, y);
+        ctx.stroke();
+
+        // Dashed Hydrogen Bonds in center
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([2, 3]);
+        ctx.beginPath();
+        if (bp.h === 2) {
+          ctx.moveTo(cx - 10, y - 2); ctx.lineTo(cx + 10, y - 2);
+          ctx.moveTo(cx - 10, y + 2); ctx.lineTo(cx + 10, y + 2);
+        } else {
+          ctx.moveTo(cx - 10, y - 3); ctx.lineTo(cx + 10, y - 3);
+          ctx.moveTo(cx - 10, y); ctx.lineTo(cx + 10, y);
+          ctx.moveTo(cx - 10, y + 3); ctx.lineTo(cx + 10, y + 3);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else {
+        // Broken hydrogen bonds (Denatured strands)
+        ctx.strokeStyle = bp.cA;
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x1 + 18, y + Math.sin(t * 3 + i) * 3);
+        ctx.stroke();
+
+        ctx.strokeStyle = bp.cB;
+        ctx.beginPath();
+        ctx.moveTo(x2, y);
+        ctx.lineTo(x2 - 18, y - Math.sin(t * 3 + i) * 3);
+        ctx.stroke();
+      }
+
+      // Base letter tags
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillStyle = bp.cA;
+      ctx.fillText(bp.a, x1 - 14, y + 3);
+      ctx.fillStyle = bp.cB;
+      ctx.fillText(bp.b, x2 + 8, y + 3);
+    });
+
+    // Sugar-Phosphate Backbones
+    [strand1Points, strand2Points].forEach((pts, sIdx) => {
+      ctx.strokeStyle = sIdx === 0 ? "#38bdf8" : "#ec4899";
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      pts.forEach((p, idx) => {
+        if (idx === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+
+      // Phosphate node spheres
+      pts.forEach(p => {
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    });
+
+    // 5' and 3' Antiparallel Strand Terminal Indicators
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText("5'", strand1Points[0].x - 16, strand1Points[0].y - 8);
+    ctx.fillText("3'", strand1Points[strand1Points.length - 1].x - 16, strand1Points[strand1Points.length - 1].y + 14);
+
+    ctx.fillStyle = "#ec4899";
+    ctx.fillText("3'", strand2Points[0].x + 8, strand2Points[0].y - 8);
+    ctx.fillText("5'", strand2Points[strand2Points.length - 1].x + 8, strand2Points[strand2Points.length - 1].y + 14);
+
+    animId = requestAnimationFrame(render);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isRotating = false;
+  });
+
+  btnRot.addEventListener("click", () => {
+    isRotating = !isRotating;
+    btnRot.innerText = isRotating ? "⟳ 3D Rotation: ON" : "⏸ 3D Rotation: OFF";
+    btnRot.classList.toggle("active", isRotating);
+  });
+
+  btnRand.addEventListener("click", () => {
+    const bases = [
+      { a: "A", b: "T", h: 2, cA: "#10b981", cB: "#facc15" },
+      { a: "T", b: "A", h: 2, cA: "#facc15", cB: "#10b981" },
+      { a: "G", b: "C", h: 3, cA: "#ec4899", cB: "#38bdf8" },
+      { a: "C", b: "G", h: 3, cA: "#38bdf8", cB: "#ec4899" }
+    ];
+    for (let i = 0; i < sequence.length; i++) {
+      sequence[i] = bases[Math.floor(Math.random() * bases.length)];
+    }
+  });
+
+  tempSlider.addEventListener("input", (e) => {
+    tempC = parseInt(e.target.value, 10);
+    tempLbl.innerText = `${tempC} °C ${tempC >= 85 ? '(Denaturing / Melting)' : '(Annealed)'}`;
+  });
 }
 
 /**

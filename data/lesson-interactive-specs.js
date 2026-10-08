@@ -1205,7 +1205,7 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "defaultParams": {}
   },
   "BIO-M09-L2": {
-    "type": "bio-mitosis-cell-cycle",
+    "type": "bio-meiosis-crossing-over",
     "lessonBadge": "Lesson 2",
     "title": "Meiosis: Gametogenesis & Crossing Over Recombination",
     "formula": "2n \\longrightarrow 4 \\times (1n) \\quad (\\text{Haploid Gamete Genetic Diversity})",
@@ -1268,7 +1268,7 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "BIO-M11-L1": {
-    "type": "bio-mitosis-cell-cycle",
+    "type": "bio-dna-double-helix",
     "lessonBadge": "Lesson 1",
     "title": "DNA: The Genetic Material & Double Helix Structure",
     "formula": "\\text{Chargaff's Rules: } [A] = [T] \\quad \\text{and} \\quad [G] = [C]",
@@ -1310,7 +1310,7 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "BIO-M12-L1": {
-    "type": "bio-mitosis-cell-cycle",
+    "type": "bio-gel-electrophoresis",
     "lessonBadge": "Lesson 1",
     "title": "Recombinant DNA: Restriction Enzymes & Gel Electrophoresis",
     "formula": "\\text{Migration Distance: } d \\propto \\frac{1}{\\log_{10}(\\text{Base Pairs})}",
@@ -1542,7 +1542,7 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "defaultParams": {}
   },
   "BIO-M20-L2": {
-    "type": "bio-mitosis-cell-cycle",
+    "type": "bio-embryonic-development",
     "lessonBadge": "Lesson 2",
     "title": "Animal Body Plans: Symmetry, Cephalization & Coelom",
     "formula": "\\text{Protostome (Blastopore } \\rightarrow \\text{ Mouth}) \\quad \\text{vs} \\quad \\text{Deuterostome (Blastopore } \\rightarrow \\text{ Anus})",
@@ -1725,7 +1725,7 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "BIO-M26-L1": {
-    "type": "bio-mitosis-cell-cycle",
+    "type": "bio-gametogenesis-oogenesis",
     "lessonBadge": "Lesson 1",
     "title": "Human Reproductive Systems & Gametogenesis",
     "formula": "\\text{Spermatogenesis } (1 \\rightarrow 4) \\quad \\text{vs} \\quad \\text{Oogenesis } (1 \\rightarrow 1 \\text{ Ovum} + 3 \\text{ Polar Bodies})",
