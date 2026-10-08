@@ -59,8 +59,9 @@ import { openLmsShareModal } from "../utils/lms-share.js";
 import { toggleScienceCalculator } from "./science-calculator.js";
 import { exportToDocx } from "../utils/docx-export.js";
 import { polishDiagramForPrint } from "../utils/diagram-print-polisher.js";
+import { SCIENTIFIC_DIAGRAMS } from "../data/scientific-diagrams.js";
 
-export { polishDiagramForPrint };
+export { polishDiagramForPrint, SCIENTIFIC_DIAGRAMS };
 
 /**
  * Escapes HTML characters for safe attribute and DOM insertion
@@ -73,6 +74,236 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+/**
+ * Compresses and resizes a user-uploaded image file using an offscreen canvas
+ * to prevent exceeding localStorage storage quota.
+ */
+function compressImageFile(file, maxWidth = 900, maxHeight = 700, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type || !file.type.startsWith("image/")) {
+      return reject(new Error("File is not an image"));
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width;
+        let h = img.height;
+        if (w > maxWidth || h > maxHeight) {
+          const ratio = Math.min(maxWidth / w, maxHeight / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
+ * Universal HTML renderer for question diagrams and attached visual models.
+ * Supports both Vector SVGs from diagrams bank and uploaded/remote image URLs.
+ */
+export function renderQuestionDiagramHtml(diagram, isPrint = false) {
+  if (!diagram) return "";
+  const isObj = typeof diagram === "object" && diagram !== null;
+  const caption = isObj ? (diagram.caption || diagram.title || "") : "";
+  const imageUrl = isObj ? (diagram.imageUrl || diagram.url || "") : "";
+  const svg = isObj ? diagram.svg : (typeof diagram === "string" && diagram.includes("<svg") ? diagram : "");
+
+  let contentHtml = "";
+  if (imageUrl) {
+    contentHtml = `<img src="${imageUrl}" alt="${escapeHtml(caption || 'Scientific Visual Model')}" class="q-diagram-image" style="max-height: ${isPrint ? '280px' : '320px'}; max-width: 100%; object-fit: contain; margin: 0 auto; display: block; border-radius: 8px; ${isPrint ? 'border: 1px solid #cbd5e1;' : ''}">`;
+  } else if (svg) {
+    contentHtml = isPrint ? polishDiagramForPrint(svg) : `<div class="q-diagram-svg-inner" style="max-height: 320px; width: 100%; display: flex; justify-content: center; align-items: center;">${polishDiagramForPrint(svg)}</div>`;
+  } else if (typeof diagram === "string") {
+    if (diagram.startsWith("data:image") || diagram.startsWith("http") || diagram.startsWith("/") || diagram.startsWith("./")) {
+      contentHtml = `<img src="${diagram}" alt="${escapeHtml(caption || 'Scientific Visual Model')}" class="q-diagram-image" style="max-height: ${isPrint ? '280px' : '320px'}; max-width: 100%; object-fit: contain; margin: 0 auto; display: block; border-radius: 8px;">`;
+    } else {
+      contentHtml = polishDiagramForPrint(diagram);
+    }
+  }
+
+  if (!contentHtml) return "";
+
+  if (isPrint) {
+    return `
+      <div class="print-diagram-container" style="margin: 12px 0 16px 0; text-align: center; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; background: #ffffff; color: #000000; page-break-inside: avoid;">
+        ${caption ? `<div class="print-diagram-caption" style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 8px; text-align: center;">${escapeHtml(caption)}</div>` : ""}
+        <div class="print-diagram-svg" style="display: flex; justify-content: center; align-items: center; background: #ffffff; width: 100%;">${contentHtml}</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="q-diagram-container">
+      ${caption ? `<div class="q-diagram-caption">${escapeHtml(caption)}</div>` : ""}
+      <div class="q-diagram-svg">${contentHtml}</div>
+    </div>
+  `;
+}
+
+/**
+ * Interactive Diagram Bank Picker Modal
+ * Lets teachers browse 20+ calibrated scientific diagrams and attach them with one click
+ */
+export function openDiagramBankPickerModal(onSelectDiagram) {
+  const existing = document.getElementById("cq-diagram-picker-modal");
+  if (existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "cq-diagram-picker-modal";
+  overlay.className = "custom-modal-overlay";
+  overlay.style.zIndex = "200150";
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("aria-label", "Select from Scientific Diagrams Bank");
+
+  const diagramsList = Object.values(SCIENTIFIC_DIAGRAMS);
+  let activeFilter = "ALL";
+  let searchQuery = "";
+
+  function getFilteredDiagrams() {
+    return diagramsList.filter(d => {
+      const matchTrack = activeFilter === "ALL" || d.subject === activeFilter;
+      if (!matchTrack) return false;
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase();
+      return (d.title || "").toLowerCase().includes(q) || (d.caption || "").toLowerCase().includes(q);
+    });
+  }
+
+  overlay.innerHTML = `
+    <div class="custom-modal-shell" style="max-width: 900px; width: 94%; max-height: 90vh; display: flex; flex-direction: column;">
+      <!-- Header -->
+      <div class="custom-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 16px 22px; background: rgba(0,0,0,0.2);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">🖼️</span>
+          <div>
+            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-main);">
+              Scientific Diagrams &amp; Visual Models Bank
+            </h3>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">
+              Select from ${diagramsList.length} authentic, vector-calibrated models across Chemistry, Biology, and Physics.
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" id="btn-close-diag-picker" style="background: transparent; border: none; font-size: 1.3rem; color: var(--text-muted); cursor: pointer;" aria-label="Close dialog">✕</button>
+      </div>
+
+      <!-- Search & Filters -->
+      <div style="padding: 12px 22px; border-bottom: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.1);">
+        <input type="text" id="diag-picker-search" placeholder="🔍 Search diagrams by concept (e.g. heating curve, cell, circuit, refraction)..." style="flex: 1; min-width: 240px; padding: 7px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.85rem;">
+        <div style="display: flex; gap: 6px;" id="diag-picker-track-filters">
+          <button type="button" class="btn btn-sm btn-diag-filter active" data-track="ALL" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">All (${diagramsList.length})</button>
+          <button type="button" class="btn btn-sm btn-diag-filter" data-track="CHEM" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">Chemistry</button>
+          <button type="button" class="btn btn-sm btn-diag-filter" data-track="BIO" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">Biology</button>
+          <button type="button" class="btn btn-sm btn-diag-filter" data-track="PHYS" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">Physics</button>
+        </div>
+      </div>
+
+      <!-- Diagram Grid -->
+      <div id="diag-picker-grid" style="padding: 16px 22px; overflow-y: auto; flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;">
+      </div>
+
+      <!-- Footer -->
+      <div style="padding: 12px 22px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; background: rgba(0,0,0,0.15);">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-diag-picker">Close</button>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+
+  const gridEl = overlay.querySelector("#diag-picker-grid");
+  const searchEl = overlay.querySelector("#diag-picker-search");
+
+  function renderGrid() {
+    const items = getFilteredDiagrams();
+    if (items.length === 0) {
+      gridEl.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
+          <div>No diagrams found matching "${escapeHtml(searchQuery)}".</div>
+        </div>
+      `;
+      return;
+    }
+
+    gridEl.innerHTML = items.map(d => {
+      const trackBadge = d.subject === "CHEM" ? "🧪 Chemistry" : (d.subject === "BIO" ? "🧬 Biology" : "⚡ Physics");
+      const trackColor = d.subject === "CHEM" ? "#38bdf8" : (d.subject === "BIO" ? "#10b981" : "#a855f7");
+      return `
+        <div class="diag-picker-card" style="display: flex; flex-direction: column; background: var(--bg-card, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.2); transition: transform 0.15s ease, border-color 0.15s ease;">
+          <div style="height: 140px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #0b0f19; padding: 8px; border-bottom: 1px solid var(--border-color);">
+            <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">
+              ${d.svg || ''}
+            </div>
+          </div>
+          <div style="padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.7rem; font-weight: 800; color: ${trackColor}; text-transform: uppercase;">${trackBadge}</span>
+              <span style="font-size: 0.68rem; color: var(--text-dim); font-family: var(--font-mono);">${d.id}</span>
+            </div>
+            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-main); line-height: 1.3;">
+              ${escapeHtml(d.title)}
+            </div>
+            <div style="font-size: 0.74rem; color: var(--text-muted); line-height: 1.35; flex: 1;">
+              ${escapeHtml(d.caption || '')}
+            </div>
+            <button type="button" class="btn btn-sm btn-primary btn-choose-diagram" data-id="${d.id}" style="width: 100%; margin-top: 6px; font-weight: 700; font-size: 0.8rem; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; padding: 6px 12px;">
+              <span>✓ Select Diagram</span>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    gridEl.querySelectorAll(".btn-choose-diagram").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const diag = SCIENTIFIC_DIAGRAMS[id];
+        if (diag && typeof onSelectDiagram === "function") {
+          onSelectDiagram(diag);
+        }
+        overlay.remove();
+      });
+    });
+  }
+
+  searchEl.addEventListener("input", (e) => {
+    searchQuery = e.target.value.trim();
+    renderGrid();
+  });
+
+  overlay.querySelectorAll(".btn-diag-filter").forEach(btn => {
+    btn.addEventListener("click", () => {
+      overlay.querySelectorAll(".btn-diag-filter").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeFilter = btn.dataset.track;
+      renderGrid();
+    });
+  });
+
+  const close = () => overlay.remove();
+  overlay.querySelector("#btn-close-diag-picker").addEventListener("click", close);
+  overlay.querySelector("#btn-cancel-diag-picker").addEventListener("click", close);
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay) close();
+  });
+
+  renderGrid();
 }
 
 /**
@@ -211,6 +442,7 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
   let curType = initialData?.type || "mcq";
   let curDiff = initialData?.difficultyTier || "medium";
   let correctIdx = initialData?.correctIndex !== undefined && initialData.correctIndex !== null ? initialData.correctIndex : 0;
+  let attachedDiagram = initialData?.diagram ? { ...initialData.diagram } : null;
 
   const trackCurricula = {
     CHEM: chemistryCurriculum,
@@ -298,7 +530,7 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
         <div class="form-group">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main);">
-              Question Prompt (Markdown &amp; LaTeX formulas supported) *
+              Question Prompt (Markdown, LaTeX &amp; Tables supported) *
             </label>
             <span style="font-size: 0.74rem; color: #38bdf8; font-family: var(--font-mono);">Use $...$ for inline math or $$...$$ for display</span>
           </div>
@@ -319,6 +551,55 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
           </div>
 
           <textarea id="cq-prompt" rows="3" placeholder="Enter question scenario or problem... e.g. A 2.50 kg cart moves at $4.00\\text{ m/s}$ and collides with..." style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.95rem; line-height: 1.5; resize: vertical;">${escapeHtml(initialData?.question || "")}</textarea>
+        </div>
+
+        <!-- Diagram / Picture Attachment Section -->
+        <div class="form-group cq-diagram-attachment-box" style="background: rgba(0,0,0,0.18); border: 1px dashed var(--border-color); border-radius: 8px; padding: 12px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
+              <span>🖼️ Diagram / Picture Attachment</span>
+              <span style="font-size: 0.72rem; font-weight: normal; color: var(--text-muted);">(Optional - attach scientific diagram, photo, or visual model)</span>
+            </label>
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-cq-open-diag-bank" style="font-size: 0.76rem; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.35);">
+                <span>📚 Diagrams Bank</span>
+              </button>
+              <label class="btn btn-sm btn-secondary" id="lbl-cq-upload-pic" style="font-size: 0.76rem; font-weight: 700; color: #10b981; border-color: rgba(16, 185, 129, 0.35); cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 4px;">
+                <span>📤 Upload Picture</span>
+                <input type="file" id="cq-file-input" accept="image/*" style="display: none;">
+              </label>
+            </div>
+          </div>
+
+          <!-- Direct Image URL fallback -->
+          <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+            <input type="text" id="cq-image-url-input" placeholder="Or paste image/diagram web URL (https://... or data:image/...)..." style="flex: 1; padding: 6px 10px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 0.82rem;">
+            <button type="button" class="btn btn-sm btn-secondary" id="btn-cq-apply-url" style="font-size: 0.76rem;">Apply URL</button>
+          </div>
+
+          <!-- Attached Diagram Chip & Caption -->
+          <div id="cq-attached-diag-container" style="${attachedDiagram ? 'display: block;' : 'display: none;'} margin-top: 8px; padding: 10px 12px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.1rem;">✅</span>
+                <div>
+                  <strong id="cq-attached-diag-title" style="font-size: 0.85rem; color: #38bdf8;">
+                    ${escapeHtml(attachedDiagram?.title || 'Attached Visual Model')}
+                  </strong>
+                  <span id="cq-attached-diag-type" style="font-size: 0.7rem; color: var(--text-muted); margin-left: 6px;">
+                    (${attachedDiagram?.svg ? 'Vector SVG' : 'Image'})
+                  </span>
+                </div>
+              </div>
+              <button type="button" class="btn btn-sm" id="btn-cq-remove-diag" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+                ✕ Remove
+              </button>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <label for="cq-diag-caption" style="font-size: 0.74rem; color: var(--text-muted); white-space: nowrap;">Caption / Figure Title:</label>
+              <input type="text" id="cq-diag-caption" value="${escapeHtml(attachedDiagram?.caption || attachedDiagram?.title || '')}" placeholder="e.g. Figure 1: Scientific apparatus diagram..." style="flex: 1; padding: 5px 8px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 0.8rem;">
+            </div>
+          </div>
         </div>
 
         <!-- Options Container (MCQ & Numerical) -->
@@ -399,6 +680,88 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
   const rubricEl = overlay.querySelector("#cq-rubric");
   const previewEl = overlay.querySelector("#cq-live-preview");
 
+  // Diagram attachment DOM elements
+  const diagBox = overlay.querySelector("#cq-attached-diag-container");
+  const diagTitle = overlay.querySelector("#cq-attached-diag-title");
+  const diagType = overlay.querySelector("#cq-attached-diag-type");
+  const diagCaption = overlay.querySelector("#cq-diag-caption");
+  const fileInput = overlay.querySelector("#cq-file-input");
+  const urlInput = overlay.querySelector("#cq-image-url-input");
+
+  function setAttachedDiagram(diag) {
+    attachedDiagram = diag;
+    if (attachedDiagram) {
+      if (diagBox) diagBox.style.display = "block";
+      if (diagTitle) diagTitle.textContent = attachedDiagram.title || "Attached Visual Model";
+      if (diagType) diagType.textContent = attachedDiagram.svg ? "(Vector SVG)" : "(Image)";
+      if (diagCaption && !diagCaption.value.trim()) {
+        diagCaption.value = attachedDiagram.caption || attachedDiagram.title || "";
+      }
+    } else {
+      if (diagBox) diagBox.style.display = "none";
+      if (diagCaption) diagCaption.value = "";
+    }
+    updatePreview();
+  }
+
+  // Open Diagrams Bank
+  overlay.querySelector("#btn-cq-open-diag-bank")?.addEventListener("click", () => {
+    openDiagramBankPickerModal((selectedDiag) => {
+      setAttachedDiagram({
+        id: selectedDiag.id,
+        subject: selectedDiag.subject,
+        title: selectedDiag.title,
+        caption: selectedDiag.caption || selectedDiag.title,
+        svg: selectedDiag.svg
+      });
+      showToast("Diagram Attached", `Attached "${selectedDiag.title}" from Diagrams Bank`, "success");
+    });
+  });
+
+  // Upload Picture / File
+  fileInput?.addEventListener("change", async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImageFile(file, 800, 600, 0.82);
+      setAttachedDiagram({
+        id: `img_${Date.now().toString(36)}`,
+        title: file.name || "Uploaded Picture",
+        caption: file.name.replace(/\.[^/.]+$/, ""),
+        imageUrl: dataUrl
+      });
+      showToast("Picture Uploaded", "Image optimized and attached to question.", "success");
+    } catch (err) {
+      console.error("Error processing image file:", err);
+      showToast("Upload Error", "Failed to process image. Please try a PNG or JPEG file.", "error");
+    }
+    fileInput.value = "";
+  });
+
+  // Apply Image URL
+  overlay.querySelector("#btn-cq-apply-url")?.addEventListener("click", () => {
+    const url = urlInput?.value.trim();
+    if (!url) {
+      showToast("URL Required", "Please enter an image URL.", "warning");
+      return;
+    }
+    setAttachedDiagram({
+      id: `url_${Date.now().toString(36)}`,
+      title: "Web Image Model",
+      caption: "Scientific Diagram Reference",
+      imageUrl: url
+    });
+    if (urlInput) urlInput.value = "";
+    showToast("Image Attached", "Web image attached successfully.", "success");
+  });
+
+  // Remove Diagram
+  overlay.querySelector("#btn-cq-remove-diag")?.addEventListener("click", () => {
+    setAttachedDiagram(null);
+  });
+
+  diagCaption?.addEventListener("input", updatePreview);
+
   subSelect.addEventListener("change", (e) => {
     curSub = e.target.value;
     modSelect.innerHTML = getModuleOptions(curSub);
@@ -460,6 +823,15 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
     const selectedRadio = overlay.querySelector('input[name="cq-correct-radio"]:checked');
     const checkedIdx = selectedRadio ? parseInt(selectedRadio.value, 10) : 0;
 
+    let diagramHtml = "";
+    if (attachedDiagram) {
+      const previewDiag = {
+        ...attachedDiagram,
+        caption: diagCaption?.value.trim() || attachedDiagram.caption || attachedDiagram.title || ""
+      };
+      diagramHtml = renderQuestionDiagramHtml(previewDiag, false);
+    }
+
     let optionsHtml = "";
     if (curType !== "cer") {
       const opts = [0, 1, 2, 3].map(i => overlay.querySelector(`#cq-opt-${i}`)?.value || `Option ${String.fromCharCode(65 + i)}`);
@@ -496,6 +868,7 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
       <div style="font-size: 0.95rem; font-weight: 600; color: var(--text-main); line-height: 1.5;">
         ${formatMathText(promptText)}
       </div>
+      ${diagramHtml}
       ${optionsHtml}
       ${explText ? `
         <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-color); font-size: 0.82rem; color: var(--text-muted);">
@@ -550,6 +923,14 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
       correctIndex = rad ? parseInt(rad.value, 10) : 0;
     }
 
+    let finalDiagram = null;
+    if (attachedDiagram) {
+      finalDiagram = {
+        ...attachedDiagram,
+        caption: overlay.querySelector("#cq-diag-caption")?.value.trim() || attachedDiagram.caption || attachedDiagram.title || ""
+      };
+    }
+
     const qId = initialData?.id || `CUSTOM-${curSub}-M${curMod}-L${lesSelect.value}-${Date.now().toString(36)}`;
     const newQuestion = {
       id: qId,
@@ -567,8 +948,8 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
       correctIndex: curType === "cer" ? null : correctIndex,
       explanation: explEl.value.trim() || "Teacher custom solution.",
       rubricCER: curType === "cer" ? (rubricEl.value.trim() || "10-point AP Claim, Evidence, and Scientific Reasoning Rubric.") : null,
-      hasDiagram: false,
-      diagram: null,
+      hasDiagram: Boolean(finalDiagram),
+      diagram: finalDiagram,
       isUserCustom: true
     };
 
@@ -829,8 +1210,10 @@ export async function openMasterBankBrowserModal(options = {}) {
                 ${isDiagOpen ? '▼ Hide Diagram' : '▶ 📊 View Scientific Diagram'}
               </button>
               ${isDiagOpen ? `
-                <div style="margin-top: 8px; max-height: 220px; overflow: hidden; display: flex; justify-content: center; background: #ffffff; border-radius: 6px; padding: 6px; border: 1px solid #cbd5e1;">
-                  ${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}
+                <div style="margin-top: 8px; max-height: 240px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #ffffff; border-radius: 6px; padding: 6px; border: 1px solid #cbd5e1;">
+                  ${q.diagram?.imageUrl 
+                    ? `<img src="${q.diagram.imageUrl}" alt="${escapeHtml(q.diagram.caption || 'Scientific Model')}" style="max-height: 220px; max-width: 100%; object-fit: contain;">` 
+                    : polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}
                 </div>
               ` : ''}
             </div>
@@ -2435,8 +2818,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                               🖨️ High-Contrast Print &amp; Copier Ready
                             </span>
                           </div>
-                          <div style="max-height: 240px; overflow: hidden; display: flex; justify-content: center; background: #ffffff; border-radius: 6px; padding: 6px; border: 1px solid #cbd5e1;">
-                            ${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}
+                          <div style="max-height: 240px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #ffffff; border-radius: 6px; padding: 6px; border: 1px solid #cbd5e1;">
+                            ${q.diagram?.imageUrl 
+                              ? `<img src="${q.diagram.imageUrl}" alt="${escapeHtml(q.diagram.caption || 'Scientific Model')}" style="max-height: 220px; max-width: 100%; object-fit: contain;">`
+                              : polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}
                           </div>
                         </div>
                       ` : ''}
@@ -3193,12 +3578,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           ${formatMathText(q.question || "")}
         </div>
 
-        ${q.diagram ? `
-          <div class="q-diagram-container">
-            ${(typeof q.diagram === "object" && q.diagram !== null && q.diagram.caption) ? `<div class="q-diagram-caption">${q.diagram.caption}</div>` : ""}
-            <div class="q-diagram-svg">${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}</div>
-          </div>
-        ` : ""}
+        ${renderQuestionDiagramHtml(q.diagram, false)}
 
         ${Array.isArray(q.options) && q.options.length > 0 ? `
           <div class="q-options-grid" style="display: grid; grid-template-columns: 1fr; gap: 10px;">
@@ -3339,8 +3719,12 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
         ${q.diagram ? `
           <div class="presenter-diagram-container">
-            ${(typeof q.diagram === "object" && q.diagram !== null && q.diagram.caption) ? `<div class="presenter-diagram-caption">${q.diagram.caption}</div>` : ""}
-            <div class="presenter-diagram-svg">${(typeof q.diagram === "object" && q.diagram !== null) ? (q.diagram.svg || "") : String(q.diagram || "")}</div>
+            ${(typeof q.diagram === "object" && q.diagram !== null && q.diagram.caption) ? `<div class="presenter-diagram-caption">${escapeHtml(q.diagram.caption)}</div>` : ""}
+            <div class="presenter-diagram-svg">
+              ${(typeof q.diagram === "object" && q.diagram?.imageUrl) 
+                ? `<img src="${q.diagram.imageUrl}" alt="${escapeHtml(q.diagram.caption || 'Scientific Model')}" style="max-height: 420px; max-width: 100%; object-fit: contain; margin: 0 auto; display: block; border-radius: 8px;">` 
+                : ((typeof q.diagram === "object" && q.diagram !== null) ? (q.diagram.svg || "") : String(q.diagram || ""))}
+            </div>
           </div>
         ` : ""}
 

@@ -57,7 +57,6 @@ if (fs.existsSync(modalPath)) {
 // 3. App Shell Wiring
 console.log("\n🖥️ App Shell Integration:");
 const appSrc = fs.readFileSync(path.join(rootDir, "app.js"), "utf8");
-testAssert(appSrc.includes('id="btn-open-teacher-guide"'), "Header controls render #btn-open-teacher-guide button");
 testAssert(appSrc.includes('id="btn-dropdown-open-guide-desktop"'), "Desktop subjects dropdown includes guide footer action");
 testAssert(appSrc.includes('id="btn-dropdown-open-guide-mobile"'), "Mobile subjects dropdown includes guide footer action");
 testAssert(appSrc.includes('window.openTeacherGuideModal ='), "Exposes window.openTeacherGuideModal globally");

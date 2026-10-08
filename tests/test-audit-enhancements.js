@@ -95,8 +95,7 @@ it("app.js implements spatial arrow-key navigation for classroom clickers and ac
 it("app.js provides segmented subject navigation tabs and quick Lab Mode launcher in navbar", () => {
   assert(appSource.includes('class="nav-subject-tabs"'), "app.js renders .nav-subject-tabs");
   assert(appSource.includes('class="nav-subject-tab-pill'), "app.js renders .nav-subject-tab-pill");
-  assert(appSource.includes('id="btn-nav-lab-mode"'), "app.js renders quick Lab Mode button");
-  assert(appSource.includes('href="#labs"'), "Quick Lab Mode links directly to #labs");
+  assert(appSource.includes('href="#labs"'), "Lab Mode links directly to #labs in navigation");
 });
 
 it("app.js renders empty search state when 0 modules match search or filter query", () => {

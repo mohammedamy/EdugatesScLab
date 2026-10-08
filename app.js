@@ -591,11 +591,6 @@ function renderAppShell() {
 
       <!-- Right Controls & Device Mode -->
       <div class="nav-right-controls" role="toolbar" aria-label="Display &amp; Hardware Mode Settings">
-        <!-- Quick 1-Click Lab Mode Launcher Button -->
-        <a href="#labs" class="nav-btn-lab-mode" id="btn-nav-lab-mode" title="Quick Lab Mode - 45 Interactive Virtual Laboratories" aria-label="Quick launch Lab Mode">
-          <span class="lab-mode-sparkle" aria-hidden="true">⚡</span>
-          <span class="lab-mode-text">Lab Mode</span>
-        </a>
 
         <!-- Day / Night Mode Toggle Switch -->
         <button class="theme-toggle-btn" id="btn-theme-toggle" title="Switch Day/Night Mode (Light/Dark)" aria-label="Toggle Day or Night theme">
@@ -618,12 +613,6 @@ function renderAppShell() {
         <button class="btn btn-secondary nav-action-btn" id="btn-toggle-focus-mode" title="Focus Presentation Mode (Hide Navigation Chrome, Shift+F)" aria-label="Toggle Focus Presentation Mode">
           <span class="nav-btn-icon">🎯</span>
           <span class="nav-btn-label">Focus</span>
-        </button>
-
-        <!-- Teacher Implementation Guide & Staff Presentation Resources Button -->
-        <button class="btn btn-secondary nav-action-btn" id="btn-open-teacher-guide" title="Teacher Implementation Guide (PDF) &amp; Staff Presentation (PPTX)" aria-label="Open Teacher Implementation Guide and Staff Presentation">
-          <span class="nav-btn-icon">📚</span>
-          <span class="nav-btn-label">Guide</span>
         </button>
 
         <div class="device-mode-toggle" role="group" aria-label="Screen Optimization &amp; Hardware Profile" title="Screen Optimization &amp; Hardware Profile">
