@@ -615,10 +615,6 @@ export function initSmartboardToolbar() {
     }
 
     activePointerId = e.pointerId;
-    try {
-      bar.setPointerCapture(e.pointerId);
-    } catch (err) {}
-
     const rect = bar.getBoundingClientRect();
     startBarLeft = rect.left;
     startBarTop = rect.top;
@@ -636,6 +632,9 @@ export function initSmartboardToolbar() {
 
     if (!hasMovedFar && Math.hypot(dx, dy) > 4) {
       hasMovedFar = true;
+      try {
+        bar.setPointerCapture(activePointerId);
+      } catch (err) {}
       bar.classList.add("is-dragging");
       closeSizePopover();
     }
@@ -908,6 +907,7 @@ export function initSmartboardToolbar() {
     hasMoved = false;
     hasDrawings = true;
     canvas.style.display = "block";
+    canvas.style.touchAction = "none";
     if (e && e.pointerId !== undefined && canvas.setPointerCapture) {
       try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
     }
@@ -919,9 +919,13 @@ export function initSmartboardToolbar() {
   function moveDraw(e) {
     if (!isDrawing || currentTool === "pointer") return;
     // Defensive check: if pointer type has no buttons pressed, stop drawing immediately
+    // Note: Touch and stylus pointers, as well as Windows Chrome coalesced events, can have buttons === 0 during moves.
+    const isTouchOrPen = e.pointerType === "touch" || e.pointerType === "pen";
     if (e.buttons !== undefined && e.buttons === 0) {
-      stopDraw(e);
-      return;
+      if (!isTouchOrPen && (!e.pointerType || e.pointerType === "mouse")) {
+        stopDraw(e);
+        return;
+      }
     }
     hasMoved = true;
     hasDrawings = true;
@@ -1069,6 +1073,14 @@ export function initSmartboardToolbar() {
   const toolRuler = document.getElementById("sb-tool-ruler");
   const toolProtractor = document.getElementById("sb-tool-protractor");
 
+  // Universal Smartboard Tool Dynamic Elevation System
+  let smartboardTopZ = 200092;
+  function elevateSmartboardTool(widget) {
+    if (!widget) return;
+    smartboardTopZ += 2;
+    widget.style.setProperty("z-index", String(smartboardTopZ), "important");
+  }
+
   // -------------------------------------------------------------------------
   // 1. Classroom Countdown Timer & Stopwatch Widget
   // -------------------------------------------------------------------------
@@ -1079,6 +1091,7 @@ export function initSmartboardToolbar() {
   timerWidget.id = "sb-timer-widget";
   timerWidget.className = "sb-timer-widget";
   timerWidget.style.display = "none";
+  timerWidget.addEventListener("pointerdown", () => elevateSmartboardTool(timerWidget));
   timerWidget.innerHTML = `
     <div class="sb-timer-header" id="sb-timer-drag-handle" title="Drag to Reposition Timer">
       <div class="sb-timer-title-box">
@@ -1440,6 +1453,7 @@ export function initSmartboardToolbar() {
     const shouldOpen = forceState !== undefined ? forceState : (timerWidget.style.display === "none");
     if (shouldOpen) {
       timerWidget.style.display = "flex";
+      elevateSmartboardTool(timerWidget);
       if (toolTimer) toolTimer.classList.add("active");
       loadTimerPos();
     } else {
@@ -1537,6 +1551,7 @@ export function initSmartboardToolbar() {
   curtainOverlay.id = "sb-curtain-overlay";
   curtainOverlay.className = "sb-curtain-overlay";
   curtainOverlay.style.display = "none";
+  curtainOverlay.addEventListener("pointerdown", () => elevateSmartboardTool(curtainOverlay));
   curtainOverlay.innerHTML = `
     <div id="sb-curtain-shade" class="sb-curtain-shade">
       <div id="sb-curtain-handle" class="sb-curtain-handle sb-curtain-handle-horizontal" title="Drag to Reveal Screen">
@@ -1650,6 +1665,7 @@ export function initSmartboardToolbar() {
     SoundFX.playClick();
     const shouldOpen = forceState !== undefined ? forceState : (curtainOverlay.style.display === "none");
     if (shouldOpen) {
+      elevateSmartboardTool(curtainOverlay);
       curtainOverlay.style.display = "block";
       if (toolCurtain) toolCurtain.classList.add("active");
       applyCurtainLayout();
@@ -1800,6 +1816,7 @@ export function initSmartboardToolbar() {
     SoundFX.playClick();
     const shouldOpen = forceState !== undefined ? forceState : (spotlightOverlay.style.display === "none");
     if (shouldOpen) {
+      elevateSmartboardTool(spotlightOverlay);
       spotActive = true;
       spotX = window.innerWidth / 2;
       spotY = window.innerHeight / 2;
@@ -1840,6 +1857,7 @@ export function initSmartboardToolbar() {
     renderSpotlight();
   });
   spotlightOverlay.addEventListener("pointerdown", (e) => {
+    elevateSmartboardTool(spotlightOverlay);
     if (!spotActive || e.target.closest("#sb-spotlight-hud")) return;
     spotX = e.clientX;
     spotY = e.clientY;
@@ -1853,12 +1871,6 @@ export function initSmartboardToolbar() {
   // -------------------------------------------------------------------------
   // 3b. Interactive Calibrated Science Ruler (cm / inches)
   // -------------------------------------------------------------------------
-  let smartboardTopZ = 200090;
-  function elevateSmartboardTool(widget) {
-    if (!widget) return;
-    smartboardTopZ += 2;
-    widget.style.setProperty("z-index", String(smartboardTopZ), "important");
-  }
 
   let rulerWidget = document.getElementById("sb-ruler-widget");
   if (rulerWidget) rulerWidget.remove();

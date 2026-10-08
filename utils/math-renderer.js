@@ -535,8 +535,80 @@ export function renderLatex(latex, displayMode = false) {
 }
 
 /**
- * Formats any mixed text that may contain inline math $...$ or block math $$...$$.
- * Preserves normal text while rendering LaTeX equations.
+ * Formats Markdown tables into clean, accessible HTML data tables with headers and styling.
+ */
+export function renderMarkdownTables(text) {
+  if (!text || typeof text !== "string" || !text.includes("|")) return text;
+
+  const lines = text.split("\n");
+  const out = [];
+  let i = 0;
+
+  function isDelimiter(line) {
+    const t = line.trim();
+    if (!t.includes("|") || !t.includes("-")) return false;
+    const parts = t.replace(/^\|/, "").replace(/\|$/, "").split("|");
+    return parts.length > 0 && parts.every(p => /^\s*:?-{2,}:?\s*$/.test(p));
+  }
+
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (line.includes("|") && i + 1 < lines.length && isDelimiter(lines[i + 1])) {
+      const headerCells = line.replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
+      const delimParts = lines[i + 1].trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
+      const alignments = delimParts.map(p => {
+        if (p.startsWith(":") && p.endsWith(":")) return "center";
+        if (p.endsWith(":")) return "right";
+        if (p.startsWith(":")) return "left";
+        return "left";
+      });
+
+      const bodyRows = [];
+      let r = i + 2;
+      while (r < lines.length) {
+        const rowLine = lines[r].trim();
+        if (rowLine.startsWith("|") || (rowLine.includes("|") && rowLine.endsWith("|"))) {
+          const cells = rowLine.replace(/^\|/, "").replace(/\|$/, "").split("|").map(c => c.trim());
+          bodyRows.push(cells);
+          r++;
+        } else {
+          break;
+        }
+      }
+
+      let tbl = '<div class="q-table-wrapper"><table class="q-data-table" role="table"><thead><tr>';
+      headerCells.forEach((h, idx) => {
+        const align = alignments[idx] || "left";
+        tbl += `<th scope="col" style="text-align: ${align};">${h}</th>`;
+      });
+      tbl += "</tr></thead><tbody>";
+
+      bodyRows.forEach((row, rIdx) => {
+        tbl += `<tr class="${rIdx % 2 === 0 ? 'even-row' : 'odd-row'}">`;
+        for (let c = 0; c < headerCells.length; c++) {
+          const cellVal = row[c] !== undefined ? row[c] : "";
+          const align = alignments[c] || "left";
+          tbl += `<td style="text-align: ${align};">${cellVal}</td>`;
+        }
+        tbl += "</tr>";
+      });
+
+      tbl += "</tbody></table></div>";
+      out.push(tbl);
+      i = r;
+      continue;
+    }
+
+    out.push(lines[i]);
+    i++;
+  }
+
+  return out.join("\n");
+}
+
+/**
+ * Formats any mixed text that may contain inline math $...$, block math $$...$$, or markdown tables.
+ * Preserves normal text while rendering LaTeX equations and structured data tables.
  */
 export function formatMathText(text) {
   if (!text || typeof text !== "string") return "";
@@ -545,6 +617,11 @@ export function formatMathText(text) {
   let result = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, eq) => {
     return `<div class="math-block-wrapper">${renderLatex(eq, true)}</div>`;
   });
+
+  // Render Markdown tables into structured data tables before inline math
+  if (result.includes("|")) {
+    result = renderMarkdownTables(result);
+  }
 
   // Check for $...$ inline math (avoiding currency like $5 or $10)
   result = result.replace(/\$([^\$\n]+?)\$/g, (match, eq) => {

@@ -3583,11 +3583,13 @@ body.sb-docked-active .sb-toolbar-toggle {
   inset: 0;
   pointer-events: none;
   z-index: 200070 !important;
+  touch-action: none !important;
 }
 #smartboard-draw-canvas.drawing-active {
   pointer-events: auto;
   cursor: crosshair;
   z-index: 200080 !important;
+  touch-action: none !important;
 }
 
 /* Floating Smartboard Pen Bar - Collapsible / Auto-Hide */
@@ -4146,7 +4148,7 @@ body.modal-open .sb-toolbar-toggle {
 /* Classroom Countdown Timer & Stopwatch Widget */
 .sb-timer-widget {
   position: fixed;
-  z-index: 1003;
+  z-index: 200095 !important;
   width: 320px;
   background: rgba(15, 23, 42, 0.96);
   backdrop-filter: blur(20px);
@@ -4414,7 +4416,7 @@ body.modal-open .sb-toolbar-toggle {
 .sb-curtain-overlay {
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: 200095 !important;
   pointer-events: none;
 }
 
@@ -4522,7 +4524,7 @@ body.modal-open .sb-toolbar-toggle {
 .sb-spotlight-overlay {
   position: fixed;
   inset: 0;
-  z-index: 998;
+  z-index: 200095 !important;
   cursor: crosshair;
   user-select: none;
   -webkit-user-select: none;
@@ -12619,6 +12621,155 @@ mark.search-highlight {
   display: block;
 }
 
+/* Question Diagram Images (Uploaded Pictures & Bank Models) */
+.q-diagram-image {
+  max-height: 320px;
+  max-width: 100%;
+  object-fit: contain;
+  margin: 0 auto;
+  display: block;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   Question Scientific Data Tables (On-Screen & Printables)
+   ========================================================================== */
+.q-table-wrapper {
+  margin: 14px 0;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1.5px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.q-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-size: 0.92rem;
+  text-align: left;
+  letter-spacing: 0.01em;
+}
+
+.q-data-table thead {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.22) 0%, rgba(56, 189, 248, 0.1) 100%);
+  border-bottom: 2px solid rgba(56, 189, 248, 0.4);
+}
+
+.q-data-table th {
+  padding: 10px 16px;
+  color: #38bdf8;
+  font-weight: 800;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.q-data-table td {
+  padding: 9px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-main, #f8fafc);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.45;
+}
+
+.q-data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.q-data-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.q-data-table tbody tr:hover {
+  background: rgba(56, 189, 248, 0.08);
+}
+
+/* Day Mode Question Data Tables */
+[data-theme="day"] .q-table-wrapper {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+
+[data-theme="day"] .q-data-table thead {
+  background: #f1f5f9;
+  border-bottom: 2px solid #0284c7;
+}
+
+[data-theme="day"] .q-data-table th {
+  color: #0369a1;
+}
+
+[data-theme="day"] .q-data-table td {
+  color: #0f172a;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+[data-theme="day"] .q-data-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+[data-theme="day"] .q-data-table tbody tr:hover {
+  background: #e0f2fe;
+}
+
+/* Print Mode and Printable Test Sheet Question Data Tables */
+.print-test-container .q-table-wrapper {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 12px 0 !important;
+  overflow: visible !important;
+}
+
+.print-test-container .q-data-table {
+  border: 1.5pt solid #000000 !important;
+  border-collapse: collapse !important;
+  width: 100% !important;
+  margin: 8px 0 !important;
+  font-size: 0.95rem !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+.print-test-container .q-data-table thead {
+  background: #f1f5f9 !important;
+  border-bottom: 2pt solid #000000 !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.print-test-container .q-data-table th {
+  border: 1.5pt solid #000000 !important;
+  padding: 8px 12px !important;
+  color: #000000 !important;
+  font-weight: 900 !important;
+  font-size: 0.92rem !important;
+  background: #f1f5f9 !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+.print-test-container .q-data-table td {
+  border: 1.5pt solid #000000 !important;
+  padding: 7px 12px !important;
+  color: #000000 !important;
+  font-size: 0.92rem !important;
+  background: #ffffff !important;
+}
+
+.print-test-container .q-data-table tbody tr:nth-child(even) td {
+  background: #f8fafc !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
 /* 2. Smartboard Presenter View */
 .presenter-diagram-container {
   margin: 14px auto 22px auto;
@@ -12790,6 +12941,56 @@ mark.search-highlight {
   .print-two-col .print-diagram-svg svg {
     max-width: 100% !important;
     max-height: 250px !important;
+  }
+  .q-table-wrapper {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 10px 0 !important;
+    overflow: visible !important;
+  }
+  .q-data-table {
+    border: 1.5pt solid #000000 !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .q-data-table thead {
+    background: #f1f5f9 !important;
+    border-bottom: 2pt solid #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .q-data-table th {
+    border: 1.5pt solid #000000 !important;
+    padding: 8px 12px !important;
+    color: #000000 !important;
+    font-weight: 900 !important;
+    font-size: 0.92rem !important;
+    background: #f1f5f9 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .q-data-table td {
+    border: 1.5pt solid #000000 !important;
+    padding: 7px 12px !important;
+    color: #000000 !important;
+    font-size: 0.92rem !important;
+    background: #ffffff !important;
+  }
+  .q-data-table tbody tr:nth-child(even) td {
+    background: #f8fafc !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .q-diagram-image {
+    max-height: 280px !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+    border: 1px solid #cbd5e1 !important;
   }
 }
 
