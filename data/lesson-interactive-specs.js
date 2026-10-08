@@ -2450,12 +2450,16 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "defaultParams": {}
   },
   "PHYS-M21-L3": {
-    "type": "phys-wave-optics",
+    "type": "phys-em-wave-propagation",
     "lessonBadge": "Lesson 3",
     "title": "Maxwell's Equations & Self-Propagating EM Waves",
-    "formula": "c = \\frac{1}{\\sqrt{\\mu_0 \\epsilon_0}} = 3.00 \\times 10^8\\text{ m/s}",
-    "inquiry": "Model transverse oscillating electric and magnetic fields self-propagating through empty space.",
-    "defaultParams": {}
+    "formula": "\\vec{S} = \\frac{1}{\\mu_0} (\\vec{E} \\times \\vec{B}) \\quad c = \\frac{E_0}{B_0} = \\frac{1}{\\sqrt{\\mu_0 \\epsilon_0}} = 3.00 \\times 10^8\\text{ m/s}",
+    "inquiry": "Simulate 3D self-propagating orthogonal E and B fields in vacuum, linear vs circular polarization, and Malus's law intensity attenuation.",
+    "defaultParams": {
+      "wavelength": 532,
+      "polMode": "linear",
+      "polAngle": 0
+    }
   },
   "PHYS-M22-L1": {
     "type": "phys-photoelectric",
@@ -2466,12 +2470,15 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "defaultParams": {}
   },
   "PHYS-M22-L2": {
-    "type": "phys-photoelectric",
+    "type": "phys-matter-waves",
     "lessonBadge": "Lesson 2",
     "title": "Matter Waves & De Broglie Wavelength",
-    "formula": "\\lambda = \\frac{h}{p} = \\frac{h}{m v} \\quad \\text{and} \\quad \\Delta x \\Delta p \\ge \\frac{\\hbar}{2}",
-    "inquiry": "Calculate matter wavelengths for microscopic electrons vs macroscopic objects and analyze diffraction.",
-    "defaultParams": {}
+    "formula": "\\lambda = \\frac{h}{p} = \\frac{h}{m v} = \\frac{h}{\\sqrt{2m q V}} \\quad (\\Delta x \\cdot \\Delta p \\ge \\frac{\\hbar}{2})",
+    "inquiry": "Observe single-particle double-slit accumulation, matter wave interference fringes, and wavefunction collapse under which-way observation.",
+    "defaultParams": {
+      "particle": "electron",
+      "voltage": 150
+    }
   },
   "PHYS-M22-L3": {
     "type": "chem-bohr-photon",

@@ -271,6 +271,10 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
     buildFaradayInductionInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("phys-photoelectric")) {
     buildPhotoelectricInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("phys-em-wave") || spec.type.startsWith("phys-maxwell-wave")) {
+    buildMaxwellEmWaveInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("phys-matter-waves") || spec.type.startsWith("phys-de-broglie")) {
+    buildDeBroglieMatterWavesInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("phys-collision")) {
     buildCollisionsInteractive(simMountId, spec.defaultParams);
   } else {
@@ -20252,6 +20256,910 @@ function buildProteinArchitectureInteractive(mountId, params) {
     });
   }
 }
+
+// Scratch validation for buildMaxwellEmWaveInteractive
+
+/**
+ * Maxwell's Equations & Self-Propagating EM Waves (PHYS-M21-L3)
+ */
+function buildMaxwellEmWaveInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+  let polMode = "linear"; // "linear", "circular", "malus"
+  let polAngleDeg = 0; // 0 to 90 degrees
+  let waveSpeed = 2.0;
+  let wavelengthNm = 532; // Green laser (532 nm)
+  let viewAngle = "iso"; // "iso", "e-plane", "b-plane", "end-on"
+  let animId;
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #020617;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 5;">
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.5); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Self-Propagating EM Wave (Vacuum)
+          </span>
+          <span id="${mountId}-pol-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(16,185,129,0.5); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Linear Polarization (Vertical)
+          </span>
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(251,191,36,0.5); color: #fbbf24; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            c = 3.00 × 10⁸ m/s
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56,189,248,0.4);">
+          <span class="readout-label">Wavelength (λ):</span>
+          <span id="${mountId}-lambda-val" class="readout-val" style="color: #38bdf8; font-weight: 800;">532 nm</span>
+          <span class="readout-label" style="margin-left: 6px;">Frequency (f):</span>
+          <span id="${mountId}-freq-val" class="readout-val" style="color: #fbbf24; font-weight: 800;">563 THz</span>
+          <span class="readout-label" style="margin-left: 6px;">Photon Energy:</span>
+          <span id="${mountId}-e-val" class="readout-val" style="color: #34d399; font-weight: 800;">2.33 eV</span>
+        </div>
+
+        <div class="sim-readout-pill" style="border-color: rgba(244,63,94,0.4); margin-top: 4px;">
+          <span id="${mountId}-poynting-val" style="color: #fb7185; font-size: 0.75rem; font-weight: 700;">
+            Poynting Vector: S = (E × B) / μ₀ • Invariant Velocity: c = 1/√(μ₀ε₀)
+          </span>
+        </div>
+
+        <!-- 3D Perspective Controls -->
+        <div style="display: flex; gap: 4px; margin-top: 6px;">
+          <button class="btn btn-primary active" id="${mountId}-btn-iso" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            🌐 3D Iso
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-eplane" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            ⚡ E-Plane (Y-X)
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-bplane" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            🧲 B-Plane (Z-X)
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-endon" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            🎯 End-On (Y-Z)
+          </button>
+        </div>
+
+        <!-- Polarization Mode -->
+        <div style="display: flex; gap: 5px; margin-top: 6px;">
+          <button class="btn-sim-action active" id="${mountId}-btn-linear" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            ↕️ Linear Pol
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-circular" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            🌀 Circular Pol
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-malus" style="flex: 1.1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            🕶️ Malus's Law
+          </button>
+        </div>
+
+        <!-- Polarization Angle / Malus Angle Slider -->
+        <div style="margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span id="${mountId}-slider-title">Polarizer Angle (θ):</span>
+            <span id="${mountId}-angle-lbl" style="color: #38bdf8; font-weight: 800;">0° (Vertical)</span>
+          </div>
+          <input type="range" id="${mountId}-angle-slider" min="0" max="90" step="5" value="0" style="width: 100%; accent-color: #38bdf8; cursor: pointer;">
+        </div>
+
+        <!-- Telemetry box -->
+        <div id="${mountId}-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.80rem; line-height: 1.42;">
+          <strong>Electromagnetic Wave Propagation:</strong> A time-varying electric field induces a spatial magnetic field (Ampère-Maxwell), which in turn induces an electric field (Faraday). The two mutually perpendicular fields propagate self-sustained through empty space at the speed of light ($c = 1/\sqrt{\mu_0 \epsilon_0}$).
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const lambdaVal = document.getElementById(`${mountId}-lambda-val`);
+  const freqVal = document.getElementById(`${mountId}-freq-val`);
+  const eVal = document.getElementById(`${mountId}-e-val`);
+  const poyntingVal = document.getElementById(`${mountId}-poynting-val`);
+  const polBadge = document.getElementById(`${mountId}-pol-badge`);
+  const btnIso = document.getElementById(`${mountId}-btn-iso`);
+  const btnEplane = document.getElementById(`${mountId}-btn-eplane`);
+  const btnBplane = document.getElementById(`${mountId}-btn-bplane`);
+  const btnEndon = document.getElementById(`${mountId}-btn-endon`);
+  const btnLinear = document.getElementById(`${mountId}-btn-linear`);
+  const btnCircular = document.getElementById(`${mountId}-btn-circular`);
+  const btnMalus = document.getElementById(`${mountId}-btn-malus`);
+  const angleSlider = document.getElementById(`${mountId}-angle-slider`);
+  const angleLbl = document.getElementById(`${mountId}-angle-lbl`);
+  const sliderTitle = document.getElementById(`${mountId}-slider-title`);
+  const descBox = document.getElementById(`${mountId}-desc`);
+
+  let t = 0;
+
+  function render() {
+    t += 0.04 * waveSpeed;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Deep Obsidian Backdrop
+    const bgGrad = ctx.createRadialGradient(220, 140, 30, 220, 140, 240);
+    bgGrad.addColorStop(0, "#080e1e");
+    bgGrad.addColorStop(1, "#020409");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Frequency and Energy calculations
+    const c = 2.9979e8;
+    const freqHz = c / (wavelengthNm * 1e-9);
+    const photonEv = (6.626e-34 * freqHz) / 1.602e-19;
+
+    if (lambdaVal) lambdaVal.innerText = `${wavelengthNm} nm`;
+    if (freqVal) freqVal.innerText = `${(freqHz / 1e12).toFixed(1)} THz`;
+    if (eVal) eVal.innerText = `${photonEv.toFixed(2)} eV`;
+
+    // Malus intensity calculation
+    const thetaRad = (polAngleDeg * Math.PI) / 180;
+    const malusIntensity = Math.pow(Math.cos(thetaRad), 2);
+
+    if (poyntingVal) {
+      if (polMode === "malus") {
+        poyntingVal.innerText = `Malus's Law: I = I₀ cos²(${polAngleDeg}°) = ${(malusIntensity * 100).toFixed(1)}% Transmission`;
+      } else {
+        poyntingVal.innerText = `Poynting Flux: S = (E × B) / μ₀ • Propagation along +X axis (Speed c)`;
+      }
+    }
+
+    if (viewAngle === "endon") {
+      drawEndOnView(ctx, polMode, thetaRad, t, malusIntensity);
+    } else {
+      draw3DWaveform(ctx, viewAngle, polMode, thetaRad, t, malusIntensity);
+    }
+
+    animId = requestAnimationFrame(render);
+  }
+
+  function draw3DWaveform(ctx, view, mode, theta, phase, intensity) {
+    const cx = 220;
+    const cy = 140;
+    const waveLenPx = 180; // Wavelength in pixels
+    const k = (2 * Math.PI) / waveLenPx;
+    const ampE = 55 * (mode === "malus" ? Math.sqrt(intensity) : 1);
+    const ampB = 40 * (mode === "malus" ? Math.sqrt(intensity) : 1);
+
+    // Axis parameters based on view angle
+    let eProjX = 0;
+    let eProjY = -1; // E-field along Y
+    let bProjX = 0.707;
+    let bProjY = 0.45; // B-field along Z with depth projection
+
+    if (view === "e-plane") {
+      bProjX = 0;
+      bProjY = 0; // Hide B-field
+    } else if (view === "b-plane") {
+      eProjX = 0;
+      eProjY = 0; // Hide E-field
+      bProjX = 0;
+      bProjY = -1; // Show B as vertical
+    }
+
+    // 1. Central Propagation Axis (X-axis)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(35, cy);
+    ctx.lineTo(405, cy);
+    ctx.stroke();
+
+    // Poynting Vector Arrow (+X)
+    ctx.fillStyle = "#fbbf24";
+    ctx.beginPath();
+    ctx.moveTo(415, cy);
+    ctx.lineTo(400, cy - 5);
+    ctx.lineTo(400, cy + 5);
+    ctx.fill();
+
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillStyle = "#fbbf24";
+    ctx.textAlign = "left";
+    ctx.fillText("S (Poynting)", 365, cy - 10);
+
+    // If Malus mode, draw Polarizer Sheet at x = 220
+    if (mode === "malus") {
+      ctx.fillStyle = "rgba(148, 163, 184, 0.2)";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(210, cy - 70, 20, 140, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      // Slit transmission lines on polarizer
+      ctx.strokeStyle = "#facc15";
+      ctx.lineWidth = 1.5;
+      const slotDx = Math.sin(theta) * 25;
+      const slotDy = Math.cos(theta) * 25;
+      ctx.beginPath();
+      ctx.moveTo(220 - slotDx, cy - slotDy);
+      ctx.lineTo(220 + slotDx, cy + slotDy);
+      ctx.stroke();
+
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillStyle = "#38bdf8";
+      ctx.textAlign = "center";
+      ctx.fillText(`Polarizer (${polAngleDeg}°)`, 220, cy - 75);
+    }
+
+    // 2. Draw Wave Vector Arrows and Continuous Envelopes
+    const startX = 40;
+    const endX = 400;
+    const step = 8;
+
+    for (let x = startX; x <= endX; x += step) {
+      const spatialPhase = k * (x - startX) - phase;
+      let valE = ampE * Math.cos(spatialPhase);
+      let valB = ampB * Math.cos(spatialPhase);
+
+      // If Malus mode, attenuate after the polarizer (x > 220)
+      if (mode === "malus" && x < 220) {
+        valE = 55 * Math.cos(spatialPhase);
+        valB = 40 * Math.cos(spatialPhase);
+      }
+
+      // Circular polarization rotation
+      if (mode === "circular") {
+        const valEx = ampE * Math.cos(spatialPhase);
+        const valEy = ampE * Math.sin(spatialPhase);
+
+        // Vector tip in 3D
+        const px = x + valEy * bProjX;
+        const py = cy + valEx * eProjY + valEy * bProjY;
+
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(x, cy);
+        ctx.lineTo(px, py);
+        ctx.stroke();
+
+        ctx.fillStyle = "#34d399";
+        ctx.beginPath();
+        ctx.arc(px, py, 2, 0, Math.PI * 2);
+        ctx.fill();
+        continue;
+      }
+
+      // A. Magnetic Field Vector (Rose/Red along Z)
+      if (view !== "e-plane") {
+        const bxTip = x + valB * bProjX;
+        const byTip = cy + valB * bProjY;
+
+        ctx.strokeStyle = "rgba(251, 113, 133, 0.75)";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(x, cy);
+        ctx.lineTo(bxTip, byTip);
+        ctx.stroke();
+
+        ctx.fillStyle = "#fb7185";
+        ctx.beginPath();
+        ctx.arc(bxTip, byTip, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // B. Electric Field Vector (Cyan along Y)
+      if (view !== "b-plane") {
+        const eyTip = cy + valE * eProjY;
+
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.85)";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(x, cy);
+        ctx.lineTo(x, eyTip);
+        ctx.stroke();
+
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.arc(x, eyTip, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Legend Callouts
+    ctx.font = "bold 9px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "left";
+    ctx.fillText("— E-Field (Electric)", 45, 30);
+    ctx.fillStyle = "#fb7185";
+    ctx.fillText("— B-Field (Magnetic)", 165, 30);
+  }
+
+  function drawEndOnView(ctx, mode, theta, phase, intensity) {
+    const cx = 220;
+    const cy = 140;
+
+    // Reticle
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - 100, cy);
+    ctx.lineTo(cx + 100, cy);
+    ctx.moveTo(cx, cy - 100);
+    ctx.lineTo(cx, cy + 100);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, 70, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "center";
+    ctx.fillText("Head-On Beam View (Transverse Plane)", cx, 30);
+
+    const amp = 70;
+    let tipX = cx;
+    let tipY = cy;
+
+    if (mode === "linear") {
+      const val = amp * Math.cos(phase);
+      tipX = cx + val * Math.sin(theta);
+      tipY = cy - val * Math.cos(theta);
+
+      // Linear locus line
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(cx - amp * Math.sin(theta), cy + amp * Math.cos(theta));
+      ctx.lineTo(cx + amp * Math.sin(theta), cy - amp * Math.cos(theta));
+      ctx.stroke();
+    } else if (mode === "circular") {
+      tipX = cx + amp * Math.sin(phase);
+      tipY = cy - amp * Math.cos(phase);
+
+      // Circular locus
+      ctx.strokeStyle = "rgba(52, 211, 153, 0.4)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, amp, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      // Malus attenuated
+      const val = amp * Math.sqrt(intensity) * Math.cos(phase);
+      tipX = cx + val * Math.sin(theta);
+      tipY = cy - val * Math.cos(theta);
+    }
+
+    // Active vector arrow from center
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(tipX, tipY);
+    ctx.stroke();
+
+    ctx.fillStyle = "#facc15";
+    ctx.beginPath();
+    ctx.arc(tipX, tipY, 5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  // Listeners
+  if (angleSlider) {
+    angleSlider.addEventListener("input", (e) => {
+      polAngleDeg = parseInt(e.target.value, 10);
+      if (angleLbl) angleLbl.innerText = `${polAngleDeg}°`;
+    });
+  }
+
+  function setActiveView(btn, view) {
+    [btnIso, btnEplane, btnBplane, btnEndon].forEach((b) => {
+      if (b) {
+        b.className = "btn-sim-action";
+        b.classList.remove("active");
+      }
+    });
+    if (btn) {
+      btn.className = "btn btn-primary active";
+      btn.classList.add("active");
+    }
+    viewAngle = view;
+  }
+
+  if (btnIso) btnIso.addEventListener("click", () => setActiveView(btnIso, "iso"));
+  if (btnEplane) btnEplane.addEventListener("click", () => setActiveView(btnEplane, "e-plane"));
+  if (btnBplane) btnBplane.addEventListener("click", () => setActiveView(btnBplane, "b-plane"));
+  if (btnEndon) btnEndon.addEventListener("click", () => setActiveView(btnEndon, "endon"));
+
+  function setActivePol(btn, mode) {
+    [btnLinear, btnCircular, btnMalus].forEach((b) => {
+      if (b) {
+        b.className = "btn-sim-action";
+        b.classList.remove("active");
+      }
+    });
+    if (btn) {
+      btn.className = "btn-sim-action active";
+      btn.classList.add("active");
+    }
+    polMode = mode;
+
+    if (polBadge) {
+      if (mode === "linear") polBadge.innerText = "Linear Polarization (Plane)";
+      else if (mode === "circular") polBadge.innerText = "Circular Polarization (Helical)";
+      else polBadge.innerText = "Malus's Law Analyzer";
+    }
+
+    if (sliderTitle) {
+      sliderTitle.innerText = mode === "malus" ? "Analyzer Angle (θ):" : "Polarization Plane (θ):";
+    }
+
+    if (descBox) {
+      if (mode === "linear") {
+        descBox.innerHTML = `<strong>Linear Polarization:</strong> The electric field vector oscillates exclusively in a single two-dimensional plane containing the propagation axis.`;
+      } else if (mode === "circular") {
+        descBox.innerHTML = `<strong>Circular Polarization:</strong> Two orthogonal electric field components with equal amplitude and a 90° (π/2) phase difference combine to rotate the net E-vector tip in a continuous 3D helix.`;
+      } else {
+        descBox.innerHTML = `<strong>Malus's Law:</strong> When linearly polarized light passes through an analyzer rotated by angle θ, the transmitted intensity follows $I = I_0 \\cos^2\\theta$. At 90° (crossed polarizers), transmission drops to 0%.`;
+      }
+    }
+  }
+
+  if (btnLinear) btnLinear.addEventListener("click", () => setActivePol(btnLinear, "linear"));
+  if (btnCircular) btnCircular.addEventListener("click", () => setActivePol(btnCircular, "circular"));
+  if (btnMalus) btnMalus.addEventListener("click", () => setActivePol(btnMalus, "malus"));
+}
+
+// Scratch validation for buildDeBroglieMatterWavesInteractive
+
+/**
+ * Matter Waves & De Broglie Wavelength (PHYS-M22-L2)
+ */
+function buildDeBroglieMatterWavesInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+  let particleType = "electron"; // "electron", "proton", "buckyball", "baseball"
+  let voltageKv = 0.15; // Accelerating voltage (0.05 to 5.0 kV)
+  let whichWayDetector = false; // Wavefunction collapse toggle
+  let accumulatedHits = [];
+  let animId;
+
+  // Particle physical constants
+  const particlesMeta = {
+    electron: { name: "Electron (e⁻)", massKg: 9.109e-31, color: "#38bdf8", chargeC: 1.602e-19 },
+    proton: { name: "Proton (p⁺)", massKg: 1.673e-27, color: "#f43f5e", chargeC: 1.602e-19 },
+    buckyball: { name: "C₆₀ Buckyball", massKg: 1.196e-24, color: "#a855f7", chargeC: 1.602e-19 },
+    baseball: { name: "Baseball (145g)", massKg: 0.145, color: "#fbbf24", chargeC: 0 }
+  };
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #020617;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 5;">
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.5); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Quantum Double-Slit Diffraction
+          </span>
+          <span id="${mountId}-collapse-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(16,185,129,0.5); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Coherent Wave Superposition
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56,189,248,0.4);">
+          <span class="readout-label">De Broglie (λ):</span>
+          <span id="${mountId}-lambda-val" class="readout-val" style="color: #38bdf8; font-weight: 800;">100 pm</span>
+          <span class="readout-label" style="margin-left: 6px;">Velocity:</span>
+          <span id="${mountId}-vel-val" class="readout-val" style="color: #fbbf24; font-weight: 800;">7.26 × 10⁶ m/s</span>
+          <span class="readout-label" style="margin-left: 6px;">Hits:</span>
+          <span id="${mountId}-hits-val" class="readout-val" style="color: #34d399; font-weight: 800;">0</span>
+        </div>
+
+        <div class="sim-readout-pill" style="border-color: rgba(168,85,247,0.4); margin-top: 4px;">
+          <span id="${mountId}-fringe-val" style="color: #c084fc; font-size: 0.75rem; font-weight: 700;">
+            Fringe Spacing (Δy): 14.2 µm • Uncertainty: Δx·Δp ≥ ℏ/2
+          </span>
+        </div>
+
+        <!-- Particle Selector -->
+        <div style="display: flex; gap: 4px; margin-top: 6px;">
+          <button class="btn btn-primary active" id="${mountId}-btn-e" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            ⚡ Electron
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-p" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            🔴 Proton
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-c60" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            ⚽ C₆₀ Bucky
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-ball" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            ⚾ Baseball
+          </button>
+        </div>
+
+        <!-- Accelerating Voltage Slider -->
+        <div style="margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Accelerating Potential (V_acc):</span>
+            <span id="${mountId}-v-lbl" style="color: #fbbf24; font-weight: 800;">150 V</span>
+          </div>
+          <input type="range" id="${mountId}-v-slider" min="20" max="1000" step="10" value="150" style="width: 100%; accent-color: #fbbf24; cursor: pointer;">
+        </div>
+
+        <!-- Observer Detector & Reset Controls -->
+        <div style="display: flex; gap: 5px; margin-top: 6px;">
+          <button class="btn-sim-action" id="${mountId}-btn-detector" style="flex: 1.3; padding: 6px 4px; font-weight: 700; font-size: 0.73rem;">
+            👁️ Which-Way Detector: OFF
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-clear" style="flex: 0.7; padding: 6px 4px; font-weight: 700; font-size: 0.73rem;">
+            🗑️ Clear Hits
+          </button>
+        </div>
+
+        <!-- Telemetry box -->
+        <div id="${mountId}-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.80rem; line-height: 1.42;">
+          <strong>Wave-Particle Duality:</strong> Every moving quantum particle behaves as a wave with De Broglie wavelength $\lambda = h/p$. Even when electrons pass through slits one-by-one, an interference fringe pattern emerges on the detector. Turning on a detector collapses the wavefunction, destroying interference!
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const lambdaVal = document.getElementById(`${mountId}-lambda-val`);
+  const velVal = document.getElementById(`${mountId}-vel-val`);
+  const hitsVal = document.getElementById(`${mountId}-hits-val`);
+  const fringeVal = document.getElementById(`${mountId}-fringe-val`);
+  const collapseBadge = document.getElementById(`${mountId}-collapse-badge`);
+  const vSlider = document.getElementById(`${mountId}-v-slider`);
+  const vLbl = document.getElementById(`${mountId}-v-lbl`);
+  const btnE = document.getElementById(`${mountId}-btn-e`);
+  const btnP = document.getElementById(`${mountId}-btn-p`);
+  const btnC60 = document.getElementById(`${mountId}-btn-c60`);
+  const btnBall = document.getElementById(`${mountId}-btn-ball`);
+  const btnDetector = document.getElementById(`${mountId}-btn-detector`);
+  const btnClear = document.getElementById(`${mountId}-btn-clear`);
+  const descBox = document.getElementById(`${mountId}-desc`);
+
+  const flyingParticles = [];
+  let t = 0;
+
+  function render() {
+    t += 0.05;
+
+    // Physical Calculations
+    const h = 6.626e-34;
+    const meta = particlesMeta[particleType];
+    let vel = 0;
+    let lambdaM = 0;
+
+    if (particleType === "baseball") {
+      vel = 30.0; // 30 m/s (~67 mph)
+      lambdaM = h / (meta.massKg * vel); // ~1.5e-34 m
+    } else {
+      // Non-relativistic kinetic energy eV = 1/2 m v^2 => v = sqrt(2 eV / m)
+      const eJoules = voltageKv * meta.chargeC;
+      vel = Math.sqrt((2 * eJoules) / meta.massKg);
+      lambdaM = h / (meta.massKg * vel);
+    }
+
+    // Telemetry display string
+    let lambdaStr = "";
+    if (lambdaM < 1e-18) lambdaStr = `${(lambdaM * 1e34).toFixed(1)} × 10⁻³⁴ m`;
+    else if (lambdaM < 1e-12) lambdaStr = `${(lambdaM * 1e12).toFixed(2)} pm`;
+    else lambdaStr = `${(lambdaM * 1e9).toFixed(3)} nm`;
+
+    let velStr = "";
+    if (vel > 1e6) velStr = `${(vel / 1e6).toFixed(2)} × 10⁶ m/s`;
+    else if (vel > 1e3) velStr = `${(vel / 1e3).toFixed(1)} km/s`;
+    else velStr = `${vel.toFixed(1)} m/s`;
+
+    if (lambdaVal) lambdaVal.innerText = lambdaStr;
+    if (velVal) velVal.innerText = velStr;
+    if (hitsVal) hitsVal.innerText = `${accumulatedHits.length}`;
+
+    if (fringeVal) {
+      if (particleType === "baseball") {
+        fringeVal.innerText = "Macroscopic Limit: λ ≈ 10⁻³⁴ m ≪ Planck length • Strictly classical shadow";
+      } else if (whichWayDetector) {
+        fringeVal.innerText = "State Collapsed: Which-way measurement destroys quantum coherence (P = P₁ + P₂)";
+      } else {
+        fringeVal.innerText = `Quantum Interference: Intrinsic phase superposition |ψ⟩ = (|1⟩ + |2⟩)/√2`;
+      }
+    }
+
+    if (collapseBadge) {
+      if (whichWayDetector) {
+        collapseBadge.innerText = "Wavefunction Collapsed (Particle Clumps)";
+        collapseBadge.style.color = "#ef4444";
+        collapseBadge.style.borderColor = "#ef4444";
+      } else if (particleType === "baseball") {
+        collapseBadge.innerText = "Classical Limit (No Diffraction)";
+        collapseBadge.style.color = "#fbbf24";
+        collapseBadge.style.borderColor = "#fbbf24";
+      } else {
+        collapseBadge.innerText = "Coherent Wave Superposition";
+        collapseBadge.style.color = "#34d399";
+        collapseBadge.style.borderColor = "#10b981";
+      }
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Deep Obsidian Backdrop
+    const bgGrad = ctx.createRadialGradient(220, 140, 30, 220, 140, 240);
+    bgGrad.addColorStop(0, "#080e1e");
+    bgGrad.addColorStop(1, "#020409");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Spawn new particle in flight periodically
+    if (Math.random() < 0.35 && accumulatedHits.length < 500) {
+      flyingParticles.push({
+        x: 40,
+        y: 140 + (Math.random() - 0.5) * 6,
+        vx: 3.5,
+        passedSlits: false,
+        targetY: sampleArrivalPosition(whichWayDetector, particleType)
+      });
+    }
+
+    // 1. Draw Particle Gun (Left)
+    drawParticleGun(ctx, 20, 125, meta.color);
+
+    // 2. Draw Double Slit Barrier (x = 150)
+    drawDoubleSlits(ctx, 150, whichWayDetector);
+
+    // 3. Draw Detector Phosphor Screen (x = 360)
+    drawDetectorScreen(ctx, 360, accumulatedHits, meta.color);
+
+    // 4. Update and Draw Flying Particles
+    for (let i = flyingParticles.length - 1; i >= 0; i--) {
+      const p = flyingParticles[i];
+      p.x += p.vx;
+
+      if (!p.passedSlits && p.x >= 150) {
+        p.passedSlits = true;
+      }
+
+      // Steer toward final targetY on screen
+      if (p.passedSlits) {
+        const remainingDist = 360 - p.x;
+        if (remainingDist > 0) {
+          p.y += (p.targetY - p.y) * 0.12;
+        }
+      }
+
+      // Hit screen
+      if (p.x >= 360) {
+        accumulatedHits.push({ y: p.targetY, age: 0 });
+        flyingParticles.splice(i, 1);
+        continue;
+      }
+
+      // Draw particle in flight
+      ctx.fillStyle = meta.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, particleType === "baseball" ? 4 : 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // De Broglie pilot wave ripples if not collapsed
+      if (!whichWayDetector && particleType !== "baseball" && p.passedSlits) {
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 8, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // 5. Draw Probability Density Curve on right margin (x: 375 to 435)
+    drawIntensityCurve(ctx, 375, whichWayDetector, particleType, meta.color);
+
+    animId = requestAnimationFrame(render);
+  }
+
+  function sampleArrivalPosition(detectorOn, type) {
+    const cy = 140;
+    if (type === "baseball" || detectorOn) {
+      // Classical two clumps behind slits (y1 = 115, y2 = 165)
+      const slit = Math.random() < 0.5 ? 115 : 165;
+      return slit + (Math.random() - 0.5) * 22;
+    }
+
+    // Quantum interference distribution sampling (acceptance-rejection)
+    const d = 50; // slit spacing
+    const fringeScale = type === "electron" ? 18 : (type === "proton" ? 12 : 8);
+
+    for (let attempts = 0; attempts < 50; attempts++) {
+      const yCandidate = (Math.random() - 0.5) * 190;
+      const prob = Math.pow(Math.cos(yCandidate / fringeScale), 2) * Math.exp(-Math.pow(yCandidate / 75, 2));
+      if (Math.random() < prob) {
+        return cy + yCandidate;
+      }
+    }
+    return cy;
+  }
+
+  function drawParticleGun(ctx, x, y, col) {
+    ctx.fillStyle = "#334155";
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(x, y, 32, 30, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // Nozzle
+    ctx.fillStyle = col;
+    ctx.fillRect(x + 32, y + 10, 10, 10);
+
+    ctx.font = "bold 8px Inter, sans-serif";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.textAlign = "center";
+    ctx.fillText("Emitter", x + 16, y - 5);
+  }
+
+  function drawDoubleSlits(ctx, x, detectorOn) {
+    ctx.fillStyle = "#475569";
+    // Upper wall
+    ctx.fillRect(x, 20, 8, 90);
+    // Center divider
+    ctx.fillRect(x, 125, 8, 30);
+    // Lower wall
+    ctx.fillRect(x, 170, 8, 90);
+
+    // Slit labels
+    ctx.font = "bold 8px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "center";
+    ctx.fillText("Slit 1", x + 4, 118);
+    ctx.fillText("Slit 2", x + 4, 168);
+
+    // Which-Way Detector sensor at slits
+    if (detectorOn) {
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 12, 105, 32, 20);
+      ctx.strokeRect(x - 12, 155, 32, 20);
+
+      ctx.fillStyle = "#ef4444";
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillText("👁️ ON", x + 4, 100);
+    }
+  }
+
+  function drawDetectorScreen(ctx, x, hits, col) {
+    // Phosphor screen plate
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(x, 25, 12, 230, 3);
+    ctx.fill();
+    ctx.stroke();
+
+    // Accumulated hits
+    hits.forEach((h) => {
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.arc(x + 6, h.y, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.font = "bold 9px Inter, sans-serif";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.textAlign = "center";
+    ctx.fillText("Screen", x + 6, 270);
+  }
+
+  function drawIntensityCurve(ctx, xStart, detectorOn, type, col) {
+    const cy = 140;
+    const height = 230;
+
+    ctx.strokeStyle = detectorOn ? "#ef4444" : "#10b981";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    const fringeScale = type === "electron" ? 18 : (type === "proton" ? 12 : 8);
+
+    for (let y = -110; y <= 110; y += 2) {
+      let intensity = 0;
+      if (type === "baseball" || detectorOn) {
+        // Two separate Gaussian peaks
+        const p1 = Math.exp(-Math.pow((y - 25) / 16, 2));
+        const p2 = Math.exp(-Math.pow((y + 25) / 16, 2));
+        intensity = (p1 + p2) * 26;
+      } else {
+        // Cosine squared interference modulated by envelope
+        intensity = Math.pow(Math.cos(y / fringeScale), 2) * Math.exp(-Math.pow(y / 70, 2)) * 50;
+      }
+
+      const px = xStart + intensity;
+      const py = cy + y;
+      if (y === -110) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    ctx.font = "bold 8px Inter, sans-serif";
+    ctx.fillStyle = detectorOn ? "#ef4444" : "#34d399";
+    ctx.textAlign = "left";
+    ctx.fillText(detectorOn ? "P = P₁ + P₂" : "|ψ₁ + ψ₂|²", xStart + 8, 20);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  // Listeners
+  if (vSlider) {
+    vSlider.addEventListener("input", (e) => {
+      voltageKv = parseInt(e.target.value, 10);
+      if (vLbl) vLbl.innerText = `${voltageKv} V`;
+      accumulatedHits = [];
+    });
+  }
+
+  function setParticle(btn, pType) {
+    [btnE, btnP, btnC60, btnBall].forEach((b) => {
+      if (b) {
+        b.className = "btn-sim-action";
+        b.classList.remove("active");
+      }
+    });
+    if (btn) {
+      btn.className = "btn btn-primary active";
+      btn.classList.add("active");
+    }
+    particleType = pType;
+    accumulatedHits = [];
+
+    if (descBox) {
+      if (pType === "electron") {
+        descBox.innerHTML = `<strong>Electron (e⁻):</strong> Ultra-light mass produces prominent De Broglie wavelengths (~100 pm) comparable to interatomic lattice spacing, producing dramatic quantum interference.`;
+      } else if (pType === "proton") {
+        descBox.innerHTML = `<strong>Proton (p⁺):</strong> Being 1,836× more massive than the electron, the proton has a significantly shorter De Broglie wavelength at the same kinetic energy, yielding tightly packed fringes.`;
+      } else if (pType === "buckyball") {
+        descBox.innerHTML = `<strong>C₆₀ Buckyball:</strong> A complex molecule containing 60 carbon atoms (720 u). As demonstrated by Anton Zeilinger's team, mesoscopic molecules still exhibit quantum wave interference!`;
+      } else {
+        descBox.innerHTML = `<strong>Macroscopic Baseball:</strong> With mass 0.145 kg, its De Broglie wavelength is ~1.5 × 10⁻³⁴ m (unobservably microscopic). Quantum interference completely vanishes, yielding strictly classical ballistic physics.`;
+      }
+    }
+  }
+
+  if (btnE) btnE.addEventListener("click", () => setParticle(btnE, "electron"));
+  if (btnP) btnP.addEventListener("click", () => setParticle(btnP, "proton"));
+  if (btnC60) btnC60.addEventListener("click", () => setParticle(btnC60, "buckyball"));
+  if (btnBall) btnBall.addEventListener("click", () => setParticle(btnBall, "baseball"));
+
+  if (btnDetector) {
+    btnDetector.addEventListener("click", () => {
+      whichWayDetector = !whichWayDetector;
+      btnDetector.innerText = whichWayDetector ? "👁️ Which-Way Detector: ON" : "👁️ Which-Way Detector: OFF";
+      btnDetector.classList.toggle("active", whichWayDetector);
+      accumulatedHits = [];
+    });
+  }
+
+  if (btnClear) {
+    btnClear.addEventListener("click", () => {
+      accumulatedHits = [];
+    });
+  }
+}
+
+
 
 
 
