@@ -35,41 +35,78 @@ export function initPopulationEcologyLab(containerId) {
 
   // Natural Boreal Forest / Taiga Environment
   const TREES = [
-    { x: 55, y: 85, r: 24, layers: 3 },
-    { x: 520, y: 90, r: 26, layers: 3 },
-    { x: 75, y: 440, r: 28, layers: 3 },
-    { x: 505, y: 430, r: 25, layers: 3 },
-    { x: 290, y: 65, r: 22, layers: 3 },
-    { x: 45, y: 260, r: 24, layers: 3 },
-    { x: 535, y: 270, r: 23, layers: 3 }
+    { x: 55, y: 85, r: 26, layers: 4, type: "spruce" },
+    { x: 520, y: 90, r: 28, layers: 4, type: "fir" },
+    { x: 70, y: 445, r: 30, layers: 4, type: "spruce" },
+    { x: 510, y: 435, r: 27, layers: 4, type: "spruce" },
+    { x: 290, y: 60, r: 24, layers: 3, type: "fir" },
+    { x: 42, y: 260, r: 25, layers: 4, type: "spruce" },
+    { x: 538, y: 268, r: 25, layers: 4, type: "fir" }
   ];
 
   const BOULDERS = [
-    { x: 140, y: 150, rx: 14, ry: 10, rot: 0.3 },
-    { x: 420, y: 170, rx: 18, ry: 12, rot: -0.4 },
-    { x: 190, y: 390, rx: 15, ry: 11, rot: 0.6 },
-    { x: 380, y: 360, rx: 16, ry: 12, rot: 0.1 }
+    { x: 140, y: 150, rx: 16, ry: 11, rot: 0.35, facets: [[-14, -4], [-8, -10], [6, -9], [15, -2], [12, 8], [-3, 10], [-13, 5]] },
+    { x: 420, y: 170, rx: 20, ry: 13, rot: -0.4, facets: [[-17, -5], [-10, -12], [8, -11], [18, -3], [14, 9], [-4, 12], [-16, 6]] },
+    { x: 190, y: 395, rx: 17, ry: 12, rot: 0.55, facets: [[-15, -4], [-7, -11], [7, -10], [16, -2], [11, 9], [-5, 11], [-14, 5]] },
+    { x: 380, y: 360, rx: 18, ry: 13, rot: 0.15, facets: [[-16, -5], [-9, -11], [8, -10], [17, -3], [13, 9], [-3, 11], [-15, 6]] }
   ];
+
+  // Weathered Fallen Deadfall Logs (Iconic Boreal Forest deadfall)
+  const DEADFALL_LOGS = [
+    { x1: 105, y1: 305, x2: 175, y2: 328, r: 5.5, moss: true },
+    { x1: 390, y1: 235, x2: 460, y2: 218, r: 5.0, moss: true }
+  ];
+
+  // Riverbed Submerged Stones (visible through clear meltwater)
+  const RIVER_PEBBLES = [
+    { x: 285, y: 40, rx: 4, ry: 2.5, rot: 0.4, color: "#64748b" },
+    { x: 310, y: 95, rx: 5, ry: 3.2, rot: -0.3, color: "#475569" },
+    { x: 318, y: 145, rx: 4.5, ry: 2.8, rot: 0.2, color: "#78716c" },
+    { x: 280, y: 190, rx: 5.5, ry: 3.5, rot: 0.6, color: "#57534e" },
+    { x: 235, y: 235, rx: 4, ry: 2.6, rot: -0.5, color: "#64748b" },
+    { x: 228, y: 280, rx: 5, ry: 3.0, rot: 0.1, color: "#475569" },
+    { x: 245, y: 330, rx: 4.5, ry: 2.7, rot: -0.2, color: "#78716c" },
+    { x: 282, y: 375, rx: 6, ry: 3.8, rot: 0.4, color: "#57534e" },
+    { x: 295, y: 420, rx: 4.5, ry: 2.8, rot: -0.4, color: "#64748b" },
+    { x: 260, y: 465, rx: 5, ry: 3.2, rot: 0.3, color: "#475569" },
+    { x: 240, y: 505, rx: 4.5, ry: 2.6, rot: -0.2, color: "#78716c" }
+  ];
+
+  // Naturally Scattered Fallen Pine Straw / Needles (Organic Jitter, Zero Grid)
+  const PINE_NEEDLES = [];
+  for (let i = 0; i < 90; i++) {
+    const seedX = (i * 137.5) % 550 + 15;
+    const seedY = (i * 224.7) % 490 + 25;
+    const len = 5.0 + (i % 5) * 1.0;
+    const angle = ((i * 47) % 360) * (Math.PI / 180);
+    PINE_NEEDLES.push({
+      x: seedX,
+      y: seedY,
+      len: len,
+      angle: angle,
+      color: i % 3 === 0 ? "rgba(180, 83, 9, 0.45)" : (i % 3 === 1 ? "rgba(146, 64, 14, 0.40)" : "rgba(120, 53, 15, 0.32)")
+    });
+  }
 
   const SHRUBS = [];
   for (let i = 0; i < 22; i++) {
     SHRUBS.push({
       x: 70 + (i * 73) % 440,
       y: 90 + (i * 59) % 360,
-      r: 6 + (i % 3) * 2,
+      r: 7 + (i % 3) * 2.2,
       berries: i % 2 === 0
     });
   }
 
   // Atmospheric fog canopy mist
   const fogMist = [];
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 14; i++) {
     fogMist.push({
       x: Math.random() * 580,
       y: Math.random() * 530,
-      r: 50 + Math.random() * 45,
-      vx: 0.15 + Math.random() * 0.25,
-      alpha: 0.035 + Math.random() * 0.04
+      r: 55 + Math.random() * 50,
+      vx: 0.12 + Math.random() * 0.22,
+      alpha: 0.04 + Math.random() * 0.04
     });
   }
 
@@ -216,7 +253,6 @@ export function initPopulationEcologyLab(containerId) {
               </div>
             </div>
           </div>
-          </div>
         </div>
 
         <!-- Controls & Dual Analytical Charts -->
@@ -289,6 +325,20 @@ export function initPopulationEcologyLab(containerId) {
   const chartCanvas = container.querySelector("#eco-chart-canvas");
   const chartCtx = chartCanvas.getContext("2d");
 
+  const ARENA_W = 580;
+  const ARENA_H = 530;
+  const CHART_W = 460;
+  const CHART_H = 180;
+
+  function initHiDPI() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
+    canvas.width = Math.round(ARENA_W * dpr);
+    canvas.height = Math.round(ARENA_H * dpr);
+    chartCanvas.width = Math.round(CHART_W * dpr);
+    chartCanvas.height = Math.round(CHART_H * dpr);
+  }
+  initHiDPI();
+
   // Physics & ODE Step (Euler-Cromer integration for Lotka-Volterra with logistic prey)
   function stepEcosystem() {
     if (isPaused) return;
@@ -322,58 +372,119 @@ export function initPopulationEcologyLab(containerId) {
     // 1. Forest Ground / Snowpack Layer
     if (!isWinterSeason) {
       // Summer Boreal Taiga floor: rich mossy spruce loam
-      const bgGrad = ctx.createRadialGradient(290, 265, 50, 290, 265, 380);
-      bgGrad.addColorStop(0, "#083321");
-      bgGrad.addColorStop(0.6, "#052618");
-      bgGrad.addColorStop(1, "#02170f");
+      const bgGrad = ctx.createRadialGradient(ARENA_W / 2, ARENA_H / 2, 40, ARENA_W / 2, ARENA_H / 2, 380);
+      bgGrad.addColorStop(0, "#0b2e1d");
+      bgGrad.addColorStop(0.55, "#062215");
+      bgGrad.addColorStop(1, "#02150d");
       ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, ARENA_W, ARENA_H);
 
-      // Organic moss patches
-      ctx.fillStyle = "rgba(16, 185, 129, 0.08)";
-      ctx.beginPath();
-      ctx.ellipse(180, 160, 95, 60, 0.4, 0, Math.PI * 2);
-      ctx.ellipse(410, 370, 120, 75, -0.3, 0, Math.PI * 2);
-      ctx.ellipse(360, 140, 80, 50, 0.2, 0, Math.PI * 2);
-      ctx.ellipse(140, 410, 85, 55, -0.2, 0, Math.PI * 2);
-      ctx.fill();
+      // Layered organic moss carpets (rich hummocks of cushion moss)
+      const mossMounds = [
+        { x: 175, y: 155, rx: 110, ry: 70, rot: 0.35, color: "rgba(45, 106, 79, 0.45)" },
+        { x: 175, y: 155, rx: 80, ry: 48, rot: 0.35, color: "rgba(64, 145, 108, 0.35)" },
+        { x: 420, y: 375, rx: 130, ry: 80, rot: -0.28, color: "rgba(45, 106, 79, 0.42)" },
+        { x: 420, y: 375, rx: 95, ry: 55, rot: -0.28, color: "rgba(82, 183, 136, 0.30)" },
+        { x: 365, y: 135, rx: 85, ry: 52, rot: 0.18, color: "rgba(45, 106, 79, 0.40)" },
+        { x: 135, y: 415, rx: 90, ry: 58, rot: -0.22, color: "rgba(45, 106, 79, 0.38)" }
+      ];
+      mossMounds.forEach(m => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(m.x, m.y, m.rx, m.ry, m.rot, 0, Math.PI * 2);
+        ctx.fillStyle = m.color;
+        ctx.fill();
+        ctx.restore();
+      });
 
-      // Scattered needle detritus / lichen tufts
-      ctx.strokeStyle = "rgba(52, 211, 153, 0.18)";
-      ctx.lineWidth = 1.2;
-      for (let x = 35; x < canvas.width; x += 48) {
-        for (let y = 50; y < canvas.height - 20; y += 46) {
-          const ox = ((x * 17 + y * 23) % 20) - 10;
-          const oy = ((x * 13 + y * 31) % 18) - 9;
+      // Naturally scattered pine needles / spruce straw (natural forest detritus, organic non-repeating)
+      PINE_NEEDLES.forEach(n => {
+        ctx.save();
+        ctx.strokeStyle = n.color;
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(n.x, n.y);
+        ctx.lineTo(n.x + Math.cos(n.angle) * n.len, n.y + Math.sin(n.angle) * n.len);
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // Weathered Deadfall Birch & Spruce Logs with bark and moss
+      DEADFALL_LOGS.forEach(log => {
+        ctx.save();
+        const dx = log.x2 - log.x1;
+        const dy = log.y2 - log.y1;
+        const len = Math.hypot(dx, dy);
+        const angle = Math.atan2(dy, dx);
+
+        ctx.translate(log.x1, log.y1);
+        ctx.rotate(angle);
+
+        // Cast shadow beneath log
+        ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
+        ctx.beginPath();
+        ctx.ellipse(len / 2 + 2, log.r + 3, len / 2 + 3, log.r * 0.9, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Log timber cylinder body
+        ctx.fillStyle = "#3e2723";
+        ctx.fillRect(0, -log.r, len, log.r * 2);
+
+        // Dark bark fissures and grain
+        ctx.strokeStyle = "#1b100c";
+        ctx.lineWidth = 0.9;
+        for (let g = 8; g < len - 6; g += 14) {
           ctx.beginPath();
-          ctx.moveTo(x + ox, y + oy);
-          ctx.lineTo(x + ox - 3, y + oy - 6);
-          ctx.moveTo(x + ox, y + oy);
-          ctx.lineTo(x + ox + 3, y + oy - 5);
+          ctx.moveTo(g, -log.r + 1);
+          ctx.lineTo(g + 4, log.r - 1);
           ctx.stroke();
         }
-      }
+
+        // Exposed wood grain / stump end rings
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 2.5, log.r, 0, 0, Math.PI * 2);
+        ctx.fillStyle = "#8d6e63";
+        ctx.fill();
+        ctx.strokeStyle = "#5d4037";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        // Velvet green moss on upper log ridge
+        if (log.moss) {
+          ctx.fillStyle = "rgba(34, 197, 94, 0.75)";
+          ctx.beginPath();
+          ctx.ellipse(len * 0.45, -log.r + 0.5, len * 0.38, 2.2, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      });
     } else {
       // Winter Boreal Snowpack: crisp windswept subnivean snow
-      const snowGrad = ctx.createRadialGradient(290, 265, 40, 290, 265, 400);
+      const snowGrad = ctx.createRadialGradient(ARENA_W / 2, ARENA_H / 2, 40, ARENA_W / 2, ARENA_H / 2, 400);
       snowGrad.addColorStop(0, "#f8fafc");
       snowGrad.addColorStop(0.55, "#e2e8f0");
       snowGrad.addColorStop(1, "#cbd5e1");
       ctx.fillStyle = snowGrad;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, ARENA_W, ARENA_H);
 
-      // Cold ambient blue snow drifts & subtle shadows
-      ctx.fillStyle = "rgba(147, 197, 253, 0.22)";
-      ctx.beginPath();
-      ctx.ellipse(170, 150, 110, 65, 0.35, 0, Math.PI * 2);
-      ctx.ellipse(420, 360, 130, 80, -0.3, 0, Math.PI * 2);
-      ctx.ellipse(350, 130, 90, 50, 0.1, 0, Math.PI * 2);
-      ctx.ellipse(150, 420, 95, 60, -0.25, 0, Math.PI * 2);
-      ctx.fill();
+      // Cold ambient periwinkle/glacial blue snow drifts & subtle subnivean hollows
+      const drifts = [
+        { x: 170, y: 150, rx: 120, ry: 72, rot: 0.35, color: "rgba(147, 197, 253, 0.28)" },
+        { x: 420, y: 360, rx: 140, ry: 85, rot: -0.30, color: "rgba(147, 197, 253, 0.25)" },
+        { x: 350, y: 130, rx: 95, ry: 55, rot: 0.12, color: "rgba(191, 219, 254, 0.22)" },
+        { x: 150, y: 420, rx: 100, ry: 64, rot: -0.25, color: "rgba(147, 197, 253, 0.24)" }
+      ];
+      drifts.forEach(d => {
+        ctx.beginPath();
+        ctx.ellipse(d.x, d.y, d.rx, d.ry, d.rot, 0, Math.PI * 2);
+        ctx.fillStyle = d.color;
+        ctx.fill();
+      });
 
-      // Windswept snow ridges
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
-      ctx.lineWidth = 1.5;
+      // Windswept snow ridges / sastrugi
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.lineWidth = 1.6;
       for (let i = 0; i < 7; i++) {
         const ry = 70 + i * 65;
         ctx.beginPath();
@@ -381,112 +492,212 @@ export function initPopulationEcologyLab(containerId) {
         ctx.bezierCurveTo(180, ry - 12, 380, ry + 16, 550, ry - 6);
         ctx.stroke();
       }
+
+      // Snow-covered deadfall logs
+      DEADFALL_LOGS.forEach(log => {
+        ctx.save();
+        const dx = log.x2 - log.x1;
+        const dy = log.y2 - log.y1;
+        const len = Math.hypot(dx, dy);
+        const angle = Math.atan2(dy, dx);
+
+        ctx.translate(log.x1, log.y1);
+        ctx.rotate(angle);
+
+        // Soft snow shadow beneath log
+        ctx.fillStyle = "rgba(71, 85, 105, 0.30)";
+        ctx.beginPath();
+        ctx.ellipse(len / 2 + 2, log.r + 3, len / 2 + 2, log.r * 0.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Dark log edge peek
+        ctx.fillStyle = "#334155";
+        ctx.fillRect(0, -log.r * 0.5, len, log.r * 1.2);
+
+        // Heavy blanket of pure white snow
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.ellipse(len / 2, -log.r - 0.5, len * 0.52, log.r * 1.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
     }
 
     // 2. Meandering Boreal Meltwater Creek / Stream
     ctx.save();
+    // Riverbanks / Wet Silt Gravel Bed
     ctx.beginPath();
-    ctx.moveTo(275, 0);
-    ctx.bezierCurveTo(310, 140, 215, 270, 270, 390);
-    ctx.bezierCurveTo(295, 440, 240, 490, 230, 530);
-    ctx.lineWidth = isWinterSeason ? 18 : 24;
-    ctx.strokeStyle = isWinterSeason ? "rgba(56, 189, 248, 0.32)" : "rgba(14, 165, 233, 0.45)";
+    ctx.moveTo(280, 0);
+    ctx.bezierCurveTo(325, 120, 220, 260, 290, 390);
+    ctx.bezierCurveTo(320, 440, 250, 490, 235, ARENA_H);
+    ctx.lineWidth = isWinterSeason ? 26 : 34;
+    ctx.strokeStyle = isWinterSeason ? "rgba(100, 116, 139, 0.40)" : "rgba(30, 41, 59, 0.45)";
     ctx.stroke();
 
-    // Stream animated water shimmer ripples
-    ctx.lineWidth = 2.2;
-    ctx.strokeStyle = isWinterSeason ? "rgba(255, 255, 255, 0.55)" : "rgba(186, 230, 253, 0.65)";
-    const streamFlowOffset = (simTime * 25) % 40;
-    for (let s = 20; s < 510; s += 40) {
+    // Clear Meltwater River Bed
+    ctx.beginPath();
+    ctx.moveTo(280, 0);
+    ctx.bezierCurveTo(325, 120, 220, 260, 290, 390);
+    ctx.bezierCurveTo(320, 440, 250, 490, 235, ARENA_H);
+    ctx.lineWidth = isWinterSeason ? 18 : 25;
+    ctx.strokeStyle = isWinterSeason ? "rgba(14, 165, 233, 0.48)" : "rgba(2, 132, 199, 0.58)";
+    ctx.stroke();
+
+    // Submerged Riverbed Pebbles (visible under crystal clear water)
+    RIVER_PEBBLES.forEach(peb => {
+      ctx.save();
+      ctx.translate(peb.x, peb.y);
+      ctx.rotate(peb.rot);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, peb.rx, peb.ry, 0, 0, Math.PI * 2);
+      ctx.fillStyle = peb.color;
+      ctx.globalAlpha = 0.55;
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // Animated water shimmer caustics & current flow ripples
+    ctx.lineWidth = 2.0;
+    ctx.strokeStyle = isWinterSeason ? "rgba(255, 255, 255, 0.65)" : "rgba(186, 230, 253, 0.72)";
+    const streamFlowOffset = (simTime * 28) % 45;
+    for (let s = 15; s < ARENA_H - 10; s += 42) {
       const sy = s + streamFlowOffset;
-      if (sy < 520) {
-        const t = sy / 530;
-        const sx = 275 + Math.sin(t * Math.PI * 2.2) * 35;
+      if (sy < ARENA_H - 10) {
+        const t = sy / ARENA_H;
+        const sx = 280 + Math.sin(t * Math.PI * 2.3) * 38;
         ctx.beginPath();
-        ctx.moveTo(sx - 5, sy);
-        ctx.lineTo(sx + 5, sy + 3);
+        ctx.moveTo(sx - 6, sy);
+        ctx.bezierCurveTo(sx - 2, sy + 2, sx + 2, sy - 1, sx + 6, sy + 2);
         ctx.stroke();
       }
     }
 
     // Winter semi-frozen ice shelf edges along creek
     if (isWinterSeason) {
-      ctx.strokeStyle = "rgba(241, 245, 249, 0.85)";
-      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = "rgba(241, 245, 249, 0.92)";
+      ctx.lineWidth = 4.0;
       ctx.beginPath();
-      ctx.moveTo(264, 0);
-      ctx.bezierCurveTo(299, 140, 204, 270, 259, 390);
-      ctx.bezierCurveTo(284, 440, 229, 490, 219, 530);
+      ctx.moveTo(268, 0);
+      ctx.bezierCurveTo(313, 120, 208, 260, 278, 390);
+      ctx.bezierCurveTo(308, 440, 238, 490, 223, ARENA_H);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(286, 0);
-      ctx.bezierCurveTo(321, 140, 226, 270, 281, 390);
-      ctx.bezierCurveTo(306, 440, 251, 490, 241, 530);
+      ctx.moveTo(292, 0);
+      ctx.bezierCurveTo(337, 120, 232, 260, 302, 390);
+      ctx.bezierCurveTo(332, 440, 262, 490, 247, ARENA_H);
       ctx.stroke();
+
+      // Delicate crystalline ice fracture lines
+      ctx.strokeStyle = "rgba(186, 230, 253, 0.85)";
+      ctx.lineWidth = 1.2;
+      for (let s = 30; s < ARENA_H; s += 70) {
+        const t = s / ARENA_H;
+        const sx = 280 + Math.sin(t * Math.PI * 2.3) * 38;
+        ctx.beginPath();
+        ctx.moveTo(sx - 10, s);
+        ctx.lineTo(sx - 5, s + 4);
+        ctx.moveTo(sx + 10, s + 15);
+        ctx.lineTo(sx + 5, s + 19);
+        ctx.stroke();
+      }
     }
     ctx.restore();
 
-    // 3. Granite Boulders
+    // 3. Glacial Granite Boulders (Chiseled 3D Rock Facets)
     BOULDERS.forEach(b => {
       ctx.save();
       ctx.translate(b.x, b.y);
       ctx.rotate(b.rot);
 
-      // Cast shadow
+      // Directional drop shadow
       ctx.beginPath();
-      ctx.ellipse(3, 5, b.rx + 1, b.ry + 2, 0, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+      ctx.ellipse(4, 6, b.rx + 2, b.ry + 2, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.40)";
       ctx.fill();
 
-      // Rock base
+      // Chiseled polygon rock base
       ctx.beginPath();
-      ctx.ellipse(0, 0, b.rx, b.ry, 0, 0, Math.PI * 2);
-      ctx.fillStyle = isWinterSeason ? "#475569" : "#334155";
+      if (b.facets) {
+        ctx.moveTo(b.facets[0][0], b.facets[0][1]);
+        for (let fi = 1; fi < b.facets.length; fi++) {
+          ctx.lineTo(b.facets[fi][0], b.facets[fi][1]);
+        }
+        ctx.closePath();
+      } else {
+        ctx.ellipse(0, 0, b.rx, b.ry, 0, 0, Math.PI * 2);
+      }
+      ctx.fillStyle = isWinterSeason ? "#334155" : "#1e293b";
       ctx.fill();
 
-      // Facet shading
+      // Top-lit facet highlight
       ctx.beginPath();
-      ctx.ellipse(-2, -2, b.rx * 0.75, b.ry * 0.7, 0, 0, Math.PI * 2);
+      ctx.ellipse(-2, -2.5, b.rx * 0.72, b.ry * 0.65, 0, 0, Math.PI * 2);
       ctx.fillStyle = isWinterSeason ? "#64748b" : "#475569";
       ctx.fill();
 
-      // Lichen or Snow cap
+      // Lichen cushion or Sculpted Snow Cap
       if (isWinterSeason) {
         ctx.beginPath();
-        ctx.ellipse(-1, -3, b.rx * 0.85, b.ry * 0.48, 0, 0, Math.PI * 2);
-        ctx.fillStyle = "#f8fafc";
+        ctx.ellipse(-1, -4, b.rx * 0.88, b.ry * 0.52, 0, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
         ctx.fill();
+        ctx.strokeStyle = "#e2e8f0";
+        ctx.lineWidth = 1.0;
+        ctx.stroke();
       } else {
+        // Organic velvet moss crest
         ctx.beginPath();
-        ctx.ellipse(-1, -2, b.rx * 0.55, b.ry * 0.38, 0, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(16, 185, 129, 0.65)";
+        ctx.ellipse(-2, -3, b.rx * 0.58, b.ry * 0.42, 0, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(34, 197, 94, 0.78)";
         ctx.fill();
       }
       ctx.restore();
     });
 
-    // 4. Understory Shrubs & Forage Bushes
+    // 4. Understory Shrubs & Lingonberry Bushes
     SHRUBS.forEach(shrub => {
       ctx.save();
+      // Shrub shadow
       ctx.beginPath();
-      ctx.arc(shrub.x, shrub.y, shrub.r, 0, Math.PI * 2);
-      ctx.fillStyle = isWinterSeason ? "rgba(100, 116, 139, 0.55)" : "rgba(5, 150, 105, 0.65)";
+      ctx.ellipse(shrub.x + 2, shrub.y + 3, shrub.r * 0.9, shrub.r * 0.6, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
       ctx.fill();
 
-      // Shrub leafy foliage or snow frost
+      // Branching twigs
+      ctx.strokeStyle = isWinterSeason ? "#475569" : "#3f2c20";
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.arc(shrub.x - 2, shrub.y - 2, shrub.r * 0.7, 0, Math.PI * 2);
-      ctx.fillStyle = isWinterSeason ? "#e2e8f0" : "rgba(52, 211, 153, 0.75)";
+      ctx.moveTo(shrub.x, shrub.y + 2);
+      ctx.lineTo(shrub.x - 3, shrub.y - 4);
+      ctx.moveTo(shrub.x, shrub.y + 2);
+      ctx.lineTo(shrub.x + 4, shrub.y - 3);
+      ctx.stroke();
+
+      // Shrub leafy foliage or snow rime
+      ctx.beginPath();
+      ctx.arc(shrub.x, shrub.y - 1, shrub.r, 0, Math.PI * 2);
+      ctx.fillStyle = isWinterSeason ? "rgba(148, 163, 184, 0.45)" : "rgba(4, 120, 87, 0.85)";
       ctx.fill();
 
-      // Wild Boreal Berries (Lingonberries / Blueberries)
+      ctx.beginPath();
+      ctx.arc(shrub.x - 2, shrub.y - 3, shrub.r * 0.68, 0, Math.PI * 2);
+      ctx.fillStyle = isWinterSeason ? "#f8fafc" : "rgba(16, 185, 129, 0.85)";
+      ctx.fill();
+
+      // Wild Boreal Lingonberries / Highbush Berries
       if (shrub.berries) {
-        ctx.fillStyle = isWinterSeason ? "#ef4444" : "#f43f5e";
+        ctx.fillStyle = isWinterSeason ? "#dc2626" : "#ef4444";
         ctx.beginPath();
-        ctx.arc(shrub.x - 2, shrub.y - 1, 1.8, 0, Math.PI * 2);
-        ctx.arc(shrub.x + 3, shrub.y + 2, 1.8, 0, Math.PI * 2);
-        ctx.arc(shrub.x + 1, shrub.y - 3, 1.6, 0, Math.PI * 2);
+        ctx.arc(shrub.x - 3, shrub.y - 2, 2.0, 0, Math.PI * 2);
+        ctx.arc(shrub.x + 3, shrub.y + 1, 2.0, 0, Math.PI * 2);
+        ctx.arc(shrub.x + 1, shrub.y - 5, 1.8, 0, Math.PI * 2);
+        ctx.fill();
+        // Berry specular shine
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(shrub.x - 3.4, shrub.y - 2.5, 0.6, 0, Math.PI * 2);
+        ctx.arc(shrub.x + 2.6, shrub.y + 0.5, 0.6, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
@@ -505,64 +716,64 @@ export function initPopulationEcologyLab(containerId) {
       // Glowing edible forage ring
       const pulse = 1.0 + Math.sin(simTime * 6) * 0.15;
       ctx.beginPath();
-      ctx.arc(0, 0, 13 * pulse, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(52, 211, 153, 0.18)";
+      ctx.arc(0, 0, 14 * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(52, 211, 153, 0.22)";
       ctx.fill();
       ctx.strokeStyle = "#34d399";
-      ctx.lineWidth = 1.2;
+      ctx.lineWidth = 1.4;
       ctx.stroke();
 
       // Tender browse twigs and green leaves
       ctx.strokeStyle = "#15803d";
-      ctx.lineWidth = 2.2;
+      ctx.lineWidth = 2.4;
       ctx.beginPath();
-      ctx.moveTo(-7, 4);
-      ctx.lineTo(0, -6);
-      ctx.lineTo(7, 3);
-      ctx.moveTo(0, -6);
-      ctx.lineTo(0, 7);
+      ctx.moveTo(-8, 5);
+      ctx.lineTo(0, -7);
+      ctx.lineTo(8, 4);
+      ctx.moveTo(0, -7);
+      ctx.lineTo(0, 8);
       ctx.stroke();
 
       ctx.fillStyle = "#86efac";
       ctx.beginPath();
-      ctx.arc(-4, -1, 3, 0, Math.PI * 2);
-      ctx.arc(4, -1, 3, 0, Math.PI * 2);
-      ctx.arc(0, 5, 2.5, 0, Math.PI * 2);
+      ctx.arc(-5, -2, 3.2, 0, Math.PI * 2);
+      ctx.arc(5, -2, 3.2, 0, Math.PI * 2);
+      ctx.arc(0, 6, 2.8, 0, Math.PI * 2);
       ctx.fill();
 
       // Food counter pill
-      ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
-      ctx.fillRect(-12, -18, 24, 11);
+      ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+      ctx.fillRect(-13, -20, 26, 12);
       ctx.fillStyle = "#34d399";
-      ctx.font = "bold 8px monospace";
+      ctx.font = "bold 9px monospace";
       ctx.textAlign = "center";
-      ctx.fillText(`${fc.food}x`, 0, -10);
+      ctx.fillText(`${fc.food}x`, 0, -11);
 
       ctx.restore();
     }
   }
 
-  // --- Coniferous Spruce Trees (Top-Down Canopy Layer) ---
+  // --- Coniferous White Spruce & Balsam Fir Trees (2.5D Canopy Layer) ---
   function drawTrees() {
     TREES.forEach(tree => {
       ctx.save();
-      // 2.5D Cast drop shadow on ground
+      // 2.5D Soft Directional Cast Shadow on ground
       ctx.beginPath();
-      ctx.ellipse(tree.x + 15, tree.y + 18, tree.r * 1.05, tree.r * 0.7, 0.3, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.38)";
+      ctx.ellipse(tree.x + 16, tree.y + 20, tree.r * 1.15, tree.r * 0.75, 0.32, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
       ctx.fill();
 
-      // Conifer Needle Tiers (Top-Down perspective)
+      // Conifer Needle Tiers (Top-Down 2.5D perspective)
       for (let layer = 0; layer < tree.layers; layer++) {
-        const lr = tree.r * (1.0 - layer * 0.26);
+        const lr = tree.r * (1.0 - layer * 0.23);
         ctx.beginPath();
         // Scalloped conifer boughs
-        const pts = 8;
+        const pts = 9;
         for (let p = 0; p < pts; p++) {
           const a1 = (p / pts) * Math.PI * 2;
           const a2 = ((p + 0.5) / pts) * Math.PI * 2;
           const rOut = lr;
-          const rIn = lr * 0.72;
+          const rIn = lr * 0.70;
           if (p === 0) ctx.moveTo(tree.x + Math.cos(a1) * rOut, tree.y + Math.sin(a1) * rOut);
           else ctx.lineTo(tree.x + Math.cos(a1) * rOut, tree.y + Math.sin(a1) * rOut);
           ctx.lineTo(tree.x + Math.cos(a2) * rIn, tree.y + Math.sin(a2) * rIn);
@@ -570,27 +781,29 @@ export function initPopulationEcologyLab(containerId) {
         ctx.closePath();
 
         if (!isWinterSeason) {
-          if (layer === 0) ctx.fillStyle = "#032e22";
-          else if (layer === 1) ctx.fillStyle = "#04563a";
+          if (layer === 0) ctx.fillStyle = "#02261b";
+          else if (layer === 1) ctx.fillStyle = "#03432b";
+          else if (layer === 2) ctx.fillStyle = "#046a44";
           else ctx.fillStyle = "#059669";
         } else {
           if (layer === 0) ctx.fillStyle = "#1e293b";
           else if (layer === 1) ctx.fillStyle = "#334155";
-          else ctx.fillStyle = "#f8fafc";
+          else if (layer === 2) ctx.fillStyle = "#e2e8f0";
+          else ctx.fillStyle = "#ffffff";
         }
         ctx.fill();
 
-        // Snow dusting on boughs
+        // Snow blankets on upper bough surfaces
         if (isWinterSeason) {
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
-          ctx.lineWidth = 2.0;
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+          ctx.lineWidth = 2.4;
           ctx.stroke();
         }
       }
 
       // Apex crown tip
       ctx.beginPath();
-      ctx.arc(tree.x, tree.y, 3.5, 0, Math.PI * 2);
+      ctx.arc(tree.x, tree.y, 4.0, 0, Math.PI * 2);
       ctx.fillStyle = isWinterSeason ? "#ffffff" : "#10b981";
       ctx.fill();
 
@@ -602,138 +815,188 @@ export function initPopulationEcologyLab(containerId) {
   function drawSnowshoeHare(ctx, p) {
     ctx.save();
 
-    // Locomotion bounce and squash-and-stretch
-    const bounceY = -Math.abs(Math.sin(p.hopPhase)) * (p.isFleeing ? 6.5 : 3.8);
-    const stretchX = 1.0 + (p.isFleeing ? 0.22 : 0.12) * Math.cos(p.hopPhase);
-    const stretchY = 1.0 - (p.isFleeing ? 0.18 : 0.09) * Math.cos(p.hopPhase);
+    // Saltatorial bounding hop kinematics (stretch & squash)
+    const isLeaping = p.isFleeing || Math.abs(p.vx) + Math.abs(p.vy) > 0.4;
+    const bounceHeight = isLeaping ? (p.isFleeing ? 7.5 : 4.5) : 1.2;
+    const bounceY = -Math.abs(Math.sin(p.hopPhase)) * bounceHeight;
+    const stretchX = 1.0 + (p.isFleeing ? 0.24 : 0.14) * Math.cos(p.hopPhase);
+    const stretchY = 1.0 - (p.isFleeing ? 0.20 : 0.10) * Math.cos(p.hopPhase);
 
-    // 1. Cast shadow (detaches and contracts at peak leap)
-    const shadowScale = Math.max(0.45, 1.0 - Math.abs(bounceY) / 10);
+    // 1. Ground Cast Shadow (contracts & separates at peak leap height)
+    const shadowScale = Math.max(0.4, 1.0 - Math.abs(bounceY) / 11);
     ctx.beginPath();
-    ctx.ellipse(p.x, p.y + 4, 9 * shadowScale, 4.5 * shadowScale, 0, 0, Math.PI * 2);
-    ctx.fillStyle = isWinterSeason ? "rgba(100, 116, 139, 0.35)" : "rgba(0, 0, 0, 0.4)";
+    ctx.ellipse(p.x, p.y + 5, 11 * shadowScale, 5.5 * shadowScale, 0, 0, Math.PI * 2);
+    ctx.fillStyle = isWinterSeason ? "rgba(71, 85, 105, 0.35)" : "rgba(0, 0, 0, 0.42)";
     ctx.fill();
 
-    // 2. Body transform
+    // 2. Body transform with leaping elevation and orientation
     ctx.translate(p.x, p.y + bounceY);
     ctx.rotate(p.angle);
     ctx.scale(stretchX, stretchY);
 
-    // Color definitions
-    // Winter coat: Pure snow camouflage with cool slate shading
-    // Summer coat: Russet agouti brown dorsum with tawny ochre flanks & white underside
-    const bodyColor = isWinterSeason ? "#ffffff" : "#92400e";
-    const flankColor = isWinterSeason ? "#f1f5f9" : "#b45309";
-    const bellyColor = isWinterSeason ? "#e2e8f0" : "#fef3c7";
-    const eyeColor = isWinterSeason ? "#09090b" : "#451a03";
+    // Anatomical Coat Coloration (Lepus americanus)
+    // Summer: Rich agouti russet brown dorsum, warm tawny flanks, creamy belly
+    // Winter: Pure snow camouflage with soft periwinkle/slate undertones
+    const coatDorsal = isWinterSeason ? "#ffffff" : "#854d0e"; // agouti russet
+    const coatSpine = isWinterSeason ? "#f8fafc" : "#713f12";  // dark spine
+    const coatFlank = isWinterSeason ? "#f1f5f9" : "#b45309";  // tawny ochre
+    const coatBelly = isWinterSeason ? "#e2e8f0" : "#fef3c7";  // creamy underside
+    const pawColor = isWinterSeason ? "#f8fafc" : "#b45309";
+    const pawPad = isWinterSeason ? "#cbd5e1" : "#78350f";
 
-    // 3. Signature Oversized Furry Hind "Snowshoe" Paws (Splayed back)
-    ctx.fillStyle = flankColor;
-    // Left hind paw
+    // 3. Signature Oversized "Snowshoe" Hind Feet (diagnostic hallmark)
+    // Splayed backward during hop propulsion
+    ctx.fillStyle = pawColor;
+    ctx.strokeStyle = pawPad;
+    ctx.lineWidth = 0.8;
+    // Left hind snowshoe paw
     ctx.beginPath();
-    ctx.ellipse(-9, -6.5, 4.2, 2.2, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(-11, -7.5, 5.5, 2.8, -0.22, 0, Math.PI * 2);
     ctx.fill();
-    // Right hind paw
+    ctx.stroke();
+    // Right hind snowshoe paw
     ctx.beginPath();
-    ctx.ellipse(-9, 6.5, 4.2, 2.2, 0.2, 0, Math.PI * 2);
+    ctx.ellipse(-11, 7.5, 5.5, 2.8, 0.22, 0, Math.PI * 2);
     ctx.fill();
+    ctx.stroke();
 
-    // 4. White Puffy Scut / Cotton Tail
+    // Toe pad cleft lines on hind snowshoes
+    ctx.strokeStyle = pawPad;
     ctx.beginPath();
-    ctx.arc(-12, 0, 3.2, 0, Math.PI * 2);
-    ctx.fillStyle = isWinterSeason ? "#ffffff" : "#fef08a";
-    ctx.fill();
+    ctx.moveTo(-13, -8); ctx.lineTo(-10, -8);
+    ctx.moveTo(-13, 8);  ctx.lineTo(-10, 8);
+    ctx.stroke();
 
-    // 5. Muscular Torso & Arched Rump
+    // 4. White Fluffy Cotton Scut / Tail
     ctx.beginPath();
-    ctx.ellipse(-2, 0, 10.5, 6.2, 0, 0, Math.PI * 2);
-    ctx.fillStyle = bodyColor;
+    ctx.arc(-14, 0, 3.8, 0, Math.PI * 2);
+    ctx.fillStyle = isWinterSeason ? "#ffffff" : "#fef9c3";
     ctx.fill();
-
-    // Flank overlay contour
+    ctx.fillStyle = isWinterSeason ? "rgba(148, 163, 184, 0.4)" : "rgba(180, 83, 9, 0.3)";
     ctx.beginPath();
-    ctx.ellipse(-1, 0, 8.5, 4.8, 0, 0, Math.PI * 2);
-    ctx.fillStyle = flankColor;
-    ctx.fill();
-
-    // 6. Front Forepaws
-    ctx.fillStyle = bellyColor;
-    ctx.beginPath();
-    ctx.ellipse(4, -4.5, 2.8, 1.8, 0.1, 0, Math.PI * 2);
-    ctx.ellipse(4, 4.5, 2.8, 1.8, -0.1, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 7. Head & Muzzle
-    ctx.beginPath();
-    ctx.ellipse(9, 0, 5.8, 4.4, 0, 0, Math.PI * 2);
-    ctx.fillStyle = bodyColor;
+    ctx.arc(-14.5, 0.5, 2.2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Snout / Pink Nose Cleft
+    // 5. Muscular Arched Pelvis & Haunches
     ctx.beginPath();
-    ctx.arc(14.5, 0, 1.6, 0, Math.PI * 2);
+    ctx.ellipse(-3, 0, 12, 7.2, 0, 0, Math.PI * 2);
+    ctx.fillStyle = coatDorsal;
+    ctx.fill();
+
+    // Dorsal spine shading
+    ctx.beginPath();
+    ctx.ellipse(-4, 0, 10, 4.5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = coatSpine;
+    ctx.fill();
+
+    // Flank contour gradient layer
+    ctx.beginPath();
+    ctx.ellipse(-1, 0, 9.5, 5.6, 0, 0, Math.PI * 2);
+    ctx.fillStyle = coatFlank;
+    ctx.fill();
+
+    // 6. Forepaws (tucked neatly under chest during leap)
+    ctx.fillStyle = coatBelly;
+    ctx.beginPath();
+    ctx.ellipse(5, -5.2, 3.4, 2.1, 0.15, 0, Math.PI * 2);
+    ctx.ellipse(5, 5.2, 3.4, 2.1, -0.15, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 7. Head & Lagomorph Muzzle
+    ctx.beginPath();
+    ctx.ellipse(11, 0, 6.8, 5.2, 0, 0, Math.PI * 2);
+    ctx.fillStyle = coatDorsal;
+    ctx.fill();
+
+    // Snout / Cleft Philtrum & Pink Nose
+    ctx.beginPath();
+    ctx.ellipse(16.5, 0, 2.8, 2.4, 0, 0, Math.PI * 2);
+    ctx.fillStyle = coatBelly;
+    ctx.fill();
+
+    // Delicate pink nose cleft
+    ctx.beginPath();
+    ctx.arc(17.8, 0, 1.4, 0, Math.PI * 2);
     ctx.fillStyle = "#f472b6";
     ctx.fill();
 
-    // Twitching Whiskers
-    ctx.strokeStyle = isWinterSeason ? "#94a3b8" : "#fde68a";
-    ctx.lineWidth = 0.8;
+    // Fine twitching sensory whiskers
+    ctx.strokeStyle = isWinterSeason ? "#94a3b8" : "#fef08a";
+    ctx.lineWidth = 0.7;
+    const whiskerWiggle = Math.sin(simTime * 18 + p.x) * 1.2;
     ctx.beginPath();
-    ctx.moveTo(13, -1);
-    ctx.lineTo(19, -4);
-    ctx.moveTo(13, 1);
-    ctx.lineTo(19, 4);
+    ctx.moveTo(16, -1); ctx.lineTo(24, -4.5 + whiskerWiggle);
+    ctx.moveTo(16, 0);  ctx.lineTo(25, 0);
+    ctx.moveTo(16, 1);  ctx.lineTo(24, 4.5 - whiskerWiggle);
     ctx.stroke();
 
-    // Lateral Eyes with Specular Corneal Glint
-    ctx.fillStyle = eyeColor;
+    // Lateral Eyes with Amber Rim, Deep Pupil & Specular Catchlight
+    // Left eye
+    ctx.fillStyle = "#78350f"; // warm amber outer iris
     ctx.beginPath();
-    ctx.arc(9, -3.2, 1.6, 0, Math.PI * 2);
-    ctx.arc(9, 3.2, 1.6, 0, Math.PI * 2);
+    ctx.arc(11, -3.8, 2.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#09090b"; // deep pupil
+    ctx.beginPath();
+    ctx.arc(11, -3.8, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff"; // corneal catchlight
+    ctx.beginPath();
+    ctx.arc(11.5, -4.1, 0.7, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Right eye
+    ctx.fillStyle = "#78350f";
+    ctx.beginPath();
+    ctx.arc(11, 3.8, 2.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#09090b";
+    ctx.beginPath();
+    ctx.arc(11, 3.8, 1.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(9.4, -3.4, 0.6, 0, Math.PI * 2);
-    ctx.arc(9.4, 3.0, 0.6, 0, Math.PI * 2);
+    ctx.arc(11.5, 3.5, 0.7, 0, Math.PI * 2);
     ctx.fill();
 
-    // 8. Signature Long Snowshoe Ears with Solid Black Tips
-    // Left ear
+    // 8. Long Upright Ears with Solid Jet-Black Tips (KEY BIOLOGICAL DIAGNOSTIC)
+    const earTilt = p.isFleeing ? -0.45 : -0.25;
+    // Left Ear
     ctx.save();
-    ctx.translate(6, -2.5);
-    ctx.rotate(p.isFleeing ? -0.4 : -0.25);
+    ctx.translate(7.5, -3.0);
+    ctx.rotate(earTilt);
     ctx.beginPath();
-    ctx.ellipse(-7, -4, 7.5, 2.4, -0.4, 0, Math.PI * 2);
-    ctx.fillStyle = bodyColor;
+    ctx.ellipse(-8, -4.5, 9.0, 2.8, -0.38, 0, Math.PI * 2);
+    ctx.fillStyle = coatDorsal;
     ctx.fill();
-    // Inner ear canal (soft pink)
+    // Inner pink ear fold
     ctx.beginPath();
-    ctx.ellipse(-6.5, -4, 5.5, 1.4, -0.4, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(244, 114, 182, 0.55)";
+    ctx.ellipse(-7.5, -4.5, 6.8, 1.6, -0.38, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(244, 114, 182, 0.58)";
     ctx.fill();
-    // Distinct solid jet-black ear tip (key biological diagnostic)
+    // Solid Jet-Black Ear Tip (hallmark of Lepus americanus)
     ctx.beginPath();
-    ctx.ellipse(-12.5, -6.5, 2.8, 1.8, -0.4, 0, Math.PI * 2);
+    ctx.ellipse(-14.2, -7.2, 3.5, 2.2, -0.38, 0, Math.PI * 2);
     ctx.fillStyle = "#09090b";
     ctx.fill();
     ctx.restore();
 
-    // Right ear
+    // Right Ear
     ctx.save();
-    ctx.translate(6, 2.5);
-    ctx.rotate(p.isFleeing ? 0.4 : 0.25);
+    ctx.translate(7.5, 3.0);
+    ctx.rotate(-earTilt);
     ctx.beginPath();
-    ctx.ellipse(-7, 4, 7.5, 2.4, 0.4, 0, Math.PI * 2);
-    ctx.fillStyle = bodyColor;
+    ctx.ellipse(-8, 4.5, 9.0, 2.8, 0.38, 0, Math.PI * 2);
+    ctx.fillStyle = coatDorsal;
     ctx.fill();
-    // Inner ear canal
+    // Inner pink ear fold
     ctx.beginPath();
-    ctx.ellipse(-6.5, 4, 5.5, 1.4, 0.4, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(244, 114, 182, 0.55)";
+    ctx.ellipse(-7.5, 4.5, 6.8, 1.6, 0.38, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(244, 114, 182, 0.58)";
     ctx.fill();
-    // Distinct solid jet-black ear tip
+    // Solid Jet-Black Ear Tip
     ctx.beginPath();
-    ctx.ellipse(-12.5, 6.5, 2.8, 1.8, 0.4, 0, Math.PI * 2);
+    ctx.ellipse(-14.2, 7.2, 3.5, 2.2, 0.38, 0, Math.PI * 2);
     ctx.fillStyle = "#09090b";
     ctx.fill();
     ctx.restore();
@@ -745,199 +1008,250 @@ export function initPopulationEcologyLab(containerId) {
   function drawCanadaLynx(ctx, pred) {
     ctx.save();
 
-    // Stalking gait lateral shoulder swaying and leg strides
-    const stride = Math.sin(pred.walkPhase) * (pred.isChasing ? 4.5 : 2.5);
-    const shoulderSway = Math.cos(pred.walkPhase) * 1.2;
+    // Fluid Quadruped Locomotion & Shoulder Sway
+    const stride = Math.sin(pred.walkPhase) * (pred.isChasing ? 5.5 : 3.2);
+    const shoulderSway = Math.cos(pred.walkPhase) * (pred.isChasing ? 1.8 : 1.2);
 
-    // 1. Cast shadow
+    // 1. Cast Ground Shadow (broad muscular predator silhouette)
     ctx.beginPath();
-    ctx.ellipse(pred.x, pred.y + 5, 14, 6.5, 0, 0, Math.PI * 2);
-    ctx.fillStyle = isWinterSeason ? "rgba(71, 85, 105, 0.38)" : "rgba(0, 0, 0, 0.45)";
+    ctx.ellipse(pred.x, pred.y + 6, 17, 8.5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = isWinterSeason ? "rgba(51, 65, 85, 0.42)" : "rgba(0, 0, 0, 0.48)";
     ctx.fill();
 
     // 2. Body transform
     ctx.translate(pred.x, pred.y);
     ctx.rotate(pred.angle);
 
-    // Color definitions
-    // Canada Lynx dense silvery-grey with buff/tawny undertone
-    const lynxBase = "#a8a29e"; // silvery grey
-    const lynxFlank = "#d6d3d1"; // soft buff
-    const lynxDorsal = "#78716c"; // darker spine
-    const lynxWhite = "#f8fafc";
+    // Color definitions (Lynx canadensis dense winter pelage)
+    // Silvery-grey to taupe-buff dense fur with darker spinal guard hairs
+    const lynxBase = "#a8a29e";   // warm silvery grey
+    const lynxDorsal = "#78716c"; // darker spinal ridge
+    const lynxFlank = "#d6d3d1";  // soft buff undercoat
+    const lynxWhite = "#f8fafc";  // pure white ruff, bib & chin
+    const lynxSpot = "rgba(87, 83, 78, 0.35)"; // subtle ghost rosettes
 
-    // 3. Signature Short Bobbed Tail with ALL-AROUND SOLID JET-BLACK TIP
+    // 3. Signature Short Bobbed Tail with SOLID ALL-AROUND JET-BLACK TIP
+    // Tail extends backward from pelvis
     ctx.beginPath();
-    ctx.moveTo(-16, 0);
-    ctx.lineTo(-24, 0);
-    ctx.lineWidth = 4.5;
+    ctx.moveTo(-18, 0);
+    ctx.lineTo(-28, 0);
+    ctx.lineWidth = 5.2;
     ctx.lineCap = "round";
     ctx.strokeStyle = lynxBase;
     ctx.stroke();
 
-    // Tail solid jet-black tip (textbook hallmark separating lynx from bobcat)
+    // Complete solid jet-black tail tip (definitive species hallmark separating lynx from bobcat)
     ctx.beginPath();
-    ctx.moveTo(-21, 0);
-    ctx.lineTo(-25, 0);
-    ctx.lineWidth = 4.8;
+    ctx.moveTo(-24, 0);
+    ctx.lineTo(-29, 0);
+    ctx.lineWidth = 5.5;
     ctx.strokeStyle = "#000000";
     ctx.stroke();
 
-    // 4. Large Heavily Furred Stealth Snow-Paws
+    // 4. Massive Heavily Furred Stealth Snow-Paws with Paw Pads
     ctx.fillStyle = lynxFlank;
-    // Rear left paw
-    ctx.beginPath();
-    ctx.ellipse(-11, -9 + stride, 4.5, 3.5, -0.1, 0, Math.PI * 2);
-    ctx.fill();
-    // Rear right paw
-    ctx.beginPath();
-    ctx.ellipse(-11, 9 - stride, 4.5, 3.5, 0.1, 0, Math.PI * 2);
-    ctx.fill();
-    // Front left paw
-    ctx.beginPath();
-    ctx.ellipse(7, -8 - stride, 4.6, 3.6, 0.1, 0, Math.PI * 2);
-    ctx.fill();
-    // Front right paw
-    ctx.beginPath();
-    ctx.ellipse(7, 8 + stride, 4.6, 3.6, -0.1, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.strokeStyle = "#57534e";
+    ctx.lineWidth = 0.8;
 
-    // 5. Muscular Torso (Elevated Pelvis & Deep Chest)
-    // Hindquarters
+    // Rear left snow-paw (alternating stride)
     ctx.beginPath();
-    ctx.ellipse(-6, 0, 11, 7.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(-13, -11 + stride, 5.8, 4.4, -0.15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Rear right snow-paw
+    ctx.beginPath();
+    ctx.ellipse(-13, 11 - stride, 5.8, 4.4, 0.15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Front left snow-paw
+    ctx.beginPath();
+    ctx.ellipse(9, -10 - stride, 6.0, 4.6, 0.12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Front right snow-paw
+    ctx.beginPath();
+    ctx.ellipse(9, 10 + stride, 6.0, 4.6, -0.12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // 5. Muscular Torso: Elevated Pelvis / Hindquarters & Deep Chest
+    // Canada lynx has distinct high-rumped posture (hind legs longer than front)
+    ctx.beginPath();
+    ctx.ellipse(-7, 0, 13.5, 9.2, 0, 0, Math.PI * 2);
     ctx.fillStyle = lynxBase;
     ctx.fill();
 
-    // Forequarters / Shoulders (slight sway)
+    // Dorsal spine & shoulder blade ridge (swaying with gait)
     ctx.beginPath();
-    ctx.ellipse(4, shoulderSway, 9.5, 6.8, 0, 0, Math.PI * 2);
+    ctx.ellipse(5, shoulderSway, 11.5, 8.2, 0, 0, Math.PI * 2);
     ctx.fillStyle = lynxDorsal;
+    ctx.fill();
+
+    // Flank overlay with subtle ghost spots / rosettes
+    ctx.beginPath();
+    ctx.ellipse(-1, 0, 11.0, 6.8, 0, 0, Math.PI * 2);
+    ctx.fillStyle = lynxFlank;
+    ctx.fill();
+
+    // Subtle broken flank spots
+    ctx.fillStyle = lynxSpot;
+    ctx.beginPath();
+    ctx.arc(-8, -4, 1.4, 0, Math.PI * 2);
+    ctx.arc(-4, -5, 1.6, 0, Math.PI * 2);
+    ctx.arc(0, -4.5, 1.4, 0, Math.PI * 2);
+    ctx.arc(-8, 4, 1.4, 0, Math.PI * 2);
+    ctx.arc(-4, 5, 1.6, 0, Math.PI * 2);
+    ctx.arc(0, 4.5, 1.4, 0, Math.PI * 2);
     ctx.fill();
 
     // Throat & Chest White Bib
     ctx.beginPath();
-    ctx.ellipse(6, 0, 5.5, 4.2, 0, 0, Math.PI * 2);
+    ctx.ellipse(7, 0, 6.8, 5.2, 0, 0, Math.PI * 2);
     ctx.fillStyle = lynxWhite;
     ctx.fill();
 
     // 6. Broad Feline Skull & Signature Flared Facial Cheek Ruffs (Beard)
     ctx.beginPath();
-    ctx.arc(13, 0, 7.2, 0, Math.PI * 2);
+    ctx.arc(16, 0, 8.8, 0, Math.PI * 2);
     ctx.fillStyle = lynxBase;
     ctx.fill();
 
-    // Flared Triangular Facial Ruffs (Beard on both sides of face)
+    // Flared Double-Pointed Facial Cheek Ruffs (Beard framing the jaw)
     ctx.fillStyle = lynxWhite;
-    // Left ruff
-    ctx.beginPath();
-    ctx.moveTo(11, -5);
-    ctx.lineTo(13, -12);
-    ctx.lineTo(16, -6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = "#57534e";
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    ctx.strokeStyle = "#44403c";
+    ctx.lineWidth = 1.1;
 
-    // Right ruff
+    // Left cheek ruff
     ctx.beginPath();
-    ctx.moveTo(11, 5);
-    ctx.lineTo(13, 12);
-    ctx.lineTo(16, 6);
+    ctx.moveTo(13, -6);
+    ctx.lineTo(15, -15); // sharp flared outer tip
+    ctx.lineTo(19, -12); // secondary lower notch
+    ctx.lineTo(19, -7);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Muzzle & Whiskers
+    // Right cheek ruff
     ctx.beginPath();
-    ctx.ellipse(17, 0, 3.2, 2.8, 0, 0, Math.PI * 2);
+    ctx.moveTo(13, 6);
+    ctx.lineTo(15, 15);  // sharp flared outer tip
+    ctx.lineTo(19, 12);  // secondary lower notch
+    ctx.lineTo(19, 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Muzzle & Chin Pad
+    ctx.beginPath();
+    ctx.ellipse(20.5, 0, 3.8, 3.4, 0, 0, Math.PI * 2);
     ctx.fillStyle = lynxWhite;
     ctx.fill();
 
     // Dark nose leather
     ctx.beginPath();
-    ctx.arc(19.2, 0, 1.2, 0, Math.PI * 2);
+    ctx.arc(23.2, 0, 1.5, 0, Math.PI * 2);
     ctx.fillStyle = "#1c1917";
     ctx.fill();
 
-    // White whiskers
+    // White tactile whiskers
     ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 0.8;
+    ctx.lineWidth = 0.9;
     ctx.beginPath();
-    ctx.moveTo(17, -1);
-    ctx.lineTo(24, -4);
-    ctx.moveTo(17, 1);
-    ctx.lineTo(24, 4);
+    ctx.moveTo(21, -1.2); ctx.lineTo(29, -5.5);
+    ctx.moveTo(21, 0);    ctx.lineTo(31, 0);
+    ctx.moveTo(21, 1.2);  ctx.lineTo(29, 5.5);
     ctx.stroke();
 
-    // Piercing Golden Amber Predator Eyes with Vertical Slits
+    // Piercing Hypnotic Golden Amber Predator Eyes with Vertical Slits
+    // Left eye
     ctx.fillStyle = "#f59e0b"; // amber iris
     ctx.beginPath();
-    ctx.ellipse(14.5, -3.2, 1.8, 1.4, 0, 0, Math.PI * 2);
-    ctx.ellipse(14.5, 3.2, 1.8, 1.4, 0, 0, Math.PI * 2);
+    ctx.ellipse(17.5, -3.8, 2.2, 1.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#000000"; // vertical slit pupil
+    ctx.beginPath();
+    ctx.ellipse(17.5, -3.8, 0.7, 1.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff"; // wet corneal highlight
+    ctx.beginPath();
+    ctx.arc(17.9, -4.2, 0.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Vertical slit pupils
+    // Right eye
+    ctx.fillStyle = "#f59e0b";
+    ctx.beginPath();
+    ctx.ellipse(17.5, 3.8, 2.2, 1.7, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.fillStyle = "#000000";
     ctx.beginPath();
-    ctx.ellipse(14.5, -3.2, 0.6, 1.3, 0, 0, Math.PI * 2);
-    ctx.ellipse(14.5, 3.2, 0.6, 1.3, 0, 0, Math.PI * 2);
+    ctx.ellipse(17.5, 3.8, 0.7, 1.6, 0, 0, Math.PI * 2);
     ctx.fill();
-
-    // White corneal specular glints
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(14.8, -3.5, 0.5, 0, Math.PI * 2);
-    ctx.arc(14.8, 2.9, 0.5, 0, Math.PI * 2);
+    ctx.arc(17.9, 3.4, 0.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // 7. Signature Pointed Ears with Long Black Tassels / Tufts
-    // Left ear
+    // 7. Signature Pointed Ears with Long Black Tassels / Tufts (Plumes)
+    // Left Ear
     ctx.save();
-    ctx.translate(11, -6);
+    ctx.translate(13.5, -7.2);
     ctx.beginPath();
-    ctx.moveTo(-2, 0);
-    ctx.lineTo(3, -5);
-    ctx.lineTo(4, 2);
+    ctx.moveTo(-2.5, 0);
+    ctx.lineTo(4.0, -6.5);
+    ctx.lineTo(5.5, 2.2);
     ctx.closePath();
     ctx.fillStyle = lynxBase;
     ctx.fill();
-    // White spot (ocelli) on back of ear
+    // White ocelli spot on rear of ear
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(1, -2, 1.2, 0, Math.PI * 2);
+    ctx.arc(1.2, -2.5, 1.5, 0, Math.PI * 2);
     ctx.fill();
-    // Signature long black feather plume / ear tassel (7px tall)
+    // Signature Long Black Ear Tassel / Plume / Ear Tuft (8.5px tall)
     ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(3, -5);
-    ctx.lineTo(5, -12);
+    ctx.moveTo(4.0, -6.5);
+    ctx.lineTo(6.5, -15.5);
+    ctx.stroke();
+    // Secondary wispy plume hair
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(4.0, -6.5);
+    ctx.lineTo(8.0, -14.5);
     ctx.stroke();
     ctx.restore();
 
-    // Right ear
+    // Right Ear
     ctx.save();
-    ctx.translate(11, 6);
+    ctx.translate(13.5, 7.2);
     ctx.beginPath();
-    ctx.moveTo(-2, 0);
-    ctx.lineTo(3, 5);
-    ctx.lineTo(4, -2);
+    ctx.moveTo(-2.5, 0);
+    ctx.lineTo(4.0, 6.5);
+    ctx.lineTo(5.5, -2.2);
     ctx.closePath();
     ctx.fillStyle = lynxBase;
     ctx.fill();
-    // White spot on back of ear
+    // White ocelli spot
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.arc(1, 2, 1.2, 0, Math.PI * 2);
+    ctx.arc(1.2, 2.5, 1.5, 0, Math.PI * 2);
     ctx.fill();
-    // Signature long black plume / ear tassel
+    // Signature Long Black Ear Tassel / Plume / Ear Tuft
     ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(3, 5);
-    ctx.lineTo(5, 12);
+    ctx.moveTo(4.0, 6.5);
+    ctx.lineTo(6.5, 15.5);
+    ctx.stroke();
+    // Secondary wispy plume hair
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(4.0, 6.5);
+    ctx.lineTo(8.0, 14.5);
     ctx.stroke();
     ctx.restore();
 
@@ -1042,17 +1356,28 @@ export function initPopulationEcologyLab(containerId) {
       // Soft boundary repulsion
       const pad = 38;
       if (p.x < pad) targetVx += (pad - p.x) * 0.12;
-      if (p.x > canvas.width - pad) targetVx -= (p.x - (canvas.width - pad)) * 0.12;
+      if (p.x > ARENA_W - pad) targetVx -= (p.x - (ARENA_W - pad)) * 0.12;
       if (p.y < pad + 20) targetVy += ((pad + 20) - p.y) * 0.12;
-      if (p.y > canvas.height - pad) targetVy -= (p.y - (canvas.height - pad)) * 0.12;
+      if (p.y > ARENA_H - pad) targetVy -= (p.y - (ARENA_H - pad)) * 0.12;
 
-      // Obstacle avoidance (boulders)
+      // Obstacle avoidance (boulders & deadfall logs)
       BOULDERS.forEach(b => {
         const d = Math.hypot(p.x - b.x, p.y - b.y);
         if (d < b.rx + 10) {
           const pushAngle = Math.atan2(p.y - b.y, p.x - b.x);
           targetVx += Math.cos(pushAngle) * 0.4;
           targetVy += Math.sin(pushAngle) * 0.4;
+        }
+      });
+
+      DEADFALL_LOGS.forEach(log => {
+        const midX = (log.x1 + log.x2) / 2;
+        const midY = (log.y1 + log.y2) / 2;
+        const d = Math.hypot(p.x - midX, p.y - midY);
+        if (d < 30) {
+          const pushAngle = Math.atan2(p.y - midY, p.x - midX);
+          targetVx += Math.cos(pushAngle) * 0.35;
+          targetVy += Math.sin(pushAngle) * 0.35;
         }
       });
 
@@ -1063,9 +1388,9 @@ export function initPopulationEcologyLab(containerId) {
       p.x += p.vx;
       p.y += p.vy;
 
-      // Keep within canvas
-      p.x = Math.max(25, Math.min(canvas.width - 25, p.x));
-      p.y = Math.max(45, Math.min(canvas.height - 25, p.y));
+      // Keep within arena bounds
+      p.x = Math.max(25, Math.min(ARENA_W - 25, p.x));
+      p.y = Math.max(45, Math.min(ARENA_H - 25, p.y));
 
       p.angle = Math.atan2(p.vy, p.vx);
     });
@@ -1159,17 +1484,28 @@ export function initPopulationEcologyLab(containerId) {
       // Soft boundary repulsion
       const pad = 42;
       if (pred.x < pad) targetVx += (pad - pred.x) * 0.12;
-      if (pred.x > canvas.width - pad) targetVx -= (pred.x - (canvas.width - pad)) * 0.12;
+      if (pred.x > ARENA_W - pad) targetVx -= (pred.x - (ARENA_W - pad)) * 0.12;
       if (pred.y < pad + 20) targetVy += ((pad + 20) - pred.y) * 0.12;
-      if (pred.y > canvas.height - pad) targetVy -= (pred.y - (canvas.height - pad)) * 0.12;
+      if (pred.y > ARENA_H - pad) targetVy -= (pred.y - (ARENA_H - pad)) * 0.12;
 
-      // Obstacle avoidance
+      // Obstacle avoidance (boulders & deadfall logs)
       BOULDERS.forEach(b => {
         const d = Math.hypot(pred.x - b.x, pred.y - b.y);
         if (d < b.rx + 12) {
           const pushAngle = Math.atan2(pred.y - b.y, pred.x - b.x);
           targetVx += Math.cos(pushAngle) * 0.45;
           targetVy += Math.sin(pushAngle) * 0.45;
+        }
+      });
+
+      DEADFALL_LOGS.forEach(log => {
+        const midX = (log.x1 + log.x2) / 2;
+        const midY = (log.y1 + log.y2) / 2;
+        const d = Math.hypot(pred.x - midX, pred.y - midY);
+        if (d < 32) {
+          const pushAngle = Math.atan2(pred.y - midY, pred.x - midX);
+          targetVx += Math.cos(pushAngle) * 0.4;
+          targetVy += Math.sin(pushAngle) * 0.4;
         }
       });
 
@@ -1180,8 +1516,8 @@ export function initPopulationEcologyLab(containerId) {
       pred.x += pred.vx;
       pred.y += pred.vy;
 
-      pred.x = Math.max(25, Math.min(canvas.width - 25, pred.x));
-      pred.y = Math.max(45, Math.min(canvas.height - 25, pred.y));
+      pred.x = Math.max(25, Math.min(ARENA_W - 25, pred.x));
+      pred.y = Math.max(45, Math.min(ARENA_H - 25, pred.y));
 
       pred.angle = Math.atan2(pred.vy, pred.vx);
     });
@@ -1189,9 +1525,9 @@ export function initPopulationEcologyLab(containerId) {
     // 3. Update Atmospheric Canopy Mist
     fogMist.forEach(m => {
       m.x += m.vx;
-      if (m.x - m.r > canvas.width) {
+      if (m.x - m.r > ARENA_W) {
         m.x = -m.r;
-        m.y = Math.random() * canvas.height;
+        m.y = Math.random() * ARENA_H;
       }
     });
 
@@ -1232,7 +1568,9 @@ export function initPopulationEcologyLab(containerId) {
   }
 
   function drawEcosystemArena() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, ARENA_W, ARENA_H);
 
     // 1. Draw Biome Terrain (Ground, Snowpack, Creek, Boulders, Shrubs, Forage)
     drawTerrain();
@@ -1273,24 +1611,26 @@ export function initPopulationEcologyLab(containerId) {
   }
 
   function drawTimeSeriesChart() {
-    chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
+    chartCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    chartCtx.clearRect(0, 0, CHART_W, CHART_H);
 
     // Background
     chartCtx.fillStyle = "#030712";
-    chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+    chartCtx.fillRect(0, 0, CHART_W, CHART_H);
     chartCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     chartCtx.lineWidth = 1;
 
-    for (let x = 40; x < chartCanvas.width; x += 40) {
+    for (let x = 40; x < CHART_W; x += 40) {
       chartCtx.beginPath();
       chartCtx.moveTo(x, 10);
-      chartCtx.lineTo(x, chartCanvas.height - 25);
+      chartCtx.lineTo(x, CHART_H - 25);
       chartCtx.stroke();
     }
-    for (let y = 15; y < chartCanvas.height - 25; y += 30) {
+    for (let y = 15; y < CHART_H - 25; y += 30) {
       chartCtx.beginPath();
       chartCtx.moveTo(40, y);
-      chartCtx.lineTo(chartCanvas.width - 15, y);
+      chartCtx.lineTo(CHART_W - 15, y);
       chartCtx.stroke();
     }
 
@@ -1299,15 +1639,15 @@ export function initPopulationEcologyLab(containerId) {
     chartCtx.lineWidth = 1.5;
     chartCtx.beginPath();
     chartCtx.moveTo(40, 10);
-    chartCtx.lineTo(40, chartCanvas.height - 25);
-    chartCtx.lineTo(chartCanvas.width - 15, chartCanvas.height - 25);
+    chartCtx.lineTo(40, CHART_H - 25);
+    chartCtx.lineTo(CHART_W - 15, CHART_H - 25);
     chartCtx.stroke();
 
     // Axis Labels
     chartCtx.fillStyle = "#94a3b8";
     chartCtx.font = "10px var(--font-mono, monospace)";
     chartCtx.textAlign = "center";
-    chartCtx.fillText("Time (years)", chartCanvas.width / 2, chartCanvas.height - 6);
+    chartCtx.fillText("Time (years)", CHART_W / 2, CHART_H - 6);
 
     // Max scale
     const maxPop = Math.max(250, carryingCapacityK * 1.1);
@@ -1318,8 +1658,8 @@ export function initPopulationEcologyLab(containerId) {
       chartCtx.lineWidth = 2.2;
       chartCtx.beginPath();
       timeSeriesHistory.forEach((pt, idx) => {
-        const px = 40 + (idx / (timeSeriesHistory.length - 1)) * (chartCanvas.width - 55);
-        const py = (chartCanvas.height - 25) - (pt.prey / maxPop) * (chartCanvas.height - 40);
+        const px = 40 + (idx / (timeSeriesHistory.length - 1)) * (CHART_W - 55);
+        const py = (CHART_H - 25) - (pt.prey / maxPop) * (CHART_H - 40);
         if (idx === 0) chartCtx.moveTo(px, py);
         else chartCtx.lineTo(px, py);
       });
@@ -1330,8 +1670,8 @@ export function initPopulationEcologyLab(containerId) {
       chartCtx.lineWidth = 2.2;
       chartCtx.beginPath();
       timeSeriesHistory.forEach((pt, idx) => {
-        const px = 40 + (idx / (timeSeriesHistory.length - 1)) * (chartCanvas.width - 55);
-        const py = (chartCanvas.height - 25) - ((pt.pred * 4.0) / maxPop) * (chartCanvas.height - 40);
+        const px = 40 + (idx / (timeSeriesHistory.length - 1)) * (CHART_W - 55);
+        const py = (CHART_H - 25) - ((pt.pred * 4.0) / maxPop) * (CHART_H - 40);
         if (idx === 0) chartCtx.moveTo(px, py);
         else chartCtx.lineTo(px, py);
       });
@@ -1473,15 +1813,13 @@ export function initPopulationEcologyLab(containerId) {
   // Interactive Forage Scatter on Canvas Pointerdown / Click
   canvas?.addEventListener("pointerdown", (e) => {
     const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const clickX = (e.clientX - rect.left) * scaleX;
-    const clickY = (e.clientY - rect.top) * scaleY;
+    const clickX = (e.clientX - rect.left) * (ARENA_W / rect.width);
+    const clickY = (e.clientY - rect.top) * (ARENA_H / rect.height);
 
     // Drop forage cluster of willow/birch shoots
     forageClusters.push({
-      x: clickX,
-      y: clickY,
+      x: Math.max(30, Math.min(ARENA_W - 30, clickX)),
+      y: Math.max(50, Math.min(ARENA_H - 30, clickY)),
       food: 16,
       maxFood: 16
     });
