@@ -221,6 +221,10 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
     buildGametogenesisInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-dna-double-helix") || spec.type.startsWith("bio-dna-structure")) {
     buildDnaDoubleHelixInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("bio-sarcomere") || spec.type.startsWith("bio-sliding-filament")) {
+    buildSarcomereContractionInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("bio-cardiac-cycle") || spec.type.startsWith("bio-heart-cycle") || spec.type.startsWith("bio-hemodynamics")) {
+    buildCardiacCycleInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-mitosis") || spec.type.startsWith("bio-cell-cycle")) {
     buildMitosisCellCycleInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-hardy-weinberg") || spec.type.startsWith("bio-natural-selection")) {
@@ -17762,6 +17766,1371 @@ function buildDnaDoubleHelixInteractive(mountId, params) {
     tempLbl.innerText = `${tempC} °C ${tempC >= 85 ? '(Denaturing / Melting)' : '(Annealed)'}`;
   });
 }
+
+// Scratch validation for buildSarcomereContractionInteractive and buildCardiacCycleInteractive
+
+/**
+ * Sarcomere Sliding Filament Theory Interactive Simulator (BIO-M22-L3)
+ */
+function buildSarcomereContractionInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+  let calcium = params.calcium !== undefined ? params.calcium : 0.1;
+  let sarcomereRestLen = params.sarcomereLength !== undefined ? params.sarcomereLength : 2.50;
+  let atpLevel = params.atpLevel !== undefined ? params.atpLevel : 100;
+  let currentLen = sarcomereRestLen;
+  let viewMode = "macro";
+  let twitchTimer = 0;
+  let isTwitching = false;
+  let microStep = 0;
+  let animId;
+
+  const caParticles = [];
+  for (let i = 0; i < 40; i++) {
+    caParticles.push({
+      x: 30 + Math.random() * 380,
+      y: 40 + Math.random() * 190,
+      vx: (Math.random() - 0.5) * 1.2,
+      vy: (Math.random() - 0.5) * 1.2
+    });
+  }
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #030712;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 5;">
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.5); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Sarcomere: Functional Contractile Unit
+          </span>
+          <span id="${mountId}-state-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(16,185,129,0.5); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Relaxed ([Ca²⁺] = 0.10 µM)
+          </span>
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(251,191,36,0.5); color: #fbbf24; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            A-Band: 1.60 µm (CONSTANT)
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56,189,248,0.4);">
+          <span class="readout-label">Sarcomere Length:</span>
+          <span id="${mountId}-len-val" class="readout-val" style="color: #38bdf8; font-weight: 800;">2.50 µm</span>
+          <span class="readout-label" style="margin-left: 6px;">Tension:</span>
+          <span id="${mountId}-tension-val" class="readout-val" style="color: #f59e0b; font-weight: 800;">0% Fmax</span>
+        </div>
+
+        <div class="sim-readout-pill" style="border-color: rgba(167,139,250,0.4); margin-top: 4px;">
+          <span id="${mountId}-bands-val" style="color: #c084fc; font-size: 0.75rem; font-weight: 700;">
+            I-Band: 0.90 µm • H-Zone: 0.50 µm • A-Band: 1.60 µm
+          </span>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 6px;">
+          <button class="btn btn-primary active" id="${mountId}-btn-macro" style="flex: 1; padding: 6px 4px; font-weight: 700; font-size: 0.75rem;">
+            🔬 Macro: Sarcomere
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-micro" style="flex: 1; padding: 6px 4px; font-weight: 700; font-size: 0.75rem;">
+            ⚛️ Micro: Cross-Bridge
+          </button>
+        </div>
+
+        <div style="margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Sarcoplasmic [Ca²⁺]:</span>
+            <span id="${mountId}-ca-lbl" style="color: #fbbf24; font-weight: 800;">0.10 µM (Basal Rest)</span>
+          </div>
+          <input type="range" id="${mountId}-ca-slider" min="0.05" max="8.0" step="0.05" value="0.10" style="width: 100%; accent-color: #fbbf24; cursor: pointer;">
+        </div>
+
+        <div style="margin-top: 4px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Initial Resting Sarcomere Length:</span>
+            <span id="${mountId}-rest-lbl" style="color: #38bdf8; font-weight: 800;">2.50 µm</span>
+          </div>
+          <input type="range" id="${mountId}-rest-slider" min="1.70" max="3.20" step="0.05" value="2.50" style="width: 100%; accent-color: #38bdf8; cursor: pointer;">
+        </div>
+
+        <div style="display: flex; gap: 5px; margin-top: 6px;">
+          <button class="btn-sim-action" id="${mountId}-btn-twitch" style="flex: 1; padding: 6px 2px; font-weight: 700; font-size: 0.73rem;">
+            ⚡ Single Twitch
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-tetanus" style="flex: 1; padding: 6px 2px; font-weight: 700; font-size: 0.73rem;">
+            ⚡⚡ Tetanus
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-relax" style="flex: 0.8; padding: 6px 2px; font-weight: 700; font-size: 0.73rem;">
+            🛑 Relax
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-atp" style="flex: 1.1; padding: 6px 2px; font-weight: 700; font-size: 0.73rem;">
+            🔋 ATP: 100%
+          </button>
+        </div>
+
+        <div id="${mountId}-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.80rem; line-height: 1.42;">
+          <strong>Sliding Filament Theory:</strong> During muscle contraction, actin thin filaments slide past myosin thick filaments toward the central M-line. Z-discs move closer together, shortening the sarcomere and narrowing both the I-band and H-zone, while the <strong>A-band length remains completely invariant at 1.60 µm</strong>.
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const lenVal = document.getElementById(`${mountId}-len-val`);
+  const tensionVal = document.getElementById(`${mountId}-tension-val`);
+  const bandsVal = document.getElementById(`${mountId}-bands-val`);
+  const stateBadge = document.getElementById(`${mountId}-state-badge`);
+  const caSlider = document.getElementById(`${mountId}-ca-slider`);
+  const caLbl = document.getElementById(`${mountId}-ca-lbl`);
+  const restSlider = document.getElementById(`${mountId}-rest-slider`);
+  const restLbl = document.getElementById(`${mountId}-rest-lbl`);
+  const btnMacro = document.getElementById(`${mountId}-btn-macro`);
+  const btnMicro = document.getElementById(`${mountId}-btn-micro`);
+  const btnTwitch = document.getElementById(`${mountId}-btn-twitch`);
+  const btnTetanus = document.getElementById(`${mountId}-btn-tetanus`);
+  const btnRelax = document.getElementById(`${mountId}-btn-relax`);
+  const btnAtp = document.getElementById(`${mountId}-btn-atp`);
+  const descBox = document.getElementById(`${mountId}-desc`);
+
+  let cycleT = 0;
+
+  function render() {
+    cycleT += 0.035;
+
+    // Handle calcium kinetics if twitching
+    if (isTwitching) {
+      twitchTimer += 0.04;
+      if (twitchTimer < 1.0) {
+        calcium = 0.1 + 6.0 * (twitchTimer / 0.18) * Math.exp(1 - twitchTimer / 0.18);
+        if (caSlider) caSlider.value = calcium.toFixed(2);
+      } else {
+        isTwitching = false;
+        calcium = parseFloat(caSlider ? caSlider.value : 0.1);
+      }
+    }
+
+    // Hill equation for calcium activation
+    const caHill = Math.pow(calcium, 2.8) / (Math.pow(calcium, 2.8) + Math.pow(1.2, 2.8));
+
+    // Gordon-Huxley Length-Tension Curve
+    let fLen = 0;
+    if (currentLen <= 1.65) {
+      fLen = Math.max(0, 0.4 * (currentLen - 1.25) / 0.4);
+    } else if (currentLen <= 2.0) {
+      fLen = 0.4 + 0.6 * (currentLen - 1.65) / 0.35;
+    } else if (currentLen <= 2.25) {
+      fLen = 1.0;
+    } else if (currentLen <= 3.6) {
+      fLen = Math.max(0, 1.0 - (currentLen - 2.25) / 1.35);
+    } else {
+      fLen = 0;
+    }
+
+    // Contraction mechanics
+    let tension = 0;
+    if (atpLevel === 0) {
+      // Rigor Mortis: locked cross bridges
+      tension = Math.max(25, caHill * fLen * 100);
+    } else {
+      tension = caHill * fLen * 100;
+      const targetLen = sarcomereRestLen - (caHill * 0.55);
+      currentLen += (targetLen - currentLen) * 0.10;
+    }
+
+    const aBand = 1.60;
+    const iBand = Math.max(0, currentLen - aBand);
+    const hZone = Math.max(0, currentLen - 2.00);
+
+    // Update UI elements
+    if (lenVal) lenVal.innerText = `${currentLen.toFixed(2)} µm`;
+    if (tensionVal) tensionVal.innerText = atpLevel === 0 ? "LOCKED (Rigor)" : `${Math.round(tension)}% Fmax`;
+    if (bandsVal) {
+      bandsVal.innerText = `I-Band: ${iBand.toFixed(2)} µm • H-Zone: ${hZone.toFixed(2)} µm • A-Band: 1.60 µm (Invariant)`;
+    }
+
+    if (caLbl && !isTwitching) {
+      caLbl.innerText = `${calcium.toFixed(2)} µM ${calcium >= 1.5 ? '(Active Contraction)' : '(Basal Rest)'}`;
+    }
+
+    if (stateBadge) {
+      if (atpLevel === 0) {
+        stateBadge.innerText = "⚠️ RIGOR MORTIS (ATP Depleted)";
+        stateBadge.style.color = "#ef4444";
+        stateBadge.style.borderColor = "rgba(239, 68, 68, 0.6)";
+      } else if (calcium >= 1.5) {
+        stateBadge.innerText = `Active Contraction ([Ca²⁺] = ${calcium.toFixed(2)} µM)`;
+        stateBadge.style.color = "#f59e0b";
+        stateBadge.style.borderColor = "rgba(245, 158, 11, 0.6)";
+      } else {
+        stateBadge.innerText = `Relaxed ([Ca²⁺] = ${calcium.toFixed(2)} µM)`;
+        stateBadge.style.color = "#34d399";
+        stateBadge.style.borderColor = "rgba(16, 185, 129, 0.6)";
+      }
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Dark canvas background
+    const bgGrad = ctx.createRadialGradient(220, 140, 30, 220, 140, 240);
+    bgGrad.addColorStop(0, "#080e1e");
+    bgGrad.addColorStop(1, "#020409");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (viewMode === "macro") {
+      drawMacroSarcomere(ctx, currentLen, hZone, iBand, caHill, tension, atpLevel, cycleT, caParticles, calcium);
+    } else {
+      drawMicroCrossBridge(ctx, calcium, caHill, atpLevel, cycleT, microStep);
+    }
+
+    animId = requestAnimationFrame(render);
+  }
+
+  function drawMacroSarcomere(ctx, L, hZone, iBand, caHill, tension, atp, t, particles, caVal) {
+    const cx = 220;
+    const cy = 135;
+    const pxPerUm = 115;
+    const halfW = (L / 2) * pxPerUm;
+    const z1 = cx - halfW;
+    const z2 = cx + halfW;
+    const halfA = (1.60 / 2) * pxPerUm; // ~92px
+    const a1 = cx - halfA;
+    const a2 = cx + halfA;
+
+    // Draw Brownian Ca2+ particles if active
+    if (caVal > 0.2) {
+      const activeCount = Math.min(particles.length, Math.floor(caVal * 5));
+      ctx.fillStyle = "#fbbf24";
+      for (let i = 0; i < activeCount; i++) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 30 || p.x > 410) p.vx *= -1;
+        if (p.y < 45 || p.y > 225) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // 1. Titin Elastic Spring Filaments (Z-disc to Myosin ends)
+    ctx.strokeStyle = "#c084fc";
+    ctx.lineWidth = 2;
+    [ [z1, a1], [a2, z2] ].forEach(([xStart, xEnd]) => {
+      ctx.beginPath();
+      const springSteps = 12;
+      const dx = (xEnd - xStart) / springSteps;
+      for (let s = 0; s <= springSteps; s++) {
+        const sx = xStart + s * dx;
+        const sy = cy + (s % 2 === 0 ? -6 : 6);
+        if (s === 0) ctx.moveTo(sx, cy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.lineTo(xEnd, cy);
+      ctx.stroke();
+    });
+
+    // 2. Thick Myosin Filament (Central A-band)
+    const myosinGrad = ctx.createLinearGradient(a1, cy - 8, a2, cy + 8);
+    myosinGrad.addColorStop(0, "#e11d48");
+    myosinGrad.addColorStop(0.5, "#f43f5e");
+    myosinGrad.addColorStop(1, "#e11d48");
+    ctx.fillStyle = myosinGrad;
+    ctx.beginPath();
+    ctx.roundRect(a1, cy - 7, halfA * 2, 14, 4);
+    ctx.fill();
+    ctx.strokeStyle = "#fda4af";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Central M-Line
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 50);
+    ctx.lineTo(cx, cy + 50);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = "bold 9px Inter, sans-serif";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.textAlign = "center";
+    ctx.fillText("M-Line", cx, cy - 54);
+
+    // Myosin Heads (S1 globular cross-bridges)
+    const headOffsets = [-70, -50, -30, 30, 50, 70];
+    headOffsets.forEach((ox) => {
+      const hx = cx + ox;
+      const isLeft = ox < 0;
+      // Head pivot angle: 90 deg = rest, 45 deg = power stroke toward center
+      let pivot = isLeft ? 1 : -1;
+      let angle = 0;
+      if (atp === 0) {
+        angle = 0.5 * pivot; // Locked in rigor
+      } else if (caHill > 0.1) {
+        angle = (0.2 + 0.35 * Math.sin(t * 8 + Math.abs(ox))) * pivot;
+      }
+
+      // Upper and Lower heads
+      [ -1, 1 ].forEach((side) => {
+        const hy = cy + side * 7;
+        const targetY = hy + side * 14;
+        const targetX = hx + angle * 12;
+
+        ctx.strokeStyle = atp === 0 ? "#ef4444" : (caHill > 0.1 ? "#f59e0b" : "#fb7185");
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(hx, hy);
+        ctx.lineTo(targetX, targetY);
+        ctx.stroke();
+
+        // Globular head pearl
+        ctx.fillStyle = atp === 0 ? "#ef4444" : "#fbbf24";
+        ctx.beginPath();
+        ctx.arc(targetX, targetY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    });
+
+    // 3. Thin Actin Filaments (Anchored to Z-discs, extending inward by 1.0 um = 115px)
+    const actinLenPx = 1.00 * pxPerUm;
+    const actinRows = [-22, 22];
+
+    actinRows.forEach((rY) => {
+      // Left actin
+      const lxStart = z1;
+      const lxEnd = z1 + actinLenPx;
+      drawActinFilament(ctx, lxStart, lxEnd, cy + rY, 1);
+
+      // Right actin
+      const rxStart = z2;
+      const rxEnd = z2 - actinLenPx;
+      drawActinFilament(ctx, rxStart, rxEnd, cy + rY, -1);
+    });
+
+    // 4. Z-Discs (Dense alpha-actinin boundaries)
+    [z1, z2].forEach((zx, idx) => {
+      ctx.fillStyle = "#10b981";
+      ctx.strokeStyle = "#34d399";
+      ctx.lineWidth = 2.5;
+
+      ctx.beginPath();
+      const zSteps = 10;
+      const zH = 120;
+      const dy = zH / zSteps;
+      for (let s = 0; s <= zSteps; s++) {
+        const zy = (cy - zH / 2) + s * dy;
+        const xOffset = s % 2 === 0 ? -4 : 4;
+        if (s === 0) ctx.moveTo(zx + xOffset, zy);
+        else ctx.lineTo(zx + xOffset, zy);
+      }
+      ctx.stroke();
+
+      ctx.font = "bold 10px Inter, sans-serif";
+      ctx.fillStyle = "#34d399";
+      ctx.textAlign = "center";
+      ctx.fillText(idx === 0 ? "Z-Disc (Left)" : "Z-Disc (Right)", zx, cy + 72);
+    });
+
+    // 5. Dimension Overlays & Band Brackets
+    // Top Sarcomere Length Bracket
+    drawBracket(ctx, z1, z2, 32, `Sarcomere L = ${L.toFixed(2)} µm`, "#38bdf8", true);
+
+    // Bottom A-Band Bracket (Constant 1.6 um)
+    drawBracket(ctx, a1, a2, 240, "A-BAND: 1.60 µm (CONSTANT)", "#fbbf24", false);
+
+    // Bottom H-Zone Bracket
+    const h1 = z1 + actinLenPx;
+    const h2 = z2 - actinLenPx;
+    if (h2 > h1) {
+      drawBracket(ctx, h1, h2, 215, `H-Zone: ${hZone.toFixed(2)} µm`, "#c084fc", false);
+    } else {
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillStyle = "#a855f7";
+      ctx.textAlign = "center";
+      ctx.fillText("H-Zone: Closed (Max Overlap)", cx, 215);
+    }
+  }
+
+  function drawActinFilament(ctx, x1, x2, y, dir) {
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(x1, y);
+    ctx.lineTo(x2, y);
+    ctx.stroke();
+
+    // Tropomyosin wrap & Troponin complexes
+    const len = Math.abs(x2 - x1);
+    const step = 14;
+    for (let d = 0; d < len; d += step) {
+      const bx = x1 + dir * d;
+      // G-actin sphere
+      ctx.fillStyle = "#0284c7";
+      ctx.beginPath();
+      ctx.arc(bx, y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Troponin dot
+      if (d % (step * 2) === 0) {
+        ctx.fillStyle = "#ec4899";
+        ctx.beginPath();
+        ctx.arc(bx, y - 3, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  function drawBracket(ctx, x1, x2, y, label, color, isTop) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x1, y + (isTop ? 6 : -6));
+    ctx.lineTo(x1, y);
+    ctx.lineTo(x2, y);
+    ctx.lineTo(x2, y + (isTop ? 6 : -6));
+    ctx.stroke();
+
+    ctx.font = "bold 9px Inter, sans-serif";
+    ctx.fillStyle = color;
+    ctx.textAlign = "center";
+    ctx.fillText(label, (x1 + x2) / 2, isTop ? y - 4 : y + 12);
+  }
+
+  function drawMicroCrossBridge(ctx, ca, caHill, atp, t, step) {
+    const cx = 220;
+
+    // Title for Micro View
+    ctx.font = "bold 12px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "center";
+    ctx.fillText("Molecular Cross-Bridge Cycle (Actin-Myosin Power Stroke)", cx, 28);
+
+    // Actin Filament at Top (y = 80)
+    const actinY = 80;
+    ctx.fillStyle = "#0369a1";
+    ctx.fillRect(40, actinY - 6, 360, 12);
+
+    // G-actin monomers
+    for (let x = 45; x <= 395; x += 18) {
+      ctx.fillStyle = "#38bdf8";
+      ctx.beginPath();
+      ctx.arc(x, actinY, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Active binding site pocket
+      ctx.fillStyle = caHill > 0.3 ? "#facc15" : "#0f172a";
+      ctx.beginPath();
+      ctx.arc(x, actinY + 4, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Tropomyosin Ribbon
+    const tropoOffset = caHill > 0.3 ? -10 : 3;
+    ctx.strokeStyle = "#eab308";
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(40, actinY + tropoOffset);
+    for (let x = 40; x <= 400; x += 20) {
+      ctx.lineTo(x, actinY + tropoOffset + Math.sin(x * 0.1) * 2);
+    }
+    ctx.stroke();
+
+    // Troponin C Complexes with Calcium
+    ctx.fillStyle = "#ec4899";
+    for (let x = 70; x <= 380; x += 70) {
+      ctx.beginPath();
+      ctx.arc(x, actinY + tropoOffset - 2, 6, 0, Math.PI * 2);
+      ctx.fill();
+      if (caHill > 0.3) {
+        ctx.fillStyle = "#fbbf24";
+        ctx.beginPath();
+        ctx.arc(x, actinY + tropoOffset - 2, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = "#ec4899";
+    }
+
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillStyle = "#facc15";
+    ctx.textAlign = "left";
+    ctx.fillText(caHill > 0.3 ? "Tropomyosin Shifted (Binding Sites Exposed)" : "Tropomyosin Blocking Binding Sites", 45, actinY - 14);
+
+    // Myosin S1 Globular Head at Bottom (Hinge at y = 220)
+    const hingeX = cx;
+    const hingeY = 220;
+
+    // Micro Step calculation
+    let currentStep = step;
+    if (atp === 0) {
+      currentStep = 2; // Locked in power-stroke rigor
+    }
+
+    let headX = cx;
+    let headY = 120;
+    let headAngle = 0;
+    let stepTitle = "";
+    let stepDesc = "";
+
+    if (currentStep === 0) {
+      // 1. Cocked resting head (90 deg, ADP+Pi)
+      headX = cx;
+      headY = 115;
+      headAngle = 0;
+      stepTitle = "Step 1: Cocked High-Energy State (90°)";
+      stepDesc = "Myosin ATPase has hydrolyzed ATP into ADP + Pi. Head is energized and cocked at 90°, waiting for Ca²⁺.";
+    } else if (currentStep === 1) {
+      // 2. Cross-bridge attachment
+      headX = cx;
+      headY = 92;
+      headAngle = 0;
+      stepTitle = "Step 2: Cross-Bridge Formation";
+      stepDesc = "Ca²⁺ binds Troponin C, moving Tropomyosin aside. Myosin head binds tightly to actin active site.";
+    } else if (currentStep === 2) {
+      // 3. Power stroke (45 deg)
+      headX = cx - 28;
+      headY = 92;
+      headAngle = -0.55;
+      stepTitle = atp === 0 ? "⚠️ RIGOR MORTIS COMPLEX" : "Step 3: Power Stroke (45° Pivot)";
+      stepDesc = atp === 0
+        ? "ATP is depleted! Myosin heads remain rigidly locked to actin. Cross-bridges cannot detach without new ATP."
+        : "Pi is released, triggering a 45° tilt. Actin filament is pulled ~10 nm toward M-line! ADP is released.";
+    } else {
+      // 4. Detachment & Hydrolysis
+      headX = cx - 20;
+      headY = 135;
+      headAngle = -0.3;
+      stepTitle = "Step 4: ATP Binding & Detachment";
+      stepDesc = "A fresh ATP molecule binds the myosin head, triggering immediate detachment from actin.";
+    }
+
+    // Draw Myosin Arm / Neck
+    ctx.strokeStyle = "#e11d48";
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(hingeX, hingeY);
+    ctx.lineTo(headX, headY);
+    ctx.stroke();
+
+    // Hinge Sphere
+    ctx.fillStyle = "#f43f5e";
+    ctx.beginPath();
+    ctx.arc(hingeX, hingeY, 9, 0, Math.PI * 2);
+    ctx.fill();
+
+    // S1 Globular Head
+    ctx.save();
+    ctx.translate(headX, headY);
+    ctx.rotate(headAngle);
+
+    const headGrad = ctx.createRadialGradient(0, 0, 3, 0, 0, 16);
+    headGrad.addColorStop(0, atp === 0 ? "#ef4444" : "#fbbf24");
+    headGrad.addColorStop(1, atp === 0 ? "#b91c1c" : "#d97706");
+    ctx.fillStyle = headGrad;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 16, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Nucleotide state label on head
+    ctx.font = "bold 8px Inter, sans-serif";
+    ctx.fillStyle = "#0f172a";
+    ctx.textAlign = "center";
+    const nuclText = currentStep === 0 ? "ADP+Pi" : (currentStep === 1 ? "ADP" : (currentStep === 2 ? (atp === 0 ? "NO ATP" : "EMPTY") : "ATP"));
+    ctx.fillText(nuclText, 0, 3);
+    ctx.restore();
+
+    // Step Info Box
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.strokeStyle = atp === 0 ? "#ef4444" : "#38bdf8";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(40, 235, 360, 38, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillStyle = atp === 0 ? "#ef4444" : "#38bdf8";
+    ctx.textAlign = "left";
+    ctx.fillText(stepTitle, 50, 249);
+
+    ctx.font = "9px Inter, sans-serif";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillText(stepDesc, 50, 263);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  // Event Listeners
+  if (caSlider) {
+    caSlider.addEventListener("input", (e) => {
+      isTwitching = false;
+      calcium = parseFloat(e.target.value);
+    });
+  }
+
+  if (restSlider) {
+    restSlider.addEventListener("input", (e) => {
+      sarcomereRestLen = parseFloat(e.target.value);
+      if (restLbl) restLbl.innerText = `${sarcomereRestLen.toFixed(2)} µm`;
+    });
+  }
+
+  if (btnMacro) {
+    btnMacro.addEventListener("click", () => {
+      viewMode = "macro";
+      btnMacro.classList.add("active");
+      btnMacro.className = "btn btn-primary active";
+      if (btnMicro) btnMicro.className = "btn-sim-action";
+      if (descBox) {
+        descBox.innerHTML = `<strong>Sliding Filament Theory:</strong> During muscle contraction, actin thin filaments slide past myosin thick filaments toward the central M-line. Z-discs move closer together, shortening the sarcomere and narrowing both the I-band and H-zone, while the <strong>A-band length remains completely invariant at 1.60 µm</strong>.`;
+      }
+    });
+  }
+
+  if (btnMicro) {
+    btnMicro.addEventListener("click", () => {
+      viewMode = "micro";
+      btnMicro.classList.add("active");
+      btnMicro.className = "btn btn-primary active";
+      if (btnMacro) btnMacro.className = "btn-sim-action";
+      if (descBox) {
+        descBox.innerHTML = `<strong>Cross-Bridge Cycle:</strong> 1) Resting cocked (ADP+Pi). 2) Ca²⁺ exposes actin sites; myosin binds. 3) Power stroke tilts head 45°, pulling actin 10 nm. 4) ATP binds to release head. 5) ATP hydrolysis recocks head back to 90°.`;
+      }
+    });
+  }
+
+  if (btnTwitch) {
+    btnTwitch.addEventListener("click", () => {
+      isTwitching = true;
+      twitchTimer = 0;
+    });
+  }
+
+  if (btnTetanus) {
+    btnTetanus.addEventListener("click", () => {
+      isTwitching = false;
+      calcium = 6.5;
+      if (caSlider) caSlider.value = "6.5";
+    });
+  }
+
+  if (btnRelax) {
+    btnRelax.addEventListener("click", () => {
+      isTwitching = false;
+      calcium = 0.1;
+      if (caSlider) caSlider.value = "0.10";
+    });
+  }
+
+  if (btnAtp) {
+    btnAtp.addEventListener("click", () => {
+      atpLevel = atpLevel === 100 ? 0 : 100;
+      btnAtp.innerText = atpLevel === 100 ? "🔋 ATP: 100%" : "⚠️ ATP: 0% (Rigor)";
+      btnAtp.style.borderColor = atpLevel === 100 ? "" : "#ef4444";
+      btnAtp.style.color = atpLevel === 100 ? "" : "#ef4444";
+    });
+  }
+}
+
+// Scratch validation for buildCardiacCycleInteractive
+
+/**
+ * Cardiac Cycle & Hemodynamics Interactive Simulator (BIO-M24-L1)
+ */
+function buildCardiacCycleInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+  let hr = params.heartRate || 72; // BPM (40 to 180)
+  let sv = params.strokeVolume || 70; // mL (45 to 110)
+  let isRunning = true;
+  let cycleProgress = 0; // 0.0 to 1.0 within cardiac cycle
+  let animId;
+
+  // Sound pulse effect
+  let soundPulse = null; // { type: "S1" | "S2", progress: 0 }
+
+  // Hydrodynamic blood flow particles
+  const particles = [];
+  for (let i = 0; i < 20; i++) {
+    particles.push({
+      side: i < 10 ? "venous" : "arterial",
+      chamber: "atrium",
+      x: i < 10 ? 65 + (Math.random() - 0.5) * 20 : 185 + (Math.random() - 0.5) * 20,
+      y: 65 + Math.random() * 25,
+      speed: 1.0 + Math.random() * 0.5
+    });
+  }
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #020617;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 5;">
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.5); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Hemodynamics: 4-Chamber Cycle
+          </span>
+          <span id="${mountId}-phase-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(16,185,129,0.5); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Phase 1: Atrial Systole
+          </span>
+          <span id="${mountId}-sound-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(251,191,36,0.5); color: #fbbf24; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Sound: Silent
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56,189,248,0.4);">
+          <span class="readout-label">Heart Rate:</span>
+          <span id="${mountId}-hr-val" class="readout-val" style="color: #38bdf8; font-weight: 800;">72 BPM</span>
+          <span class="readout-label" style="margin-left: 6px;">Stroke Vol:</span>
+          <span id="${mountId}-sv-val" class="readout-val" style="color: #ec4899; font-weight: 800;">70 mL</span>
+          <span class="readout-label" style="margin-left: 6px;">Cardiac Output:</span>
+          <span id="${mountId}-co-val" class="readout-val" style="color: #34d399; font-weight: 800;">5.04 L/min</span>
+        </div>
+
+        <div class="sim-readout-pill" style="border-color: rgba(245,158,11,0.4); margin-top: 4px;">
+          <span id="${mountId}-bp-val" style="color: #fbbf24; font-size: 0.75rem; font-weight: 700;">
+            BP: 120/80 mmHg • MAP: 93.3 mmHg • Valves: Mitral OPEN | Aortic CLOSED
+          </span>
+        </div>
+
+        <!-- HR Slider -->
+        <div style="margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Heart Rate (Chronotropy):</span>
+            <span id="${mountId}-hr-lbl" style="color: #38bdf8; font-weight: 800;">72 BPM (Normal Sinus)</span>
+          </div>
+          <input type="range" id="${mountId}-hr-slider" min="40" max="180" step="1" value="72" style="width: 100%; accent-color: #38bdf8; cursor: pointer;">
+        </div>
+
+        <!-- Stroke Volume Slider -->
+        <div style="margin-top: 4px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Stroke Volume (Contractility / EDV - ESV):</span>
+            <span id="${mountId}-sv-lbl" style="color: #ec4899; font-weight: 800;">70 mL</span>
+          </div>
+          <input type="range" id="${mountId}-sv-slider" min="45" max="110" step="1" value="70" style="width: 100%; accent-color: #ec4899; cursor: pointer;">
+        </div>
+
+        <!-- Transport Buttons -->
+        <div style="display: flex; gap: 5px; margin-top: 6px;">
+          <button class="btn btn-primary active" id="${mountId}-btn-play" style="flex: 1.1; padding: 6px 4px; font-weight: 700; font-size: 0.73rem;">
+            ⏸ Pause Beat
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-step" style="flex: 1.1; padding: 6px 4px; font-weight: 700; font-size: 0.73rem;">
+            ⏭ Step Phase
+          </button>
+        </div>
+
+        <!-- Presets -->
+        <div style="display: flex; gap: 5px; margin-top: 6px;">
+          <button class="btn-sim-action" id="${mountId}-pre-rest" style="flex: 1; padding: 5px 2px; font-size: 0.70rem; font-weight: 700;">
+            ❤️ Rest (72)
+          </button>
+          <button class="btn-sim-action" id="${mountId}-pre-run" style="flex: 1; padding: 5px 2px; font-size: 0.70rem; font-weight: 700;">
+            🏃 Run (150)
+          </button>
+          <button class="btn-sim-action" id="${mountId}-pre-ath" style="flex: 1; padding: 5px 2px; font-size: 0.70rem; font-weight: 700;">
+            🚴 Athlete (48)
+          </button>
+          <button class="btn-sim-action" id="${mountId}-pre-hyp" style="flex: 1.2; padding: 5px 2px; font-size: 0.70rem; font-weight: 700;">
+            ⚠️ Hyper (160/100)
+          </button>
+        </div>
+
+        <!-- Telemetry box -->
+        <div id="${mountId}-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.80rem; line-height: 1.42;">
+          <strong>Atrial Systole (Phase 1):</strong> SA node fires P-wave on ECG. Atria contract to deliver the final ~20% of ventricular filling ("Atrial Kick"). AV valves (Tricuspid & Mitral) are wide open; Semilunar valves remain tightly closed.
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const hrVal = document.getElementById(`${mountId}-hr-val`);
+  const svVal = document.getElementById(`${mountId}-sv-val`);
+  const coVal = document.getElementById(`${mountId}-co-val`);
+  const bpVal = document.getElementById(`${mountId}-bp-val`);
+  const phaseBadge = document.getElementById(`${mountId}-phase-badge`);
+  const soundBadge = document.getElementById(`${mountId}-sound-badge`);
+  const hrSlider = document.getElementById(`${mountId}-hr-slider`);
+  const hrLbl = document.getElementById(`${mountId}-hr-lbl`);
+  const svSlider = document.getElementById(`${mountId}-sv-slider`);
+  const svLbl = document.getElementById(`${mountId}-sv-lbl`);
+  const btnPlay = document.getElementById(`${mountId}-btn-play`);
+  const btnStep = document.getElementById(`${mountId}-btn-step`);
+  const preRest = document.getElementById(`${mountId}-pre-rest`);
+  const preRun = document.getElementById(`${mountId}-pre-run`);
+  const preAth = document.getElementById(`${mountId}-pre-ath`);
+  const preHyp = document.getElementById(`${mountId}-pre-hyp`);
+  const descBox = document.getElementById(`${mountId}-desc`);
+
+  let prevPhase = 1;
+
+  function render() {
+    // Progress calculation based on Heart Rate
+    if (isRunning) {
+      const cycleDurationSec = 60 / hr;
+      const progressDelta = (1 / 60) / cycleDurationSec;
+      cycleProgress = (cycleProgress + progressDelta) % 1.0;
+    }
+
+    // Determine current phase (1 to 5)
+    // Phase 1: 0.00 - 0.15 (Atrial Systole)
+    // Phase 2: 0.15 - 0.25 (Isovolumetric Contraction - S1 LUB)
+    // Phase 3: 0.25 - 0.50 (Rapid Ventricular Ejection)
+    // Phase 4: 0.50 - 0.60 (Isovolumetric Relaxation - S2 DUB)
+    // Phase 5: 0.60 - 1.00 (Passive Ventricular Filling)
+    let phase = 1;
+    let phaseName = "";
+    let avOpen = true;
+    let slOpen = false;
+    let lvPressure = 10;
+    let aorticPressure = 80;
+
+    if (cycleProgress < 0.15) {
+      phase = 1;
+      phaseName = "Phase 1: Atrial Systole (P-Wave)";
+      avOpen = true;
+      slOpen = false;
+      lvPressure = 8 + (cycleProgress / 0.15) * 4;
+      aorticPressure = 80 - (cycleProgress / 0.15) * 2;
+    } else if (cycleProgress < 0.25) {
+      phase = 2;
+      phaseName = "Phase 2: Isovolumetric Contraction (S1)";
+      avOpen = false;
+      slOpen = false;
+      const tRel = (cycleProgress - 0.15) / 0.10;
+      lvPressure = 12 + tRel * 70; // 12 -> 82 mmHg
+      aorticPressure = 78 - tRel * 2;
+    } else if (cycleProgress < 0.50) {
+      phase = 3;
+      phaseName = "Phase 3: Rapid Ventricular Ejection";
+      avOpen = false;
+      slOpen = true;
+      const tRel = (cycleProgress - 0.25) / 0.25;
+      const peakP = 120 * (sv / 70);
+      lvPressure = 80 + Math.sin(tRel * Math.PI) * (peakP - 80);
+      aorticPressure = lvPressure;
+    } else if (cycleProgress < 0.60) {
+      phase = 4;
+      phaseName = "Phase 4: Isovolumetric Relaxation (S2)";
+      avOpen = false;
+      slOpen = false;
+      const tRel = (cycleProgress - 0.50) / 0.10;
+      lvPressure = 80 - tRel * 70; // 80 -> 10 mmHg
+      aorticPressure = 100 - tRel * 15; // with dicrotic notch rebound
+    } else {
+      phase = 5;
+      phaseName = "Phase 5: Passive Ventricular Filling";
+      avOpen = true;
+      slOpen = false;
+      const tRel = (cycleProgress - 0.60) / 0.40;
+      lvPressure = 10 + tRel * 2;
+      aorticPressure = 85 - tRel * 5;
+    }
+
+    // Sound triggers on phase transition
+    if (prevPhase !== phase) {
+      if (phase === 2) {
+        soundPulse = { type: "S1 (LUB)", radius: 10, color: "#10b981" };
+      } else if (phase === 4) {
+        soundPulse = { type: "S2 (DUB)", radius: 10, color: "#ec4899" };
+      }
+      prevPhase = phase;
+      updatePhaseDescription(phase);
+    }
+
+    // Cardiac Output & Blood Pressure
+    const co = (hr * sv) / 1000;
+    const sbp = Math.round(120 * (sv / 70));
+    const dbp = Math.round(80 * (hr / 72) * 0.95);
+    const map = Math.round(dbp + (sbp - dbp) / 3);
+
+    // Update text readouts
+    if (hrVal) hrVal.innerText = `${hr} BPM`;
+    if (svVal) svVal.innerText = `${sv} mL`;
+    if (coVal) coVal.innerText = `${co.toFixed(2)} L/min`;
+    if (bpVal) {
+      bpVal.innerText = `BP: ${sbp}/${dbp} mmHg • MAP: ${map} mmHg • AV: ${avOpen ? 'OPEN' : 'CLOSED'} | SL: ${slOpen ? 'OPEN' : 'CLOSED'}`;
+    }
+
+    if (phaseBadge) {
+      phaseBadge.innerText = phaseName;
+      phaseBadge.style.color = phase === 2 ? "#10b981" : (phase === 4 ? "#ec4899" : "#38bdf8");
+    }
+
+    if (soundBadge) {
+      if (soundPulse && soundPulse.radius < 50) {
+        soundBadge.innerText = `Sound: ${soundPulse.type}!`;
+        soundBadge.style.color = soundPulse.color;
+        soundBadge.style.borderColor = soundPulse.color;
+      } else {
+        soundBadge.innerText = "Sound: Silent";
+        soundBadge.style.color = "#94a3b8";
+        soundBadge.style.borderColor = "rgba(148, 163, 184, 0.4)";
+      }
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Deep Obsidian Backdrop
+    const bgGrad = ctx.createRadialGradient(220, 140, 30, 220, 140, 240);
+    bgGrad.addColorStop(0, "#080e1e");
+    bgGrad.addColorStop(1, "#020409");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Divider line between Heart Anatomy and Oscilloscope Strip
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(260, 10);
+    ctx.lineTo(260, 270);
+    ctx.stroke();
+
+    // 1. Draw 4-Chamber Heart Cross-Section (x: 0 to 255)
+    drawHeartAnatomy(ctx, cycleProgress, phase, avOpen, slOpen, particles);
+
+    // 2. Draw S1 / S2 Sound Ripple Wave
+    if (soundPulse) {
+      soundPulse.radius += 2.0;
+      if (soundPulse.radius < 60) {
+        ctx.strokeStyle = soundPulse.color;
+        ctx.lineWidth = 2.5 * (1 - soundPulse.radius / 60);
+        ctx.beginPath();
+        ctx.arc(125, 130, soundPulse.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.font = "bold 11px Inter, sans-serif";
+        ctx.fillStyle = soundPulse.color;
+        ctx.textAlign = "center";
+        ctx.fillText(soundPulse.type, 125, 130 - soundPulse.radius - 4);
+      }
+    }
+
+    // 3. Draw Synchronized Lead II ECG and Wiggers Curves (x: 270 to 430)
+    drawOscilloscopePane(ctx, cycleProgress, phase, lvPressure, aorticPressure);
+
+    animId = requestAnimationFrame(render);
+  }
+
+  function drawHeartAnatomy(ctx, progress, phase, avOpen, slOpen, particles) {
+    const cx = 125;
+    const cy = 135;
+
+    // Chamber Contraction Displacements
+    // Atrial systole (Phase 1): atria squeeze down
+    const atrialSqueeze = phase === 1 ? 5 : 0;
+    // Ventricular systole (Phases 2 & 3): ventricular apex squeezes upward/inward
+    const ventSqueeze = (phase === 2 || phase === 3) ? 8 : 0;
+
+    // A. Outer Myocardium & Pericardium
+    ctx.fillStyle = "#334155";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    // Heart outer silhouette
+    ctx.moveTo(cx, cy + 90 - ventSqueeze);
+    ctx.bezierCurveTo(cx - 95, cy + 70 - ventSqueeze, cx - 100, cy - 40, cx - 40, cy - 70 + atrialSqueeze);
+    ctx.bezierCurveTo(cx - 10, cy - 85 + atrialSqueeze, cx + 10, cy - 85 + atrialSqueeze, cx + 40, cy - 70 + atrialSqueeze);
+    ctx.bezierCurveTo(cx + 100, cy - 40, cx + 95, cy + 70 - ventSqueeze, cx, cy + 90 - ventSqueeze);
+    ctx.fill();
+    ctx.stroke();
+
+    // B. Internal Chamber Cavities
+    // 1. Right Atrium (RA) - Deoxygenated Cyan/Blue
+    ctx.fillStyle = "#1e3a8a";
+    ctx.beginPath();
+    ctx.roundRect(cx - 80, cy - 65 + atrialSqueeze, 65, 45, 10);
+    ctx.fill();
+
+    // 2. Left Atrium (LA) - Oxygenated Crimson
+    ctx.fillStyle = "#991b1b";
+    ctx.beginPath();
+    ctx.roundRect(cx + 15, cy - 65 + atrialSqueeze, 65, 45, 10);
+    ctx.fill();
+
+    // 3. Right Ventricle (RV) - Thinner wall
+    ctx.fillStyle = "#1d4ed8";
+    ctx.beginPath();
+    ctx.roundRect(cx - 75, cy - 10, 60, 80 - ventSqueeze, 12);
+    ctx.fill();
+
+    // 4. Left Ventricle (LV) - Very thick myocardium wall
+    ctx.fillStyle = "#dc2626";
+    ctx.beginPath();
+    ctx.roundRect(cx + 15, cy - 10, 55, 80 - ventSqueeze, 12);
+    ctx.fill();
+
+    // C. Interventricular Muscular Septum
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(cx - 10, cy - 15, 20, 95 - ventSqueeze);
+
+    // Thick Left Ventricular Lateral Wall highlight (3x thicker)
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(cx + 70, cy - 10, 16, 75);
+    ctx.font = "bold 8px Inter, sans-serif";
+    ctx.fillStyle = "#e2e8f0";
+    ctx.textAlign = "center";
+    ctx.fillText("LV Wall", cx + 78, cy + 30);
+    ctx.fillText("(3x Thick)", cx + 78, cy + 40);
+
+    // D. Cardiac Valves
+    // Tricuspid Valve (RA -> RV)
+    drawValve(ctx, cx - 55, cy - 15, avOpen, "#38bdf8", "Tricuspid");
+    // Mitral / Bicuspid Valve (LA -> LV)
+    drawValve(ctx, cx + 38, cy - 15, avOpen, "#f87171", "Mitral");
+
+    // Pulmonary Valve (RV outflow)
+    drawValve(ctx, cx - 25, cy - 50, slOpen, "#60a5fa", "Pulmonary");
+    // Aortic Valve (LV outflow)
+    drawValve(ctx, cx + 5, cy - 50, slOpen, "#f87171", "Aortic");
+
+    // E. Chamber Labels
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillStyle = "#93c5fd";
+    ctx.textAlign = "center";
+    ctx.fillText("RA", cx - 48, cy - 42 + atrialSqueeze);
+    ctx.fillText("RV", cx - 45, cy + 35);
+
+    ctx.fillStyle = "#fca5a5";
+    ctx.fillText("LA", cx + 48, cy - 42 + atrialSqueeze);
+    ctx.fillText("LV", cx + 42, cy + 35);
+
+    // F. Flow Particles
+    particles.forEach((p) => {
+      ctx.fillStyle = p.side === "venous" ? "#38bdf8" : "#f87171";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Particle physics
+      if (phase === 1 || phase === 5) {
+        // Move from atrium into ventricle
+        if (p.y < cy + 50) p.y += p.speed * 2.5;
+        else {
+          p.y = 65 + Math.random() * 20;
+          p.x = p.side === "venous" ? 65 + (Math.random() - 0.5) * 20 : 185 + (Math.random() - 0.5) * 20;
+        }
+      } else if (phase === 3) {
+        // Eject out of ventricles into aorta/pulmonary artery
+        if (p.y > 35) p.y -= p.speed * 3.5;
+        else {
+          p.y = cy + 20 + Math.random() * 30;
+        }
+      }
+    });
+  }
+
+  function drawValve(ctx, x, y, isOpen, color, label) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+
+    ctx.beginPath();
+    if (isOpen) {
+      // Leaflets open downward
+      ctx.moveTo(x - 9, y - 4);
+      ctx.lineTo(x - 4, y + 8);
+      ctx.moveTo(x + 9, y - 4);
+      ctx.lineTo(x + 4, y + 8);
+    } else {
+      // Leaflets snapped shut horizontally
+      ctx.moveTo(x - 9, y);
+      ctx.lineTo(x, y + 2);
+      ctx.lineTo(x + 9, y);
+    }
+    ctx.stroke();
+  }
+
+  function drawOscilloscopePane(ctx, progress, phase, lvP, aoP) {
+    const ox = 272;
+    const ow = 158;
+
+    // 1. ECG Trace Box (Top)
+    const ecgY = 18;
+    const ecgH = 110;
+
+    ctx.fillStyle = "#030a16";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(ox, ecgY, ow, ecgH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // ECG Oscilloscope Grid
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.1)";
+    for (let x = ox + 15; x < ox + ow; x += 20) {
+      ctx.beginPath();
+      ctx.moveTo(x, ecgY);
+      ctx.lineTo(x, ecgY + ecgH);
+      ctx.stroke();
+    }
+    for (let y = ecgY + 15; y < ecgY + ecgH; y += 20) {
+      ctx.beginPath();
+      ctx.moveTo(ox, y);
+      ctx.lineTo(ox + ow, y);
+      ctx.stroke();
+    }
+
+    ctx.font = "bold 9px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "left";
+    ctx.fillText("Lead II ECG (mV)", ox + 8, ecgY + 14);
+
+    // Draw Complete Lead II ECG Waveform
+    const ecgBaseline = ecgY + 68;
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    for (let px = 0; px <= ow; px += 2) {
+      const pNorm = px / ow;
+      let mV = 0;
+
+      // P wave: 0.05 to 0.15
+      if (pNorm >= 0.05 && pNorm <= 0.15) {
+        mV = Math.sin((pNorm - 0.05) / 0.10 * Math.PI) * 12;
+      }
+      // QRS complex: 0.18 to 0.26
+      else if (pNorm >= 0.18 && pNorm < 0.20) {
+        mV = -((pNorm - 0.18) / 0.02) * 6; // Q wave dip
+      } else if (pNorm >= 0.20 && pNorm < 0.22) {
+        mV = -6 + ((pNorm - 0.20) / 0.02) * 48; // R wave spike
+      } else if (pNorm >= 0.22 && pNorm < 0.25) {
+        mV = 42 - ((pNorm - 0.22) / 0.03) * 54; // S wave drop
+      } else if (pNorm >= 0.25 && pNorm <= 0.27) {
+        mV = -12 + ((pNorm - 0.25) / 0.02) * 12; // Return to baseline
+      }
+      // T wave: 0.45 to 0.60
+      else if (pNorm >= 0.45 && pNorm <= 0.60) {
+        mV = Math.sin((pNorm - 0.45) / 0.15 * Math.PI) * 16;
+      }
+
+      const py = ecgBaseline - mV;
+      if (px === 0) ctx.moveTo(ox + px, py);
+      else ctx.lineTo(ox + px, py);
+    }
+    ctx.stroke();
+
+    // ECG Sweep Cursor
+    const cursorX = ox + progress * ow;
+    ctx.strokeStyle = "#f59e0b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cursorX, ecgY);
+    ctx.lineTo(cursorX, ecgY + ecgH);
+    ctx.stroke();
+
+    // 2. Wiggers Hemodynamic Pressure Box (Bottom)
+    const wigY = 140;
+    const wigH = 125;
+
+    ctx.fillStyle = "#030a16";
+    ctx.strokeStyle = "rgba(245, 158, 11, 0.3)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(ox, wigY, ow, wigH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.font = "bold 9px Inter, sans-serif";
+    ctx.fillStyle = "#fbbf24";
+    ctx.textAlign = "left";
+    ctx.fillText("Wiggers Pressure (mmHg)", ox + 8, wigY + 14);
+
+    // Pressure Y scale: 0 to 140 mmHg
+    const pBaseline = wigY + 110;
+    const pxScale = 85 / 140; // 85px max height
+
+    // Aortic Pressure Curve (Red)
+    ctx.strokeStyle = "#ef4444";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    for (let px = 0; px <= ow; px += 2) {
+      const pNorm = px / ow;
+      let pmmHg = 80;
+      if (pNorm < 0.25) {
+        pmmmHg = 80 - pNorm * 10;
+      } else if (pNorm < 0.50) {
+        const tRel = (pNorm - 0.25) / 0.25;
+        pmmmHg = 80 + Math.sin(tRel * Math.PI) * 40;
+      } else if (pNorm < 0.60) {
+        // Dicrotic notch
+        const tRel = (pNorm - 0.50) / 0.10;
+        pmmmHg = 100 - tRel * 15 + (tRel > 0.3 && tRel < 0.7 ? 6 : 0);
+      } else {
+        pmmmHg = 85 - (pNorm - 0.60) * 10;
+      }
+      const py = pBaseline - pmmHg * pxScale;
+      if (px === 0) ctx.moveTo(ox + px, py);
+      else ctx.lineTo(ox + px, py);
+    }
+    ctx.stroke();
+
+    // Ventricular Pressure Curve (Gold)
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let px = 0; px <= ow; px += 2) {
+      const pNorm = px / ow;
+      let pmmHg = 10;
+      if (pNorm < 0.15) {
+        pmmmHg = 8 + (pNorm / 0.15) * 4;
+      } else if (pNorm < 0.25) {
+        pmmmHg = 12 + ((pNorm - 0.15) / 0.10) * 68;
+      } else if (pNorm < 0.50) {
+        const tRel = (pNorm - 0.25) / 0.25;
+        pmmmHg = 80 + Math.sin(tRel * Math.PI) * 40;
+      } else if (pNorm < 0.60) {
+        pmmmHg = 80 - ((pNorm - 0.50) / 0.10) * 70;
+      } else {
+        pmmmHg = 10;
+      }
+      const py = pBaseline - pmmHg * pxScale;
+      if (px === 0) ctx.moveTo(ox + px, py);
+      else ctx.lineTo(ox + px, py);
+    }
+    ctx.stroke();
+
+    // Pressure sweep cursor
+    ctx.strokeStyle = "#f59e0b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(cursorX, wigY);
+    ctx.lineTo(cursorX, wigY + wigH);
+    ctx.stroke();
+
+    // Legend
+    ctx.font = "8px Inter, sans-serif";
+    ctx.fillStyle = "#fbbf24";
+    ctx.fillText("— LV Press", ox + 8, wigY + wigH - 8);
+    ctx.fillStyle = "#ef4444";
+    ctx.fillText("— Aortic Press", ox + 65, wigY + wigH - 8);
+  }
+
+  function updatePhaseDescription(p) {
+    if (!descBox) return;
+    if (p === 1) {
+      descBox.innerHTML = `<strong>Atrial Systole (Phase 1):</strong> SA node fires P-wave on ECG. Atria contract to deliver the final ~20% of ventricular filling ("Atrial Kick"). AV valves (Tricuspid & Mitral) are wide open; Semilunar valves remain tightly closed.`;
+    } else if (p === 2) {
+      descBox.innerHTML = `<strong>Isovolumetric Contraction (Phase 2):</strong> Ventricular depolarization (QRS). Pressure skyrockets; Mitral & Tricuspid valves snap shut, producing <strong>First Heart Sound S1 "LUB"</strong>. All 4 valves closed; chamber volume is constant while pressure rises from 10 to 80 mmHg.`;
+    } else if (p === 3) {
+      descBox.innerHTML = `<strong>Rapid Ventricular Ejection (Phase 3):</strong> Left ventricular pressure exceeds aortic diastolic pressure (80 mmHg), forcing Aortic & Pulmonary semilunar valves wide open! Blood surges into the aorta. Stroke volume (~70 mL) ejected.`;
+    } else if (p === 4) {
+      descBox.innerHTML = `<strong>Isovolumetric Relaxation (Phase 4):</strong> Ventricles repolarize (T-wave). Ventricular pressure plummets below arterial pressure; Semilunar valves snap shut, generating <strong>Second Heart Sound S2 "DUB"</strong>. Aortic recoil creates the <em>Dicrotic Notch</em>.`;
+    } else {
+      descBox.innerHTML = `<strong>Passive Ventricular Filling (Phase 5):</strong> Ventricular pressure drops below atrial pressure. AV valves (Mitral & Tricuspid) swing open. Blood rushes into the relaxing ventricles, supplying 70-80% of total diastolic filling passively.`;
+    }
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  // Listeners
+  if (hrSlider) {
+    hrSlider.addEventListener("input", (e) => {
+      hr = parseInt(e.target.value, 10);
+      if (hrLbl) hrLbl.innerText = `${hr} BPM ${hr < 60 ? '(Bradycardia)' : (hr > 100 ? '(Tachycardia)' : '(Normal Sinus)')}`;
+    });
+  }
+
+  if (svSlider) {
+    svSlider.addEventListener("input", (e) => {
+      sv = parseInt(e.target.value, 10);
+      if (svLbl) svLbl.innerText = `${sv} mL`;
+    });
+  }
+
+  if (btnPlay) {
+    btnPlay.addEventListener("click", () => {
+      isRunning = !isRunning;
+      btnPlay.innerText = isRunning ? "⏸ Pause Beat" : "▶ Resume Beat";
+      btnPlay.classList.toggle("active", isRunning);
+    });
+  }
+
+  if (btnStep) {
+    btnStep.addEventListener("click", () => {
+      isRunning = false;
+      if (btnPlay) {
+        btnPlay.innerText = "▶ Resume Beat";
+        btnPlay.classList.remove("active");
+      }
+      // Step to next phase checkpoint
+      if (cycleProgress < 0.15) cycleProgress = 0.18;
+      else if (cycleProgress < 0.25) cycleProgress = 0.35;
+      else if (cycleProgress < 0.50) cycleProgress = 0.53;
+      else if (cycleProgress < 0.60) cycleProgress = 0.75;
+      else cycleProgress = 0.05;
+    });
+  }
+
+  if (preRest) {
+    preRest.addEventListener("click", () => {
+      hr = 72;
+      sv = 70;
+      if (hrSlider) hrSlider.value = "72";
+      if (svSlider) svSlider.value = "70";
+      if (hrLbl) hrLbl.innerText = "72 BPM (Normal Sinus)";
+      if (svLbl) svLbl.innerText = "70 mL";
+    });
+  }
+
+  if (preRun) {
+    preRun.addEventListener("click", () => {
+      hr = 150;
+      sv = 95;
+      if (hrSlider) hrSlider.value = "150";
+      if (svSlider) svSlider.value = "95";
+      if (hrLbl) hrLbl.innerText = "150 BPM (Aerobic Exercise)";
+      if (svLbl) svLbl.innerText = "95 mL";
+    });
+  }
+
+  if (preAth) {
+    preAth.addEventListener("click", () => {
+      hr = 48;
+      sv = 105;
+      if (hrSlider) hrSlider.value = "48";
+      if (svSlider) svSlider.value = "105";
+      if (hrLbl) hrLbl.innerText = "48 BPM (Athletic Bradycardia)";
+      if (svLbl) svLbl.innerText = "105 mL";
+    });
+  }
+
+  if (preHyp) {
+    preHyp.addEventListener("click", () => {
+      hr = 88;
+      sv = 80;
+      if (hrSlider) hrSlider.value = "88";
+      if (svSlider) svSlider.value = "80";
+      if (hrLbl) hrLbl.innerText = "88 BPM (Hypertensive Afterload)";
+      if (svLbl) svLbl.innerText = "80 mL";
+    });
+  }
+}
+
+
 
 /**
  * 29. Biology: Population Genetics & Hardy-Weinberg Natural Selection

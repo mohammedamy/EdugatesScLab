@@ -1604,13 +1604,15 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "BIO-M22-L3": {
-    "type": "bio-action-potential",
+    "type": "bio-sarcomere-sliding-filament",
     "lessonBadge": "Lesson 3",
     "title": "The Muscular System: Sarcomere Sliding Filament Theory",
-    "formula": "\\text{Muscle Contraction: Thin Actin filaments slide over Thick Myosin heads via ATP}",
-    "inquiry": "Trigger calcium release from sarcoplasmic reticulum to observe cross-bridge cycling and sarcomere shortening.",
+    "formula": "F_{\\text{active}} = f([\\text{Ca}^{2+}], \\text{ATP}, L_{\\text{sarcomere}}) \\quad (Z\\text{-to-}Z: 2.5\\,\\mu\\text{m} \\rightarrow 1.9\\,\\mu\\text{m})",
+    "inquiry": "Trigger calcium release from the sarcoplasmic reticulum to drive cross-bridge cycling, actin-myosin power strokes, and A-band constant length.",
     "defaultParams": {
-      "stimulusStrength": 40
+      "calcium": 0.1,
+      "sarcomereLength": 2.5,
+      "atpLevel": 100
     }
   },
   "BIO-M23-L1": {
@@ -1654,16 +1656,15 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "BIO-M24-L1": {
-    "type": "phys-dc-circuit",
+    "type": "bio-cardiac-cycle",
     "lessonBadge": "Lesson 1",
     "title": "The Circulatory System: Cardiac Cycle & Hemodynamics",
-    "formula": "\\text{Cardiac Output} = \\text{Heart Rate} \\times \\text{Stroke Volume} \\quad (Q = \\Delta P / R)",
-    "inquiry": "Track systemic vs pulmonary blood flow and measure arterial pressure gradients across vascular resistance.",
+    "formula": "\\text{CO} = \\text{HR} \\times \\text{SV} \\quad (5.04\\,\\text{L/min} = 72\\,\\text{bpm} \\times 70\\,\\text{mL}) \\quad \\text{MAP} = \\text{DBP} + \\frac{1}{3}(\\text{SBP} - \\text{DBP})",
+    "inquiry": "Track 4-chamber blood flow, synchronized ECG waveforms, Wiggers pressure loops, and S1/S2 heart valve mechanics across systolic and diastolic phases.",
     "defaultParams": {
-      "voltage": 12,
-      "r1": 10,
-      "r2": 20,
-      "mode": "series"
+      "heartRate": 72,
+      "strokeVolume": 70,
+      "mode": "continuous"
     }
   },
   "BIO-M24-L2": {
