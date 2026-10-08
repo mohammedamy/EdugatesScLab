@@ -355,12 +355,39 @@ export function initPeriodicTableLab(containerId) {
 
           <!-- TAB 3: Flame Test Emission & Discrete Spectral Lines -->
           <div id="tab-content-spectra" style="display: none; flex-direction: column; gap: 10px;">
-            <!-- Flame Circle and Description -->
-            <div style="background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px 14px; display: flex; align-items: center; gap: 12px;">
-              <div id="flame-preview-circle" style="width: 38px; height: 38px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 16px #38bdf8; flex-shrink: 0;"></div>
-              <div>
-                <div style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase;">Characteristic Flame Emission</div>
-                <div style="font-size: 0.85rem; color: #f8fafc; font-weight: 700;" id="flame-desc">Visible emission</div>
+            <!-- Animated Flame Emission Stage & Description Card -->
+            <div class="flame-preview-card" style="background: radial-gradient(circle at 45px 50%, rgba(30, 41, 59, 0.65) 0%, rgba(2, 6, 23, 0.85) 100%); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px 16px; display: flex; align-items: center; gap: 14px; position: relative; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);">
+              <!-- Atmospheric Background Glow Aura -->
+              <div id="flame-ambient-aura" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 75px; height: 75px; border-radius: 50%; background: #c084fc; filter: blur(22px); opacity: 0.35; pointer-events: none; transition: background 0.3s ease, opacity 0.3s ease;"></div>
+
+              <!-- Animated Flame Canvas & Pedestal -->
+              <div style="position: relative; width: 60px; height: 76px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
+                <canvas id="flame-preview-canvas" width="120" height="152" style="width: 60px; height: 76px; display: block; filter: drop-shadow(0 0 10px rgba(192, 132, 252, 0.6));"></canvas>
+                <div id="flame-preview-circle" style="display: none;"></div>
+              </div>
+
+              <!-- Metadata & Information -->
+              <div style="flex: 1; min-width: 0; z-index: 1;">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 2px;">
+                  <span style="font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 0.85rem;">🔥</span> CHARACTERISTIC FLAME EMISSION
+                  </span>
+                  <span id="flame-type-badge" style="font-size: 0.65rem; padding: 2px 7px; border-radius: 9999px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 700;">
+                    Flame Test
+                  </span>
+                </div>
+                <div style="font-size: 0.95rem; color: #f8fafc; font-weight: 800; line-height: 1.25; margin-bottom: 4px;" id="flame-desc">
+                  Characteristic Flame Emission: Potassium
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;" id="flame-subdesc">
+                  <span id="flame-color-pill" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #e2e8f0; font-weight: 600; background: rgba(255,255,255,0.06); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
+                    <span id="flame-color-swatch" style="width: 8px; height: 8px; border-radius: 50%; background: #c084fc; display: inline-block; box-shadow: 0 0 6px #c084fc;"></span>
+                    <span id="flame-color-name">Pale Lilac / Lavender Violet</span>
+                  </span>
+                  <span id="flame-wavelength-pill" style="font-size: 0.72rem; color: #38bdf8; font-family: var(--font-mono); background: rgba(56,189,248,0.12); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(56,189,248,0.25);">
+                    λ: 766.5, 769.9, 404.4 nm
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -777,21 +804,59 @@ export function initPeriodicTableLab(containerId) {
 
     // Tab 3: Flame & Spectral Lines
     const flameDot = document.getElementById("flame-preview-circle");
+    const flameCanvas = document.getElementById("flame-preview-canvas");
+    const flameAura = document.getElementById("flame-ambient-aura");
     const flameDesc = document.getElementById("flame-desc");
+    const flameColorName = document.getElementById("flame-color-name");
+    const flameColorSwatch = document.getElementById("flame-color-swatch");
+    const flameTypeBadge = document.getElementById("flame-type-badge");
+    const flameWavelengthPill = document.getElementById("flame-wavelength-pill");
     const linesText = document.getElementById("spectral-lines-text");
     const overlay = document.getElementById("spectrometer-lines-overlay");
 
-    if (flameDot && flameDesc) {
-      if (el.flame) {
-        flameDot.style.background = el.flame;
-        flameDot.style.boxShadow = `0 0 18px ${el.flame}`;
-        flameDesc.innerText = `Characteristic Flame Emission: ${el.n}`;
+    const flameColor = el.flame || "#c084fc";
+    const flameColorText = el.flameDesc || `Characteristic visible emission for ${el.n}`;
+    const flameTypeText = el.flameType || "Flame Test";
+
+    if (flameDot) {
+      flameDot.style.background = flameColor;
+      flameDot.style.boxShadow = `0 0 18px ${flameColor}`;
+    }
+
+    if (flameDesc) {
+      flameDesc.innerText = `Characteristic Flame Emission: ${el.n}`;
+    }
+    if (flameColorName) {
+      flameColorName.innerText = flameColorText;
+    }
+    if (flameColorSwatch) {
+      flameColorSwatch.style.background = flameColor;
+      flameColorSwatch.style.boxShadow = `0 0 8px ${flameColor}`;
+    }
+    if (flameTypeBadge) {
+      flameTypeBadge.innerText = flameTypeText;
+      flameTypeBadge.style.color = flameColor;
+      flameTypeBadge.style.borderColor = `${flameColor}55`;
+      flameTypeBadge.style.background = `${flameColor}22`;
+    }
+    if (flameWavelengthPill) {
+      if (el.lines && el.lines.length > 0) {
+        flameWavelengthPill.innerText = `λ: ${el.lines.join(", ")} nm`;
+        flameWavelengthPill.style.display = "inline-block";
       } else {
-        flameDot.style.background = "#334155";
-        flameDot.style.boxShadow = "none";
-        flameDesc.innerText = "No visible flame emission color";
+        flameWavelengthPill.style.display = "none";
       }
     }
+    if (flameAura) {
+      flameAura.style.background = flameColor;
+      flameAura.style.boxShadow = `0 0 28px ${flameColor}`;
+    }
+    if (flameCanvas) {
+      flameCanvas.style.filter = `drop-shadow(0 0 12px ${flameColor}99)`;
+    }
+
+    // Immediately render current flame frame
+    drawSpectraFlame();
 
     if (linesText) {
       if (el.lines && el.lines.length > 0) {
@@ -918,6 +983,204 @@ export function initPeriodicTableLab(containerId) {
     bohrCtx.restore();
   }
 
+  // Animated Laboratory Flame Engine State
+  let flameTime = 0;
+  const flameParticles = [];
+  const MAX_FLAME_PARTICLES = 12;
+
+  for (let i = 0; i < MAX_FLAME_PARTICLES; i++) {
+    flameParticles.push({
+      x: 0,
+      y: 0,
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: -1.2 - Math.random() * 1.6,
+      size: 1.2 + Math.random() * 2.0,
+      alpha: Math.random(),
+      life: Math.random()
+    });
+  }
+
+  function adjustColorBrightness(hex, percent) {
+    if (!hex || typeof hex !== "string" || !hex.startsWith("#")) return hex || "#ffffff";
+    const clean = hex.replace("#", "");
+    const num = parseInt(clean.length === 3 ? clean.split("").map(c => c + c).join("") : clean, 16);
+    if (isNaN(num)) return hex;
+    const r = Math.min(255, Math.max(0, Math.floor((num >> 16) + (255 - (num >> 16)) * (percent / 100))));
+    const g = Math.min(255, Math.max(0, Math.floor(((num >> 8) & 0x00FF) + (255 - ((num >> 8) & 0x00FF)) * (percent / 100))));
+    const b = Math.min(255, Math.max(0, Math.floor((num & 0x0000FF) + (255 - (num & 0x0000FF)) * (percent / 100))));
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  function drawSpectraFlame() {
+    const canvas = document.getElementById("flame-preview-canvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const w = canvas.width;  // 120
+    const h = canvas.height; // 152
+    ctx.clearRect(0, 0, w, h);
+
+    const el = selectedElem;
+    const color = (el && el.flame) ? el.flame : "#c084fc";
+
+    flameTime += 0.045;
+    const t = flameTime;
+
+    const cx = w / 2;
+    const baseY = h - 14;
+    const baseW = 28;
+
+    // Multi-frequency organic turbulence
+    const sway1 = Math.sin(t * 3.8) * 4.2;
+    const sway2 = Math.cos(t * 6.1) * 2.5;
+    const sway3 = Math.sin(t * 9.7) * 1.5;
+    const totalSway = sway1 + sway2 * 0.6 + sway3 * 0.4;
+
+    const pulseY = Math.sin(t * 5.2) * 5 + Math.cos(t * 8.4) * 3;
+    const flameH = Math.max(78, Math.min(112, 95 + pulseY));
+
+    // 1. Burner Collar Apparatus (Dark metallic nozzle base)
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(cx - 18, baseY, 36, 12, [2, 2, 4, 4]);
+    ctx.fill();
+    ctx.stroke();
+
+    // Burner metallic slit opening
+    ctx.fillStyle = "#090d16";
+    ctx.fillRect(cx - 13, baseY + 1, 26, 2.5);
+
+    // 2. Ambient Volumetric Glow Halo
+    const haloGrad = ctx.createRadialGradient(cx, baseY - flameH * 0.45, 5, cx, baseY - flameH * 0.45, flameH * 0.85);
+    haloGrad.addColorStop(0, color);
+    haloGrad.addColorStop(0.45, `${color}44`);
+    haloGrad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.save();
+    ctx.globalAlpha = 0.38 + Math.sin(t * 4.2) * 0.08;
+    ctx.fillStyle = haloGrad;
+    ctx.beginPath();
+    ctx.arc(cx, baseY - flameH * 0.45, flameH * 0.85, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 3. Primary Outer Flame Mantle (Characteristic element emission plume)
+    const tipX = cx + totalSway;
+    const tipY = baseY - flameH;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx - baseW / 2, baseY);
+
+    // Left fluttering boundary
+    const lCp1X = cx - baseW * 1.15 + Math.sin(t * 5.6) * 3.5;
+    const lCp1Y = baseY - flameH * 0.38;
+    const lCp2X = cx - baseW * 0.65 + Math.cos(t * 7.2) * 3.2;
+    const lCp2Y = baseY - flameH * 0.76;
+    ctx.bezierCurveTo(lCp1X, lCp1Y, lCp2X, lCp2Y, tipX, tipY);
+
+    // Right fluttering boundary (opposite phase)
+    const rCp2X = cx + baseW * 0.65 - Math.cos(t * 6.8) * 3.2;
+    const rCp2Y = baseY - flameH * 0.76;
+    const rCp1X = cx + baseW * 1.15 - Math.sin(t * 5.2) * 3.5;
+    const rCp1Y = baseY - flameH * 0.38;
+    ctx.bezierCurveTo(rCp2X, rCp2Y, rCp1X, rCp1Y, cx + baseW / 2, baseY);
+    ctx.closePath();
+
+    const outerGrad = ctx.createLinearGradient(0, baseY, 0, tipY);
+    outerGrad.addColorStop(0, color);
+    outerGrad.addColorStop(0.35, color);
+    outerGrad.addColorStop(0.75, adjustColorBrightness(color, 25));
+    outerGrad.addColorStop(1, "rgba(255, 255, 255, 0.75)");
+    ctx.fillStyle = outerGrad;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 18;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    // 4. Secondary Middle Flame Core (Brighter, saturated luminescence)
+    const midH = flameH * 0.72;
+    const midTipX = cx + totalSway * 0.65;
+    const midTipY = baseY - midH;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx - baseW * 0.36, baseY);
+    ctx.bezierCurveTo(
+      cx - baseW * 0.65 + Math.sin(t * 7.5) * 2.2, baseY - midH * 0.4,
+      cx - baseW * 0.35 + Math.cos(t * 8.6) * 1.8, baseY - midH * 0.75,
+      midTipX, midTipY
+    );
+    ctx.bezierCurveTo(
+      cx + baseW * 0.35 - Math.cos(t * 8.6) * 1.8, baseY - midH * 0.75,
+      cx + baseW * 0.65 - Math.sin(t * 7.5) * 2.2, baseY - midH * 0.4,
+      cx + baseW * 0.36, baseY
+    );
+    ctx.closePath();
+
+    const midGrad = ctx.createLinearGradient(0, baseY, 0, midTipY);
+    midGrad.addColorStop(0, adjustColorBrightness(color, 35));
+    midGrad.addColorStop(0.65, adjustColorBrightness(color, 55));
+    midGrad.addColorStop(1, "rgba(255, 255, 255, 0.95)");
+    ctx.fillStyle = midGrad;
+    ctx.fill();
+    ctx.restore();
+
+    // 5. Incandescent Inner Cone (~1500°C White-Hot Combustion Zone)
+    const coneH = flameH * 0.34;
+    const coneTipX = cx + totalSway * 0.25;
+    const coneTipY = baseY - coneH;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cx - 7.5, baseY);
+    ctx.quadraticCurveTo(cx - 6 + Math.sin(t * 9) * 1.2, baseY - coneH * 0.5, coneTipX, coneTipY);
+    ctx.quadraticCurveTo(cx + 6 - Math.sin(t * 9) * 1.2, baseY - coneH * 0.5, cx + 7.5, baseY);
+    ctx.closePath();
+
+    const coneGrad = ctx.createLinearGradient(0, baseY, 0, coneTipY);
+    coneGrad.addColorStop(0, "rgba(224, 242, 254, 0.95)");
+    coneGrad.addColorStop(0.6, "rgba(255, 255, 255, 0.98)");
+    coneGrad.addColorStop(1, "rgba(255, 255, 255, 0.75)");
+    ctx.fillStyle = coneGrad;
+    ctx.fill();
+    ctx.restore();
+
+    // 6. Floating Sparks & Rising Ember Micro-Particles
+    ctx.save();
+    flameParticles.forEach((p, idx) => {
+      p.life += 0.022;
+      p.y += p.vy;
+      p.x += p.vx + Math.sin(t * 4 + idx) * 0.4;
+      p.alpha = Math.max(0, 1 - p.life);
+
+      if (p.life >= 1 || p.y < -flameH * 1.2) {
+        p.life = 0;
+        p.x = (Math.random() - 0.5) * (baseW * 0.8);
+        p.y = 0;
+        p.vx = (Math.random() - 0.5) * 0.9;
+        p.vy = -1.4 - Math.random() * 2.0;
+        p.size = 1.2 + Math.random() * 2.2;
+        p.alpha = 0.9;
+      }
+
+      const sparkX = cx + p.x + totalSway * (Math.abs(p.y) / flameH);
+      const sparkY = baseY + p.y;
+
+      if (sparkY > 5 && sparkY < baseY) {
+        ctx.fillStyle = idx % 2 === 0 ? "#ffffff" : adjustColorBrightness(color, 60);
+        ctx.globalAlpha = p.alpha * 0.85;
+        ctx.beginPath();
+        ctx.arc(sparkX, sparkY, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+    ctx.restore();
+  }
+
   let lastFrameTime = 0;
   function loop(now) {
     if (!container || !container.isConnected) {
@@ -934,6 +1197,12 @@ export function initPeriodicTableLab(containerId) {
       if (!now || now - lastFrameTime >= interval) {
         lastFrameTime = now || performance.now();
         drawBohr();
+      }
+      animId = requestAnimationFrame(loop);
+    } else if (activeTab === "spectra") {
+      if (!now || now - lastFrameTime >= interval) {
+        lastFrameTime = now || performance.now();
+        drawSpectraFlame();
       }
       animId = requestAnimationFrame(loop);
     } else {
@@ -969,9 +1238,9 @@ export function initPeriodicTableLab(containerId) {
       btnSpectra.style.color = (tab === "spectra" ? "#ffffff" : "#94a3b8");
     }
 
-    if (tab === "bohr" && !animId) {
+    if ((tab === "bohr" || tab === "spectra") && !animId) {
       animId = requestAnimationFrame(loop);
-    } else if (tab !== "bohr" && animId) {
+    } else if (tab !== "bohr" && tab !== "spectra" && animId) {
       cancelAnimationFrame(animId);
       animId = null;
     }

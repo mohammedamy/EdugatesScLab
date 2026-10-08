@@ -526,19 +526,37 @@ export function initOsmosisLab(containerId) {
       ctx.fillText(`Δh = ${(currentDeltaH * 0.1).toFixed(1)} cm`, arrowX + 8, (leftLevelY + rightLevelY) / 2 + 4);
     }
 
-    // 5. Render Animated Particles
+    // 5. Render Animated Particles with Rigid U-Tube Liquid Clipping
+    ctx.save();
+    ctx.beginPath();
+    // Left arm fluid
+    ctx.rect(uLeftX + 2, leftLevelY, uWidth - 4, uBottomY - leftLevelY);
+    // Right arm fluid
+    ctx.rect(uRightX + 2, rightLevelY, uWidth - 4, uBottomY - rightLevelY);
+    // Bottom connecting channel
+    ctx.rect(uLeftX + 2, uBottomY - 50, uRightX - uLeftX + uWidth - 4, 48);
+    ctx.clip();
+
     // Water molecules (cyan dots)
     ctx.fillStyle = "#38bdf8";
     waterParticles.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
 
-      // Bounce within liquid boundary
-      if (p.x < uLeftX + 6) p.x = uLeftX + 6, p.vx = -p.vx;
-      if (p.x > uRightX + uWidth - 6) p.x = uRightX + uWidth - 6, p.vx = -p.vx;
-      if (p.y > uBottomY - 6) p.y = uBottomY - 6, p.vy = -p.vy;
+      // Bounce within outer liquid boundary
+      if (p.x < uLeftX + 6) p.x = uLeftX + 6, p.vx = Math.abs(p.vx);
+      if (p.x > uRightX + uWidth - 6) p.x = uRightX + uWidth - 6, p.vx = -Math.abs(p.vx);
+      if (p.y > uBottomY - 6) p.y = uBottomY - 6, p.vy = -Math.abs(p.vy);
       if (p.y < (p.x < uLeftX + uWidth ? leftLevelY : rightLevelY)) {
         p.vy = Math.abs(p.vy);
+      }
+
+      // Keep within the U-tube arms or bottom channel (prevent floating in inner air gap)
+      if (p.x > uLeftX + uWidth - 6 && p.x < uRightX + 6) {
+        if (p.y < uBottomY - 50 + 6) {
+          p.y = uBottomY - 50 + 6;
+          p.vy = Math.abs(p.vy);
+        }
       }
 
       ctx.beginPath();
@@ -554,21 +572,22 @@ export function initOsmosisLab(containerId) {
 
       // Solute cannot cross membrane at memX!
       if (p.chamber === "left") {
-        if (p.x > memX - 10) p.x = memX - 10, p.vx = -p.vx;
-        if (p.x < uLeftX + 10) p.x = uLeftX + 10, p.vx = -p.vx;
+        if (p.x > memX - 10) p.x = memX - 10, p.vx = -Math.abs(p.vx);
+        if (p.x < uLeftX + 10) p.x = uLeftX + 10, p.vx = Math.abs(p.vx);
         if (p.y < leftLevelY + 10) p.y = leftLevelY + 10, p.vy = Math.abs(p.vy);
-        if (p.y > uBottomY - 10) p.y = uBottomY - 10, p.vy = -p.vy;
+        if (p.y > uBottomY - 10) p.y = uBottomY - 10, p.vy = -Math.abs(p.vy);
       } else {
-        if (p.x < memX + 10) p.x = memX + 10, p.vx = -p.vx;
-        if (p.x > uRightX + uWidth - 10) p.x = uRightX + uWidth - 10, p.vx = -p.vx;
+        if (p.x < memX + 10) p.x = memX + 10, p.vx = Math.abs(p.vx);
+        if (p.x > uRightX + uWidth - 10) p.x = uRightX + uWidth - 10, p.vx = -Math.abs(p.vx);
         if (p.y < rightLevelY + 10) p.y = rightLevelY + 10, p.vy = Math.abs(p.vy);
-        if (p.y > uBottomY - 10) p.y = uBottomY - 10, p.vy = -p.vy;
+        if (p.y > uBottomY - 10) p.y = uBottomY - 10, p.vy = -Math.abs(p.vy);
       }
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
     });
+    ctx.restore();
 
     // 6. Right Side Thermodynamic HUD
     const hudX = 580;

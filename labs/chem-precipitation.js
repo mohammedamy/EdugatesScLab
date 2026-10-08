@@ -565,6 +565,7 @@ export function initPrecipitationLab(containerId) {
     // Base solution color
     ctx.fillStyle = cation.baseColor;
     ctx.fill();
+    ctx.clip();
 
     // Dynamic Precipitate Cloud (Turbidity)
     if (willPrecipitate && turbidityProgress > 0.05) {

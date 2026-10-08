@@ -314,7 +314,12 @@ export function initColligativeLab(containerId) {
       ctx.fillText("❄️ Solid Crystal Lattice Forming", 195, 330);
     }
 
-    // Draw Particles (Solvent + Dissociated Ions)
+    // Draw Particles (Solvent + Dissociated Ions) strictly clipped inside beaker
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(166, 221, 248, 213, [0, 0, 13, 13]);
+    ctx.clip();
+
     particles.forEach(p => {
       p.x += p.vx * (solutionTemp > tf ? 1 : 0.15);
       p.y += p.vy * (solutionTemp > tf ? 1 : 0.15);
@@ -352,6 +357,7 @@ export function initColligativeLab(containerId) {
       ctx.textBaseline = "middle";
       ctx.fillText(isCation ? sol.cation.substring(0, 3) : (sol.anion.substring(0, 3) || "Sol"), px, py);
     }
+    ctx.restore();
 
     // Digital Immersion Thermometer
     ctx.fillStyle = "#334155";

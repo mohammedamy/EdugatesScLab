@@ -73,18 +73,84 @@ export function initOrganicReactionsLab(containerId) {
   let animId = null;
   let simClock = 0;
 
-  // Colliding particles in reactor flask
-  const molecules = [];
-  for (let i = 0; i < 28; i++) {
-    molecules.push({
-      x: 80 + Math.random() * 260,
-      y: 180 + Math.random() * 220,
-      vx: (Math.random() - 0.5) * 2.2,
-      vy: (Math.random() - 0.5) * 2.2,
-      type: i % 2 === 0 ? "substrate" : "nucleophile",
-      phase: Math.random() * Math.PI * 2
-    });
+  // Canonical Reactor Flask Glassware Geometry
+  const FLASK = {
+    cx: 290,
+    cy: 315,
+    radius: 175,
+    neckWidth: 68, // x: 256 to 324
+    neckTopY: 112,
+    meniscusY: 185,
+    bottomY: 485
+  };
+
+  // Helper geometry paths for authentic Quickfit boiling/reactor flask
+  function drawFlaskPath(targetCtx, inset = 0) {
+    const r = FLASK.radius - inset;
+    const hw = Math.max(10, (FLASK.neckWidth / 2) - inset);
+    const dy = -Math.sqrt(Math.max(1, r * r - hw * hw));
+    const meetY = FLASK.cy + dy;
+    const aRight = Math.atan2(dy, hw);
+    const aLeft = Math.atan2(dy, -hw);
+
+    targetCtx.beginPath();
+    // Ground-glass lip top flange
+    targetCtx.moveTo(FLASK.cx - hw - 6, FLASK.neckTopY + inset);
+    targetCtx.lineTo(FLASK.cx + hw + 6, FLASK.neckTopY + inset);
+    targetCtx.lineTo(FLASK.cx + hw, FLASK.neckTopY + 8 + inset);
+    // Right neck vertical wall
+    targetCtx.lineTo(FLASK.cx + hw, meetY);
+    // Spherical bulb contour around bottom (clockwise: right -> bottom -> left)
+    targetCtx.arc(FLASK.cx, FLASK.cy, r, aRight, aLeft, false);
+    // Left neck vertical wall
+    targetCtx.lineTo(FLASK.cx - hw, FLASK.neckTopY + 8 + inset);
+    targetCtx.lineTo(FLASK.cx - hw - 6, FLASK.neckTopY + inset);
+    targetCtx.closePath();
   }
+
+  function drawLiquidPath(targetCtx, inset = 3) {
+    const r = FLASK.radius - inset;
+    const dy = FLASK.meniscusY - FLASK.cy;
+    const hw = Math.sqrt(Math.max(1, r * r - dy * dy));
+    const aRight = Math.atan2(dy, hw);
+    const aLeft = Math.atan2(dy, -hw);
+
+    targetCtx.beginPath();
+    targetCtx.arc(FLASK.cx, FLASK.cy, r, aRight, aLeft, false);
+    targetCtx.ellipse(FLASK.cx, FLASK.meniscusY, hw, 7, 0, Math.PI, 0, true);
+    targetCtx.closePath();
+  }
+
+  // Colliding particles in reactor flask - strictly bounded inside fluid
+  const molecules = [];
+  function initMolecules() {
+    molecules.length = 0;
+    for (let i = 0; i < 28; i++) {
+      let x, y, dist;
+      let attempts = 0;
+      do {
+        const r = Math.sqrt(Math.random()) * (FLASK.radius - 24);
+        const theta = Math.random() * Math.PI * 2;
+        x = FLASK.cx + Math.cos(theta) * r;
+        y = FLASK.cy + Math.sin(theta) * r;
+        dist = Math.hypot(x - FLASK.cx, y - FLASK.cy);
+        attempts++;
+      } while ((dist > FLASK.radius - 20 || y < FLASK.meniscusY + 16 || y > FLASK.bottomY - 18) && attempts < 100);
+
+      const speed = 1.0 + Math.random() * 1.4;
+      const angle = Math.random() * Math.PI * 2;
+      molecules.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: 5,
+        type: i % 2 === 0 ? "substrate" : "nucleophile",
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+  }
+  initMolecules();
 
   container.innerHTML = `
     <div class="lab-container">
@@ -241,26 +307,112 @@ export function initOrganicReactionsLab(containerId) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const mech = MECHANISMS[activeMechKey];
 
-    // Background Reaction Flask
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(290, 310, 180, 0.75 * Math.PI, 0.25 * Math.PI, false);
-    ctx.lineTo(330, 120);
-    ctx.lineTo(250, 120);
-    ctx.closePath();
-    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    // 1. Background Reaction Flask Glassware Body
+    drawFlaskPath(ctx, 0);
+    ctx.fillStyle = "rgba(15, 23, 42, 0.90)";
     ctx.fill();
+
+    // Ground glass joint frosting lines on Quickfit neck
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.16)";
+    ctx.lineWidth = 1;
+    for (let y = FLASK.neckTopY + 12; y <= FLASK.neckTopY + 28; y += 4) {
+      ctx.beginPath();
+      ctx.moveTo(FLASK.cx - 28, y);
+      ctx.lineTo(FLASK.cx + 28, y);
+      ctx.stroke();
+    }
+
+    // 2. Liquid in Flask (Aqueous / Organic Reaction Medium)
+    const flaskGrad = ctx.createRadialGradient(FLASK.cx, FLASK.cy + 20, 25, FLASK.cx, FLASK.cy + 30, FLASK.radius);
+    flaskGrad.addColorStop(0, "rgba(168, 85, 247, 0.38)");
+    flaskGrad.addColorStop(0.65, "rgba(88, 28, 135, 0.58)");
+    flaskGrad.addColorStop(1, "rgba(30, 27, 75, 0.85)");
+    drawLiquidPath(ctx, 3);
+    ctx.fillStyle = flaskGrad;
+    ctx.fill();
+
+    // Meniscus illumination ring
+    const dyM = FLASK.meniscusY - FLASK.cy;
+    const hwM = Math.sqrt(Math.max(1, (FLASK.radius - 3) * (FLASK.radius - 3) - dyM * dyM));
+    ctx.strokeStyle = "rgba(192, 132, 252, 0.75)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(FLASK.cx, FLASK.meniscusY, hwM, 6, 0, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Liquid in flask
-    const flaskGrad = ctx.createRadialGradient(290, 330, 20, 290, 330, 170);
-    flaskGrad.addColorStop(0, "rgba(168, 85, 247, 0.35)");
-    flaskGrad.addColorStop(1, "rgba(30, 27, 75, 0.65)");
-    ctx.fillStyle = flaskGrad;
+    // Magnetic stir bar spinning at bottom of flask
+    const stirAngle = simClock * 7;
+    ctx.save();
+    ctx.translate(FLASK.cx, FLASK.bottomY - 14);
+    ctx.rotate(Math.sin(stirAngle) * 0.12);
+    ctx.fillStyle = "#ffffff";
+    ctx.shadowColor = "rgba(255, 255, 255, 0.7)";
+    ctx.shadowBlur = 8;
     ctx.beginPath();
-    ctx.arc(290, 330, 160, 0.85 * Math.PI, 0.15 * Math.PI, false);
+    ctx.roundRect(-22, -4, 44, 8, 4);
     ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    // 3. Dynamic Microscopic Colliding Molecules (Strict Physical Reflection & Canvas Clipping)
+    ctx.save();
+    drawLiquidPath(ctx, 4);
+    ctx.clip(); // <--- RIGID CANVAS CLIPPING MASK: ZERO PARTICLES CAN ESCAPE
+
+    molecules.forEach(m => {
+      // Thermal velocity scaling
+      const tempMult = Math.sqrt(tempKelvin / 298.15);
+      m.x += m.vx * tempMult;
+      m.y += m.vy * tempMult;
+
+      // Top liquid meniscus boundary
+      const topLimit = FLASK.meniscusY + m.radius + 3;
+      if (m.y < topLimit) {
+        m.y = topLimit;
+        m.vy = Math.abs(m.vy);
+      }
+
+      // Spherical glass wall elastic vector reflection
+      const dx = m.x - FLASK.cx;
+      const dy = m.y - FLASK.cy;
+      const dist = Math.hypot(dx, dy);
+      const maxR = FLASK.radius - m.radius - 5;
+
+      if (dist > maxR && dist > 0.001) {
+        const nx = dx / dist;
+        const ny = dy / dist;
+        m.x = FLASK.cx + nx * maxR;
+        m.y = FLASK.cy + ny * maxR;
+
+        const dot = m.vx * nx + m.vy * ny;
+        if (dot > 0) {
+          m.vx -= 2 * dot * nx;
+          m.vy -= 2 * dot * ny;
+        }
+      }
+
+      // Bottom glass boundary
+      const bottomLimit = FLASK.bottomY - m.radius - 6;
+      if (m.y > bottomLimit) {
+        m.y = bottomLimit;
+        m.vy = -Math.abs(m.vy);
+      }
+
+      // Render glowing molecule sphere
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
+      if (m.type === "substrate") {
+        ctx.fillStyle = "rgba(168, 85, 247, 0.85)";
+        ctx.shadowColor = "#a855f7";
+      } else {
+        ctx.fillStyle = "rgba(6, 182, 212, 0.85)";
+        ctx.shadowColor = "#06b6d4";
+      }
+      ctx.shadowBlur = 6;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    });
+    ctx.restore(); // Restore liquid clip
 
     // Molecular Mechanism Center Stage: Render the Central Reaction Complexes
     // Coordinate progression: 0.0 -> 0.5 (Transition State) -> 1.0 (Products)
@@ -413,27 +565,41 @@ export function initOrganicReactionsLab(containerId) {
       }
     }
 
-    // Dynamic Microscopic Collisions
-    molecules.forEach(m => {
-      m.x += m.vx;
-      m.y += m.vy;
-      if (m.x < 140 || m.x > 440) m.vx *= -1;
-      if (m.y < 210 || m.y > 440) m.vy *= -1;
+    // 5. Outer Glass Walls, Quickfit Joint Details, & Refraction Sheen
+    drawFlaskPath(ctx, 0);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
 
-      ctx.beginPath();
-      ctx.arc(m.x, m.y, 5, 0, Math.PI * 2);
-      ctx.fillStyle = m.type === "substrate" ? "rgba(168, 85, 247, 0.7)" : "rgba(6, 182, 212, 0.7)";
-      ctx.fill();
-    });
+    // Sleek curved reflection sheen on upper-left bulb
+    ctx.beginPath();
+    ctx.arc(FLASK.cx, FLASK.cy, FLASK.radius - 8, Math.PI * 0.95, Math.PI * 1.35, false);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
 
-    // Subtitle & Stage description
+    // Quickfit joint specification text
+    ctx.fillStyle = "rgba(148, 163, 184, 0.65)";
+    ctx.font = "bold 8px var(--font-mono, monospace)";
+    ctx.textAlign = "center";
+    ctx.fillText("24/40 Quickfit", FLASK.cx, FLASK.neckTopY + 22);
+
+    // Etched volume calibrations on flask wall
+    ctx.fillStyle = "rgba(148, 163, 184, 0.45)";
+    ctx.font = "bold 9px var(--font-mono, monospace)";
+    ctx.textAlign = "left";
+    ctx.fillText("— 500 mL", FLASK.cx + 70, 240);
+    ctx.fillText("— 250 mL", FLASK.cx + 90, 315);
+    ctx.fillText("— 100 mL", FLASK.cx + 70, 395);
+
+    // Subtitle & Stage description (positioned cleanly above flask rim at y: 112)
     ctx.fillStyle = "#e2e8f0";
     ctx.font = "bold 14px system-ui";
     ctx.textAlign = "center";
-    ctx.fillText(mech.name, canvas.width / 2, 85);
+    ctx.fillText(mech.name, canvas.width / 2, 70);
     ctx.fillStyle = "#94a3b8";
     ctx.font = "11px system-ui";
-    ctx.fillText(mech.subtitle, canvas.width / 2, 105);
+    ctx.fillText(mech.subtitle, canvas.width / 2, 90);
   }
 
   function renderEnergyChart() {
@@ -636,6 +802,7 @@ export function initOrganicReactionsLab(containerId) {
   container.querySelector("#btn-org-reset")?.addEventListener("click", () => {
     reactionProgress = 0.0;
     isAutoPlaying = true;
+    initMolecules();
     const btn = container.querySelector("#btn-org-playpause");
     if (btn) btn.innerText = "⏸ Pause Animation";
     needsRedraw = true;

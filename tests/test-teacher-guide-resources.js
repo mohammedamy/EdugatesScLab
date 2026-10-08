@@ -74,7 +74,7 @@ testAssert(/amscilab-pwa-v(73|74|\d+)/.test(swSrc), "service-worker.js upgraded 
 testAssert(/amscilab-pwa-v(73|74|\d+)/.test(swMinSrc), "sw.js upgraded to amscilab-pwa-v73 or newer");
 testAssert(/amscilab-pwa-v(73|74|\d+)/.test(diagSrc), "offline-diagnostics.js matches active cache version");
 testAssert(swSrc.includes('"./Edugates_STEM_Labs_Teacher_Guide.pdf"'), "service-worker.js pre-caches Teacher Guide PDF");
-testAssert((htmlSrc.includes('app.js?v=5.3') || htmlSrc.includes('app.js?v=5.4')) && (htmlSrc.includes('index.css?v=5.3') || htmlSrc.includes('index.css?v=5.4')), "index.html cache-busting queries bumped");
+testAssert((/app\.js\?v=5\.[3-9]/.test(htmlSrc)) && (/index\.css\?v=5\.[3-9]/.test(htmlSrc)), "index.html cache-busting queries bumped");
 
 console.log("\n========================================================");
 console.log(`📊 Teacher Guide Resources Tests: ${passed} Passed, ${failed} Failed`);

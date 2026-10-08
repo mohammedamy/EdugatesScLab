@@ -421,7 +421,12 @@ export function initGasLawsLab(containerId) {
     chamberCtx.strokeRect(cLeft - 14, 40, cWidth + 28, 14);
     chamberCtx.strokeRect(cLeft - 14, cBottom, cWidth + 28, 16);
 
-    // 4. Update & Draw 3D Gas Particles
+    // 4. Update & Draw 3D Gas Particles (Strictly clipped inside pneumatic cylinder)
+    chamberCtx.save();
+    chamberCtx.beginPath();
+    chamberCtx.rect(cLeft + 1, topY, cWidth - 2, cBottom - topY);
+    chamberCtx.clip();
+
     particles.forEach(p => {
       p.update(w, h, topY, dtFactor);
 
@@ -440,6 +445,7 @@ export function initGasLawsLab(containerId) {
       chamberCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       chamberCtx.fill();
     });
+    chamberCtx.restore();
 
     // 5. Movable Weighted Pneumatic Piston Assembly
     const rodGrad = chamberCtx.createLinearGradient(w/2 - 8, 0, w/2 + 8, 0);
