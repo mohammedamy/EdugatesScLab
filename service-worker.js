@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v83";
+const CACHE_NAME = "amscilab-pwa-v84";
 
 const CORE_APP_SHELL = [
   "./",
@@ -268,7 +268,19 @@ const SECONDARY_ASSETS = [
   "./assets/labs/transpiration_bench.jpg",
   "./assets/labs/orbital_bench.jpg",
   "./assets/labs/sound_resonance_bench.jpg",
-  "./assets/labs/electrostatics_bench.jpg"
+  "./assets/labs/electrostatics_bench.jpg",
+  "./assets/microscope/onion_mitosis.jpg",
+  "./assets/microscope/blood_smear.jpg",
+  "./assets/microscope/elodea_cells.jpg",
+  "./assets/microscope/paramecium.jpg",
+  "./assets/microscope/amoeba_proteus.jpg",
+  "./assets/microscope/euglena_gracilis.jpg",
+  "./assets/microscope/daphnia_magna.jpg",
+  "./assets/microscope/volvox_colony.jpg",
+  "./assets/microscope/spirogyra_alga.jpg",
+  "./assets/microscope/human_cheek.jpg",
+  "./assets/microscope/tilia_stem.jpg",
+  "./assets/microscope/motor_neuron.jpg"
 ];
 
 const CORE_ASSETS = [...CORE_APP_SHELL, ...CHAPTER_ASSETS, ...SECONDARY_ASSETS];

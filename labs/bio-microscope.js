@@ -394,14 +394,20 @@ export function initMicroscopeLab(containerId) {
   slideImages.human_blood.src = "assets/microscope/blood_smear.jpg";
   slideImages.elodea_leaf.src = "assets/microscope/elodea_cells.jpg";
   slideImages.paramecium.src = "assets/microscope/paramecium.jpg";
-  slideImages.amoeba_proteus.src = "assets/microscope/amoeba.jpg";
-  slideImages.euglena_gracilis.src = "assets/microscope/euglena.jpg";
-  slideImages.daphnia_magna.src = "assets/microscope/daphnia.jpg";
-  slideImages.volvox_colony.src = "assets/microscope/volvox.jpg";
-  slideImages.spirogyra_alga.src = "assets/microscope/spirogyra.jpg";
-  slideImages.human_cheek.src = "assets/microscope/cheek_cells.jpg";
+  slideImages.amoeba_proteus.src = "assets/microscope/amoeba_proteus.jpg";
+  slideImages.euglena_gracilis.src = "assets/microscope/euglena_gracilis.jpg";
+  slideImages.daphnia_magna.src = "assets/microscope/daphnia_magna.jpg";
+  slideImages.volvox_colony.src = "assets/microscope/volvox_colony.jpg";
+  slideImages.spirogyra_alga.src = "assets/microscope/spirogyra_alga.jpg";
+  slideImages.human_cheek.src = "assets/microscope/human_cheek.jpg";
   slideImages.tilia_stem.src = "assets/microscope/tilia_stem.jpg";
   slideImages.motor_neuron.src = "assets/microscope/motor_neuron.jpg";
+
+  Object.values(slideImages).forEach(img => {
+    img.onload = () => {
+      drawView();
+    };
+  });
 
   function calculateBlur() {
     const focusVal = coarseFocus + (fineFocus - 50) * 0.12;
@@ -423,15 +429,17 @@ export function initMicroscopeLab(containerId) {
     const isImgLoaded = img && img.complete && img.naturalWidth > 0;
 
     if (isImgLoaded) {
-      const imgSize = radius * 3.2;
+      const imgSize = radius * 5.2;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
       if (contrastMode === "darkfield") {
         ctx.save();
-        ctx.filter = "invert(0.92) contrast(1.75) hue-rotate(180deg) brightness(1.1)";
+        ctx.filter = "invert(0.94) contrast(1.8) hue-rotate(180deg) brightness(1.15)";
         ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
         ctx.restore();
       } else if (contrastMode === "fluorescence") {
         ctx.save();
-        ctx.filter = "invert(0.95) contrast(2.2) saturate(2.4) hue-rotate(240deg)";
+        ctx.filter = "invert(0.96) contrast(2.4) saturate(2.6) hue-rotate(240deg)";
         ctx.drawImage(img, -imgSize / 2, -imgSize / 2, imgSize, imgSize);
         ctx.restore();
       } else {
@@ -469,6 +477,48 @@ export function initMicroscopeLab(containerId) {
     ctx.restore();
   }
 
+  // High-Precision Scientific HUD Callouts for Real 8K Optical Micrographs
+  function drawResearchCallouts(markers) {
+    if (!showReticle) return;
+    ctx.save();
+    markers.forEach(m => {
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, 6, 0, Math.PI * 2);
+      ctx.strokeStyle = m.color;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = m.color;
+      ctx.fill();
+
+      const tagX = m.x + (m.dx !== undefined ? m.dx : (m.x >= 0 ? 14 : -14));
+      const tagY = m.y + (m.dy !== undefined ? m.dy : 0);
+
+      ctx.font = "700 8.5px 'JetBrains Mono', monospace";
+      const textW = ctx.measureText(m.label).width;
+      const pillW = textW + 14;
+      const pillH = 18;
+      const drawTagX = tagX >= m.x ? tagX : (tagX - pillW);
+
+      ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+      ctx.beginPath();
+      ctx.roundRect(drawTagX, tagY - pillH / 2, pillW, pillH, 4);
+      ctx.fill();
+
+      ctx.strokeStyle = m.color;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(m.label, drawTagX + 7, tagY);
+    });
+    ctx.restore();
+  }
+
   // ----------------------------------------------------
   // Slide 1: Allium Cepa (Onion Root Tip Mitosis)
   // ----------------------------------------------------
@@ -477,36 +527,14 @@ export function initMicroscopeLab(containerId) {
       drawOnionMitosis();
       return;
     }
-    ctx.save();
     const markers = [
-      { x: -75, y: -85, label: "Metaphase (Plate)", color: "#c084fc" },
-      { x: 45, y: -30, label: "Anaphase (Poles)", color: "#f472b6" },
-      { x: 70, y: 65, label: "Prophase (Condensing)", color: "#38bdf8" },
-      { x: -65, y: 75, label: "Telophase (Cell Plate)", color: "#4ade80" },
-      { x: 0, y: 5, label: "Interphase (Nucleolus)", color: "#fbbf24" }
+      { x: -50, y: -65, label: "Metaphase (Plate Alignment)", color: "#c084fc", dx: 14, dy: -4 },
+      { x: 45, y: -25, label: "Anaphase (Pole Separation)", color: "#f472b6", dx: 14, dy: 0 },
+      { x: 60, y: 55, label: "Prophase (Chromatin Condensation)", color: "#38bdf8", dx: 14, dy: 0 },
+      { x: -55, y: 65, label: "Telophase (Cell Plate Formation)", color: "#4ade80", dx: 14, dy: 0 },
+      { x: 0, y: 5, label: "Interphase (Nucleolus & Chromatin)", color: "#fbbf24", dx: 14, dy: 0 }
     ];
-    markers.forEach(m => {
-      ctx.beginPath();
-      ctx.arc(m.x, m.y, 8, 0, Math.PI * 2);
-      ctx.strokeStyle = m.color;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
-      ctx.beginPath();
-      ctx.roundRect(m.x + 12, m.y - 10, 135, 20, 4);
-      ctx.fill();
-      ctx.strokeStyle = m.color;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "700 9px 'JetBrains Mono', monospace";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(m.label, m.x + 16, m.y);
-    });
-    ctx.restore();
+    drawResearchCallouts(markers);
   }
 
   function drawOnionMitosis() {
@@ -594,24 +622,34 @@ export function initMicroscopeLab(containerId) {
       drawElodeaLeaf();
       return;
     }
+    // Living cyclosis micro-dynamics: subtle translucent chloroplast tracers traveling along vacuolar boundaries
     ctx.save();
+    ctx.globalAlpha = 0.55;
     const orbits = [
-      { cx: -85, cy: -55, rx: 70, ry: 42, count: 12 },
-      { cx: 75, cy: -35, rx: 75, ry: 45, count: 14 },
-      { cx: -45, cy: 65, rx: 65, ry: 38, count: 11 },
-      { cx: 95, cy: 75, rx: 70, ry: 40, count: 13 }
+      { cx: -50, cy: -35, rx: 55, ry: 32, count: 6 },
+      { cx: 50, cy: 35, rx: 60, ry: 35, count: 7 }
     ];
-
     orbits.forEach((orb, oIdx) => {
       const dir = (oIdx % 2 === 0) ? 1 : -1;
       for (let i = 0; i < orb.count; i++) {
         const ang = (cyclosisAngle * dir) + (i * Math.PI * 2) / orb.count;
         const px = orb.cx + Math.cos(ang) * orb.rx;
         const py = orb.cy + Math.sin(ang) * orb.ry;
-        drawChloroplast(px, py, ang);
+        ctx.fillStyle = (contrastMode === "fluorescence") ? "#22c55e" : "#4ade80";
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fill();
       }
     });
     ctx.restore();
+
+    const markers = [
+      { x: -65, y: -50, label: "Cellulose Cell Wall (Rigid Matrix)", color: "#4ade80", dx: 14, dy: -4 },
+      { x: 35, y: -25, label: "Chloroplasts (Active Cyclosis)", color: "#22c55e", dx: 14, dy: 0 },
+      { x: 5, y: 35, label: "Central Vacuole (Turgor Pressure)", color: "#38bdf8", dx: 14, dy: 0 },
+      { x: -40, y: 50, label: "Cytoplasmic Strands", color: "#fbbf24", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawChloroplast(px, py, ang) {
@@ -711,7 +749,17 @@ export function initMicroscopeLab(containerId) {
   // Slide 3: Spirogyra Crassa (Spiral Chloroplast Ribbons)
   // ----------------------------------------------------
   function drawSpirogyraOverlay(isImgLoaded) {
-    drawSpirogyra();
+    if (!isImgLoaded) {
+      drawSpirogyra();
+      return;
+    }
+    const markers = [
+      { x: -70, y: -35, label: "Spiral Ribbon Chloroplast (Helical)", color: "#4ade80", dx: 14, dy: -6 },
+      { x: 30, y: -15, label: "Pyrenoid (Protein & Starch Sheath)", color: "#fbbf24", dx: 14, dy: 0 },
+      { x: -20, y: 50, label: "Transverse Cell Wall / Septum", color: "#38bdf8", dx: 14, dy: 0 },
+      { x: 55, y: 40, label: "Suspended Central Nucleus", color: "#c084fc", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawSpirogyra() {
@@ -778,7 +826,17 @@ export function initMicroscopeLab(containerId) {
   // Slide 4: Tilia Americana (Woody Dicot Stem Xylem & Phloem)
   // ----------------------------------------------------
   function drawTiliaStemOverlay(isImgLoaded) {
-    drawTiliaStem();
+    if (!isImgLoaded) {
+      drawTiliaStem();
+      return;
+    }
+    const markers = [
+      { x: -80, y: -75, label: "Periderm (Protective Cork & Phellogen)", color: "#fb923c", dx: 14, dy: -4 },
+      { x: 60, y: -45, label: "Phloem Wedge (Conducting Sieve Tubes)", color: "#4ade80", dx: 14, dy: 0 },
+      { x: 45, y: 35, label: "Xylem Vessels & Tracheids (Safranin Red)", color: "#f87171", dx: 14, dy: 0 },
+      { x: 0, y: 0, label: "Central Parenchyma Pith", color: "#fbbf24", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawTiliaStem() {
@@ -857,24 +915,22 @@ export function initMicroscopeLab(containerId) {
       drawParamecium();
       return;
     }
+    // Living organelle dynamics: subtle pulsating contractile vacuole radial canals
     ctx.save();
+    ctx.globalAlpha = 0.55;
     const time = animTime * 4;
-    ctx.strokeStyle = (contrastMode === "fluorescence") ? "rgba(56, 189, 248, 0.7)" : "rgba(56, 189, 248, 0.45)";
-    ctx.lineWidth = 1.2;
-    for (let deg = 0; deg < 360; deg += 5) {
-      const rad = deg * Math.PI / 180;
-      const wave = Math.sin(time * 3 + deg * 0.15) * 3.5;
-      const px = Math.cos(rad) * (115 + wave);
-      const py = Math.sin(rad) * (52 + wave * 0.6);
-      ctx.beginPath();
-      ctx.moveTo(px, py);
-      ctx.lineTo(px + Math.cos(rad) * (10 + wave * 0.5), py + Math.sin(rad) * (10 + wave * 0.5));
-      ctx.stroke();
-    }
-
-    drawPulsatingVacuole(-65, -10, time);
-    drawPulsatingVacuole(65, 8, time + Math.PI);
+    drawPulsatingVacuole(-55, -12, time);
+    drawPulsatingVacuole(55, 10, time + Math.PI);
     ctx.restore();
+
+    const markers = [
+      { x: -75, y: -40, label: "Pellicle & Metachronal Cilia Fringe", color: "#38bdf8", dx: 14, dy: -6 },
+      { x: -55, y: -12, label: "Anterior Contractile Vacuole (Osmoregulation)", color: "#818cf8", dx: 14, dy: 0 },
+      { x: 10, y: 5, label: "Polyploid Macronucleus", color: "#c084fc", dx: 14, dy: 0 },
+      { x: -15, y: 35, label: "Oral Groove & Cytostome", color: "#4ade80", dx: 14, dy: 0 },
+      { x: 55, y: 10, label: "Posterior Contractile Vacuole", color: "#818cf8", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawPulsatingVacuole(vx, vy, phaseTime) {
@@ -989,7 +1045,30 @@ export function initMicroscopeLab(containerId) {
   // Slide 6: Amoeba Proteus (Pseudopodia & Streaming) [ANIMATED]
   // ----------------------------------------------------
   function drawAmoebaProteusOverlay(isImgLoaded) {
-    drawAmoebaProteus();
+    if (!isImgLoaded) {
+      drawAmoebaProteus();
+      return;
+    }
+    // Subtle living sol-gel streaming vector animation in endoplasm
+    ctx.save();
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = (contrastMode === "fluorescence") ? "#38bdf8" : "#0284c7";
+    ctx.lineWidth = 1.5;
+    const flowT = (animTime * 15) % 30;
+    ctx.beginPath();
+    ctx.moveTo(-25 + flowT, 10);
+    ctx.lineTo(-5 + flowT, 10);
+    ctx.stroke();
+    ctx.restore();
+
+    const markers = [
+      { x: -75, y: -50, label: "Advancing Pseudopodium (Lobopodia)", color: "#38bdf8", dx: 14, dy: -6 },
+      { x: -95, y: -65, label: "Hyaline Cap (Advancing Clear Tip)", color: "#7dd3fc", dx: 14, dy: 0 },
+      { x: 0, y: 10, label: "Granular Endoplasm (Streaming Sol)", color: "#a855f7", dx: 14, dy: 0 },
+      { x: 45, y: -20, label: "Discoid Granular Nucleus", color: "#ec4899", dx: 14, dy: 0 },
+      { x: 40, y: 45, label: "Pumping Contractile Vacuole", color: "#10b981", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawAmoebaProteus() {
@@ -1097,7 +1176,28 @@ export function initMicroscopeLab(containerId) {
   // Slide 7: Euglena Gracilis (Flagellum & Eyespot) [ANIMATED]
   // ----------------------------------------------------
   function drawEuglenaGracilisOverlay(isImgLoaded) {
-    drawEuglenaGracilis();
+    if (!isImgLoaded) {
+      drawEuglenaGracilis();
+      return;
+    }
+    // Subtle undulating flagellum wave
+    ctx.save();
+    ctx.strokeStyle = (contrastMode === "fluorescence") ? "rgba(56, 189, 248, 0.85)" : "rgba(3, 105, 161, 0.75)";
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-75, -45);
+    const wave = Math.sin(animTime * 8);
+    ctx.bezierCurveTo(-90, -55 + wave * 6, -110, -50 - wave * 7, -135, -60 + wave * 9);
+    ctx.stroke();
+    ctx.restore();
+
+    const markers = [
+      { x: -55, y: -35, label: "Photoreceptor Stigma (Ruby Eyespot)", color: "#ef4444", dx: 14, dy: -6 },
+      { x: -80, y: -50, label: "Emergent Locomotory Flagellum", color: "#38bdf8", dx: 14, dy: 0 },
+      { x: 20, y: 15, label: "Chloroplasts & Paramylon Granules", color: "#22c55e", dx: 14, dy: 0 },
+      { x: 55, y: 40, label: "Striated Flexible Protein Pellicle", color: "#a855f7", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawEuglenaGracilis() {
@@ -1202,7 +1302,17 @@ export function initMicroscopeLab(containerId) {
   // Slide 8: Volvox Aureus (Colonial Green Algae) [ANIMATED]
   // ----------------------------------------------------
   function drawVolvoxColonyOverlay(isImgLoaded) {
-    drawVolvoxColony();
+    if (!isImgLoaded) {
+      drawVolvoxColony();
+      return;
+    }
+    const markers = [
+      { x: -80, y: -60, label: "Biflagellate Somatic Cells (Colonial Matrix)", color: "#4ade80", dx: 14, dy: -6 },
+      { x: -25, y: 20, label: "Primary Daughter Coenobium (Gonidium)", color: "#16a34a", dx: 14, dy: 0 },
+      { x: 45, y: -20, label: "Developing Daughter Colony", color: "#15803d", dx: 14, dy: 0 },
+      { x: 70, y: 55, label: "Gelatinous Glycoprotein Sheath", color: "#38bdf8", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawVolvoxColony() {
@@ -1288,7 +1398,28 @@ export function initMicroscopeLab(containerId) {
   // Slide 9: Daphnia Magna (Water Flea Internal Anatomy) [ANIMATED]
   // ----------------------------------------------------
   function drawDaphniaMagnaOverlay(isImgLoaded) {
-    drawDaphniaMagna();
+    if (!isImgLoaded) {
+      drawDaphniaMagna();
+      return;
+    }
+    // Living heartbeat animation at 240 bpm
+    ctx.save();
+    const heartPhase = Math.sin(animTime * 25);
+    ctx.beginPath();
+    ctx.arc(-15, -30, 8 + heartPhase * 2, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(244, 63, 94, 0.85)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.restore();
+
+    const markers = [
+      { x: -65, y: -70, label: "Pigmented Compound Eye & Ocellus", color: "#0f172a", dx: 14, dy: -6 },
+      { x: -15, y: -30, label: "Myogenic Heart (240 bpm Pulse)", color: "#f43f5e", dx: 14, dy: 0 },
+      { x: -75, y: 25, label: "Second Antenna (Swimming Appendage)", color: "#38bdf8", dx: 14, dy: 0 },
+      { x: 55, y: 15, label: "Bivalve Chitinous Carapace", color: "#fbbf24", dx: 14, dy: 0 },
+      { x: 20, y: 55, label: "Digestive Alimentary Canal", color: "#4ade80", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawDaphniaMagna() {
@@ -1401,35 +1532,13 @@ export function initMicroscopeLab(containerId) {
       drawHumanBlood();
       return;
     }
-    ctx.save();
     const markers = [
-      { x: 35, y: -25, label: "Neutrophil (Multi-Lobed)", color: "#818cf8" },
-      { x: -65, y: 45, label: "Lymphocyte (Agranulocyte)", color: "#c084fc" },
-      { x: -10, y: -60, label: "Erythrocytes (Biconcave RBC)", color: "#f87171" },
-      { x: 70, y: 60, label: "Thrombocytes (Platelets)", color: "#fbbf24" }
+      { x: 35, y: -25, label: "Neutrophil (Multi-Lobed Leukocyte)", color: "#818cf8", dx: 14, dy: -4 },
+      { x: -65, y: 45, label: "Lymphocyte (Agranulocyte)", color: "#c084fc", dx: 14, dy: 0 },
+      { x: -10, y: -60, label: "Erythrocytes (Biconcave RBCs)", color: "#f87171", dx: 14, dy: 0 },
+      { x: 70, y: 60, label: "Thrombocytes (Blood Platelets)", color: "#fbbf24", dx: 14, dy: 0 }
     ];
-    markers.forEach(m => {
-      ctx.beginPath();
-      ctx.arc(m.x, m.y, 8, 0, Math.PI * 2);
-      ctx.strokeStyle = m.color;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
-      ctx.beginPath();
-      ctx.roundRect(m.x + 12, m.y - 10, 140, 20, 4);
-      ctx.fill();
-      ctx.strokeStyle = m.color;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "700 9px 'JetBrains Mono', monospace";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(m.label, m.x + 16, m.y);
-    });
-    ctx.restore();
+    drawResearchCallouts(markers);
   }
 
   function drawHumanBlood() {
@@ -1542,7 +1651,17 @@ export function initMicroscopeLab(containerId) {
   // Slide 11: Human Oral Cheek Squamous Epithelium
   // ----------------------------------------------------
   function drawHumanCheekOverlay(isImgLoaded) {
-    drawHumanCheek();
+    if (!isImgLoaded) {
+      drawHumanCheek();
+      return;
+    }
+    const markers = [
+      { x: -55, y: -45, label: "Polygonal Squamous Cell Margin", color: "#38bdf8", dx: 14, dy: -6 },
+      { x: -15, y: -20, label: "Methylene Blue-Stained Nucleus", color: "#6366f1", dx: 14, dy: 0 },
+      { x: 45, y: 25, label: "Symbiotic Oral Commensal Microflora", color: "#f59e0b", dx: 14, dy: 0 },
+      { x: 50, y: -40, label: "Folded Transparent Cytoplasm", color: "#a855f7", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawHumanCheek() {
@@ -1616,7 +1735,18 @@ export function initMicroscopeLab(containerId) {
   // Slide 12: Mammalian Motor Neuron Smear
   // ----------------------------------------------------
   function drawMotorNeuronOverlay(isImgLoaded) {
-    drawMotorNeuron();
+    if (!isImgLoaded) {
+      drawMotorNeuron();
+      return;
+    }
+    const markers = [
+      { x: 0, y: 0, label: "Multipolar Soma (Perikaryon)", color: "#c084fc", dx: 14, dy: -6 },
+      { x: -75, y: -60, label: "Branching Dendritic Arbor", color: "#818cf8", dx: 14, dy: 0 },
+      { x: 60, y: 35, label: "Clear Axon Hillock (Trigger Zone)", color: "#fbbf24", dx: 14, dy: 0 },
+      { x: -25, y: 20, label: "Nissl Bodies (Rough ER & Ribosomes)", color: "#ec4899", dx: 14, dy: 0 },
+      { x: 70, y: -50, label: "Supporting Neuroglial Cells", color: "#38bdf8", dx: 14, dy: 0 }
+    ];
+    drawResearchCallouts(markers);
   }
 
   function drawMotorNeuron() {
