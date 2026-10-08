@@ -63,7 +63,7 @@ export function initMicroscopeLab(containerId) {
           </span>
         </div>
         <div class="bench-photo-frame">
-          <img src="assets/bench-photos/bio_microscope.jpg" alt="Research Microscope Setup" class="bench-img" loading="lazy">
+          <img src="assets/labs/microscope_bench.jpg" alt="Research Microscope Setup" class="bench-img" loading="lazy">
           <div class="hotspot" style="top: 28%; left: 48%;" data-label="Binocular Eyepiece (10×)"></div>
           <div class="hotspot" style="top: 48%; left: 47%;" data-label="Revolving Objective Turret (4×, 10×, 40×, 100×)"></div>
           <div class="hotspot" style="top: 58%; left: 48%;" data-label="Mechanical Stage with Slide Clip"></div>
