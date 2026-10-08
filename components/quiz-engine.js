@@ -171,6 +171,9 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
   overlay.setAttribute("aria-label", "Select from Scientific Diagrams Bank");
 
   const diagramsList = Object.values(SCIENTIFIC_DIAGRAMS);
+  const chemCount = diagramsList.filter(d => d.subject === "CHEM").length;
+  const bioCount = diagramsList.filter(d => d.subject === "BIO").length;
+  const physCount = diagramsList.filter(d => d.subject === "PHYS").length;
   let activeFilter = "ALL";
   let searchQuery = "";
 
@@ -207,9 +210,9 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
         <input type="text" id="diag-picker-search" class="diag-picker-search-input" placeholder="🔍 Search diagrams by concept (e.g. heating curve, cell, circuit, refraction)..." style="flex: 1; min-width: 260px; padding: 9px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: #ffffff; color: #0f172a;">
         <div style="display: flex; gap: 8px;" id="diag-picker-track-filters">
           <button type="button" class="btn btn-sm btn-diag-filter active" data-track="ALL" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">All (${diagramsList.length})</button>
-          <button type="button" class="btn btn-sm btn-diag-filter" data-track="CHEM" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">🧪 Chemistry</button>
-          <button type="button" class="btn btn-sm btn-diag-filter" data-track="BIO" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">🧬 Biology</button>
-          <button type="button" class="btn btn-sm btn-diag-filter" data-track="PHYS" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">⚡ Physics</button>
+          <button type="button" class="btn btn-sm btn-diag-filter" data-track="CHEM" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">🧪 Chemistry (${chemCount})</button>
+          <button type="button" class="btn btn-sm btn-diag-filter" data-track="BIO" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">🧬 Biology (${bioCount})</button>
+          <button type="button" class="btn btn-sm btn-diag-filter" data-track="PHYS" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">⚡ Physics (${physCount})</button>
         </div>
       </div>
 

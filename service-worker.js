@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v89";
+const CACHE_NAME = "amscilab-pwa-v90";
 
 const CORE_APP_SHELL = [
   "./",
@@ -51,6 +51,9 @@ const CORE_APP_SHELL = [
   "./data/lesson-theory-database.js",
   "./data/lesson-interactive-specs.js",
   "./data/scientific-diagrams.js",
+  "./data/diagrams-chem.js",
+  "./data/diagrams-bio.js",
+  "./data/diagrams-phys.js",
   "./components/module-viewer.js",
   "./components/lesson-interactives.js",
   "./components/lesson-plan-generator.js",

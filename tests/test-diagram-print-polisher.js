@@ -59,9 +59,10 @@ for (const [key, diag] of Object.entries(SCIENTIFIC_DIAGRAMS)) {
   }
 }
 
-check(allFlagshipsValidSvg, "All 20 flagship diagrams produce valid SVG XML structure");
-check(allFlagshipsWhiteBg, "All 20 flagship diagrams have dark backgrounds replaced with pure white (#ffffff)");
-check(allFlagshipsBlackText, "All 20 flagship diagrams convert labels to solid black (#000000) for copiers");
+const totalDiagrams = Object.keys(SCIENTIFIC_DIAGRAMS).length;
+check(allFlagshipsValidSvg, `All ${totalDiagrams} flagship diagrams produce valid SVG XML structure`);
+check(allFlagshipsWhiteBg, `All ${totalDiagrams} flagship diagrams have dark backgrounds replaced with pure white (#ffffff)`);
+check(allFlagshipsBlackText, `All ${totalDiagrams} flagship diagrams convert labels to solid black (#000000) for copiers`);
 
 // 3. Specific Critical Experiment Apparatus Inspections
 
