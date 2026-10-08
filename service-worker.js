@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v86";
+const CACHE_NAME = "amscilab-pwa-v87";
 
 const CORE_APP_SHELL = [
   "./",
@@ -22,6 +22,8 @@ const CORE_APP_SHELL = [
   "./manifest.json",
   "./service-worker.js",
   "./sw.js",
+  "./assets/labs/microscope_bench.jpg",
+  "./assets/bench-photos/bio_microscope.jpg",
   "./assets/logo.png",
   "./assets/apple-touch-icon.png",
   "./assets/hero-social-card-1200x630.jpg",
@@ -402,6 +404,9 @@ self.addEventListener("fetch", (event) => {
           return networkResponse;
         }).catch((err) => {
           console.warn("[AmScLab PWA] Offline fetch fallback for:", req.url, err);
+          if (url.pathname.includes("microscope_bench.jpg") || url.pathname.includes("bio_microscope.jpg")) {
+            return caches.match("./assets/labs/microscope_bench.jpg").then((res) => res || caches.match("./assets/bench-photos/bio_microscope.jpg"));
+          }
           if (url.pathname.includes("/assets/chapters/")) {
             if (url.pathname.includes("bio_")) return caches.match("./assets/placeholder-dna.svg");
             if (url.pathname.includes("phys_")) return caches.match("./assets/placeholder-atom.svg");

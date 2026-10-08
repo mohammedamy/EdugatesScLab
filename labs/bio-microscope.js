@@ -50,26 +50,54 @@ export function initMicroscopeLab(containerId) {
       </div>
 
       <!-- Real Workbench Photo View (Overlay) -->
-      <div id="microscope-photo-overlay" class="lab-bench-photo-container" style="display: none;">
-        <div class="bench-header">
+      <div id="microscope-photo-overlay" class="lab-bench-photo-container" style="display: none; margin-bottom: 20px;">
+        <div class="bench-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px 18px; backdrop-filter: blur(8px);">
           <div>
-            <h3 style="margin: 0; font-size: 1.1rem; color: #f8fafc;">🔬 Olympus BX53 Clinical Research Microscope Station</h3>
+            <h3 style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 8px;">
+              <span>🔬</span> Olympus BX53 Clinical Research Microscope Station
+            </h3>
             <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: #94a3b8;">
               Infinity-corrected optical system with revolving quintuple nosepiece, plan-apochromat objectives, and Abbe condenser.
             </p>
           </div>
-          <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4);">
-            Active Lab Bench
+          <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.35); padding: 4px 12px; border-radius: 9999px; font-weight: 600; font-size: 0.78rem;">
+            ● Active Lab Bench
           </span>
         </div>
-        <div class="bench-photo-frame">
-          <img src="assets/labs/microscope_bench.jpg" alt="Research Microscope Setup" class="bench-img" loading="lazy">
+        <div class="bench-photo-frame" style="position: relative; width: 100%; height: 530px; min-height: 480px; max-height: 580px; background: #030712; border-radius: var(--radius-md); overflow: hidden; border: 1.5px solid rgba(56, 189, 248, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85);">
+          <img src="assets/labs/microscope_bench.jpg"
+               alt="Research Microscope Setup"
+               class="bench-img"
+               decoding="async"
+               style="width: 100%; height: 100%; object-fit: cover; display: block;"
+               onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='assets/bench-photos/bio_microscope.jpg';}else if(this.dataset.retried==='1'){this.dataset.retried='2';this.src='./assets/labs/microscope_bench.jpg';}else if(this.dataset.retried==='2'){this.dataset.retried='3';this.src='https://mohammedamy.github.io/EdugatesScLab/assets/labs/microscope_bench.jpg';}">
+          
+          <!-- Optical Vignette Gradient -->
+          <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(2,6,23,0.15) 0%, rgba(2,6,23,0.65) 100%); pointer-events: none;"></div>
+
+          <!-- Hotspots with Labels -->
           <div class="hotspot" style="top: 28%; left: 48%;" data-label="Binocular Eyepiece (10×)"></div>
           <div class="hotspot" style="top: 48%; left: 47%;" data-label="Revolving Objective Turret (4×, 10×, 40×, 100×)"></div>
           <div class="hotspot" style="top: 58%; left: 48%;" data-label="Mechanical Stage with Slide Clip"></div>
           <div class="hotspot" style="top: 66%; left: 47%;" data-label="Abbe Substage Condenser &amp; Iris"></div>
           <div class="hotspot" style="top: 75%; left: 32%;" data-label="Coaxial Coarse &amp; Fine Focus Knobs"></div>
           <div class="hotspot" style="top: 86%; left: 48%;" data-label="Field Diaphragm &amp; LED Light Source"></div>
+
+          <!-- Bottom Telemetry HUD Bar -->
+          <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 5;">
+            <div>
+              <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Optical System</div>
+              <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">UIS2 Infinity-Corrected Plan-Apo</div>
+            </div>
+            <div>
+              <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Substage Condenser</div>
+              <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Abbe NA 1.25 with Iris Diaphragm</div>
+            </div>
+            <div>
+              <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Coaxial Drive</div>
+              <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">1 μm Fine Division • Rackless Stage</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2380,6 +2408,7 @@ export function initMicroscopeLab(containerId) {
   const btnModeSim = container.querySelector("#view-mode-sim");
   const btnModePhoto = container.querySelector("#view-mode-photo");
   const photoOverlay = container.querySelector("#microscope-photo-overlay");
+  const simView = container.querySelector("#microscope-sim-view");
 
   btnModeSim?.addEventListener("click", () => {
     btnModeSim.classList.add("active");
@@ -2387,6 +2416,7 @@ export function initMicroscopeLab(containerId) {
     btnModePhoto.classList.remove("active");
     btnModePhoto.style.background = "transparent";
     if (photoOverlay) photoOverlay.style.display = "none";
+    if (simView) simView.style.display = "grid";
   });
 
   btnModePhoto?.addEventListener("click", () => {
@@ -2394,7 +2424,14 @@ export function initMicroscopeLab(containerId) {
     btnModePhoto.style.background = "";
     btnModeSim.classList.remove("active");
     btnModeSim.style.background = "transparent";
-    if (photoOverlay) photoOverlay.style.display = "block";
+    if (simView) simView.style.display = "none";
+    if (photoOverlay) {
+      photoOverlay.style.display = "block";
+      const benchImg = photoOverlay.querySelector(".bench-img");
+      if (benchImg && !benchImg.complete) {
+        benchImg.loading = "eager";
+      }
+    }
   });
 
   // Mount Post-Lab Checkpoint Assessment
