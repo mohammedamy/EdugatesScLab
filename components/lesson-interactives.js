@@ -197,6 +197,10 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
     buildOrganicBuilderInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("chem-periodic-trends")) {
     buildPeriodicTrendsInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("chem-metallic") || spec.type.startsWith("chem-electron-sea")) {
+    buildMetallicBondingInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("chem-protein-folding") || spec.type.startsWith("chem-peptide-bond") || spec.type.startsWith("bio-protein-folding")) {
+    buildProteinArchitectureInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-membrane")) {
     buildOsmosisInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-enzyme")) {
@@ -19129,6 +19133,1127 @@ function buildCardiacCycleInteractive(mountId, params) {
     });
   }
 }
+
+// Scratch validation for buildMetallicBondingInteractive
+
+/**
+ * Metallic Bonding: Delocalized Electron Sea & Electrical Conductivity (CHEM-M06-L4)
+ */
+function buildMetallicBondingInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+  let voltage = params.voltage !== undefined ? params.voltage : 6.0; // V (-12 to +12)
+  let tempK = params.temp !== undefined ? params.temp : 293; // K (50 to 1200)
+  let material = "copper"; // "copper", "sodium", "alloy-brass", "ionic-nacl"
+  let shearOffset = 0; // for malleability test
+  let isShearing = false;
+  let isFractured = false;
+  let animId;
+
+  // Initialize Delocalized Electrons
+  const numElectrons = 75;
+  const electrons = [];
+  for (let i = 0; i < numElectrons; i++) {
+    electrons.push({
+      x: 35 + Math.random() * 370,
+      y: 45 + Math.random() * 190,
+      vx: (Math.random() - 0.5) * 4.0,
+      vy: (Math.random() - 0.5) * 4.0
+    });
+  }
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #030712;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 5;">
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.5); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Delocalized Electron Sea Model
+          </span>
+          <span id="${mountId}-state-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(16,185,129,0.5); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Conducting (Cu²⁺ Lattice)
+          </span>
+          <span id="${mountId}-prop-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(251,191,36,0.5); color: #fbbf24; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Malleable: Non-Directional Bonds
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56,189,248,0.4);">
+          <span class="readout-label">Drift Velocity:</span>
+          <span id="${mountId}-vd-val" class="readout-val" style="color: #38bdf8; font-weight: 800;">0.85 mm/s</span>
+          <span class="readout-label" style="margin-left: 6px;">Current (I):</span>
+          <span id="${mountId}-i-val" class="readout-val" style="color: #fbbf24; font-weight: 800;">4.20 A</span>
+          <span class="readout-label" style="margin-left: 6px;">Resistivity:</span>
+          <span id="${mountId}-rho-val" class="readout-val" style="color: #a78bfa; font-weight: 800;">16.8 nΩ·m</span>
+        </div>
+
+        <div class="sim-readout-pill" style="border-color: rgba(16,185,129,0.4); margin-top: 4px;">
+          <span id="${mountId}-scat-val" style="color: #34d399; font-size: 0.75rem; font-weight: 700;">
+            Mean Free Path: 39 nm • Thermal Scattering: Moderate • T = 293 K
+          </span>
+        </div>
+
+        <!-- Material Switcher -->
+        <div style="display: flex; gap: 5px; margin-top: 6px;">
+          <button class="btn btn-primary active" id="${mountId}-mat-cu" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            🟠 Copper (Cu²⁺)
+          </button>
+          <button class="btn-sim-action" id="${mountId}-mat-na" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            ⚪ Sodium (Na⁺)
+          </button>
+          <button class="btn-sim-action" id="${mountId}-mat-brass" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            🟡 Brass Alloy
+          </button>
+          <button class="btn-sim-action" id="${mountId}-mat-nacl" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            🧂 Ionic (NaCl)
+          </button>
+        </div>
+
+        <!-- Voltage Slider -->
+        <div style="margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Electric Potential (ΔV):</span>
+            <span id="${mountId}-v-lbl" style="color: #38bdf8; font-weight: 800;">+6.0 V</span>
+          </div>
+          <input type="range" id="${mountId}-v-slider" min="-12" max="12" step="0.5" value="6" style="width: 100%; accent-color: #38bdf8; cursor: pointer;">
+        </div>
+
+        <!-- Temperature Slider -->
+        <div style="margin-top: 4px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Lattice Temperature (T):</span>
+            <span id="${mountId}-t-lbl" style="color: #fbbf24; font-weight: 800;">293 K (Room Temp)</span>
+          </div>
+          <input type="range" id="${mountId}-t-slider" min="50" max="1100" step="25" value="293" style="width: 100%; accent-color: #fbbf24; cursor: pointer;">
+        </div>
+
+        <!-- Mechanical Shear Stress Button -->
+        <div style="display: flex; gap: 5px; margin-top: 6px;">
+          <button class="btn-sim-action" id="${mountId}-btn-shear" style="flex: 1.2; padding: 6px 4px; font-weight: 700; font-size: 0.73rem;">
+            🔨 Apply Shear Force (Hammer)
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-reset" style="flex: 0.8; padding: 6px 4px; font-weight: 700; font-size: 0.73rem;">
+            🔄 Reset Lattice
+          </button>
+        </div>
+
+        <!-- Telemetry box -->
+        <div id="${mountId}-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.80rem; line-height: 1.42;">
+          <strong>Delocalized Electron Sea:</strong> Positive metal cations are immersed in a fluid sea of shared valence electrons. Under an applied electric field, electrons drift toward the positive electrode ($v_d = \mu E$). Heating increases cation vibration amplitude, triggering electron-phonon collisions that raise electrical resistivity ($\rho \propto T$).
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const vdVal = document.getElementById(`${mountId}-vd-val`);
+  const iVal = document.getElementById(`${mountId}-i-val`);
+  const rhoVal = document.getElementById(`${mountId}-rho-val`);
+  const scatVal = document.getElementById(`${mountId}-scat-val`);
+  const stateBadge = document.getElementById(`${mountId}-state-badge`);
+  const propBadge = document.getElementById(`${mountId}-prop-badge`);
+  const vSlider = document.getElementById(`${mountId}-v-slider`);
+  const vLbl = document.getElementById(`${mountId}-v-lbl`);
+  const tSlider = document.getElementById(`${mountId}-t-slider`);
+  const tLbl = document.getElementById(`${mountId}-t-lbl`);
+  const matCu = document.getElementById(`${mountId}-mat-cu`);
+  const matNa = document.getElementById(`${mountId}-mat-na`);
+  const matBrass = document.getElementById(`${mountId}-mat-brass`);
+  const matNacl = document.getElementById(`${mountId}-mat-nacl`);
+  const btnShear = document.getElementById(`${mountId}-btn-shear`);
+  const btnReset = document.getElementById(`${mountId}-btn-reset`);
+  const descBox = document.getElementById(`${mountId}-desc`);
+
+  let cycleT = 0;
+
+  function render() {
+    cycleT += 0.04;
+
+    // Resistivity calculation rho(T) = rho0 * [1 + alpha * (T - 293)]
+    let rho0 = 16.8; // nOhm*m for copper
+    let alpha = 0.0039;
+    let cationLabel = "Cu²⁺";
+    let cationColor = "#ea580c";
+    let cationStroke = "#fdba74";
+    let isIonic = material === "ionic-nacl";
+
+    if (material === "sodium") {
+      rho0 = 47.7;
+      alpha = 0.0055;
+      cationLabel = "Na⁺";
+      cationColor = "#94a3b8";
+      cationStroke = "#e2e8f0";
+    } else if (material === "alloy-brass") {
+      rho0 = 62.0; // Higher resistivity due to solute scattering
+      alpha = 0.0015;
+      cationLabel = "Cu/Zn";
+      cationColor = "#ca8a04";
+      cationStroke = "#fef08a";
+    } else if (isIonic) {
+      rho0 = 1e9; // Insulator
+      cationLabel = "Na⁺/Cl⁻";
+    }
+
+    const rho = isIonic ? 1e9 : rho0 * (1 + alpha * (tempK - 293));
+    const resistance = isIonic ? 1e8 : (rho * 1e-9 * 0.05) / 1e-6; // R = rho * L / A
+    const current = isIonic ? 0 : (Math.abs(voltage) / Math.max(0.1, resistance * 1000));
+    const driftSpeed = isIonic ? 0 : (voltage / 12) * (300 / tempK) * 2.2;
+    const meanFreePathNm = isIonic ? 0 : Math.max(5, Math.round(39 * (293 / tempK)));
+
+    // Update Telemetry UI
+    if (vdVal) vdVal.innerText = isIonic ? "0.00 mm/s (Bound)" : `${Math.abs(driftSpeed * 0.4).toFixed(2)} mm/s`;
+    if (iVal) iVal.innerText = isIonic ? "0.00 A (Insulator)" : `${current.toFixed(2)} A`;
+    if (rhoVal) rhoVal.innerText = isIonic ? "> 10⁶ Ω·m" : `${rho.toFixed(1)} nΩ·m`;
+
+    if (scatVal) {
+      if (isIonic) {
+        scatVal.innerText = isFractured ? "Lattice Fractured: Cleavage along repulsive plane" : "Ionic Insulator: Electrons localized in valence orbitals";
+      } else {
+        scatVal.innerText = `Mean Free Path: ${meanFreePathNm} nm • Scattering: ${tempK > 600 ? 'High (Frequent Phonon Collisions)' : 'Low'} • T = ${tempK} K`;
+      }
+    }
+
+    if (vLbl) vLbl.innerText = `${voltage > 0 ? '+' : ''}${voltage.toFixed(1)} V`;
+    if (tLbl) {
+      let tDesc = tempK < 100 ? "Cryogenic" : (tempK < 350 ? "Room Temp" : (tempK < 700 ? "Hot" : "Incandescent"));
+      tLbl.innerText = `${tempK} K (${tDesc})`;
+    }
+
+    if (stateBadge) {
+      if (isIonic) {
+        stateBadge.innerText = isFractured ? "SHATTERED (Electrostatic Repulsion)" : "Ionic Insulator (NaCl)";
+        stateBadge.style.color = isFractured ? "#ef4444" : "#cbd5e1";
+        stateBadge.style.borderColor = isFractured ? "#ef4444" : "#64748b";
+      } else {
+        stateBadge.innerText = `Conducting (${cationLabel} Sea)`;
+        stateBadge.style.color = "#34d399";
+        stateBadge.style.borderColor = "#10b981";
+      }
+    }
+
+    if (propBadge) {
+      if (isIonic) {
+        propBadge.innerText = isFractured ? "Brittle Cleavage: Like-Charge Repulsion" : "Brittle: Rigid Ionic Lattice";
+        propBadge.style.color = "#ef4444";
+        propBadge.style.borderColor = "#ef4444";
+      } else if (material === "alloy-brass") {
+        propBadge.innerText = "Alloy: Dislocation Slip Pinned (Hard)";
+        propBadge.style.color = "#facc15";
+        propBadge.style.borderColor = "#facc15";
+      } else {
+        propBadge.innerText = "Malleable: Non-Directional Bonds";
+        propBadge.style.color = "#38bdf8";
+        propBadge.style.borderColor = "#38bdf8";
+      }
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Dark Background
+    const bgGrad = ctx.createRadialGradient(220, 140, 30, 220, 140, 240);
+    bgGrad.addColorStop(0, "#080e1e");
+    bgGrad.addColorStop(1, "#020409");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw Electrodes (+ and - terminals at ends)
+    if (!isIonic) {
+      const isPositiveLeft = voltage < 0;
+      drawElectrode(ctx, 16, 40, 14, 200, isPositiveLeft ? "+" : "-", isPositiveLeft ? "#ef4444" : "#3b82f6");
+      drawElectrode(ctx, 410, 40, 14, 200, isPositiveLeft ? "-" : "+", isPositiveLeft ? "#3b82f6" : "#ef4444");
+    }
+
+    // Thermal vibration amplitude: A = sqrt(T / 293) * 2.2
+    const vibAmp = Math.sqrt(tempK / 293) * 2.2;
+
+    // Draw Positive Cation Lattice
+    const rows = 4;
+    const cols = 7;
+    const spacingX = 48;
+    const spacingY = 44;
+    const startX = 64;
+    const startY = 65;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // Cation base position
+        let bx = startX + c * spacingX;
+        let by = startY + r * spacingY;
+
+        // Apply shear displacement to top rows if sheared
+        if (shearOffset > 0 && r < 2) {
+          bx += shearOffset;
+        }
+
+        // Add thermal vibration oscillation
+        const vibX = Math.sin(cycleT * 12 + r * 3 + c * 5) * vibAmp;
+        const vibY = Math.cos(cycleT * 12 + r * 5 + c * 3) * vibAmp;
+        const x = bx + vibX;
+        const y = by + vibY;
+
+        if (isIonic) {
+          // Alternating Na+ and Cl-
+          const isNa = (r + c) % 2 === 0;
+          if (shearOffset > 24 && r < 2) {
+            // When sheared, like charges line up!
+            const shearedIsNa = (r + c + 1) % 2 === 0;
+            drawIonicSphere(ctx, x, y, shearedIsNa);
+          } else {
+            drawIonicSphere(ctx, x, y, isNa);
+          }
+        } else {
+          // Metal Cation
+          let rRadius = 14;
+          let fillCol = cationColor;
+          let strkCol = cationStroke;
+          let lbl = cationLabel;
+
+          if (material === "alloy-brass" && (r * cols + c) % 3 === 0) {
+            // Solute Zinc atom (larger)
+            rRadius = 16;
+            fillCol = "#eab308";
+            strkCol = "#fef08a";
+            lbl = "Zn²⁺";
+          }
+
+          drawMetalCation(ctx, x, y, rRadius, fillCol, strkCol, lbl, vibAmp);
+        }
+      }
+    }
+
+    // Draw Cleavage Plane Line if Ionic and Fractured
+    if (isIonic && isFractured) {
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(40, startY + 1.5 * spacingY);
+      ctx.lineTo(400, startY + 1.5 * spacingY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font = "bold 11px Inter, sans-serif";
+      ctx.fillStyle = "#ef4444";
+      ctx.textAlign = "center";
+      ctx.fillText("⚡ CRACK CLEAVAGE: Like charges repel!", 220, startY + 1.5 * spacingY - 8);
+    }
+
+    // Draw Delocalized Electron Sea (only in metals)
+    if (!isIonic) {
+      // Glow field
+      ctx.fillStyle = "rgba(56, 189, 248, 0.04)";
+      ctx.fillRect(40, 45, 360, 190);
+
+      // Electrons
+      electrons.forEach((e) => {
+        // Random Fermi velocity
+        e.x += e.vx + driftSpeed;
+        e.y += e.vy;
+
+        // Boundary wrap
+        if (e.x < 36) e.x = 398;
+        if (e.x > 400) e.x = 38;
+        if (e.y < 46) e.y = 230;
+        if (e.y > 232) e.y = 48;
+
+        // Draw glowing electron
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Subtle electron drift trail
+        if (Math.abs(driftSpeed) > 0.3) {
+          ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(e.x, e.y);
+          ctx.lineTo(e.x - driftSpeed * 3, e.y);
+          ctx.stroke();
+        }
+      });
+    }
+
+    animId = requestAnimationFrame(render);
+  }
+
+  function drawElectrode(ctx, x, y, w, h, pole, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 4);
+    ctx.fill();
+
+    ctx.font = "bold 14px Inter, sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.fillText(pole, x + w / 2, y + h / 2 + 5);
+  }
+
+  function drawMetalCation(ctx, x, y, radius, fillCol, strkCol, label, vibAmp) {
+    // Thermal vibration blur aura if hot
+    if (vibAmp > 2.5) {
+      ctx.fillStyle = "rgba(239, 68, 68, 0.15)";
+      ctx.beginPath();
+      ctx.arc(x, y, radius + vibAmp * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    const grad = ctx.createRadialGradient(x - 3, y - 3, 2, x, y, radius);
+    grad.addColorStop(0, strkCol);
+    grad.addColorStop(1, fillCol);
+    ctx.fillStyle = grad;
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = strkCol;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.font = "bold 8px Inter, sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.fillText(label, x, y + 3);
+  }
+
+  function drawIonicSphere(ctx, x, y, isNa) {
+    const radius = isNa ? 11 : 16;
+    const col = isNa ? "#93c5fd" : "#86efac";
+    const strk = isNa ? "#2563eb" : "#16a34a";
+    const lbl = isNa ? "Na⁺" : "Cl⁻";
+
+    const grad = ctx.createRadialGradient(x - 3, y - 3, 2, x, y, radius);
+    grad.addColorStop(0, "#ffffff");
+    grad.addColorStop(1, col);
+    ctx.fillStyle = grad;
+
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = strk;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.font = "bold 9px Inter, sans-serif";
+    ctx.fillStyle = "#0f172a";
+    ctx.textAlign = "center";
+    ctx.fillText(lbl, x, y + 3);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  // Listeners
+  if (vSlider) {
+    vSlider.addEventListener("input", (e) => {
+      voltage = parseFloat(e.target.value);
+    });
+  }
+
+  if (tSlider) {
+    tSlider.addEventListener("input", (e) => {
+      tempK = parseInt(e.target.value, 10);
+    });
+  }
+
+  function setActiveMat(btn) {
+    [matCu, matNa, matBrass, matNacl].forEach((b) => {
+      if (b) {
+        b.className = "btn-sim-action";
+        b.classList.remove("active");
+      }
+    });
+    if (btn) {
+      btn.className = "btn btn-primary active";
+      btn.classList.add("active");
+    }
+  }
+
+  if (matCu) {
+    matCu.addEventListener("click", () => {
+      material = "copper";
+      setActiveMat(matCu);
+      shearOffset = 0;
+      isFractured = false;
+      if (descBox) {
+        descBox.innerHTML = `<strong>Copper (Cu²⁺ Sea):</strong> Highly conductive FCC lattice with low resistivity (~16.8 nΩ·m). Plentiful delocalized valence electrons yield superior thermal and electrical conductivity.`;
+      }
+    });
+  }
+
+  if (matNa) {
+    matNa.addEventListener("click", () => {
+      material = "sodium";
+      setActiveMat(matNa);
+      shearOffset = 0;
+      isFractured = false;
+      if (descBox) {
+        descBox.innerHTML = `<strong>Sodium (Na⁺ Sea):</strong> Alkali metal with single valence electron per atom. Softer BCC lattice, highly reactive, with lower electron density than copper.`;
+      }
+    });
+  }
+
+  if (matBrass) {
+    matBrass.addEventListener("click", () => {
+      material = "alloy-brass";
+      setActiveMat(matBrass);
+      shearOffset = 0;
+      isFractured = false;
+      if (descBox) {
+        descBox.innerHTML = `<strong>Brass Alloy (Cu-Zn):</strong> Substitutional alloy where larger Zinc atoms distort regular copper planes. This distortion pins dislocation slip planes, drastically increasing hardness and yield strength.`;
+      }
+    });
+  }
+
+  if (matNacl) {
+    matNacl.addEventListener("click", () => {
+      material = "ionic-nacl";
+      setActiveMat(matNacl);
+      shearOffset = 0;
+      isFractured = false;
+      if (descBox) {
+        descBox.innerHTML = `<strong>Ionic Lattice (NaCl):</strong> Unlike metals, electrons are tightly localized around chloride anions. Under shear stress, like-charged ions align and violently repel, shattering the crystal along cleavage planes.`;
+      }
+    });
+  }
+
+  if (btnShear) {
+    btnShear.addEventListener("click", () => {
+      shearOffset += 28;
+      if (material === "ionic-nacl" && shearOffset >= 28) {
+        isFractured = true;
+      }
+    });
+  }
+
+  if (btnReset) {
+    btnReset.addEventListener("click", () => {
+      shearOffset = 0;
+      isFractured = false;
+    });
+  }
+}
+
+// Scratch validation for buildProteinArchitectureInteractive
+
+/**
+ * Protein Architecture: Amino Acids & Peptide Bonds (CHEM-M22-L1)
+ */
+function buildProteinArchitectureInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  params = params || {};
+  let currentLevel = 1; // 1: Primary, 2: Secondary, 3: Tertiary, 4: Quaternary
+  let secType = "helix"; // "helix" or "sheet"
+  let tempC = params.temp !== undefined ? params.temp : 37; // C (20 to 95)
+  let pH = params.pH !== undefined ? params.pH : 7.4; // (1 to 14)
+  let isReduced = false; // Disulfide bridge reduction
+  let condensationProgress = 1.0; // 0 to 1
+  let animId;
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #030712;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div style="position: absolute; top: 10px; left: 10px; display: flex; flex-wrap: wrap; gap: 6px; z-index: 5;">
+          <span class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.5); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Protein Architecture & Folding
+          </span>
+          <span id="${mountId}-level-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(16,185,129,0.5); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Level 1: Planar Peptide Bond
+          </span>
+          <span id="${mountId}-fold-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(251,191,36,0.5); color: #fbbf24; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px;">
+            Native Fold (100%)
+          </span>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56,189,248,0.4);">
+          <span class="readout-label">Folding State:</span>
+          <span id="${mountId}-state-val" class="readout-val" style="color: #34d399; font-weight: 800;">Native Fold (100%)</span>
+          <span class="readout-label" style="margin-left: 6px;">ΔG(fold):</span>
+          <span id="${mountId}-dg-val" class="readout-val" style="color: #38bdf8; font-weight: 800;">-42.5 kJ/mol</span>
+        </div>
+
+        <div class="sim-readout-pill" style="border-color: rgba(167,139,250,0.4); margin-top: 4px;">
+          <span id="${mountId}-bonds-val" style="color: #c084fc; font-size: 0.75rem; font-weight: 700;">
+            Stabilizing Forces: Disulfide (S-S) • Salt Bridges • H-Bonds • Hydrophobic Core
+          </span>
+        </div>
+
+        <!-- 4-Level Architecture Tabs -->
+        <div style="display: flex; gap: 4px; margin-top: 6px;">
+          <button class="btn btn-primary active" id="${mountId}-tab-1" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            1️⃣ Primary
+          </button>
+          <button class="btn-sim-action" id="${mountId}-tab-2" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            2️⃣ Secondary
+          </button>
+          <button class="btn-sim-action" id="${mountId}-tab-3" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            3️⃣ Tertiary
+          </button>
+          <button class="btn-sim-action" id="${mountId}-tab-4" style="flex: 1; padding: 5px 2px; font-size: 0.72rem; font-weight: 700;">
+            4️⃣ Quaternary
+          </button>
+        </div>
+
+        <!-- Temperature Slider -->
+        <div style="margin-top: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Thermal Stress (Temperature):</span>
+            <span id="${mountId}-temp-lbl" style="color: #fbbf24; font-weight: 800;">37 °C (Physiological)</span>
+          </div>
+          <input type="range" id="${mountId}-temp-slider" min="20" max="95" step="1" value="37" style="width: 100%; accent-color: #fbbf24; cursor: pointer;">
+        </div>
+
+        <!-- pH Slider -->
+        <div style="margin-top: 4px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Environmental pH:</span>
+            <span id="${mountId}-ph-lbl" style="color: #38bdf8; font-weight: 800;">pH 7.4 (Neutral)</span>
+          </div>
+          <input type="range" id="${mountId}-ph-slider" min="1.0" max="14.0" step="0.2" value="7.4" style="width: 100%; accent-color: #38bdf8; cursor: pointer;">
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 5px; margin-top: 6px;">
+          <button class="btn-sim-action" id="${mountId}-btn-sec-toggle" style="flex: 1; padding: 5px 2px; font-size: 0.70rem; font-weight: 700;">
+            🌀 Helix / Sheet
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-reduce" style="flex: 1.1; padding: 5px 2px; font-size: 0.70rem; font-weight: 700;">
+            🧪 BME (Reduce S-S)
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-renature" style="flex: 1; padding: 5px 2px; font-size: 0.70rem; font-weight: 700;">
+            🔄 Anfinsen Refold
+          </button>
+        </div>
+
+        <!-- Telemetry box -->
+        <div id="${mountId}-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.80rem; line-height: 1.42;">
+          <strong>Primary Structure & Peptide Bond:</strong> Condensation dehydration between the α-carboxyl group (-COOH) of amino acid 1 and α-amino group (-NH₂) of amino acid 2 forms a rigid, planar trans-peptide bond (-CO-NH-) with 40% double bond character due to resonance delocalization.
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const stateVal = document.getElementById(`${mountId}-state-val`);
+  const dgVal = document.getElementById(`${mountId}-dg-val`);
+  const bondsVal = document.getElementById(`${mountId}-bonds-val`);
+  const levelBadge = document.getElementById(`${mountId}-level-badge`);
+  const foldBadge = document.getElementById(`${mountId}-fold-badge`);
+  const tempSlider = document.getElementById(`${mountId}-temp-slider`);
+  const tempLbl = document.getElementById(`${mountId}-temp-lbl`);
+  const phSlider = document.getElementById(`${mountId}-ph-slider`);
+  const phLbl = document.getElementById(`${mountId}-ph-lbl`);
+  const tab1 = document.getElementById(`${mountId}-tab-1`);
+  const tab2 = document.getElementById(`${mountId}-tab-2`);
+  const tab3 = document.getElementById(`${mountId}-tab-3`);
+  const tab4 = document.getElementById(`${mountId}-tab-4`);
+  const btnSecToggle = document.getElementById(`${mountId}-btn-sec-toggle`);
+  const btnReduce = document.getElementById(`${mountId}-btn-reduce`);
+  const btnRenature = document.getElementById(`${mountId}-btn-renature`);
+  const descBox = document.getElementById(`${mountId}-desc`);
+
+  let cycleT = 0;
+
+  function render() {
+    cycleT += 0.035;
+
+    // Denaturation calculation based on temperature and pH
+    // Tm ~ 65 C. Extreme pH (< 4 or > 10) also denatures
+    const tempDenat = Math.max(0, Math.min(1, (tempC - 55) / 25));
+    const phDenat = Math.max(0, Math.min(1, (Math.abs(pH - 7.4) - 2.5) / 2.5));
+    const denatFraction = Math.min(1, Math.max(tempDenat, phDenat, isReduced ? 0.4 : 0));
+    const nativeFraction = Math.max(0, 1 - denatFraction);
+
+    const dG = -42.5 * nativeFraction + 15.0 * denatFraction;
+
+    // Update Telemetry
+    if (stateVal) {
+      if (nativeFraction >= 0.85) {
+        stateVal.innerText = `Native Fold (${Math.round(nativeFraction * 100)}%)`;
+        stateVal.style.color = "#34d399";
+      } else if (nativeFraction >= 0.35) {
+        stateVal.innerText = `Partially Unfolded (${Math.round(nativeFraction * 100)}%)`;
+        stateVal.style.color = "#fbbf24";
+      } else {
+        stateVal.innerText = `Denatured Coil (${Math.round(nativeFraction * 100)}%)`;
+        stateVal.style.color = "#ef4444";
+      }
+    }
+
+    if (dgVal) {
+      dgVal.innerText = `${dG > 0 ? '+' : ''}${dG.toFixed(1)} kJ/mol`;
+      dgVal.style.color = dG < 0 ? "#38bdf8" : "#ef4444";
+    }
+
+    if (foldBadge) {
+      if (nativeFraction >= 0.85) {
+        foldBadge.innerText = "Native Fold (Active)";
+        foldBadge.style.color = "#34d399";
+        foldBadge.style.borderColor = "#10b981";
+      } else {
+        foldBadge.innerText = `Denatured (${tempC}°C, pH ${pH.toFixed(1)})`;
+        foldBadge.style.color = "#ef4444";
+        foldBadge.style.borderColor = "#ef4444";
+      }
+    }
+
+    if (tempLbl) {
+      tempLbl.innerText = `${tempC} °C ${tempC >= 65 ? '(Thermal Denaturation)' : (tempC === 37 ? '(Physiological)' : '')}`;
+    }
+
+    if (phLbl) {
+      phLbl.innerText = `pH ${pH.toFixed(1)} ${pH < 4 ? '(Acid Denaturation)' : (pH > 10 ? '(Base Denaturation)' : '(Neutral)')}`;
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Dark Background
+    const bgGrad = ctx.createRadialGradient(220, 140, 30, 220, 140, 240);
+    bgGrad.addColorStop(0, "#080e1e");
+    bgGrad.addColorStop(1, "#020409");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw corresponding level
+    if (currentLevel === 1) {
+      drawPrimaryPeptideBond(ctx, cycleT);
+    } else if (currentLevel === 2) {
+      drawSecondaryStructure(ctx, secType, nativeFraction, cycleT);
+    } else if (currentLevel === 3) {
+      drawTertiaryFolding(ctx, nativeFraction, isReduced, cycleT);
+    } else {
+      drawQuaternaryAssembly(ctx, nativeFraction, cycleT);
+    }
+
+    animId = requestAnimationFrame(render);
+  }
+
+  function drawPrimaryPeptideBond(ctx, t) {
+    const cx = 220;
+    const cy = 135;
+
+    ctx.font = "bold 12px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "center";
+    ctx.fillText("Planar Peptide Bond Formation (Resonance & No Rotation)", cx, 30);
+
+    // Rigid Planar Box around Peptide Group (-CO-NH-)
+    ctx.fillStyle = "rgba(56, 189, 248, 0.12)";
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.roundRect(cx - 75, cy - 50, 150, 95, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = "bold 9px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText("Planar Peptide Unit (ω = 180° Trans)", cx, cy + 58);
+    ctx.font = "8px Inter, sans-serif";
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText("40% Double-Bond Character • Zero C-N Rotation", cx, cy + 69);
+
+    // Atoms & Bonds
+    // N (Blue) - C_alpha1 (Grey) - C(=O) (Grey/Red) - N (Blue/H) - C_alpha2 (Grey)
+    const pN1 = { x: cx - 140, y: cy };
+    const pCa1 = { x: cx - 95, y: cy };
+    const pC = { x: cx - 35, y: cy };
+    const pO = { x: cx - 35, y: cy - 35 };
+    const pN2 = { x: cx + 35, y: cy };
+    const pH = { x: cx + 35, y: cy + 35 };
+    const pCa2 = { x: cx + 95, y: cy };
+    const pC2 = { x: cx + 140, y: cy };
+
+    // Draw Bonds
+    drawBond(ctx, pN1, pCa1, "#64748b", 3);
+    drawBond(ctx, pCa1, pC, "#64748b", 3);
+    drawBond(ctx, pC, pO, "#ef4444", 4); // C=O double bond
+    // Resonance Peptide Bond C-N (thick with gold glow)
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(pC.x, pC.y);
+    ctx.lineTo(pN2.x, pN2.y);
+    ctx.stroke();
+
+    drawBond(ctx, pN2, pH, "#94a3b8", 2);
+    drawBond(ctx, pN2, pCa2, "#64748b", 3);
+    drawBond(ctx, pCa2, pC2, "#64748b", 3);
+
+    // Draw Atoms
+    drawAtom(ctx, pCa1.x, pCa1.y, 14, "#475569", "#94a3b8", "Cα₁");
+    drawAtom(ctx, pC.x, pC.y, 13, "#334155", "#cbd5e1", "C");
+    drawAtom(ctx, pO.x, pO.y, 12, "#b91c1c", "#f87171", "O");
+    drawAtom(ctx, pN2.x, pN2.y, 13, "#1d4ed8", "#60a5fa", "N");
+    drawAtom(ctx, pH.x, pH.y, 10, "#475569", "#cbd5e1", "H");
+    drawAtom(ctx, pCa2.x, pCa2.y, 14, "#475569", "#94a3b8", "Cα₂");
+
+    // Dihedral Rotation Indicators
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.fillStyle = "#a855f7";
+    ctx.fillText("ψ (Psi)", cx - 65, cy - 18);
+    ctx.fillText("ϕ (Phi)", cx + 65, cy - 18);
+  }
+
+  function drawSecondaryStructure(ctx, type, native, t) {
+    const cx = 220;
+    const cy = 135;
+
+    ctx.font = "bold 12px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "center";
+    ctx.fillText(type === "helix" ? "α-Helix: 3.6 Residues/Turn with Intrachain H-Bonds" : "β-Pleated Sheet: Parallel/Antiparallel Interstrand H-Bonds", cx, 30);
+
+    if (type === "helix") {
+      // Draw 3D right-handed alpha-helix spiral
+      const turns = 5;
+      const r = 40 * native + (1 - native) * 15;
+      const len = 280;
+      const startX = cx - len / 2;
+
+      ctx.strokeStyle = native > 0.5 ? "#38bdf8" : "#94a3b8";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      for (let x = 0; x <= len; x += 4) {
+        const theta = (x / len) * turns * Math.PI * 2 + (native > 0.5 ? 0 : Math.sin(t * 3 + x * 0.1) * 2);
+        const y = cy + Math.sin(theta) * r;
+        if (x === 0) ctx.moveTo(startX + x, y);
+        else ctx.lineTo(startX + x, y);
+      }
+      ctx.stroke();
+
+      // Hydrogen bonds (dashed gold lines between i and i+4)
+      if (native > 0.4) {
+        ctx.strokeStyle = "#fbbf24";
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([3, 3]);
+        for (let b = 40; b < len - 40; b += 52) {
+          const x1 = startX + b;
+          const x2 = startX + b + 36;
+          ctx.beginPath();
+          ctx.moveTo(x1, cy - r);
+          ctx.lineTo(x2, cy - r);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+
+      // Outward pointing R-groups
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillStyle = "#ec4899";
+      for (let b = 25; b < len - 20; b += 45) {
+        const rx = startX + b;
+        ctx.fillText("—R", rx, cy + r + 14);
+      }
+    } else {
+      // Draw Beta-sheet strands with interstrand H-bonds
+      const numStrands = 3;
+      const strandY = [cy - 50, cy, cy + 50];
+      strandY.forEach((sy, sIdx) => {
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        // Pleated zig-zag
+        for (let x = 70; x <= 370; x += 25) {
+          const dy = ((x / 25) % 2 === 0 ? -6 : 6) * native;
+          if (x === 70) ctx.moveTo(x, sy + dy);
+          else ctx.lineTo(x, sy + dy);
+        }
+        ctx.stroke();
+
+        // Arrow head showing N -> C direction
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.moveTo(375, sy);
+        ctx.lineTo(365, sy - 8);
+        ctx.lineTo(365, sy + 8);
+        ctx.fill();
+      });
+
+      // Interstrand H-bonds
+      if (native > 0.4) {
+        ctx.strokeStyle = "#fbbf24";
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([3, 3]);
+        for (let x = 95; x < 350; x += 40) {
+          ctx.beginPath();
+          ctx.moveTo(x, cy - 42);
+          ctx.lineTo(x, cy - 8);
+          ctx.moveTo(x, cy + 8);
+          ctx.lineTo(x, cy + 42);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+    }
+  }
+
+  function drawTertiaryFolding(ctx, native, reduced, t) {
+    const cx = 220;
+    const cy = 135;
+
+    ctx.font = "bold 12px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "center";
+    ctx.fillText(native > 0.5 ? "Tertiary 3D Globular Fold (Hydrophobic Core & Interactions)" : "Denatured Random Coil (Bonds Broken)", cx, 30);
+
+    if (native > 0.4) {
+      // Native Hydrophobic Core (Buried nonpolar cluster)
+      const coreGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 65);
+      coreGrad.addColorStop(0, "#d97706");
+      coreGrad.addColorStop(1, "rgba(217, 119, 6, 0.05)");
+      ctx.fillStyle = coreGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 60, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillStyle = "#fbbf24";
+      ctx.fillText("Hydrophobic Core", cx, cy - 8);
+      ctx.font = "8px Inter, sans-serif";
+      ctx.fillStyle = "#fef3c7";
+      ctx.fillText("(Leu, Val, Phe Buried)", cx, cy + 4);
+
+      // Looped Polypeptide Backbone
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(cx - 110, cy + 40);
+      ctx.bezierCurveTo(cx - 90, cy - 90, cx - 10, cy - 90, cx + 10, cy - 30);
+      ctx.bezierCurveTo(cx + 40, cy + 20, cx + 90, cy - 60, cx + 110, cy + 10);
+      ctx.bezierCurveTo(cx + 90, cy + 80, cx - 10, cy + 80, cx - 60, cy + 30);
+      ctx.stroke();
+
+      // 1. Disulfide Bridge (-S-S-)
+      if (!reduced) {
+        ctx.strokeStyle = "#eab308";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(cx - 45, cy - 40);
+        ctx.lineTo(cx + 10, cy - 25);
+        ctx.stroke();
+
+        ctx.font = "bold 8px Inter, sans-serif";
+        ctx.fillStyle = "#fde047";
+        ctx.fillText("—S—S— (Disulfide)", cx - 20, cy - 44);
+      } else {
+        ctx.font = "bold 8px Inter, sans-serif";
+        ctx.fillStyle = "#ef4444";
+        ctx.fillText("Reduced (-SH HS-)", cx - 20, cy - 44);
+      }
+
+      // 2. Salt Bridge (Asp- ... Lys+)
+      ctx.strokeStyle = "#a855f7";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(cx + 40, cy + 30);
+      ctx.lineTo(cx + 70, cy + 45);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font = "bold 8px Inter, sans-serif";
+      ctx.fillStyle = "#c084fc";
+      ctx.fillText("Salt Bridge (+ / -)", cx + 55, cy + 62);
+    } else {
+      // Unfolded random coil
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (let x = 60; x <= 380; x += 10) {
+        const y = cy + Math.sin(x * 0.08 + t * 4) * 35 + Math.cos(x * 0.15) * 20;
+        if (x === 60) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      ctx.font = "bold 11px Inter, sans-serif";
+      ctx.fillStyle = "#ef4444";
+      ctx.fillText("UNRAVELED RANDOM COIL (Loss of Biological Function)", cx, cy + 70);
+    }
+  }
+
+  function drawQuaternaryAssembly(ctx, native, t) {
+    const cx = 220;
+    const cy = 135;
+
+    ctx.font = "bold 12px Inter, sans-serif";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "center";
+    ctx.fillText("Quaternary Structure: Multi-Subunit Assembly (e.g. Hemoglobin α₂β₂)", cx, 30);
+
+    const subunitOffsets = [
+      { x: -45, y: -35, name: "α₁ Subunit", color: "#38bdf8" },
+      { x: 45, y: -35, name: "β₁ Subunit", color: "#ec4899" },
+      { x: -45, y: 35, name: "β₂ Subunit", color: "#ec4899" },
+      { x: 45, y: 35, name: "α₂ Subunit", color: "#38bdf8" }
+    ];
+
+    subunitOffsets.forEach((sub) => {
+      const sx = cx + sub.x * (native > 0.5 ? 1 : 1.8);
+      const sy = cy + sub.y * (native > 0.5 ? 1 : 1.8);
+
+      ctx.fillStyle = sub.color;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 30, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Heme prosthetic pocket
+      ctx.fillStyle = "#b91c1c";
+      ctx.beginPath();
+      ctx.arc(sx, sy, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.font = "bold 9px Inter, sans-serif";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "center";
+      ctx.fillText(sub.name, sx, sy + 3);
+    });
+
+    if (native > 0.5) {
+      ctx.font = "bold 10px Inter, sans-serif";
+      ctx.fillStyle = "#34d399";
+      ctx.fillText("Active Oligomer with Allosteric Cooperativity", cx, cy + 85);
+    } else {
+      ctx.font = "bold 10px Inter, sans-serif";
+      ctx.fillStyle = "#ef4444";
+      ctx.fillText("Dissociated Inactive Monomers", cx, cy + 85);
+    }
+  }
+
+  function drawAtom(ctx, x, y, radius, fillCol, strkCol, label) {
+    ctx.fillStyle = fillCol;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = strkCol;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.font = "bold 9px Inter, sans-serif";
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.fillText(label, x, y + 3);
+  }
+
+  function drawBond(ctx, p1, p2, color, width) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+  });
+
+  // Listeners
+  if (tempSlider) {
+    tempSlider.addEventListener("input", (e) => {
+      tempC = parseInt(e.target.value, 10);
+    });
+  }
+
+  if (phSlider) {
+    phSlider.addEventListener("input", (e) => {
+      pH = parseFloat(e.target.value);
+    });
+  }
+
+  function setLevelTab(tab, lvl) {
+    [tab1, tab2, tab3, tab4].forEach((t) => {
+      if (t) {
+        t.className = "btn-sim-action";
+        t.classList.remove("active");
+      }
+    });
+    if (tab) {
+      tab.className = "btn btn-primary active";
+      tab.classList.add("active");
+    }
+    currentLevel = lvl;
+
+    if (levelBadge) {
+      const names = [
+        "Level 1: Planar Peptide Bond",
+        "Level 2: Secondary α-Helix & β-Sheet",
+        "Level 3: Tertiary 3D Globular Fold",
+        "Level 4: Quaternary Multi-Subunit"
+      ];
+      levelBadge.innerText = names[lvl - 1];
+    }
+
+    if (descBox) {
+      if (lvl === 1) {
+        descBox.innerHTML = `<strong>Primary Structure & Peptide Bond:</strong> Condensation dehydration between the α-carboxyl group (-COOH) of amino acid 1 and α-amino group (-NH₂) of amino acid 2 forms a rigid, planar trans-peptide bond (-CO-NH-) with 40% double bond character due to resonance delocalization.`;
+      } else if (lvl === 2) {
+        descBox.innerHTML = `<strong>Secondary Structure:</strong> Periodic folding driven by backbone hydrogen bonding. α-Helix features 3.6 residues/turn with intrachain H-bonds between C=O(i) and N-H(i+4). β-Pleated Sheets feature parallel or antiparallel interstrand H-bonds.`;
+      } else if (lvl === 3) {
+        descBox.innerHTML = `<strong>Tertiary Structure:</strong> 3D globular architecture driven by hydrophobic collapse: nonpolar side-chains (Leu, Val, Phe) bury inside the interior core. Stabilized by covalent disulfide bridges (-S-S-), salt bridges, and hydrogen bonds.`;
+      } else {
+        descBox.innerHTML = `<strong>Quaternary Structure:</strong> Spatial arrangement of two or more folded polypeptide subunits into a functional multi-protein oligomer (e.g. Hemoglobin α₂β₂ tetramer) conferring allosteric cooperative ligand binding.`;
+      }
+    }
+  }
+
+  if (tab1) tab1.addEventListener("click", () => setLevelTab(tab1, 1));
+  if (tab2) tab2.addEventListener("click", () => setLevelTab(tab2, 2));
+  if (tab3) tab3.addEventListener("click", () => setLevelTab(tab3, 3));
+  if (tab4) tab4.addEventListener("click", () => setLevelTab(tab4, 4));
+
+  if (btnSecToggle) {
+    btnSecToggle.addEventListener("click", () => {
+      secType = secType === "helix" ? "sheet" : "helix";
+      btnSecToggle.innerText = secType === "helix" ? "🌀 Sheet Mode" : "🌀 Helix Mode";
+    });
+  }
+
+  if (btnReduce) {
+    btnReduce.addEventListener("click", () => {
+      isReduced = !isReduced;
+      btnReduce.innerText = isReduced ? "🧪 Oxidize S-S" : "🧪 BME (Reduce S-S)";
+      btnReduce.classList.toggle("active", isReduced);
+    });
+  }
+
+  if (btnRenature) {
+    btnRenature.addEventListener("click", () => {
+      tempC = 37;
+      pH = 7.4;
+      isReduced = false;
+      if (tempSlider) tempSlider.value = "37";
+      if (phSlider) phSlider.value = "7.4";
+      if (btnReduce) {
+        btnReduce.innerText = "🧪 BME (Reduce S-S)";
+        btnReduce.classList.remove("active");
+      }
+    });
+  }
+}
+
+
 
 
 

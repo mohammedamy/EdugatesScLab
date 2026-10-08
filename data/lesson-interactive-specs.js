@@ -220,16 +220,14 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "CHEM-M06-L4": {
-    "type": "phys-dc-circuit",
+    "type": "chem-metallic-bonding",
     "lessonBadge": "Lesson 4",
     "title": "Metallic Delocalized Electron Sea & Electrical Conductivity",
-    "formula": "V = I R \\quad (\\text{Metallic Conduction via Delocalized } e^-)",
-    "inquiry": "Examine how freely flowing valence electrons enable high thermal conductivity and ductile metallic deformation.",
+    "formula": "J = n e v_d = \\sigma E \\quad (\\rho(T) = \\rho_0[1 + \\alpha(T - T_0)])",
+    "inquiry": "Simulate quantum delocalized electron drift under an electric field, thermal lattice scattering (phonon resistivity), and non-directional bond malleability vs ionic brittle cleavage.",
     "defaultParams": {
-      "voltage": 10,
-      "r1": 5,
-      "r2": 5,
-      "mode": "series"
+      "voltage": 6,
+      "temp": 293
     }
   },
   "CHEM-M07-L1": {
@@ -829,15 +827,14 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "defaultParams": {}
   },
   "CHEM-M22-L1": {
-    "type": "bio-enzyme-kinetics",
+    "type": "chem-protein-folding",
     "lessonBadge": "Lesson 1",
     "title": "Protein Architecture: Amino Acids & Peptide Bonds",
-    "formula": "\\text{Amino Acid } + \\text{ Amino Acid } \\longrightarrow \\text{Di-peptide } + \\text{ H}_2\\text{O}",
-    "inquiry": "Explore primary, secondary (alpha-helices, beta-sheets), and tertiary protein folding.",
+    "formula": "\\text{Amino Acid}_1 + \\text{Amino Acid}_2 \\xrightarrow{\\text{Condensation}} \\text{Dipeptide} + \\text{H}_2\\text{O} \\quad (\\Delta G_{\\text{fold}} < 0)",
+    "inquiry": "Examine planar trans peptide bond resonance, alpha-helix/beta-sheet hydrogen bonding, and 3D tertiary hydrophobic core folding with thermal denaturation.",
     "defaultParams": {
       "temp": 37,
-      "pH": 7,
-      "substrate": 50
+      "pH": 7.4
     }
   },
   "CHEM-M22-L2": {
