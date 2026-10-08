@@ -4,7 +4,7 @@
 import { SoundFX } from "../utils/audio-synth.js";
 import { showToast } from "../utils/toast.js";
 
-const CURRENT_CACHE_NAME = "amscilab-pwa-v79";
+const CURRENT_CACHE_NAME = "amscilab-pwa-v80";
 
 // Core and Secondary assets to audit for 100% offline classroom readiness
 const AUDIT_TARGETS = [
