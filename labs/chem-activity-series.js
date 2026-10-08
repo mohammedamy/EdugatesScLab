@@ -180,7 +180,7 @@ export function initActivitySeriesLab(containerId) {
             Metal Activity Series &amp; Single Displacement Suite
           </span>
           <span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            Standard EMF ΔE° = E°_{cathode} - E°_{anode} > 0
+            ${renderLatex("\\text{Standard EMF } \\Delta E^\\circ = E^\\circ_{\\text{cathode}} - E^\\circ_{\\text{anode}} > 0")}
           </span>
         </div>
 

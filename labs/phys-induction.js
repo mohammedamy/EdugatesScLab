@@ -88,7 +88,7 @@ export function initInductionLab(containerId) {
             Faraday's Law &amp; Electromagnetic Induction Workbench
           </span>
           <span class="badge" style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); color: #fde047; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            \\mathcal{E} = -N \\frac{d\\Phi_B}{dt} • \\Phi_B = \\vec{B} \\cdot \\vec{A} • \\text{Lenz's Law}
+            ${renderLatex("\\mathcal{E} = -N \\frac{d\\Phi_B}{dt} \\quad \\bullet \\quad \\Phi_B = \\vec{B} \\cdot \\vec{A} \\quad \\bullet \\quad \\text{Lenz's Law}")}
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">

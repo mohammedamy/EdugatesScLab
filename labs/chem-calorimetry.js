@@ -87,7 +87,7 @@ export function initCalorimetryLab(containerId) {
             Precision Calorimetry &amp; Enthalpy Suite
           </span>
           <span class="badge" style="background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.3); color: #fb7185; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            q = mcΔT + C_{cal}ΔT • First Law of Thermodynamics
+            ${renderLatex("q = mc\\Delta T + C_{\\text{cal}}\\Delta T \\quad \\bullet \\quad \\text{First Law of Thermodynamics}")}
           </span>
         </div>
 

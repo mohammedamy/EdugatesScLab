@@ -55,7 +55,7 @@ export function initWaveLab(containerId) {
             Wave Interference &amp; Ripple Tank Simulator
           </span>
           <span class="badge" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            60 FPS Finite-Difference Wave Engine
+            ${renderLatex("v = f\\lambda \\quad \\bullet \\quad \\Delta y = \\frac{\\lambda L}{d}")}
           </span>
         </div>
 

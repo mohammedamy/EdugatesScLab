@@ -152,7 +152,7 @@ export function initFlameTestLab(containerId) {
             Flame Test &amp; Atomic Emission Spectroscopy
           </span>
           <span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            ΔE = hc / λ = hν • Bohr Rydberg Transitions
+            ${renderLatex("\\Delta E = \\frac{hc}{\\lambda} = h\\nu \\quad \\bullet \\quad \\text{Bohr Rydberg Transitions}")}
           </span>
         </div>
 

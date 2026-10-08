@@ -180,7 +180,7 @@ export function initReactionKineticsLab(containerId) {
             Chemical Kinetics &amp; Reaction Rates Suite
           </span>
           <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #38bdf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            Rate = k[A]^m[B]^n • k = A e^{-E_a/RT}
+            ${renderLatex("\\text{Rate} = k[\\text{A}]^m[\\text{B}]^n \\quad \\bullet \\quad k = A e^{-E_a/RT}")}
           </span>
         </div>
 

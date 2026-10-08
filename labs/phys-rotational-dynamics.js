@@ -50,7 +50,7 @@ export function initRotationalDynamicsLab(containerId) {
             Rotational Dynamics &amp; Moment of Inertia
           </span>
           <span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            a = \\frac{g \\sin\\theta}{1 + I/(MR^2)} \\quad KE_{\\text{tot}} = \\frac{1}{2}mv^2 + \\frac{1}{2}I\\omega^2
+            ${renderLatex("a = \\frac{g \\sin\\theta}{1 + I/(MR^2)} \\quad \\bullet \\quad KE_{\\text{tot}} = \\frac{1}{2}mv^2 + \\frac{1}{2}I\\omega^2")}
           </span>
         </div>
 

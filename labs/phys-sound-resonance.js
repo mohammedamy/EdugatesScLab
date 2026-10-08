@@ -146,7 +146,7 @@ export function initSoundResonanceLab(containerId) {
             Acoustic Resonance Tube &amp; Speed of Sound
           </span>
           <span class="badge" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            v = 2f·(L₂ - L₁) • Standing Waves λ/4
+            ${renderLatex("v = 2f(L_2 - L_1) \\quad \\bullet \\quad \\text{Standing Waves } \\lambda/4")}
           </span>
         </div>
 

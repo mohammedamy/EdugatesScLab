@@ -57,7 +57,7 @@ export function initMagnetismLab(containerId) {
             Magnetic Lorentz Force &amp; e/m Ratio Workbench
           </span>
           <span class="badge" style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            \\vec{F} = q(\\vec{v} \\times \\vec{B}) • e/m = \\frac{2V}{B^2 r^2}
+            ${renderLatex("\\vec{F} = q(\\vec{v} \\times \\vec{B}) \\quad \\bullet \\quad \\frac{e}{m} = \\frac{2V}{B^2 r^2}")}
           </span>
         </div>
 

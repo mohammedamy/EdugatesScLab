@@ -103,7 +103,7 @@ export function initMitosisLab(containerId) {
             Cell Cycle &amp; Mitosis Cytogenetics Workbench
           </span>
           <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            \\text{MI} = \\frac{\\sum \\text{Mitotic Cells}}{N_{\\text{total}}} \\times 100\\% • t_{\\text{phase}} = \\frac{N_p}{N_t} \\times 1440\\text{ min}
+            ${renderLatex("\\text{MI} = \\frac{\\sum \\text{Mitotic Cells}}{N_{\\text{total}}} \\times 100\\% \\quad \\bullet \\quad t_{\\text{phase}} = \\frac{N_p}{N_t} \\times 1440\\text{ min}")}
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">

@@ -54,7 +54,7 @@ export function initActionPotentialLab(containerId) {
             Neurobiology &amp; Action Potential Patch Clamp
           </span>
           <span class="badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            V_m = -70 \\text{ mV} \\rightarrow +35 \\text{ mV} \\quad g_{Na} = \\bar{g}_{Na}m^3h \\quad g_K = \\bar{g}_Kn^4
+            ${renderLatex("V_m = -70\\text{ mV} \\rightarrow +35\\text{ mV} \\quad \\bullet \\quad g_{\\text{Na}} = \\bar{g}_{\\text{Na}}m^3h \\quad g_\\text{K} = \\bar{g}_\\text{K}n^4")}
           </span>
         </div>
 

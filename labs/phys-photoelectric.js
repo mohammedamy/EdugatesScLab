@@ -48,7 +48,7 @@ export function initPhotoelectricLab(containerId) {
             Photoelectric Effect &amp; Quantum Physics Workbench
           </span>
           <span class="badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            KE_{max} = hf - \\Phi = e V_{stop} • Einstein Photon Quantum
+            ${renderLatex("KE_{\\text{max}} = hf - \\Phi = e V_{\\text{stop}} \\quad \\bullet \\quad \\text{Einstein Photon Quantum}")}
           </span>
         </div>
 
@@ -192,7 +192,7 @@ export function initPhotoelectricLab(containerId) {
           <div class="lab-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px; flex: 1;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
               <span style="font-size: 0.8rem; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">
-                Planck Relation: V_{stop} = \\frac{h}{e}f - \\frac{\\Phi}{e}
+                Planck Relation: ${renderLatex("V_{\\text{stop}} = \\frac{h}{e}f - \\frac{\\Phi}{e}")}
               </span>
               <span style="font-size: 0.72rem; color: #94a3b8; font-family: var(--font-mono);">Slope h/e</span>
             </div>

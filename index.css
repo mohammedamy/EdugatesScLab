@@ -6619,6 +6619,21 @@ body[data-theme="day"] .leitner-status-badge.box3 {
   padding: 0 2px;
 }
 
+.badge .math-rendered,
+.badge .math-katex-wrapper,
+.badge .katex {
+  color: inherit !important;
+  font-size: 1em !important;
+  vertical-align: baseline;
+  line-height: inherit;
+}
+
+.badge .math-rendered *,
+.badge .math-katex-wrapper *,
+.badge .katex * {
+  color: inherit !important;
+}
+
 .math-display {
   display: flex;
   justify-content: center;

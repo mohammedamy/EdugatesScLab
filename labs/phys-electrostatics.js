@@ -121,7 +121,7 @@ export function initElectrostaticsLab(containerId) {
             Coulomb's Law &amp; Electrostatic Field Mapping
           </span>
           <span class="badge" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            F = k_e q₁q₂ / r² • E = -∇V • Equipotential Contours
+            ${renderLatex("F = \\frac{k_e q_1 q_2}{r^2} \\quad \\bullet \\quad E = -\\nabla V \\quad \\bullet \\quad \\text{Equipotential Contours}")}
           </span>
         </div>
 

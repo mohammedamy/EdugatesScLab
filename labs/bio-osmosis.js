@@ -147,7 +147,7 @@ export function initOsmosisLab(containerId) {
             Cell Membrane Transport &amp; Osmosis Suite
           </span>
           <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            \\Psi = \\Psi_s + \\Psi_p • \\Psi_s = -iCRT • \\Delta h = \\frac{\\Delta\\Pi}{\\rho g}
+            ${renderLatex("\\Psi = \\Psi_s + \\Psi_p \\quad \\bullet \\quad \\Psi_s = -iCRT \\quad \\bullet \\quad \\Delta h = \\frac{\\Delta\\Pi}{\\rho g}")}
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">

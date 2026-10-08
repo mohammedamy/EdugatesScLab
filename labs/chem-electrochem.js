@@ -88,7 +88,7 @@ export function initElectrochemLab(containerId) {
             Electrochemistry &amp; Voltaic Cell Bench
           </span>
           <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            E_{cell} = E^\\circ - \\frac{0.0592}{n} \\log Q • Nernst Potential
+            ${renderLatex("E_{\\text{cell}} = E^\\circ - \\frac{0.0592}{n} \\log Q \\quad \\bullet \\quad \\text{Nernst Potential}")}
           </span>
         </div>
 

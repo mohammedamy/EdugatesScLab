@@ -117,7 +117,7 @@ export function initPlantTranspirationLab(containerId) {
             Plant Transpiration, Potometer &amp; Stomatal Dynamics
           </span>
           <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            E = g_s · VPD • Capillary Meniscus Tracker
+            ${renderLatex("E = g_s \\cdot \\text{VPD} \\quad \\bullet \\quad \\text{Capillary Meniscus Tracker}")}
           </span>
         </div>
 

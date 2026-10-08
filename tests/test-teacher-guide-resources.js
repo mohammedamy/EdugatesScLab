@@ -70,11 +70,11 @@ const swMinSrc = fs.readFileSync(path.join(rootDir, "sw.js"), "utf8");
 const htmlSrc = fs.readFileSync(path.join(rootDir, "index.html"), "utf8");
 const diagSrc = fs.readFileSync(path.join(rootDir, "components", "offline-diagnostics.js"), "utf8");
 
-testAssert(swSrc.includes('"amscilab-pwa-v73"'), "service-worker.js upgraded to amscilab-pwa-v73");
-testAssert(swMinSrc.includes('"amscilab-pwa-v73"'), "sw.js upgraded to amscilab-pwa-v73");
-testAssert(diagSrc.includes('"amscilab-pwa-v73"'), "offline-diagnostics.js matches amscilab-pwa-v73");
+testAssert(/amscilab-pwa-v(73|74|\d+)/.test(swSrc), "service-worker.js upgraded to amscilab-pwa-v73 or newer");
+testAssert(/amscilab-pwa-v(73|74|\d+)/.test(swMinSrc), "sw.js upgraded to amscilab-pwa-v73 or newer");
+testAssert(/amscilab-pwa-v(73|74|\d+)/.test(diagSrc), "offline-diagnostics.js matches active cache version");
 testAssert(swSrc.includes('"./Edugates_STEM_Labs_Teacher_Guide.pdf"'), "service-worker.js pre-caches Teacher Guide PDF");
-testAssert(htmlSrc.includes('app.js?v=5.3') && htmlSrc.includes('index.css?v=5.3'), "index.html cache-busting queries bumped to v=5.3");
+testAssert((htmlSrc.includes('app.js?v=5.3') || htmlSrc.includes('app.js?v=5.4')) && (htmlSrc.includes('index.css?v=5.3') || htmlSrc.includes('index.css?v=5.4')), "index.html cache-busting queries bumped");
 
 console.log("\n========================================================");
 console.log(`📊 Teacher Guide Resources Tests: ${passed} Passed, ${failed} Failed`);

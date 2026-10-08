@@ -1133,6 +1133,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
     const loader = labLoaders[rawKey] || labLoaders[cleanKey] || labLoaders["lab-projectile"];
     loader().then(cleanup => {
       currentLabCleanup = cleanup;
+      renderMathInElement(mount);
     }).catch(err => {
       console.error("Failed to load lab simulation:", err);
       mount.innerHTML = `<div style="padding: 24px; text-align: center; color: #ef4444;">Failed to load lab simulation.</div>`;

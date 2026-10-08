@@ -113,7 +113,7 @@ export function initEnzymeLab(containerId) {
             Enzyme Kinetics &amp; Biocatalysis Suite
           </span>
           <span class="badge" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            V_0 = \\frac{V_{max}[S]}{K_m + [S]} • Michaelis-Menten &amp; Lineweaver-Burk
+            ${renderLatex("V_0 = \\frac{V_{\\max}[S]}{K_m + [S]} \\quad \\bullet \\quad \\text{Michaelis-Menten & Lineweaver-Burk}")}
           </span>
         </div>
 

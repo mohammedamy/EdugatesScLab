@@ -57,7 +57,7 @@ export function initGelElectrophoresisLab(containerId) {
             Agarose Gel Electrophoresis Suite
           </span>
           <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            D \\propto 1/\\log_{10}(\\text{bp}) \\quad E = V/d \\quad \\text{Anode (+)}
+            ${renderLatex("D \\propto \\frac{1}{\\log_{10}(\\text{bp})} \\quad \\bullet \\quad E = V/d \\quad \\bullet \\quad \\text{Anode (+)}")}
           </span>
         </div>
 

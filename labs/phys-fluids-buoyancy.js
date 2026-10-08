@@ -86,7 +86,7 @@ export function initFluidsBuoyancyLab(containerId) {
             Fluid Dynamics, Buoyancy &amp; Bernoulli Suite
           </span>
           <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #38bdf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            F_b = \\rho_{f} V_{\\text{disp}} g \\quad P_1 + \\frac{1}{2}\\rho v_1^2 = P_2 + \\frac{1}{2}\\rho v_2^2
+            ${renderLatex("F_b = \\rho_{f} V_{\\text{disp}} g \\quad \\bullet \\quad P_1 + \\frac{1}{2}\\rho v_1^2 = P_2 + \\frac{1}{2}\\rho v_2^2")}
           </span>
         </div>
 

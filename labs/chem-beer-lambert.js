@@ -41,7 +41,7 @@ export function initBeerLambertLab(containerId) {
             Spectrophotometry &amp; Beer-Lambert Law Suite
           </span>
           <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #38bdf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            A = \\epsilon b c • T = I/I_0 = 10^{-A}
+            ${renderLatex("A = \\epsilon b c \\quad \\bullet \\quad T = I/I_0 = 10^{-A}")}
           </span>
         </div>
 

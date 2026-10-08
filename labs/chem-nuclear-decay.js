@@ -64,7 +64,7 @@ export function initNuclearDecayLab(containerId) {
             Radioactive Decay &amp; Nuclear Kinetics Suite
           </span>
           <span class="badge" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            N(t) = N_0 e^{-\\lambda t} • t_{1/2} = \\frac{\\ln 2}{\\lambda}
+            ${renderLatex("N(t) = N_0 e^{-\\lambda t} \\quad \\bullet \\quad t_{1/2} = \\frac{\\ln 2}{\\lambda}")}
           </span>
         </div>
 

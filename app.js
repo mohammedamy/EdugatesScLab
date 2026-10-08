@@ -2729,6 +2729,7 @@ function mountActiveLab() {
   loader().then(cleanup => {
     currentActiveLabCleanup = cleanup;
     enhanceA11y(mount);
+    renderMathInElement(mount);
   }).catch(err => {
     console.error("Failed to load laboratory workbench:", err);
     mount.innerHTML = `

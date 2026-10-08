@@ -54,7 +54,7 @@ export function initThermalConductionLab(containerId) {
             Thermal Conduction &amp; Fourier's Law Suite
           </span>
           <span class="badge" style="background: rgba(249, 115, 22, 0.15); border: 1px solid rgba(249, 115, 22, 0.3); color: #fb923c; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            \\frac{dQ}{dt} = -k A \\frac{dT}{dx} = \\frac{k A (T_{\\text{hot}} - T_{\\text{cold}})}{L}
+            ${renderLatex("\\frac{dQ}{dt} = -k A \\frac{dT}{dx} = \\frac{k A (T_{\\text{hot}} - T_{\\text{cold}})}{L}")}
           </span>
         </div>
 

@@ -2,7 +2,7 @@
 // Generates professional RFC-4180 CSV datasets, printable A4 Lab Dossiers with CER framework,
 // multi-trial overlay tracking, and post-lab competency checkpoints.
 
-import { renderLatex, upgradeAllMath } from "../utils/math-renderer.js";
+import { renderLatex, upgradeAllMath, renderMathInElement } from "../utils/math-renderer.js";
 import { showToast } from "../utils/toast.js";
 import { ProgressStore } from "../components/progress-tracker.js";
 import { exportToDocx } from "../utils/docx-export.js";
@@ -2295,6 +2295,8 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
         render();
       });
     });
+
+    renderMathInElement(container);
   }
 
   render();

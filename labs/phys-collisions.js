@@ -117,7 +117,7 @@ export function initCollisionsLab(containerId) {
             Linear Momentum &amp; Air Track Collisions Workbench
           </span>
           <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            \\vec{p}_{sys} = m_1\\vec{v}_1 + m_2\\vec{v}_2 = \\text{const} • e = -\\frac{v_{2f}-v_{1f}}{v_{2i}-v_{1i}}
+            ${renderLatex("\\vec{p}_{\\text{sys}} = m_1\\vec{v}_1 + m_2\\vec{v}_2 = \\text{const} \\quad \\bullet \\quad e = -\\frac{v_{2f}-v_{1f}}{v_{2i}-v_{1i}}")}
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">

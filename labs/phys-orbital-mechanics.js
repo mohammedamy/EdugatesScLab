@@ -108,7 +108,7 @@ export function initOrbitalMechanicsLab(containerId) {
             Keplerian Orbital Mechanics &amp; Gravitation
           </span>
           <span class="badge" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            v² = GM(2/r - 1/a) • T² ∝ a³ • Equal Areas
+            ${renderLatex("v^2 = GM\\left(\\frac{2}{r} - \\frac{1}{a}\\right) \\quad \\bullet \\quad T^2 \\propto a^3 \\quad \\bullet \\quad \\text{Equal Areas}")}
           </span>
         </div>
 

@@ -275,7 +275,7 @@ export function initPrecipitationLab(containerId) {
             Precipitation &amp; Solubility Rules Suite
           </span>
           <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            Ion Product Q vs K_{sp} • Net Ionic Precipitation
+            ${renderLatex("\\text{Ion Product } Q \\text{ vs } K_{sp} \\quad \\bullet \\quad \\text{Net Ionic Precipitation}")}
           </span>
         </div>
 

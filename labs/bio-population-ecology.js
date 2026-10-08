@@ -71,7 +71,7 @@ export function initPopulationEcologyLab(containerId) {
             Population Ecology &amp; Lotka-Volterra Suite
           </span>
           <span class="badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            \\frac{dx}{dt} = \\alpha x(1 - x/K) - \\beta xy \\quad \\frac{dy}{dt} = \\delta xy - \\gamma y
+            ${renderLatex("\\frac{dx}{dt} = \\alpha x(1 - x/K) - \\beta xy \\quad \\bullet \\quad \\frac{dy}{dt} = \\delta xy - \\gamma y")}
           </span>
         </div>
 

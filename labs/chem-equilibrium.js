@@ -77,7 +77,7 @@ export function initEquilibriumLab(containerId) {
             Chemical Equilibrium &amp; Le Chatelier Chamber
           </span>
           <span class="badge" style="background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.3); color: #4ade80; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            Q vs K_c • Dynamic Equilibrium &amp; Van 't Hoff Shift
+            ${renderLatex("Q \\text{ vs } K_c \\quad \\bullet \\quad \\text{Dynamic Equilibrium & Van 't Hoff Shift}")}
           </span>
         </div>
 

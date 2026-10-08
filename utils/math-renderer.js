@@ -86,6 +86,17 @@ const LATEX_SYMBOLS = {
   "\\circ": "°",
   "\\cdots": "⋯",
   "\\dots": "…",
+  "\\bullet": "•",
+  "\\to": "→",
+  "\\ne": "≠",
+  "\\ddagger": "‡",
+  "\\dagger": "†",
+  "\\star": "★",
+  "\\prime": "′",
+  "\\triangle": "△",
+  "\\angle": "∠",
+  "\\sim": "∼",
+  "\\equiv": "≡",
   "\\qquad": "&emsp;&emsp;",
   "\\quad": "&emsp;",
   "\\enspace": "&ensp;",
@@ -137,7 +148,7 @@ function classifyPlainTokens(html) {
     if (!parts[i].startsWith("<")) {
       let s = parts[i];
       // Mathematical & chemical operators (with proper math spacing)
-      s = s.replace(/([=+\-×÷·±∓≈≠≤≥⟶→⇌↔⟹⟺∝])/g, '<span class="math-op">$1</span>');
+      s = s.replace(/([=+\-×÷·•±∓≈≠≤≥⟶→⇌↔⟹⟺∝])/g, '<span class="math-op">$1</span>');
       // Upright numbers (lining & tabular figures)
       s = s.replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="math-num-lit">$1</span>');
       // Delimiters (upright)
@@ -163,6 +174,36 @@ export function sanitizeLatex(latex) {
     s = s.slice(1, -1).trim();
   }
 
+  // Normalize HTML entity escapes
+  s = s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+
+  // Normalize common Unicode math characters to standard KaTeX tokens
+  s = s.replace(/•/g, " \\bullet ");
+  s = s.replace(/·/g, " \\cdot ");
+  s = s.replace(/Δ/g, " \\Delta ");
+  s = s.replace(/λ/g, " \\lambda ");
+  s = s.replace(/μ/g, " \\mu ");
+  s = s.replace(/π/g, " \\pi ");
+  s = s.replace(/Ω/g, " \\Omega ");
+  s = s.replace(/→/g, " \\to ");
+  s = s.replace(/⟶/g, " \\longrightarrow ");
+  s = s.replace(/⇌/g, " \\rightleftharpoons ");
+  s = s.replace(/∝/g, " \\propto ");
+  s = s.replace(/±/g, " \\pm ");
+  s = s.replace(/∓/g, " \\mp ");
+  s = s.replace(/≈/g, " \\approx ");
+  s = s.replace(/≠/g, " \\neq ");
+  s = s.replace(/≤/g, " \\leq ");
+  s = s.replace(/≥/g, " \\geq ");
+  s = s.replace(/∇/g, " \\nabla ");
+  s = s.replace(/°/g, "^\\circ");
+  s = s.replace(/²/g, "^2");
+  s = s.replace(/³/g, "^3");
+  s = s.replace(/₁/g, "_1");
+  s = s.replace(/₂/g, "_2");
+  s = s.replace(/₃/g, "_3");
+  s = s.replace(/₄/g, "_4");
+
   // Pre-fix unescaped underscores inside \text{...}, \mathrm{...}, \textbf{...}, \mathbf{...}
   // Because in TeX/KaTeX, an unescaped _ in text mode is an invalid token and throws ParseError.
   const textCmds = ["\\text{", "\\mathrm{", "\\textbf{", "\\mathbf{"];
@@ -178,6 +219,9 @@ export function sanitizeLatex(latex) {
       tIdx = s.indexOf(tcmd, before.length + tcmd.length + fixedContent.length);
     }
   }
+
+  // Pre-fix unescaped ampersands outside of LaTeX table environments (& -> \&)
+  s = s.replace(/(?<!\\)&/g, "\\&");
 
   return s;
 }
@@ -369,13 +413,15 @@ export function cleanLatexForSpeech(latex) {
   s = s.replace(/\\Delta/g, "delta");
   s = s.replace(/\\times/g, " times ");
   s = s.replace(/\\cdot/g, " times ");
+  s = s.replace(/\\bullet/g, " ");
+  s = s.replace(/\\to|\\rightarrow|\\longrightarrow/g, " yields ");
   s = s.replace(/\\pm/g, " plus or minus ");
   s = s.replace(/\\approx/g, " approximately equals ");
   s = s.replace(/\\leq|\\le/g, " less than or equal to ");
   s = s.replace(/\\geq|\\ge/g, " greater than or equal to ");
-  s = s.replace(/\\neq/g, " not equal to ");
-  s = s.replace(/\\longrightarrow|\\rightarrow/g, " yields ");
+  s = s.replace(/\\neq|\\ne/g, " not equal to ");
   s = s.replace(/\\rightleftharpoons/g, " in dynamic equilibrium with ");
+  s = s.replace(/\\propto/g, " is proportional to ");
   s = s.replace(/\\sum/g, " sum of ");
   s = s.replace(/\\int/g, " integral of ");
   s = s.replace(/\\infty/g, " infinity ");
@@ -591,43 +637,86 @@ export function upgradeAllMath(root = (typeof document !== "undefined" ? documen
 }
 
 /**
+ * Heuristic detector for unrendered scientific and mathematical formulas
+ */
+export function isFormulaLike(text) {
+  if (!text || typeof text !== "string") return false;
+  const s = text.trim();
+  if (s.length < 3) return false;
+  // If already contains LaTeX backslash command
+  if (/\\[a-zA-Z]+/.test(s)) return true;
+  // If contains explicit $ delimiters
+  if (s.includes("$")) return true;
+  // If contains equation with math operators/scripts/superscripts
+  if (s.includes("=") && (/[_\^•·ΔλμπΩ→⇌∝±√]/.test(s) || /[a-zA-Z]\[[a-zA-Z]\]/.test(s) || /\be\^/.test(s) || /\b(?:mc|hf|kx|GM|2f|k_e|V_stop|V_{stop})\b/.test(s))) {
+    return true;
+  }
+  // Common thermodynamic, chemical or physical equations
+  if (/\b(?:K_c|K_{sp}|K_a|K_b|K_{eq}|Q\s+vs\s+K)\b/.test(s)) return true;
+  // Standalone simple equations like "PV = nRT"
+  if (/^[A-Za-z_Δλ]+\s*=\s*[^.!?]+$/.test(s) && (s.includes("^") || s.includes("_") || s.includes("·") || s.includes("•") || s.includes("/") || s.includes("Δ") || s.includes("λ") || s.length < 25)) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Utility to batch render all math formulas inside a specific DOM container.
  */
 export function renderMathInElement(container) {
-  if (!container || typeof document === "undefined" || !document.createTreeWalker) return;
+  if (!container || typeof document === "undefined") return;
 
-  const showText = typeof NodeFilter !== "undefined" && NodeFilter.SHOW_TEXT !== undefined ? NodeFilter.SHOW_TEXT : 4;
-  const walker = document.createTreeWalker(container, showText, null, false);
-  const nodesToReplace = [];
+  // 1. Text node scanning for $...$ and $$...$$
+  if (document.createTreeWalker) {
+    const showText = typeof NodeFilter !== "undefined" && NodeFilter.SHOW_TEXT !== undefined ? NodeFilter.SHOW_TEXT : 4;
+    const walker = document.createTreeWalker(container, showText, null, false);
+    const nodesToReplace = [];
 
-  let node;
-  while ((node = walker.nextNode())) {
-    if (node.nodeValue && node.nodeValue.includes("$")) {
-      const parentTag = node.parentElement ? node.parentElement.tagName.toLowerCase() : "";
-      if (parentTag !== "script" && parentTag !== "style" && parentTag !== "textarea") {
-        nodesToReplace.push(node);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue && node.nodeValue.includes("$")) {
+        const parentTag = node.parentElement ? node.parentElement.tagName.toLowerCase() : "";
+        if (parentTag !== "script" && parentTag !== "style" && parentTag !== "textarea") {
+          nodesToReplace.push(node);
+        }
+      }
+    }
+
+    for (const textNode of nodesToReplace) {
+      const parent = textNode.parentNode;
+      if (!parent) continue;
+      const formatted = formatMathText(textNode.nodeValue);
+      if (formatted !== textNode.nodeValue) {
+        const span = document.createElement("span");
+        span.innerHTML = formatted;
+        parent.replaceChild(span, textNode);
       }
     }
   }
 
-  for (const textNode of nodesToReplace) {
-    const parent = textNode.parentNode;
-    if (!parent) continue;
-    const formatted = formatMathText(textNode.nodeValue);
-    if (formatted !== textNode.nodeValue) {
-      const span = document.createElement("span");
-      span.innerHTML = formatted;
-      parent.replaceChild(span, textNode);
+  // 2. Scan elements that are badges or formulas containing unrendered math
+  try {
+    const mathTargets = container.querySelectorAll(".badge, .lab-badge, [data-math], .formula, .lab-formula, .math-target");
+    for (const el of mathTargets) {
+      if (el.querySelector(".math-rendered, .math-katex-wrapper, .katex") || el.getAttribute("data-latex")) continue;
+      const text = el.textContent ? el.textContent.trim() : "";
+      if (isFormulaLike(text)) {
+        el.innerHTML = renderLatex(text, false);
+      }
     }
-  }
+  } catch {}
 
-  // Attempt KaTeX upgrade on newly mounted element
+  // 3. Attempt KaTeX upgrade on newly mounted element
   upgradeAllMath(container);
 }
 
-// Expose upgrade function globally for external scripts & KaTeX script onload
+// Expose upgrade and rendering functions globally for external scripts, labs & KaTeX script onload
 if (typeof window !== "undefined") {
+  window.renderLatex = renderLatex;
+  window.formatMathText = formatMathText;
   window.upgradeAllMath = upgradeAllMath;
+  window.renderMathInElement = renderMathInElement;
+  window.isFormulaLike = isFormulaLike;
 
   // Single safe check on window load or when KaTeX script finishes
   window.addEventListener("load", () => {

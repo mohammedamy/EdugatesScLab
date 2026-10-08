@@ -66,7 +66,7 @@ export function initColligativeLab(containerId) {
             Colligative Properties &amp; Phase Transition Suite
           </span>
           <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            \\Delta T_f = i \\cdot K_f \\cdot m \\quad \\Delta T_b = i \\cdot K_b \\cdot m
+            ${renderLatex("\\Delta T_f = i \\cdot K_f \\cdot m \\quad \\bullet \\quad \\Delta T_b = i \\cdot K_b \\cdot m")}
           </span>
         </div>
 

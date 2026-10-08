@@ -76,7 +76,7 @@ export function initHarmonicLab(containerId) {
             Simple Harmonic Motion &amp; Hooke's Law Suite
           </span>
           <span class="badge" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            F = -kx • T = 2π√(m/k) • Energy Conservation
+            ${renderLatex("F = -kx \\quad \\bullet \\quad T = 2\\pi\\sqrt{\\frac{m}{k}} \\quad \\bullet \\quad \\text{Energy Conservation}")}
           </span>
         </div>
 
@@ -275,7 +275,7 @@ export function initHarmonicLab(containerId) {
           <div class="lab-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px; flex: 1;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
               <span style="font-size: 0.8rem; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;" id="lbl-graph-title">
-                Waveform Profile: x(t) = A·e^{-γt} cos(ωt)
+                Waveform Profile: ${renderLatex("x(t) = A e^{-\\gamma t} \\cos(\\omega t)")}
               </span>
               <!-- Graph Mode Switcher -->
               <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 6px; padding: 2px;" role="group" aria-label="Kinematic Graph Mode">

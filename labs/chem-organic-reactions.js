@@ -96,7 +96,7 @@ export function initOrganicReactionsLab(containerId) {
             Organic Reaction Mechanisms Suite
           </span>
           <span class="badge" style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); color: #c084fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            S_N1 \\cdot S_N2 \\cdot E2 \\cdot \\text{Esterification} \\cdot \\Delta G^\\ddagger
+            ${renderLatex("\\text{S}_\\text{N}1 \\cdot \\text{S}_\\text{N}2 \\cdot \\text{E}2 \\cdot \\text{Esterification} \\cdot \\Delta G^\\ddagger")}
           </span>
         </div>
 
