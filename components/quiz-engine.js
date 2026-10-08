@@ -203,8 +203,8 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
       </div>
 
       <!-- Search & Filters -->
-      <div style="padding: 12px 22px; border-bottom: 1px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.1);">
-        <input type="text" id="diag-picker-search" placeholder="🔍 Search diagrams by concept (e.g. heating curve, cell, circuit, refraction)..." style="flex: 1; min-width: 240px; padding: 7px 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.85rem;">
+      <div class="diag-picker-search-bar" style="padding: 12px 22px; border-bottom: 1.5px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
+        <input type="text" id="diag-picker-search" class="diag-picker-search-input" placeholder="🔍 Search diagrams by concept (e.g. heating curve, cell, circuit, refraction)..." style="flex: 1; min-width: 240px; padding: 8px 14px; border: 1.5px solid var(--border-color); border-radius: 6px; font-size: 0.88rem;">
         <div style="display: flex; gap: 6px;" id="diag-picker-track-filters">
           <button type="button" class="btn btn-sm btn-diag-filter active" data-track="ALL" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">All (${diagramsList.length})</button>
           <button type="button" class="btn btn-sm btn-diag-filter" data-track="CHEM" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">Chemistry</button>
@@ -214,7 +214,7 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
       </div>
 
       <!-- Diagram Grid -->
-      <div id="diag-picker-grid" style="padding: 16px 22px; overflow-y: auto; flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px;">
+      <div id="diag-picker-grid" class="diag-picker-grid" style="padding: 18px 22px; overflow-y: auto; flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); grid-auto-rows: minmax(320px, auto); align-content: start; gap: 16px;">
       </div>
 
       <!-- Footer -->
@@ -245,24 +245,26 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
       const trackBadge = d.subject === "CHEM" ? "🧪 Chemistry" : (d.subject === "BIO" ? "🧬 Biology" : "⚡ Physics");
       const trackColor = d.subject === "CHEM" ? "#38bdf8" : (d.subject === "BIO" ? "#10b981" : "#a855f7");
       return `
-        <div class="diag-picker-card" style="display: flex; flex-direction: column; background: var(--bg-card, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.2); transition: transform 0.15s ease, border-color 0.15s ease;">
-          <div style="height: 140px; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #0b0f19; padding: 8px; border-bottom: 1px solid var(--border-color);">
+        <div class="diag-picker-card" style="display: flex; flex-direction: column; min-height: 320px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.2); transition: transform 0.18s ease, border-color 0.18s ease;">
+          <div class="diag-picker-preview-box" style="height: 155px; min-height: 155px; flex-shrink: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #0b0f19; padding: 10px; border-bottom: 1.5px solid var(--border-color); position: relative;">
             <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">
               ${d.svg || ''}
             </div>
           </div>
-          <div style="padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 0.7rem; font-weight: 800; color: ${trackColor}; text-transform: uppercase;">${trackBadge}</span>
-              <span style="font-size: 0.68rem; color: var(--text-dim); font-family: var(--font-mono);">${d.id}</span>
+          <div class="diag-picker-card-body" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1 0 auto; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span class="diag-picker-badge" style="font-size: 0.72rem; font-weight: 800; color: ${trackColor}; text-transform: uppercase;">${trackBadge}</span>
+                <span style="font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono);">${d.id}</span>
+              </div>
+              <div class="diag-picker-title" style="font-size: 0.92rem; font-weight: 700; color: var(--text-main); line-height: 1.35; margin-bottom: 4px;">
+                ${escapeHtml(d.title)}
+              </div>
+              <div class="diag-picker-caption" style="font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;">
+                ${escapeHtml(d.caption || '')}
+              </div>
             </div>
-            <div style="font-size: 0.88rem; font-weight: 700; color: var(--text-main); line-height: 1.3;">
-              ${escapeHtml(d.title)}
-            </div>
-            <div style="font-size: 0.74rem; color: var(--text-muted); line-height: 1.35; flex: 1;">
-              ${escapeHtml(d.caption || '')}
-            </div>
-            <button type="button" class="btn btn-sm btn-primary btn-choose-diagram" data-id="${d.id}" style="width: 100%; margin-top: 6px; font-weight: 700; font-size: 0.8rem; background: linear-gradient(135deg, #0284c7, #2563eb); border: none; padding: 6px 12px;">
+            <button type="button" class="btn btn-primary btn-choose-diagram" data-id="${d.id}" style="width: 100%; margin-top: 8px; font-weight: 800; font-size: 0.82rem; padding: 9px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0;">
               <span>✓ Select Diagram</span>
             </button>
           </div>
@@ -550,21 +552,21 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
             <button type="button" class="btn-math-chip" data-insert="\\text{CO}_2">CO₂</button>
           </div>
 
-          <textarea id="cq-prompt" rows="3" placeholder="Enter question scenario or problem... e.g. A 2.50 kg cart moves at $4.00\\text{ m/s}$ and collides with..." style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.95rem; line-height: 1.5; resize: vertical;">${escapeHtml(initialData?.question || "")}</textarea>
+          <textarea id="cq-prompt" class="cq-textarea" rows="3" placeholder="Enter question scenario or problem... e.g. A 2.50 kg cart moves at $4.00\text{ m/s}$ and collides with..." style="width: 100%; padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; line-height: 1.5; resize: vertical;">${escapeHtml(initialData?.question || "")}</textarea>
         </div>
 
         <!-- Diagram / Picture Attachment Section -->
-        <div class="form-group cq-diagram-attachment-box" style="background: rgba(0,0,0,0.18); border: 1px dashed var(--border-color); border-radius: 8px; padding: 12px 14px;">
+        <div class="form-group cq-diagram-attachment-box" style="border: 1.5px dashed var(--border-color); border-radius: 8px; padding: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
             <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px;">
               <span>🖼️ Diagram / Picture Attachment</span>
               <span style="font-size: 0.72rem; font-weight: normal; color: var(--text-muted);">(Optional - attach scientific diagram, photo, or visual model)</span>
             </label>
             <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-              <button type="button" class="btn btn-sm btn-secondary" id="btn-cq-open-diag-bank" style="font-size: 0.76rem; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.35);">
+              <button type="button" class="btn btn-sm btn-secondary" id="btn-cq-open-diag-bank" style="font-size: 0.76rem; font-weight: 700;">
                 <span>📚 Diagrams Bank</span>
               </button>
-              <label class="btn btn-sm btn-secondary" id="lbl-cq-upload-pic" style="font-size: 0.76rem; font-weight: 700; color: #10b981; border-color: rgba(16, 185, 129, 0.35); cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 4px;">
+              <label class="btn btn-sm btn-secondary" id="lbl-cq-upload-pic" style="font-size: 0.76rem; font-weight: 700; cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 4px;">
                 <span>📤 Upload Picture</span>
                 <input type="file" id="cq-file-input" accept="image/*" style="display: none;">
               </label>
@@ -573,31 +575,35 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
 
           <!-- Direct Image URL fallback -->
           <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
-            <input type="text" id="cq-image-url-input" placeholder="Or paste image/diagram web URL (https://... or data:image/...)..." style="flex: 1; padding: 6px 10px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 0.82rem;">
-            <button type="button" class="btn btn-sm btn-secondary" id="btn-cq-apply-url" style="font-size: 0.76rem;">Apply URL</button>
+            <input type="text" id="cq-image-url-input" class="cq-input" placeholder="Or paste image/diagram web URL (https://... or data:image/...)..." style="flex: 1; padding: 8px 12px; border-radius: 6px; font-size: 0.85rem;">
+            <button type="button" class="btn btn-sm btn-secondary" id="btn-cq-apply-url" style="font-size: 0.78rem; font-weight: 700; padding: 8px 14px;">Apply URL</button>
           </div>
 
-          <!-- Attached Diagram Chip & Caption -->
-          <div id="cq-attached-diag-container" style="${attachedDiagram ? 'display: block;' : 'display: none;'} margin-top: 8px; padding: 10px 12px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px;">
+          <!-- Attached Diagram Chip, Visual Thumbnail & Caption -->
+          <div id="cq-attached-diag-container" class="cq-attached-card" style="${attachedDiagram ? 'display: block;' : 'display: none;'} margin-top: 10px; padding: 12px 14px; border-radius: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 1.1rem;">✅</span>
+                <span style="font-size: 1.15rem;">✅</span>
                 <div>
-                  <strong id="cq-attached-diag-title" style="font-size: 0.85rem; color: #38bdf8;">
+                  <strong id="cq-attached-diag-title" style="font-size: 0.9rem;">
                     ${escapeHtml(attachedDiagram?.title || 'Attached Visual Model')}
                   </strong>
-                  <span id="cq-attached-diag-type" style="font-size: 0.7rem; color: var(--text-muted); margin-left: 6px;">
+                  <span id="cq-attached-diag-type" style="font-size: 0.74rem; color: var(--text-muted); margin-left: 6px;">
                     (${attachedDiagram?.svg ? 'Vector SVG' : 'Image'})
                   </span>
                 </div>
               </div>
-              <button type="button" class="btn btn-sm" id="btn-cq-remove-diag" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.72rem; padding: 3px 8px; border-radius: 4px; cursor: pointer;">
+              <button type="button" class="btn btn-sm" id="btn-cq-remove-diag" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 0.74rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; cursor: pointer;">
                 ✕ Remove
               </button>
             </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <label for="cq-diag-caption" style="font-size: 0.74rem; color: var(--text-muted); white-space: nowrap;">Caption / Figure Title:</label>
-              <input type="text" id="cq-diag-caption" value="${escapeHtml(attachedDiagram?.caption || attachedDiagram?.title || '')}" placeholder="e.g. Figure 1: Scientific apparatus diagram..." style="flex: 1; padding: 5px 8px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 0.8rem;">
+            <!-- Live Visual Thumbnail inside Attachment Card -->
+            <div id="cq-attached-diag-thumb" class="cq-attached-thumb" style="margin: 10px 0; max-height: 160px; min-height: 60px; background: #0b0f19; border-radius: 8px; border: 1.5px solid var(--border-color); overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 8px;">
+              ${attachedDiagram?.svg ? `<div style="max-height: 140px; max-width: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">${attachedDiagram.svg}</div>` : (attachedDiagram?.imageUrl ? `<img src="${attachedDiagram.imageUrl}" alt="Attached Thumbnail" style="max-height: 140px; max-width: 100%; object-fit: contain; border-radius: 6px;">` : '')}
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
+              <label for="cq-diag-caption" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); white-space: nowrap;">Caption / Figure Title:</label>
+              <input type="text" id="cq-diag-caption" class="cq-input" value="${escapeHtml(attachedDiagram?.caption || attachedDiagram?.title || '')}" placeholder="e.g. Figure 1: Scientific apparatus diagram..." style="flex: 1; padding: 7px 12px; border-radius: 6px; font-size: 0.85rem;">
             </div>
           </div>
         </div>
@@ -612,10 +618,10 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
               const optVal = initialData?.options && initialData.options[idx] ? initialData.options[idx] : "";
               const isChecked = correctIdx === idx;
               return `
-                <div style="display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.18); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div class="cq-option-row" style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 6px;">
                   <input type="radio" name="cq-correct-radio" id="cq-radio-${idx}" value="${idx}" ${isChecked ? 'checked' : ''} style="cursor: pointer;" title="Mark Option ${letter} as Correct Key">
                   <label for="cq-radio-${idx}" style="font-weight: 800; font-family: var(--font-heading); color: ${isChecked ? '#10b981' : 'var(--text-muted)'}; min-width: 24px; cursor: pointer;">(${letter})</label>
-                  <input type="text" class="cq-option-input" id="cq-opt-${idx}" value="${escapeHtml(optVal)}" placeholder="Option ${letter} text or formula..." style="flex: 1; padding: 7px 10px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-main); font-size: 0.9rem;">
+                  <input type="text" class="cq-input cq-option-input" id="cq-opt-${idx}" value="${escapeHtml(optVal)}" placeholder="Option ${letter} text or formula..." style="flex: 1; padding: 7px 10px; border-radius: 4px; font-size: 0.9rem;">
                 </div>
               `;
             }).join("")}
@@ -627,7 +633,7 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
           <label style="font-size: 0.82rem; font-weight: 700; color: #c084fc; display: block; margin-bottom: 4px;">
             Claim-Evidence-Reasoning Scoring Rubric &amp; Criteria
           </label>
-          <textarea id="cq-rubric" rows="2" placeholder="Specify expected Claim, Evidence requirements, and Scientific Reasoning..." style="width: 100%; padding: 8px 12px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.88rem; line-height: 1.4; resize: vertical;">${escapeHtml(initialData?.rubricCER || "")}</textarea>
+          <textarea id="cq-rubric" class="cq-textarea" rows="2" placeholder="Specify expected Claim, Evidence requirements, and Scientific Reasoning..." style="width: 100%; padding: 8px 12px; border-radius: 6px; font-size: 0.88rem; line-height: 1.4; resize: vertical;">${escapeHtml(initialData?.rubricCER || "")}</textarea>
         </div>
 
         <!-- Explanation / Teacher Solution -->
@@ -635,7 +641,7 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
           <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 4px;">
             Teacher Solution &amp; Pedagogical Rationale *
           </label>
-          <textarea id="cq-explanation" rows="2" placeholder="Step-by-step mathematical derivation, theoretical principle, or error analysis..." style="width: 100%; padding: 10px 14px; background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); font-size: 0.88rem; line-height: 1.5; resize: vertical;">${escapeHtml(initialData?.explanation || "")}</textarea>
+          <textarea id="cq-explanation" class="cq-textarea" rows="2" placeholder="Step-by-step mathematical derivation, theoretical principle, or error analysis..." style="width: 100%; padding: 10px 14px; border-radius: 6px; font-size: 0.88rem; line-height: 1.5; resize: vertical;">${escapeHtml(initialData?.explanation || "")}</textarea>
         </div>
 
         <!-- Live Instant KaTeX Preview Card -->
@@ -685,6 +691,7 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
   const diagTitle = overlay.querySelector("#cq-attached-diag-title");
   const diagType = overlay.querySelector("#cq-attached-diag-type");
   const diagCaption = overlay.querySelector("#cq-diag-caption");
+  const diagThumb = overlay.querySelector("#cq-attached-diag-thumb");
   const fileInput = overlay.querySelector("#cq-file-input");
   const urlInput = overlay.querySelector("#cq-image-url-input");
 
@@ -694,11 +701,21 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
       if (diagBox) diagBox.style.display = "block";
       if (diagTitle) diagTitle.textContent = attachedDiagram.title || "Attached Visual Model";
       if (diagType) diagType.textContent = attachedDiagram.svg ? "(Vector SVG)" : "(Image)";
+      if (diagThumb) {
+        if (attachedDiagram.svg) {
+          diagThumb.innerHTML = `<div style="max-height: 140px; max-width: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">${attachedDiagram.svg}</div>`;
+        } else if (attachedDiagram.imageUrl) {
+          diagThumb.innerHTML = `<img src="${attachedDiagram.imageUrl}" alt="Attached Thumbnail" style="max-height: 140px; max-width: 100%; object-fit: contain; border-radius: 6px;">`;
+        } else {
+          diagThumb.innerHTML = "";
+        }
+      }
       if (diagCaption && !diagCaption.value.trim()) {
         diagCaption.value = attachedDiagram.caption || attachedDiagram.title || "";
       }
     } else {
       if (diagBox) diagBox.style.display = "none";
+      if (diagThumb) diagThumb.innerHTML = "";
       if (diagCaption) diagCaption.value = "";
     }
     updatePreview();

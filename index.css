@@ -14990,3 +14990,420 @@ body.focus-mode .btn-focus-mode-exit {
   background: #f8fafc !important;
   border-color: #e2e8f0 !important;
 }
+
+/* =========================================================================
+   Scientific Diagrams Bank & Question Authoring High-Contrast System
+   ========================================================================= */
+
+/* Diagram Picker Grid & Layout Architecture */
+.diag-picker-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)) !important;
+  grid-auto-rows: minmax(320px, auto) !important;
+  align-content: start !important;
+  gap: 16px !important;
+  padding: 18px 22px !important;
+  overflow-y: auto !important;
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+}
+
+.diag-picker-card {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 320px !important;
+  height: 100% !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease !important;
+  box-sizing: border-box !important;
+  background: var(--bg-card, #1e293b);
+  border: 1.5px solid var(--border-color, #334155);
+}
+
+.diag-picker-card:hover {
+  transform: translateY(-3px) !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.3) !important;
+}
+
+.diag-picker-preview-box {
+  height: 155px !important;
+  min-height: 155px !important;
+  max-height: 155px !important;
+  flex-shrink: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  background: #0b0f19 !important;
+  padding: 10px !important;
+  border-bottom: 1.5px solid var(--border-color, #334155) !important;
+  position: relative !important;
+}
+
+.diag-picker-preview-box svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 135px !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.diag-picker-card-body {
+  padding: 12px 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  flex: 1 0 auto !important;
+  justify-content: space-between !important;
+}
+
+.diag-picker-search-bar {
+  background: rgba(0,0,0,0.12);
+  border-bottom: 1.5px solid var(--border-color, #334155);
+}
+
+.diag-picker-search-input {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1.5px solid var(--border-color, #334155) !important;
+  color: var(--text-main) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.diag-picker-search-input:focus {
+  border-color: #38bdf8 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+}
+
+.btn-choose-diagram {
+  width: 100% !important;
+  margin-top: 8px !important;
+  font-weight: 800 !important;
+  font-size: 0.82rem !important;
+  padding: 9px 14px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+  background: linear-gradient(135deg, #0284c7, #2563eb) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3) !important;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.btn-choose-diagram:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.1) !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45) !important;
+}
+
+/* Custom Question Editor High-Contrast Form Controls (Dark Mode Base) */
+.cq-textarea {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1.5px solid var(--border-color, #334155) !important;
+  color: var(--text-main, #f8fafc) !important;
+  font-family: inherit !important;
+  outline: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.cq-textarea:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+}
+
+.cq-input {
+  background: rgba(15, 23, 42, 0.8) !important;
+  border: 1.5px solid var(--border-color, #334155) !important;
+  color: var(--text-main, #f8fafc) !important;
+  font-family: inherit !important;
+  outline: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.cq-input:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+}
+
+.cq-math-toolbar {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1.5px solid var(--border-color, #334155) !important;
+}
+
+.cq-diagram-attachment-box {
+  background: rgba(15, 23, 42, 0.4) !important;
+  border: 1.5px dashed var(--border-color, #334155) !important;
+}
+
+.cq-attached-card {
+  background: rgba(14, 165, 233, 0.12) !important;
+  border: 1.5px solid rgba(56, 189, 248, 0.35) !important;
+}
+
+#cq-attached-diag-title {
+  color: #38bdf8;
+}
+
+.cq-attached-thumb {
+  background: #0b0f19 !important;
+  border: 1.5px solid var(--border-color, #334155) !important;
+}
+
+.cq-attached-thumb svg {
+  max-height: 140px !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.cq-option-row {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border: 1.5px solid var(--border-color, #334155) !important;
+  transition: border-color 0.15s ease, background 0.15s ease !important;
+}
+
+.cq-option-row:hover {
+  border-color: #475569 !important;
+  background: rgba(15, 23, 42, 0.7) !important;
+}
+
+/* =========================================================================
+   Day Mode ([data-theme="day"]) Crisp High-Contrast Overrides
+   Eliminates muddy gray boxes, ensures pure white inputs & vivid typography
+   ========================================================================= */
+[data-theme="day"] .custom-modal-shell {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 25px 70px rgba(15, 23, 42, 0.25) !important;
+}
+
+[data-theme="day"] .custom-modal-header {
+  background: #f8fafc !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+[data-theme="day"] .custom-modal-header h3 {
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .custom-modal-body label {
+  color: #1e293b !important;
+}
+
+[data-theme="day"] .cq-textarea {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="day"] .cq-textarea::placeholder {
+  color: #64748b !important;
+}
+
+[data-theme="day"] .cq-textarea:focus {
+  background: #ffffff !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15), inset 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="day"] .cq-input {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="day"] .cq-input::placeholder {
+  color: #64748b !important;
+}
+
+[data-theme="day"] .cq-input:focus {
+  background: #ffffff !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15), inset 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="day"] .cq-math-toolbar {
+  background: #f8fafc !important;
+  border: 1.5px solid #e2e8f0 !important;
+}
+
+[data-theme="day"] .cq-math-toolbar span {
+  color: #334155 !important;
+}
+
+[data-theme="day"] .cq-math-toolbar .btn-math-chip {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="day"] .cq-math-toolbar .btn-math-chip:hover {
+  background: #eff6ff !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+}
+
+[data-theme="day"] .cq-diagram-attachment-box {
+  background: #f8fafc !important;
+  border: 1.5px dashed #94a3b8 !important;
+}
+
+[data-theme="day"] #btn-cq-open-diag-bank {
+  background: #ffffff !important;
+  border: 1.5px solid #0284c7 !important;
+  color: #0284c7 !important;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.12) !important;
+}
+
+[data-theme="day"] #btn-cq-open-diag-bank:hover {
+  background: #f0f9ff !important;
+  border-color: #0369a1 !important;
+  color: #0369a1 !important;
+}
+
+[data-theme="day"] #lbl-cq-upload-pic {
+  background: #ffffff !important;
+  border: 1.5px solid #059669 !important;
+  color: #059669 !important;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.12) !important;
+}
+
+[data-theme="day"] #lbl-cq-upload-pic:hover {
+  background: #ecfdf5 !important;
+  border-color: #047857 !important;
+  color: #047857 !important;
+}
+
+[data-theme="day"] #btn-cq-apply-url {
+  background: #f1f5f9 !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="day"] #btn-cq-apply-url:hover {
+  background: #e2e8f0 !important;
+}
+
+[data-theme="day"] .cq-attached-card {
+  background: #f0f9ff !important;
+  border: 1.5px solid #7dd3fc !important;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.08) !important;
+}
+
+[data-theme="day"] #cq-attached-diag-title {
+  color: #0369a1 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="day"] .cq-attached-thumb {
+  background: #0f172a !important;
+  border: 1.5px solid #cbd5e1 !important;
+}
+
+[data-theme="day"] .cq-option-row {
+  background: #f8fafc !important;
+  border: 1.5px solid #e2e8f0 !important;
+}
+
+[data-theme="day"] .cq-option-row:hover {
+  background: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="day"] .cq-option-input {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="day"] #cq-live-preview {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+
+[data-theme="day"] .custom-modal-footer {
+  background: #f8fafc !important;
+  border-top-color: #e2e8f0 !important;
+}
+
+[data-theme="day"] #btn-save-cq-bank-only {
+  background: #ffffff !important;
+  border: 1.5px solid #0284c7 !important;
+  color: #0284c7 !important;
+}
+
+[data-theme="day"] #btn-save-cq-bank-only:hover {
+  background: #f0f9ff !important;
+  color: #0369a1 !important;
+}
+
+/* Day Mode Optimizations for Scientific Diagrams Bank Modal */
+[data-theme="day"] .diag-picker-search-bar {
+  background: #f8fafc !important;
+  border-bottom: 1.5px solid #e2e8f0 !important;
+}
+
+[data-theme="day"] .diag-picker-search-input {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .diag-picker-search-input::placeholder {
+  color: #64748b !important;
+}
+
+[data-theme="day"] .diag-picker-search-input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+}
+
+[data-theme="day"] .btn-diag-filter {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+[data-theme="day"] .btn-diag-filter:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .btn-diag-filter.active {
+  background: #0284c7 !important;
+  border-color: #0284c7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3) !important;
+}
+
+[data-theme="day"] .diag-picker-card {
+  background: #ffffff !important;
+  border: 1.5px solid #e2e8f0 !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08) !important;
+}
+
+[data-theme="day"] .diag-picker-card:hover {
+  border-color: #2563eb !important;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.16) !important;
+}
+
+[data-theme="day"] .diag-picker-title {
+  color: #0f172a !important;
+}
+
+[data-theme="day"] .diag-picker-caption {
+  color: #475569 !important;
+}
