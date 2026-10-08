@@ -342,6 +342,20 @@ function isMaxhubOrSmartboardDevice() {
   return isNamedSmartboard || isAndroidLargeScreen;
 }
 
+function isMobilePhoneDevice() {
+  const ua = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+  const isMobileUa = /Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+  const isSmallScreen = typeof window !== "undefined" && window.innerWidth <= 600;
+  return isMobileUa || isSmallScreen;
+}
+
+function isTabletDevice() {
+  const ua = (typeof navigator !== "undefined" && navigator.userAgent) || "";
+  const isTabletUa = /iPad|Android(?!.*Mobile)|Tablet/i.test(ua);
+  const isTabletScreen = typeof window !== "undefined" && window.innerWidth > 600 && window.innerWidth <= 900;
+  return isTabletUa || isTabletScreen;
+}
+
 function setupDeviceDetection() {
   const savedMode = typeof localStorage !== "undefined" ? localStorage.getItem("edugates_device_mode") : null;
   const isSmartboard = isMaxhubOrSmartboardDevice();
@@ -352,6 +366,19 @@ function setupDeviceDetection() {
     setDeviceMode("smartboard");
   } else {
     setDeviceMode("auto");
+  }
+
+  // Dynamically adapt Auto mode on orientation change or window resize
+  if (typeof window !== "undefined") {
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (AppState.deviceMode === "auto") {
+          setDeviceMode("auto");
+        }
+      }, 150);
+    }, { passive: true });
   }
 }
 
@@ -381,6 +408,12 @@ function setDeviceMode(mode) {
       document.body.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
       document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
       document.documentElement.setAttribute("data-mode", "smartboard");
+    } else if (isMobilePhoneDevice()) {
+      document.body.classList.add("mode-mobile");
+      document.documentElement.setAttribute("data-mode", "mobile");
+    } else if (isTabletDevice()) {
+      document.body.classList.add("mode-tablet");
+      document.documentElement.setAttribute("data-mode", "tablet");
     } else {
       document.documentElement.removeAttribute("data-mode");
     }

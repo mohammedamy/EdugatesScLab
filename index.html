@@ -102,8 +102,8 @@
   <script async src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous" onload="if (window.upgradeAllMath) window.upgradeAllMath();"></script>
 
   <!-- Preload Core Stylesheet -->
-  <link rel="preload" href="index.css?v=5.9" as="style">
-  <link rel="stylesheet" href="index.css?v=5.9">
+  <link rel="preload" href="index.css?v=6.0" as="style">
+  <link rel="stylesheet" href="index.css?v=6.0">
 
   <!-- Instant Hardware, MAXHUB & Smartboard Processor Optimizer (Executes before first paint) -->
   <script>
@@ -136,6 +136,12 @@
               localStorage.setItem("edugates_device_mode", "smartboard");
             }
           } catch (e) {}
+        } else if (savedMode === "mobile" || (!savedMode && (window.innerWidth <= 600 || /Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)))) {
+          document.documentElement.setAttribute("data-mode", "mobile");
+          document.documentElement.classList.add("mode-mobile");
+        } else if (savedMode === "tablet" || (!savedMode && (window.innerWidth <= 900 || /iPad|Tablet/i.test(ua)))) {
+          document.documentElement.setAttribute("data-mode", "tablet");
+          document.documentElement.classList.add("mode-tablet");
         }
 
         // Centralized DPR Manager to prevent 4K Canvas OOM / VRAM Thrashing on embedded ARM Mali GPUs
@@ -254,6 +260,6 @@
   </script>
 
   <!-- Main Modular Application Script -->
-  <script type="module" src="app.js?v=5.9"></script>
+  <script type="module" src="app.js?v=6.0"></script>
 </body>
 </html>

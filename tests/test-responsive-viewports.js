@@ -150,6 +150,54 @@ testAssert(
   "Modals and diagram picker expand to full-screen sheets on mobile viewports"
 );
 
+testAssert(
+  cssSrc.includes("touch-action: manipulation;") &&
+  cssSrc.includes("-webkit-tap-highlight-color: transparent;"),
+  "CSS applies zero-delay touch-action manipulation and removes tap highlight on mobile"
+);
+
+testAssert(
+  cssSrc.includes("/* Prevent iOS Safari Viewport Auto-Zoom on Form Inputs */") &&
+  cssSrc.includes("font-size: 16px !important;"),
+  "CSS enforces 16px input font size to prevent iOS Safari auto-zoom distortion"
+);
+
+testAssert(
+  cssSrc.includes(".katex-display {") &&
+  cssSrc.includes("-webkit-overflow-scrolling: touch !important;"),
+  "KaTeX display math formulas include horizontal scroll guard to prevent viewport blowout"
+);
+
+testAssert(
+  cssSrc.includes(".q-table-wrapper {") &&
+  cssSrc.includes("overflow-x: auto !important;"),
+  "Question data tables wrap in touch-scrolling responsive container on mobile"
+);
+
+testAssert(
+  cssSrc.includes(".q-diagram-container {") &&
+  cssSrc.includes("box-sizing: border-box !important;"),
+  "Question diagrams and scientific visual models adapt with compact padding on mobile"
+);
+
+testAssert(
+  cssSrc.includes(".calculator-modal {") &&
+  cssSrc.includes("border-radius: 20px 20px 0 0 !important;"),
+  "Pocket scientific calculator docks as an ergonomic bottom sheet on mobile"
+);
+
+testAssert(
+  cssSrc.includes(".lab-report-shell {") &&
+  cssSrc.includes("height: 100% !important;"),
+  "Lab report dossier modal expands to edge-to-edge sheet on mobile screens"
+);
+
+testAssert(
+  cssSrc.includes(".exam-header-bar {") &&
+  cssSrc.includes("flex-direction: column !important;"),
+  "Live assessment header bar stacks vertically on mobile viewports"
+);
+
 // ----------------------------------------------------
 // 2. Tablet Viewport (768px - iPad Portrait)
 // ----------------------------------------------------
