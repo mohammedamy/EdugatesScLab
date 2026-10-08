@@ -72,22 +72,40 @@ export function initReactionKineticsLab(containerId) {
   let simTime = 0; // seconds
   let animId = null;
 
-  // Particle Simulation Engine
+  // Particle Simulation Engine & Physical Beaker Containment
   const GAS_CONSTANT = 8.314; // J/(mol·K)
   const particles = [];
   const MAX_PARTICLES = 70;
+
+  // Physical Beaker Dimensions & Particle Solution Containment
+  const BEAKER = {
+    x: 80,
+    y: 90,
+    w: 280,
+    h: 340,
+    liquidTopOffset: 60, // Meniscus begins at y = 150
+    stirBarYOffset: 12   // Stirrer bar center at y = 418
+  };
 
   function initParticles() {
     particles.length = 0;
     const numA = Math.round(concA * 35) + 10;
     const numB = Math.round(concB * 35) + 10;
     
+    // Containment boundaries strictly inside the beaker solution
+    const minX = BEAKER.x + 18;
+    const maxX = BEAKER.x + BEAKER.w - 18;
+    const minY = BEAKER.y + BEAKER.liquidTopOffset + 18;
+    const maxY = BEAKER.y + BEAKER.h - 32;
+    const spanX = maxX - minX;
+    const spanY = maxY - minY;
+
     // Reactant A (Amber/Red)
     for (let i = 0; i < numA; i++) {
       particles.push({
         type: "A",
-        x: 40 + Math.random() * 260,
-        y: 120 + Math.random() * 280,
+        x: minX + Math.random() * spanX,
+        y: minY + Math.random() * spanY,
         vx: (Math.random() - 0.5) * 2.2,
         vy: (Math.random() - 0.5) * 2.2,
         radius: 6,
@@ -98,8 +116,8 @@ export function initReactionKineticsLab(containerId) {
     for (let i = 0; i < numB; i++) {
       particles.push({
         type: "B",
-        x: 40 + Math.random() * 260,
-        y: 120 + Math.random() * 280,
+        x: minX + Math.random() * spanX,
+        y: minY + Math.random() * spanY,
         vx: (Math.random() - 0.5) * 2.2,
         vy: (Math.random() - 0.5) * 2.2,
         radius: 5,
@@ -309,50 +327,112 @@ export function initReactionKineticsLab(containerId) {
     const sys = REACTION_SYSTEMS[currentSystemKey];
 
     // Background Reaction Beaker & Fluid
-    const beakerX = 80;
-    const beakerY = 90;
-    const beakerW = 280;
-    const beakerH = 340;
+    const beakerX = BEAKER.x;
+    const beakerY = BEAKER.y;
+    const beakerW = BEAKER.w;
+    const beakerH = BEAKER.h;
 
-    // Beaker Glass Outline
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    // Beaker Glass Outline with Pouring Spout
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(beakerX, beakerY);
+    // Beaker spout on top left
+    ctx.moveTo(beakerX - 10, beakerY);
+    ctx.lineTo(beakerX, beakerY);
     ctx.lineTo(beakerX, beakerY + beakerH);
     ctx.arcTo(beakerX, beakerY + beakerH + 20, beakerX + 20, beakerY + beakerH + 20, 20);
     ctx.lineTo(beakerX + beakerW - 20, beakerY + beakerH + 20);
     ctx.arcTo(beakerX + beakerW, beakerY + beakerH + 20, beakerX + beakerW, beakerY + beakerH, 20);
     ctx.lineTo(beakerX + beakerW, beakerY);
+    ctx.lineTo(beakerX + beakerW + 6, beakerY); // slight right rim lip
     ctx.stroke();
 
+    // Volume Graduations on Glass Wall
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.font = "bold 9px var(--font-mono, monospace)";
+    ctx.lineWidth = 1.5;
+    [
+      { y: beakerY + 110, label: "400 mL" },
+      { y: beakerY + 170, label: "300 mL" },
+      { y: beakerY + 230, label: "200 mL" },
+      { y: beakerY + 290, label: "100 mL" }
+    ].forEach(grad => {
+      ctx.beginPath();
+      ctx.moveTo(beakerX + 4, grad.y);
+      ctx.lineTo(beakerX + 18, grad.y);
+      ctx.stroke();
+      ctx.fillText(grad.label, beakerX + 22, grad.y + 3);
+    });
+
     // Liquid Fill with Progressive Color Transition
-    const fluidGrad = ctx.createLinearGradient(beakerX, beakerY + 60, beakerX, beakerY + beakerH);
+    const fluidGrad = ctx.createLinearGradient(beakerX, beakerY + BEAKER.liquidTopOffset, beakerX, beakerY + beakerH);
     const alpha = Math.min(0.95, 0.2 + reactionProgress * 0.75);
     fluidGrad.addColorStop(0, hasCatalyst ? "rgba(16, 185, 129, 0.4)" : "rgba(8, 47, 73, 0.6)");
     fluidGrad.addColorStop(1, reactionProgress > 0.8 ? sys.colorEnd : sys.colorStart);
 
     ctx.fillStyle = fluidGrad;
-    ctx.fillRect(beakerX + 4, beakerY + 60, beakerW - 8, beakerH - 42);
+    ctx.fillRect(beakerX + 4, beakerY + BEAKER.liquidTopOffset, beakerW - 8, beakerH - 42);
+
+    // Liquid Surface Meniscus
+    ctx.beginPath();
+    ctx.ellipse(beakerX + beakerW / 2, beakerY + BEAKER.liquidTopOffset, beakerW / 2 - 5, 4, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Subtle Stirring Vortex Ring on Surface
+    if (isRunning) {
+      ctx.beginPath();
+      ctx.ellipse(beakerX + beakerW / 2, beakerY + BEAKER.liquidTopOffset, 28 + Math.sin(simTime * 6) * 4, 2.5, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
 
     // Magnetic Stirrer Bar at Bottom
     ctx.save();
-    ctx.translate(beakerX + beakerW / 2, beakerY + beakerH - 12);
+    ctx.translate(beakerX + beakerW / 2, beakerY + beakerH - BEAKER.stirBarYOffset);
     ctx.rotate((simTime * 8) % (Math.PI * 2));
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(-22, -5, 44, 10);
     ctx.restore();
 
-    // Molecular Particles in Solution
+    // Molecular Particles in Solution - Rigid Physical Boundaries & Canvas Clipping
+    ctx.save();
+    // Clip strictly to solution interior
+    ctx.beginPath();
+    ctx.rect(beakerX + 4, beakerY + BEAKER.liquidTopOffset - 2, beakerW - 8, beakerH - 40);
+    ctx.clip();
+
     particles.forEach(p => {
       // Movement scaled with temperature
       const speedMult = Math.sqrt((tempC + 273.15) / 298.15);
       p.x += p.vx * speedMult;
       p.y += p.vy * speedMult;
 
-      // Wall reflections inside beaker
-      if (p.x < beakerX + 15 || p.x > beakerX + beakerW - 15) p.vx *= -1;
-      if (p.y < beakerY + 70 || p.y > beakerY + beakerH - 20) p.vy *= -1;
+      // Absolute physical limits inside the fluid
+      const pMinX = beakerX + 6 + p.radius;
+      const pMaxX = beakerX + beakerW - 6 - p.radius;
+      const pMinY = beakerY + BEAKER.liquidTopOffset + 4 + p.radius;
+      const pMaxY = beakerY + beakerH - 24 - p.radius;
+
+      // Directional bounce reflection & positional clamping
+      if (p.x <= pMinX) {
+        p.x = pMinX;
+        p.vx = Math.abs(p.vx); // Always reflect inward to the right
+      } else if (p.x >= pMaxX) {
+        p.x = pMaxX;
+        p.vx = -Math.abs(p.vx); // Always reflect inward to the left
+      }
+
+      if (p.y <= pMinY) {
+        p.y = pMinY;
+        p.vy = Math.abs(p.vy); // Always reflect downward into fluid
+      } else if (p.y >= pMaxY) {
+        p.y = pMaxY;
+        p.vy = -Math.abs(p.vy); // Always reflect upward away from stir bar
+      }
 
       // Draw particle
       ctx.beginPath();
@@ -363,6 +443,8 @@ export function initReactionKineticsLab(containerId) {
       ctx.fill();
       ctx.shadowBlur = 0;
     });
+
+    ctx.restore(); // Restore solution clip
 
     // Particle collision logic & reactive transformation
     if (isRunning && reactionProgress < 1.0) {

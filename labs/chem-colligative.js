@@ -43,8 +43,8 @@ export function initColligativeLab(containerId) {
   const NUM_SOLVENT_PARTICLES = 75;
   for (let i = 0; i < NUM_SOLVENT_PARTICLES; i++) {
     particles.push({
-      x: 100 + Math.random() * 240,
-      y: 180 + Math.random() * 220,
+      x: 185 + Math.random() * 210,
+      y: 240 + Math.random() * 175,
       vx: (Math.random() - 0.5) * 1.5,
       vy: (Math.random() - 0.5) * 1.5,
       type: "solvent"
@@ -318,10 +318,10 @@ export function initColligativeLab(containerId) {
     particles.forEach(p => {
       p.x += p.vx * (solutionTemp > tf ? 1 : 0.15);
       p.y += p.vy * (solutionTemp > tf ? 1 : 0.15);
-      if (p.x < 175) { p.x = 175; p.vx *= -1; }
-      if (p.x > 405) { p.x = 405; p.vx *= -1; }
-      if (p.y < 230) { p.y = 230; p.vy *= -1; }
-      if (p.y > 425) { p.y = 425; p.vy *= -1; }
+      if (p.x <= 178) { p.x = 178; p.vx = Math.abs(p.vx); }
+      if (p.x >= 402) { p.x = 402; p.vx = -Math.abs(p.vx); }
+      if (p.y <= 232) { p.y = 232; p.vy = Math.abs(p.vy); }
+      if (p.y >= 422) { p.y = 422; p.vy = -Math.abs(p.vy); }
 
       ctx.beginPath();
       ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);

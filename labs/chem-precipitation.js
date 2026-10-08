@@ -205,8 +205,8 @@ export function initPrecipitationLab(containerId) {
     particles.length = 0;
     for (let i = 0; i < count; i++) {
       particles.push({
-        x: 240 + Math.random() * 100,
-        y: 190 + Math.random() * 170,
+        x: 252 + Math.random() * 76,
+        y: 195 + Math.random() * 165,
         vx: (Math.random() - 0.5) * 0.8,
         vy: 0.15 + Math.random() * 0.45,
         radius: 1.5 + Math.random() * 2.5,
@@ -579,6 +579,10 @@ export function initPrecipitationLab(containerId) {
       particles.forEach(p => {
         p.y += p.vy * (isCentrifuging ? 3.0 : 1.0);
         p.x += Math.sin(timeTick * 4 + p.y * 0.1) * 0.4;
+        const minTx = tubeX - tubeW / 2 + 7 + p.radius;
+        const maxTx = tubeX + tubeW / 2 - 7 - p.radius;
+        if (p.x < minTx) p.x = minTx;
+        if (p.x > maxTx) p.x = maxTx;
         if (p.y > tubeBottomY - 15) {
           p.y = meniscusY + 10;
           p.x = tubeX - 20 + Math.random() * 40;
