@@ -171,7 +171,7 @@ check(normalizeLabId("lab-anatomy") === "anatomy", "normalizeLabId('lab-anatomy'
 check(normalizeLabId("human-anatomy") === "anatomy", "normalizeLabId('human-anatomy') resolves to 'anatomy'");
 
 const appSource = fs.readFileSync(path.join(rootDir, "app.js"), "utf-8");
-check(appSource.includes('"anatomy": () => import("./labs/anatomy-atlas.js")'), "app.js registers anatomy laboratory loader");
+check(appSource.includes('"anatomy": () => import("./labs/anatomy-atlas.js?v=5.7")'), "app.js registers anatomy laboratory loader");
 check(appSource.includes('href="#labs/anatomy"'), "app.js provides 4K Human Anatomy Atlas navigation button");
 
 check(Array.isArray(LAB_CHECKPOINTS.anatomy) && LAB_CHECKPOINTS.anatomy.length >= 3, "LAB_CHECKPOINTS contains validated competency questions for anatomy suite");

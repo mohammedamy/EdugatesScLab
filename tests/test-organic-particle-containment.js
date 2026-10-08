@@ -29,6 +29,7 @@ const precipSrc = fs.readFileSync(path.join(rootDir, "labs", "chem-precipitation
 const osmosisSrc = fs.readFileSync(path.join(rootDir, "labs", "chem-colligative.js"), "utf8");
 const gasLawsSrc = fs.readFileSync(path.join(rootDir, "labs", "chem-gas-laws.js"), "utf8");
 const bioOsmosisSrc = fs.readFileSync(path.join(rootDir, "labs", "bio-osmosis.js"), "utf8");
+const enzymeSrc = fs.readFileSync(path.join(rootDir, "labs", "bio-enzyme-kinetics.js"), "utf8");
 
 // 1. Organic Reactions Lab Geometry & Eradication of Buggy Coordinates
 console.log("🧪 1. Organic Reactions Glassware & Spawn Verification:");
@@ -107,6 +108,11 @@ testAssert(
 testAssert(
   gasLawsSrc.includes("chamberCtx.clip();"),
   "chem-gas-laws.js enforces clipping mask on pneumatic cylinder"
+);
+
+testAssert(
+  enzymeSrc.includes("ctx.clip();") && enzymeSrc.includes("Math.abs(p.vx)") && enzymeSrc.includes("p.x = minX;"),
+  "bio-enzyme-kinetics.js enforces strict physical clamping, directional reflection, and clipping mask on substrate particles"
 );
 
 // 4. Mathematical Simulation Test (10,000 Frames)
