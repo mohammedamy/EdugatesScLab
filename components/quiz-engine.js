@@ -403,15 +403,50 @@ export function isSameQuestion(q1, q2) {
 }
 
 /**
+ * Computes a unique diagram identifier for a question to prevent diagram repeats
+ * within the same test, quiz, or generated exam.
+ * Returns null if the question has no attached scientific diagram.
+ */
+export function getQuestionDiagramKey(q) {
+  if (!q) return null;
+  const d = q.diagram;
+  if (!d && q.type !== "diagram" && !q.hasDiagram) return null;
+  if (!d) return null;
+
+  if (typeof d === "object" && d !== null) {
+    if (d.id) return `diag_id:${String(d.id).trim().toLowerCase()}`;
+    if (d.caption) return `diag_cap:${String(d.caption).trim().toLowerCase()}`;
+    if (d.title) return `diag_title:${String(d.title).trim().toLowerCase()}`;
+    if (d.imageUrl || d.url) return `diag_url:${String(d.imageUrl || d.url).trim()}`;
+    if (d.svg && typeof d.svg === "string") {
+      const cleanSvg = d.svg.replace(/\s+/g, " ").trim();
+      return `diag_svg:${cleanSvg.slice(0, 120)}`;
+    }
+  }
+  if (typeof d === "string" && d.trim()) {
+    const trimmed = d.trim();
+    if (trimmed.startsWith("<svg")) {
+      const cleanSvg = trimmed.replace(/\s+/g, " ").trim();
+      return `diag_svg:${cleanSvg.slice(0, 120)}`;
+    }
+    return `diag_str:${trimmed.toLowerCase()}`;
+  }
+  return null;
+}
+
+/**
  * Deduplicates an array of questions while preserving original order.
  * Strictly guarantees that no question appears twice in the same quiz or exam,
  * checking by ID, prompt text, and options set fingerprint.
+ * If options.uniqueDiagrams is true, also guarantees that no scientific diagram
+ * is repeated across multiple questions in the same assessment.
  */
-export function deduplicateQuestions(questions) {
+export function deduplicateQuestions(questions, options = {}) {
   if (!Array.isArray(questions)) return [];
   const seenIds = new Set();
   const seenTexts = new Set();
   const seenOpts = new Set();
+  const seenDiagrams = new Set();
   const unique = [];
 
   for (const q of questions) {
@@ -420,6 +455,12 @@ export function deduplicateQuestions(questions) {
     if (id && seenIds.has(id)) continue;
     if (text && seenTexts.has(text)) continue;
     if (optsKey && seenOpts.has(optsKey)) continue;
+
+    if (options && options.uniqueDiagrams) {
+      const diagKey = getQuestionDiagramKey(q);
+      if (diagKey && seenDiagrams.has(diagKey)) continue;
+      if (diagKey) seenDiagrams.add(diagKey);
+    }
 
     if (id) seenIds.add(id);
     if (text) seenTexts.add(text);
@@ -2526,6 +2567,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   }
 
   // Helper to build a balanced preset selection (easy, medium, hard, diagrams)
+  // Strictly enforces unique diagrams across the selected preset test.
   function getBalancedPresetSelection(pool, targetCount) {
     if (!pool || pool.length === 0) return new Set();
     const sanitizedPool = deduplicateQuestions(pool);
@@ -2539,17 +2581,35 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     let nMed = Math.round(targetCount / 3);
     let nHard = targetCount - nEasy - nMed;
 
+    const seenPresetDiagrams = new Set();
+
     function pickFromTier(tierPool, count) {
       if (tierPool.length === 0) return [];
       const diags = tierPool.filter(q => q.type === "diagram" || q.diagram || q.hasDiagram);
       const nonDiags = tierPool.filter(q => q.type !== "diagram" && !q.diagram && !q.hasDiagram);
       const diagTarget = Math.max(1, Math.round(count * 0.2));
-      const chosenDiags = diags.slice(0, diagTarget);
+      
+      const chosenDiags = [];
+      for (const d of diags) {
+        if (chosenDiags.length >= diagTarget) break;
+        const dKey = getQuestionDiagramKey(d);
+        if (dKey && seenPresetDiagrams.has(dKey)) continue;
+        if (dKey) seenPresetDiagrams.add(dKey);
+        chosenDiags.push(d);
+      }
+
       const remainingNeeded = count - chosenDiags.length;
       const chosenNonDiags = nonDiags.slice(0, remainingNeeded);
       const combined = [...chosenDiags, ...chosenNonDiags];
-      if (combined.length < count && diags.length > chosenDiags.length) {
-        combined.push(...diags.slice(chosenDiags.length, count));
+      if (combined.length < count) {
+        for (const rem of diags) {
+          if (combined.length >= count) break;
+          if (combined.some(c => c.id === rem.id)) continue;
+          const dKey = getQuestionDiagramKey(rem);
+          if (dKey && seenPresetDiagrams.has(dKey)) continue;
+          if (dKey) seenPresetDiagrams.add(dKey);
+          combined.push(rem);
+        }
       }
       return combined;
     }
@@ -2558,17 +2618,32 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       ...pickFromTier(easyPool, nEasy),
       ...pickFromTier(medPool, nMed),
       ...pickFromTier(hardPool, nHard)
-    ]);
+    ], { uniqueDiagrams: true });
 
     const selectedIds = new Set(selected.map(q => q.id));
     const selectedTexts = new Set(selected.map(q => normalizeQuestionText(q.question || q.prompt)).filter(Boolean));
 
+    // Fill remaining up to targetCount without repeating diagrams if possible
     for (const q of sanitizedPool) {
       if (selectedIds.size >= targetCount) break;
       const normTxt = normalizeQuestionText(q.question || q.prompt);
+      const dKey = getQuestionDiagramKey(q);
       if (selectedIds.has(q.id) || (normTxt && selectedTexts.has(normTxt))) continue;
+      if (dKey && seenPresetDiagrams.has(dKey)) continue;
       selectedIds.add(q.id);
       if (normTxt) selectedTexts.add(normTxt);
+      if (dKey) seenPresetDiagrams.add(dKey);
+    }
+
+    // Graceful fallback: If pool has few non-duplicate diagrams, fill up to targetCount
+    if (selectedIds.size < targetCount) {
+      for (const q of sanitizedPool) {
+        if (selectedIds.size >= targetCount) break;
+        const normTxt = normalizeQuestionText(q.question || q.prompt);
+        if (selectedIds.has(q.id) || (normTxt && selectedTexts.has(normTxt))) continue;
+        selectedIds.add(q.id);
+        if (normTxt) selectedTexts.add(normTxt);
+      }
     }
 
     return selectedIds;
@@ -3361,15 +3436,34 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     nonManualInPool.sort(() => Math.random() - 0.5);
     const combinedPool = deduplicateQuestions([...manualInPool, ...nonManualInPool]);
 
-    // Limit count - strictly enforce unique questions without repeats
+    // Limit count - strictly enforce unique questions AND non-repeating diagrams
     const targetCount = countVal === "ALL" ? combinedPool.length : Math.min(parseInt(countVal, 10) || 10, combinedPool.length);
     const chosen = [];
+    const seenExamDiagrams = new Set();
+
+    // Pass 1: Select questions strictly avoiding duplicate questions and duplicate diagrams
     for (const q of combinedPool) {
       if (chosen.length >= targetCount) break;
-      if (!chosen.some(c => isSameQuestion(c, q))) {
-        chosen.push(q);
+      if (chosen.some(c => isSameQuestion(c, q))) continue;
+
+      const dKey = getQuestionDiagramKey(q);
+      if (dKey) {
+        if (seenExamDiagrams.has(dKey)) continue; // Disallow diagram repetition
+        seenExamDiagrams.add(dKey);
+      }
+      chosen.push(q);
+    }
+
+    // Pass 2: Graceful fallback only if pool lacks enough items to meet targetCount without diagram reuse
+    if (chosen.length < targetCount) {
+      for (const q of combinedPool) {
+        if (chosen.length >= targetCount) break;
+        if (!chosen.some(c => isSameQuestion(c, q))) {
+          chosen.push(q);
+        }
       }
     }
+
     activeQuestions = deduplicateQuestions(chosen);
     if (activeQuestions.length === 0 && combinedPool.length > 0) {
       activeQuestions = [combinedPool[0]];

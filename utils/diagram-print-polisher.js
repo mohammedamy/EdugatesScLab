@@ -20,22 +20,17 @@
  */
 function boostFontSizeForPrint(val) {
   const num = parseFloat(val);
-  if (isNaN(num) || num <= 0) return "17px";
-  // Subscripts & tiny annotations (6 - 8.5px) -> 14px - 15.5px
-  if (num <= 6.5) return "14px";
-  if (num <= 7.5) return "14.5px";
-  if (num <= 8.5) return "15.5px";
-  // Secondary labels / ticks / units (9 - 11.5px) -> 16.5px - 18.5px
-  if (num <= 9.5) return "16.5px";
-  if (num <= 10.5) return "17.5px";
-  if (num <= 11.5) return "18.5px";
-  // Primary axis / region labels (12 - 13.5px) -> 19.5px - 21px
-  if (num <= 12.5) return "19.5px";
-  if (num <= 13.5) return "21px";
-  // Main headings / prominent callouts (14px+) -> 22.5px - 25px
-  if (num <= 15) return "22.5px";
-  if (num <= 16.5) return "24px";
-  return `${Math.min(28, Math.round(num * 1.35))}px`;
+  if (isNaN(num) || num <= 0) return "13px";
+  // Subscripts & tiny annotations (6 - 8.5px) -> 12px (crisp, readable, never collides)
+  if (num <= 8.5) return "12px";
+  // Secondary labels / ticks / units (9 - 10.5px) -> 12.5px
+  if (num <= 10.5) return "12.5px";
+  // Primary axis / region labels (11 - 12.5px) -> 13.5px
+  if (num <= 12.5) return "13.5px";
+  // Section headers / callouts (13 - 14.5px) -> 14.5px
+  if (num <= 14.5) return "14.5px";
+  // Main headings / prominent callouts (15px+) -> 15.5px - 16px
+  return `${Math.min(16, Math.max(12, Math.round(num * 1.05)))}px`;
 }
 
 /**
@@ -194,6 +189,19 @@ export function polishDiagramForPrint(svgStr) {
   // We boost font sizes systematically so every label, axis tick, and callout is crisp and readable.
   s = s.replace(/<text\b([^>]*)>(.*?)<\/text>/gis, (match, attrs, content) => {
     let cleanAttrs = attrs;
+
+    // If style attribute exists on text, remove fill, stroke, paint-order from it so presentation attrs and CSS work
+    if (/\bstyle=["'][^"']*["']/i.test(cleanAttrs)) {
+      cleanAttrs = cleanAttrs.replace(/style=(["'])(.*?)\1/gi, (m, q, css) => {
+        const cleanCss = css
+          .replace(/fill\s*:[^;]+;?/gi, "")
+          .replace(/stroke(-width|-linejoin)?\s*:[^;]+;?/gi, "")
+          .replace(/paint-order\s*:[^;]+;?/gi, "")
+          .trim();
+        return cleanCss ? `style=${q}${cleanCss}${q}` : "";
+      });
+    }
+
     // Replace fill color with #000000
     if (/\bfill=["'][^"']*["']/i.test(cleanAttrs)) {
       cleanAttrs = cleanAttrs.replace(/\bfill=["'][^"']*["']/gi, 'fill="#000000"');
@@ -201,8 +209,9 @@ export function polishDiagramForPrint(svgStr) {
       cleanAttrs += ' fill="#000000"';
     }
 
-    // Strip any colored or fuzzy outline stroke directly from text tag
-    cleanAttrs = cleanAttrs.replace(/\bstroke=["'][^"']*["']/gi, '');
+    // Strip any colored or fuzzy outline stroke directly from text tag and apply crisp protective white halo
+    cleanAttrs = cleanAttrs.replace(/\b(stroke|stroke-width|paint-order|stroke-linejoin)=["'][^"']*["']/gi, '');
+    cleanAttrs += ' stroke="#ffffff" stroke-width="2.5px" paint-order="stroke fill" stroke-linejoin="round"';
 
     // Ensure font-weight is at least 800 for razor-sharp photocopier reproduction
     if (/\bfont-weight=["'][^"']*["']/i.test(cleanAttrs)) {
@@ -224,7 +233,7 @@ export function polishDiagramForPrint(svgStr) {
         });
       }
       if (!/\bfont-size=/i.test(cleanAttrs) && !/font-size\s*:/i.test(cleanAttrs)) {
-        cleanAttrs += ' font-size="16.5px"';
+        cleanAttrs += ' font-size="13px"';
       }
     }
 
@@ -288,10 +297,10 @@ export function polishDiagramForPrint(svgStr) {
       fill: #000000 !important;
       font-weight: 800 !important;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-      paint-order: stroke fill;
-      stroke: #ffffff;
-      stroke-width: 2px;
-      stroke-linejoin: round;
+      paint-order: stroke fill !important;
+      stroke: #ffffff !important;
+      stroke-width: 2.5px !important;
+      stroke-linejoin: round !important;
     }
     tspan { fill: #000000 !important; font-weight: 800 !important; }
   </style>`;
