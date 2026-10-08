@@ -77,6 +77,30 @@ export function initDnaProteinLab(containerId) {
     UGA: { aa: "Opal (STOP)", code: "STOP", color: "#ef4444" }
   };
 
+  const aminoAcidProps = {
+    Met: { name: "Methionine", type: "Start • Nonpolar", color: "#10b981" },
+    Phe: { name: "Phenylalanine", type: "Aromatic Nonpolar", color: "#3b82f6" },
+    Leu: { name: "Leucine", type: "Aliphatic Nonpolar", color: "#06b6d4" },
+    Ile: { name: "Isoleucine", type: "Aliphatic Nonpolar", color: "#0284c7" },
+    Val: { name: "Valine", type: "Aliphatic Nonpolar", color: "#14b8a6" },
+    Ser: { name: "Serine", type: "Polar Hydroxyl", color: "#8b5cf6" },
+    Pro: { name: "Proline", type: "Imino Nonpolar", color: "#ec4899" },
+    Thr: { name: "Threonine", type: "Polar Hydroxyl", color: "#f97316" },
+    Ala: { name: "Alanine", type: "Aliphatic Nonpolar", color: "#22c55e" },
+    Tyr: { name: "Tyrosine", type: "Aromatic Polar", color: "#a855f7" },
+    His: { name: "Histidine", type: "Basic Positive (+)", color: "#6366f1" },
+    Gln: { name: "Glutamine", type: "Polar Amide", color: "#06b6d4" },
+    Asn: { name: "Asparagine", type: "Polar Amide", color: "#f59e0b" },
+    Lys: { name: "Lysine", type: "Basic Positive (+)", color: "#6366f1" },
+    Asp: { name: "Aspartate", type: "Acidic Negative (-)", color: "#ef4444" },
+    Glu: { name: "Glutamate", type: "Acidic Negative (-)", color: "#dc2626" },
+    Cys: { name: "Cysteine", type: "Polar Thiol (-SH)", color: "#eab308" },
+    Trp: { name: "Tryptophan", type: "Aromatic Nonpolar", color: "#8b5cf6" },
+    Arg: { name: "Arginine", type: "Basic Positive (+)", color: "#3b82f6" },
+    Gly: { name: "Glycine", type: "Achiral Flexible", color: "#64748b" },
+    STOP: { name: "Terminator", type: "Translation STOP", color: "#dc2626" }
+  };
+
   function getAnticodon(codon) {
     if (!codon || codon.length !== 3) return "???";
     let anti = "";
@@ -326,29 +350,32 @@ export function initDnaProteinLab(containerId) {
     const { mrna, peptide: pep } = processSequence(cleanDna);
 
     // Horizontal Layout Metrics & Column Anchors
-    const labelX = 16;
-    const labelWidth = 144;
-    const labelRight = labelX + labelWidth; // 160
-    const startX = labelRight + 26;         // 186
-    const availableW = w - startX - 45;
-    const baseSpacing = Math.min(44, Math.max(26, availableW / Math.max(1, cleanDna.length)));
+    const labelX = 14;
+    const labelWidth = 142;
+    const labelRight = labelX + labelWidth; // 156
+    // Guaranteed safety gutter between left badges and strands (exceeds labelRight + 26)
+    const terminalX = labelRight + 18;      // 174 (3' / 5' terminal markers)
+    const startX = labelRight + 42;         // 198 (labelRight + 26 safety margin + padding)
+    const availableW = w - startX - 44;
+    const baseSpacing = Math.min(46, Math.max(26, availableW / Math.max(1, cleanDna.length)));
     const endX = startX + Math.max(0, cleanDna.length - 1) * baseSpacing;
+    const rightTerminalX = endX + 24;
 
-    // Vertical Layer Bands
-    const dnaY1 = 88;      // 3' Template Strand
-    const dnaY2 = 132;     // 5' Coding Strand
-    const transY = 168;    // Transcription Process Banner & Indicator
-    const mrnaY = 208;     // 5' mRNA Transcript Strand
-    const codonY = 242;    // Codon Brackets & Triplet Calling
-    const trnaY = 286;     // Ribosomal Decoding Center & tRNA Anticodons
-    const polyY = 380;     // Synthesized Polypeptide Protein Chain
+    // Vertical Layer Bands (Spaced with perfect visual rhythm and zero overlap)
+    const dnaY1 = 76;      // Stage 1: 3' Template Strand
+    const dnaY2 = 120;     // Stage 1: 5' Coding Strand
+    const transY = 153;    // RNA Polymerase II Transcription Transition
+    const mrnaY = 188;     // Stage 2: 5' mRNA Transcript Strand
+    const codonY = 224;    // Stage 2: Codon Brackets & Triplet Calling
+    const trnaY = 280;     // Stage 3: Ribosomal Decoding Center & tRNA Anticodons
+    const polyY = 388;     // Stage 4: Synthesized Polypeptide Protein Chain
 
     // Helper: Draw stylized row category badge on the left
     function drawStrandBadge(x, y, title, subtitle, color, borderColor) {
       const bh = 30;
       const by = y - bh / 2;
       ctx.save();
-      ctx.fillStyle = "rgba(15, 23, 42, 0.90)";
+      ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
       ctx.strokeStyle = borderColor || color;
       ctx.lineWidth = 1.2;
       ctx.beginPath();
@@ -375,7 +402,7 @@ export function initDnaProteinLab(containerId) {
       ctx.restore();
     }
 
-    // 1. DNA Double Helix Section
+    // 1. Stage 1: DNA Double Helix Section
     drawStrandBadge(labelX, dnaY1, "DNA Template", "3' ────────► 5'", "#38bdf8", "rgba(56, 189, 248, 0.4)");
     drawStrandBadge(labelX, dnaY2, "Coding Strand", "5' ────────► 3'", "#10b981", "rgba(16, 185, 129, 0.4)");
 
@@ -383,14 +410,14 @@ export function initDnaProteinLab(containerId) {
     ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(startX - 10, dnaY1);
+    ctx.moveTo(terminalX + 10, dnaY1);
     ctx.lineTo(endX + 12, dnaY1);
     ctx.stroke();
 
     // Coding Strand Backbone (5' to 3')
     ctx.strokeStyle = "rgba(16, 185, 129, 0.45)";
     ctx.beginPath();
-    ctx.moveTo(startX - 10, dnaY2);
+    ctx.moveTo(terminalX + 10, dnaY2);
     ctx.lineTo(endX + 12, dnaY2);
     ctx.stroke();
 
@@ -400,12 +427,12 @@ export function initDnaProteinLab(containerId) {
     ctx.textBaseline = "middle";
 
     ctx.fillStyle = "#38bdf8";
-    ctx.fillText("3'", startX - 20, dnaY1);
-    ctx.fillText("5'", endX + 22, dnaY1);
+    ctx.fillText("3'", terminalX, dnaY1);
+    ctx.fillText("5'", rightTerminalX, dnaY1);
 
     ctx.fillStyle = "#10b981";
-    ctx.fillText("5'", startX - 20, dnaY2);
-    ctx.fillText("3'", endX + 22, dnaY2);
+    ctx.fillText("5'", terminalX, dnaY2);
+    ctx.fillText("3'", rightTerminalX, dnaY2);
 
     // Render DNA Bases & Watson-Crick Hydrogen Bonds
     for (let i = 0; i < cleanDna.length; i++) {
@@ -417,7 +444,7 @@ export function initDnaProteinLab(containerId) {
       else if (b1 === "C") b2 = "G";
       else if (b1 === "G") b2 = "C";
 
-      // Hydrogen Bonds
+      // Hydrogen Bonds (Exact Watson-Crick: A=T double, G≡C triple)
       ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
       ctx.lineWidth = 1.5;
       if (b1 === "A" || b1 === "T") {
@@ -447,6 +474,8 @@ export function initDnaProteinLab(containerId) {
       ctx.fill();
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 11px JetBrains Mono, monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillText(b1, bx, dnaY1);
 
       // Coding Base Tile
@@ -465,8 +494,8 @@ export function initDnaProteinLab(containerId) {
     ctx.lineWidth = 1.2;
     ctx.setLineDash([3, 3]);
     ctx.beginPath();
-    ctx.moveTo(midX, dnaY2 + 12);
-    ctx.lineTo(midX, mrnaY - 14);
+    ctx.moveTo(midX, dnaY2 + 13);
+    ctx.lineTo(midX, mrnaY - 13);
     ctx.stroke();
     ctx.setLineDash([]);
 
@@ -475,7 +504,7 @@ export function initDnaProteinLab(containerId) {
     ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.roundRect(midX - 150, transY - 10, 300, 20, 10);
+    ctx.roundRect(midX - 165, transY - 10, 330, 20, 10);
     ctx.fill();
     ctx.stroke();
 
@@ -486,13 +515,13 @@ export function initDnaProteinLab(containerId) {
     ctx.fillText("▼ RNA Polymerase II Transcription (Complementary Base Pairing)", midX, transY);
     ctx.restore();
 
-    // 3. mRNA Transcript Strand & Nucleotides
+    // 3. Stage 2: mRNA Transcript Strand & Nucleotides
     drawStrandBadge(labelX, mrnaY, "mRNA Transcript", "5' ────────► 3'", "#c084fc", "rgba(168, 85, 247, 0.4)");
 
     ctx.strokeStyle = "rgba(168, 85, 247, 0.6)";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(startX - 10, mrnaY);
+    ctx.moveTo(terminalX + 10, mrnaY);
     ctx.lineTo(endX + 12, mrnaY);
     ctx.stroke();
 
@@ -500,8 +529,8 @@ export function initDnaProteinLab(containerId) {
     ctx.font = "bold 10px JetBrains Mono, monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("5'", startX - 20, mrnaY);
-    ctx.fillText("3'", endX + 22, mrnaY);
+    ctx.fillText("5'", terminalX, mrnaY);
+    ctx.fillText("3'", rightTerminalX, mrnaY);
 
     for (let i = 0; i < mrna.length; i++) {
       const mx = startX + i * baseSpacing;
@@ -513,6 +542,8 @@ export function initDnaProteinLab(containerId) {
       ctx.fill();
       ctx.fillStyle = "#ffffff";
       ctx.font = "bold 11px JetBrains Mono, monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
       ctx.fillText(base, mx, mrnaY);
     }
 
@@ -542,7 +573,7 @@ export function initDnaProteinLab(containerId) {
       ctx.stroke();
 
       // Codon Capsule Badge
-      const badgeW = isStart || isStop ? 86 : 74;
+      const badgeW = isStart || isStop ? 88 : 76;
       const badgeH = 18;
       ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
       ctx.strokeStyle = isStart ? "#10b981" : (isStop ? "#ef4444" : "rgba(148, 163, 184, 0.45)");
@@ -560,30 +591,34 @@ export function initDnaProteinLab(containerId) {
       ctx.fillText(codonText, codonCenterX, codonY);
     }
 
-    // 5. Ribosomal Translation Machinery & tRNA Anticodon Adapters
+    // 5. Stage 3: Ribosomal Translation Machinery & tRNA Anticodon Adapters
     drawStrandBadge(labelX, trnaY, "tRNA Adapters", "Anticodons (3'→5')", "#fbbf24", "rgba(245, 158, 11, 0.4)");
 
     // Ribosomal Peptidyl Transferase Background Zone
     if (codonCount > 0) {
       const riboStart = startX - 16;
-      const riboEnd = startX + Math.min(mrna.length, codonCount * 3) * baseSpacing + 4;
-      const riboW = Math.max(120, riboEnd - riboStart);
-      const riboH = 38;
+      const riboEnd = startX + Math.min(mrna.length, codonCount * 3) * baseSpacing + 6;
+      const riboW = Math.max(140, riboEnd - riboStart);
+      const riboH = 46;
 
       ctx.save();
-      const riboGrad = ctx.createLinearGradient(riboStart, trnaY - 19, riboEnd, trnaY + 19);
-      riboGrad.addColorStop(0, "rgba(245, 158, 11, 0.08)");
+      const riboGrad = ctx.createLinearGradient(riboStart, trnaY - 23, riboEnd, trnaY + 23);
+      riboGrad.addColorStop(0, "rgba(245, 158, 11, 0.09)");
       riboGrad.addColorStop(0.5, "rgba(245, 158, 11, 0.04)");
-      riboGrad.addColorStop(1, "rgba(245, 158, 11, 0.08)");
+      riboGrad.addColorStop(1, "rgba(245, 158, 11, 0.09)");
       ctx.fillStyle = riboGrad;
-      ctx.strokeStyle = "rgba(245, 158, 11, 0.22)";
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = "rgba(245, 158, 11, 0.3)";
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.roundRect(riboStart, trnaY - 19, riboW, riboH, 8);
+      ctx.roundRect(riboStart, trnaY - 23, riboW, riboH, 10);
       ctx.fill();
       ctx.stroke();
-      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#fbbf24";
+      ctx.font = "bold 8px JetBrains Mono, monospace";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText("⬡ 70S Ribosomal Complex • Decoding Center (E | P | A Sites)", riboStart + 12, trnaY - 14);
       ctx.restore();
     }
 
@@ -595,22 +630,22 @@ export function initDnaProteinLab(containerId) {
       const anti = getAnticodon(codon);
 
       // Connecting guide ray from codon bracket down to tRNA
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(codonCenterX, codonY + 10);
-      ctx.lineTo(codonCenterX, trnaY - 14);
+      ctx.lineTo(codonCenterX, trnaY - 12);
       ctx.stroke();
 
       if (!isStop) {
         // tRNA Anticodon Card
-        const cardW = 66;
+        const cardW = 68;
         const cardH = 26;
         ctx.fillStyle = "rgba(30, 41, 59, 0.95)";
         ctx.strokeStyle = "rgba(245, 158, 11, 0.5)";
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.roundRect(codonCenterX - cardW / 2, trnaY - cardH / 2, cardW, cardH, 5);
+        ctx.roundRect(codonCenterX - cardW / 2, trnaY - cardH / 2 + 3, cardW, cardH, 5);
         ctx.fill();
         ctx.stroke();
 
@@ -618,20 +653,20 @@ export function initDnaProteinLab(containerId) {
         ctx.textBaseline = "middle";
         ctx.font = "bold 8.5px JetBrains Mono, monospace";
         ctx.fillStyle = "#fbbf24";
-        ctx.fillText(`tRNA: ${anti}`, codonCenterX, trnaY - 4);
+        ctx.fillText(`tRNA: ${anti}`, codonCenterX, trnaY - 1);
 
         ctx.font = "7px JetBrains Mono, monospace";
         ctx.fillStyle = "#94a3b8";
-        ctx.fillText("Peptidyl Transfer", codonCenterX, trnaY + 6);
+        ctx.fillText("Peptidyl Transfer", codonCenterX, trnaY + 9);
       } else {
         // Release Factor Card
-        const cardW = 74;
+        const cardW = 76;
         const cardH = 26;
         ctx.fillStyle = "rgba(69, 10, 10, 0.9)";
         ctx.strokeStyle = "rgba(239, 68, 68, 0.6)";
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.roundRect(codonCenterX - cardW / 2, trnaY - cardH / 2, cardW, cardH, 5);
+        ctx.roundRect(codonCenterX - cardW / 2, trnaY - cardH / 2 + 3, cardW, cardH, 5);
         ctx.fill();
         ctx.stroke();
 
@@ -639,16 +674,31 @@ export function initDnaProteinLab(containerId) {
         ctx.textBaseline = "middle";
         ctx.font = "bold 8px JetBrains Mono, monospace";
         ctx.fillStyle = "#f87171";
-        ctx.fillText("Release Factor", codonCenterX, trnaY - 4);
+        ctx.fillText("Release Factor", codonCenterX, trnaY - 1);
 
         ctx.font = "7px JetBrains Mono, monospace";
         ctx.fillStyle = "#fca5a5";
-        ctx.fillText("STOP / Terminate", codonCenterX, trnaY + 6);
+        ctx.fillText("STOP / Terminate", codonCenterX, trnaY + 9);
       }
     }
 
-    // 6. Nascent Polypeptide Protein Chain (N-Terminus to C-Terminus)
+    // 6. Stage 4: Nascent Polypeptide Protein Chain (N-Terminus to C-Terminus)
     drawStrandBadge(labelX, polyY, "Polypeptide", "N-term ────► C-term", "#34d399", "rgba(52, 211, 153, 0.4)");
+
+    // Chain Section Title Header
+    if (pep.length > 0) {
+      const firstPx = startX + 1 * baseSpacing;
+      const lastPx = startX + (3 * (pep.length - 1) + 1) * baseSpacing;
+      const chainMidX = (firstPx + lastPx) / 2;
+
+      ctx.save();
+      ctx.fillStyle = "#34d399";
+      ctx.font = "bold 9px JetBrains Mono, monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("⬡ Nascent Polypeptide Chain: Primary Amino Acid Structure (N-Terminus to C-Terminus)", chainMidX, polyY - 44);
+      ctx.restore();
+    }
 
     const isSmartboard = document.documentElement.getAttribute("data-mode") === "smartboard" ||
                          document.documentElement.classList.contains("fast-smartboard-mode") ||
@@ -659,42 +709,66 @@ export function initDnaProteinLab(containerId) {
       const px = startX + (3 * idx + 1) * baseSpacing;
 
       // Vertical Translation Connector Ray (tRNA -> Amino Acid Bead)
-      ctx.strokeStyle = "rgba(52, 211, 153, 0.25)";
+      ctx.strokeStyle = "rgba(52, 211, 153, 0.28)";
       ctx.lineWidth = 1.2;
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
-      ctx.moveTo(px, trnaY + 14);
+      ctx.moveTo(px, trnaY + 16);
       ctx.lineTo(px, polyY - 20);
       ctx.stroke();
       ctx.setLineDash([]);
 
+      // N-Terminal Marker for First Residue
+      if (idx === 0) {
+        ctx.fillStyle = "#34d399";
+        ctx.font = "bold 9px JetBrains Mono, monospace";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText("H₂N ──", px - 22, polyY);
+      }
+
       // Covalent Peptide Bond Linking to Previous Residue
       if (idx > 0) {
         const prevPx = startX + (3 * (idx - 1) + 1) * baseSpacing;
-        ctx.strokeStyle = "#cbd5e1";
-        ctx.lineWidth = 3;
+        ctx.strokeStyle = "#94a3b8";
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.moveTo(prevPx + 18, polyY);
         ctx.lineTo(px - 18, polyY);
         ctx.stroke();
 
-        // Centered Peptide Bond Label Badge
+        // Centered Peptide Bond Label Badge with Guaranteed Zero Overlap
         const bondMidX = (prevPx + px) / 2;
-        const bondW = 66;
-        const bondH = 15;
-        ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
-        ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.roundRect(bondMidX - bondW / 2, polyY - bondH / 2, bondW, bondH, 4);
-        ctx.fill();
-        ctx.stroke();
+        const span = px - prevPx;
+        const availSpace = span - 38;
 
-        ctx.fillStyle = "#cbd5e1";
-        ctx.font = "7.5px JetBrains Mono, monospace";
-        ctx.textAlign = "center";
+        if (availSpace >= 24) {
+          const bondW = Math.min(68, availSpace);
+          const bondH = 15;
+          ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
+          ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.roundRect(bondMidX - bondW / 2, polyY - bondH / 2, bondW, bondH, 4);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = "#cbd5e1";
+          ctx.font = "bold 7.5px JetBrains Mono, monospace";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          const bondText = bondW >= 56 ? "Peptide Bond" : "CO-NH";
+          ctx.fillText(bondText, bondMidX, polyY);
+        }
+      }
+
+      // C-Terminal Marker for Last Residue
+      if (idx === pep.length - 1) {
+        ctx.fillStyle = "#f87171";
+        ctx.font = "bold 9px JetBrains Mono, monospace";
+        ctx.textAlign = "left";
         ctx.textBaseline = "middle";
-        ctx.fillText("Peptide Bond", bondMidX, polyY);
+        ctx.fillText("── COOH", px + 22, polyY);
       }
 
       // Amino Acid Spherical Bead
@@ -721,9 +795,17 @@ export function initDnaProteinLab(containerId) {
       ctx.fillText(item.code, px, polyY);
 
       // Centered Amino Acid Name beneath Sphere
+      const propInfo = aminoAcidProps[item.code] || { name: item.aa.split(" ")[0], type: "Residue" };
       ctx.fillStyle = "#e2e8f0";
-      ctx.font = "9px JetBrains Mono, monospace";
-      ctx.fillText(item.aa.split(" ")[0], px, polyY + 28);
+      ctx.font = "bold 9px JetBrains Mono, monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(propInfo.name, px, polyY + 27);
+
+      // Chemical Property Tag beneath Name
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "7.5px JetBrains Mono, monospace";
+      ctx.fillText(propInfo.type, px, polyY + 41);
     });
 
     ctx.restore();

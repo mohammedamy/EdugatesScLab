@@ -56,17 +56,21 @@ export function initEnzymeLab(containerId) {
   let animId = null;
   let elapsedSeconds = 0;
 
-  // Visual active site enzyme particles
+  // Visual active site enzyme particles - strict physical containment
   const substrateParticles = [];
-  for (let i = 0; i < 28; i++) {
-    substrateParticles.push({
-      x: 100 + Math.random() * 380,
-      y: 100 + Math.random() * 300,
-      vx: (Math.random() - 0.5) * 2,
-      vy: (Math.random() - 0.5) * 2,
-      isBound: false
-    });
+  function initSubstrateParticles() {
+    substrateParticles.length = 0;
+    for (let i = 0; i < 28; i++) {
+      substrateParticles.push({
+        x: 60 + Math.random() * 460,
+        y: 60 + Math.random() * 320,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        isBound: false
+      });
+    }
   }
+  initSubstrateParticles();
 
   // Calculate Apparent Km and Vmax
   function getKineticParameters() {
@@ -379,20 +383,45 @@ export function initEnzymeLab(containerId) {
     const { V0 } = getKineticParameters();
     const particleSpeed = Math.min(4, 0.8 + V0 * 0.05);
 
+    // Triple-layer substrate particle containment: Canvas clip + physical clamping + directional reflection
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(20, 20, W - 40, H - 40);
+    ctx.clip();
+
     ctx.fillStyle = "#facc15"; // Substrate yellow
     substrateParticles.forEach(p => {
       p.x += p.vx * particleSpeed;
       p.y += p.vy * particleSpeed;
 
-      // Bounce within bounds
-      if (p.x < 30 || p.x > W - 30) p.vx = -p.vx;
-      if (p.y < 30 || p.y > H - 30) p.vy = -p.vy;
+      // Absolute physical clamping inside reaction vessel
+      const minX = 28;
+      const maxX = W - 28;
+      const minY = 28;
+      const maxY = H - 28;
+
+      if (p.x <= minX) {
+        p.x = minX;
+        p.vx = Math.abs(p.vx);
+      } else if (p.x >= maxX) {
+        p.x = maxX;
+        p.vx = -Math.abs(p.vx);
+      }
+
+      if (p.y <= minY) {
+        p.y = minY;
+        p.vy = Math.abs(p.vy);
+      } else if (p.y >= maxY) {
+        p.y = maxY;
+        p.vy = -Math.abs(p.vy);
+      }
 
       // Draw Substrate Key
       ctx.beginPath();
       ctx.arc(p.x, p.y, 4.5, 0, Math.PI * 2);
       ctx.fill();
     });
+    ctx.restore();
 
     // Bound Substrate in Active Site
     if (!isDenatured && substrateConc > 0.5) {
@@ -665,6 +694,33 @@ export function initEnzymeLab(containerId) {
         ["pH", pH]
       ]
     });
+  });
+
+  // Reset Parameters
+  container.querySelector("#btn-enz-reset")?.addEventListener("click", () => {
+    substrateConc = 2.5;
+    temperature = activeEnzyme.optTemp;
+    pH = activeEnzyme.optPH;
+    inhibitorType = "none";
+    inhibitorConc = 0.0;
+    const sSub = container.querySelector("#slider-enz-substrate");
+    if (sSub) sSub.value = substrateConc;
+    const sTemp = container.querySelector("#slider-enz-temp");
+    if (sTemp) sTemp.value = temperature;
+    const sPh = container.querySelector("#slider-enz-ph");
+    if (sPh) sPh.value = pH;
+    const lSub = container.querySelector("#lbl-enz-substrate");
+    if (lSub) lSub.innerText = `${substrateConc.toFixed(1)} mM`;
+    const lTemp = container.querySelector("#lbl-enz-temp");
+    if (lTemp) lTemp.innerText = `${temperature} °C`;
+    const lPh = container.querySelector("#lbl-enz-ph");
+    if (lPh) lPh.innerText = `${pH.toFixed(1)}`;
+    const lInhib = container.querySelector("#lbl-enz-inhibitor");
+    if (lInhib) lInhib.innerText = "NONE";
+    container.querySelectorAll("[data-inhib]").forEach(b => b.classList.toggle("active", b.dataset.inhib === "none"));
+    initSubstrateParticles();
+    graphNeedsRedraw = true;
+    SoundFX.playClick();
   });
 
   // Mount Post-Lab Checkpoint Assessment
