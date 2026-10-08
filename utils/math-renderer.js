@@ -576,19 +576,22 @@ export function renderMarkdownTables(text) {
         }
       }
 
-      let tbl = '<div class="q-table-wrapper"><table class="q-data-table" role="table"><thead><tr>';
+      let tbl = '<div class="q-table-wrapper"><table class="q-data-table" role="table"><thead class="q-table-head"><tr class="q-table-head-row">';
       headerCells.forEach((h, idx) => {
         const align = alignments[idx] || "left";
-        tbl += `<th scope="col" style="text-align: ${align};">${h}</th>`;
+        const alignClass = align === "center" ? "align-center" : (align === "right" ? "align-right" : "align-left");
+        tbl += `<th scope="col" class="q-tbl-th ${alignClass}" style="text-align: ${align};">${h}</th>`;
       });
-      tbl += "</tr></thead><tbody>";
+      tbl += '</tr></thead><tbody class="q-table-body">';
 
       bodyRows.forEach((row, rIdx) => {
-        tbl += `<tr class="${rIdx % 2 === 0 ? 'even-row' : 'odd-row'}">`;
+        const zebraClass = rIdx % 2 === 0 ? "row-even" : "row-odd";
+        tbl += `<tr class="q-tbl-row ${zebraClass}">`;
         for (let c = 0; c < headerCells.length; c++) {
           const cellVal = row[c] !== undefined ? row[c] : "";
           const align = alignments[c] || "left";
-          tbl += `<td style="text-align: ${align};">${cellVal}</td>`;
+          const alignClass = align === "center" ? "align-center" : (align === "right" ? "align-right" : "align-left");
+          tbl += `<td class="q-tbl-td ${alignClass}" style="text-align: ${align};">${cellVal}</td>`;
         }
         tbl += "</tr>";
       });

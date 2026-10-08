@@ -80,7 +80,7 @@ function escapeHtml(str) {
  * Compresses and resizes a user-uploaded image file using an offscreen canvas
  * to prevent exceeding localStorage storage quota.
  */
-function compressImageFile(file, maxWidth = 900, maxHeight = 700, quality = 0.82) {
+export function compressImageFile(file, maxWidth = 900, maxHeight = 700, quality = 0.82) {
   return new Promise((resolve, reject) => {
     if (!file || !file.type || !file.type.startsWith("image/")) {
       return reject(new Error("File is not an image"));
@@ -4533,12 +4533,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                       </div>
                     </div>
 
-                    ${q.diagram ? `
-                      <div class="print-diagram-container" style="margin: 10px 0; text-align: center; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px;">
-                        ${q.diagram.caption ? `<div class="print-diagram-caption" style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 8px;">${q.diagram.caption}</div>` : ""}
-                        <div class="print-diagram-svg" style="max-height: 300px; width: 100%; display: flex; justify-content: center; align-items: center;">${polishDiagramForPrint(typeof q.diagram === "object" ? q.diagram.svg : String(q.diagram))}</div>
-                      </div>
-                    ` : ""}
+                    ${renderQuestionDiagramHtml(q.diagram, true)}
 
                     ${q.options ? `
                       <div style="display: grid; grid-template-columns: ${printLayout === 'two-col' ? '1fr' : '1fr 1fr'}; gap: 8px 16px; margin-left: 12px; margin-top: 8px; font-size: 0.92rem; color: #000000;">
