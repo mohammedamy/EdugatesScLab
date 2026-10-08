@@ -197,6 +197,7 @@ async function runTestSuite() {
   const {
     normalizeQuestionText,
     getQuestionFingerprint,
+    getOptionsFingerprint,
     isSameQuestion,
     deduplicateQuestions,
     getUserCustomQuestions,
@@ -224,6 +225,31 @@ async function runTestSuite() {
   assert(isSameQuestion(qA, qB) === true, "Detects duplicates by matching question ID");
   assert(isSameQuestion(qA, qC) === true, "Detects duplicates by matching normalized prompt text even with different IDs");
   assert(isSameQuestion(qA, qD) === false, "Distinct questions return false");
+
+  // Permuted options test: Questions with different IDs and prompts, but identical permuted choices
+  const qPerm1 = {
+    id: "PERM-1",
+    question: "Prompt version A: What is the primary role of chlorophyll in photosynthesis?",
+    options: [
+      "Absorbs photon energy to excite electrons in PS II",
+      "Reflects blue and red light while transmitting green",
+      "Synthesizes ATP directly without membrane proton gradients",
+      "Fixes carbon dioxide into glucose during light reactions"
+    ]
+  };
+  const qPerm2 = {
+    id: "PERM-2",
+    question: "Prompt version B: In photosynthesis, how does chlorophyll function during photochemical reactions?",
+    options: [
+      "Reflects blue and red light while transmitting green",
+      "Fixes carbon dioxide into glucose during light reactions",
+      "Absorbs photon energy to excite electrons in PS II",
+      "Synthesizes ATP directly without membrane proton gradients"
+    ]
+  };
+  assert(isSameQuestion(qPerm1, qPerm2) === true, "Detects duplicates when options set is identical but choices are shuffled/permuted in different order");
+  const uniquePermList = deduplicateQuestions([qPerm1, qPerm2]);
+  assert(uniquePermList.length === 1, "deduplicateQuestions eliminates question with permuted choices set");
 
   // Section 2: deduplicateQuestions array handling
   console.log("\n--- 2. deduplicateQuestions Array Purification ---");
@@ -343,6 +369,39 @@ async function runTestSuite() {
   });
   assert(duplicateCountPhys === 0, `Physics exam contains 0 duplicate questions (${seenIdsPhys.size} unique)`);
   if (typeof cleanupPhys === "function") cleanupPhys();
+
+  // Section 8: Master Question Bank Full Verification
+  console.log("\n--- 8. Master Question Bank Full Options-Set & Prompt Uniqueness ---");
+  const masterBank = await getQuestionBank();
+  assert(masterBank.length === 7260, `Master question bank contains exactly 7,260 questions (got ${masterBank.length})`);
+
+  const seenPromptMap = new Map();
+  const seenOptsMap = new Map();
+  let dupPromptCount = 0;
+  let dupOptsCount = 0;
+
+  masterBank.forEach(q => {
+    const normPrompt = normalizeQuestionText(q.question || "");
+    if (seenPromptMap.has(normPrompt)) {
+      dupPromptCount++;
+    } else {
+      seenPromptMap.set(normPrompt, q.id);
+    }
+
+    if (q.options && q.options.length >= 3) {
+      const optsKey = getOptionsFingerprint(q.options);
+      if (optsKey) {
+        if (seenOptsMap.has(optsKey)) {
+          dupOptsCount++;
+        } else {
+          seenOptsMap.set(optsKey, q.id);
+        }
+      }
+    }
+  });
+
+  assert(dupPromptCount === 0, `All 7,260 questions in the master bank have 100% unique prompt texts (duplicates: ${dupPromptCount})`);
+  assert(dupOptsCount === 0, `All questions in the master bank have 100% unique choices sets, zero permuted duplicates (duplicates: ${dupOptsCount})`);
 
   console.log("\n========================================================");
   console.log(`📊 Zero Duplicate Invariant Suite: ${passed} Passed, ${failed} Failed`);

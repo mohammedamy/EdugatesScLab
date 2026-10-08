@@ -76,10 +76,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "core_concept_phenomenon",
     question: `In the study of "${l.title}", what fundamental scientific principle or core physical phenomenon directly governs the system under standard conditions?`,
     options: [
-      `The system is governed by ${p.system}, where observable changes stem directly from ${p.mechanism.split(",")[0] || p.mechanism}.`,
-      `The system operates strictly as a static thermodynamic sink where all kinetic transfers and particle interactions have ceased completely.`,
-      `The observable changes are driven solely by macroscopic gravitational potential differences, with electrostatic and intermolecular forces having zero effect.`,
-      `The system maintains invariant macroscopic properties because microscopic transformations occur without any net exchange or redistribution of internal energy.`
+      `In "${l.title}", the system is governed by ${p.system}, where observable changes stem directly from ${p.mechanism.split(",")[0] || p.mechanism}.`,
+      `In "${l.title}", the system operates strictly as a static thermodynamic sink where all kinetic transfers and particle interactions have ceased completely.`,
+      `In "${l.title}", observable changes are driven solely by macroscopic gravitational potential differences, with electrostatic and intermolecular forces having zero effect.`,
+      `In "${l.title}", the system maintains invariant macroscopic properties because microscopic transformations occur without any net exchange or redistribution of internal energy.`
     ],
     correctIndex: 0,
     explanation: `Lesson ${m.id}.${l.id} ("${l.title}") establishes the foundational concept of ${p.system}. Macroscopic observations are direct consequences of ${p.mechanism.split(",")[0] || p.mechanism}, adhering strictly to universal conservation laws.`
@@ -99,10 +99,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "scientific_terminology",
     question: `Which statement provides the precise operational scientific definition of **${termName}** within the context of "${l.title}"?`,
     options: [
-      `**${termName}**: ${termDef}, providing a measurable quantitative standard for characterizing physical state transformations.`,
-      `**${termName}**: The total cumulative quantity of thermal energy contained within the sample, scaling directly with bulk mass.`,
-      `**${termName}**: An empirical path function that quantifies the instantaneous rate of mechanical work dissipated during a non-equilibrium process.`,
-      `**${termName}**: A dimensionless stoichiometric quotient comparing reactant and product concentrations under standard thermodynamic conditions.`
+      `**${termName}** in "${l.title}": ${termDef}, providing a measurable quantitative standard for characterizing physical state transformations.`,
+      `**${termName}** in "${l.title}": The total cumulative quantity of thermal energy contained within the sample, scaling directly with bulk mass.`,
+      `**${termName}** in "${l.title}": An empirical path function that quantifies the instantaneous rate of mechanical work dissipated during a non-equilibrium process.`,
+      `**${termName}** in "${l.title}": A dimensionless stoichiometric quotient comparing reactant and product concentrations under standard thermodynamic conditions.`
     ],
     correctIndex: 0,
     explanation: `Precision in scientific terminology is essential. In ${l.title}, "${termName}" is operationally defined as: ${termDef}. Confusing this term with colloquial language or path functions leads to conceptual errors.`
@@ -121,10 +121,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "qualitative_proportionality",
     question: `When investigating "${l.title}", what qualitative trend is observed in ${propLabel} as the driving physical parameter is systematically increased while keeping other variables constant?`,
     options: [
-      `The response varies predictably according to the governing formula ($${p.calc1.formula}$), exhibiting direct or inverse proportionality consistent with physical conservation.`,
-      `The response exhibits an inverse relationship where increasing the driving variable causes an asymptotic decrease toward zero, contrary to $${p.calc1.formula}$.`,
-      `The response parameter remains completely invariant across all conditions, because driving variables have no empirical influence on ${propLabel}.`,
-      `The response parameter increases quadratically while the governing relationship is strictly linear, overestimating the physical sensitivity of the system.`
+      `In "${l.title}", ${propLabel} varies predictably according to $${p.calc1.formula}$, exhibiting direct or inverse proportionality consistent with physical conservation.`,
+      `In "${l.title}", ${propLabel} exhibits an inverse relationship where increasing the driving variable causes an asymptotic decrease toward zero, contrary to $${p.calc1.formula}$.`,
+      `In "${l.title}", ${propLabel} remains completely invariant across all conditions, because driving variables have no empirical influence on ${propLabel}.`,
+      `In "${l.title}", ${propLabel} increases quadratically while the governing relationship is strictly linear, overestimating the physical sensitivity of the system.`
     ],
     correctIndex: 0,
     explanation: `Qualitative proportionality follows mathematical relations: in ${l.title}, changes in ${propLabel} conform to $${p.calc1.formula}$, reflecting direct physical dependence without arbitrary discontinuity.`
@@ -153,10 +153,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     diagram: appDiag,
     question: `Examine the laboratory apparatus and experimental configuration shown in **${appDiag.caption || 'Figure ' + m.id + '.' + l.id + 'A'}** for "${l.title}". What is the primary functional role of the key diagnostic instrument or containment component highlighted?`,
     options: [
-      `It isolates the experimental system to ensure controlled boundary conditions, enabling high-precision measurement of ${p.calc1.label || 'the key variable'} while minimizing environmental dissipation.`,
-      `It acts as an external thermal reservoir to supply unlimited sensible heat and maintain constant boiling temperature throughout data collection.`,
-      `It serves as an open pressure-relief vent that equalizes internal vapor pressure directly with atmospheric fluctuations without trapping volatile condensates.`,
-      `It continuously alters the chemical identity of the analyte to accelerate reaction progress rather than passively monitoring physical state variables.`
+      `For "${l.title}", it isolates the experimental system to ensure controlled boundary conditions, enabling high-precision measurement of ${p.calc1.label || 'the key variable'} while minimizing environmental dissipation.`,
+      `For "${l.title}", it acts as an external thermal reservoir to supply unlimited sensible heat and maintain constant boiling temperature throughout data collection.`,
+      `For "${l.title}", it serves as an open pressure-relief vent that equalizes internal vapor pressure directly with atmospheric fluctuations without trapping volatile condensates.`,
+      `For "${l.title}", it continuously alters the chemical identity of the analyte to accelerate reaction progress rather than passively monitoring physical state variables.`
     ],
     correctIndex: 0,
     explanation: `In laboratory investigations of ${l.title}, experimental hardware (illustrated in ${appDiag.caption || 'Figure ' + m.id + '.' + l.id + 'A'}) ensures rigorous boundary control. Calibrated sensors and isolated vessels permit reproducible measurement of ${p.calc1.label || 'state variables'}.`
@@ -176,10 +176,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "everyday_phenomenon",
     question: `How does the scientific principle underlying "${l.title}" manifest in everyday macroscopic reality, such as in **${everyPhenom}**?`,
     options: [
-      `It explains why ${everyPhenom} occurs: ${everyExp}, directly reflecting submicroscopic or kinematic laws on a familiar human scale.`,
-      `The macroscopic observation is an optical illusion caused solely by atmospheric light scattering rather than intrinsic properties of ${l.title}.`,
-      `The phenomenon represents an irreversible chemical synthesis that permanently alters substance identity rather than a physical or homeostatic transformation.`,
-      `The effect occurs because the system absorbs ambient humidity to expand its boundary, rather than operating via ${everyExp}.`
+      `In "${l.title}", it explains why ${everyPhenom} occurs: ${everyExp}, directly reflecting submicroscopic or kinematic laws on a familiar human scale.`,
+      `The macroscopic observation of ${everyPhenom} in "${l.title}" is an optical illusion caused solely by atmospheric light scattering rather than intrinsic properties of ${l.title}.`,
+      `In "${l.title}", ${everyPhenom} represents an irreversible chemical synthesis that permanently alters substance identity rather than a physical or homeostatic transformation.`,
+      `The effect in "${l.title}" occurs because the system absorbs ambient humidity to expand its boundary, rather than operating via ${everyExp}.`
     ],
     correctIndex: 0,
     explanation: `Science connects classroom concepts to macroscopic observation. ${everyPhenom} provides tangible evidence of ${l.title}, directly explained by: ${everyExp}.`
@@ -197,10 +197,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "misconception_refutation",
     question: `Which of the following statements accurately identifies and refutes a widespread student misconception regarding "${l.title}"?`,
     options: [
-      `**Common Misconception**: ${p.misconception}; **Scientific Reality**: Rigorous empirical data confirms that the governing laws and conservation constraints strictly determine system behavior.`,
-      `**Common Misconception**: Systems adhere to ideal conservation laws; **Scientific Reality**: ${p.misconception} is correct and textbook equations only apply in idealized theoretical simulations.`,
-      `**Common Misconception**: State functions are path-independent; **Scientific Reality**: Enthalpy and internal energy changes depend entirely on the specific mechanical pathway chosen.`,
-      `**Common Misconception**: Microscopic particles undergo continuous thermal motion; **Scientific Reality**: Atoms and molecules remain completely stationary until an external force is applied.`
+      `**Common Misconception in "${l.title}"**: ${p.misconception}; **Scientific Reality**: Rigorous empirical data confirms that the governing laws and conservation constraints strictly determine system behavior.`,
+      `**Common Misconception in "${l.title}"**: Systems adhere to ideal conservation laws; **Scientific Reality**: ${p.misconception} is correct and textbook equations only apply in idealized theoretical simulations.`,
+      `**Common Misconception in "${l.title}"**: State functions are path-independent; **Scientific Reality**: Enthalpy and internal energy changes depend entirely on the specific mechanical pathway chosen.`,
+      `**Common Misconception in "${l.title}"**: Microscopic particles undergo continuous thermal motion; **Scientific Reality**: Atoms and molecules remain completely stationary until an external force is applied.`
     ],
     correctIndex: 0,
     explanation: `A prevalent conceptual hurdle in ${l.title} is: "${p.misconception}". Empirical laboratory data and foundational theory demonstrate that this intuitive belief is invalid, reaffirming the predictive power of modern scientific models.`
@@ -230,10 +230,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "classification_taxonomy",
     question: classQuestion,
     options: [
-      classCorrect,
-      `It is categorized exclusively as an extensive quantity because all thermodynamic and kinetic properties scale proportionally with sample volume.`,
-      `It is categorized as a path-dependent dissipation metric that cannot be expressed in terms of fundamental SI base units.`,
-      `It is categorized strictly as a macroscopic suspension that lacks microscopic particulate uniformity and thermodynamic reproducibility.`
+      `For "${l.title}": ${classCorrect}`,
+      `"${l.title}" is categorized exclusively as an extensive quantity because all thermodynamic and kinetic properties scale proportionally with sample volume.`,
+      `"${l.title}" is categorized as a path-dependent dissipation metric that cannot be expressed in terms of fundamental SI base units.`,
+      `"${l.title}" is categorized strictly as a macroscopic suspension that lacks microscopic particulate uniformity and thermodynamic reproducibility.`
     ],
     correctIndex: 0,
     explanation: `Rigorous taxonomy provides the scaffolding for scientific analysis. Classifying concepts in ${l.title} prevents conflation between fundamental physical categories.`
@@ -264,10 +264,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     diagram: structDiag,
     question: `Refer to the particulate, molecular, or structural schematic model illustrated in **${structDiag.caption || 'Figure ' + m.id + '.' + l.id + 'S'}** for "${l.title}". What spatial arrangement, bonding architecture, or organizational feature stabilizes the configuration shown?`,
     options: [
-      `Structural stability is maintained by balanced attractive and repulsive forces (${p.mechanism.split(",")[0] || p.mechanism}), adopting an optimized spatial geometry that minimizes potential energy.`,
-      `The configuration is held together solely by kinetic collision momentum, with zero attractive intermolecular or Coulombic potential energy wells.`,
-      `The particles form a static, perfectly rigid ionic crystal lattice that prevents any vibrational or rotational degrees of freedom at non-zero temperatures.`,
-      `The spatial organization is stabilized by continuous covalent bond breaking and reforming between adjacent solvent molecules rather than non-covalent interactions.`
+      `In "${l.title}", structural stability is maintained by balanced attractive and repulsive forces (${p.mechanism.split(",")[0] || p.mechanism}), adopting an optimized spatial geometry that minimizes potential energy.`,
+      `In "${l.title}", the configuration is held together solely by kinetic collision momentum, with zero attractive intermolecular or Coulombic potential energy wells.`,
+      `In "${l.title}", the particles form a static, perfectly rigid ionic crystal lattice that prevents any vibrational or rotational degrees of freedom at non-zero temperatures.`,
+      `In "${l.title}", the spatial organization is stabilized by continuous covalent bond breaking and reforming between adjacent solvent molecules rather than non-covalent interactions.`
     ],
     correctIndex: 0,
     explanation: `The structural model for ${l.title} (${structDiag.caption || 'Figure ' + m.id + '.' + l.id + 'S'}) highlights microscopic architecture. Spatial arrangement and bonding forces (${p.mechanism.split(",")[0] || p.mechanism}) directly dictate physical stability and macroscopic properties.`
@@ -286,10 +286,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "si_units_dimensions",
     question: `In quantitative metrology for "${l.title}", what are the correct SI derived units and dimensional representation for **${p.calc1?.label || 'the key parameter'}** ($${p.calc1?.formula || 'X'}$)?`,
     options: [
-      `The parameter is expressed in ${unitStr}, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).`,
-      `The parameter is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than ${unitStr}.`,
-      `The parameter is dimensionally inverted, expressed in the reciprocal units $\\text{(${p.calc1.unit || 'unit'})}^{-1}$, confusing rate with state duration.`,
-      `The parameter is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.`
+      `In "${l.title}", ${p.calc1?.label || 'the parameter'} is expressed in ${unitStr}, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).`,
+      `In "${l.title}", ${p.calc1?.label || 'the parameter'} is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than ${unitStr}.`,
+      `In "${l.title}", ${p.calc1?.label || 'the parameter'} is dimensionally inverted, expressed in the reciprocal units $\\text{(${p.calc1.unit || 'unit'})}^{-1}$, confusing rate with state duration.`,
+      `In "${l.title}", ${p.calc1?.label || 'the parameter'} is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.`
     ],
     correctIndex: 0,
     explanation: `Dimensional consistency is a foundational test of physical validity. In ${l.title}, ${p.calc1?.label || 'the state variable'} is quantified in ${unitStr}, verifying algebraic derivations against SI base dimensions.`
@@ -307,10 +307,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "curriculum_objective",
     question: `Reviewing the standard curriculum benchmark for "${l.title}", which of the following statements represents the scientifically verified outcome of the objective to **"${obj1}"**?`,
     options: [
-      `A rigorous analysis demonstrates that students can ${obj1}, because the governing physical mechanism (${p.mechanism.split(",")[0] || p.mechanism}) directly explains the empirical behavior.`,
-      `The objective can only be verified qualitatively because theoretical models in ${l.title} contradict quantitative laboratory measurements.`,
-      `The objective is satisfied by memorizing vocabulary terms without needing to relate macroscopic observations to underlying thermodynamic or kinematic mechanisms.`,
-      `The objective applies exclusively to cosmological astrophysical scales and cannot be observed in terrestrial laboratory experiments.`
+      `For "${l.title}", rigorous analysis demonstrates that students can ${obj1}, because the governing physical mechanism (${p.mechanism.split(",")[0] || p.mechanism}) directly explains the empirical behavior.`,
+      `For "${l.title}", the objective to ${obj1} can only be verified qualitatively because theoretical models in ${l.title} contradict quantitative laboratory measurements.`,
+      `For "${l.title}", the objective to ${obj1} is satisfied by memorizing vocabulary terms without relating macroscopic observations to underlying thermodynamic or kinematic mechanisms.`,
+      `For "${l.title}", the objective to ${obj1} applies exclusively to cosmological astrophysical scales and cannot be observed in terrestrial laboratory experiments.`
     ],
     correctIndex: 0,
     explanation: `Curriculum standards for Lesson ${m.id}.${l.id} emphasize actionable understanding: being able to ${obj1} connects conceptual theory to empirical laboratory practice.`
@@ -333,10 +333,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "submicroscopic_mechanism",
     question: `At the particulate, molecular, or cellular scale, what underlying mechanism drives the transformation observed in "${l.title}"?`,
     options: [
-      `${p.mechanism}, where microscopic potential energy and kinetic collisions govern macroscopic thermodynamic state changes.`,
-      `Electron transfer occurs exclusively through macroscopic conduction, without involving valence orbital hybridization or quantum energy level transitions.`,
-      `Molecules undergo spontaneous nuclear fission at room temperature, releasing binding energy that drives the physical phase change.`,
-      `Intermolecular forces are completely eliminated due to thermal equilibrium, allowing particles to behave as non-interacting mathematical points.`
+      `In "${l.title}", ${p.mechanism}, where microscopic potential energy and kinetic collisions govern macroscopic thermodynamic state changes.`,
+      `In "${l.title}", electron transfer occurs exclusively through macroscopic conduction, without involving valence orbital hybridization or quantum energy level transitions.`,
+      `In "${l.title}", molecules undergo spontaneous nuclear fission at room temperature, releasing binding energy that drives the physical phase change.`,
+      `In "${l.title}", intermolecular forces are completely eliminated due to thermal equilibrium, allowing particles to behave as non-interacting mathematical points.`
     ],
     correctIndex: 0,
     explanation: `Honors-level mastery requires connecting macroscopic properties to sub-microscopic physics: ${p.mechanism}. Kinetic collisions and Coulombic interactions drive dynamic transformations in ${l.title}.`
@@ -359,10 +359,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
       tolerance: 0.05,
       unit: "s",
       options: [
-        `$2.86\\text{ s}$`,
-        `$4.04\\text{ s}$`,
-        `$5.12\\text{ s}$`,
-        `$8.16\\text{ s}$`
+        `$t_{\\text{impact}} = 2.86\\text{ s}$`,
+        `$t_{\\text{impact}} = 4.04\\text{ s}$`,
+        `$t_{\\text{impact}} = 5.12\\text{ s}$`,
+        `$t_{\\text{impact}} = 8.16\\text{ s}$`
       ],
       correctIndex: 1,
       explanation: `Step 1: Identify given quantities: $y_0 = 80.0\\text{ m}$, $v_0 = 0\\text{ m/s}$, $g = 9.80\\text{ m/s}^2$, $y = 0\\text{ m}$.\nStep 2: Apply free fall relation: $$0 = y_0 - \\frac{1}{2}gt^2 \\implies t = \\sqrt{\\frac{2y_0}{g}} = \\sqrt{\\frac{2(80.0\\text{ m})}{9.80\\text{ m/s}^2}} = \\sqrt{16.3265} = 4.04\\text{ s}$$.\nStep 3: Three significant figures are justified by $80.0\\text{ m}$ and $9.80\\text{ m/s}^2$.`
@@ -385,10 +385,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
       tolerance: 0.05,
       unit: p.calc1.unit || "",
       options: [
-        `$${(calcAns1 * 0.5).toFixed(2)}\\text{ ${p.calc1.unit}}$`,
-        `$${calcAns1}\\text{ ${p.calc1.unit}}$`,
-        `$${(calcAns1 * 1.5).toFixed(2)}\\text{ ${p.calc1.unit}}$`,
-        `$${(calcAns1 * 2.0).toFixed(2)}\\text{ ${p.calc1.unit}}$`
+        `${p.calc1.label} = $${(calcAns1 * 0.5).toFixed(2)}\\text{ ${p.calc1.unit}}$`,
+        `${p.calc1.label} = $${calcAns1}\\text{ ${p.calc1.unit}}$`,
+        `${p.calc1.label} = $${(calcAns1 * 1.5).toFixed(2)}\\text{ ${p.calc1.unit}}$`,
+        `${p.calc1.label} = $${(calcAns1 * 2.0).toFixed(2)}\\text{ ${p.calc1.unit}}$`
       ],
       correctIndex: 1,
       explanation: `Step 1: Identify given parameters: $A = ${numVal1.toFixed(1)}$, $B = ${numVal2.toFixed(1)}$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{${numVal1.toFixed(1)}}{${numVal2.toFixed(1)}} = ${calcAns1}\\text{ ${p.calc1.unit}}$$.\nStep 3: Significant figures verify $${calcAns1}\\text{ ${p.calc1.unit}}$.`
@@ -505,10 +505,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     graphDiag = getOrGenerateDiagram(subKey, m, l, p, "graph");
     graphQuestionText = `Refer to the empirical coordinate graph illustrated in **${graphDiag.caption || 'Figure ' + m.id + '.' + l.id + 'G'}** for "${l.title}". What physical relationship or state transition does the curve slope or plateau represent?`;
     graphOptions = [
-      `The graph exhibits ${p.graph}, where the coordinate slope ($\\Delta y / \\Delta x$) reflects the rate constant, sensitivity coefficient, or dynamic equilibrium state.`,
-      `The coordinate slope represents a static friction coefficient that remains invariant regardless of reactant concentration or applied force.`,
-      `The curve indicates that the dependent variable increases linearly without bound, failing to exhibit saturation or equilibrium limits.`,
-      `The coordinate plateau signifies that all chemical and physical processes have terminated completely with zero dynamic exchange.`
+      `The graph for "${l.title}" exhibits ${p.graph}, where the coordinate slope ($\\Delta y / \\Delta x$) reflects the rate constant, sensitivity coefficient, or dynamic equilibrium state.`,
+      `The coordinate slope for "${l.title}" represents a static friction coefficient that remains invariant regardless of reactant concentration or applied force.`,
+      `The curve for "${l.title}" indicates that the dependent variable increases linearly without bound, failing to exhibit saturation or equilibrium limits.`,
+      `The coordinate plateau for "${l.title}" signifies that all chemical and physical processes have terminated completely with zero dynamic exchange.`
     ];
     graphExpl = `In scientific laboratory analysis of ${l.title} (${graphDiag.caption || 'Figure ' + m.id + '.' + l.id + 'G'}), coordinate profiles reveal ${p.graph}. Slopes represent rates or constants, while asymptotic plateaus identify saturation limits or equilibrium.`;
   }
@@ -542,10 +542,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "controlled_experimental_design",
     question: `A research group designs a controlled empirical trial to investigate "${l.title}". Which parameter assignment correctly isolates the independent, dependent, and controlled variables?`,
     options: [
-      `**Independent Variable**: ${p.experiment.iv}; **Dependent Variable**: ${p.experiment.dv}; **Controlled Constants**: ${p.experiment.controls}.`,
-      `**Independent Variable**: ${p.experiment.dv}; **Dependent Variable**: ${p.experiment.iv}; **Controlled Constants**: ${p.experiment.controls}.`,
-      `**Independent Variable**: ${p.experiment.controls.split(",")[0] || "Ambient temperature"}; **Dependent Variable**: ${p.experiment.iv}; **Controlled Constants**: ${p.experiment.dv}.`,
-      `**Independent Variable**: Both ${p.experiment.iv} and ambient room conditions simultaneously; **Dependent Variable**: ${p.experiment.dv}; **Controlled Constants**: None (allowing thermal and pressure boundaries to fluctuate).`
+      `For "${l.title}": **Independent Variable**: ${p.experiment.iv}; **Dependent Variable**: ${p.experiment.dv}; **Controlled Constants**: ${p.experiment.controls}.`,
+      `For "${l.title}": **Independent Variable**: ${p.experiment.dv}; **Dependent Variable**: ${p.experiment.iv}; **Controlled Constants**: ${p.experiment.controls}.`,
+      `For "${l.title}": **Independent Variable**: ${p.experiment.controls.split(",")[0] || "Ambient temperature"}; **Dependent Variable**: ${p.experiment.iv}; **Controlled Constants**: ${p.experiment.dv}.`,
+      `For "${l.title}": **Independent Variable**: Both ${p.experiment.iv} and ambient room conditions simultaneously; **Dependent Variable**: ${p.experiment.dv}; **Controlled Constants**: None (allowing thermal and pressure boundaries to fluctuate).`
     ],
     correctIndex: 0,
     explanation: `Rigorous experimental design requires manipulating exactly one independent variable (${p.experiment.iv}) while observing the response of the dependent variable (${p.experiment.dv}) under strictly regulated control conditions (${p.experiment.controls}).`
@@ -563,10 +563,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "dynamic_perturbation_shift",
     question: `Consider a stable system described in "${l.title}". If the system experiences a dynamic perturbation by **${p.perturbation}**, how does the system respond according to physical and chemical laws?`,
     options: [
-      `The system dynamically adjusts through compensatory mechanisms or shifts equilibrium to oppose the applied disturbance and re-establish a stable steady-state.`,
-      `The perturbation triggers an autocatalytic runaway cascade that shifts the system permanently away from equilibrium without restoring forces.`,
-      `The system remains completely unresponsive because physical and chemical equilibria are invariant to external temperature, pressure, or concentration changes.`,
-      `The perturbation causes the forward and reverse reaction rate constants to drop to zero, freezing all molecular transport indefinitely.`
+      `In "${l.title}", the system dynamically adjusts to ${p.perturbation} through compensatory mechanisms or equilibrium shifts to oppose the disturbance and re-establish a stable steady-state.`,
+      `In "${l.title}", ${p.perturbation} triggers an autocatalytic runaway cascade that shifts the system permanently away from equilibrium without restoring forces.`,
+      `In "${l.title}", the system remains completely unresponsive to ${p.perturbation} because physical and chemical equilibria are invariant to external temperature, pressure, or concentration changes.`,
+      `In "${l.title}", ${p.perturbation} causes the forward and reverse reaction rate constants to drop to zero, freezing all molecular transport indefinitely.`
     ],
     correctIndex: 0,
     explanation: `Whether governed by Le Chatelier's Principle, homeostatic negative feedback loops, or Newton's third law, physical systems respond to perturbations (${p.perturbation}) through predictable counter-adjustments restoring dynamic balance.`
@@ -592,10 +592,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     vecDiag = getOrGenerateDiagram(subKey, m, l, p, "vector");
     vecQuestionText = `Refer to the directional vector field and boundary diagram illustrated in **${vecDiag.caption || 'Figure ' + m.id + '.' + l.id + 'V'}** for "${l.title}". Which statement correctly resolves the directional vector components or interface fluxes governing the system?`;
     vecOptions = [
-      `Directional vector resolution demonstrates that net state flux depends strictly on orthogonal components, where traversing the phase or potential boundary requires overcoming the activation barrier or normal interface constraint.`,
-      `All directional force vectors sum to a net positive acceleration perpendicular to the boundary, violating static equilibrium constraints.`,
-      `The normal force vector acts parallel to the interface boundary rather than perpendicular, eliminating shear resistance.`,
-      `Gravitational and electrostatic potential vectors are identical in magnitude and direction, producing zero net potential gradient.`
+      `For "${l.title}", directional vector resolution demonstrates that net state flux depends strictly on orthogonal components, overcoming the activation barrier or normal interface constraint.`,
+      `In "${l.title}", all directional force vectors sum to a net positive acceleration perpendicular to the boundary, violating static equilibrium constraints.`,
+      `In "${l.title}", the normal force vector acts parallel to the interface boundary rather than perpendicular, eliminating shear resistance.`,
+      `In "${l.title}", gravitational and electrostatic potential vectors are identical in magnitude and direction, producing zero net potential gradient.`
     ];
     vecExpl = `In Figure ${vecDiag.caption || m.id + '.' + l.id + 'V'} for ${l.title}, directional vectors and potential gradients dictate dynamic response. Orthogonal vector decomposition verifies that only parallel force or gradient components drive state transitions across the boundary.`;
   }
@@ -629,10 +629,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "comparative_distinction",
     question: `What is the crucial scientific distinction highlighted in "${l.title}" regarding: **${p.comparison}**?`,
     options: [
-      `The two concepts differ fundamentally in physical definition, mathematical dependence, and operational behavior: ${p.comparison}.`,
-      `The two terms describe the exact same physical property measured under different temperature scales.`,
-      `One concept applies exclusively to open systems with mass exchange, while the other applies only to isolated systems with zero energy exchange.`,
-      `The first concept is an intensive thermodynamic state function, while the second is a path-dependent kinetic rate that varies with catalyst presence.`
+      `In "${l.title}", the two concepts differ fundamentally in physical definition, mathematical dependence, and operational behavior: ${p.comparison}.`,
+      `In "${l.title}", the compared concepts describe the exact same physical property measured under different temperature scales.`,
+      `In "${l.title}", one concept applies exclusively to open systems with mass exchange, while the other applies only to isolated systems with zero energy exchange.`,
+      `In "${l.title}", the first concept is an intensive thermodynamic state function, while the second is a path-dependent kinetic rate that varies with catalyst presence.`
     ],
     correctIndex: 0,
     explanation: `A vital learning objective of Lesson ${m.id}.${l.id} is distinguishing ${p.comparison}. Conflating these concepts leads to fundamental conceptual errors in honors scientific analysis.`
@@ -650,10 +650,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "thermodynamic_transformation",
     question: `How does energy conservation and thermodynamic transformation govern state changes during "${l.title}"?`,
     options: [
-      `Total system energy remains strictly conserved ($\\Delta E_{\\text{sys}} = Q - W$ or $\\Delta H$), where enthalpy, entropy, or mechanical work dictate whether transformations proceed spontaneously ($\\Delta G < 0$).`,
-      `Energy is destroyed during exothermic transitions as heat is dissipated into the cold surrounding reservoir.`,
-      `Enthalpy changes alone determine spontaneity ($\\Delta H < 0$), with entropy ($\\Delta S$) having zero physical influence on the direction of transformation.`,
-      `Total internal energy increases continuously during spontaneous processes because entropy generation creates new thermal energy.`
+      `In "${l.title}", total system energy remains strictly conserved ($\\Delta E_{\\text{sys}} = Q - W$ or $\\Delta H$), where enthalpy, entropy, or mechanical work dictate whether transformations proceed spontaneously ($\\Delta G < 0$).`,
+      `In "${l.title}", energy is destroyed during exothermic transitions as heat is dissipated into the cold surrounding reservoir.`,
+      `In "${l.title}", enthalpy changes alone determine spontaneity ($\\Delta H < 0$), with entropy ($\\Delta S$) having zero physical influence on the direction of transformation.`,
+      `In "${l.title}", total internal energy increases continuously during spontaneous processes because entropy generation creates new thermal energy.`
     ],
     correctIndex: 0,
     explanation: `The First and Second Laws of Thermodynamics underpin all physical transformations in ${l.title}: total energy is invariant, and spontaneous processes minimize Gibbs free energy or maximize net entropy.`
@@ -671,10 +671,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "tabulated_data_matrix",
     question: `A research group performs a multi-trial empirical investigation for "${l.title}" and compiles the initial-rate data matrix below:\n\n| Trial | Factor A | Factor B | Observed Rate |\n| :--- | :--- | :--- | :--- |\n| 1 | $1.0\\text{ M}$ | $1.0\\text{ bar}$ | $0.050\\text{ units/s}$ |\n| 2 | $2.0\\text{ M}$ | $1.0\\text{ bar}$ | $0.100\\text{ units/s}$ |\n| 3 | $1.0\\text{ M}$ | $2.0\\text{ bar}$ | $0.200\\text{ units/s}$ |\n\nWhat is the empirical mathematical dependence of the Observed Rate on Factor A and Factor B?`,
     options: [
-      `First-order in Factor A (doubling A doubles rate: $2^1 = 2$) and second-order in Factor B (doubling B quadruples rate: $2^2 = 4$), giving $\\text{Rate} = k[A]^1 [B]^2$.`,
-      `Second-order in Factor A and first-order in Factor B, yielding $\\text{Rate} = k[A]^2 [B]^1$, confusing the response ratios between trials.`,
-      `First-order in both Factor A and Factor B (overall second-order: $\\text{Rate} = k[A][B]$), failing to account for the quadrupling of rate in Trial 3.`,
-      `Zero-order in Factor A and second-order in Factor B ($\\text{Rate} = k[B]^2$), incorrectly assuming Factor A has no kinetic effect.`
+      `For "${l.title}" trial data: First-order in Factor A (doubling A doubles rate: $2^1 = 2$) and second-order in Factor B (doubling B quadruples rate: $2^2 = 4$), giving $\\text{Rate} = k[A]^1 [B]^2$.`,
+      `For "${l.title}" trial data: Second-order in Factor A and first-order in Factor B, yielding $\\text{Rate} = k[A]^2 [B]^1$, confusing the response ratios between trials.`,
+      `For "${l.title}" trial data: First-order in both Factor A and Factor B (overall second-order: $\\text{Rate} = k[A][B]$), failing to account for the quadrupling of rate in Trial 3.`,
+      `For "${l.title}" trial data: Zero-order in Factor A and second-order in Factor B ($\\text{Rate} = k[B]^2$), incorrectly assuming Factor A has no kinetic effect.`
     ],
     correctIndex: 0,
     explanation: `Comparing Trials 1 & 2: Factor B is constant, Factor A doubles ($1.0 \\to 2.0$), and Rate doubles ($0.050 \\to 0.100$), confirming first-order dependence ($m = 1$). Comparing Trials 1 & 3: Factor A is constant, Factor B doubles ($1.0 \\to 2.0$), and Rate quadruples ($0.050 \\to 0.200$), confirming second-order dependence ($n = 2$). The rate law is $\\text{Rate} = k[A][B]^2$.`
@@ -692,10 +692,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "technological_application",
     question: `In modern industrial manufacturing and biomedical engineering, how are the principles established in "${l.title}" directly deployed?`,
     options: [
-      `They are applied in **${p.application}**, enabling high-efficiency processing, structural optimization, or precision diagnostics.`,
-      `They are utilized strictly as passive insulation materials with zero active electrochemical or mechanical participation.`,
-      `They are restricted to historical steam engines and have been entirely superseded by synthetic non-physical algorithms in modern technology.`,
-      `They are used to prevent chemical reactions from reaching stoichiometric completion in order to conserve raw feedstocks.`
+      `Principles of "${l.title}" are applied in **${p.application}**, enabling high-efficiency processing, structural optimization, or precision diagnostics.`,
+      `In applications of "${l.title}", they are utilized strictly as passive insulation materials with zero active electrochemical or mechanical participation.`,
+      `Principles of "${l.title}" are restricted to historical steam engines and have been entirely superseded by synthetic non-physical algorithms in modern technology.`,
+      `In systems relating to "${l.title}", they are used to prevent chemical reactions from reaching stoichiometric completion in order to conserve raw feedstocks.`
     ],
     correctIndex: 0,
     explanation: `Scientific fundamentals in ${l.title} drive cutting-edge industry: translating atomic and thermodynamic laws into ${p.application} optimizes throughput, energy efficiency, and modern technological safety.`
@@ -723,10 +723,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
       tolerance: 0.1,
       unit: "",
       options: [
-        `$2$`,
-        `$5$`,
-        `$7$`,
-        `$10$`
+        `$x = 2\\text{ (dihydrate)}$`,
+        `$x = 5\\text{ (pentahydrate)}$`,
+        `$x = 7\\text{ (heptahydrate)}$`,
+        `$x = 10\\text{ (decahydrate)}$`
       ],
       correctIndex: 1,
       explanation: `Step 1: Calculate mass of water released: $$m_{\\text{H}_2\\text{O}} = 5.000\\text{ g} - 3.196\\text{ g} = 1.804\\text{ g}$$.\nStep 2: Calculate moles of anhydrous salt and water:\n$$n_{\\text{CuSO}_4} = \\frac{3.196\\text{ g}}{159.61\\text{ g/mol}} = 0.02002\\text{ mol}$$\n$$n_{\\text{H}_2\\text{O}} = \\frac{1.804\\text{ g}}{18.02\\text{ g/mol}} = 0.10011\\text{ mol}$$\nStep 3: Calculate mole ratio $x$:\n$$x = \\frac{0.10011\\text{ mol}}{0.02002\\text{ mol}} = 5.000 \\approx 5$$.\nThe formula is $\\text{CuSO}_4 \\cdot 5\\text{H}_2\\text{O}$.`
@@ -757,10 +757,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
       tolerance: 0.5,
       unit: p.calc1.unit || "",
       options: [
-        `$${unroundedAnswer}\\text{ ${p.calc1.unit}}$`,
-        `$${roundedAnswer}\\text{ ${p.calc1.unit}}$`,
-        `$${rawProduct}\\text{ ${p.calc1.unit}}$`,
-        `$${Number(rawProduct.toPrecision(1)).toString()}\\text{ ${p.calc1.unit}}$`
+        `${p.calc1.label} Product $Y = ${unroundedAnswer}\\text{ ${p.calc1.unit}}$`,
+        `${p.calc1.label} Product $Y = ${roundedAnswer}\\text{ ${p.calc1.unit}}$`,
+        `${p.calc1.label} Product $Y = ${rawProduct}\\text{ ${p.calc1.unit}}$`,
+        `${p.calc1.label} Product $Y = ${Number(rawProduct.toPrecision(1)).toString()}\\text{ ${p.calc1.unit}}$`
       ],
       correctIndex: 1,
       explanation: `Step 1: Identify given parameters and their precision: $P_1 = ${strA}\\text{ ${p.calc1.unit || ''}}$ (${sfA} sig figs), $\\beta = ${strB}$ (${sfB} sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (${strA})(${strB}) = ${rawProduct}\\text{ ${p.calc1.unit || ''}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = ${strB}$, having ${targetSf} sig figs). Rounding ${rawProduct} to ${targetSf} significant figures yields $${roundedAnswer}\\text{ ${p.calc1.unit || ''}}$.`
@@ -779,10 +779,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "nonlinear_power_scaling",
     question: `In an advanced AP/Olympiad scenario for "${l.title}", how does the primary response parameter scale if the primary driving variable ($r$ or $T$) is doubled under non-linear conditions?`,
     options: [
-      `It scales non-linearly: in quadratic or inverse-square dependencies ($Y \\propto 1/r^2$ or $v^2$), doubling the control variable alters the response by a factor of 4 ($2^2$) or 1/4 ($1/2^2$), while Arrhenius kinetics scale exponentially ($e^{-E_a/RT}$).`,
-      `It scales in a strictly direct linear proportion ($Y \\propto r$ or $T$), so doubling the input variable precisely doubles the measured response parameter regardless of geometric field expansion or thermal activation barriers.`,
-      `It scales according to an inverse-cubic dependence ($Y \\propto 1/r^3$), so doubling the distance or temperature attenuates the response by a factor of 8 ($1/2^3$) across all conservative physical fields.`,
-      `It exhibits logarithmic saturation ($Y \\propto \\ln r$), where doubling the input variable increases the response only by an additive constant ($\\ln 2 \\approx 0.693$) regardless of power-law dynamics.`
+      `In "${l.title}", it scales non-linearly: in quadratic or inverse-square dependencies ($Y \\propto 1/r^2$ or $v^2$), doubling the control variable alters the response by a factor of 4 ($2^2$) or 1/4 ($1/2^2$), while Arrhenius kinetics scale exponentially ($e^{-E_a/RT}$).`,
+      `In "${l.title}", it scales in a strictly direct linear proportion ($Y \\propto r$ or $T$), so doubling the input variable precisely doubles the measured response parameter regardless of geometric field expansion or thermal activation barriers.`,
+      `In "${l.title}", it scales according to an inverse-cubic dependence ($Y \\propto 1/r^3$), so doubling the distance or temperature attenuates the response by a factor of 8 ($1/2^3$) across all conservative physical fields.`,
+      `In "${l.title}", it exhibits logarithmic saturation ($Y \\propto \\ln r$), where doubling the input variable increases the response only by an additive constant ($\\ln 2 \\approx 0.693$) regardless of power-law dynamics.`
     ],
     correctIndex: 0,
     explanation: `Advanced physical modeling accounts for non-linear power laws: inverse-square Coulombic/gravitational forces ($1/r^2$), kinetic energies ($\\frac{1}{2}mv^2$), and Arrhenius rate constants ($e^{-E_a/RT}$) scale geometrically rather than linearly.`
@@ -818,10 +818,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     cycleDiag = getOrGenerateDiagram(subKey, m, l, p, "cycle");
     cycleQuestionText = `Examine the thermodynamic cycle, metabolic feedback loop, or energy cascade illustrated in **${cycleDiag.caption || 'Figure ' + m.id + '.' + l.id + 'C'}** for "${l.title}". What thermodynamic or kinetic constraint ensures the directional continuity of the cyclic transformation?`;
     cycleOptions = [
-      `The cyclic loop satisfies net state function conservation ($\\oint dU = 0$), where irreversible dissipative steps release entropy to the surroundings ($\\Delta S_{\\text{univ}} > 0$), driving the directional flux forward and preventing reverse thermodynamic stall.`,
-      `The cyclic loop operates as an ideal reversible system with zero net entropy generation ($\\Delta S_{\\text{univ}} = 0$), allowing complete bidirectional conversion of heat into work with $100\\%$ theoretical thermal efficiency.`,
-      `The cyclic loop produces net mechanical work without rejecting waste heat to a low-temperature sink, converting absorbed thermal energy entirely into useful work without external entropy dissipation.`,
-      `The cyclic process exhibits a net decrease in internal energy over a complete closed period ($\\oint dU < 0$), permanently depleting the fundamental enthalpy of the working medium with each successive cycle.`
+      `The cyclic loop for "${l.title}" satisfies net state function conservation ($\\oint dU = 0$), where irreversible dissipative steps release entropy to the surroundings ($\\Delta S_{\\text{univ}} > 0$), driving the directional flux forward and preventing reverse thermodynamic stall.`,
+      `The cyclic loop for "${l.title}" operates as an ideal reversible system with zero net entropy generation ($\\Delta S_{\\text{univ}} = 0$), allowing complete bidirectional conversion of heat into work with $100\\%$ theoretical thermal efficiency.`,
+      `The cyclic loop for "${l.title}" produces net mechanical work without rejecting waste heat to a low-temperature sink, converting absorbed thermal energy entirely into useful work without external entropy dissipation.`,
+      `The cyclic process for "${l.title}" exhibits a net decrease in internal energy over a complete closed period ($\\oint dU < 0$), permanently depleting the fundamental enthalpy of the working medium with each successive cycle.`
     ];
     cycleExpl = `In cyclic processes for ${l.title} (${cycleDiag.caption || 'Figure ' + m.id + '.' + l.id + 'C'}), state functions satisfy $\\oint dE = 0$ over a complete period. Unidirectional progress is guaranteed by Second Law entropy production ($\\Delta S_{\\text{univ}} > 0$) across dissipative steps.`;
   }
@@ -893,10 +893,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     specDiag = getOrGenerateDiagram(subKey, m, l, p, "spectrometry");
     specQuestionText = `Refer to the spectrometry, electrophoresis, or interference fringe distribution in **${specDiag.caption || 'Figure ' + m.id + '.' + l.id + 'M'}** for "${l.title}". What analytical property is deduced from the peak positions, dispersion angles, or band migration distances?`;
     specOptions = [
-      `Peak positions, dispersion angles, or band migration distances directly map to quantized energy transitions, isotopic mass-to-charge ratios ($m/z$), or molecular charge-to-frictional drag ratios ($q / f$).`,
-      `Peak retention times and migration velocities depend solely on the ambient thermal kinetic energy of the carrier medium, rendering the analysis invariant to analyte mass, molecular charge, or electronic structure.`,
-      `The observed dispersion pattern reflects uniform bulk mechanical filtration, where all isotopic variants and chemical conformers exhibit identical drift velocities and coalesce into a single unresolvable centroid.`,
-      `Electrophoretic migration distances and mass spectral deflection angles scale inversely with analyte charge, causing polyanionic or highly ionized species to exhibit zero mobility across external field gradients.`
+      `For "${l.title}", peak positions, dispersion angles, or band migration distances directly map to quantized energy transitions, isotopic mass-to-charge ratios ($m/z$), or molecular charge-to-frictional drag ratios ($q / f$).`,
+      `For "${l.title}", peak retention times and migration velocities depend solely on the ambient thermal kinetic energy of the carrier medium, rendering the analysis invariant to analyte mass, molecular charge, or electronic structure.`,
+      `For "${l.title}", the observed dispersion pattern reflects uniform bulk mechanical filtration, where all isotopic variants and chemical conformers exhibit identical drift velocities and coalesce into a single unresolvable centroid.`,
+      `For "${l.title}", electrophoretic migration distances and mass spectral deflection angles scale inversely with analyte charge, causing polyanionic or highly ionized species to exhibit zero mobility across external field gradients.`
     ];
     specExpl = `In Figure ${specDiag.caption || m.id + '.' + l.id + 'M'} for ${l.title}, analytical spectra resolve discrete physical invariants: mass spectrometry resolves $m/z$, gel electrophoresis separates by size-to-charge ratio, and optical spectra map quantized electronic transitions.`;
   }
@@ -930,10 +930,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "boundary_limit_asymptote",
     question: `In advanced theoretical physics and chemistry models of "${l.title}", what limiting behavior emerges as the system approaches: **${p.boundary}**?`,
     options: [
-      `The system exhibits asymptotic or critical threshold behavior: ${p.boundary}, where simplified linear approximations break down and non-linear, relativistic, or quantum mechanical constraints dominate the physical state.`,
-      `The system continues to follow ideal linear extrapolation without deviation: ${p.boundary}, preserving classical continuum mechanics and constant proportionality constants without limit.`,
-      `The thermodynamic state parameters converge uniformly to an invariant classical zero-entropy ground state regardless of temperature, thermal volume, or relativistic velocity constraints.`,
-      `The governing rate laws instantaneously switch to a zeroth-order plateau where thermodynamic driving forces become completely decoupled from molecular flux and chemical potential gradients.`
+      `In "${l.title}", approaching ${p.boundary} leads to asymptotic or critical threshold behavior, where simplified linear approximations break down and non-linear, relativistic, or quantum mechanical constraints dominate the physical state.`,
+      `In "${l.title}", approaching ${p.boundary} follows ideal linear extrapolation without deviation, preserving classical continuum mechanics and constant proportionality constants without limit.`,
+      `In "${l.title}", thermodynamic state parameters converge uniformly to an invariant classical zero-entropy ground state regardless of temperature, thermal volume, or relativistic velocity constraints.`,
+      `In "${l.title}", the governing rate laws instantaneously switch to a zeroth-order plateau where thermodynamic driving forces become completely decoupled from molecular flux and chemical potential gradients.`
     ],
     correctIndex: 0,
     explanation: `At boundary limits (${p.boundary}), standard introductory approximations break down. AP and Olympiad caliber analysis requires accounting for asymptotic saturation, relativistic limits, or critical phase transitions.`
@@ -951,10 +951,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "diagnostic_error_troubleshooting",
     question: `During an AP-caliber empirical laboratory investigation of "${l.title}", experimental measurements deviate systematically from theoretical expectations. Which root cause represents an instrumental artifact or systematic bias?`,
     options: [
-      `**Systematic Artifact**: ${p.errorAnalysis}, which consistently shifts data in a single direction and requires recalibration or matrix blank correction.`,
-      `Unavoidable thermal molecular fluctuations that average out to zero over repeated runs.`,
-      `Random Gaussian scatter in human visual readings centered symmetrically around the true mean.`,
-      `Indeterminate environmental micro-vibrations and Johnson-Nyquist electronic thermal noise that produce symmetric statistical dispersion around the sample mean without shifting calibration accuracy.`
+      `For "${l.title}": **Systematic Artifact**: ${p.errorAnalysis}, which consistently shifts data in a single direction and requires recalibration or matrix blank correction.`,
+      `For "${l.title}": Unavoidable thermal molecular fluctuations that average out to zero over repeated runs.`,
+      `For "${l.title}": Random Gaussian scatter in human visual readings centered symmetrically around the true mean.`,
+      `For "${l.title}": Indeterminate environmental micro-vibrations and Johnson-Nyquist electronic thermal noise that produce symmetric statistical dispersion around the sample mean without shifting calibration accuracy.`
     ],
     correctIndex: 0,
     explanation: `Systematic errors (${p.errorAnalysis}) introduce reproducible bias into experimental data. Unlike random errors, systematic errors cannot be eliminated by averaging repeated trials; they require instrumental recalibration or procedural redesign.`
@@ -972,10 +972,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "computational_modeling_cfl",
     question: `When designing a computational numerical simulation to model the differential rate equations of "${l.title}", which numerical integration strategy ensures physical stability and preserves system invariants?`,
     options: [
-      `Employing symplectic or high-order numerical integration (such as velocity-Verlet or 4th-order Runge-Kutta) with a discrete time step $\\Delta t$ constrained below the Courant-Friedrichs-Lewy (CFL) limit ($C = u\\Delta t / \\Delta x \\le 1$) to prevent numerical instability and artificial energy divergence.`,
-      `Employing standard forward Euler explicit integration with an arbitrarily large time step ($\\Delta t \\gg \\tau$), assuming numerical truncation errors cancel out symmetrically over extended trajectories.`,
-      `Utilizing an unconstrained implicit backward solver without enforcing boundary flux conservation, allowing spatial grid cell sizes ($\\Delta x$) to approach zero while keeping $\\Delta t$ effectively unconstrained.`,
-      `Replacing continuous differential rate equations with static arithmetic mean approximations that evaluate system state variables only at the initial ($t = 0$) and final ($t = t_{\\text{final}}$) boundary limits.`
+      `For numerical modeling of "${l.title}": Employing symplectic or high-order numerical integration (such as velocity-Verlet or 4th-order Runge-Kutta) with a discrete time step $\\Delta t$ constrained below the Courant-Friedrichs-Lewy (CFL) limit ($C = u\\Delta t / \\Delta x \\le 1$) to prevent numerical instability and artificial energy divergence.`,
+      `For numerical modeling of "${l.title}": Employing standard forward Euler explicit integration with an arbitrarily large time step ($\\Delta t \\gg \\tau$), assuming numerical truncation errors cancel out symmetrically over extended trajectories.`,
+      `For numerical modeling of "${l.title}": Utilizing an unconstrained implicit backward solver without enforcing boundary flux conservation, allowing spatial grid cell sizes ($\\Delta x$) to approach zero while keeping $\\Delta t$ effectively unconstrained.`,
+      `For numerical modeling of "${l.title}": Replacing continuous differential rate equations with static arithmetic mean approximations that evaluate system state variables only at the initial ($t = 0$) and final ($t = t_{\\text{final}}$) boundary limits.`
     ],
     correctIndex: 0,
     explanation: `Simulating dynamic phenomena in ${l.title} requires numerically stable integration. Choosing an appropriately small $\\Delta t$ satisfying the CFL criterion prevents mathematical divergence and artificial violation of energy conservation.`
@@ -999,10 +999,10 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     angle: "cross_disciplinary_synthesis",
     question: `How does the core scientific paradigm established in "${l.title}" directly interconnect ${subject} with adjacent disciplines across the broader STEM continuum?`,
     options: [
-      crossDesc,
-      `The governing mechanics operate under an isolated macro-scale phenomenology where atomic-level thermodynamics, electrostatic field equations, and quantum conservation laws cannot be applied to living or engineered systems.`,
-      `The phenomena are governed by unique non-physical vitalistic or domain-restricted forces that supersede standard thermodynamic potential gradients and universal Maxwell-Boltzmann distributions.`,
-      `The physical model is strictly restricted to continuous bulk hydrodynamic regimes, precluding any coupling with microscopic quantum states, ligand binding kinetics, or discrete electronic charge carriers.`
+      `In "${l.title}": ${crossDesc}`,
+      `In "${l.title}", the governing mechanics operate under an isolated macro-scale phenomenology where atomic-level thermodynamics, electrostatic field equations, and quantum conservation laws cannot be applied to living or engineered systems.`,
+      `In "${l.title}", the phenomena are governed by unique non-physical vitalistic or domain-restricted forces that supersede standard thermodynamic potential gradients and universal Maxwell-Boltzmann distributions.`,
+      `In "${l.title}", the physical model is strictly restricted to continuous bulk hydrodynamic regimes, precluding any coupling with microscopic quantum states, ligand binding kinetics, or discrete electronic charge carriers.`
     ],
     correctIndex: 0,
     explanation: `Modern science is a unified continuum. Principles developed in ${l.title} bridge atomic and kinematic fundamentals to biological systems, chemical engineering, and applied modern physics.`

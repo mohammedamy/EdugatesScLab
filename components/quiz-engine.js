@@ -333,17 +333,40 @@ export function normalizeQuestionText(text) {
 }
 
 /**
+ * Extracts a normalized, order-independent fingerprint string for a question's choices.
+ * Detects questions that share the exact same option set regardless of permutation or shuffling.
+ */
+export function getOptionsFingerprint(options) {
+  if (!Array.isArray(options) || options.length === 0) return "";
+  const normOpts = options
+    .map(o => normalizeQuestionText(String(o || "")))
+    .filter(Boolean)
+    .sort()
+    .join("|||");
+  
+  // Trivial option sets (e.g., True/False, Yes/No) should not trigger duplicate collision
+  const trivial = ["false|||true", "no|||yes", "decrease|||increase", "acidic|||basic", "negative|||positive"];
+  if (trivial.includes(normOpts)) return "";
+  
+  return normOpts.length >= 12 ? normOpts : "";
+}
+
+/**
  * Returns a normalized fingerprint key for a question item.
+ * Includes ID, normalized prompt text, and normalized options fingerprint.
  */
 export function getQuestionFingerprint(q) {
-  if (!q) return { id: "", text: "" };
+  if (!q) return { id: "", text: "", optsKey: "" };
   const id = q.id ? String(q.id).trim().toLowerCase() : "";
   const text = normalizeQuestionText(q.question || q.prompt || q.text || q.stem || "");
-  return { id, text };
+  const optsKey = getOptionsFingerprint(q.options);
+  return { id, text, optsKey };
 }
 
 /**
  * Checks whether two questions represent the exact same assessment item.
+ * Considers questions identical if they share the same ID, same prompt text,
+ * OR same substantive options set (even if choices are shuffled in different order).
  */
 export function isSameQuestion(q1, q2) {
   if (!q1 || !q2) return false;
@@ -352,27 +375,32 @@ export function isSameQuestion(q1, q2) {
   const fp2 = getQuestionFingerprint(q2);
   if (fp1.id && fp2.id && fp1.id === fp2.id) return true;
   if (fp1.text && fp2.text && fp1.text === fp2.text) return true;
+  if (fp1.optsKey && fp2.optsKey && fp1.optsKey === fp2.optsKey) return true;
   return false;
 }
 
 /**
  * Deduplicates an array of questions while preserving original order.
- * Strictly guarantees that no question appears twice by ID or by prompt text.
+ * Strictly guarantees that no question appears twice in the same quiz or exam,
+ * checking by ID, prompt text, and options set fingerprint.
  */
 export function deduplicateQuestions(questions) {
   if (!Array.isArray(questions)) return [];
   const seenIds = new Set();
   const seenTexts = new Set();
+  const seenOpts = new Set();
   const unique = [];
 
   for (const q of questions) {
     if (!q) continue;
-    const { id, text } = getQuestionFingerprint(q);
+    const { id, text, optsKey } = getQuestionFingerprint(q);
     if (id && seenIds.has(id)) continue;
     if (text && seenTexts.has(text)) continue;
+    if (optsKey && seenOpts.has(optsKey)) continue;
 
     if (id) seenIds.add(id);
     if (text) seenTexts.add(text);
+    if (optsKey) seenOpts.add(optsKey);
     unique.push(q);
   }
 
