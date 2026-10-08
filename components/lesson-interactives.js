@@ -211,6 +211,8 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
     buildPhotosynthesisRespirationInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-dna-replication")) {
     buildDnaReplicationInteractive(simMountId, spec.defaultParams);
+  } else if (spec.type.startsWith("bio-embryonic") || spec.type.startsWith("bio-cleavage")) {
+    buildEmbryonicDevelopmentInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-mitosis") || spec.type.startsWith("bio-cell-cycle")) {
     buildMitosisCellCycleInteractive(simMountId, spec.defaultParams);
   } else if (spec.type.startsWith("bio-hardy-weinberg") || spec.type.startsWith("bio-natural-selection")) {
@@ -14868,11 +14870,11 @@ function buildMitosisCellCycleInteractive(mountId, params) {
   if (!mount) return;
 
   const stages = [
-    { id: "interphase", name: "Interphase", desc: "Chromatin duplicates inside intact nuclear envelope; cell prepares for division." },
-    { id: "prophase", name: "Prophase", desc: "Chromosomes condense into visible sister chromatid pairs; spindle fibers emerge." },
-    { id: "metaphase", name: "Metaphase", desc: "Chromosomes align along the equatorial metaphase plate under spindle tension." },
-    { id: "anaphase", name: "Anaphase", desc: "Centromeres divide; sister chromatids are pulled apart to opposite cell poles." },
-    { id: "telophase", name: "Telophase & Cytokinesis", desc: "Nuclear envelopes reform; cleavage furrow pinches cell into two 2n daughter cells." }
+    { id: "interphase", name: "Interphase (G₂)", desc: "Chromatin duplicates inside intact nuclear envelope; centrosomes duplicate and cell prepares for division." },
+    { id: "prophase", name: "Prophase", desc: "Chromosomes condense into visible sister chromatid pairs; nuclear envelope breaks down; mitotic spindle begins to form." },
+    { id: "metaphase", name: "Metaphase", desc: "Chromosomes align along the equatorial metaphase plate under balanced bipolar kinetochore tension." },
+    { id: "anaphase", name: "Anaphase", desc: "Cohesin degrades; centromeres divide and sister chromatids are pulled poleward with trailing V-shaped arms." },
+    { id: "telophase", name: "Telophase & Cytokinesis", desc: "Nuclear envelopes reform around decondensing chromatin; contractile actin-myosin ring pinches cell into two 2n daughter cells." }
   ];
 
   let currentStageIdx = 2; // Metaphase default
@@ -14881,9 +14883,9 @@ function buildMitosisCellCycleInteractive(mountId, params) {
 
   mount.innerHTML = `
     <div class="interactive-split-grid">
-      <div class="sim-canvas-box" style="position: relative;">
-        <canvas id="${mountId}-canvas" width="380" height="260" style="width: 100%; height: 260px;"></canvas>
-        <div id="${mountId}-cycle-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 9px; border-radius: 6px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(236, 72, 153, 0.4); color: #ec4899; pointer-events: none; backdrop-filter: blur(4px);">
+      <div class="sim-canvas-box" style="position: relative; background: #050811;">
+        <canvas id="${mountId}-canvas" width="440" height="280" style="width: 100%; height: auto; aspect-ratio: 440/280; max-height: 290px; display: block; border-radius: 8px;"></canvas>
+        <div id="${mountId}-cycle-badge" style="position: absolute; top: 10px; left: 12px; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(236, 72, 153, 0.45); color: #f472b6; pointer-events: none; backdrop-filter: blur(6px); box-shadow: 0 2px 8px rgba(0,0,0,0.4);">
           Eukaryotic Mitosis (2n → 2n)
         </div>
       </div>
@@ -14933,13 +14935,73 @@ function buildMitosisCellCycleInteractive(mountId, params) {
       if (b) b.classList.toggle("active", i === currentStageIdx);
     }
     const stage = stages[currentStageIdx];
-    phaseVal.innerText = stage.name;
-    stageDesc.innerText = stage.desc;
+    if (phaseVal) phaseVal.innerText = stage.name;
+    if (stageDesc) stageDesc.innerText = stage.desc;
+  }
+
+  // Cytoplasmic granules for Brownian texture
+  const granules = [];
+  for (let i = 0; i < 40; i++) {
+    granules.push({
+      r: Math.random() * 80,
+      theta: Math.random() * Math.PI * 2,
+      speed: 0.2 + Math.random() * 0.4,
+      size: 1.2 + Math.random() * 1.5,
+      alpha: 0.25 + Math.random() * 0.35
+    });
   }
 
   let t = 0;
   let animId;
   let lastTimestamp = null;
+
+  function drawChromosome(x, y, angle, length, color, kinetoColor) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+
+    // Sister chromatid A
+    const gradA = ctx.createLinearGradient(-3.5, -length, 3.5, length);
+    gradA.addColorStop(0, color);
+    gradA.addColorStop(0.5, "#93c5fd");
+    gradA.addColorStop(1, color);
+
+    ctx.fillStyle = gradA;
+    ctx.strokeStyle = "rgba(15, 23, 42, 0.6)";
+    ctx.lineWidth = 1;
+
+    // p-arm & q-arm with centromeric indentation
+    ctx.beginPath();
+    ctx.ellipse(-2.2, -length * 0.5, 3.2, length * 0.48, 0, 0, Math.PI * 2);
+    ctx.ellipse(-2.2, length * 0.5, 3.2, length * 0.48, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Sister chromatid B
+    ctx.beginPath();
+    ctx.ellipse(2.2, -length * 0.5, 3.2, length * 0.48, 0, 0, Math.PI * 2);
+    ctx.ellipse(2.2, length * 0.5, 3.2, length * 0.48, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Centromere constriction
+    ctx.fillStyle = "#fbbf24";
+    ctx.beginPath();
+    ctx.arc(0, 0, 3.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kinetochore plates on both sides
+    if (kinetoColor) {
+      ctx.fillStyle = kinetoColor;
+      ctx.shadowColor = kinetoColor;
+      ctx.shadowBlur = 6;
+      ctx.fillRect(-6.5, -2, 2.5, 4);
+      ctx.fillRect(4, -2, 2.5, 4);
+      ctx.shadowBlur = 0;
+    }
+
+    ctx.restore();
+  }
 
   function render(timestamp) {
     if (!lastTimestamp) lastTimestamp = timestamp;
@@ -14955,11 +15017,11 @@ function buildMitosisCellCycleInteractive(mountId, params) {
     }
     if (phaseVal) phaseVal.style.color = isDay ? "#0284c7" : "#38bdf8";
 
-    t += 0.03;
+    t += 0.035;
 
     if (isAutoAdvancing) {
       autoTimer += dt;
-      if (autoTimer >= 2.4) {
+      if (autoTimer >= 3.0) {
         autoTimer = 0;
         setStage(currentStageIdx + 1);
       }
@@ -14969,117 +15031,339 @@ function buildMitosisCellCycleInteractive(mountId, params) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const cx = 190, cy = 125;
+    // Deep microscope darkfield background
+    const bgGrad = ctx.createRadialGradient(220, 140, 20, 220, 140, 220);
+    bgGrad.addColorStop(0, isDay ? "#f8fafc" : "#0f172a");
+    bgGrad.addColorStop(1, isDay ? "#e2e8f0" : "#030712");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = 220, cy = 140;
 
     if (stage.id === "telophase") {
-      // Pinched cell membrane (Cleavage furrow)
-      ctx.fillStyle = "rgba(236, 72, 153, 0.15)";
-      ctx.strokeStyle = "#ec4899";
-      ctx.lineWidth = 2.5;
+      // Contractile ring & Cleavage Furrow pinching into two daughter cells
+      const pinch = 32 + Math.sin(t * 2) * 2;
+      const cellR = 74;
 
+      // Left lobe
+      const gradL = ctx.createRadialGradient(cx - 55, cy, 10, cx - 55, cy, cellR);
+      gradL.addColorStop(0, "rgba(236, 72, 153, 0.22)");
+      gradL.addColorStop(0.85, "rgba(219, 39, 119, 0.12)");
+      gradL.addColorStop(1, "rgba(236, 72, 153, 0.35)");
+
+      ctx.fillStyle = gradL;
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 3;
+
+      // Draw pinched dumbbell shape with smooth cubic Bezier curves
       ctx.beginPath();
-      ctx.arc(cx - 55, cy, 65, 0, Math.PI * 2);
-      ctx.arc(cx + 55, cy, 65, 0, Math.PI * 2);
+      ctx.moveTo(cx, cy - pinch);
+      ctx.bezierCurveTo(cx - 30, cy - 70, cx - 110, cy - 65, cx - 120, cy);
+      ctx.bezierCurveTo(cx - 110, cy + 65, cx - 30, cy + 70, cx, cy + pinch);
+      ctx.bezierCurveTo(cx + 30, cy + 70, cx + 110, cy + 65, cx + 120, cy);
+      ctx.bezierCurveTo(cx + 110, cy - 65, cx + 30, cy - 70, cx, cy - pinch);
+      ctx.closePath();
       ctx.fill();
       ctx.stroke();
 
-      // Two daughter nuclei
-      ctx.fillStyle = "rgba(56, 189, 248, 0.8)";
+      // Actin-myosin contractile ring glow at waist
+      ctx.strokeStyle = "#f43f5e";
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
-      ctx.arc(cx - 55, cy, 22, 0, Math.PI * 2);
-      ctx.arc(cx + 55, cy, 22, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // Single cell membrane
-      ctx.fillStyle = "rgba(236, 72, 153, 0.15)";
-      ctx.beginPath();
-      ctx.arc(cx, cy, 95, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#ec4899";
-      ctx.lineWidth = 2.5;
+      ctx.moveTo(cx, cy - pinch - 4);
+      ctx.lineTo(cx, cy - pinch + 6);
+      ctx.moveTo(cx, cy + pinch - 6);
+      ctx.lineTo(cx, cy + pinch + 4);
       ctx.stroke();
 
-      // Centrosomes at poles (Left and Right)
-      if (stage.id !== "interphase") {
-        ctx.fillStyle = "#fbbf24";
-        ctx.fillRect(cx - 82, cy - 6, 12, 12);
-        ctx.fillRect(cx + 70, cy - 6, 12, 12);
-
-        // Spindle fibers
-        ctx.strokeStyle = "rgba(251, 191, 36, 0.35)";
-        ctx.lineWidth = 1;
-        for (let f = -3; f <= 3; f++) {
-          ctx.beginPath();
-          ctx.moveTo(cx - 76, cy);
-          ctx.quadraticCurveTo(cx, cy + f * 25, cx + 76, cy);
-          ctx.stroke();
-        }
-      }
-
-      if (stage.id === "interphase") {
-        // Nucleus
-        ctx.fillStyle = "rgba(56, 189, 248, 0.3)";
-        ctx.beginPath();
-        ctx.arc(cx, cy, 45, 0, Math.PI * 2);
-        ctx.fill();
+      // Re-forming nuclear envelopes around decondensing chromatin
+      [-65, 65].forEach(offset => {
+        const nx = cx + offset;
+        ctx.fillStyle = "rgba(56, 189, 248, 0.28)";
         ctx.strokeStyle = "#38bdf8";
-        ctx.stroke();
-        // Diffuse chromatin threads
-        ctx.strokeStyle = "#ec4899";
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.8;
         ctx.beginPath();
-        for (let i = 0; i < 20; i++) {
-          const rx = cx + (Math.sin(i * 3 + t) * 28);
-          const ry = cy + (Math.cos(i * 2 + t) * 28);
+        ctx.arc(nx, cy, 26, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Nuclear pores
+        ctx.fillStyle = "#38bdf8";
+        for (let p = 0; p < 8; p++) {
+          const ang = p * (Math.PI / 4);
+          ctx.beginPath();
+          ctx.arc(nx + Math.cos(ang) * 26, cy + Math.sin(ang) * 26, 1.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Decondensing chromatin threads inside daughter nucleus
+        ctx.strokeStyle = "rgba(236, 72, 153, 0.75)";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        for (let i = 0; i < 18; i++) {
+          const rx = nx + Math.sin(i * 3 + t * 0.8) * 16;
+          const ry = cy + Math.cos(i * 2.3 + t * 0.8) * 16;
           if (i === 0) ctx.moveTo(rx, ry);
           else ctx.lineTo(rx, ry);
         }
         ctx.stroke();
-      } else if (stage.id === "prophase") {
-        // 4 condensed chromosome pairs
-        const chromes = [{ x: cx - 25, y: cy - 20 }, { x: cx + 25, y: cy - 20 }, { x: cx - 20, y: cy + 25 }, { x: cx + 20, y: cy + 25 }];
-        chromes.forEach(c => {
-          ctx.fillStyle = "#38bdf8";
+      });
+
+    } else {
+      // Single Cell Membrane (Interphase, Prophase, Metaphase, Anaphase)
+      let rx = 125, ry = 95;
+      if (stage.id === "anaphase") {
+        rx = 145; ry = 88; // Elongating during anaphase
+      }
+
+      // Cytoplasm radial gradient
+      const cytoGrad = ctx.createRadialGradient(cx, cy, 15, cx, cy, rx);
+      cytoGrad.addColorStop(0, "rgba(236, 72, 153, 0.2)");
+      cytoGrad.addColorStop(0.8, "rgba(219, 39, 119, 0.1)");
+      cytoGrad.addColorStop(1, "rgba(236, 72, 153, 0.35)");
+      ctx.fillStyle = cytoGrad;
+
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Phospholipid bilayer stroke
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Cortical actin cytoskeleton inner glow
+      ctx.strokeStyle = "rgba(244, 114, 182, 0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx - 3.5, ry - 3.5, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Brownian cytoplasmic granules
+      granules.forEach((g, idx) => {
+        const drift = t * g.speed + idx;
+        const gx = cx + Math.cos(g.theta + drift * 0.1) * (g.r * (rx / 125));
+        const gy = cy + Math.sin(g.theta + drift * 0.1) * (g.r * (ry / 95));
+        ctx.fillStyle = `rgba(244, 114, 182, ${g.alpha})`;
+        ctx.beginPath();
+        ctx.arc(gx, gy, g.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Centrosomes with Perpendicular Centrioles & Astral Microtubules
+      if (stage.id !== "interphase") {
+        const poleDist = stage.id === "anaphase" ? 112 : 94;
+        const poles = [
+          { x: cx - poleDist, y: cy, angle: 0 },
+          { x: cx + poleDist, y: cy, angle: Math.PI }
+        ];
+
+        poles.forEach(p => {
+          // Radiating Astral Microtubules (Asters)
+          ctx.strokeStyle = "rgba(251, 191, 36, 0.3)";
+          ctx.lineWidth = 1;
+          for (let a = 0; a < 14; a++) {
+            const radAngle = (a / 14) * Math.PI * 2 + Math.sin(t + a) * 0.05;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + Math.cos(radAngle) * 24, p.y + Math.sin(radAngle) * 24);
+            ctx.stroke();
+          }
+
+          // Pericentriolar matrix (PCM) cloud
+          const pcmGrad = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, 10);
+          pcmGrad.addColorStop(0, "rgba(251, 191, 36, 0.9)");
+          pcmGrad.addColorStop(1, "rgba(245, 158, 11, 0.05)");
+          ctx.fillStyle = pcmGrad;
           ctx.beginPath();
-          ctx.ellipse(c.x, c.y, 6, 16, Math.PI / 4, 0, Math.PI * 2);
-          ctx.ellipse(c.x, c.y, 6, 16, -Math.PI / 4, 0, Math.PI * 2);
+          ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
           ctx.fill();
+
+          // Dual perpendicular centriole barrels
+          ctx.fillStyle = "#fef08a";
+          ctx.strokeStyle = "#b45309";
+          ctx.lineWidth = 1;
+          // Centriole 1 (horizontal)
+          ctx.fillRect(p.x - 4, p.y - 2, 8, 4);
+          ctx.strokeRect(p.x - 4, p.y - 2, 8, 4);
+          // Centriole 2 (vertical)
+          ctx.fillRect(p.x - 2, p.y - 5, 4, 10);
+          ctx.strokeRect(p.x - 2, p.y - 5, 4, 10);
         });
-      } else if (stage.id === "metaphase") {
-        // Aligned along vertical metaphase plate (cx)
-        for (let c = -2; c <= 1; c++) {
-          const cyPos = cy + c * 28 + 14;
-          ctx.fillStyle = "#38bdf8";
+
+        // Interpolar and K-fiber Spindle Microtubules
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.4)";
+        ctx.lineWidth = 1.2;
+        for (let f = -4; f <= 4; f++) {
           ctx.beginPath();
-          ctx.ellipse(cx, cyPos, 5, 15, Math.PI / 2, 0, Math.PI * 2);
-          ctx.fill();
-          // Centromere
-          ctx.fillStyle = "#fbbf24";
+          ctx.moveTo(cx - poleDist, cy);
+          ctx.quadraticCurveTo(cx, cy + f * 22 + Math.sin(t * 1.5 + f) * 2, cx + poleDist, cy);
+          ctx.stroke();
+        }
+      }
+
+      // Stage-specific nuclear & chromosome dynamics
+      if (stage.id === "interphase") {
+        // Intact Nuclear Envelope
+        const nGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, 48);
+        nGrad.addColorStop(0, "rgba(56, 189, 248, 0.35)");
+        nGrad.addColorStop(0.85, "rgba(14, 165, 233, 0.2)");
+        nGrad.addColorStop(1, "rgba(56, 189, 248, 0.5)");
+        ctx.fillStyle = nGrad;
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 46, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Nuclear Pore Complexes
+        ctx.fillStyle = "#38bdf8";
+        for (let p = 0; p < 16; p++) {
+          const ang = p * (Math.PI / 8);
           ctx.beginPath();
-          ctx.arc(cx, cyPos, 3.5, 0, Math.PI * 2);
+          ctx.arc(cx + Math.cos(ang) * 46, cy + Math.sin(ang) * 46, 1.8, 0, Math.PI * 2);
           ctx.fill();
         }
-        // Metaphase plate dashed line
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-        ctx.setLineDash([4, 4]);
+
+        // Dense Nucleolus
+        ctx.fillStyle = "rgba(14, 165, 233, 0.85)";
         ctx.beginPath();
-        ctx.moveTo(cx, cy - 80); ctx.lineTo(cx, cy + 80);
+        ctx.arc(cx - 12, cy - 8, 11, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Diffuse chromatin fiber network
+        ctx.strokeStyle = "rgba(236, 72, 153, 0.65)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        for (let i = 0; i < 28; i++) {
+          const rx = cx + (Math.sin(i * 2.8 + t * 0.7) * 32);
+          const ry = cy + (Math.cos(i * 2.1 + t * 0.7) * 32);
+          if (i === 0) ctx.moveTo(rx, ry);
+          else ctx.lineTo(rx, ry);
+        }
+        ctx.stroke();
+
+      } else if (stage.id === "prophase") {
+        // Disintegrating nuclear envelope fragments
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 8]);
+        ctx.beginPath();
+        ctx.arc(cx, cy, 50, 0, Math.PI * 2);
         ctx.stroke();
         ctx.setLineDash([]);
+
+        // 4 pairs of condensing chromosomes with distinct orientations
+        const chData = [
+          { x: cx - 28, y: cy - 22, ang: Math.PI / 6 },
+          { x: cx + 24, y: cy - 18, ang: -Math.PI / 4 },
+          { x: cx - 22, y: cy + 24, ang: -Math.PI / 3 },
+          { x: cx + 26, y: cy + 22, ang: Math.PI / 5 }
+        ];
+
+        chData.forEach((c, idx) => {
+          const w = Math.sin(t * 1.5 + idx) * 0.08;
+          drawChromosome(c.x, c.y, c.ang + w, 15, "#38bdf8", "#f43f5e");
+        });
+
+      } else if (stage.id === "metaphase") {
+        // Metaphase plate vertical dashed alignment axis
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 78);
+        ctx.lineTo(cx, cy + 78);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Chromosomes aligned vertically along the equator
+        const metaCh = [-3, -1, 1, 3];
+        metaCh.forEach((pos, idx) => {
+          const yPos = cy + pos * 18;
+          const subtleJitter = Math.sin(t * 3 + idx) * 1.2; // Spindle tension oscillations
+          drawChromosome(cx + subtleJitter, yPos, Math.PI / 2, 13, "#38bdf8", "#f43f5e");
+
+          // Kinetochore fibers under bipolar tension
+          ctx.strokeStyle = "rgba(251, 191, 36, 0.7)";
+          ctx.lineWidth = 1.4;
+          // Left fiber
+          ctx.beginPath();
+          ctx.moveTo(cx - 94, cy);
+          ctx.lineTo(cx + subtleJitter - 6, yPos);
+          ctx.stroke();
+          // Right fiber
+          ctx.beginPath();
+          ctx.moveTo(cx + 94, cy);
+          ctx.lineTo(cx + subtleJitter + 6, yPos);
+          ctx.stroke();
+        });
+
       } else if (stage.id === "anaphase") {
-        // Chromatids pulled to opposite poles
-        for (let c = -2; c <= 1; c++) {
-          const cyPos = cy + c * 28 + 14;
-          // Left chromatid
+        // Separated daughter chromosomes pulled towards opposite poles
+        const anaPoles = [-3, -1, 1, 3];
+        const pullDist = 48 + Math.sin(t * 1.5) * 4;
+
+        anaPoles.forEach((pos, idx) => {
+          const yPos = cy + pos * 18;
+
+          // Left daughter chromosome (kinetochore leads left, arms trail right in V-shape)
+          ctx.save();
+          ctx.translate(cx - pullDist, yPos);
           ctx.fillStyle = "#38bdf8";
+          ctx.strokeStyle = "rgba(15, 23, 42, 0.6)";
+          ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.ellipse(cx - 45, cyPos, 5, 12, Math.PI / 3, 0, Math.PI * 2);
+          ctx.moveTo(-4, 0); // Kinetochore apex
+          ctx.lineTo(12, -7); // Top trailing arm
+          ctx.lineTo(9, -2);
+          ctx.lineTo(12, 7);  // Bottom trailing arm
+          ctx.closePath();
           ctx.fill();
-          // Right chromatid
+          ctx.stroke();
+          // Kinetochore
+          ctx.fillStyle = "#f43f5e";
           ctx.beginPath();
-          ctx.ellipse(cx + 45, cyPos, 5, 12, -Math.PI / 3, 0, Math.PI * 2);
+          ctx.arc(-4, 0, 2.5, 0, Math.PI * 2);
           ctx.fill();
-        }
+          ctx.restore();
+
+          // Left K-fiber under shortening tension
+          ctx.strokeStyle = "rgba(251, 191, 36, 0.75)";
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(cx - 112, cy);
+          ctx.lineTo(cx - pullDist - 4, yPos);
+          ctx.stroke();
+
+          // Right daughter chromosome (kinetochore leads right, arms trail left in V-shape)
+          ctx.save();
+          ctx.translate(cx + pullDist, yPos);
+          ctx.fillStyle = "#38bdf8";
+          ctx.strokeStyle = "rgba(15, 23, 42, 0.6)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(4, 0); // Kinetochore apex
+          ctx.lineTo(-12, -7); // Top trailing arm
+          ctx.lineTo(-9, -2);
+          ctx.lineTo(-12, 7);  // Bottom trailing arm
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+          // Kinetochore
+          ctx.fillStyle = "#f43f5e";
+          ctx.beginPath();
+          ctx.arc(4, 0, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+
+          // Right K-fiber
+          ctx.beginPath();
+          ctx.moveTo(cx + 112, cy);
+          ctx.lineTo(cx + pullDist + 4, yPos);
+          ctx.stroke();
+        });
       }
     }
 
@@ -15125,6 +15409,1176 @@ function buildMitosisCellCycleInteractive(mountId, params) {
     autoLbl.innerText = "Auto-Advance Cycle";
     setStage(currentStageIdx + 1);
   });
+}
+
+/**
+ * 28B. Biology: Embryonic Development: Cleavage, Blastocyst & Fetal Trimesters
+ * Realistic, high-fidelity biological canvas simulator with 5 developmental milestones,
+ * active beating embryonic heart, dynamic counter-current placental hemodynamics,
+ * interactive timeline scrubber, and clinical embryology telemetry.
+ */
+function buildEmbryonicDevelopmentInteractive(mountId, params) {
+  const mount = document.getElementById(mountId);
+  if (!mount) return;
+
+  const stages = [
+    {
+      id: "zygote",
+      name: "Day 1: Zygote & Syngamy",
+      short: "1. Zygote (Day 1)",
+      trimester: "Pre-Implantation • Week 1",
+      ageText: "Day 1 (0–24 hrs post-fertilization)",
+      sizeText: "120 µm (Single Cell)",
+      potency: "Totipotent (Can form all embryo & placental lineages)",
+      milestones: "Cortical reaction prevents polyspermy; maternal & paternal pronuclei fuse (syngamy) inside intact Zona Pellucida; 1st & 2nd polar bodies visible in perivitelline space.",
+      desc: "Following acrosomal sperm penetration, the oocyte completes Meiosis II, extruding the second polar body. Maternal and paternal haploid pronuclei migrate towards the cell center, their nuclear envelopes interdigitate, and homologous chromosomes align to create the first diploid genome."
+    },
+    {
+      id: "morula",
+      name: "Day 3: Cleavage & Compacted Morula",
+      short: "2. Morula (Day 3)",
+      trimester: "Pre-Implantation • Week 1",
+      ageText: "Day 3 (72 hrs post-fertilization)",
+      sizeText: "130 µm (16–32 Blastomeres)",
+      potency: "Totipotent blastomeres initiating apical-basal polarity",
+      milestones: "Rapid mitotic cleavage without cellular growth keeps overall diameter ~130 µm; E-cadherin tight junctions mediate compaction into a dense mulberry-like ball of blastomeres.",
+      desc: "Cleavage divisions (2 → 4 → 8 → 16 cells) partition the zygote cytoplasm into progressively smaller blastomeres within the rigid Zona Pellucida. At the 8-to-16 cell transition, compaction occurs: outer cells form tight junctions and express Na⁺/K⁺ ATPase pumps, while inner cells form gap junctions."
+    },
+    {
+      id: "blastocyst",
+      name: "Day 6: Blastocyst & Implantation",
+      short: "3. Blastocyst (Day 6)",
+      trimester: "Implantation • Week 1–2",
+      ageText: "Day 5–7 (Hatching & Decidual Invasion)",
+      sizeText: "220 µm (128+ Cells)",
+      potency: "Pluripotent Inner Cell Mass (ICM) + Multipotent Trophectoderm",
+      milestones: "Zona pellucida hatching; cavitation forms fluid-filled blastocoel cavity; trophoblast adheres to maternal endometrium and differentiates into invasive syncytiotrophoblast secreting hCG.",
+      desc: "Active ion pumping creates an osmotic gradient, drawing fluid into the blastocoel cavity. The embryo differentiates into an outer trophoblast layer (future placenta) and an eccentric Inner Cell Mass (embryoblast, source of embryonic stem cells). The syncytiotrophoblast aggressively invades maternal decidual stroma and taps maternal capillaries."
+    },
+    {
+      id: "embryo",
+      name: "Week 6: Embryonic Organogenesis",
+      short: "4. Embryo (Week 6)",
+      trimester: "1st Trimester Organogenesis (Weeks 4–8)",
+      ageText: "Week 6 of Gestation (Carnegie Stage 16)",
+      sizeText: "12 mm Crown-Rump Length (CRL)",
+      potency: "Multipotent germ lineages undergoing organogenesis",
+      milestones: "Primitive heart tube pulsates rhythmically at ~145 BPM; primary brain vesicles (fore-, mid-, hindbrain) inflate; optic cups & lens vesicles form; pharyngeal arches & limb buds develop.",
+      desc: "During early organogenesis, the embryo curves into its characteristic C-shape. Neural tube closure is complete, cranial brain vesicles expand, and 30+ segmented mesodermal somites line the dorsal axis. The primitive tubular heart beats actively, circulating primitive erythroblasts through developing aortic arches and vitelline vessels."
+    },
+    {
+      id: "fetus",
+      name: "Week 20: Fetal Circulation & Placenta",
+      short: "5. Fetus & Placenta (Week 20)",
+      trimester: "2nd Trimester Fetal Maturation (Weeks 13–27)",
+      ageText: "Week 20 Gestational Age (Mid-Trimester)",
+      sizeText: "25 cm CRL • ~350 grams",
+      potency: "Fully differentiated specialized tissues & fetal organs",
+      milestones: "Anatomical fetal profile with facial features, eyelids, and extremities; counter-current blood flow through helical umbilical cord (2 arteries, 1 vein); placental chorionic villi exchange gases with maternal blood lacunae.",
+      desc: "By 20 weeks, organ systems are structured and undergoing functional maturation. The fetus floats in warm amniotic fluid. Blood circulation is orchestrated by the placenta: the single Umbilical Vein carries oxygenated blood from the placenta to the fetus, while two spiral Umbilical Arteries return deoxygenated blood back to maternal placental lacunae."
+    }
+  ];
+
+  let currentStageIdx = 0;
+  let isAutoAdvancing = false;
+  let autoTimer = 0;
+  let showLabels = true;
+  let showScale = true;
+
+  mount.innerHTML = `
+    <div class="interactive-split-grid">
+      <div class="sim-canvas-box" style="position: relative; background: #050811;">
+        <canvas id="${mountId}-canvas" width="460" height="300" style="width: 100%; height: auto; aspect-ratio: 460/300; max-height: 310px; display: block; border-radius: 8px;"></canvas>
+
+        <div style="position: absolute; top: 10px; left: 12px; display: flex; gap: 6px; z-index: 5; flex-wrap: wrap; pointer-events: none;">
+          <span id="${mountId}-stage-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(56,189,248,0.5); color: #38bdf8; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; backdrop-filter: blur(6px); box-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+            Day 1: Fertilized Zygote (Syngamy)
+          </span>
+          <span id="${mountId}-scale-badge" class="badge" style="background: rgba(15,23,42,0.92); border: 1px solid rgba(236,72,153,0.45); color: #f472b6; font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; backdrop-filter: blur(6px);">
+            Scale: 120 µm (1000×)
+          </span>
+        </div>
+
+        <div style="position: absolute; bottom: 10px; right: 12px; display: flex; gap: 6px; z-index: 5;">
+          <button class="btn-sim-action" id="${mountId}-btn-toggle-labels" style="padding: 4px 9px; font-size: 0.72rem; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);">
+            🏷️ Labels: ON
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-toggle-scale" style="padding: 4px 9px; font-size: 0.72rem; background: rgba(15,23,42,0.85); backdrop-filter: blur(4px);">
+            📏 Scale Bar: ON
+          </button>
+        </div>
+      </div>
+
+      <div class="sim-controls-panel">
+        <div class="sim-readout-pill" style="border-color: rgba(56, 189, 248, 0.4);">
+          <span class="readout-label">Gestation Period:</span>
+          <span class="readout-val" id="${mountId}-trimester-val" style="color: #38bdf8; font-weight: 800;">Pre-Implantation • Week 1</span>
+        </div>
+
+        <div class="sim-readout-pill" style="border-color: rgba(236, 72, 153, 0.4); margin-top: 4px;">
+          <span class="readout-label">Dimensions / CRL:</span>
+          <span class="readout-val" id="${mountId}-size-val" style="color: #ec4899; font-weight: 800;">120 µm (Single Cell)</span>
+        </div>
+
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim); margin-top: 6px; margin-bottom: 4px;">Developmental Milestones:</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;" id="${mountId}-stage-btns">
+          ${stages.map((s, i) => `
+            <button class="btn-sim-action ${i === currentStageIdx ? 'active' : ''}" data-idx="${i}" id="${mountId}-stage-${i}" style="padding: 6px 3px; font-size: 0.73rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${s.name}">${s.short}</button>
+          `).join("")}
+        </div>
+
+        <div style="margin-top: 8px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.74rem; font-weight: 700; color: var(--text-dim); margin-bottom: 2px;">
+            <span>Timeline Scrubber:</span>
+            <span id="${mountId}-timeline-lbl" style="color: #38bdf8; font-weight: 800;">Day 1</span>
+          </div>
+          <input type="range" id="${mountId}-timeline-slider" min="0" max="4" step="1" value="0" style="width: 100%; accent-color: #38bdf8; cursor: pointer;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); margin-top: 2px;">
+            <span>Fertilization</span>
+            <span>Morula</span>
+            <span>Blastocyst</span>
+            <span>Embryo (Wk 6)</span>
+            <span>Fetus (Wk 20)</span>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-top: 8px;">
+          <button class="btn btn-primary" id="${mountId}-btn-auto" style="flex: 1.2; padding: 7px 6px; font-weight: 700; font-size: 0.76rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <span id="${mountId}-auto-icon">▶</span> <span id="${mountId}-auto-lbl">Auto-Advance Timeline</span>
+          </button>
+          <button class="btn-sim-action" id="${mountId}-btn-prev" style="padding: 7px 10px; font-size: 0.76rem;">◀ Prev</button>
+          <button class="btn-sim-action" id="${mountId}-btn-next" style="padding: 7px 10px; font-size: 0.76rem;">Next ▶</button>
+        </div>
+
+        <div id="${mountId}-stage-desc" class="sim-telemetry-box" style="margin-top: 6px; font-family: var(--font-body); font-size: 0.81rem; line-height: 1.45;">
+          <div style="font-weight: 800; color: #38bdf8; margin-bottom: 3px;" id="${mountId}-telemetry-title">${stages[currentStageIdx].name}</div>
+          <div style="color: var(--text-dim); font-size: 0.76rem; margin-bottom: 4px;"><strong>Cell Potency:</strong> <span id="${mountId}-telemetry-potency">${stages[currentStageIdx].potency}</span></div>
+          <div id="${mountId}-telemetry-text">${stages[currentStageIdx].desc}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const canvas = document.getElementById(`${mountId}-canvas`);
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+
+  const btnAuto = document.getElementById(`${mountId}-btn-auto`);
+  const btnPrev = document.getElementById(`${mountId}-btn-prev`);
+  const btnNext = document.getElementById(`${mountId}-btn-next`);
+  const autoIcon = document.getElementById(`${mountId}-auto-icon`);
+  const autoLbl = document.getElementById(`${mountId}-auto-lbl`);
+  const stageBadge = document.getElementById(`${mountId}-stage-badge`);
+  const scaleBadge = document.getElementById(`${mountId}-scale-badge`);
+  const trimesterVal = document.getElementById(`${mountId}-trimester-val`);
+  const sizeVal = document.getElementById(`${mountId}-size-val`);
+  const stageDesc = document.getElementById(`${mountId}-stage-desc`);
+  const telemetryTitle = document.getElementById(`${mountId}-telemetry-title`);
+  const telemetryPotency = document.getElementById(`${mountId}-telemetry-potency`);
+  const telemetryText = document.getElementById(`${mountId}-telemetry-text`);
+  const timelineSlider = document.getElementById(`${mountId}-timeline-slider`);
+  const timelineLbl = document.getElementById(`${mountId}-timeline-lbl`);
+  const btnToggleLabels = document.getElementById(`${mountId}-btn-toggle-labels`);
+  const btnToggleScale = document.getElementById(`${mountId}-btn-toggle-scale`);
+
+  function setStage(idx) {
+    currentStageIdx = (idx + stages.length) % stages.length;
+    for (let i = 0; i < stages.length; i++) {
+      const b = document.getElementById(`${mountId}-stage-${i}`);
+      if (b) b.classList.toggle("active", i === currentStageIdx);
+    }
+    const stage = stages[currentStageIdx];
+    if (stageBadge) stageBadge.innerText = stage.name;
+    if (scaleBadge) {
+      if (currentStageIdx === 0) scaleBadge.innerText = "Scale: 120 µm (1000×)";
+      else if (currentStageIdx === 1) scaleBadge.innerText = "Scale: 130 µm (900×)";
+      else if (currentStageIdx === 2) scaleBadge.innerText = "Scale: 220 µm (500×)";
+      else if (currentStageIdx === 3) scaleBadge.innerText = "Scale: 12 mm (15×)";
+      else scaleBadge.innerText = "Scale: 25 cm (1×)";
+    }
+    if (trimesterVal) trimesterVal.innerText = stage.trimester;
+    if (sizeVal) sizeVal.innerText = stage.sizeText;
+    if (telemetryTitle) telemetryTitle.innerText = stage.name;
+    if (telemetryPotency) telemetryPotency.innerText = stage.potency;
+    if (telemetryText) telemetryText.innerText = stage.desc;
+    if (timelineSlider) timelineSlider.value = currentStageIdx;
+    if (timelineLbl) {
+      const shortDays = ["Day 1", "Day 3", "Day 6", "Week 6", "Week 20"];
+      timelineLbl.innerText = shortDays[currentStageIdx];
+    }
+  }
+
+  // Particle systems for dynamic fluid & blood flow
+  const zygoteGranules = [];
+  for (let i = 0; i < 48; i++) {
+    zygoteGranules.push({
+      r: Math.random() * 70,
+      theta: Math.random() * Math.PI * 2,
+      speed: 0.15 + Math.random() * 0.35,
+      size: 1.2 + Math.random() * 1.8,
+      alpha: 0.25 + Math.random() * 0.4
+    });
+  }
+
+  // Fetal umbilical blood flow particles
+  const umbilicalParticles = [];
+  for (let i = 0; i < 60; i++) {
+    umbilicalParticles.push({
+      tProgress: Math.random(), // 0 to 1 along curve
+      speed: 0.12 + Math.random() * 0.08,
+      isOxygenated: i % 2 === 0, // true = Vein (red, to fetus), false = Artery (blue, from fetus)
+      lateralOffset: (Math.random() - 0.5) * 5
+    });
+  }
+
+  // Embryo aortic arch blood flow particles
+  const aorticParticles = [];
+  for (let i = 0; i < 35; i++) {
+    aorticParticles.push({
+      progress: Math.random(),
+      speed: 0.3 + Math.random() * 0.2,
+      size: 1.5 + Math.random() * 1.2
+    });
+  }
+
+  let t = 0;
+  let animId;
+  let lastTimestamp = null;
+
+  function drawCallout(fromX, fromY, toX, toY, text, align = "left") {
+    if (!showLabels) return;
+    ctx.save();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+    ctx.lineWidth = 1.2;
+
+    // Leader line
+    ctx.beginPath();
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
+    ctx.stroke();
+
+    // Target anchor circle
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.arc(fromX, fromY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Text label with dark backdrop pill
+    ctx.font = "bold 10px Inter, system-ui, sans-serif";
+    const textW = ctx.measureText(text).width;
+    const pillX = align === "left" ? toX + 4 : toX - textW - 12;
+    const pillY = toY - 9;
+
+    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(pillX, pillY, textW + 12, 17, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#f8fafc";
+    ctx.fillText(text, pillX + 6, pillY + 12);
+    ctx.restore();
+  }
+
+  function drawScaleBar(label, lengthPx) {
+    if (!showScale) return;
+    ctx.save();
+    const x = 20, y = 275;
+    ctx.strokeStyle = "#f8fafc";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + lengthPx, y);
+    // End ticks
+    ctx.moveTo(x, y - 4); ctx.lineTo(x, y + 4);
+    ctx.moveTo(x + lengthPx, y - 4); ctx.lineTo(x + lengthPx, y + 4);
+    ctx.stroke();
+
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = "bold 9px Inter, system-ui, sans-serif";
+    ctx.fillText(label, x + (lengthPx - ctx.measureText(label).width) / 2, y - 6);
+    ctx.restore();
+  }
+
+  function render(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const dt = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+    lastTimestamp = timestamp;
+
+    const isDay = document.documentElement.getAttribute("data-theme") === "day";
+    if (stageDesc) {
+      stageDesc.style.background = isDay ? "#ffffff" : "rgba(15, 23, 42, 0.95)";
+      stageDesc.style.border = isDay ? "1.5px solid #cbd5e1" : "1px solid rgba(56, 189, 248, 0.28)";
+      stageDesc.style.boxShadow = isDay ? "0 2px 8px rgba(15, 23, 42, 0.06)" : "0 2px 8px rgba(0, 0, 0, 0.35)";
+      stageDesc.style.color = isDay ? "#0f172a" : "#f8fafc";
+    }
+
+    t += 0.032;
+
+    if (isAutoAdvancing) {
+      autoTimer += dt;
+      if (autoTimer >= 4.2) {
+        autoTimer = 0;
+        setStage(currentStageIdx + 1);
+      }
+    }
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Deep Darkfield Microscope & In-Utero Backdrop
+    const bgGrad = ctx.createRadialGradient(230, 150, 20, 230, 150, 240);
+    bgGrad.addColorStop(0, isDay ? "#0a1122" : "#070c18");
+    bgGrad.addColorStop(0.7, isDay ? "#040711" : "#03060d");
+    bgGrad.addColorStop(1, "#020409");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = 230, cy = 150;
+
+    // ==========================================
+    // STAGE 0: FERTILIZED ZYGOTE & SYNGAMY
+    // ==========================================
+    if (currentStageIdx === 0) {
+      const zonaR = 104;
+      const vitellineR = 82;
+
+      // Outer Zona Pellucida (Thick glycoprotein coat)
+      const zpGrad = ctx.createRadialGradient(cx, cy, vitellineR, cx, cy, zonaR);
+      zpGrad.addColorStop(0, "rgba(56, 189, 248, 0.08)");
+      zpGrad.addColorStop(0.7, "rgba(56, 189, 248, 0.25)");
+      zpGrad.addColorStop(1, "rgba(236, 72, 153, 0.45)");
+      ctx.fillStyle = zpGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, zonaR, 0, Math.PI * 2);
+      ctx.arc(cx, cy, vitellineR, 0, Math.PI * 2, true);
+      ctx.fill();
+
+      // Zona Pellucida radial glycoprotein microfilaments (ZP1, ZP2, ZP3)
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.22)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 64; i++) {
+        const ang = (i / 64) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(ang) * vitellineR, cy + Math.sin(ang) * vitellineR);
+        ctx.lineTo(cx + Math.cos(ang) * zonaR, cy + Math.sin(ang) * zonaR);
+        ctx.stroke();
+      }
+
+      // Zona outer boundary & refractive highlights
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, zonaR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Perivitelline Space fluid
+      ctx.strokeStyle = "rgba(236, 72, 153, 0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(cx, cy, vitellineR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 1st and 2nd Polar Bodies nestled in perivitelline space
+      const pb1Angle = -Math.PI * 0.28;
+      const pb1x = cx + Math.cos(pb1Angle) * 92;
+      const pb1y = cy + Math.sin(pb1Angle) * 92;
+      ctx.fillStyle = "rgba(244, 114, 182, 0.75)";
+      ctx.strokeStyle = "#f43f5e";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(pb1x, pb1y, 7.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Pyknotic chromatin dot inside polar body
+      ctx.fillStyle = "#38bdf8";
+      ctx.beginPath();
+      ctx.arc(pb1x, pb1y, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      const pb2Angle = -Math.PI * 0.16;
+      const pb2x = cx + Math.cos(pb2Angle) * 93;
+      const pb2y = cy + Math.sin(pb2Angle) * 93;
+      ctx.fillStyle = "rgba(244, 114, 182, 0.65)";
+      ctx.beginPath();
+      ctx.arc(pb2x, pb2y, 5.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Vitelline membrane (Oolemma) & Cytoplasm
+      const cytoGrad = ctx.createRadialGradient(cx, cy, 10, cx, cy, vitellineR);
+      cytoGrad.addColorStop(0, "rgba(236, 72, 153, 0.28)");
+      cytoGrad.addColorStop(0.65, "rgba(147, 51, 234, 0.2)");
+      cytoGrad.addColorStop(0.92, "rgba(236, 72, 153, 0.35)");
+      cytoGrad.addColorStop(1, "rgba(244, 63, 94, 0.6)");
+      ctx.fillStyle = cytoGrad;
+      ctx.beginPath();
+      ctx.arc(cx, cy, vitellineR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cortical granules (exocytosed cortical reaction)
+      for (let c = 0; c < 36; c++) {
+        const cAng = (c / 36) * Math.PI * 2;
+        const cRad = vitellineR - 4 + Math.sin(c * 2 + t) * 1.5;
+        ctx.fillStyle = "rgba(251, 191, 36, 0.65)";
+        ctx.beginPath();
+        ctx.arc(cx + Math.cos(cAng) * cRad, cy + Math.sin(cAng) * cRad, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Dynamic Brownian cytoplasmic organelles
+      zygoteGranules.forEach((g, idx) => {
+        const drift = t * g.speed + idx;
+        const gx = cx + Math.cos(g.theta + drift * 0.08) * (g.r * 0.95);
+        const gy = cy + Math.sin(g.theta + drift * 0.08) * (g.r * 0.95);
+        ctx.fillStyle = `rgba(244, 114, 182, ${g.alpha})`;
+        ctx.beginPath();
+        ctx.arc(gx, gy, g.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Pronuclear Syngamy (Maternal & Paternal Pronuclei approaching each other)
+      const fusionOffset = 18 - Math.min(10, Math.abs(Math.sin(t * 0.8) * 10));
+
+      // Female Pronucleus (left)
+      const fpX = cx - fusionOffset;
+      const fpY = cy - 2 + Math.sin(t * 1.5) * 1.5;
+      const fpGrad = ctx.createRadialGradient(fpX, fpY, 4, fpX, fpY, 21);
+      fpGrad.addColorStop(0, "rgba(56, 189, 248, 0.45)");
+      fpGrad.addColorStop(1, "rgba(14, 165, 233, 0.15)");
+      ctx.fillStyle = fpGrad;
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(fpX, fpY, 20, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Female nucleoli (dense spherical bodies)
+      ctx.fillStyle = "#38bdf8";
+      ctx.beginPath();
+      ctx.arc(fpX - 5, fpY - 4, 3.2, 0, Math.PI * 2);
+      ctx.arc(fpX + 4, fpY + 5, 2.8, 0, Math.PI * 2);
+      ctx.arc(fpX - 2, fpY + 6, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Male Pronucleus (right, slightly larger as typical in mammalian syngamy)
+      const mpX = cx + fusionOffset;
+      const mpY = cy + 2 - Math.sin(t * 1.5) * 1.5;
+      const mpGrad = ctx.createRadialGradient(mpX, mpY, 5, mpX, mpY, 23);
+      mpGrad.addColorStop(0, "rgba(236, 72, 153, 0.45)");
+      mpGrad.addColorStop(1, "rgba(219, 39, 119, 0.15)");
+      ctx.fillStyle = mpGrad;
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(mpX, mpY, 22, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Male nucleoli
+      ctx.fillStyle = "#f472b6";
+      ctx.beginPath();
+      ctx.arc(mpX - 4, mpY + 5, 3.4, 0, Math.PI * 2);
+      ctx.arc(mpX + 5, mpY - 4, 3.0, 0, Math.PI * 2);
+      ctx.arc(mpX + 2, mpY + 6, 2.4, 0, Math.PI * 2);
+      ctx.arc(mpX - 6, mpY - 5, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Interdigitating membranes when close
+      if (fusionOffset < 12) {
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.8)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 14);
+        ctx.lineTo(cx, cy + 14);
+        ctx.stroke();
+      }
+
+      // Callout labels
+      drawCallout(cx - 96, cy - 40, cx - 145, cy - 60, "Zona Pellucida (ZP3)", "right");
+      drawCallout(pb1x, pb1y, cx + 115, cy - 75, "2nd Polar Body", "left");
+      drawCallout(fpX, fpY, cx - 70, cy + 85, "Maternal Pronucleus (1n)", "right");
+      drawCallout(mpX, mpY, cx + 70, cy + 85, "Paternal Pronucleus (1n)", "left");
+      drawScaleBar("100 µm", 80);
+    }
+
+    // ==========================================
+    // STAGE 1: CLEAVAGE & COMPACTED MORULA (Day 3)
+    // ==========================================
+    else if (currentStageIdx === 1) {
+      const zonaR = 105;
+
+      // Outer Zona Pellucida
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.7)";
+      ctx.lineWidth = 2.4;
+      ctx.beginPath();
+      ctx.arc(cx, cy, zonaR, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Radial ZP microfilaments
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.15)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 48; i++) {
+        const ang = (i / 48) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(ang) * (zonaR - 16), cy + Math.sin(ang) * (zonaR - 16));
+        ctx.lineTo(cx + Math.cos(ang) * zonaR, cy + Math.sin(ang) * zonaR);
+        ctx.stroke();
+      }
+
+      // Compacted 16-Cell Morula Blastomeres
+      // Blastomeres undergo E-cadherin mediated compaction tightly adhering to one another
+      const blastomeres = [
+        // Inner core cells
+        { x: cx - 12, y: cy - 12, r: 24, c: "#38bdf8" },
+        { x: cx + 14, y: cy - 10, r: 23, c: "#ec4899" },
+        { x: cx - 10, y: cy + 14, r: 23, c: "#a855f7" },
+        { x: cx + 14, y: cy + 12, r: 24, c: "#38bdf8" },
+        // Outer cortical ring cells
+        { x: cx - 44, y: cy - 30, r: 26, c: "#ec4899" },
+        { x: cx + 2, y: cy - 52, r: 25, c: "#38bdf8" },
+        { x: cx + 46, y: cy - 28, r: 26, c: "#a855f7" },
+        { x: cx + 54, y: cy + 16, r: 25, c: "#ec4899" },
+        { x: cx + 20, y: cy + 50, r: 26, c: "#38bdf8" },
+        { x: cx - 28, y: cy + 50, r: 25, c: "#a855f7" },
+        { x: cx - 56, y: cy + 14, r: 25, c: "#ec4899" },
+        { x: cx - 34, y: cy, r: 22, c: "#38bdf8" },
+        { x: cx + 34, y: cy - 2, r: 22, c: "#ec4899" }
+      ];
+
+      // Draw compacted blastomeres with 3D spherical depth and lipid highlights
+      blastomeres.forEach((b, idx) => {
+        const bGrad = ctx.createRadialGradient(b.x - b.r * 0.3, b.y - b.r * 0.3, 2, b.x, b.y, b.r);
+        bGrad.addColorStop(0, "rgba(244, 114, 182, 0.45)");
+        bGrad.addColorStop(0.5, "rgba(147, 51, 234, 0.28)");
+        bGrad.addColorStop(0.85, "rgba(56, 189, 248, 0.25)");
+        bGrad.addColorStop(1, "rgba(15, 23, 42, 0.65)");
+
+        ctx.fillStyle = bGrad;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fill();
+
+        // E-cadherin tight junction cell border
+        ctx.strokeStyle = "rgba(236, 72, 153, 0.65)";
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // Distinct nucleus inside each blastomere
+        ctx.fillStyle = "rgba(56, 189, 248, 0.75)";
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        // Nucleolus
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(b.x - 1, b.y - 1, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Compaction microvilli on outer surface
+      ctx.strokeStyle = "rgba(244, 114, 182, 0.35)";
+      ctx.lineWidth = 1;
+      for (let m = 0; m < 40; m++) {
+        const mAng = (m / 40) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(mAng) * 78, cy + Math.sin(mAng) * 78);
+        ctx.lineTo(cx + Math.cos(mAng) * 83, cy + Math.sin(mAng) * 83);
+        ctx.stroke();
+      }
+
+      drawCallout(cx - 50, cy - 35, cx - 145, cy - 65, "Compacted Blastomeres (16-Cell)", "right");
+      drawCallout(cx, cy, cx + 80, cy - 80, "E-Cadherin Tight Junctions", "left");
+      drawCallout(cx + 45, cy + 45, cx + 115, cy + 70, "Totipotent Cleavage Stage", "left");
+      drawCallout(cx - 96, cy + 30, cx - 145, cy + 60, "Intact Zona Pellucida", "right");
+      drawScaleBar("100 µm", 80);
+    }
+
+    // ==========================================
+    // STAGE 2: BLASTOCYST & IMPLANTATION (Day 6)
+    // ==========================================
+    else if (currentStageIdx === 2) {
+      // Maternal Uterine Endometrium on right side (x: 290 to 460)
+      const endoGrad = ctx.createLinearGradient(290, 0, 460, 0);
+      endoGrad.addColorStop(0, "rgba(225, 29, 72, 0.15)");
+      endoGrad.addColorStop(0.4, "rgba(190, 18, 60, 0.45)");
+      endoGrad.addColorStop(1, "rgba(136, 19, 55, 0.85)");
+      ctx.fillStyle = endoGrad;
+      ctx.fillRect(290, 0, 170, canvas.height);
+
+      // Decidual stromal cell contours and uterine glands
+      ctx.strokeStyle = "rgba(244, 63, 94, 0.35)";
+      ctx.lineWidth = 1.2;
+      for (let g = 0; g < 6; g++) {
+        ctx.beginPath();
+        ctx.ellipse(360 + (g % 2) * 35, 45 + g * 40, 14, 22, Math.PI / 6, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Maternal capillary sinusoids & spiral vessels with flowing blood cells
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.75)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(330, 20);
+      ctx.bezierCurveTo(345, 90, 320, 160, 350, 280);
+      ctx.moveTo(395, 10);
+      ctx.bezierCurveTo(415, 80, 380, 190, 420, 270);
+      ctx.stroke();
+
+      // Blastocyst Center & Cavitation
+      const bcX = 200, bcY = 150;
+      const bcR = 92;
+
+      // Shedding / Ruptured Zona Pellucida (Hatching blastocyst!)
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([12, 6]);
+      ctx.beginPath();
+      ctx.arc(bcX - 8, bcY, bcR + 12, Math.PI * 0.55, Math.PI * 1.45);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Blastocoel Fluid Cavity (Large fluid-filled blastocyst cavity)
+      const blastocoelGrad = ctx.createRadialGradient(bcX - 25, bcY, 15, bcX - 10, bcY, bcR);
+      blastocoelGrad.addColorStop(0, "rgba(56, 189, 248, 0.32)");
+      blastocoelGrad.addColorStop(0.7, "rgba(14, 165, 233, 0.15)");
+      blastocoelGrad.addColorStop(1, "rgba(15, 23, 42, 0.4)");
+      ctx.fillStyle = blastocoelGrad;
+      ctx.beginPath();
+      ctx.arc(bcX, bcY, bcR, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Fluid caustics inside blastocoel
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.18)";
+      ctx.lineWidth = 1;
+      for (let f = 0; f < 3; f++) {
+        ctx.beginPath();
+        ctx.arc(bcX - 30 + f * 10, bcY + Math.sin(t + f) * 12, 28 + f * 8, 0, Math.PI * 1.2);
+        ctx.stroke();
+      }
+
+      // Trophectoderm / Trophoblast (Outer single epithelial monolayer of cells)
+      const numTropho = 36;
+      for (let i = 0; i < numTropho; i++) {
+        const ang = (i / numTropho) * Math.PI * 2;
+        const tx = bcX + Math.cos(ang) * bcR;
+        const ty = bcY + Math.sin(ang) * bcR;
+
+        // Trophoblast cuboidal cell body
+        ctx.fillStyle = "rgba(244, 114, 182, 0.4)";
+        ctx.strokeStyle = "#ec4899";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(tx, ty, 6.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Trophoblast nucleus
+        ctx.fillStyle = "#38bdf8";
+        ctx.beginPath();
+        ctx.arc(tx, ty, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Inner Cell Mass (ICM / Embryoblast) - Pluripotent stem cells at embryonic pole (right)
+      const icmCells = [
+        { x: bcX + 32, y: bcY - 26, r: 9 },
+        { x: bcX + 46, y: bcY - 20, r: 8.5 },
+        { x: bcX + 58, y: bcY - 14, r: 8 },
+        { x: bcX + 28, y: bcY - 8, r: 9.5 },
+        { x: bcX + 44, y: bcY - 6, r: 9 },
+        { x: bcX + 58, y: bcY - 2, r: 8.5 },
+        { x: bcX + 68, y: bcY, r: 8 },
+        { x: bcX + 30, y: bcY + 12, r: 9 },
+        { x: bcX + 46, y: bcY + 14, r: 9 },
+        { x: bcX + 60, y: bcY + 12, r: 8.5 },
+        { x: bcX + 36, y: bcY + 28, r: 8.5 },
+        { x: bcX + 50, y: bcY + 26, r: 8 }
+      ];
+
+      icmCells.forEach(cell => {
+        const cGrad = ctx.createRadialGradient(cell.x, cell.y, 2, cell.x, cell.y, cell.r);
+        cGrad.addColorStop(0, "#fde047");
+        cGrad.addColorStop(0.7, "#f59e0b");
+        cGrad.addColorStop(1, "#d97706");
+        ctx.fillStyle = cGrad;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(cell.x, cell.y, cell.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Pluripotent nucleus
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(cell.x, cell.y, 2.8, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Syncytiotrophoblast invasive sprouts infiltrating maternal endometrium
+      ctx.fillStyle = "rgba(244, 63, 94, 0.55)";
+      ctx.strokeStyle = "#f43f5e";
+      ctx.lineWidth = 1.8;
+      for (let s = -3; s <= 3; s++) {
+        const sy = bcY + s * 18;
+        ctx.beginPath();
+        ctx.moveTo(bcX + bcR - 2, sy - 8);
+        ctx.bezierCurveTo(bcX + bcR + 18, sy - 6, bcX + bcR + 32, sy + Math.sin(t * 2 + s) * 4, bcX + bcR + 42, sy);
+        ctx.bezierCurveTo(bcX + bcR + 30, sy + 6, bcX + bcR + 15, sy + 8, bcX + bcR - 2, sy + 8);
+        ctx.fill();
+        ctx.stroke();
+
+        // Invaded capillary blood lacuna
+        ctx.fillStyle = "#ef4444";
+        ctx.beginPath();
+        ctx.arc(bcX + bcR + 36, sy, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      drawCallout(bcX - 35, bcY - 30, bcX - 125, bcY - 70, "Blastocoel (Fluid Cavity)", "right");
+      drawCallout(bcX + 48, bcY - 8, bcX + 40, cy - 85, "Inner Cell Mass (Pluripotent ICM)", "right");
+      drawCallout(bcX - 82, bcY + 35, bcX - 135, bcY + 55, "Trophoblast (Forms Placenta)", "right");
+      drawCallout(bcX + bcR + 35, bcY + 20, cx + 90, cy + 95, "Syncytiotrophoblast Invasion", "left");
+      drawCallout(350, 45, cx + 110, cy - 65, "Maternal Endometrium & Glands", "left");
+      drawScaleBar("200 µm", 75);
+    }
+
+    // ==========================================
+    // STAGE 3: EMBRYO ORGANOGENESIS (Week 6)
+    // ==========================================
+    else if (currentStageIdx === 3) {
+      // Classic C-shaped human embryo at Carnegie Stage 16 (~12 mm CRL)
+      const eX = 215, eY = 145;
+
+      // Amniotic cavity background halo
+      const amGrad = ctx.createRadialGradient(eX, eY, 40, eX, eY, 130);
+      amGrad.addColorStop(0, "rgba(56, 189, 248, 0.12)");
+      amGrad.addColorStop(0.8, "rgba(14, 165, 233, 0.04)");
+      amGrad.addColorStop(1, "transparent");
+      ctx.fillStyle = amGrad;
+      ctx.beginPath();
+      ctx.arc(eX, eY, 130, 0, Math.PI * 2);
+      ctx.fill();
+
+      // C-Shaped Embryo Body Silhouette using smooth biological curves
+      ctx.save();
+      const bodyGrad = ctx.createRadialGradient(eX - 20, eY - 20, 20, eX, eY, 110);
+      bodyGrad.addColorStop(0, "#fed7aa"); // Warm embryonic flesh
+      bodyGrad.addColorStop(0.4, "#fbcfe8");
+      bodyGrad.addColorStop(0.85, "#f472b6");
+      bodyGrad.addColorStop(1, "rgba(219, 39, 119, 0.6)");
+      ctx.fillStyle = bodyGrad;
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 2.4;
+
+      ctx.beginPath();
+      // Cephalic flexure & Forebrain (Telencephalon)
+      ctx.moveTo(eX - 60, eY - 60);
+      ctx.bezierCurveTo(eX - 40, eY - 105, eX + 30, eY - 105, eX + 55, eY - 65); // Midbrain roof
+      // Hindbrain (Rhombencephalon) curve down dorsal spine
+      ctx.bezierCurveTo(eX + 75, eY - 30, eX + 80, eY + 35, eX + 55, eY + 80); // Dorsal curvature
+      // Caudal eminence (Tail bud)
+      ctx.bezierCurveTo(eX + 40, eY + 110, eX - 5, eY + 115, eX - 25, eY + 85);
+      // Inward ventral curve
+      ctx.bezierCurveTo(eX - 15, eY + 65, eX + 15, eY + 50, eX + 10, eY + 25); // Lower body flexure
+      // Umbilical stalk insertion
+      ctx.bezierCurveTo(eX + 5, eY + 15, eX - 25, eY + 30, eX - 35, eY + 15);
+      // Pericardial heart bulge contour
+      ctx.bezierCurveTo(eX - 55, eY + 10, eX - 65, eY - 10, eX - 45, eY - 25);
+      // Pharyngeal arches & facial cleft
+      ctx.bezierCurveTo(eX - 65, eY - 35, eX - 75, eY - 50, eX - 60, eY - 60);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Somites (Segmented mesodermal blocks lining dorsal spine)
+      ctx.strokeStyle = "rgba(236, 72, 153, 0.6)";
+      ctx.lineWidth = 1.4;
+      for (let s = 0; s < 22; s++) {
+        const u = s / 22;
+        const sx = eX + 45 + Math.sin(u * Math.PI) * 28 - u * 35;
+        const sy = eY - 45 + u * 135;
+        ctx.strokeRect(sx, sy, 5.5, 4);
+      }
+
+      // Translucent Brain Vesicles (Forebrain, Midbrain, Hindbrain)
+      ctx.fillStyle = "rgba(56, 189, 248, 0.22)";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.2;
+      // Forebrain vesicle
+      ctx.beginPath();
+      ctx.ellipse(eX - 25, eY - 68, 18, 14, -Math.PI / 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Midbrain vesicle
+      ctx.beginPath();
+      ctx.ellipse(eX + 15, eY - 72, 16, 13, Math.PI / 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // 4th ventricle cavity
+      ctx.beginPath();
+      ctx.ellipse(eX + 48, eY - 42, 14, 18, Math.PI / 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Optic Cup & Lens Vesicle (Eye primordium)
+      const eyeX = eX - 42, eyeY = -52 + eY;
+      // Dark retinal pigment epithelium (RPE) ring
+      ctx.fillStyle = "#0f172a";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(eyeX, eyeY, 6.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      // Clear lens vesicle center
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(eyeX - 1, eyeY - 1, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Otic vesicle (Ear primordium)
+      ctx.fillStyle = "rgba(56, 189, 248, 0.6)";
+      ctx.beginPath();
+      ctx.arc(eX + 26, eY - 48, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Pharyngeal / Branchial Arches (I, II, III)
+      ctx.strokeStyle = "rgba(219, 39, 119, 0.85)";
+      ctx.lineWidth = 2;
+      for (let a = 0; a < 3; a++) {
+        ctx.beginPath();
+        ctx.arc(eX - 35 + a * 9, eY - 26 + a * 7, 5, 0, Math.PI);
+        ctx.stroke();
+      }
+
+      // Upper Limb Bud (Forelimb paddle)
+      ctx.fillStyle = "#fed7aa";
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.ellipse(eX + 10, eY + 2, 14, 8, Math.PI / 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Lower Limb Bud (Hindlimb paddle)
+      ctx.beginPath();
+      ctx.ellipse(eX + 22, eY + 68, 12, 7, -Math.PI / 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // RHYTHMIC BEATING EMBRYONIC HEART (145 BPM)
+      // Pulse frequency ~2.42 Hz
+      const heartBeat = Math.sin(t * 15.2);
+      const isSystole = heartBeat > 0.4;
+      const heartScale = 1.0 + 0.16 * Math.max(0, heartBeat);
+
+      const hX = eX - 38, hY = eY - 4;
+      ctx.save();
+      ctx.translate(hX, hY);
+      ctx.scale(heartScale, heartScale);
+
+      // Pericardial bulge glow
+      const hGrad = ctx.createRadialGradient(0, 0, 3, 0, 0, 18);
+      hGrad.addColorStop(0, isSystole ? "#ff4d6d" : "#ef4444");
+      hGrad.addColorStop(0.6, isSystole ? "#dc2626" : "#b91c1c");
+      hGrad.addColorStop(1, "rgba(185, 28, 28, 0.2)");
+      ctx.fillStyle = hGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Dual cardiac tube chambers (Ventricle & Atrium)
+      ctx.strokeStyle = isSystole ? "#fecdd3" : "#fda4af";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(-3, 0, 9, 0, Math.PI * 2);
+      ctx.arc(6, -2, 7, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Hemodynamic ejection particles pulsing into aortic arches
+      aorticParticles.forEach(p => {
+        p.progress += p.speed * dt * (isSystole ? 2.2 : 0.8);
+        if (p.progress > 1) p.progress = 0;
+        const ax = hX + Math.sin(p.progress * Math.PI) * 18 - p.progress * 12;
+        const ay = hY - p.progress * 28;
+        ctx.fillStyle = isSystole ? "#ffedd5" : "#f43f5e";
+        ctx.beginPath();
+        ctx.arc(ax, ay, p.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Connecting stalk / Umbilical cord emergence
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(eX - 30, eY + 18);
+      ctx.bezierCurveTo(eX - 80, eY + 50, eX - 110, eY + 70, eX - 150, eY + 80);
+      ctx.stroke();
+
+      ctx.restore();
+
+      drawCallout(eyeX, eyeY, cx - 145, cy - 75, "Optic Cup & Lens Vesicle", "right");
+      drawCallout(hX, hY, cx - 145, cy - 10, "Beating Heart Tube (145 BPM)", "right");
+      drawCallout(eX + 15, eY - 72, cx + 80, cy - 85, "Primary Brain Vesicles", "left");
+      drawCallout(eX + 10, eY + 2, cx + 90, cy + 5, "Forelimb Paddle Bud", "left");
+      drawCallout(eX + 60, eY + 20, cx + 90, cy + 60, "Segmented Mesodermal Somites", "left");
+      drawScaleBar("10 mm", 85);
+    }
+
+    // ==========================================
+    // STAGE 4: FETAL CIRCULATION & PLACENTA (Week 20)
+    // ==========================================
+    else if (currentStageIdx === 4) {
+      // Amniotic Sac Membrane & Fluid
+      const amX = 205, amY = 145;
+      const amR = 120;
+
+      const amGrad = ctx.createRadialGradient(amX, amY, 30, amX, amY, amR);
+      amGrad.addColorStop(0, "rgba(56, 189, 248, 0.15)");
+      amGrad.addColorStop(0.85, "rgba(14, 165, 233, 0.08)");
+      amGrad.addColorStop(1, "rgba(56, 189, 248, 0.35)");
+      ctx.fillStyle = amGrad;
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(amX, amY, amR, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Maternal Placenta disc on left wall (x: 0 to 75)
+      const placGrad = ctx.createLinearGradient(0, 0, 85, 0);
+      placGrad.addColorStop(0, "rgba(136, 19, 55, 0.95)");
+      placGrad.addColorStop(0.7, "rgba(190, 18, 60, 0.8)");
+      placGrad.addColorStop(1, "rgba(225, 29, 72, 0.35)");
+      ctx.fillStyle = placGrad;
+      ctx.beginPath();
+      ctx.ellipse(30, amY, 52, 115, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Chorionic villi trees in maternal intervillous blood lacunae
+      ctx.strokeStyle = "rgba(251, 113, 133, 0.85)";
+      ctx.lineWidth = 2;
+      for (let v = -4; v <= 4; v++) {
+        const vy = amY + v * 22;
+        ctx.beginPath();
+        ctx.moveTo(35, vy);
+        ctx.bezierCurveTo(55, vy - 10, 65, vy + 8, 80, vy);
+        ctx.stroke();
+      }
+
+      // Anatomical 20-Week Human Fetus in natural flexion
+      // Floating gently with buoyant micro-motion
+      const fX = amX + 25 + Math.sin(t * 0.8) * 2;
+      const fY = amY - 5 + Math.cos(t * 0.8) * 2;
+
+      ctx.save();
+      const fetusSkin = ctx.createRadialGradient(fX - 15, fY - 20, 15, fX, fY, 85);
+      fetusSkin.addColorStop(0, "#fed7aa"); // Warm skin
+      fetusSkin.addColorStop(0.5, "#fbcfe8");
+      fetusSkin.addColorStop(0.85, "#f472b6");
+      fetusSkin.addColorStop(1, "rgba(190, 24, 93, 0.6)");
+      ctx.fillStyle = fetusSkin;
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 2.2;
+
+      // Fetal anatomical profile (Cranium, Face, Torso, Limbs in flexion)
+      ctx.beginPath();
+      // Occiput & Cranial vault
+      ctx.moveTo(fX + 15, fY - 70);
+      ctx.bezierCurveTo(fX + 45, fY - 65, fX + 55, fY - 35, fX + 45, fY - 15); // Back of head
+      ctx.bezierCurveTo(fX + 40, fY - 5, fX + 45, fY + 25, fX + 38, fY + 55); // Spine & back
+      // Buttock & Thigh flexion
+      ctx.bezierCurveTo(fX + 32, fY + 75, fX + 10, fY + 80, fX - 5, fY + 65);
+      // Knee flexed upwards toward chest
+      ctx.bezierCurveTo(fX - 20, fY + 55, fX - 30, fY + 35, fX - 15, fY + 25);
+      // Abdomen & navel
+      ctx.bezierCurveTo(fX - 10, fY + 15, fX - 18, fY, fX - 15, fY - 15);
+      // Chest & neck
+      ctx.bezierCurveTo(fX - 15, fY - 25, fX - 25, fY - 35, fX - 15, fY - 45); // Chin
+      // Lips, Philtrum, Nose tip
+      ctx.bezierCurveTo(fX - 22, fY - 50, fX - 20, fY - 56, fX - 12, fY - 58); // Nose
+      // Forehead
+      ctx.bezierCurveTo(fX - 8, fY - 68, fX + 5, fY - 72, fX + 15, fY - 70);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Closed eyelid & fine lashes
+      ctx.strokeStyle = "rgba(15, 23, 42, 0.75)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(fX - 4, fY - 54, 4.5, 0.2, Math.PI * 0.9);
+      ctx.stroke();
+
+      // Ear auricle pinna
+      ctx.beginPath();
+      ctx.arc(fX + 18, fY - 42, 6, -Math.PI * 0.4, Math.PI * 0.6);
+      ctx.stroke();
+
+      // Arm with elbow bent and delicate hand near face
+      ctx.fillStyle = "#fed7aa";
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(fX + 5, fY - 20); // Shoulder
+      ctx.bezierCurveTo(fX - 8, fY - 10, fX - 16, fY - 25, fX - 8, fY - 38); // Forearm to face
+      ctx.stroke();
+      // Hand with fingers
+      ctx.beginPath();
+      ctx.arc(fX - 8, fY - 40, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Fetal Foot with delicate toes
+      ctx.beginPath();
+      ctx.ellipse(fX - 18, fY + 38, 7, 4, Math.PI / 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // HELICAL SPIRAL UMBILICAL CORD (Connecting Placenta to Navel)
+      const cordStart = { x: 75, y: amY };
+      const cordEnd = { x: fX - 12, y: fY + 12 };
+      const cordCP1 = { x: 105, y: amY - 45 };
+      const cordCP2 = { x: fX - 65, y: fY + 45 };
+
+      // Umbilical cord sheath (Wharton's Jelly)
+      ctx.strokeStyle = "rgba(244, 114, 182, 0.55)";
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(cordStart.x, cordStart.y);
+      ctx.bezierCurveTo(cordCP1.x, cordCP1.y, cordCP2.x, cordCP2.y, cordEnd.x, cordEnd.y);
+      ctx.stroke();
+
+      // Helical twisting striations of the cord
+      ctx.strokeStyle = "rgba(236, 72, 153, 0.75)";
+      ctx.lineWidth = 1.5;
+      for (let c = 0; c < 12; c++) {
+        const u = c / 12;
+        const cxp = Math.pow(1 - u, 3) * cordStart.x + 3 * Math.pow(1 - u, 2) * u * cordCP1.x + 3 * (1 - u) * u * u * cordCP2.x + Math.pow(u, 3) * cordEnd.x;
+        const cyp = Math.pow(1 - u, 3) * cordStart.y + 3 * Math.pow(1 - u, 2) * u * cordCP1.y + 3 * (1 - u) * u * u * cordCP2.y + Math.pow(u, 3) * cordEnd.y;
+        ctx.beginPath();
+        ctx.arc(cxp, cyp, 4.2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // DYNAMIC COUNTER-CURRENT BLOOD FLOW PARTICLES
+      umbilicalParticles.forEach(p => {
+        p.tProgress += p.speed * dt;
+        if (p.tProgress > 1) p.tProgress = 0;
+
+        // Cubic Bezier interpolation
+        const u = p.isOxygenated ? p.tProgress : (1 - p.tProgress);
+        const bx = Math.pow(1 - u, 3) * cordStart.x + 3 * Math.pow(1 - u, 2) * u * cordCP1.x + 3 * (1 - u) * u * u * cordCP2.x + Math.pow(u, 3) * cordEnd.x;
+        const by = Math.pow(1 - u, 3) * cordStart.y + 3 * Math.pow(1 - u, 2) * u * cordCP1.y + 3 * (1 - u) * u * u * cordCP2.y + Math.pow(u, 3) * cordEnd.y;
+
+        if (p.isOxygenated) {
+          // Oxygenated blood: Red glowing particles flowing FROM placenta TO fetus (Umbilical Vein)
+          ctx.fillStyle = "#ef4444";
+          ctx.shadowColor = "#f87171";
+          ctx.shadowBlur = 4;
+          ctx.beginPath();
+          ctx.arc(bx + p.lateralOffset, by, 2.4, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // Deoxygenated blood: Blue/purple particles flowing FROM fetus TO placenta (Umbilical Arteries)
+          ctx.fillStyle = "#38bdf8";
+          ctx.shadowColor = "#60a5fa";
+          ctx.shadowBlur = 4;
+          ctx.beginPath();
+          ctx.arc(bx + p.lateralOffset, by, 2.0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.shadowBlur = 0;
+      });
+
+      ctx.restore();
+
+      drawCallout(50, amY - 50, cx - 145, cy - 85, "Maternal Placenta & Villi", "right");
+      drawCallout(cordStart.x + 40, amY - 20, cx - 145, cy + 40, "Umbilical Cord (2 Arteries, 1 Vein)", "right");
+      drawCallout(fX - 10, fY - 55, cx + 80, cy - 85, "Fetal Face & Eyelids (Week 20)", "left");
+      drawCallout(fX + 35, fY + 20, cx + 80, cy + 15, "Spinal Column & Ribcage", "left");
+      drawCallout(amX + 90, amY + 80, cx + 80, cy + 85, "Amniotic Cavity & Fluid", "left");
+      drawScaleBar("20 cm", 90);
+    }
+
+    animId = requestAnimationFrame(render);
+  }
+
+  animId = requestAnimationFrame(render);
+  activeSimulations.set(mountId, () => {
+    cancelAnimationFrame(animId);
+    isAutoAdvancing = false;
+  });
+
+  stages.forEach((s, idx) => {
+    const btn = document.getElementById(`${mountId}-stage-${idx}`);
+    if (btn) {
+      btn.addEventListener("click", () => {
+        isAutoAdvancing = false;
+        autoIcon.innerText = "▶";
+        autoLbl.innerText = "Auto-Advance Timeline";
+        setStage(idx);
+      });
+    }
+  });
+
+  if (timelineSlider) {
+    timelineSlider.addEventListener("input", (e) => {
+      isAutoAdvancing = false;
+      autoIcon.innerText = "▶";
+      autoLbl.innerText = "Auto-Advance Timeline";
+      setStage(parseInt(e.target.value, 10));
+    });
+  }
+
+  if (btnAuto) {
+    btnAuto.addEventListener("click", () => {
+      isAutoAdvancing = !isAutoAdvancing;
+      autoIcon.innerText = isAutoAdvancing ? "⏸" : "▶";
+      autoLbl.innerText = isAutoAdvancing ? "Pause Auto-Advance" : "Auto-Advance Timeline";
+      btnAuto.classList.toggle("active", isAutoAdvancing);
+      autoTimer = 0;
+    });
+  }
+
+  if (btnPrev) {
+    btnPrev.addEventListener("click", () => {
+      isAutoAdvancing = false;
+      autoIcon.innerText = "▶";
+      autoLbl.innerText = "Auto-Advance Timeline";
+      setStage(currentStageIdx - 1);
+    });
+  }
+
+  if (btnNext) {
+    btnNext.addEventListener("click", () => {
+      isAutoAdvancing = false;
+      autoIcon.innerText = "▶";
+      autoLbl.innerText = "Auto-Advance Timeline";
+      setStage(currentStageIdx + 1);
+    });
+  }
+
+  if (btnToggleLabels) {
+    btnToggleLabels.addEventListener("click", () => {
+      showLabels = !showLabels;
+      btnToggleLabels.innerText = showLabels ? "🏷️ Labels: ON" : "🏷️ Labels: OFF";
+      btnToggleLabels.classList.toggle("active", showLabels);
+    });
+  }
+
+  if (btnToggleScale) {
+    btnToggleScale.addEventListener("click", () => {
+      showScale = !showScale;
+      btnToggleScale.innerText = showScale ? "📏 Scale Bar: ON" : "📏 Scale Bar: OFF";
+      btnToggleScale.classList.toggle("active", showScale);
+    });
+  }
 }
 
 /**

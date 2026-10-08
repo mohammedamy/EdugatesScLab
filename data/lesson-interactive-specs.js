@@ -1534,7 +1534,7 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     }
   },
   "BIO-M20-L1": {
-    "type": "bio-mitosis-cell-cycle",
+    "type": "bio-embryonic-development",
     "lessonBadge": "Lesson 1",
     "title": "Animal Characteristics: Embryonic Cleavage & Germ Layers",
     "formula": "\\text{Zygote } \\longrightarrow \\text{ Blastula } \\longrightarrow \\text{ Gastrula (Ectoderm, Mesoderm, Endoderm)}",
@@ -1733,7 +1733,7 @@ export const LESSON_INTERACTIVE_REGISTRY = {
     "defaultParams": {}
   },
   "BIO-M26-L2": {
-    "type": "bio-mitosis-cell-cycle",
+    "type": "bio-embryonic-development",
     "lessonBadge": "Lesson 2",
     "title": "Embryonic Development: Cleavage & Fetal Trimesters",
     "formula": "\\text{Zygote } \\longrightarrow \\text{ Morula } \\longrightarrow \\text{ Blastocyst } \\longrightarrow \\text{ Embryo}",
