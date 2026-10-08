@@ -185,41 +185,41 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
   }
 
   overlay.innerHTML = `
-    <div class="custom-modal-shell" style="max-width: 900px; width: 94%; max-height: 90vh; display: flex; flex-direction: column;">
+    <div class="custom-modal-shell diag-picker-modal-shell" style="max-width: 1040px; width: 95%; height: 88vh; min-height: 560px; max-height: 94vh; display: flex; flex-direction: column; background: #ffffff; color: #0f172a; border: 1.5px solid #cbd5e1; border-radius: 16px; box-shadow: 0 25px 70px rgba(0,0,0,0.35); overflow: hidden;">
       <!-- Header -->
-      <div class="custom-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 16px 22px; background: rgba(0,0,0,0.2);">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 1.4rem;">🖼️</span>
+      <div class="custom-modal-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1.5px solid #e2e8f0; padding: 16px 24px; background: #f8fafc;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 1.6rem;">🖼️</span>
           <div>
-            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text-main);">
+            <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #0f172a; font-family: var(--font-heading, sans-serif);">
               Scientific Diagrams &amp; Visual Models Bank
             </h3>
-            <div style="font-size: 0.78rem; color: var(--text-muted);">
+            <div style="font-size: 0.82rem; color: #64748b; font-weight: 500;">
               Select from ${diagramsList.length} authentic, vector-calibrated models across Chemistry, Biology, and Physics.
             </div>
           </div>
         </div>
-        <button type="button" class="btn-close-modal" id="btn-close-diag-picker" style="background: transparent; border: none; font-size: 1.3rem; color: var(--text-muted); cursor: pointer;" aria-label="Close dialog">✕</button>
+        <button type="button" class="btn-close-modal" id="btn-close-diag-picker" style="background: transparent; border: none; font-size: 1.4rem; color: #64748b; cursor: pointer; padding: 6px 10px; border-radius: 6px; transition: color 0.15s ease;" aria-label="Close dialog">✕</button>
       </div>
 
       <!-- Search & Filters -->
-      <div class="diag-picker-search-bar" style="padding: 12px 22px; border-bottom: 1.5px solid var(--border-color); display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;">
-        <input type="text" id="diag-picker-search" class="diag-picker-search-input" placeholder="🔍 Search diagrams by concept (e.g. heating curve, cell, circuit, refraction)..." style="flex: 1; min-width: 240px; padding: 8px 14px; border: 1.5px solid var(--border-color); border-radius: 6px; font-size: 0.88rem;">
-        <div style="display: flex; gap: 6px;" id="diag-picker-track-filters">
-          <button type="button" class="btn btn-sm btn-diag-filter active" data-track="ALL" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">All (${diagramsList.length})</button>
-          <button type="button" class="btn btn-sm btn-diag-filter" data-track="CHEM" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">Chemistry</button>
-          <button type="button" class="btn btn-sm btn-diag-filter" data-track="BIO" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">Biology</button>
-          <button type="button" class="btn btn-sm btn-diag-filter" data-track="PHYS" style="font-size: 0.76rem; font-weight: 700; padding: 5px 12px; border-radius: 20px;">Physics</button>
+      <div class="diag-picker-search-bar" style="padding: 14px 24px; border-bottom: 1.5px solid #e2e8f0; background: #ffffff; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center;">
+        <input type="text" id="diag-picker-search" class="diag-picker-search-input" placeholder="🔍 Search diagrams by concept (e.g. heating curve, cell, circuit, refraction)..." style="flex: 1; min-width: 260px; padding: 9px 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; background: #ffffff; color: #0f172a;">
+        <div style="display: flex; gap: 8px;" id="diag-picker-track-filters">
+          <button type="button" class="btn btn-sm btn-diag-filter active" data-track="ALL" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">All (${diagramsList.length})</button>
+          <button type="button" class="btn btn-sm btn-diag-filter" data-track="CHEM" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">🧪 Chemistry</button>
+          <button type="button" class="btn btn-sm btn-diag-filter" data-track="BIO" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">🧬 Biology</button>
+          <button type="button" class="btn btn-sm btn-diag-filter" data-track="PHYS" style="font-size: 0.78rem; font-weight: 700; padding: 6px 14px; border-radius: 20px; cursor: pointer;">⚡ Physics</button>
         </div>
       </div>
 
       <!-- Diagram Grid -->
-      <div id="diag-picker-grid" class="diag-picker-grid" style="padding: 18px 22px; overflow-y: auto; flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); grid-auto-rows: minmax(320px, auto); align-content: start; gap: 16px;">
+      <div id="diag-picker-grid" class="diag-picker-grid" style="padding: 20px 24px; overflow-y: auto; flex: 1 1 auto; min-height: 250px; display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); grid-auto-rows: minmax(320px, auto); align-content: start; gap: 18px; background: #f8fafc;">
       </div>
 
       <!-- Footer -->
-      <div style="padding: 12px 22px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; background: rgba(0,0,0,0.15);">
-        <button type="button" class="btn btn-secondary" id="btn-cancel-diag-picker">Close</button>
+      <div style="padding: 14px 24px; border-top: 1.5px solid #e2e8f0; display: flex; justify-content: flex-end; align-items: center; background: #f1f5f9;">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-diag-picker" style="font-weight: 700; padding: 8px 20px; border-radius: 8px; border: 1.5px solid #cbd5e1; background: #ffffff; color: #334155; cursor: pointer;">Close</button>
       </div>
     </div>
   `;
@@ -233,9 +233,10 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
     const items = getFilteredDiagrams();
     if (items.length === 0) {
       gridEl.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
-          <div style="font-size: 2rem; margin-bottom: 8px;">🔍</div>
-          <div>No diagrams found matching "${escapeHtml(searchQuery)}".</div>
+        <div style="grid-column: 1 / -1; text-align: center; padding: 48px 20px; color: #64748b;">
+          <div style="font-size: 2.4rem; margin-bottom: 10px;">🔍</div>
+          <div style="font-size: 1rem; font-weight: 600; color: #334155;">No diagrams found matching "${escapeHtml(searchQuery)}".</div>
+          <div style="font-size: 0.85rem; margin-top: 4px;">Try searching for terms like "cell", "circuit", "wave", "titration", or "optics".</div>
         </div>
       `;
       return;
@@ -243,28 +244,31 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
 
     gridEl.innerHTML = items.map(d => {
       const trackBadge = d.subject === "CHEM" ? "🧪 Chemistry" : (d.subject === "BIO" ? "🧬 Biology" : "⚡ Physics");
-      const trackColor = d.subject === "CHEM" ? "#38bdf8" : (d.subject === "BIO" ? "#10b981" : "#a855f7");
+      const trackColor = d.subject === "CHEM" ? "#0284c7" : (d.subject === "BIO" ? "#059669" : "#7c3aed");
+      const trackBg = d.subject === "CHEM" ? "#e0f2fe" : (d.subject === "BIO" ? "#d1fae5" : "#ede9fe");
+      const polishedSvg = polishDiagramForPrint(d.svg || '');
+
       return `
-        <div class="diag-picker-card" style="display: flex; flex-direction: column; min-height: 320px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.2); transition: transform 0.18s ease, border-color 0.18s ease;">
-          <div class="diag-picker-preview-box" style="height: 155px; min-height: 155px; flex-shrink: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #0b0f19; padding: 10px; border-bottom: 1.5px solid var(--border-color); position: relative;">
+        <div class="diag-picker-card" data-id="${d.id}" role="button" tabindex="0" aria-label="Select diagram ${escapeHtml(d.title)}" style="display: flex; flex-direction: column; min-height: 320px; border-radius: 12px; overflow: hidden; background: #ffffff; border: 1.5px solid #e2e8f0; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08); transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease; cursor: pointer;">
+          <div class="diag-picker-preview-box" style="height: 180px; min-height: 180px; flex-shrink: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; background: #ffffff; padding: 10px; border-bottom: 1.5px solid #e2e8f0; position: relative;">
             <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">
-              ${d.svg || ''}
+              ${polishedSvg}
             </div>
           </div>
-          <div class="diag-picker-card-body" style="padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1 0 auto; justify-content: space-between;">
+          <div class="diag-picker-card-body" style="padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1 0 auto; justify-content: space-between; background: #ffffff;">
             <div>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-                <span class="diag-picker-badge" style="font-size: 0.72rem; font-weight: 800; color: ${trackColor}; text-transform: uppercase;">${trackBadge}</span>
-                <span style="font-size: 0.7rem; color: var(--text-dim); font-family: var(--font-mono);">${d.id}</span>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span class="diag-picker-badge" style="font-size: 0.74rem; font-weight: 800; color: ${trackColor}; background: ${trackBg}; padding: 3px 8px; border-radius: 6px; text-transform: uppercase;">${trackBadge}</span>
+                <span style="font-size: 0.72rem; color: #64748b; font-family: var(--font-mono, monospace); font-weight: 600;">${d.id}</span>
               </div>
-              <div class="diag-picker-title" style="font-size: 0.92rem; font-weight: 700; color: var(--text-main); line-height: 1.35; margin-bottom: 4px;">
+              <div class="diag-picker-title" style="font-size: 0.95rem; font-weight: 800; color: #0f172a; line-height: 1.35; margin-bottom: 4px;">
                 ${escapeHtml(d.title)}
               </div>
-              <div class="diag-picker-caption" style="font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;">
+              <div class="diag-picker-caption" style="font-size: 0.78rem; color: #475569; line-height: 1.45;">
                 ${escapeHtml(d.caption || '')}
               </div>
             </div>
-            <button type="button" class="btn btn-primary btn-choose-diagram" data-id="${d.id}" style="width: 100%; margin-top: 8px; font-weight: 800; font-size: 0.82rem; padding: 9px 14px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0;">
+            <button type="button" class="btn btn-primary btn-choose-diagram" data-id="${d.id}" style="width: 100%; margin-top: 8px; font-weight: 800; font-size: 0.86rem; padding: 10px 16px; border-radius: 8px; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);">
               <span>✓ Select Diagram</span>
             </button>
           </div>
@@ -272,14 +276,33 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
       `;
     }).join("");
 
+    function selectDiagramById(id) {
+      const diag = SCIENTIFIC_DIAGRAMS[id];
+      if (diag && typeof onSelectDiagram === "function") {
+        onSelectDiagram(diag);
+      }
+      overlay.remove();
+    }
+
     gridEl.querySelectorAll(".btn-choose-diagram").forEach(btn => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
         const id = btn.dataset.id;
-        const diag = SCIENTIFIC_DIAGRAMS[id];
-        if (diag && typeof onSelectDiagram === "function") {
-          onSelectDiagram(diag);
+        if (id) selectDiagramById(id);
+      });
+    });
+
+    gridEl.querySelectorAll(".diag-picker-card").forEach(card => {
+      card.addEventListener("click", () => {
+        const id = card.dataset.id;
+        if (id) selectDiagramById(id);
+      });
+      card.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          const id = card.dataset.id;
+          if (id) selectDiagramById(id);
         }
-        overlay.remove();
       });
     });
   }
@@ -626,8 +649,8 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
               </button>
             </div>
             <!-- Live Visual Thumbnail inside Attachment Card -->
-            <div id="cq-attached-diag-thumb" class="cq-attached-thumb" style="margin: 10px 0; max-height: 160px; min-height: 60px; background: #0b0f19; border-radius: 8px; border: 1.5px solid var(--border-color); overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 8px;">
-              ${attachedDiagram?.svg ? `<div style="max-height: 140px; max-width: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">${attachedDiagram.svg}</div>` : (attachedDiagram?.imageUrl ? `<img src="${attachedDiagram.imageUrl}" alt="Attached Thumbnail" style="max-height: 140px; max-width: 100%; object-fit: contain; border-radius: 6px;">` : '')}
+            <div id="cq-attached-diag-thumb" class="cq-attached-thumb" style="margin: 10px 0; max-height: 160px; min-height: 60px; background: #ffffff; border-radius: 8px; border: 1.5px solid #cbd5e1; overflow: hidden; display: flex; justify-content: center; align-items: center; padding: 8px;">
+              ${attachedDiagram?.svg ? `<div style="max-height: 140px; max-width: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">${polishDiagramForPrint(attachedDiagram.svg)}</div>` : (attachedDiagram?.imageUrl ? `<img src="${attachedDiagram.imageUrl}" alt="Attached Thumbnail" style="max-height: 140px; max-width: 100%; object-fit: contain; border-radius: 6px;">` : '')}
             </div>
             <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px;">
               <label for="cq-diag-caption" style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); white-space: nowrap;">Caption / Figure Title:</label>
@@ -731,7 +754,7 @@ export function openCustomQuestionModal(onQuestionSaved, initialData = null) {
       if (diagType) diagType.textContent = attachedDiagram.svg ? "(Vector SVG)" : "(Image)";
       if (diagThumb) {
         if (attachedDiagram.svg) {
-          diagThumb.innerHTML = `<div style="max-height: 140px; max-width: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">${attachedDiagram.svg}</div>`;
+          diagThumb.innerHTML = `<div style="max-height: 140px; max-width: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">${polishDiagramForPrint(attachedDiagram.svg)}</div>`;
         } else if (attachedDiagram.imageUrl) {
           diagThumb.innerHTML = `<img src="${attachedDiagram.imageUrl}" alt="Attached Thumbnail" style="max-height: 140px; max-width: 100%; object-fit: contain; border-radius: 6px;">`;
         } else {

@@ -14996,16 +14996,24 @@ body.focus-mode .btn-focus-mode-exit {
    ========================================================================= */
 
 /* Diagram Picker Grid & Layout Architecture */
+.diag-picker-modal-shell {
+  height: 88vh !important;
+  min-height: 560px !important;
+  max-height: 94vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
 .diag-picker-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)) !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
   grid-auto-rows: minmax(320px, auto) !important;
   align-content: start !important;
-  gap: 16px !important;
+  gap: 18px !important;
   padding: 18px 22px !important;
   overflow-y: auto !important;
-  flex: 1 1 0 !important;
-  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  min-height: 250px !important;
   max-height: 100% !important;
 }
 
@@ -15030,15 +15038,15 @@ body.focus-mode .btn-focus-mode-exit {
 }
 
 .diag-picker-preview-box {
-  height: 155px !important;
-  min-height: 155px !important;
-  max-height: 155px !important;
+  height: 180px !important;
+  min-height: 180px !important;
+  max-height: 180px !important;
   flex-shrink: 0 !important;
   overflow: hidden !important;
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  background: #0b0f19 !important;
+  background: #ffffff !important;
   padding: 10px !important;
   border-bottom: 1.5px solid var(--border-color, #334155) !important;
   position: relative !important;
@@ -15047,9 +15055,10 @@ body.focus-mode .btn-focus-mode-exit {
 .diag-picker-preview-box svg {
   width: 100% !important;
   height: 100% !important;
-  max-height: 135px !important;
+  max-height: 160px !important;
   object-fit: contain !important;
   display: block !important;
+  background: #ffffff !important;
 }
 
 .diag-picker-card-body {
@@ -15077,6 +15086,25 @@ body.focus-mode .btn-focus-mode-exit {
   border-color: #38bdf8 !important;
   outline: none !important;
   box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
+}
+
+.btn-diag-filter {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1.5px solid var(--border-color, #334155) !important;
+  color: var(--text-muted, #94a3b8) !important;
+  transition: all 0.15s ease !important;
+}
+
+.btn-diag-filter:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.btn-diag-filter.active {
+  background: #0284c7 !important;
+  border-color: #0284c7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3) !important;
 }
 
 .btn-choose-diagram {
@@ -15154,8 +15182,8 @@ body.focus-mode .btn-focus-mode-exit {
 }
 
 .cq-attached-thumb {
-  background: #0b0f19 !important;
-  border: 1.5px solid var(--border-color, #334155) !important;
+  background: #ffffff !important;
+  border: 1.5px solid var(--border-color, #cbd5e1) !important;
 }
 
 .cq-attached-thumb svg {
@@ -15163,6 +15191,7 @@ body.focus-mode .btn-focus-mode-exit {
   max-width: 100% !important;
   object-fit: contain !important;
   display: block !important;
+  background: #ffffff !important;
 }
 
 .cq-option-row {
