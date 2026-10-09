@@ -93,29 +93,30 @@ assert(
   "index.css defines Edugates brand design tokens (deep blues, teals, and accents)"
 );
 
-// 2.2 Persistent Sticky Navigation Menu
+// 2.2 Navigation Solely in Dropdown Menu
 assert(
-  appJs.includes('class="nav-persistent-menu"') &&
-  appJs.includes('data-nav="home"') &&
-  appJs.includes('data-nav="bio"') &&
-  appJs.includes('data-nav="chem"') &&
-  appJs.includes('data-nav="phys"') &&
-  appJs.includes('data-nav="safety"'),
-  "app.js renders persistent navigation menu with Home, Biology, Chemistry, Physics, and Safety"
+  !appJs.includes('class="nav-persistent-menu"') &&
+  appJs.includes('id="nav-subjects-dropdown"') &&
+  appJs.includes('id="nav-subjects-menu"') &&
+  appJs.includes('data-tab="safety"') &&
+  appJs.includes('data-tab="home"') &&
+  appJs.includes('CURRICULUM_SUBJECTS.map') &&
+  appJs.includes('TOOL_TABS.map'),
+  "app.js ensures subjects, tools, and safety appear solely within the dropdown menu"
 );
 
 assert(
-  indexCss.includes(".nav-persistent-menu {") &&
-  indexCss.includes("border-radius: 9999px;"),
-  "index.css styles .nav-persistent-menu with modern pill styling"
+  indexCss.includes(".nav-subjects-dropdown") &&
+  indexCss.includes(".nav-dropdown-menu"),
+  "index.css styles dropdown menu and flyout navigation"
 );
 
 // 2.3 Mobile-First Responsive Breakpoints
 assert(
   indexCss.includes("@media (max-width: 768px)") &&
-  indexCss.includes(".nav-persistent-menu") &&
-  indexCss.includes("overflow-x: auto;"),
-  "index.css provides horizontal scrollable navigation on mobile viewports (<768px)"
+  indexCss.includes(".nav-dropdown-wrapper") &&
+  indexCss.includes(".nav-dropdown-menu"),
+  "index.css provides responsive dropdown navigation for touch & mobile viewports (<768px)"
 );
 
 
@@ -221,12 +222,10 @@ assert(
 
 // 5.2 Navigation Aria Labels
 assert(
-  appJs.includes('aria-label="Home Portal"') &&
-  appJs.includes('aria-label="Biology Curriculum"') &&
-  appJs.includes('aria-label="Chemistry Curriculum"') &&
-  appJs.includes('aria-label="Physics Curriculum"') &&
-  appJs.includes('aria-label="Laboratory Safety Dashboard"'),
-  "app.js provides descriptive aria-labels for all persistent navigation links"
+  appJs.includes('aria-label="Home Portal: Edugates Science Lab Overview"') &&
+  appJs.includes('aria-label="Laboratory Safety Dashboard: OSHA, ANSI, SDS Sheets &amp; Rules"') &&
+  appJs.includes('aria-label="Edugates Science Lab Home"'),
+  "app.js provides descriptive aria-labels for navigation landmarks and dropdown items"
 );
 
 // 5.3 Alt Text for Scientific Diagrams

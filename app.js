@@ -462,34 +462,6 @@ function renderAppShell() {
 
       <!-- Semantic Main Navigation Landmark -->
       <nav class="app-nav-container app-nav-center" aria-label="Main Navigation">
-        <!-- Persistent Sticky Navigation Menu: Home, Biology, Chemistry, Physics, Safety, Virtual Labs -->
-        <div class="nav-persistent-menu" role="menubar" aria-label="Science Disciplines &amp; Safety Menu">
-          <a href="#home" class="nav-menu-link ${AppState.currentTab === 'home' ? 'active' : ''}" data-nav="home" role="menuitem" aria-label="Home Portal">
-            <span class="nav-menu-icon" aria-hidden="true">🏠</span>
-            <span class="nav-menu-label">Home</span>
-          </a>
-          <a href="#bio" class="nav-menu-link tab-bio ${AppState.currentTab === 'bio' ? 'active' : ''}" data-nav="bio" role="menuitem" aria-label="Biology Curriculum">
-            <span class="nav-menu-icon" aria-hidden="true">${icons.biology}</span>
-            <span class="nav-menu-label">Biology</span>
-          </a>
-          <a href="#chem" class="nav-menu-link tab-chem ${AppState.currentTab === 'chem' ? 'active' : ''}" data-nav="chem" role="menuitem" aria-label="Chemistry Curriculum">
-            <span class="nav-menu-icon" aria-hidden="true">${icons.chemistry}</span>
-            <span class="nav-menu-label">Chemistry</span>
-          </a>
-          <a href="#phys" class="nav-menu-link tab-phys ${AppState.currentTab === 'phys' ? 'active' : ''}" data-nav="phys" role="menuitem" aria-label="Physics Curriculum">
-            <span class="nav-menu-icon" aria-hidden="true">${icons.physics}</span>
-            <span class="nav-menu-label">Physics</span>
-          </a>
-          <a href="#safety" class="nav-menu-link tab-safety ${AppState.currentTab === 'safety' ? 'active' : ''}" data-nav="safety" role="menuitem" aria-label="Laboratory Safety Dashboard">
-            <span class="nav-menu-icon" aria-hidden="true">🛡️</span>
-            <span class="nav-menu-label">Safety</span>
-          </a>
-          <a href="#labs" class="nav-menu-link tab-labs ${AppState.currentTab === 'labs' ? 'active' : ''}" data-nav="labs" role="menuitem" aria-label="Virtual Science Laboratories">
-            <span class="nav-menu-icon" aria-hidden="true">${icons.microscope}</span>
-            <span class="nav-menu-label">Labs</span>
-          </a>
-        </div>
-
         <!-- Responsive Segmented Subject Tabs (Desktop & Large Touch / MAXHUB screens >= 960px) -->
         <div class="nav-subject-tabs" role="tablist" aria-label="Curriculum Subjects and Laboratories">
           <!-- Subjects Dropdown Menu Pill (Collects Chemistry, Biology, Physics) -->
@@ -563,6 +535,45 @@ function renderAppShell() {
                     </div>
                   </a>
                 `).join('')}
+              </div>
+
+              <div class="nav-dropdown-header" style="margin-top: 8px;">
+                <span class="nav-dropdown-header-title">Resources &amp; Lab Safety</span>
+                <span class="nav-dropdown-header-count">2 Resources</span>
+              </div>
+              <div class="nav-dropdown-list">
+                <a href="#safety" class="nav-dropdown-item tab-safety ${AppState.currentTab === 'safety' ? 'active' : ''}" 
+                   data-tab="safety" role="menuitem" aria-label="Laboratory Safety Dashboard: OSHA, ANSI, SDS Sheets &amp; Rules" style="text-decoration: none; color: inherit;">
+                  <div class="nav-item-icon-box">
+                    <span style="font-size: 1.1rem;">🛡️</span>
+                  </div>
+                  <div class="nav-item-content">
+                    <div class="nav-item-top">
+                      <span class="nav-item-title">Lab Safety</span>
+                      <span class="nav-item-badge">OSHA / ANSI</span>
+                    </div>
+                    <span class="nav-item-tagline">Chemical SDS lookup, PPE &amp; evacuation protocols</span>
+                  </div>
+                  <div class="nav-item-check" aria-hidden="true">
+                    ${icons.check}
+                  </div>
+                </a>
+                <a href="#home" class="nav-dropdown-item tab-home ${AppState.currentTab === 'home' ? 'active' : ''}" 
+                   data-tab="home" role="menuitem" aria-label="Home Portal: Edugates Science Lab Overview" style="text-decoration: none; color: inherit;">
+                  <div class="nav-item-icon-box">
+                    <span style="font-size: 1.1rem;">🏠</span>
+                  </div>
+                  <div class="nav-item-content">
+                    <div class="nav-item-top">
+                      <span class="nav-item-title">Home Portal</span>
+                      <span class="nav-item-badge">Overview</span>
+                    </div>
+                    <span class="nav-item-tagline">Portal directory, curriculum overview &amp; experiment cards</span>
+                  </div>
+                  <div class="nav-item-check" aria-hidden="true">
+                    ${icons.check}
+                  </div>
+                </a>
               </div>
 
               <div class="nav-dropdown-footer">
@@ -640,6 +651,45 @@ function renderAppShell() {
                   </div>
                 </a>
               `).join('')}
+            </div>
+
+            <div class="nav-dropdown-header" style="margin-top: 8px;">
+              <span class="nav-dropdown-header-title">Resources &amp; Lab Safety</span>
+              <span class="nav-dropdown-header-count">2 Resources</span>
+            </div>
+            <div class="nav-dropdown-list">
+              <a href="#safety" class="nav-dropdown-item tab-safety ${AppState.currentTab === 'safety' ? 'active' : ''}" 
+                 data-tab="safety" role="menuitem" aria-label="Laboratory Safety Dashboard: OSHA, ANSI, SDS Sheets &amp; Rules" style="text-decoration: none; color: inherit;">
+                <div class="nav-item-icon-box">
+                  <span style="font-size: 1.1rem;">🛡️</span>
+                </div>
+                <div class="nav-item-content">
+                  <div class="nav-item-top">
+                    <span class="nav-item-title">Lab Safety</span>
+                    <span class="nav-item-badge">OSHA / ANSI</span>
+                  </div>
+                  <span class="nav-item-tagline">Chemical SDS lookup, PPE &amp; evacuation protocols</span>
+                </div>
+                <div class="nav-item-check" aria-hidden="true">
+                  ${icons.check}
+                </div>
+              </a>
+              <a href="#home" class="nav-dropdown-item tab-home ${AppState.currentTab === 'home' ? 'active' : ''}" 
+                 data-tab="home" role="menuitem" aria-label="Home Portal: Edugates Science Lab Overview" style="text-decoration: none; color: inherit;">
+                <div class="nav-item-icon-box">
+                  <span style="font-size: 1.1rem;">🏠</span>
+                </div>
+                <div class="nav-item-content">
+                  <div class="nav-item-top">
+                    <span class="nav-item-title">Home Portal</span>
+                    <span class="nav-item-badge">Overview</span>
+                  </div>
+                  <span class="nav-item-tagline">Portal directory, curriculum overview &amp; experiment cards</span>
+                </div>
+                <div class="nav-item-check" aria-hidden="true">
+                  ${icons.check}
+                </div>
+              </a>
             </div>
 
             <div class="nav-dropdown-footer">
