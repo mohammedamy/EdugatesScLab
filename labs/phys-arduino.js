@@ -1866,108 +1866,109 @@ export function getDefaultWiresForExperiment(expId) {
     case "ultrasonic_radar":
       return [
         ...powerBus,
-        { id: "w_trig", from: "D12", to: "SONAR_TRIG", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 535, ey: 149, color: "#38bdf8", label: "D12 ➔ Sonar Trig" },
-        { id: "w_echo", from: "D11", to: "SONAR_ECHO", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 585, ey: 149, color: "#10b981", label: "D11 ➔ Sonar Echo" },
-        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 758, ey: 153, color: "#a855f7", label: "D8 ➔ Proximity Buzzer" },
-        { id: "w_warn", from: "D13", to: "LED_WARN", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 680, ey: 135, color: "#ef4444", label: "D13 ➔ Warning LED" }
+        { id: "w_trig", from: "D12", to: "SONAR_TRIG", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 525, ey: 112, color: "#38bdf8", label: "D12 ➔ Sonar Trig" },
+        { id: "w_echo", from: "D11", to: "SONAR_ECHO", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 540, ey: 112, color: "#10b981", label: "D11 ➔ Sonar Echo" },
+        { id: "w_warn", from: "D13", to: "LED_WARN", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 650, ey: 112, color: "#ef4444", label: "D13 ➔ Warning LED Anode" },
+        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 730, ey: 112, color: "#a855f7", label: "D8 ➔ Proximity Buzzer" }
       ];
     case "ldr_nightlight":
       return [
         ...powerBus,
-        { id: "w_ldr", from: "A1", to: "LDR", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 500, ey: 135, color: "#38bdf8", label: "A1 ➔ LDR Sensor" },
-        { id: "w_pwm", from: "D9", to: "LED_PWM", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 600, ey: 135, color: "#a855f7", label: "D9 (~PWM) ➔ Dimming LED" },
-        { id: "w_pot", from: "A0", to: "POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 717, ey: 147, color: "#facc15", label: "A0 ➔ Threshold Pot" }
+        { id: "w_ldr", from: "A1", to: "LDR", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 500, ey: 112, color: "#38bdf8", label: "A1 ➔ LDR Divider Node" },
+        { id: "w_pwm", from: "D9", to: "LED_PWM", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 600, ey: 112, color: "#a855f7", label: "D9 (~PWM) ➔ Dimming LED Anode" },
+        { id: "w_pot", from: "A0", to: "POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 112, color: "#facc15", label: "A0 ➔ Threshold Pot Wiper" }
       ];
     case "servo_control":
       return [
         ...powerBus,
-        { id: "w_srv", from: "D9", to: "SERVO_SIG", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 587, ey: 197, color: "#f97316", label: "D9 (~PWM) ➔ Servo Signal" },
-        { id: "w_pot", from: "A0", to: "POT_WIPER", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 737, ey: 147, color: "#38bdf8", label: "A0 ➔ Steering Pot" }
+        { id: "w_srv", from: "D9", to: "SERVO_SIG", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 560, ey: 112, color: "#f97316", label: "D9 (~PWM) ➔ Servo Signal" },
+        { id: "w_pot", from: "A0", to: "POT_WIPER", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 112, color: "#38bdf8", label: "A0 ➔ Steering Pot Wiper" }
       ];
     case "chiptune_melody":
       return [
         ...powerBus,
-        { id: "w_bz", from: "D8", to: "PIEZO", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 598, ey: 158, color: "#a855f7", label: "D8 ➔ Piezo Sounder" },
-        { id: "w_led", from: "D13", to: "LED_TEMPO", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 700, ey: 140, color: "#38bdf8", label: "D13 ➔ Beat Strobe" }
+        { id: "w_bz", from: "D8", to: "PIEZO", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 580, ey: 112, color: "#a855f7", label: "D8 ➔ Piezo Sounder (+)" },
+        { id: "w_led", from: "D13", to: "LED_TEMPO", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 700, ey: 112, color: "#38bdf8", label: "D13 ➔ Beat Strobe Anode" }
       ];
     case "weather_station":
       return [
         ...powerBus,
-        { id: "w_tmp", from: "A1", to: "TMP36", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 740, ey: 135, color: "#facc15", label: "A1 ➔ TMP36 Sensor" },
-        { id: "w_sda", from: "A4", to: "LCD_SDA", sx: ARDUINO_PINS["A4"].x, sy: ARDUINO_PINS["A4"].y, ex: 520, ey: 180, color: "#10b981", label: "A4 ➔ I2C SDA" },
-        { id: "w_scl", from: "A5", to: "LCD_SCL", sx: ARDUINO_PINS["A5"].x, sy: ARDUINO_PINS["A5"].y, ex: 540, ey: 180, color: "#38bdf8", label: "A5 ➔ I2C SCL" }
+        { id: "w_sda", from: "A4", to: "LCD_SDA", sx: ARDUINO_PINS["A4"].x, sy: ARDUINO_PINS["A4"].y, ex: 595, ey: 112, color: "#10b981", label: "A4 ➔ I2C SDA" },
+        { id: "w_scl", from: "A5", to: "LCD_SCL", sx: ARDUINO_PINS["A5"].x, sy: ARDUINO_PINS["A5"].y, ex: 610, ey: 112, color: "#38bdf8", label: "A5 ➔ I2C SCL" },
+        { id: "w_tmp", from: "A1", to: "TMP36", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 730, ey: 112, color: "#facc15", label: "A1 ➔ TMP36 Vout" }
       ];
     case "rgb_mood_lamp":
       return [
         ...powerBus,
-        { id: "w_r", from: "D9", to: "RGB_R", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 555, ey: 140, color: "#ef4444", label: "D9 (PWM) ➔ Red Anode" },
-        { id: "w_g", from: "D10", to: "RGB_G", sx: ARDUINO_PINS["D10"].x, sy: ARDUINO_PINS["D10"].y, ex: 570, ey: 140, color: "#10b981", label: "D10 (PWM) ➔ Green Anode" },
-        { id: "w_b", from: "D11", to: "RGB_B", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 585, ey: 140, color: "#38bdf8", label: "D11 (PWM) ➔ Blue Anode" },
-        { id: "w_pot", from: "A0", to: "POT_HUE", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 720, ey: 147, color: "#facc15", label: "A0 ➔ Hue Selector" }
+        { id: "w_r", from: "D9", to: "RGB_R", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 510, ey: 112, color: "#ef4444", label: "D9 (PWM) ➔ Red Limiter" },
+        { id: "w_g", from: "D10", to: "RGB_G", sx: ARDUINO_PINS["D10"].x, sy: ARDUINO_PINS["D10"].y, ex: 540, ey: 112, color: "#10b981", label: "D10 (PWM) ➔ Green Limiter" },
+        { id: "w_b", from: "D11", to: "RGB_B", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 570, ey: 112, color: "#38bdf8", label: "D11 (PWM) ➔ Blue Limiter" },
+        { id: "w_pot", from: "A0", to: "POT_HUE", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 112, color: "#facc15", label: "A0 ➔ Hue Selector Wiper" }
       ];
     case "dc_motor_speed":
       return [
         ...powerBus,
-        { id: "w_mot", from: "D5", to: "MOSFET_GATE", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 560, ey: 145, color: "#a855f7", label: "D5 (PWM) ➔ Driver Gate" },
-        { id: "w_pot", from: "A0", to: "POT_SPEED", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 750, ey: 147, color: "#38bdf8", label: "A0 ➔ Speed Throttle" }
+        { id: "w_mot", from: "D5", to: "MOSFET_GATE", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 630, ey: 112, color: "#a855f7", label: "D5 (PWM) ➔ Driver Gate (1kΩ)" },
+        { id: "w_pot", from: "A0", to: "POT_SPEED", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 720, ey: 112, color: "#38bdf8", label: "A0 ➔ Throttle Pot Wiper" }
       ];
     case "pir_alarm":
       return [
         ...powerBus,
-        { id: "w_pir", from: "D7", to: "PIR_OUT", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 520, ey: 135, color: "#facc15", label: "D7 ➔ PIR Trigger" },
-        { id: "w_rly", from: "D4", to: "RELAY_IN", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 652, ey: 152, color: "#38bdf8", label: "D4 ➔ Relay Actuator" },
-        { id: "w_bz", from: "D8", to: "SIREN_BZ", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 785, ey: 145, color: "#ef4444", label: "D8 ➔ Intruder Alarm" }
+        { id: "w_pir", from: "D7", to: "PIR_OUT", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 510, ey: 112, color: "#facc15", label: "D7 ➔ PIR Trigger Out" },
+        { id: "w_rly", from: "D4", to: "RELAY_IN", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 610, ey: 112, color: "#38bdf8", label: "D4 ➔ Relay Coil In" },
+        { id: "w_warn", from: "D13", to: "LED_WARN", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 690, ey: 112, color: "#ef4444", label: "D13 ➔ Alarm Strobe Anode" },
+        { id: "w_bz", from: "D8", to: "SIREN_BZ", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 755, ey: 112, color: "#a855f7", label: "D8 ➔ Intruder Siren (+)" }
       ];
     case "seven_seg_counter":
       return [
         ...powerBus,
-        { id: "w_s1", from: "D6", to: "SEG_A", sx: ARDUINO_PINS["D6"].x, sy: ARDUINO_PINS["D6"].y, ex: 575, ey: 130, color: "#ef4444", label: "D6 ➔ Seg A" },
-        { id: "w_s2", from: "D7", to: "SEG_B", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 615, ey: 130, color: "#f97316", label: "D7 ➔ Seg B" },
-        { id: "w_s3", from: "D8", to: "SEG_C", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 615, ey: 180, color: "#facc15", label: "D8 ➔ Seg C" },
-        { id: "w_btn", from: "D2", to: "STEP_BTN", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 710, ey: 150, color: "#38bdf8", label: "D2 ➔ Step Count Switch" }
+        { id: "w_s1", from: "D6", to: "SEG_A", sx: ARDUINO_PINS["D6"].x, sy: ARDUINO_PINS["D6"].y, ex: 510, ey: 112, color: "#ef4444", label: "D6 ➔ Seg A (220Ω)" },
+        { id: "w_s2", from: "D7", to: "SEG_B", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 550, ey: 112, color: "#f97316", label: "D7 ➔ Seg B (220Ω)" },
+        { id: "w_s3", from: "D8", to: "SEG_C", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 590, ey: 112, color: "#facc15", label: "D8 ➔ Seg C (220Ω)" },
+        { id: "w_btn", from: "D2", to: "STEP_BTN", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 680, ey: 112, color: "#38bdf8", label: "D2 ➔ Step Switch (Pullup)" }
       ];
     case "joystick_pan_tilt":
       return [
         ...powerBus,
-        { id: "w_jx", from: "A0", to: "JOY_VRX", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 520, ey: 135, color: "#38bdf8", label: "A0 ➔ Joystick X-Axis" },
-        { id: "w_jy", from: "A1", to: "JOY_VRY", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 540, ey: 135, color: "#10b981", label: "A1 ➔ Joystick Y-Axis" },
-        { id: "w_srv", from: "D9", to: "SERVO_PAN", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 697, ey: 197, color: "#f97316", label: "D9 (PWM) ➔ Pan Servo" }
+        { id: "w_jx", from: "A0", to: "JOY_VRX", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 500, ey: 112, color: "#38bdf8", label: "A0 ➔ Joystick X-Axis" },
+        { id: "w_jy", from: "A1", to: "JOY_VRY", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 515, ey: 112, color: "#10b981", label: "A1 ➔ Joystick Y-Axis" },
+        { id: "w_srv", from: "D9", to: "SERVO_PAN", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 660, ey: 112, color: "#f97316", label: "D9 (PWM) ➔ Pan Servo Signal" }
       ];
     case "button_toggle":
       return [
         ...powerBus,
-        { id: "w_btn", from: "D2", to: "TACT_SW", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 540, ey: 130, color: "#facc15", label: "D2 ➔ Toggle Button" },
-        { id: "w_led", from: "D13", to: "STATUS_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 660, ey: 135, color: "#38bdf8", label: "D13 ➔ Latching LED" }
+        { id: "w_btn", from: "D2", to: "TACT_SW", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 540, ey: 112, color: "#facc15", label: "D2 ➔ Debounced Pushbutton" },
+        { id: "w_led", from: "D13", to: "STATUS_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 660, ey: 112, color: "#38bdf8", label: "D13 ➔ Latching LED Anode" }
       ];
     case "sonar_lcd_scope":
       return [
         ...powerBus,
-        { id: "w_trig", from: "D12", to: "SONAR_T", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 510, ey: 185, color: "#38bdf8", label: "D12 ➔ Sonar Trig" },
-        { id: "w_echo", from: "D11", to: "SONAR_E", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 560, ey: 185, color: "#10b981", label: "D11 ➔ Sonar Echo" },
-        { id: "w_bz", from: "D13", to: "ALARM_BZ", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 745, ey: 185, color: "#ef4444", label: "D13 ➔ Alert Sounder" }
+        { id: "w_trig", from: "D12", to: "SONAR_T", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 515, ey: 112, color: "#38bdf8", label: "D12 ➔ Sonar Trig" },
+        { id: "w_echo", from: "D11", to: "SONAR_E", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 530, ey: 112, color: "#10b981", label: "D11 ➔ Sonar Echo" },
+        { id: "w_bz", from: "D13", to: "ALARM_BZ", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 730, ey: 112, color: "#ef4444", label: "D13 ➔ Alert Sounder (+)" }
       ];
     case "thermostat_relay_fan":
       return [
         ...powerBus,
-        { id: "w_tmp", from: "A0", to: "TMP36", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 470, ey: 135, color: "#facc15", label: "A0 ➔ TMP36 Temp" },
-        { id: "w_pot", from: "A1", to: "SET_POT", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 550, ey: 130, color: "#f97316", label: "A1 ➔ Setpoint Pot" },
-        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 630, ey: 120, color: "#38bdf8", label: "D4 ➔ Relay Driver" },
-        { id: "w_fan", from: "D5", to: "FAN_PWM", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 730, ey: 140, color: "#10b981", label: "D5 (PWM) ➔ Cooling Fan" }
+        { id: "w_tmp", from: "A0", to: "TMP36", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 480, ey: 112, color: "#facc15", label: "A0 ➔ TMP36 Temp Vout" },
+        { id: "w_pot", from: "A1", to: "SET_POT", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 560, ey: 112, color: "#f97316", label: "A1 ➔ Setpoint Pot Wiper" },
+        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 640, ey: 112, color: "#38bdf8", label: "D4 ➔ Relay Driver In" },
+        { id: "w_fan", from: "D5", to: "FAN_PWM", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 730, ey: 112, color: "#10b981", label: "D5 (PWM) ➔ Cooling Fan Gate" }
       ];
     case "multi_sensor_alarm":
       return [
         ...powerBus,
-        { id: "w_pir", from: "D7", to: "PIR", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 480, ey: 125, color: "#facc15", label: "D7 ➔ PIR Motion" },
-        { id: "w_ldr", from: "A0", to: "LDR", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 570, ey: 135, color: "#38bdf8", label: "A0 ➔ LDR Sensor" },
-        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 645, ey: 120, color: "#10b981", label: "D4 ➔ Floodlight Relay" },
-        { id: "w_bz", from: "D8", to: "SIREN", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 765, ey: 135, color: "#a855f7", label: "D8 ➔ Alarm Siren" }
+        { id: "w_pir", from: "D7", to: "PIR", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 495, ey: 112, color: "#facc15", label: "D7 ➔ PIR Motion Trigger" },
+        { id: "w_ldr", from: "A0", to: "LDR", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 570, ey: 112, color: "#38bdf8", label: "A0 ➔ LDR Divider Node" },
+        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 650, ey: 112, color: "#10b981", label: "D4 ➔ Floodlight Relay" },
+        { id: "w_bz", from: "D8", to: "SIREN", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 750, ey: 112, color: "#a855f7", label: "D8 ➔ Alarm Siren (+)" }
       ];
     case "custom_sandbox":
     default:
       return [
         ...powerBus,
-        { id: "w_sb_1", from: "D13", to: "CUSTOM_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 640, ey: 135, color: "#38bdf8", label: "D13 ➔ Sandbox LED" },
-        { id: "w_sb_2", from: "A0", to: "CUSTOM_POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 225, color: "#facc15", label: "A0 ➔ Sandbox Pot" }
+        { id: "w_sb_1", from: "D13", to: "CUSTOM_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 640, ey: 112, color: "#38bdf8", label: "D13 ➔ Sandbox LED Anode" },
+        { id: "w_sb_2", from: "A0", to: "CUSTOM_POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 112, color: "#facc15", label: "A0 ➔ Sandbox Pot Wiper" }
       ];
   }
 }
@@ -6034,120 +6035,212 @@ export function initArduinoLab(containerId) {
       drawPiezoBuzzer(c, bx + 322, by + 75, state.components.pin13Led, false, "BUZZER (D8)\nto GND");
 
     } else if (expId === "ultrasonic_radar") {
+      // 1. HC-SR04 VCC and GND Jumpers to Breadboard Power Rails
+      drawBreadboardWireLink(c, bx + 75, by + 57, bx + 75, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 135, by + 57, bx + 135, by + 30, "#0f172a", "GND");
       // HC-SR04 Ultrasonic Distance Sensor Module
-      drawUltrasonicModule(c, bx + 80, by + 70, state.components.obstacleDistCm);
+      drawUltrasonicModule(c, bx + 50, by + 70, state.components.obstacleDistCm);
 
-      // Warning LED & Buzzer
-      drawLargeLed(c, bx + 260, by + 80, "#ef4444", state.components.pin13Led, "WARN (D13)");
-      drawPiezoBuzzer(c, bx + 320, by + 80, state.components.pin13Led);
+      // 2. 220Ω Current Limiter & Ground Return for Warning LED
+      drawVerticalResistor(c, bx + 236, by + 30, by + 57, 220, "220Ω");
+      drawLargeLed(c, bx + 230, by + 82, "#ef4444", state.components.pin13Led, "WARN (D13)\n220Ω to GND");
+
+      // 3. Ground Return Jumper for Proximity Buzzer
+      drawBreadboardWireLink(c, bx + 330, by + 57, bx + 330, by + 30, "#0f172a", "GND");
+      drawPiezoBuzzer(c, bx + 310, by + 75, state.components.pin13Led, false, "BUZZER (D8)\nto GND");
 
     } else if (expId === "ldr_nightlight") {
-      // Photoresistor (LDR)
+      // 1. Photoresistor (LDR) Voltage Divider with 10kΩ Pull-Down Resistor
+      drawBreadboardWireLink(c, bx + 70, by + 57, bx + 70, by + 18, "#ef4444", "5V");
+      drawVerticalResistor(c, bx + 80, by + 30, by + 57, 10000, "10kΩ");
       drawLdrComponent(c, bx + 80, by + 80, state.components.ldrLux);
 
-      // Variable Brightness PWM LED
+      // 2. Variable Brightness PWM LED with 220Ω Current Limiter
       const pwmAlpha = state.components.pin9Pwm / 255;
-      drawLargeLed(c, bx + 180, by + 80, "#38bdf8", pwmAlpha > 0.05, `PWM ~9 (${state.components.pin9Pwm})`, pwmAlpha);
+      drawVerticalResistor(c, bx + 186, by + 30, by + 57, 220, "220Ω");
+      drawLargeLed(c, bx + 180, by + 82, "#38bdf8", pwmAlpha > 0.05, `PWM ~9 (${state.components.pin9Pwm})\n220Ω to GND`, pwmAlpha);
 
-      // Potentiometer Trim on breadboard
-      drawPotTrim(c, bx + 280, by + 75, state.components.potValue);
+      // 3. Potentiometer Trim with +5V and GND Power Rails Links
+      drawBreadboardWireLink(c, bx + 268, by + 57, bx + 268, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 292, by + 57, bx + 292, by + 30, "#0f172a", "GND");
+      drawPotTrim(c, bx + 280, by + 75, state.components.potValue, "THRESHOLD (A0)\n5V · GND");
 
     } else if (expId === "servo_control") {
-      // SG90 Micro Servo Motor
-      drawServoMotor(c, bx + 130, by + 95, state.components.currentServoAngle);
-      // Potentiometer
-      drawPotTrim(c, bx + 300, by + 75, state.components.potValue);
+      // 1. SG90 Micro Servo 3-Pin Header: GND (Brown), VCC (Red), Signal (Orange)
+      drawBreadboardWireLink(c, bx + 125, by + 57, bx + 125, by + 30, "#78350f", "GND");
+      drawBreadboardWireLink(c, bx + 155, by + 57, bx + 155, by + 18, "#ef4444", "5V");
+      drawServoMotor(c, bx + 110, by + 90, state.components.currentServoAngle);
+
+      // 2. Potentiometer Steering with +5V and GND Rails Links
+      drawBreadboardWireLink(c, bx + 268, by + 57, bx + 268, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 292, by + 57, bx + 292, by + 30, "#0f172a", "GND");
+      drawPotTrim(c, bx + 280, by + 75, state.components.potValue, "STEERING (A0)\n5V · GND");
 
     } else if (expId === "chiptune_melody") {
-      // Big Piezo Speaker with musical notes
-      drawPiezoBuzzer(c, bx + 160, by + 85, true, true);
-      drawLargeLed(c, bx + 280, by + 85, "#f59e0b", state.components.pin13Led, "TEMPO");
+      // 1. Piezo Speaker with Ground Return Link
+      drawBreadboardWireLink(c, bx + 180, by + 57, bx + 180, by + 30, "#0f172a", "GND");
+      drawPiezoBuzzer(c, bx + 160, by + 75, true, true, "PIEZO (D8)\nto GND");
+
+      // 2. Tempo Strobe LED with 220Ω Current Limiter
+      drawVerticalResistor(c, bx + 286, by + 30, by + 57, 220, "220Ω");
+      drawLargeLed(c, bx + 280, by + 82, "#f59e0b", state.components.pin13Led, "TEMPO (D13)\n220Ω to GND");
 
     } else if (expId === "weather_station") {
-      // 16x2 Character LCD on breadboard
-      drawLcdModule(c, bx + 60, by + 50, state.components.lcdLines);
-      // TMP36 Temp Sensor IC
-      drawTmp36Sensor(c, bx + 320, by + 80, state.components.temperatureC);
+      // 1. 16x2 Character LCD with I2C Power Links (GND & +5V)
+      drawBreadboardWireLink(c, bx + 145, by + 57, bx + 145, by + 30, "#0f172a", "GND");
+      drawBreadboardWireLink(c, bx + 160, by + 57, bx + 160, by + 18, "#ef4444", "5V");
+      drawLcdModule(c, bx + 50, by + 50, state.components.lcdLines);
+
+      // 2. TMP36 Precision Temperature Sensor with +5V and GND Connections
+      drawBreadboardWireLink(c, bx + 300, by + 57, bx + 300, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 320, by + 57, bx + 320, by + 30, "#0f172a", "GND");
+      drawTmp36Sensor(c, bx + 310, by + 80, state.components.temperatureC, "TMP36 (A1)\n5V · GND");
 
     } else if (expId === "rgb_mood_lamp") {
+      // 1. Three 220Ω Current Limiting Resistors for Red, Green, Blue Channels
+      drawVerticalResistor(c, bx + 90, by + 30, by + 57, 220, "220Ω");
+      drawVerticalResistor(c, bx + 120, by + 30, by + 57, 220, "220Ω");
+      drawVerticalResistor(c, bx + 150, by + 30, by + 57, 220, "220Ω");
+      // Common Cathode Ground Return Jumper Link
+      drawBreadboardWireLink(c, bx + 135, by + 57, bx + 135, by + 30, "#0f172a", "GND");
       // 4-pin RGB LED
-      drawRgbLed(c, bx + 120, by + 80, state.components.rgbColor, "RGB (D9/10/11)");
-      // 220Ω Limiting Resistors
-      drawResistor(c, bx + 40, by + 120, 220, "220Ω");
-      drawResistor(c, bx + 70, by + 120, 220, "220Ω");
-      drawResistor(c, bx + 100, by + 120, 220, "220Ω");
-      // Potentiometer
-      drawPotTrim(c, bx + 270, by + 75, state.components.potValue, "HUE (A0)");
+      drawRgbLed(c, bx + 120, by + 80, state.components.rgbColor, "RGB (D9/10/11)\n220Ω x3 to GND");
+
+      // 2. Hue Potentiometer with +5V and GND Rails Links
+      drawBreadboardWireLink(c, bx + 268, by + 57, bx + 268, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 292, by + 57, bx + 292, by + 30, "#0f172a", "GND");
+      drawPotTrim(c, bx + 280, by + 75, state.components.potValue, "HUE (A0)\n5V · GND");
 
     } else if (expId === "dc_motor_speed") {
-      // DC Motor with Propeller Fan
-      drawDcMotorFan(c, bx + 110, by + 85, state.components.motorSpeed, state.components.currentMotorAngle);
-      // Flyback Diode & Transistor Driver
-      drawTransistorPackage(c, bx + 220, by + 80);
-      // Speed Potentiometer
-      drawPotTrim(c, bx + 300, by + 75, state.components.potValue, "THROTTLE");
+      // 1. DC Motor with Flyback Protection & +5V Supply Link
+      drawBreadboardWireLink(c, bx + 80, by + 57, bx + 80, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 120, by + 57, bx + 195, by + 57, "#38bdf8", "MOTOR-");
+      drawDcMotorFan(c, bx + 100, by + 85, state.components.motorSpeed, state.components.currentMotorAngle);
+
+      // 2. NPN Transistor / MOSFET Driver with 1kΩ Gate Resistor & Ground Return
+      drawVerticalResistor(c, bx + 210, by + 30, by + 57, 1000, "1kΩ");
+      drawBreadboardWireLink(c, bx + 225, by + 57, bx + 225, by + 30, "#0f172a", "GND");
+      drawTransistorPackage(c, bx + 210, by + 80, "NPN DRIVER\nD5 · 1kΩ");
+
+      // 3. Speed Throttle Potentiometer with +5V and GND Links
+      drawBreadboardWireLink(c, bx + 288, by + 57, bx + 288, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 312, by + 57, bx + 312, by + 30, "#0f172a", "GND");
+      drawPotTrim(c, bx + 300, by + 75, state.components.potValue, "THROTTLE (A0)\n5V · GND");
 
     } else if (expId === "pir_alarm") {
-      // HC-SR501 PIR Sensor
-      drawPirSensor(c, bx + 70, by + 70, state.components.pirMotionDetected);
-      // Songle 5V Relay
-      drawRelayModule(c, bx + 180, by + 65, state.components.relayActive);
-      // Strobe LED & Piezo Siren
-      drawLargeLed(c, bx + 280, by + 80, "#ef4444", state.components.pin13Led, "ALARM (D13)");
-      drawPiezoBuzzer(c, bx + 335, by + 80, state.components.pirMotionDetected);
+      // 1. HC-SR501 PIR Sensor with +5V and GND Rails Links
+      drawBreadboardWireLink(c, bx + 65, by + 57, bx + 65, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 105, by + 57, bx + 105, by + 30, "#0f172a", "GND");
+      drawPirSensor(c, bx + 60, by + 70, state.components.pirMotionDetected, "PIR (D7)\n5V · GND");
+
+      // 2. Songle 5V Relay Module with +5V and GND Power Links
+      drawBreadboardWireLink(c, bx + 175, by + 57, bx + 175, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 205, by + 57, bx + 205, by + 30, "#0f172a", "GND");
+      drawRelayModule(c, bx + 175, by + 65, state.components.relayActive, "RELAY (D4)\n5V · GND");
+
+      // 3. Strobe LED with 220Ω Current Limiter
+      drawVerticalResistor(c, bx + 276, by + 30, by + 57, 220, "220Ω");
+      drawLargeLed(c, bx + 270, by + 80, "#ef4444", state.components.pin13Led, "ALARM (D13)\n220Ω to GND");
+
+      // 4. Piezo Siren with Ground Return Jumper
+      drawBreadboardWireLink(c, bx + 355, by + 57, bx + 355, by + 30, "#0f172a", "GND");
+      drawPiezoBuzzer(c, bx + 335, by + 75, state.components.pirMotionDetected, false, "SIREN (D8)\nto GND");
 
     } else if (expId === "seven_seg_counter") {
-      // 7-Segment Decimal Display
-      drawSevenSegment(c, bx + 120, by + 55, state.components.sevenSegDigit);
-      // Reset Button
-      drawTactileSwitch(c, bx + 250, by + 75, state.components.buttonPressed, "RESET (D2)");
-      drawResistor(c, bx + 45, by + 80, 220, "220Ω Array");
+      // 1. Three 220Ω Current Limiting Resistors for Segments A, B, C
+      drawVerticalResistor(c, bx + 90, by + 30, by + 57, 220, "220Ω");
+      drawVerticalResistor(c, bx + 130, by + 30, by + 57, 220, "220Ω");
+      drawVerticalResistor(c, bx + 170, by + 30, by + 57, 220, "220Ω");
+      // Common Cathode Ground Return Jumper Link
+      drawBreadboardWireLink(c, bx + 150, by + 57, bx + 150, by + 30, "#0f172a", "GND");
+      drawSevenSegment(c, bx + 110, by + 55, state.components.sevenSegDigit, "7-SEGMENT\n220Ω x3 to GND");
+
+      // 2. Step Button with Ground Return Link
+      drawBreadboardWireLink(c, bx + 280, by + 57, bx + 280, by + 30, "#0f172a", "GND");
+      drawTactileSwitch(c, bx + 260, by + 75, state.components.buttonPressed, "STEP (D2)\nPULLUP · GND");
 
     } else if (expId === "joystick_pan_tilt") {
-      // 2-Axis Thumbstick Joystick
-      drawJoystickModule(c, bx + 80, by + 70, state.components.potValue, 512, state.components.buttonPressed);
-      // Pan Servo
-      drawServoMotor(c, bx + 240, by + 95, state.components.currentServoAngle);
+      // 1. 2-Axis Thumbstick with +5V and GND Links
+      drawBreadboardWireLink(c, bx + 65, by + 57, bx + 65, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 115, by + 57, bx + 115, by + 30, "#0f172a", "GND");
+      drawJoystickModule(c, bx + 75, by + 70, state.components.potValue, 512, state.components.buttonPressed, "JOYSTICK\n5V · GND");
+
+      // 2. Pan Servo with Ground, +5V, and D9 Signal Pin
+      drawBreadboardWireLink(c, bx + 225, by + 57, bx + 225, by + 30, "#78350f", "GND");
+      drawBreadboardWireLink(c, bx + 255, by + 57, bx + 255, by + 18, "#ef4444", "5V");
+      drawServoMotor(c, bx + 240, by + 95, state.components.currentServoAngle, "PAN SERVO (D9)\n5V · GND");
 
     } else if (expId === "button_toggle") {
-      // Tactile Pushbutton with debounced status LED
-      drawTactileSwitch(c, bx + 120, by + 75, state.components.buttonPressed, "PUSH (D2)");
-      drawResistor(c, bx + 60, by + 80, 10000, "10kΩ Pull-Down");
-      drawLargeLed(c, bx + 240, by + 80, "#38bdf8", state.components.pin13Led, "TOGGLE (D13)");
-      drawResistor(c, bx + 240, by + 130, 220, "220Ω Limiter");
+      // 1. Tactile Pushbutton with +5V Feed & 10kΩ Pull-Down Resistor to GND
+      drawBreadboardWireLink(c, bx + 104, by + 57, bx + 104, by + 18, "#ef4444", "5V");
+      drawVerticalResistor(c, bx + 136, by + 30, by + 57, 10000, "10kΩ");
+      drawTactileSwitch(c, bx + 120, by + 75, state.components.buttonPressed, "PUSH (D2)\n10kΩ PULL-DOWN");
+
+      // 2. Latching Status LED with 220Ω Current Limiter to GND
+      drawVerticalResistor(c, bx + 246, by + 30, by + 57, 220, "220Ω");
+      drawLargeLed(c, bx + 240, by + 80, "#38bdf8", state.components.pin13Led, "TOGGLE (D13)\n220Ω to GND");
 
     } else if (expId === "sonar_lcd_scope") {
-      // 16x2 Character LCD Radar Scope
-      drawLcdModule(c, bx + 60, by + 30, state.components.lcdLines);
-      // HC-SR04 Ultrasonic Sensor Module
-      drawUltrasonicModule(c, bx + 80, by + 120, state.components.obstacleDistCm);
-      // Warning LED & Buzzer
-      drawLargeLed(c, bx + 270, by + 130, "#ef4444", state.components.pin13Led, "ALERT (D13)");
-      drawPiezoBuzzer(c, bx + 325, by + 130, state.components.pin13Led);
+      // 1. 16x2 Character LCD with I2C Power Connections
+      drawBreadboardWireLink(c, bx + 145, by + 57, bx + 145, by + 30, "#0f172a", "GND");
+      drawBreadboardWireLink(c, bx + 160, by + 57, bx + 160, by + 18, "#ef4444", "5V");
+      drawLcdModule(c, bx + 50, by + 30, state.components.lcdLines);
+
+      // 2. HC-SR04 Ultrasonic Sensor Module
+      drawBreadboardWireLink(c, bx + 75, by + 105, bx + 75, by + 73, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 130, by + 105, bx + 130, by + 85, "#0f172a", "GND");
+      drawUltrasonicModule(c, bx + 75, by + 120, state.components.obstacleDistCm);
+
+      // 3. Alert Sounder with Ground Return Link
+      drawBreadboardWireLink(c, bx + 330, by + 57, bx + 330, by + 30, "#0f172a", "GND");
+      drawPiezoBuzzer(c, bx + 310, by + 75, state.components.pin13Led, false, "ALERT (D13)\nto GND");
 
     } else if (expId === "thermostat_relay_fan") {
-      // TMP36 Temperature Sensor
-      drawTmp36Sensor(c, bx + 50, by + 80, state.components.temperatureC);
-      // Threshold Potentiometer Setpoint
+      // 1. TMP36 Temperature Sensor with +5V and GND Power Links
+      drawBreadboardWireLink(c, bx + 50, by + 57, bx + 50, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 70, by + 57, bx + 70, by + 30, "#0f172a", "GND");
+      drawTmp36Sensor(c, bx + 60, by + 80, state.components.temperatureC, "TMP36 (A0)\n5V · GND");
+
+      // 2. Setpoint Potentiometer with +5V and GND Links
+      drawBreadboardWireLink(c, bx + 130, by + 57, bx + 130, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 150, by + 57, bx + 150, by + 30, "#0f172a", "GND");
       const setpointC = (20.0 + (state.components.potValue / 1023) * 30.0).toFixed(1);
-      drawPotTrim(c, bx + 130, by + 75, state.components.potValue, `SET ${setpointC}°C`);
-      // Songle 5V Relay
-      drawRelayModule(c, bx + 210, by + 65, state.components.relayActive);
-      // DC Motor Cooling Fan
+      drawPotTrim(c, bx + 140, by + 75, state.components.potValue, `SET ${setpointC}°C (A1)\n5V · GND`);
+
+      // 3. Songle 5V Relay with Power Links
+      drawBreadboardWireLink(c, bx + 210, by + 57, bx + 210, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 230, by + 57, bx + 230, by + 30, "#0f172a", "GND");
+      drawRelayModule(c, bx + 220, by + 65, state.components.relayActive, "RELAY (D4)\n5V · GND");
+
+      // 4. DC Motor Cooling Fan
+      drawBreadboardWireLink(c, bx + 330, by + 57, bx + 330, by + 30, "#0f172a", "GND");
       drawDcMotorFan(c, bx + 310, by + 85, state.components.motorSpeed, state.components.currentMotorAngle);
 
     } else if (expId === "multi_sensor_alarm") {
-      // PIR Motion Sensor
-      drawPirSensor(c, bx + 60, by + 70, state.components.pirMotionDetected);
-      // LDR Ambient Light Sensor
-      drawLdrComponent(c, bx + 150, by + 80, state.components.ldrLux);
-      // Relay Module (Floodlight)
-      drawRelayModule(c, bx + 225, by + 65, state.components.relayActive);
-      // Alarm LED & Siren Piezo
-      drawLargeLed(c, bx + 295, by + 80, "#ef4444", state.components.pin13Led, "ARMED");
-      drawPiezoBuzzer(c, bx + 345, by + 80, state.components.pin13Led);
+      // 1. PIR Motion Sensor with +5V and GND Links
+      drawBreadboardWireLink(c, bx + 55, by + 57, bx + 55, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 95, by + 57, bx + 95, by + 30, "#0f172a", "GND");
+      drawPirSensor(c, bx + 60, by + 70, state.components.pirMotionDetected, "PIR (D7)\n5V · GND");
+
+      // 2. LDR Ambient Light Sensor with +5V Link & 10kΩ Divider Resistor to GND
+      drawBreadboardWireLink(c, bx + 140, by + 57, bx + 140, by + 18, "#ef4444", "5V");
+      drawVerticalResistor(c, bx + 150, by + 30, by + 57, 10000, "10kΩ");
+      drawLdrComponent(c, bx + 150, by + 80, state.components.ldrLux, "LDR (A0)\n10kΩ DIVIDER");
+
+      // 3. Relay Module with +5V and GND Links
+      drawBreadboardWireLink(c, bx + 220, by + 57, bx + 220, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 240, by + 57, bx + 240, by + 30, "#0f172a", "GND");
+      drawRelayModule(c, bx + 230, by + 65, state.components.relayActive, "RELAY (D4)\n5V · GND");
+
+      // 4. Security Siren with Ground Return Jumper
+      drawBreadboardWireLink(c, bx + 350, by + 57, bx + 350, by + 30, "#0f172a", "GND");
+      drawPiezoBuzzer(c, bx + 330, by + 75, state.components.pin13Led, false, "SIREN (D8)\nto GND");
 
     } else if (expId === "custom_sandbox") {
+      // Custom Sandbox Ground and Power rail tie points
+      drawVerticalResistor(c, bx + 226, by + 30, by + 57, 220, "220Ω");
+      drawBreadboardWireLink(c, bx + 288, by + 57, bx + 288, by + 18, "#ef4444", "5V");
+      drawBreadboardWireLink(c, bx + 312, by + 57, bx + 312, by + 30, "#0f172a", "GND");
       // Custom Project Sandbox: Render custom placed components
       if (state.components.customPlacedComponents && state.components.customPlacedComponents.length > 0) {
         state.components.customPlacedComponents.forEach((comp, idx) => {
