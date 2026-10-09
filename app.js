@@ -149,6 +149,14 @@ function bootApp() {
       }
     }
     setupDeviceDetection();
+    registerVirtualLab({
+      id: "arduino",
+      subject: "phys",
+      title: "Arduino & Microcontrollers",
+      icon: icons.arduino || icons.circuit,
+      ariaLabel: "Arduino Uno and Microcontroller Circuits Lab",
+      href: "#labs/arduino"
+    });
     renderAppShell();
     if (typeof localStorage !== "undefined" && localStorage.getItem("edugates_focus_mode") === "true") {
       document.body.classList.add("focus-mode");
@@ -1941,6 +1949,7 @@ export function getClassifiedVirtualLabs() {
 export function normalizeLabId(rawId) {
   if (!rawId) return "projectile";
   const str = String(rawId).toLowerCase().trim().replace(/^lab[-_]?/, "");
+  if (str === "arduino" || str.includes("arduin") || str.includes("atmega") || str.includes("microcontrol")) return "arduino";
   if (str === "flametest" || str === "flame-test" || str.includes("flame")) return "flametest";
   if (str === "precipitation" || str.includes("precip") || str.includes("solubil")) return "precipitation";
   if (str === "activityseries" || str === "activity-series" || str.includes("activity") || str.includes("displace")) return "activityseries";
@@ -1996,6 +2005,7 @@ function formatLabName(labKey) {
     if (reg && reg.title) return reg.title;
   }
   const map = {
+    "arduino": "Arduino Uno & Microcontroller Circuitry",
     "projectile": "Kinematics & Dynamics",
     "titration": "Titration & Stoichiometry",
     "microscope": "Microscopy & Histology",
@@ -3066,6 +3076,9 @@ function mountActiveLab() {
     "ptable": () => import("./labs/chem-periodic-table.js?v=5.7").then(m => m.initPeriodicTableLab("active-lab-mount")),
     "periodic-table": () => import("./labs/chem-periodic-table.js?v=5.7").then(m => m.initPeriodicTableLab("active-lab-mount")),
     "lab-periodic-table": () => import("./labs/chem-periodic-table.js?v=5.7").then(m => m.initPeriodicTableLab("active-lab-mount")),
+    "arduino": () => import("./labs/phys-arduino.js?v=5.8").then(m => m.initArduinoLab("active-lab-mount")),
+    "lab-arduino": () => import("./labs/phys-arduino.js?v=5.8").then(m => m.initArduinoLab("active-lab-mount")),
+    "phys-arduino": () => import("./labs/phys-arduino.js?v=5.8").then(m => m.initArduinoLab("active-lab-mount")),
     "circuits": () => import("./labs/phys-circuits.js?v=5.7").then(m => m.initCircuitsLab("active-lab-mount")),
     "circuit": () => import("./labs/phys-circuits.js?v=5.7").then(m => m.initCircuitsLab("active-lab-mount")),
     "lab-circuits": () => import("./labs/phys-circuits.js?v=5.7").then(m => m.initCircuitsLab("active-lab-mount")),

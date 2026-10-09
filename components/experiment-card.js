@@ -151,6 +151,20 @@ export const EXPERIMENT_CATALOG = [
     launchHref: "#labs/fluids"
   },
   {
+    id: "arduino",
+    title: "Arduino Uno & Microcontroller Circuitry",
+    subject: "phys",
+    subjectName: "Physics",
+    difficulty: "Intermediate",
+    estimatedTime: "45 mins",
+    equipment: ["Arduino Uno R3", "Half-Size Solderless Breadboard", "HC-SR04 Ultrasonic Sensor", "SG90 Micro Servo", "Piezo Buzzer", "LDR Photocell", "TMP36 Temperature Sensor", "Jumper Wires"],
+    formula: "V_{\\text{ADC}} = \\frac{\\text{ADC}}{1023} \\times 5.0\\,\\text{V} \\quad \\bullet \\quad d = \\frac{v \\cdot \\Delta t}{2}",
+    description: "Construct interactive embedded circuits, program ATmega328P microcontrollers with real-time C++, synthesize piezo audio acoustic frequencies, and interface analog/digital transducers.",
+    pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
+    thumbnail: "assets/labs/circuits_bench.jpg",
+    launchHref: "#labs/arduino"
+  },
+  {
     id: "circuits",
     title: "DC Circuits, Kirchhoff's Laws & Ohm's Law",
     subject: "phys",

@@ -274,6 +274,47 @@ export const icons = {
     <circle cx="27.5" cy="31.5" r="1" fill="#ffffff"/>
   </svg>`,
 
+  arduino: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ico-ard-pcb" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#00979d"/>
+        <stop offset="50%" stop-color="#008184"/>
+        <stop offset="100%" stop-color="#005d5f"/>
+      </linearGradient>
+      <linearGradient id="ico-ard-metal" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#e2e8f0"/>
+        <stop offset="50%" stop-color="#94a3b8"/>
+        <stop offset="100%" stop-color="#64748b"/>
+      </linearGradient>
+    </defs>
+    <!-- Arduino PCB Board -->
+    <rect x="4" y="6" width="40" height="36" rx="4" fill="url(#ico-ard-pcb)" stroke="#38bdf8" stroke-width="1.2"/>
+    <!-- Gold mounting holes -->
+    <circle cx="8" cy="10" r="1.8" fill="#f59e0b"/>
+    <circle cx="8" cy="38" r="1.8" fill="#f59e0b"/>
+    <circle cx="40" cy="10" r="1.8" fill="#f59e0b"/>
+    <circle cx="40" cy="34" r="1.8" fill="#f59e0b"/>
+    <!-- USB Type-B Port -->
+    <rect x="5" y="14" width="8" height="10" rx="1.5" fill="url(#ico-ard-metal)" stroke="#475569" stroke-width="0.8"/>
+    <!-- DC Power Jack -->
+    <rect x="5" y="27" width="9" height="11" rx="1.5" fill="#1e293b" stroke="#334155" stroke-width="0.8"/>
+    <!-- ATmega328P DIP IC -->
+    <rect x="18" y="24" width="20" height="8" rx="1" fill="#0f172a" stroke="#334155" stroke-width="0.8"/>
+    <path d="M20 23v-1M23 23v-1M26 23v-1M29 23v-1M32 23v-1M35 23v-1" stroke="#cbd5e1" stroke-width="0.8"/>
+    <path d="M20 33v1M23 33v1M26 33v1M29 33v1M32 33v1M35 33v1" stroke="#cbd5e1" stroke-width="0.8"/>
+    <!-- Arduino Infinity Symbol (O O with - and +) -->
+    <ellipse cx="23" cy="14" rx="3.5" ry="2.2" stroke="#ffffff" stroke-width="1"/>
+    <ellipse cx="30" cy="14" rx="3.5" ry="2.2" stroke="#ffffff" stroke-width="1"/>
+    <path d="M21.5 14h3" stroke="#ffffff" stroke-width="0.8"/>
+    <path d="M28.5 14h3M30 12.5v3" stroke="#ffffff" stroke-width="0.8"/>
+    <!-- Status LEDs: ON (Green), L (Yellow) -->
+    <circle cx="16" cy="14" r="1.2" fill="#10b981"/>
+    <circle cx="36" cy="14" r="1.2" fill="#f59e0b"/>
+    <!-- Header pin strips (Digital top, Analog bottom) -->
+    <rect x="16" y="8" width="23" height="3" fill="#0f172a"/>
+    <rect x="18" y="37" width="21" height="3" fill="#0f172a"/>
+  </svg>`,
+
   titration: `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="ico-titr-glass" x1="0%" y1="0%" x2="100%" y2="0%">

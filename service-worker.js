@@ -166,6 +166,7 @@ const SECONDARY_ASSETS = [
   "./labs/chem-titration.js",
   "./labs/bio-microscope.js",
   "./labs/chem-periodic-table.js",
+  "./labs/phys-arduino.js",
   "./labs/phys-circuits.js",
   "./labs/chem-gas-laws.js",
   "./labs/bio-dna-protein.js",
