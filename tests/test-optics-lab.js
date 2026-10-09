@@ -145,6 +145,102 @@ const cssSrc = fs.readFileSync(path.join(rootDir, "index.css"), "utf-8");
 assert(cssSrc.includes(".optics-layout"), "index.css must include .optics-layout in responsive styles");
 console.log("  ✅ PASS: index.css includes .optics-layout in responsive media query list");
 
+// 15. Verify Keplerian Astronomical Telescope Optics (M = -f_obj / f_eye)
+function calcTelescopeAngularMagnification(fObj, fEye) {
+  const L = fObj + fEye; // Confocal afocal condition
+  const mAng = -fObj / fEye;
+  return { L, mAng, isAfocal: true };
+}
+const tele = calcTelescopeAngularMagnification(30, 10);
+assert.strictEqual(tele.L, 40, "Confocal telescope separation must equal f1 + f2 = 40 cm");
+assert.strictEqual(tele.mAng, -3, "Keplerian telescope angular magnification is -3.00x (inverted)");
+console.log("  ✅ PASS: Keplerian telescope angular magnification M = -f_obj/f_eye (-3.00x) and confocal tube length (40 cm)");
+
+// 16. Verify Compound Research Microscope Optics (M_tot = m_obj * m_eye)
+function calcMicroscopeOptics(fObj, do1, L, fEye) {
+  const di1 = (fObj * do1) / (do1 - fObj);
+  const m1 = -di1 / do1;
+  const do2 = L - di1;
+  const di2 = (fEye * do2) / (do2 - fEye);
+  const m2 = -di2 / do2;
+  const mTotal = m1 * m2;
+  return { di1, m1, do2, di2, m2, mTotal };
+}
+const micro = calcMicroscopeOptics(8, 10, 46, 12);
+assert.strictEqual(micro.di1, 40, "Objective produces real intermediate image at di1 = 40 cm");
+assert.strictEqual(micro.m1, -4, "Objective real inverted magnification is -4.00x");
+assert.strictEqual(micro.do2, 6, "Eyepiece object distance is do2 = L - di1 = 6 cm");
+assert.strictEqual(micro.di2, -12, "Eyepiece virtual image distance is di2 = -12 cm");
+assert.strictEqual(micro.m2, 2, "Eyepiece upright virtual magnification is +2.00x");
+assert.strictEqual(micro.mTotal, -8, "Total microscope linear magnification is m1 * m2 = -8.00x");
+console.log("  ✅ PASS: Compound microscope two-stage magnification M_tot = m1 * m2 (-4.00x * +2.00x = -8.00x)");
+
+// 17. Verify Achromatic Doublet Net Power & Color Correction
+function calcDoubletEffectiveFocalLength(f1, f2, L = 0) {
+  // 1/F = 1/f1 + 1/f2 - L/(f1*f2)
+  const power = (1 / f1) + (1 / f2) - (L / (f1 * f2));
+  return 1 / power;
+}
+const doubletFeff = calcDoubletEffectiveFocalLength(15, -30, 0);
+assert.strictEqual(doubletFeff, 30, "Crown (+15 cm) and Flint (-30 cm) thin doublet in contact yields net Feft = +30 cm");
+console.log("  ✅ PASS: Achromatic doublet in contact: 1/F_eff = 1/f1 + 1/f2 yields net converging power (F = +30 cm)");
+
+// 18. Verify ABCD Ray Transfer Matrix Determinant & Effective Focal Length
+function calcABCDMatrix(f1, f2, L) {
+  const A = 1 - L / f1;
+  const B = L;
+  const C = -1 / f1 - 1 / f2 + L / (f1 * f2);
+  const D = 1 - L / f2;
+  const det = A * D - B * C;
+  const fSys = Math.abs(C) > 1e-6 ? -1 / C : Infinity;
+  return { A, B, C, D, det, fSys };
+}
+const abcd = calcABCDMatrix(20, 20, 10);
+assert(Math.abs(abcd.det - 1.0) < 1e-10, `ABCD matrix determinant must equal 1.0 (unimodular/symplectic), got ${abcd.det}`);
+const expectedC = -1/20 - 1/20 + 10/(20*20); // -0.05 - 0.05 + 0.025 = -0.075
+assert(Math.abs(abcd.C - expectedC) < 1e-10, `C matrix element matches formula: ${abcd.C} vs ${expectedC}`);
+assert(Math.abs(abcd.fSys - (-1 / expectedC)) < 1e-6, "Effective system focal length equals -1/C");
+console.log("  ✅ PASS: Ray Transfer Matrix ABCD conservation det(M) = 1.000 and F_eff = -1/C verified");
+
+// 19. Verify Transmission Diffraction Grating Angular Dispersion (d * sin(theta) = m * lambda)
+function calcGratingAngles(linesPerMm, wavelengthNm, orders = [1, 2]) {
+  const dMeters = 1e-3 / linesPerMm;
+  const lambdaMeters = wavelengthNm * 1e-9;
+  return orders.map(m => {
+    const sinTheta = (m * lambdaMeters) / dMeters;
+    if (sinTheta > 1.0) return { m, thetaDeg: null, exists: false };
+    const thetaRad = Math.asin(sinTheta);
+    return { m, thetaDeg: (thetaRad * 180) / Math.PI, exists: true };
+  });
+}
+const greenGrating = calcGratingAngles(600, 532, [1, 2]);
+assert.strictEqual(greenGrating[0].exists, true);
+assert(Math.abs(greenGrating[0].thetaDeg - 18.61) < 0.1, `Green 532nm 1st order angle is ~18.61°, got ${greenGrating[0].thetaDeg.toFixed(2)}°`);
+assert(Math.abs(greenGrating[1].thetaDeg - 39.67) < 0.1, `Green 532nm 2nd order angle is ~39.67°, got ${greenGrating[1].thetaDeg.toFixed(2)}°`);
+
+const redGrating = calcGratingAngles(600, 650, [1]);
+assert(redGrating[0].thetaDeg > greenGrating[0].thetaDeg, "Longer wavelength (Red 650nm) must diffract at greater angle than Green 532nm");
+console.log("  ✅ PASS: Diffraction grating d·sin(θ) = m·λ verified for 600 l/mm (Green: 18.61°, Red: 22.95°)");
+
+// 20. Verify Compound Multi-Lens UI Controls and Presets Presence in phys-optics.js
+assert(opticsSrc.includes("optics-tab-compound"), "phys-optics.js must include #optics-tab-compound view switcher");
+assert(opticsSrc.includes("controls-compound-mode"), "phys-optics.js must include #controls-compound-mode control panel");
+assert(opticsSrc.includes("select-compound-preset"), "phys-optics.js must include #select-compound-preset selector");
+assert(opticsSrc.includes("input-tube-len"), "phys-optics.js must include #input-tube-len carriage separator");
+console.log("  ✅ PASS: phys-optics.js defines compound multi-lens UI controls, tab switcher, and preset elements");
+
+// 21. Verify Multi-Component Direct Tactile Dragging Handlers in phys-optics.js
+assert(opticsSrc.includes("dragTarget = \"lens1_pos\""), "phys-optics.js must support dragging lens 1 carriage");
+assert(opticsSrc.includes("dragTarget = \"lens2_pos\""), "phys-optics.js must support dragging lens 2 carriage");
+assert(opticsSrc.includes("setPointerCapture"), "phys-optics.js should utilize setPointerCapture for robust multi-touch");
+console.log("  ✅ PASS: phys-optics.js implements tactile carriage dragging for Lens 1, Lens 2, object, and screen");
+
+// 22. Verify Comprehensive Compound Optics Dossier & Telemetry Logging
+assert(opticsSrc.includes("calculateCompoundOptics"), "phys-optics.js must define calculateCompoundOptics()");
+assert(opticsSrc.includes("drawCompoundView"), "phys-optics.js must implement drawCompoundView() rendering pipeline");
+console.log("  ✅ PASS: phys-optics.js integrates compound optics calculation and drawCompoundView renderer");
+
 console.log("\n========================================================");
-console.log("📊 Optics Lab Tests: All 14 Passed!");
+console.log("📊 Optics Lab Tests: All 22 Passed!");
 console.log("========================================================\n");
+

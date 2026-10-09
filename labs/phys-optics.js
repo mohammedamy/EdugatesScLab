@@ -1,6 +1,8 @@
 // Edugates-ClipSAT Science Labs - Precision Geometric & Physical Optics Laboratory
 // Photorealistic Optical Rail, Anti-Reflective Coated Lenses, Spherical Curved Mirrors,
 // Snell's Law & Total Internal Reflection (TIR), Cauchy Chromatic Dispersion Prism,
+// Compound Multi-Lens Systems (Keplerian Telescope, Compound Microscope, Achromatic Doublet),
+// Transmission Diffraction Grating & Wave Interference, ABCD Ray Matrix Telemetry,
 // Tactile Direct Dragging, Circle of Confusion Defocus Screen, and Research-Grade Telemetry.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
@@ -37,17 +39,20 @@ export function initOpticsLab(containerId) {
 
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
           <!-- Primary Apparatus Switcher -->
-          <div class="lab-view-switcher" style="display: flex; border-radius: 8px; padding: 3px; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255,255,255,0.08);">
-            <button id="optics-tab-lens" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+          <div class="lab-view-switcher" style="display: flex; border-radius: 8px; padding: 3px; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255,255,255,0.08); gap: 2px;">
+            <button id="optics-tab-lens" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none; background: rgba(99, 102, 241, 0.25); color: #818cf8;">
               🔍 Thin Lenses
             </button>
-            <button id="optics-tab-mirror" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+            <button id="optics-tab-mirror" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none; color: #94a3b8;">
               🪞 Curved Mirrors
             </button>
-            <button id="optics-tab-snell" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
-              🌈 Snell / TIR / Prism
+            <button id="optics-tab-snell" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none; color: #94a3b8;">
+              🌈 Snell / TIR / Grating
             </button>
-            <button id="optics-tab-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+            <button id="optics-tab-compound" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none; color: #94a3b8;">
+              🔭 Compound Multi-Lens
+            </button>
+            <button id="optics-tab-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none; color: #94a3b8;">
               📸 4K Optical Rail
             </button>
           </div>
@@ -67,9 +72,9 @@ export function initOpticsLab(containerId) {
         <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
         <div id="optics-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
           <picture>
-              <source srcset="assets/labs/optics_bench.webp" type="image/webp">
-              <img src="assets/labs/optics_bench.jpg" decoding="async" loading="lazy" alt="4K Geometric Optics Precision Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
-            </picture>
+            <source srcset="assets/labs/optics_bench.webp" type="image/webp">
+            <img src="assets/labs/optics_bench.jpg" decoding="async" loading="lazy" alt="4K Geometric Optics Precision Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+          </picture>
           
           <!-- Live Analytical Telemetry Callout on Photo -->
           <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 12px; padding: 14px 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
@@ -109,19 +114,19 @@ export function initOpticsLab(containerId) {
           <!-- Top Right Digital Optical Telemetry -->
           <div class="sim-telemetry-dashboard" style="display: flex; gap: 10px; font-family: var(--font-mono); font-size: 0.82rem; padding: 8px 14px; border-radius: 12px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(12px); box-shadow: 0 10px 25px rgba(0,0,0,0.6); pointer-events: auto; flex-shrink: 0;">
             <div style="border-right: 1px solid rgba(255,255,255,0.1); padding-right: 10px;" id="telem-col-1">
-              <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;">Object Dist (d_o)</div>
+              <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;" id="lbl-telem-1">Object Dist (d_o)</div>
               <div style="color: #f59e0b; font-weight: 700; font-size: 0.98rem;" id="val-do">30.0 cm</div>
             </div>
             <div style="border-right: 1px solid rgba(255,255,255,0.1); padding-right: 10px;" id="telem-col-2">
-              <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;">Image Dist (d_i)</div>
+              <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;" id="lbl-telem-2">Image Dist (d_i)</div>
               <div style="color: #10b981; font-weight: 700; font-size: 0.98rem;" id="val-di">30.0 cm</div>
             </div>
             <div style="border-right: 1px solid rgba(255,255,255,0.1); padding-right: 10px;" id="telem-col-3">
-              <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;">Focal Length (f)</div>
+              <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;" id="lbl-telem-3">Focal Length (f)</div>
               <div style="color: #818cf8; font-weight: 700; font-size: 0.98rem;" id="val-f">15.0 cm</div>
             </div>
             <div id="telem-col-4">
-              <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;">Magnification (m)</div>
+              <div style="font-size: 0.65rem; color: #94a3b8; text-transform: uppercase;" id="lbl-telem-4">Magnification (m)</div>
               <div style="color: #38bdf8; font-weight: 700; font-size: 0.98rem;" id="val-mag">-1.00×</div>
             </div>
           </div>
@@ -129,7 +134,7 @@ export function initOpticsLab(containerId) {
 
         <!-- Tactile Drag Instruction Banner -->
         <div id="optics-drag-hint" style="position: absolute; top: 72px; left: 16px; background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 4px 10px; font-size: 0.73rem; color: #cbd5e1; display: flex; align-items: center; gap: 6px; pointer-events: none; z-index: 5;">
-          <span>💡 Direct Touch: Drag candle base along rail (d_o) • Drag flame tip (h_o) • Drag screen</span>
+          <span>💡 Direct Touch: Drag candle base along rail (d_o) • Drag flame tip (h_o) • Drag lens carriage</span>
         </div>
 
         <!-- Bottom Ray Tracing Legend Bar -->
@@ -151,7 +156,7 @@ export function initOpticsLab(containerId) {
 
       <!-- Controls Panel & Presets -->
       <div class="lab-controls-panel" style="margin-top: 18px;">
-        <!-- Lens / Mirror / Snell Specific Controls -->
+        <!-- Lens / Mirror Specific Controls -->
         <div id="controls-bench-mode" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 14px;">
           <!-- Optical Element Type -->
           <div class="control-group">
@@ -208,7 +213,7 @@ export function initOpticsLab(containerId) {
           </div>
         </div>
 
-        <!-- Snell / Prism Controls (Toggled in Snell Tab) -->
+        <!-- Snell / Prism / Grating Controls -->
         <div id="controls-snell-mode" style="display: none; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 14px;">
           <!-- Medium 1 -->
           <div class="control-group">
@@ -253,7 +258,78 @@ export function initOpticsLab(containerId) {
             <select id="select-interface-shape" class="select-input" style="font-weight: 600;">
               <option value="semicircle" selected>Semi-Circular D-Block (Normal Exit)</option>
               <option value="prism">Triangular Prism (Cauchy Rainbow Dispersion)</option>
+              <option value="grating">Diffraction Grating (Wave Interference & Orders)</option>
             </select>
+          </div>
+        </div>
+
+        <!-- Compound Multi-Lens Controls -->
+        <div id="controls-compound-mode" style="display: none; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 14px;">
+          <!-- Compound Preset Selector -->
+          <div class="control-group">
+            <label class="control-label"><span>Optical System Configuration</span></label>
+            <select id="select-compound-preset" class="select-input" style="font-weight: 600; width: 100%;">
+              <option value="telescope" selected>🔭 Keplerian Telescope (M = -3.0×, Afocal)</option>
+              <option value="microscope">🔬 Compound Microscope (M = -8.0×)</option>
+              <option value="achromatic">💎 Achromatic Doublet (Zero Chromatic Split)</option>
+              <option value="custom">⚙️ Custom Dual-Lens Bench (Free Drag & Adjust)</option>
+            </select>
+          </div>
+
+          <!-- Objective Lens Focal Length -->
+          <div class="control-group">
+            <label class="control-label">
+              <span>Objective Lens (f₁)</span>
+              <span class="control-val" id="disp-f1" style="color: #38bdf8;">30.0 cm</span>
+            </label>
+            <input type="range" id="input-f1" class="custom-slider" min="5" max="35" value="30" step="0.5" style="accent-color: #38bdf8;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+              <span>5 cm</span>
+              <span>20 cm</span>
+              <span>35 cm</span>
+            </div>
+          </div>
+
+          <!-- Eyepiece Focal Length -->
+          <div class="control-group">
+            <label class="control-label">
+              <span>Eyepiece Lens (f₂)</span>
+              <span class="control-val" id="disp-f2" style="color: #818cf8;">10.0 cm</span>
+            </label>
+            <input type="range" id="input-f2" class="custom-slider" min="5" max="25" value="10" step="0.5" style="accent-color: #818cf8;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+              <span>5 cm</span>
+              <span>15 cm</span>
+              <span>25 cm</span>
+            </div>
+          </div>
+
+          <!-- Tube Separation Length -->
+          <div class="control-group">
+            <label class="control-label">
+              <span>Tube Length (L = x₂ - x₁)</span>
+              <span class="control-val" id="disp-tube-len" style="color: #10b981;">40.0 cm</span>
+            </label>
+            <input type="range" id="input-tube-len" class="custom-slider" min="15" max="60" value="40" step="0.5" style="accent-color: #10b981;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+              <span>15 cm</span>
+              <span>40 cm (Confocal)</span>
+              <span>60 cm</span>
+            </div>
+          </div>
+
+          <!-- Object Distance for Lens 1 -->
+          <div class="control-group">
+            <label class="control-label">
+              <span>Object Distance (d_o1)</span>
+              <span class="control-val" id="disp-do1" style="color: #f59e0b;">∞ (Collimated Star)</span>
+            </label>
+            <input type="range" id="input-do1" class="custom-slider" min="6" max="65" value="65" step="0.5">
+            <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+              <span>6 cm (Specimen)</span>
+              <span>30 cm</span>
+              <span>65 cm (Infinity)</span>
+            </div>
           </div>
         </div>
 
@@ -283,6 +359,24 @@ export function initOpticsLab(containerId) {
             </button>
             <button class="btn btn-secondary" id="preset-rainbow" style="border-color: rgba(245, 158, 11, 0.4); color: #fbbf24; font-size: 0.78rem;">
               Prism Rainbow Dispersion
+            </button>
+            <button class="btn btn-secondary" id="preset-grating" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.78rem;">
+              Diffraction Grating (600 lines/mm)
+            </button>
+          </div>
+
+          <div id="presets-compound-group" style="display: none; flex-wrap: wrap; gap: 8px;">
+            <button class="btn btn-secondary" id="preset-telescope" style="border-color: rgba(99, 102, 241, 0.4); color: #818cf8; font-size: 0.78rem;">
+              🔭 Keplerian Telescope
+            </button>
+            <button class="btn btn-secondary" id="preset-microscope" style="border-color: rgba(16, 185, 129, 0.4); color: #34d399; font-size: 0.78rem;">
+              🔬 Compound Microscope
+            </button>
+            <button class="btn btn-secondary" id="preset-achromatic" style="border-color: rgba(245, 158, 11, 0.4); color: #fbbf24; font-size: 0.78rem;">
+              💎 Achromatic Doublet
+            </button>
+            <button class="btn btn-secondary" id="preset-confocal" style="border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-size: 0.78rem;">
+              📐 Confocal Afocal System
             </button>
           </div>
 
@@ -333,7 +427,7 @@ export function initOpticsLab(containerId) {
   const photoOverlay = document.getElementById("optics-photo-overlay");
 
   // State Variables
-  let currentTab = "lens"; // 'lens' | 'mirror' | 'snell' | 'photo'
+  let currentTab = "lens"; // 'lens' | 'mirror' | 'snell' | 'compound' | 'photo'
   let doVal = 30.0; // cm
   let fVal = 15.0; // cm
   let hoVal = 10.0; // cm
@@ -348,16 +442,23 @@ export function initOpticsLab(containerId) {
   let medium1Index = 1.000;
   let medium2Index = 1.520;
   let theta1Deg = 30.0;
-  let interfaceShape = "semicircle"; // 'semicircle' | 'prism'
+  let interfaceShape = "semicircle"; // 'semicircle' | 'prism' | 'grating'
+
+  // Compound Multi-Lens State
+  let compoundPreset = "telescope"; // 'telescope' | 'microscope' | 'achromatic' | 'custom'
+  let f1Val = 30.0; // cm
+  let f2Val = 10.0; // cm
+  let tubeLen = 40.0; // cm
+  let do1Val = 65.0; // cm (infinity for telescope)
 
   // Drag interaction state
-  let dragTarget = null; // 'object_pos' | 'object_height' | 'screen' | 'snell_source'
+  let dragTarget = null; // 'object_pos' | 'object_height' | 'screen' | 'snell_source' | 'lens1_pos' | 'lens2_pos'
   let dragStartX = 0;
   let dragStartY = 0;
 
   const scale = 7.5; // pixels per cm
 
-  // Calculate Image position & magnification
+  // Calculate Single Lens/Mirror Image position & magnification
   function calculateImage() {
     let f = fVal;
     if (opticType === "concave_lens" || opticType === "convex_mirror") {
@@ -405,6 +506,53 @@ export function initOpticsLab(containerId) {
     return { tir, theta2Deg, critAngleDeg, reflectance };
   }
 
+  // Calculate Compound Multi-Lens System
+  function calculateCompoundOptics() {
+    const f1 = f1Val;
+    const f2 = f2Val;
+    const L = tubeLen;
+
+    // Intermediate Image after Lens 1
+    let di1 = 0;
+    let m1 = 0;
+    if (compoundPreset === "telescope" && do1Val >= 60) {
+      di1 = f1;
+      m1 = 0; // Collimated star source
+    } else {
+      di1 = (f1 * do1Val) / (do1Val - f1);
+      m1 = -di1 / do1Val;
+    }
+
+    // Secondary Object Distance into Lens 2
+    const do2 = L - di1;
+
+    // Final Image after Lens 2
+    let di2 = 0;
+    let m2 = 0;
+    if (Math.abs(do2 - f2) < 0.05) {
+      di2 = Infinity;
+      m2 = Infinity;
+    } else {
+      di2 = (f2 * do2) / (do2 - f2);
+      m2 = -di2 / do2;
+    }
+
+    const mTotal = (compoundPreset === "telescope") ? (-f1 / f2) : (m1 * m2);
+
+    // Ray Transfer Matrix ABCD
+    const A = 1 - L / f1;
+    const B = L;
+    const C = -1 / f1 - 1 / f2 + L / (f1 * f2);
+    const D = 1 - L / f2;
+    const fSys = Math.abs(C) > 1e-5 ? -1 / C : Infinity;
+
+    return {
+      f1, f2, L, do1: do1Val, di1, do2, di2, m1, m2, mTotal,
+      A, B, C, D, fSys,
+      isAfocal: Math.abs(L - (f1 + f2)) < 0.2
+    };
+  }
+
   // Draw Primary Render Loop
   function draw() {
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (window.devicePixelRatio || 1);
@@ -429,10 +577,342 @@ export function initOpticsLab(containerId) {
 
     if (currentTab === "snell") {
       drawSnellView(w, h, isSmart);
+    } else if (currentTab === "compound") {
+      drawCompoundView(w, h, isSmart);
     } else {
       drawBenchView(w, h, isSmart);
     }
 
+    ctx.restore();
+  }
+
+  // -------------------------------------------------------------------
+  // Draw Compound Multi-Lens System (Microscope, Telescope, Doublet)
+  // -------------------------------------------------------------------
+  function drawCompoundView(w, h, isSmart) {
+    const centerX = w / 2;
+    const centerY = h / 2 - 20;
+    const railY = centerY + 130;
+
+    // 1. Optical Rail Bench (Anodized Aluminum)
+    const railGrad = ctx.createLinearGradient(0, railY, 0, railY + 35);
+    railGrad.addColorStop(0, "#475569");
+    railGrad.addColorStop(0.3, "#64748b");
+    railGrad.addColorStop(0.7, "#334155");
+    railGrad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = railGrad;
+    ctx.fillRect(40, railY, w - 80, 32);
+
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(40, railY, w - 80, 32);
+
+    // Metric Rail Graduations
+    if (showGraduations) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.font = "9px JetBrains Mono, sans-serif";
+      for (let cm = 0; cm <= 80; cm += 5) {
+        const xPos = 60 + cm * (scale * 1.35);
+        if (xPos > w - 60) break;
+        ctx.fillRect(xPos - 0.5, railY, 1, (cm % 10 === 0) ? 9 : 5);
+        if (cm % 10 === 0) {
+          ctx.fillText(`${cm}`, xPos - 5, railY + 22);
+        }
+      }
+    }
+
+    // 2. Optical Centerline Axis
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(30, centerY);
+    ctx.lineTo(w - 30, centerY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Positions of Lens 1 and Lens 2
+    const L1_x = centerX - (tubeLen * 0.5) * scale;
+    const L2_x = centerX + (tubeLen * 0.5) * scale;
+
+    const comp = calculateCompoundOptics();
+
+    // 3. Draw Lens 1 (Objective)
+    ctx.save();
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(L1_x - 14, centerY + 105, 28, railY - (centerY + 105));
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(L1_x - 18, centerY + 95, 36, 10);
+
+    const l1Grad = ctx.createLinearGradient(L1_x - 12, 0, L1_x + 12, 0);
+    l1Grad.addColorStop(0, "rgba(56, 189, 248, 0.5)");
+    l1Grad.addColorStop(0.5, "rgba(255, 255, 255, 0.2)");
+    l1Grad.addColorStop(1, "rgba(56, 189, 248, 0.6)");
+    ctx.fillStyle = l1Grad;
+    ctx.beginPath();
+    ctx.ellipse(L1_x, centerY, 13, 105, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.85)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Focal Points for Lens 1
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 9px JetBrains Mono, sans-serif";
+    ctx.fillRect(L1_x - f1Val * scale - 1.5, centerY - 4, 3, 8);
+    ctx.fillText("F₁", L1_x - f1Val * scale - 6, centerY + 16);
+    ctx.fillRect(L1_x + f1Val * scale - 1.5, centerY - 4, 3, 8);
+    ctx.fillText("F₁'", L1_x + f1Val * scale - 6, centerY + 16);
+    ctx.fillText(`L₁ Objective (f₁=${f1Val}cm)`, L1_x - 45, centerY - 115);
+    ctx.restore();
+
+    // 4. Draw Lens 2 (Eyepiece)
+    ctx.save();
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(L2_x - 14, centerY + 105, 28, railY - (centerY + 105));
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(L2_x - 18, centerY + 95, 36, 10);
+
+    const l2Grad = ctx.createLinearGradient(L2_x - 10, 0, L2_x + 10, 0);
+    l2Grad.addColorStop(0, "rgba(129, 140, 248, 0.5)");
+    l2Grad.addColorStop(0.5, "rgba(255, 255, 255, 0.2)");
+    l2Grad.addColorStop(1, "rgba(129, 140, 248, 0.6)");
+    ctx.fillStyle = l2Grad;
+    ctx.beginPath();
+    ctx.ellipse(L2_x, centerY, 10, 90, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(129, 140, 248, 0.85)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Focal Points for Lens 2
+    ctx.fillStyle = "#818cf8";
+    ctx.font = "bold 9px JetBrains Mono, sans-serif";
+    ctx.fillRect(L2_x - f2Val * scale - 1.5, centerY - 4, 3, 8);
+    ctx.fillText("F₂", L2_x - f2Val * scale - 6, centerY + 16);
+    ctx.fillRect(L2_x + f2Val * scale - 1.5, centerY - 4, 3, 8);
+    ctx.fillText("F₂'", L2_x + f2Val * scale - 6, centerY + 16);
+    ctx.fillText(`L₂ Eyepiece (f₂=${f2Val}cm)`, L2_x - 45, centerY - 100);
+    ctx.restore();
+
+    // 5. Tube Length Bracket (Dimension Line)
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(L1_x, railY - 15);
+    ctx.lineTo(L2_x, railY - 15);
+    ctx.moveTo(L1_x, railY - 22);
+    ctx.lineTo(L1_x, railY - 8);
+    ctx.moveTo(L2_x, railY - 22);
+    ctx.lineTo(L2_x, railY - 8);
+    ctx.stroke();
+
+    ctx.fillStyle = "#34d399";
+    ctx.font = "bold 10px JetBrains Mono, sans-serif";
+    ctx.fillText(`Tube Length L = ${tubeLen.toFixed(1)} cm`, (L1_x + L2_x) / 2 - 50, railY - 20);
+
+    // 6. Ray Tracing for Selected Configuration
+    if (compoundPreset === "telescope") {
+      // Keplerian Astronomical Telescope: Parallel incoming starlight at angle alpha
+      const alpha = 0.055; // radians (~3.1 degrees)
+      const yIntermediate = -f1Val * scale * Math.tan(alpha);
+
+      // Incoming Parallel Starlight
+      [-40, 0, 40].forEach(dy => {
+        const startX = 50;
+        const startY = (centerY + dy) - (L1_x - startX) * Math.tan(alpha);
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(L1_x, centerY + dy);
+        // Refract through Objective L1 to intermediate focal plane F1'
+        const intX = L1_x + f1Val * scale;
+        const intY = centerY + yIntermediate;
+        ctx.lineTo(intX, intY);
+        // Continue to Eyepiece L2
+        const atL2_Y = intY + (L2_x - intX) * ((intY - (centerY + dy)) / (intX - L1_x));
+        ctx.lineTo(L2_x, atL2_Y);
+        // Emerge as parallel rays at angle beta = -(f1/f2) * alpha
+        const beta = -(f1Val / f2Val) * alpha;
+        const endX = w - 40;
+        const endY = atL2_Y + (endX - L2_x) * Math.tan(beta);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      });
+
+      // Intermediate Image Marker at F1'
+      const intX = L1_x + f1Val * scale;
+      ctx.strokeStyle = "#ec4899";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(intX, centerY);
+      ctx.lineTo(intX, centerY + yIntermediate);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#ec4899";
+      ctx.font = "bold 9px JetBrains Mono, sans-serif";
+      ctx.fillText("I₁ (Real, Inverted)", intX - 25, centerY + yIntermediate + 14);
+
+    } else if (compoundPreset === "achromatic") {
+      // Achromatic Doublet Demo: Shows Chromatic Correction
+      const rayY1 = centerY - 45;
+      const rayY2 = centerY + 45;
+
+      // Uncorrected Red ray (656nm) vs Blue ray (486nm)
+      [rayY1, rayY2].forEach(ry => {
+        // Red Ray
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(50, ry);
+        ctx.lineTo(L1_x, ry);
+        ctx.lineTo(L1_x + 30.0 * scale, centerY);
+        ctx.stroke();
+
+        // Blue Ray (Cemented Doublet converges to identical 30.0 cm point!)
+        ctx.strokeStyle = "#3b82f6";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(50, ry);
+        ctx.lineTo(L1_x, ry);
+        ctx.lineTo(L1_x + 30.0 * scale, centerY);
+        ctx.stroke();
+      });
+
+      // Doublet Achromatic Focus
+      ctx.fillStyle = "#10b981";
+      ctx.beginPath();
+      ctx.arc(L1_x + 30.0 * scale, centerY, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = "bold 10px JetBrains Mono, sans-serif";
+      ctx.fillText("Achromatic Focal Plane (f_red = f_blue = 30.0 cm)", L1_x + 30.0 * scale - 75, centerY + 24);
+
+    } else {
+      // Compound Microscope / Custom Bench:
+      // Object Candle at L1_x - do1Val * scale
+      const objX = L1_x - do1Val * scale;
+      const objY = centerY;
+      const objH = hoVal * scale;
+
+      // Draw Object Candle
+      ctx.fillStyle = "#f59e0b";
+      ctx.fillRect(objX - 4, objY - objH, 8, objH);
+      ctx.fillStyle = "#ef4444";
+      ctx.beginPath();
+      ctx.arc(objX, objY - objH - 6, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Object Label
+      ctx.fillStyle = "#f59e0b";
+      ctx.font = "bold 9px JetBrains Mono, sans-serif";
+      ctx.fillText(`Object (d_o1=${do1Val.toFixed(1)}cm)`, objX - 30, objY - objH - 14);
+
+      // Ray Tracing through Lens 1
+      if (do1Val > f1Val) {
+        const di1 = (f1Val * do1Val) / (do1Val - f1Val);
+        const m1 = -di1 / do1Val;
+        const intX = L1_x + di1 * scale;
+        const intY = centerY + m1 * objH;
+
+        // 1. Parallel ray from tip to L1 -> through F1' to I1
+        ctx.strokeStyle = "#06b6d4";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(objX, objY - objH);
+        ctx.lineTo(L1_x, objY - objH);
+        ctx.lineTo(intX, intY);
+        ctx.stroke();
+
+        // 2. Chief ray through center of L1 to I1
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(objX, objY - objH);
+        ctx.lineTo(L1_x, centerY);
+        ctx.lineTo(intX, intY);
+        ctx.stroke();
+
+        // Intermediate Candle Image I1
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(intX, centerY);
+        ctx.lineTo(intX, intY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillText(`I₁ (m₁=${m1.toFixed(1)}×)`, intX - 25, intY + (m1 < 0 ? 14 : -6));
+
+        // Rays continuing to Lens 2 (Eyepiece)
+        const do2 = tubeLen - di1;
+        if (do2 > 0) {
+          ctx.strokeStyle = "#a855f7";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(intX, intY);
+          ctx.lineTo(L2_x, intY);
+          // Lens 2 refraction
+          const di2 = (f2Val * do2) / (do2 - f2Val);
+          if (do2 < f2Val) {
+            // Virtual Magnified Image (Microscope!)
+            const finalX = L2_x + di2 * scale; // Negative di2
+            const finalY = centerY + (m1 * (-di2 / do2)) * objH;
+
+            // Diverging rays to right
+            ctx.lineTo(w - 40, intY + (w - 40 - L2_x) * ((intY - centerY) / (L2_x - intX)));
+            ctx.stroke();
+
+            // Dashed Virtual Sightlines backwards to final virtual image
+            ctx.strokeStyle = "rgba(168, 85, 247, 0.4)";
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(L2_x, intY);
+            ctx.lineTo(finalX, finalY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Huge Virtual Image Arrow
+            ctx.strokeStyle = "#c084fc";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(finalX, centerY);
+            ctx.lineTo(finalX, finalY);
+            ctx.stroke();
+            ctx.fillStyle = "#c084fc";
+            ctx.fillText(`Final Virtual Image (M_tot = ${(m1 * (-di2 / do2)).toFixed(1)}×)`, finalX - 40, finalY - 8);
+          }
+        }
+      }
+    }
+
+    // 7. Top Right Scientific ABCD Matrix Card
+    ctx.save();
+    ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+    ctx.strokeStyle = "rgba(99, 102, 241, 0.4)";
+    ctx.lineWidth = 1;
+    ctx.fillRect(w - 230, 65, 215, 105);
+    ctx.strokeRect(w - 230, 65, 215, 105);
+
+    ctx.fillStyle = "#818cf8";
+    ctx.font = "bold 10px JetBrains Mono, sans-serif";
+    ctx.fillText("ABCD TRANSFER RAY MATRIX", w - 218, 82);
+
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "9px JetBrains Mono, sans-serif";
+    ctx.fillText(`[ A = ${comp.A.toFixed(2)}    B = ${comp.B.toFixed(1)} cm ]`, w - 215, 102);
+    ctx.fillText(`[ C = ${comp.C.toFixed(4)} cm⁻¹  D = ${comp.D.toFixed(2)} ]`, w - 215, 120);
+
+    ctx.fillStyle = comp.isAfocal ? "#34d399" : "#38bdf8";
+    ctx.font = "bold 9px JetBrains Mono, sans-serif";
+    if (comp.isAfocal) {
+      ctx.fillText(`Afocal System: C ≈ 0 (Telescope)`, w - 215, 142);
+      ctx.fillText(`Angular Mag: M = ${comp.mTotal.toFixed(2)}×`, w - 215, 158);
+    } else {
+      ctx.fillText(`Effective f_sys: ${isFinite(comp.fSys) ? comp.fSys.toFixed(1) + " cm" : "Afocal"}`, w - 215, 142);
+      ctx.fillText(`Linear Mag: M_tot = ${comp.mTotal.toFixed(2)}×`, w - 215, 158);
+    }
     ctx.restore();
   }
 
@@ -449,54 +929,41 @@ export function initOpticsLab(containerId) {
     railGrad.addColorStop(0.7, "#334155");
     railGrad.addColorStop(1, "#1e293b");
     ctx.fillStyle = railGrad;
-    ctx.fillRect(40, railY, w - 80, 28);
-    ctx.strokeStyle = "rgba(99, 102, 241, 0.4)";
+    ctx.fillRect(40, railY, w - 80, 32);
+
+    ctx.strokeStyle = "#6366f1";
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(40, railY, w - 80, 28);
+    ctx.strokeRect(40, railY, w - 80, 32);
 
-    // Millimeter Metric Ticks
+    // Metric Rail Graduations
     if (showGraduations) {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
-      ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
-      ctx.font = "8px JetBrains Mono, monospace";
-      for (let cm = -50; cm <= 50; cm += 2) {
-        const rx = centerX + cm * scale;
-        if (rx >= 50 && rx <= w - 50) {
-          const isMajor = (cm % 10 === 0);
-          ctx.beginPath();
-          ctx.moveTo(rx, railY);
-          ctx.lineTo(rx, railY + (isMajor ? 10 : 5));
-          ctx.stroke();
-
-          if (isMajor) {
-            ctx.fillText(`${cm > 0 ? '+' : ''}${cm}`, rx - 8, railY + 22);
-          }
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.font = "9px JetBrains Mono, sans-serif";
+      for (let cm = 0; cm <= 80; cm += 5) {
+        const xPos = 60 + cm * (scale * 1.35);
+        if (xPos > w - 60) break;
+        ctx.fillRect(xPos - 0.5, railY, 1, (cm % 10 === 0) ? 9 : 5);
+        if (cm % 10 === 0) {
+          ctx.fillText(`${cm}`, xPos - 5, railY + 22);
         }
       }
     }
 
-    // 2. Principal Optical Axis
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
-    ctx.lineWidth = 1.2;
+    // 2. Optical Centerline Axis
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([6, 6]);
     ctx.beginPath();
     ctx.moveTo(30, centerY);
     ctx.lineTo(w - 30, centerY);
     ctx.stroke();
+    ctx.setLineDash([]);
 
-    // 3. Focal Point Markers
-    function drawFocalPoint(xPos, label, color = "#818cf8") {
+    // 3. Focal Points (F and 2F)
+    function drawFocalPoint(xPos, label, color) {
       ctx.fillStyle = color;
-      if (!isSmart) {
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 8;
-      }
-      ctx.beginPath();
-      ctx.arc(xPos, centerY, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.font = "bold 11px JetBrains Mono, monospace";
-      ctx.fillStyle = color;
+      ctx.fillRect(xPos - 1.5, centerY - 5, 3, 10);
+      ctx.font = "bold 10px JetBrains Mono, sans-serif";
       ctx.fillText(label, xPos - 8, centerY + 18);
     }
 
@@ -648,449 +1115,431 @@ export function initOpticsLab(containerId) {
         ctx.arc(objX, centerY + dy, 3, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = "rgba(52, 211, 153, 0.9)";
-        ctx.lineWidth = 2.5;
-        if (!isSmart) {
-          ctx.shadowColor = "#34d399";
-          ctx.shadowBlur = 10;
-        }
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(objX, centerY + dy);
         ctx.lineTo(centerX, centerY + dy);
-
-        if (!isMirror) {
-          const fR = (opticType === "convex_lens") ? (centerX + fVal * scale) : (centerX - fVal * scale);
-          const slope = (centerY - (centerY + dy)) / (fR - centerX);
-          ctx.lineTo(w - 40, (centerY + dy) + slope * (w - 40 - centerX));
-        } else {
-          // Mirror reflections
-          const fM = (opticType === "concave_mirror") ? (centerX - fVal * scale) : (centerX + fVal * scale);
-          const slope = (centerY - (centerY + dy)) / (fM - centerX);
-          ctx.lineTo(40, (centerY + dy) - slope * (centerX - 40));
-        }
         ctx.stroke();
-        ctx.shadowBlur = 0;
       });
     } else {
-      // Candle Stand & Body
+      // Photorealistic Wax Candle Object
+      ctx.save();
+      const candleGrad = ctx.createLinearGradient(objX - 6, 0, objX + 6, 0);
+      candleGrad.addColorStop(0, "#f8fafc");
+      candleGrad.addColorStop(0.5, "#fef08a");
+      candleGrad.addColorStop(1, "#cbd5e1");
+      ctx.fillStyle = candleGrad;
+      ctx.fillRect(objX - 6, objY - objH, 12, objH);
+
+      // Carriage Base Clamped to Rail
       ctx.fillStyle = "#334155";
-      ctx.fillRect(objX - 10, railY - 15, 20, 15);
-      ctx.fillStyle = "#fef08a";
-      ctx.fillRect(objX - 6, objY - objH * 0.75, 12, objH * 0.75);
-      ctx.strokeStyle = "#eab308";
-      ctx.lineWidth = 1;
-      ctx.strokeRect(objX - 6, objY - objH * 0.75, 12, objH * 0.75);
-
-      // Wick
-      ctx.strokeStyle = "#475569";
-      ctx.lineWidth = 2;
+      ctx.fillRect(objX - 12, railY - 18, 24, 18);
+      ctx.fillStyle = "#f59e0b";
       ctx.beginPath();
-      ctx.moveTo(objX, objY - objH * 0.75);
-      ctx.lineTo(objX, objY - objH * 0.75 - 4);
-      ctx.stroke();
+      ctx.arc(objX, railY - 9, 3, 0, Math.PI * 2);
+      ctx.fill();
 
-      // Flame with flicker
-      const flameFlicker = isSmart ? 0 : (Math.sin(Date.now() / 120) * 1.5);
-      const flameY = objY - objH - flameFlicker;
-
-      const flameGrad = ctx.createRadialGradient(objX, flameY + 6, 2, objX, flameY + 4, 14);
+      // Flickering Luminous Flame
+      const flameH = 14 + Math.sin(Date.now() * 0.015) * 2;
+      const flameGrad = ctx.createRadialGradient(objX, objY - objH - flameH / 2, 2, objX, objY - objH - flameH / 2, 10);
       flameGrad.addColorStop(0, "#ffffff");
       flameGrad.addColorStop(0.3, "#fef08a");
       flameGrad.addColorStop(0.7, "#f59e0b");
       flameGrad.addColorStop(1, "rgba(239, 68, 68, 0)");
-
       ctx.fillStyle = flameGrad;
-      if (!isSmart) {
-        ctx.shadowColor = "#f59e0b";
-        ctx.shadowBlur = 18;
-      }
       ctx.beginPath();
-      ctx.ellipse(objX, flameY + 4, 6, 12, 0, 0, Math.PI * 2);
+      ctx.ellipse(objX, objY - objH - flameH / 2, 5, flameH / 2, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.shadowBlur = 0;
 
-      // Flame Tip Tactile Handle
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
-      ctx.lineWidth = 1.5;
+      // Flame Drag Tip Indicator
+      ctx.fillStyle = "#f59e0b";
       ctx.beginPath();
-      ctx.arc(objX, flameY, 8, 0, Math.PI * 2);
-      ctx.stroke();
+      ctx.arc(objX, objY - objH, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
 
-      // 6. Principal Ray Tracing
-      const img = calculateImage();
+    // 6. Ray Tracing Engine (3 Principal Gaussian Rays)
+    const img = calculateImage();
+    const effF = (opticType === "convex_lens" || opticType === "concave_mirror") ? fVal : -fVal;
+
+    if (!laserMode && isFinite(img.di)) {
+      ctx.save();
       const tipX = objX;
       const tipY = objY - objH;
+      const imgX = (opticType.includes("lens")) ? (centerX + img.di * scale) : (centerX - img.di * scale);
+      const imgY = centerY - img.hi * scale;
 
-      if (Math.abs(doVal - fVal) > 0.05 && isFinite(img.di)) {
-        const imgX = !isMirror ? (centerX + img.di * scale) : (centerX - img.di * scale);
-        const imgY = centerY - img.hi * scale;
+      // Ray 1: Parallel to Axis -> Refracts/Reflects through Focus
+      ctx.strokeStyle = "#06b6d4";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(tipX, tipY);
+      ctx.lineTo(centerX, tipY);
 
-        // RAY 1: Parallel Ray (Cyan)
-        ctx.strokeStyle = "#06b6d4";
-        ctx.lineWidth = 2.5;
-        if (!isSmart) {
-          ctx.shadowColor = "#06b6d4";
-          ctx.shadowBlur = 8;
-        }
-        ctx.beginPath();
-        ctx.moveTo(tipX, tipY);
-        ctx.lineTo(centerX, tipY);
-
-        if (!isMirror) {
-          if (opticType === "convex_lens") {
-            if (img.isReal) {
-              ctx.lineTo(imgX, imgY);
-            } else {
-              const slope = (tipY - centerY) / (-fVal * scale);
-              ctx.lineTo(w - 40, tipY + slope * (w - 40 - centerX));
-            }
-          } else {
-            const slope = (tipY - centerY) / (fVal * scale);
-            ctx.lineTo(w - 40, tipY + slope * (w - 40 - centerX));
-          }
-        } else {
-          // Mirror Parallel Ray: Reflects through focus F
-          if (opticType === "concave_mirror") {
-            ctx.lineTo(imgX, imgY);
-            ctx.lineTo(40, imgY);
-          } else {
-            const slope = (tipY - centerY) / (fVal * scale);
-            ctx.lineTo(40, tipY + slope * (40 - centerX));
-          }
-        }
-        ctx.stroke();
-
-        // RAY 2: Focal Ray (Amber)
-        ctx.strokeStyle = "#f59e0b";
-        ctx.shadowColor = "#f59e0b";
-        ctx.beginPath();
-        if (!isMirror) {
-          if (opticType === "convex_lens" && img.isReal) {
-            const fLeftX = centerX - fVal * scale;
-            const slope = (centerY - tipY) / (fLeftX - tipX);
-            const lensY = tipY + slope * (centerX - tipX);
-            ctx.moveTo(tipX, tipY);
-            ctx.lineTo(centerX, lensY);
-            ctx.lineTo(imgX, imgY);
-            ctx.lineTo(w - 40, imgY);
-          }
-        } else if (opticType === "concave_mirror" && img.isReal) {
-          const fX = centerX - fVal * scale;
-          const slope = (centerY - tipY) / (fX - tipX);
-          const mirrorY = tipY + slope * (centerX - tipX);
-          ctx.moveTo(tipX, tipY);
-          ctx.lineTo(centerX, mirrorY);
-          ctx.lineTo(imgX, imgY);
-          ctx.lineTo(40, imgY);
-        }
-        ctx.stroke();
-
-        // RAY 3: Central / Vertex Chief Ray (Emerald)
-        ctx.strokeStyle = "#10b981";
-        ctx.shadowColor = "#10b981";
-        ctx.beginPath();
-        ctx.moveTo(tipX, tipY);
-        ctx.lineTo(centerX, centerY);
-        if (!isMirror) {
-          if (img.isReal) {
-            ctx.lineTo(imgX, imgY);
-          } else {
-            const cSlope = (centerY - tipY) / (centerX - tipX);
-            ctx.lineTo(w - 40, centerY + cSlope * (w - 40 - centerX));
-          }
-        } else {
-          // Reflects symmetrically at vertex (angle of incidence = angle of reflection)
-          const angle = Math.atan2(centerY - tipY, centerX - tipX);
-          ctx.lineTo(40, centerY + Math.tan(angle) * (centerX - 40));
-        }
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        // Dashed Virtual Back-Projections
-        if (!img.isReal) {
-          ctx.strokeStyle = "rgba(56, 189, 248, 0.7)";
-          ctx.lineWidth = 2;
-          ctx.setLineDash([5, 5]);
+      if (opticType === "convex_lens") {
+        ctx.lineTo(imgX, imgY);
+        if (img.di < 0) {
+          // Virtual Image Sightline
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(6, 182, 212, 0.4)";
+          ctx.setLineDash([4, 4]);
           ctx.beginPath();
           ctx.moveTo(centerX, tipY);
           ctx.lineTo(imgX, imgY);
-          ctx.moveTo(centerX, centerY);
-          ctx.lineTo(imgX, imgY);
-          ctx.stroke();
-          ctx.setLineDash([]);
         }
-
-        // 7. Formed Image Rendering
-        if (imgX >= 40 && imgX <= w - 40) {
-          const isVirtual = !img.isReal;
-          ctx.save();
-          ctx.globalAlpha = isVirtual ? 0.65 : 0.95;
-
-          // Image Wax
-          ctx.fillStyle = isVirtual ? "rgba(139, 92, 246, 0.6)" : "#fef08a";
-          const waxH = Math.abs(img.hi * scale) * 0.75;
-          const waxY = img.isUpright ? (centerY - waxH) : centerY;
-          ctx.fillRect(imgX - 5, waxY, 10, waxH);
-
-          // Image Flame
-          const imFlameY = img.isUpright ? (centerY - Math.abs(img.hi * scale)) : (centerY + Math.abs(img.hi * scale));
-          ctx.fillStyle = isVirtual ? "#c084fc" : "#f59e0b";
-          if (!isSmart) {
-            ctx.shadowColor = isVirtual ? "#c084fc" : "#f59e0b";
-            ctx.shadowBlur = 14;
-          }
-          ctx.beginPath();
-          ctx.ellipse(imgX, imFlameY, 5, 10, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.shadowBlur = 0;
-          ctx.restore();
-
-          // Label
-          ctx.fillStyle = isVirtual ? "#c084fc" : "#10b981";
-          ctx.font = "bold 10px JetBrains Mono, monospace";
-          ctx.fillText(isVirtual ? "Virtual Image" : "Real Image", imgX - 30, (img.isUpright ? imFlameY - 14 : imFlameY + 22));
-        }
-
-        // 8. Frosted Glass Projection Screen (Draggable)
-        if (showScreen && img.isReal && !isMirror) {
-          const scrX = centerX + screenDist * scale;
-          const delta = Math.abs(screenDist - img.di);
-          const isSharp = delta < 0.8;
-
-          // Screen holder on rail
-          ctx.fillStyle = "#475569";
-          ctx.fillRect(scrX - 10, railY - 14, 20, 14);
-
-          // Frosted glass plate
-          ctx.fillStyle = isSharp ? "rgba(52, 211, 153, 0.25)" : "rgba(255, 255, 255, 0.15)";
-          ctx.fillRect(scrX - 4, centerY - 120, 8, 240);
-          ctx.strokeStyle = isSharp ? "#10b981" : "rgba(255, 255, 255, 0.4)";
-          ctx.lineWidth = isSharp ? 2.5 : 1.5;
-          ctx.strokeRect(scrX - 4, centerY - 120, 8, 240);
-
-          // Defocus blur bokeh simulation on screen
-          if (!isSharp && scrX >= 40 && scrX <= w - 40) {
-            const blurRadius = Math.min(25, delta * 2.5);
-            ctx.fillStyle = "rgba(245, 158, 11, 0.25)";
-            ctx.beginPath();
-            ctx.ellipse(scrX, centerY - img.hi * scale * 0.5, blurRadius, blurRadius * 1.5, 0, 0, Math.PI * 2);
-            ctx.fill();
-          }
-
-          // Screen text badge
-          ctx.font = "bold 9px JetBrains Mono, monospace";
-          ctx.fillStyle = isSharp ? "#34d399" : "#fbbf24";
-          ctx.fillText(isSharp ? "FOCUS SHARP" : `DEFOCUSED (${delta.toFixed(1)}cm)`, scrX - 35, centerY - 128);
-        }
-      }
-    }
-  }
-
-  // Draw Snell's Law, TIR & Prism Dispersion View
-  function drawSnellView(w, h, isSmart) {
-    const centerX = w / 2;
-    const centerY = h / 2;
-    const radius = 170;
-
-    const snell = calculateSnell();
-
-    // 1. Semi-Circular Block or Triangular Prism
-    if (interfaceShape === "semicircle") {
-      // Protractor Arc Graduations
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius + 25, 0, Math.PI * 2);
-      ctx.stroke();
-
-      for (let deg = 0; deg < 360; deg += 10) {
-        const rad = (deg * Math.PI) / 180;
-        const x1 = centerX + (radius + 20) * Math.cos(rad);
-        const y1 = centerY + (radius + 20) * Math.sin(rad);
-        const x2 = centerX + (radius + 25) * Math.cos(rad);
-        const y2 = centerY + (radius + 25) * Math.sin(rad);
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
+      } else if (opticType === "concave_lens") {
+        ctx.lineTo(centerX + 120, tipY + (120 / effF) * tipY);
         ctx.stroke();
+        ctx.strokeStyle = "rgba(6, 182, 212, 0.4)";
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(centerX, tipY);
+        ctx.lineTo(imgX, imgY);
+      } else if (opticType === "concave_mirror") {
+        ctx.lineTo(imgX, imgY);
+      } else if (opticType === "convex_mirror") {
+        ctx.lineTo(centerX - 100, tipY - (100 / effF) * tipY);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(6, 182, 212, 0.4)";
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(centerX, tipY);
+        ctx.lineTo(imgX, imgY);
       }
-
-      // Upper Half Medium 1 (air / water)
-      ctx.fillStyle = "rgba(15, 23, 42, 0.6)";
-      ctx.fillRect(centerX - radius - 30, centerY - radius - 30, (radius + 30) * 2, radius + 30);
-
-      // Lower D-Block (Medium 2 Glass / Acrylic)
-      const glassGrad = ctx.createRadialGradient(centerX, centerY, 10, centerX, centerY, radius);
-      glassGrad.addColorStop(0, "rgba(56, 189, 248, 0.35)");
-      glassGrad.addColorStop(0.7, "rgba(56, 189, 248, 0.2)");
-      glassGrad.addColorStop(1, "rgba(56, 189, 248, 0.45)");
-
-      ctx.fillStyle = glassGrad;
-      ctx.beginPath();
-      ctx.arc(centerX, centerY, radius, 0, Math.PI);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Normal Line (Vertical dashed)
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.lineWidth = 1.2;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY - radius - 20);
-      ctx.lineTo(centerX, centerY + radius + 20);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Surface Normal Label
-      ctx.font = "10px JetBrains Mono, monospace";
-      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-      ctx.fillText("Surface Normal (N)", centerX + 8, centerY - radius - 6);
-
-      // Interface Line
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(centerX - radius - 20, centerY);
-      ctx.lineTo(centerX + radius + 20, centerY);
-      ctx.stroke();
-
-      // 2. Incident Laser Ray
-      const theta1Rad = (theta1Deg * Math.PI) / 180;
-      const srcLen = radius + 15;
-      const srcX = centerX - srcLen * Math.sin(theta1Rad);
-      const srcY = centerY - srcLen * Math.cos(theta1Rad);
-
-      // Laser Housing
-      ctx.fillStyle = "#1e293b";
+      // Ray 2: Chief Ray (Through Center / Vertex)
       ctx.strokeStyle = "#10b981";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 1.8;
       ctx.beginPath();
-      ctx.arc(srcX, srcY, 10, 0, Math.PI * 2);
+      ctx.moveTo(tipX, tipY);
+      ctx.lineTo(centerX, centerY);
+      if (opticType.includes("lens")) {
+        ctx.lineTo(imgX, imgY);
+        if (img.di < 0) {
+          ctx.stroke();
+          ctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(imgX, imgY);
+        }
+      } else {
+        // Mirror reflection at vertex: angle of reflection = angle of incidence
+        ctx.lineTo(imgX, imgY);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Ray 3: Focal Ray
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(tipX, tipY);
+      if (opticType === "convex_lens" && doVal > effF) {
+        ctx.lineTo(centerX, imgY);
+        ctx.lineTo(imgX, imgY);
+      } else if (opticType === "concave_mirror" && doVal > effF) {
+        ctx.lineTo(centerX, imgY);
+        ctx.lineTo(imgX, imgY);
+      }
+      ctx.stroke();
+      ctx.restore();
+
+      // 7. Render Formed Image (Candle or Ghost)
+      ctx.save();
+      const isVirtual = !img.isReal;
+      ctx.globalAlpha = isVirtual ? 0.6 : 0.95;
+
+      // Image Candle Body
+      ctx.fillStyle = isVirtual ? "#c084fc" : "#10b981";
+      ctx.fillRect(imgX - 5, centerY, 10, -img.hi * scale);
+
+      // Image Flame
+      ctx.fillStyle = isVirtual ? "#e879f9" : "#fbbf24";
+      ctx.beginPath();
+      ctx.arc(imgX, centerY - img.hi * scale, Math.abs(img.hi * scale * 0.15) + 3, 0, Math.PI * 2);
       ctx.fill();
+
+      // Image Label
+      ctx.font = "bold 9px JetBrains Mono, sans-serif";
+      ctx.fillStyle = isVirtual ? "#c084fc" : "#10b981";
+      ctx.fillText(isVirtual ? "Virtual Image" : "Real Image", imgX - 25, centerY - img.hi * scale + (img.isUpright ? -10 : 18));
+      ctx.restore();
+    }
+
+    // 8. Frosted Observation Screen on Rail
+    if (showScreen && !isMirror) {
+      const scrX = centerX + screenDist * scale;
+      ctx.save();
+
+      // Screen Glass Plate
+      const screenGrad = ctx.createLinearGradient(scrX - 3, 0, scrX + 3, 0);
+      screenGrad.addColorStop(0, "rgba(255, 255, 255, 0.25)");
+      screenGrad.addColorStop(0.5, "rgba(251, 191, 36, 0.15)");
+      screenGrad.addColorStop(1, "rgba(255, 255, 255, 0.35)");
+      ctx.fillStyle = screenGrad;
+      ctx.fillRect(scrX - 4, centerY - 110, 8, 220);
+      ctx.strokeStyle = "#fbbf24";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(scrX - 4, centerY - 110, 8, 220);
+
+      // Screen Carriage
+      ctx.fillStyle = "#475569";
+      ctx.fillRect(scrX - 10, railY - 18, 20, 18);
+
+      // Circle of Confusion (Defocus Blur on Screen)
+      if (isFinite(img.di) && img.isReal) {
+        const deltaDist = Math.abs(screenDist - img.di);
+        const blurRadius = Math.min(28, deltaDist * 1.2 + 2);
+        const spotY = centerY - img.hi * scale;
+
+        ctx.fillStyle = "rgba(251, 191, 36, 0.4)";
+        ctx.beginPath();
+        ctx.arc(scrX, spotY, blurRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (deltaDist < 0.8) {
+          ctx.fillStyle = "#34d399";
+          ctx.font = "bold 9px JetBrains Mono";
+          ctx.fillText("SHARP FOCUS", scrX - 28, centerY - 118);
+        } else {
+          ctx.fillStyle = "#fbbf24";
+          ctx.font = "8px JetBrains Mono";
+          ctx.fillText(`BLUR (r=${blurRadius.toFixed(0)}px)`, scrX - 25, centerY - 118);
+        }
+      }
+      ctx.restore();
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Draw Snell's Law & Cauchy Chromatic Dispersion Prism / Grating
+  // -------------------------------------------------------------------
+  function drawSnellView(w, h, isSmart) {
+    const centerX = w / 2;
+    const centerY = h / 2;
+
+    const snellRadius = 170;
+
+    // Protractor Disc (Circular Medium 2 Boundary)
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, snellRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Degree Ticks
+    for (let deg = 0; deg < 360; deg += 10) {
+      const rad = (deg * Math.PI) / 180;
+      const rInner = (deg % 30 === 0) ? snellRadius - 12 : snellRadius - 6;
+      ctx.beginPath();
+      ctx.moveTo(centerX + Math.sin(rad) * rInner, centerY - Math.cos(rad) * rInner);
+      ctx.lineTo(centerX + Math.sin(rad) * snellRadius, centerY - Math.cos(rad) * snellRadius);
+      ctx.stroke();
+    }
+
+    if (interfaceShape === "semicircle") {
+      // Semi-circular D-Block (Normal Exit)
+      const dGrad = ctx.createRadialGradient(centerX, centerY, 10, centerX, centerY, snellRadius);
+      dGrad.addColorStop(0, "rgba(56, 189, 248, 0.15)");
+      dGrad.addColorStop(1, "rgba(56, 189, 248, 0.45)");
+      ctx.fillStyle = dGrad;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, snellRadius, 0, Math.PI);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Incident Beam
+      // Normal Axis
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY - snellRadius - 20);
+      ctx.lineTo(centerX, centerY + snellRadius + 20);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Incoming Incident Laser Beam
+      const theta1Rad = (theta1Deg * Math.PI) / 180;
+      const srcX = centerX - snellRadius * Math.sin(theta1Rad);
+      const srcY = centerY - snellRadius * Math.cos(theta1Rad);
+
       ctx.strokeStyle = "#10b981";
       ctx.lineWidth = 3;
       if (!isSmart) {
         ctx.shadowColor = "#10b981";
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 10;
       }
       ctx.beginPath();
       ctx.moveTo(srcX, srcY);
       ctx.lineTo(centerX, centerY);
       ctx.stroke();
+      ctx.shadowBlur = 0;
 
-      // Reflected Ray (Fresnel Reflection)
-      const refX = centerX + srcLen * Math.sin(theta1Rad);
-      const refY = centerY - srcLen * Math.cos(theta1Rad);
-      ctx.strokeStyle = `rgba(52, 211, 153, ${Math.max(0.2, snell.reflectance)})`;
-      ctx.lineWidth = snell.tir ? 3 : 1.8;
-      ctx.beginPath();
-      ctx.moveTo(centerX, centerY);
-      ctx.lineTo(refX, refY);
-      ctx.stroke();
+      // Laser Diode Pointer
+      ctx.fillStyle = "#334155";
+      ctx.fillRect(srcX - 12, srcY - 8, 24, 16);
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(srcX - 12, srcY - 8, 24, 16);
 
-      // Refracted Ray (Inside Medium 2)
-      if (!snell.tir && snell.theta2Deg !== null) {
+      // Snell Refraction Calculation
+      const snell = calculateSnell();
+
+      if (snell.tir) {
+        // Total Internal Reflection
+        const reflX = centerX + snellRadius * Math.sin(theta1Rad);
+        const reflY = centerY - snellRadius * Math.cos(theta1Rad);
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(reflX, reflY);
+        ctx.stroke();
+      } else {
+        // Refracted Beam in Medium 2
         const theta2Rad = (snell.theta2Deg * Math.PI) / 180;
-        const refrX = centerX + radius * Math.sin(theta2Rad);
-        const refrY = centerY + radius * Math.cos(theta2Rad);
+        const outX = centerX + snellRadius * Math.sin(theta2Rad);
+        const outY = centerY + snellRadius * Math.cos(theta2Rad);
 
         ctx.strokeStyle = "#38bdf8";
         ctx.lineWidth = 3;
-        ctx.shadowColor = "#38bdf8";
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
-        ctx.lineTo(refrX, refrY);
-        // Exits normal to circular boundary undeviated
-        const outLen = 45;
-        ctx.lineTo(refrX + outLen * Math.sin(theta2Rad), refrY + outLen * Math.cos(theta2Rad));
+        ctx.lineTo(outX, outY);
+        ctx.stroke();
+
+        // Weak reflected ray
+        if (snell.reflectance > 0.02) {
+          const reflX = centerX + snellRadius * Math.sin(theta1Rad);
+          const reflY = centerY - snellRadius * Math.cos(theta1Rad);
+          ctx.strokeStyle = `rgba(16, 185, 129, ${Math.min(0.8, snell.reflectance * 1.5)})`;
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(reflX, reflY);
+          ctx.stroke();
+        }
+      }
+    } else if (interfaceShape === "grating") {
+      // Transmission Diffraction Grating Plate & Orders
+      const gratingW = 8;
+      const gratingH = 180;
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(centerX - gratingW / 2, centerY - gratingH / 2, gratingW, gratingH);
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(centerX - gratingW / 2, centerY - gratingH / 2, gratingW, gratingH);
+
+      // Micro-slit rulings
+      ctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
+      ctx.lineWidth = 1;
+      for (let y = centerY - gratingH / 2 + 6; y <= centerY + gratingH / 2 - 6; y += 8) {
+        ctx.beginPath();
+        ctx.moveTo(centerX - gratingW / 2, y);
+        ctx.lineTo(centerX + gratingW / 2, y);
         ctx.stroke();
       }
-      ctx.shadowBlur = 0;
 
-      // Critical Angle Sector (if n1 > n2)
-      if (snell.critAngleDeg) {
-        const critRad = (snell.critAngleDeg * Math.PI) / 180;
-        ctx.fillStyle = "rgba(239, 68, 68, 0.15)";
-        ctx.beginPath();
-        ctx.moveTo(centerX, centerY);
-        ctx.arc(centerX, centerY, 55, -Math.PI / 2 - critRad, -Math.PI / 2);
-        ctx.closePath();
-        ctx.fill();
+      ctx.fillStyle = "#34d399";
+      ctx.font = "bold 9px JetBrains Mono";
+      ctx.fillText("GRATING (600 l/mm)", centerX - 45, centerY - gratingH / 2 - 10);
 
-        ctx.fillStyle = "#f87171";
-        ctx.font = "bold 9px JetBrains Mono, monospace";
-        ctx.fillText(`θ_c = ${snell.critAngleDeg.toFixed(1)}°`, centerX - 90, centerY - 65);
-      }
-    } else {
-      // Triangular Dispersion Prism
-      const pSide = 220;
-      const pHeight = (Math.sqrt(3) / 2) * pSide;
-      const pTopX = centerX;
-      const pTopY = centerY - pHeight * 0.55;
-      const pLeftX = centerX - pSide / 2;
-      const pLeftY = centerY + pHeight * 0.45;
-      const pRightX = centerX + pSide / 2;
-      const pRightY = centerY + pHeight * 0.45;
-
-      // Prism Body
-      const pGrad = ctx.createLinearGradient(pLeftX, pTopY, pRightX, pRightY);
-      pGrad.addColorStop(0, "rgba(255, 255, 255, 0.35)");
-      pGrad.addColorStop(0.5, "rgba(56, 189, 248, 0.2)");
-      pGrad.addColorStop(1, "rgba(168, 85, 247, 0.35)");
-
-      ctx.fillStyle = pGrad;
+      // Incident Beam
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
-      ctx.moveTo(pTopX, pTopY);
-      ctx.lineTo(pRightX, pRightY);
-      ctx.lineTo(pLeftX, pLeftY);
+      ctx.moveTo(centerX - 240, centerY);
+      ctx.lineTo(centerX, centerY);
+      ctx.stroke();
+
+      // Screen on Right
+      const scrX = centerX + 260;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.fillRect(scrX, centerY - 140, 6, 280);
+      ctx.strokeStyle = "#fbbf24";
+      ctx.strokeRect(scrX, centerY - 140, 6, 280);
+
+      // Diffraction Orders m = 0, +1, -1, +2, -2
+      const gratingD = 1e-3 / 600; // 600 lines/mm
+      const lambdaGreen = 532e-9;
+      const lambdaRed = 650e-9;
+
+      [0, 1, -1].forEach(m => {
+        const sinTh = (m * lambdaGreen) / gratingD;
+        if (Math.abs(sinTh) <= 1.0) {
+          const th = Math.asin(sinTh);
+          const spotY = centerY + Math.tan(th) * 260;
+          ctx.strokeStyle = "#10b981";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+          ctx.lineTo(scrX, spotY);
+          ctx.stroke();
+
+          ctx.fillStyle = "#10b981";
+          ctx.beginPath();
+          ctx.arc(scrX + 3, spotY, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#34d399";
+          ctx.font = "9px JetBrains Mono";
+          ctx.fillText(`m = ${m > 0 ? "+" : ""}${m} (${(th * 180 / Math.PI).toFixed(1)}°)`, scrX + 12, spotY + 3);
+        }
+      });
+
+    } else {
+      // Triangular Cauchy Dispersion Prism
+      const pSize = 130;
+      ctx.save();
+      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY - pSize * 0.7);
+      ctx.lineTo(centerX - pSize * 0.6, centerY + pSize * 0.4);
+      ctx.lineTo(centerX + pSize * 0.6, centerY + pSize * 0.4);
       ctx.closePath();
       ctx.fill();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
       ctx.lineWidth = 2;
       ctx.stroke();
 
       // Incident White Light Beam
-      const inX = centerX - 180;
-      const inY = centerY + 10;
-      const hitX = centerX - 45;
-      const hitY = centerY - 10;
+      const inX = centerX - 220;
+      const inY = centerY + 15;
+      const hitX = centerX - pSize * 0.3;
+      const hitY = centerY + 5;
 
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+      ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = 4;
-      if (!isSmart) {
-        ctx.shadowColor = "#ffffff";
-        ctx.shadowBlur = 10;
-      }
       ctx.beginPath();
       ctx.moveTo(inX, inY);
       ctx.lineTo(hitX, hitY);
       ctx.stroke();
-      ctx.shadowBlur = 0;
 
-      // Rainbow Dispersion Spectral Rays
-      const spectrum = [
-        { color: "#ef4444", n: 1.514, label: "Red (700nm)" },
-        { color: "#f59e0b", n: 1.517, label: "Orange (600nm)" },
-        { color: "#eab308", n: 1.520, label: "Yellow (580nm)" },
-        { color: "#10b981", n: 1.523, label: "Green (530nm)" },
-        { color: "#06b6d4", n: 1.528, label: "Cyan (490nm)" },
-        { color: "#3b82f6", n: 1.532, label: "Blue (450nm)" },
-        { color: "#8b5cf6", n: 1.538, label: "Violet (400nm)" }
+      // Cauchy dispersion spectrum bands
+      const bands = [
+        { color: "#ef4444", n: 1.514, label: "Red (656nm)" },
+        { color: "#f59e0b", n: 1.517, label: "Orange" },
+        { color: "#fbbf24", n: 1.520, label: "Yellow (589nm)" },
+        { color: "#10b981", n: 1.524, label: "Green" },
+        { color: "#06b6d4", n: 1.528, label: "Cyan" },
+        { color: "#3b82f6", n: 1.532, label: "Blue (486nm)" },
+        { color: "#8b5cf6", n: 1.538, label: "Violet (404nm)" }
       ];
 
-      spectrum.forEach((band, idx) => {
-        const exitX = centerX + 40;
-        const exitY = centerY - 25 + idx * 7;
-        const outX = w - 40;
-        const outY = centerY - 50 + idx * 24;
+      bands.forEach((band, bIdx) => {
+        const devInside = (band.n - 1) * 0.35 + (bIdx * 0.015);
+        const exitX = centerX + pSize * 0.25;
+        const exitY = centerY - 15 + bIdx * 3;
 
-        // Inside prism refraction
         ctx.strokeStyle = band.color;
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -1098,19 +1547,17 @@ export function initOpticsLab(containerId) {
         ctx.lineTo(exitX, exitY);
         ctx.stroke();
 
-        // Dispersed exit beam
-        ctx.lineWidth = 2.5;
-        if (!isSmart) {
-          ctx.shadowColor = band.color;
-          ctx.shadowBlur = 6;
-        }
+        const outX = centerX + 240;
+        const outY = exitY + (outX - exitX) * (0.28 + bIdx * 0.05);
+
         ctx.beginPath();
         ctx.moveTo(exitX, exitY);
         ctx.lineTo(outX, outY);
         ctx.stroke();
-        ctx.shadowBlur = 0;
       });
+      ctx.restore();
     }
+    ctx.restore();
   }
 
   // Update Numerical HUD Telemetry
@@ -1120,13 +1567,22 @@ export function initOpticsLab(containerId) {
       document.getElementById("disp-theta1").innerText = `${theta1Deg.toFixed(1)}°`;
 
       // Repurpose HUD for Snell mode
+      document.getElementById("lbl-telem-1").innerText = "Medium 1 (n₁)";
       document.getElementById("val-do").innerText = `${medium1Index.toFixed(3)}`;
+      document.getElementById("lbl-telem-2").innerText = "Refracted (θ₂)";
       document.getElementById("val-di").innerText = snell.tir ? "TIR" : `${snell.theta2Deg.toFixed(1)}°`;
+      document.getElementById("lbl-telem-3").innerText = "Critical (θ_c)";
       document.getElementById("val-f").innerText = snell.critAngleDeg ? `${snell.critAngleDeg.toFixed(1)}°` : "None";
+      document.getElementById("lbl-telem-4").innerText = "Reflectance";
       document.getElementById("val-mag").innerText = `${(snell.reflectance * 100).toFixed(1)}%`;
 
       const badge = document.getElementById("image-nature-badge");
-      if (snell.tir) {
+      if (interfaceShape === "grating") {
+        badge.innerText = "Diffraction Grating: d·sin(θ) = m·λ (Wave Dispersion)";
+        badge.style.color = "#34d399";
+        badge.style.background = "rgba(16, 185, 129, 0.18)";
+        badge.style.borderColor = "rgba(16, 185, 129, 0.4)";
+      } else if (snell.tir) {
         badge.innerText = "Total Internal Reflection (TIR)";
         badge.style.color = "#f87171";
         badge.style.background = "rgba(239, 68, 68, 0.2)";
@@ -1141,7 +1597,50 @@ export function initOpticsLab(containerId) {
       return;
     }
 
+    if (currentTab === "compound") {
+      const comp = calculateCompoundOptics();
+      document.getElementById("lbl-telem-1").innerText = "Objective (f₁)";
+      document.getElementById("val-do").innerText = `${f1Val.toFixed(1)} cm`;
+      document.getElementById("lbl-telem-2").innerText = "Eyepiece (f₂)";
+      document.getElementById("val-di").innerText = `${f2Val.toFixed(1)} cm`;
+      document.getElementById("lbl-telem-3").innerText = "Tube Length (L)";
+      document.getElementById("val-f").innerText = `${tubeLen.toFixed(1)} cm`;
+      document.getElementById("lbl-telem-4").innerText = "System Mag (M)";
+      document.getElementById("val-mag").innerText = `${comp.mTotal.toFixed(2)}×`;
+
+      document.getElementById("disp-f1").innerText = `${f1Val.toFixed(1)} cm`;
+      document.getElementById("disp-f2").innerText = `${f2Val.toFixed(1)} cm`;
+      document.getElementById("disp-tube-len").innerText = `${tubeLen.toFixed(1)} cm`;
+      document.getElementById("disp-do1").innerText = (compoundPreset === "telescope") ? "∞ (Collimated)" : `${do1Val.toFixed(1)} cm`;
+
+      const badge = document.getElementById("image-nature-badge");
+      if (compoundPreset === "telescope") {
+        badge.innerText = `Keplerian Telescope: M_ang = -${(f1Val / f2Val).toFixed(1)}× (Afocal, L = f₁+f₂)`;
+        badge.style.color = "#818cf8";
+        badge.style.background = "rgba(99, 102, 241, 0.2)";
+      } else if (compoundPreset === "microscope") {
+        badge.innerText = `Compound Microscope: M_tot = ${comp.mTotal.toFixed(1)}× (Inverted Virtual Image)`;
+        badge.style.color = "#34d399";
+        badge.style.background = "rgba(16, 185, 129, 0.18)";
+      } else if (compoundPreset === "achromatic") {
+        badge.innerText = "Achromatic Doublet: Zero Longitudinal Chromatic Aberration";
+        badge.style.color = "#fbbf24";
+        badge.style.background = "rgba(245, 158, 11, 0.2)";
+      } else {
+        badge.innerText = `Dual-Lens System: M_tot = ${comp.mTotal.toFixed(2)}×`;
+        badge.style.color = "#38bdf8";
+        badge.style.background = "rgba(56, 189, 248, 0.2)";
+      }
+      requestRender();
+      return;
+    }
+
     // Lens & Mirror Telemetry
+    document.getElementById("lbl-telem-1").innerText = "Object Dist (d_o)";
+    document.getElementById("lbl-telem-2").innerText = "Image Dist (d_i)";
+    document.getElementById("lbl-telem-3").innerText = "Focal Length (f)";
+    document.getElementById("lbl-telem-4").innerText = "Magnification (m)";
+
     const img = calculateImage();
     document.getElementById("val-do").innerText = `${doVal.toFixed(1)} cm`;
     document.getElementById("disp-do").innerText = `${doVal.toFixed(1)} cm`;
@@ -1264,6 +1763,30 @@ export function initOpticsLab(containerId) {
         canvas.setPointerCapture(e.pointerId);
         return;
       }
+    } else if (currentTab === "compound") {
+      // Compound Optics Carriages
+      const L1_x = centerX - (tubeLen * 0.5) * scale;
+      const L2_x = centerX + (tubeLen * 0.5) * scale;
+      const objX = L1_x - do1Val * scale;
+
+      // Check Lens 1 Carriage
+      if (Math.abs(coords.x - L1_x) < 20 && coords.y >= centerY - 80 && coords.y <= railY + 15) {
+        dragTarget = "lens1_pos";
+        canvas.setPointerCapture(e.pointerId);
+        return;
+      }
+      // Check Lens 2 Carriage
+      if (Math.abs(coords.x - L2_x) < 20 && coords.y >= centerY - 80 && coords.y <= railY + 15) {
+        dragTarget = "lens2_pos";
+        canvas.setPointerCapture(e.pointerId);
+        return;
+      }
+      // Check Object Candle
+      if (Math.abs(coords.x - objX) < 25 && coords.y >= centerY - 50 && coords.y <= railY + 15) {
+        dragTarget = "compound_obj";
+        canvas.setPointerCapture(e.pointerId);
+        return;
+      }
     } else {
       // Lens / Mirror Bench Draggers
       const objX = centerX - doVal * scale;
@@ -1313,6 +1836,14 @@ export function initOpticsLab(containerId) {
         const srcX = centerX - snellRadius * Math.sin(theta1Rad);
         const srcY = h / 2 - snellRadius * Math.cos(theta1Rad);
         canvas.style.cursor = (Math.hypot(coords.x - srcX, coords.y - srcY) < 30) ? "grab" : "crosshair";
+      } else if (currentTab === "compound") {
+        const L1_x = centerX - (tubeLen * 0.5) * scale;
+        const L2_x = centerX + (tubeLen * 0.5) * scale;
+        if (Math.abs(coords.x - L1_x) < 20 || Math.abs(coords.x - L2_x) < 20) {
+          canvas.style.cursor = "ew-resize";
+        } else {
+          canvas.style.cursor = "crosshair";
+        }
       } else {
         const objX = centerX - doVal * scale;
         const tipY = centerY - hoVal * scale;
@@ -1357,6 +1888,19 @@ export function initOpticsLab(containerId) {
         if (inTh) inTh.value = theta1Deg;
         updateTelemetry();
       }
+    } else if (dragTarget === "lens2_pos" || dragTarget === "lens1_pos") {
+      const deltaX = Math.abs(coords.x - centerX) * 2;
+      tubeLen = Math.max(15, Math.min(60, deltaX / scale));
+      const inTube = document.getElementById("input-tube-len");
+      if (inTube) inTube.value = tubeLen;
+      updateTelemetry();
+    } else if (dragTarget === "compound_obj") {
+      const L1_x = centerX - (tubeLen * 0.5) * scale;
+      const newDo1 = (L1_x - coords.x) / scale;
+      do1Val = Math.max(6, Math.min(65, newDo1));
+      const inDo1 = document.getElementById("input-do1");
+      if (inDo1) inDo1.value = do1Val;
+      updateTelemetry();
     }
   }
 
@@ -1380,6 +1924,13 @@ export function initOpticsLab(containerId) {
   const inHo = document.getElementById("input-ho");
   const selOptic = document.getElementById("select-optic-type");
   const inTh1 = document.getElementById("input-theta1");
+
+  // Compound Controls
+  const selComp = document.getElementById("select-compound-preset");
+  const inF1 = document.getElementById("input-f1");
+  const inF2 = document.getElementById("input-f2");
+  const inTube = document.getElementById("input-tube-len");
+  const inDo1 = document.getElementById("input-do1");
 
   inDo?.addEventListener("input", (e) => {
     doVal = parseFloat(e.target.value);
@@ -1437,6 +1988,52 @@ export function initOpticsLab(containerId) {
     updateTelemetry();
   });
 
+  // Compound Optics Handlers
+  selComp?.addEventListener("change", (e) => {
+    compoundPreset = e.target.value;
+    if (compoundPreset === "telescope") {
+      f1Val = 30.0;
+      f2Val = 10.0;
+      tubeLen = 40.0;
+      do1Val = 65.0;
+    } else if (compoundPreset === "microscope") {
+      f1Val = 8.0;
+      f2Val = 12.0;
+      tubeLen = 46.0;
+      do1Val = 10.0;
+    } else if (compoundPreset === "achromatic") {
+      f1Val = 30.0;
+      f2Val = 15.0;
+      tubeLen = 35.0;
+      do1Val = 60.0;
+    }
+    if (inF1) inF1.value = f1Val;
+    if (inF2) inF2.value = f2Val;
+    if (inTube) inTube.value = tubeLen;
+    if (inDo1) inDo1.value = do1Val;
+    updateTelemetry();
+  });
+
+  inF1?.addEventListener("input", (e) => {
+    f1Val = parseFloat(e.target.value);
+    updateTelemetry();
+  });
+
+  inF2?.addEventListener("input", (e) => {
+    f2Val = parseFloat(e.target.value);
+    updateTelemetry();
+  });
+
+  inTube?.addEventListener("input", (e) => {
+    tubeLen = parseFloat(e.target.value);
+    updateTelemetry();
+  });
+
+  inDo1?.addEventListener("input", (e) => {
+    do1Val = parseFloat(e.target.value);
+    updateTelemetry();
+  });
+
   // Checkboxes
   document.getElementById("chk-grid")?.addEventListener("change", (e) => {
     showGraduations = e.target.checked;
@@ -1457,18 +2054,21 @@ export function initOpticsLab(containerId) {
   const tabLens = document.getElementById("optics-tab-lens");
   const tabMirror = document.getElementById("optics-tab-mirror");
   const tabSnell = document.getElementById("optics-tab-snell");
+  const tabCompound = document.getElementById("optics-tab-compound");
   const tabPhoto = document.getElementById("optics-tab-photo");
 
   const benchControls = document.getElementById("controls-bench-mode");
   const snellControls = document.getElementById("controls-snell-mode");
+  const compoundControls = document.getElementById("controls-compound-mode");
   const lensPresets = document.getElementById("presets-lens-group");
   const snellPresets = document.getElementById("presets-snell-group");
+  const compoundPresets = document.getElementById("presets-compound-group");
   const formulaBar = document.getElementById("optics-formula-bar");
   const chkScreenLabel = document.getElementById("label-chk-screen");
 
   function setActiveTab(tab) {
     currentTab = tab;
-    [tabLens, tabMirror, tabSnell, tabPhoto].forEach(t => {
+    [tabLens, tabMirror, tabSnell, tabCompound, tabPhoto].forEach(t => {
       if (t) {
         t.classList.remove("active");
         t.style.background = "transparent";
@@ -1487,8 +2087,10 @@ export function initOpticsLab(containerId) {
 
       benchControls.style.display = "grid";
       snellControls.style.display = "none";
+      compoundControls.style.display = "none";
       lensPresets.style.display = "flex";
       snellPresets.style.display = "none";
+      compoundPresets.style.display = "none";
       formulaBar.style.display = "flex";
       if (chkScreenLabel) chkScreenLabel.style.display = "flex";
 
@@ -1505,8 +2107,10 @@ export function initOpticsLab(containerId) {
 
       benchControls.style.display = "grid";
       snellControls.style.display = "none";
+      compoundControls.style.display = "none";
       lensPresets.style.display = "flex";
       snellPresets.style.display = "none";
+      compoundPresets.style.display = "none";
       formulaBar.style.display = "flex";
       if (chkScreenLabel) chkScreenLabel.style.display = "none";
 
@@ -1523,8 +2127,23 @@ export function initOpticsLab(containerId) {
 
       benchControls.style.display = "none";
       snellControls.style.display = "grid";
+      compoundControls.style.display = "none";
       lensPresets.style.display = "none";
       snellPresets.style.display = "flex";
+      compoundPresets.style.display = "none";
+      formulaBar.style.display = "none";
+    } else if (tab === "compound") {
+      tabCompound.classList.add("active");
+      tabCompound.style.background = "rgba(99, 102, 241, 0.25)";
+      tabCompound.style.color = "#818cf8";
+      tabCompound.style.fontWeight = "700";
+
+      benchControls.style.display = "none";
+      snellControls.style.display = "none";
+      compoundControls.style.display = "grid";
+      lensPresets.style.display = "none";
+      snellPresets.style.display = "none";
+      compoundPresets.style.display = "flex";
       formulaBar.style.display = "none";
     } else if (tab === "photo") {
       tabPhoto.classList.add("active");
@@ -1539,6 +2158,7 @@ export function initOpticsLab(containerId) {
   tabLens?.addEventListener("click", () => setActiveTab("lens"));
   tabMirror?.addEventListener("click", () => setActiveTab("mirror"));
   tabSnell?.addEventListener("click", () => setActiveTab("snell"));
+  tabCompound?.addEventListener("click", () => setActiveTab("compound"));
   tabPhoto?.addEventListener("click", () => setActiveTab("photo"));
 
   // Presets
@@ -1616,6 +2236,71 @@ export function initOpticsLab(containerId) {
     updateTelemetry();
   });
 
+  document.getElementById("preset-grating")?.addEventListener("click", () => {
+    medium1Index = 1.000;
+    medium2Index = 1.000;
+    interfaceShape = "grating";
+    document.getElementById("select-interface-shape").value = "grating";
+    updateTelemetry();
+  });
+
+  // Compound Presets
+  document.getElementById("preset-telescope")?.addEventListener("click", () => {
+    compoundPreset = "telescope";
+    selComp.value = "telescope";
+    f1Val = 30.0;
+    f2Val = 10.0;
+    tubeLen = 40.0;
+    do1Val = 65.0;
+    if (inF1) inF1.value = 30;
+    if (inF2) inF2.value = 10;
+    if (inTube) inTube.value = 40;
+    if (inDo1) inDo1.value = 65;
+    updateTelemetry();
+  });
+
+  document.getElementById("preset-microscope")?.addEventListener("click", () => {
+    compoundPreset = "microscope";
+    selComp.value = "microscope";
+    f1Val = 8.0;
+    f2Val = 12.0;
+    tubeLen = 46.0;
+    do1Val = 10.0;
+    if (inF1) inF1.value = 8;
+    if (inF2) inF2.value = 12;
+    if (inTube) inTube.value = 46;
+    if (inDo1) inDo1.value = 10;
+    updateTelemetry();
+  });
+
+  document.getElementById("preset-achromatic")?.addEventListener("click", () => {
+    compoundPreset = "achromatic";
+    selComp.value = "achromatic";
+    f1Val = 30.0;
+    f2Val = 15.0;
+    tubeLen = 35.0;
+    do1Val = 60.0;
+    if (inF1) inF1.value = 30;
+    if (inF2) inF2.value = 15;
+    if (inTube) inTube.value = 35;
+    if (inDo1) inDo1.value = 60;
+    updateTelemetry();
+  });
+
+  document.getElementById("preset-confocal")?.addEventListener("click", () => {
+    compoundPreset = "custom";
+    selComp.value = "custom";
+    f1Val = 20.0;
+    f2Val = 15.0;
+    tubeLen = 35.0; // Confocal L = f1 + f2
+    do1Val = 30.0;
+    if (inF1) inF1.value = 20;
+    if (inF2) inF2.value = 15;
+    if (inTube) inTube.value = 35;
+    if (inDo1) inDo1.value = 30;
+    updateTelemetry();
+  });
+
   // Telemetry Suite: Record Trial
   document.getElementById("btn-record-optics-trial")?.addEventListener("click", () => {
     if (currentTab === "snell") {
@@ -1628,7 +2313,21 @@ export function initOpticsLab(containerId) {
           "Incidence Angle (θ₁)": `${theta1Deg.toFixed(1)}°`,
           "Refracted Angle (θ₂)": snell.tir ? "TIR (No Refraction)" : `${snell.theta2Deg.toFixed(1)}°`,
           "Critical Angle (θ_c)": snell.critAngleDeg ? `${snell.critAngleDeg.toFixed(1)}°` : "N/A",
-          "Phenomenon": snell.tir ? "Total Internal Reflection" : "Refraction"
+          "Phenomenon": snell.tir ? "Total Internal Reflection" : (interfaceShape === "grating" ? "Diffraction Grating" : "Refraction")
+        }
+      });
+    } else if (currentTab === "compound") {
+      const comp = calculateCompoundOptics();
+      LabTrialStore.addTrial("optics", {
+        measurements: {
+          "Apparatus Mode": `Compound System (${compoundPreset})`,
+          "Objective (f₁)": `${f1Val.toFixed(1)} cm`,
+          "Eyepiece (f₂)": `${f2Val.toFixed(1)} cm`,
+          "Tube Length (L)": `${tubeLen.toFixed(1)} cm`,
+          "Intermediate Image (di1)": `${comp.di1.toFixed(1)} cm`,
+          "Final Image (di2)": isFinite(comp.di2) ? `${comp.di2.toFixed(1)} cm` : "Infinity",
+          "System Magnification (M)": `${comp.mTotal.toFixed(2)}×`,
+          "Matrix A, B, C, D": `${comp.A.toFixed(2)}, ${comp.B.toFixed(1)}, ${comp.C.toFixed(4)}, ${comp.D.toFixed(2)}`
         }
       });
     } else {
@@ -1651,8 +2350,8 @@ export function initOpticsLab(containerId) {
       const pill = document.getElementById(`optics-pill-trial-${i + 1}`);
       if (pill) {
         pill.style.opacity = "1";
-        const d_o = tr.measurements["Object Distance (do)"] || tr.measurements["Incidence Angle (θ₁)"];
-        const d_i = tr.measurements["Image Distance (di)"] || tr.measurements["Refracted Angle (θ₂)"];
+        const d_o = tr.measurements["Object Distance (do)"] || tr.measurements["Objective (f₁)"] || tr.measurements["Incidence Angle (θ₁)"];
+        const d_i = tr.measurements["Image Distance (di)"] || tr.measurements["System Magnification (M)"] || tr.measurements["Refracted Angle (θ₂)"];
         pill.innerText = `Bench ${tr.trialNumber}: ${d_o} → ${d_i}`;
       }
     });
@@ -1672,6 +2371,8 @@ export function initOpticsLab(containerId) {
         "Focal Length (|f|)": `${fVal.toFixed(1)} cm`,
         "Object Distance (d_o)": `${doVal.toFixed(1)} cm`,
         "Object Height (h_o)": `${hoVal.toFixed(1)} cm`,
+        "Compound System": currentTab === "compound" ? compoundPreset : "N/A",
+        "Tube Length": currentTab === "compound" ? `${tubeLen.toFixed(1)} cm` : "N/A",
         "Laser Collimator": laserMode ? "Active" : "Standard Multi-Ray"
       },
       headers: ["Element Type", "Focal Length f (cm)", "Object Distance do (cm)", "Image Distance di (cm)", "Object Height ho (cm)", "Image Height hi (cm)", "Magnification m", "Image Nature"],
@@ -1697,11 +2398,11 @@ export function initOpticsLab(containerId) {
     const effF = (opticType === "convex_lens" || opticType === "concave_mirror") ? fVal : -fVal;
 
     openLabReportModal({
-      title: "Geometric & Physical Optics: Thin Lenses, Curved Mirrors & Snell's Law",
+      title: "Geometric, Wave & Compound Multi-Lens Optics",
       subject: "Physics",
-      inquiryQuestion: "How do refractive index contrasts, boundary geometry, and focal distance quantitatively govern image formation, magnification, and total internal reflection?",
+      inquiryQuestion: "How do refractive index contrasts, boundary geometry, and multi-element lens cascades govern optical magnification, diffraction orders, and aberration correction?",
       parameters: {
-        "Optical System": opticType,
+        "Optical System": currentTab === "compound" ? `Compound Multi-Lens (${compoundPreset})` : opticType,
         "Signed Focal Length (f)": `${effF.toFixed(1)} cm`,
         "Object Distance (d_o)": `${doVal.toFixed(1)} cm`,
         "Image Distance (d_i)": isFinite(img.di) ? `${img.di.toFixed(1)} cm` : "Infinity (Collimated)",
@@ -1712,6 +2413,10 @@ export function initOpticsLab(containerId) {
       formulas: [
         "\\frac{1}{f} = \\frac{1}{d_o} + \\frac{1}{d_i} \\quad (\\text{Gaussian Thin Lens Formula})",
         "m = -\\frac{d_i}{d_o} = \\frac{h_i}{h_o} \\quad (\\text{Transverse Magnification})",
+        "M_{\\text{telescope}} = -\\frac{f_{\\text{objective}}}{f_{\\text{eyepiece}}} \\quad (\\text{Angular Magnification})",
+        "M_{\\text{microscope}} = m_1 \\times m_2 = \\left(-\\frac{d_{i1}}{d_{o1}}\\right) \\left(-\\frac{d_{i2}}{d_{o2}}\\right)",
+        "\\mathbf{M} = \\begin{pmatrix} 1 & 0 \\\\ -1/f_2 & 1 \\end{pmatrix} \\begin{pmatrix} 1 & L \\\\ 0 & 1 \\end{pmatrix} \\begin{pmatrix} 1 & 0 \\\\ -1/f_1 & 1 \\end{pmatrix} \\quad (\\text{ABCD Ray Matrix})",
+        "d \\sin \\theta_m = m \\lambda \\quad (\\text{Diffraction Grating})",
         "n_1 \\sin \\theta_1 = n_2 \\sin \\theta_2 \\quad (\\text{Snell's Law of Refraction})",
         "\\theta_c = \\arcsin\\left(\\frac{n_2}{n_1}\\right) \\quad (\\text{Critical Angle for TIR})"
       ]
