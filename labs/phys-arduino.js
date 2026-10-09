@@ -1794,6 +1794,271 @@ export const AVAILABLE_PARTS = [
 ];
 
 // ---------------------------------------------------------------------------
+// Arduino Uno Header Pin & Breadboard Tie-Point Geometry Map
+// ---------------------------------------------------------------------------
+export const ARDUINO_PINS = {
+  // Top Digital Header (py: 75)
+  "AREF": { x: 147.5, y: 75, label: "AREF (Analog Reference)" },
+  "GND_TOP": { x: 161.0, y: 75, label: "GND (Digital Ground)" },
+  "D13": { x: 174.5, y: 75, label: "Digital 13 (SCK / Built-in LED)" },
+  "D12": { x: 188.0, y: 75, label: "Digital 12 (MISO)" },
+  "D11": { x: 201.5, y: 75, label: "Digital ~11 (MOSI / PWM)" },
+  "D10": { x: 215.0, y: 75, label: "Digital ~10 (SS / PWM)" },
+  "D9":  { x: 228.5, y: 75, label: "Digital ~9 (PWM / Timer1)" },
+  "D8":  { x: 242.0, y: 75, label: "Digital 8" },
+  "D7":  { x: 255.5, y: 75, label: "Digital 7" },
+  "D6":  { x: 269.0, y: 75, label: "Digital ~6 (PWM)" },
+  "D5":  { x: 282.5, y: 75, label: "Digital ~5 (PWM / Motor)" },
+  "D4":  { x: 296.0, y: 75, label: "Digital 4 (Relay Trigger)" },
+  "D3":  { x: 309.5, y: 75, label: "Digital ~3 (PWM / INT1)" },
+  "D2":  { x: 323.0, y: 75, label: "Digital 2 (INT0 / Pushbutton)" },
+  "TX":  { x: 336.5, y: 75, label: "Digital 1 (TX)" },
+  "RX":  { x: 350.0, y: 75, label: "Digital 0 (RX)" },
+
+  // Bottom Power & Analog Header (py: 385)
+  "IOREF": { x: 157.5, y: 385, label: "IOREF" },
+  "RESET": { x: 172.0, y: 385, label: "RESET (Active Low)" },
+  "3.3V":  { x: 186.5, y: 385, label: "Power 3.3V (50mA Max)" },
+  "5V":    { x: 201.0, y: 385, label: "Power 5.0V Regulated" },
+  "GND":   { x: 215.5, y: 385, label: "Ground (GND)" },
+  "GND_2": { x: 230.0, y: 385, label: "Ground (GND 2)" },
+  "VIN":   { x: 244.5, y: 385, label: "VIN (External 7-12V)" },
+  "A0":    { x: 259.0, y: 385, label: "Analog In A0 (10-bit ADC)" },
+  "A1":    { x: 273.5, y: 385, label: "Analog In A1 (10-bit ADC)" },
+  "A2":    { x: 288.0, y: 385, label: "Analog In A2 (10-bit ADC)" },
+  "A3":    { x: 302.5, y: 385, label: "Analog In A3 (10-bit ADC)" },
+  "A4":    { x: 317.0, y: 385, label: "Analog In A4 (SDA / I2C)" },
+  "A5":    { x: 331.5, y: 385, label: "Analog In A5 (SCL / I2C)" }
+};
+
+export const BREADBOARD_PINS = {
+  "BB_TOP_5V":  { x: 450, y: 73, label: "Breadboard Top +5V Bus" },
+  "BB_TOP_GND": { x: 450, y: 85, label: "Breadboard Top GND Bus" },
+  "BB_BOT_GND": { x: 450, y: 375, label: "Breadboard Bottom GND Bus" },
+  "BB_BOT_5V":  { x: 450, y: 387, label: "Breadboard Bottom +5V Bus" }
+};
+
+export function getDefaultWiresForExperiment(expId) {
+  const p5V = ARDUINO_PINS["5V"];
+  const pGnd = ARDUINO_PINS["GND"];
+  const bb5V = BREADBOARD_PINS["BB_TOP_5V"];
+  const bbGnd = BREADBOARD_PINS["BB_TOP_GND"];
+
+  const powerBus = [
+    { id: "w_pwr_5v", from: "5V", to: "BB_TOP_5V", sx: p5V.x, sy: p5V.y, ex: bb5V.x, ey: bb5V.y, color: "#ef4444", label: "5V Power Bus" },
+    { id: "w_pwr_gnd", from: "GND", to: "BB_TOP_GND", sx: pGnd.x, sy: pGnd.y, ex: bbGnd.x, ey: bbGnd.y, color: "#0f172a", label: "GND Ground Bus" }
+  ];
+
+  switch (expId) {
+    case "traffic_light":
+      return [
+        ...powerBus,
+        { id: "w_btn", from: "D2", to: "PUSHBUTTON", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 676, ey: 146, color: "#facc15", label: "D2 ➔ Pedestrian Button" },
+        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 748, ey: 148, color: "#a855f7", label: "D8 ➔ Warning Buzzer" },
+        { id: "w_led_r", from: "D13", to: "LED_RED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 490, ey: 135, color: "#ef4444", label: "D13 ➔ Red LED" },
+        { id: "w_led_y", from: "D12", to: "LED_YELLOW", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 540, ey: 135, color: "#f59e0b", label: "D12 ➔ Yellow LED" },
+        { id: "w_led_g", from: "D11", to: "LED_GREEN", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 590, ey: 135, color: "#10b981", label: "D11 ➔ Green LED" }
+      ];
+    case "ultrasonic_radar":
+      return [
+        ...powerBus,
+        { id: "w_trig", from: "D12", to: "SONAR_TRIG", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 535, ey: 149, color: "#38bdf8", label: "D12 ➔ Sonar Trig" },
+        { id: "w_echo", from: "D11", to: "SONAR_ECHO", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 585, ey: 149, color: "#10b981", label: "D11 ➔ Sonar Echo" },
+        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 758, ey: 153, color: "#a855f7", label: "D8 ➔ Proximity Buzzer" },
+        { id: "w_warn", from: "D13", to: "LED_WARN", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 680, ey: 135, color: "#ef4444", label: "D13 ➔ Warning LED" }
+      ];
+    case "ldr_nightlight":
+      return [
+        ...powerBus,
+        { id: "w_ldr", from: "A1", to: "LDR", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 500, ey: 135, color: "#38bdf8", label: "A1 ➔ LDR Sensor" },
+        { id: "w_pwm", from: "D9", to: "LED_PWM", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 600, ey: 135, color: "#a855f7", label: "D9 (~PWM) ➔ Dimming LED" },
+        { id: "w_pot", from: "A0", to: "POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 717, ey: 147, color: "#facc15", label: "A0 ➔ Threshold Pot" }
+      ];
+    case "servo_control":
+      return [
+        ...powerBus,
+        { id: "w_srv", from: "D9", to: "SERVO_SIG", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 587, ey: 197, color: "#f97316", label: "D9 (~PWM) ➔ Servo Signal" },
+        { id: "w_pot", from: "A0", to: "POT_WIPER", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 737, ey: 147, color: "#38bdf8", label: "A0 ➔ Steering Pot" }
+      ];
+    case "chiptune_melody":
+      return [
+        ...powerBus,
+        { id: "w_bz", from: "D8", to: "PIEZO", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 598, ey: 158, color: "#a855f7", label: "D8 ➔ Piezo Sounder" },
+        { id: "w_led", from: "D13", to: "LED_TEMPO", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 700, ey: 140, color: "#38bdf8", label: "D13 ➔ Beat Strobe" }
+      ];
+    case "weather_station":
+      return [
+        ...powerBus,
+        { id: "w_tmp", from: "A1", to: "TMP36", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 740, ey: 135, color: "#facc15", label: "A1 ➔ TMP36 Sensor" },
+        { id: "w_sda", from: "A4", to: "LCD_SDA", sx: ARDUINO_PINS["A4"].x, sy: ARDUINO_PINS["A4"].y, ex: 520, ey: 180, color: "#10b981", label: "A4 ➔ I2C SDA" },
+        { id: "w_scl", from: "A5", to: "LCD_SCL", sx: ARDUINO_PINS["A5"].x, sy: ARDUINO_PINS["A5"].y, ex: 540, ey: 180, color: "#38bdf8", label: "A5 ➔ I2C SCL" }
+      ];
+    case "rgb_mood_lamp":
+      return [
+        ...powerBus,
+        { id: "w_r", from: "D9", to: "RGB_R", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 555, ey: 140, color: "#ef4444", label: "D9 (PWM) ➔ Red Anode" },
+        { id: "w_g", from: "D10", to: "RGB_G", sx: ARDUINO_PINS["D10"].x, sy: ARDUINO_PINS["D10"].y, ex: 570, ey: 140, color: "#10b981", label: "D10 (PWM) ➔ Green Anode" },
+        { id: "w_b", from: "D11", to: "RGB_B", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 585, ey: 140, color: "#38bdf8", label: "D11 (PWM) ➔ Blue Anode" },
+        { id: "w_pot", from: "A0", to: "POT_HUE", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 720, ey: 147, color: "#facc15", label: "A0 ➔ Hue Selector" }
+      ];
+    case "dc_motor_speed":
+      return [
+        ...powerBus,
+        { id: "w_mot", from: "D5", to: "MOSFET_GATE", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 560, ey: 145, color: "#a855f7", label: "D5 (PWM) ➔ Driver Gate" },
+        { id: "w_pot", from: "A0", to: "POT_SPEED", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 750, ey: 147, color: "#38bdf8", label: "A0 ➔ Speed Throttle" }
+      ];
+    case "pir_alarm":
+      return [
+        ...powerBus,
+        { id: "w_pir", from: "D7", to: "PIR_OUT", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 520, ey: 135, color: "#facc15", label: "D7 ➔ PIR Trigger" },
+        { id: "w_rly", from: "D4", to: "RELAY_IN", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 652, ey: 152, color: "#38bdf8", label: "D4 ➔ Relay Actuator" },
+        { id: "w_bz", from: "D8", to: "SIREN_BZ", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 785, ey: 145, color: "#ef4444", label: "D8 ➔ Intruder Alarm" }
+      ];
+    case "seven_seg_counter":
+      return [
+        ...powerBus,
+        { id: "w_s1", from: "D6", to: "SEG_A", sx: ARDUINO_PINS["D6"].x, sy: ARDUINO_PINS["D6"].y, ex: 575, ey: 130, color: "#ef4444", label: "D6 ➔ Seg A" },
+        { id: "w_s2", from: "D7", to: "SEG_B", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 615, ey: 130, color: "#f97316", label: "D7 ➔ Seg B" },
+        { id: "w_s3", from: "D8", to: "SEG_C", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 615, ey: 180, color: "#facc15", label: "D8 ➔ Seg C" },
+        { id: "w_btn", from: "D2", to: "STEP_BTN", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 710, ey: 150, color: "#38bdf8", label: "D2 ➔ Step Count Switch" }
+      ];
+    case "joystick_pan_tilt":
+      return [
+        ...powerBus,
+        { id: "w_jx", from: "A0", to: "JOY_VRX", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 520, ey: 135, color: "#38bdf8", label: "A0 ➔ Joystick X-Axis" },
+        { id: "w_jy", from: "A1", to: "JOY_VRY", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 540, ey: 135, color: "#10b981", label: "A1 ➔ Joystick Y-Axis" },
+        { id: "w_srv", from: "D9", to: "SERVO_PAN", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 697, ey: 197, color: "#f97316", label: "D9 (PWM) ➔ Pan Servo" }
+      ];
+    case "button_toggle":
+      return [
+        ...powerBus,
+        { id: "w_btn", from: "D2", to: "TACT_SW", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 540, ey: 130, color: "#facc15", label: "D2 ➔ Toggle Button" },
+        { id: "w_led", from: "D13", to: "STATUS_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 660, ey: 135, color: "#38bdf8", label: "D13 ➔ Latching LED" }
+      ];
+    case "sonar_lcd_scope":
+      return [
+        ...powerBus,
+        { id: "w_trig", from: "D12", to: "SONAR_T", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 510, ey: 185, color: "#38bdf8", label: "D12 ➔ Sonar Trig" },
+        { id: "w_echo", from: "D11", to: "SONAR_E", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 560, ey: 185, color: "#10b981", label: "D11 ➔ Sonar Echo" },
+        { id: "w_bz", from: "D13", to: "ALARM_BZ", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 745, ey: 185, color: "#ef4444", label: "D13 ➔ Alert Sounder" }
+      ];
+    case "thermostat_relay_fan":
+      return [
+        ...powerBus,
+        { id: "w_tmp", from: "A0", to: "TMP36", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 470, ey: 135, color: "#facc15", label: "A0 ➔ TMP36 Temp" },
+        { id: "w_pot", from: "A1", to: "SET_POT", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 550, ey: 130, color: "#f97316", label: "A1 ➔ Setpoint Pot" },
+        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 630, ey: 120, color: "#38bdf8", label: "D4 ➔ Relay Driver" },
+        { id: "w_fan", from: "D5", to: "FAN_PWM", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 730, ey: 140, color: "#10b981", label: "D5 (PWM) ➔ Cooling Fan" }
+      ];
+    case "multi_sensor_alarm":
+      return [
+        ...powerBus,
+        { id: "w_pir", from: "D7", to: "PIR", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 480, ey: 125, color: "#facc15", label: "D7 ➔ PIR Motion" },
+        { id: "w_ldr", from: "A0", to: "LDR", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 570, ey: 135, color: "#38bdf8", label: "A0 ➔ LDR Sensor" },
+        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 645, ey: 120, color: "#10b981", label: "D4 ➔ Floodlight Relay" },
+        { id: "w_bz", from: "D8", to: "SIREN", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 765, ey: 135, color: "#a855f7", label: "D8 ➔ Alarm Siren" }
+      ];
+    case "custom_sandbox":
+    default:
+      return [
+        ...powerBus,
+        { id: "w_sb_1", from: "D13", to: "CUSTOM_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 640, ey: 135, color: "#38bdf8", label: "D13 ➔ Sandbox LED" },
+        { id: "w_sb_2", from: "A0", to: "CUSTOM_POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 225, color: "#facc15", label: "A0 ➔ Sandbox Pot" }
+      ];
+  }
+}
+
+// ---------------------------------------------------------------------------
+// In-Browser C++ Arduino Micro-Compiler & Abstract Syntax Evaluator
+// ---------------------------------------------------------------------------
+export function compileArduinoSketch(source) {
+  if (!source || typeof source !== "string" || !source.trim()) {
+    return { success: false, error: "Empty sketch source code." };
+  }
+
+  // 1. Bracket & Parentheses Matching Analysis
+  let braceDepth = 0;
+  let parenDepth = 0;
+  const lines = source.split("\n");
+
+  for (let l = 0; l < lines.length; l++) {
+    const line = lines[l].replace(/\/\/.*$/, "").replace(/\/\*.*?\*\//g, "");
+    for (let c = 0; c < line.length; c++) {
+      const char = line[c];
+      if (char === "{") braceDepth++;
+      else if (char === "}") braceDepth--;
+      else if (char === "(") parenDepth++;
+      else if (char === ")") parenDepth--;
+
+      if (braceDepth < 0) {
+        return { success: false, error: `sketch.ino:${l + 1}:${c + 1}: error: extraneous closing brace '}' found.` };
+      }
+      if (parenDepth < 0) {
+        return { success: false, error: `sketch.ino:${l + 1}:${c + 1}: error: unmatched closing parenthesis ')' found.` };
+      }
+    }
+  }
+
+  if (braceDepth !== 0) {
+    return { success: false, error: `sketch.ino: error: unmatched opening brace '{' (${braceDepth} missing closing '}' braces).` };
+  }
+  if (parenDepth !== 0) {
+    return { success: false, error: `sketch.ino: error: unmatched opening parenthesis '(' (${parenDepth} missing ')').` };
+  }
+
+  // 2. Setup and Loop Signature Presence
+  const hasSetup = /void\s+setup\s*\(\s*\)/.test(source);
+  const hasLoop = /void\s+loop\s*\(\s*\)/.test(source);
+
+  if (!hasSetup) {
+    return { success: false, error: "Linker Error: undefined reference to 'setup()'. Every Arduino sketch requires a void setup() function." };
+  }
+  if (!hasLoop) {
+    return { success: false, error: "Linker Error: undefined reference to 'loop()'. Every Arduino sketch requires a void loop() function." };
+  }
+
+  // 3. Realistic AVR-GCC memory metrics
+  const flashBytes = Math.min(32256, 1140 + Math.round(source.length * 2.8));
+  const sramBytes = Math.min(2048, 128 + ((source.match(/\b(int|float|bool|long|char)\b/g) || []).length * 8));
+
+  // 4. Extract function bodies
+  function extractBody(code, name) {
+    const match = new RegExp(`void\\s+${name}\\s*\\(\\s*\\)[^{]*\\{`, "g").exec(code);
+    if (!match) return "";
+    let s = match.index + match[0].length;
+    let depth = 1;
+    let e = s;
+    for (let i = s; i < code.length; i++) {
+      if (code[i] === "{") depth++;
+      else if (code[i] === "}") {
+        depth--;
+        if (depth === 0) { e = i; break; }
+      }
+    }
+    return code.slice(s, e);
+  }
+
+  const setupBody = extractBody(source, "setup");
+  const loopBody = extractBody(source, "loop");
+
+  // Extract delay timers if present
+  const delayMatches = loopBody.match(/delay\s*\(\s*(\d+)\s*\)/g) || [];
+  const delays = delayMatches.map(m => parseInt(m.replace(/\D/g, ""), 10) || 500);
+  const totalCycleMs = delays.reduce((acc, d) => acc + d, 0) || 1000;
+
+  return {
+    success: true,
+    flashBytes,
+    sramBytes,
+    source,
+    setupBody,
+    loopBody,
+    delays,
+    totalCycleMs
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main Arduino Virtual Laboratory Controller
 // ---------------------------------------------------------------------------
 export function initArduinoLab(containerId) {
@@ -1854,13 +2119,48 @@ export function initArduinoLab(containerId) {
       "[00:00.040] ATmega328P Clock: 16.000 MHz",
       "[00:00.080] Serial initialized @ 9600 baud"
     ],
-    waveformPoints: []
+    waveformPoints: [],
+    // Live Wire Routing System State
+    wires: [],
+    wireDrawing: {
+      active: false,
+      startPin: null,
+      curX: 0,
+      curY: 0,
+      color: "#ef4444"
+    },
+    isWireMode: false,
+    activeWireColor: "#ef4444",
+    hoveredWire: null,
+    hoveredWireIndex: -1,
+    hoveredPin: null,
+
+    // Dual-Channel Digital Storage Oscilloscope (DSO) State
+    dso: {
+      ch1Probe: "pin13", // "pin13", "pwm9", "motor", "buzzer", "relay", "pin11"
+      ch2Probe: "pot",   // "pot", "ldr", "temp", "dist", "raw"
+      timebaseMs: 50,    // ms per division (10, 25, 50, 100, 250, 500)
+      voltsPerDiv1: 1,   // V per division
+      voltsPerDiv2: 1,
+      triggerMode: "auto", // "auto", "norm", "rising", "falling"
+      isFrozen: false,
+      ch1Metrics: { vpp: 5.0, vrms: 3.54, freq: 0, duty: 50 },
+      ch2Metrics: { vpp: 2.5, vrms: 1.77, freq: 0, duty: 50 }
+    },
+
+    // Custom Sketch Runner & Interpreter State
+    customSketch: null,
+    isCustomSketchActive: false,
+    customSketchEnv: {},
+    customSketchTimer: 0
   };
 
   let animationFrameId = null;
   let lastFrameTime = performance.now();
   let loopTimer = 0;
-  let serialChirpThrottle = 0;
+
+  // Initialize active wires from default experiment
+  state.wires = getDefaultWiresForExperiment(ARDUINO_EXPERIMENTS[state.selectedExpIndex]?.id || "traffic_light");
 
   // Render DOM Shell
   container.innerHTML = `
@@ -2036,6 +2336,41 @@ export function initArduinoLab(containerId) {
 
             <!-- Placed components list chips -->
             <div id="custom-placed-chips" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; max-height: 80px; overflow-y: auto; padding: 2px;"></div>
+          </div>
+
+          <!-- Interactive Breadboard Wire Routing Toolbar -->
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 8px 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button id="btn-toggle-wire-mode" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.76rem; font-weight: 700; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; border-color: rgba(6, 182, 212, 0.4); color: #38bdf8;" title="Toggle Wire Routing Mode">
+                <span id="wire-mode-icon">🔌</span>
+                <span id="wire-mode-text">Wire Routing Mode: OFF</span>
+              </button>
+
+              <!-- Color Palette -->
+              <div style="display: flex; align-items: center; gap: 5px;" title="Select Jumper Wire Color">
+                <span style="font-size: 0.72rem; color: #94a3b8;">Wire:</span>
+                <button class="btn-wire-color active" data-color="#ef4444" style="width: 18px; height: 18px; border-radius: 50%; background: #ef4444; border: 2px solid #ffffff; cursor: pointer; padding: 0;" title="Red (5V Power)"></button>
+                <button class="btn-wire-color" data-color="#0f172a" style="width: 18px; height: 18px; border-radius: 50%; background: #0f172a; border: 1.5px solid #475569; cursor: pointer; padding: 0;" title="Black (GND Ground)"></button>
+                <button class="btn-wire-color" data-color="#38bdf8" style="width: 18px; height: 18px; border-radius: 50%; background: #38bdf8; border: 1.5px solid transparent; cursor: pointer; padding: 0;" title="Blue (Digital Signal)"></button>
+                <button class="btn-wire-color" data-color="#10b981" style="width: 18px; height: 18px; border-radius: 50%; background: #10b981; border: 1.5px solid transparent; cursor: pointer; padding: 0;" title="Green (Analog Signal)"></button>
+                <button class="btn-wire-color" data-color="#facc15" style="width: 18px; height: 18px; border-radius: 50%; background: #facc15; border: 1.5px solid transparent; cursor: pointer; padding: 0;" title="Yellow (SPI/I2C)"></button>
+                <button class="btn-wire-color" data-color="#a855f7" style="width: 18px; height: 18px; border-radius: 50%; background: #a855f7; border: 1.5px solid transparent; cursor: pointer; padding: 0;" title="Purple (PWM Control)"></button>
+                <button class="btn-wire-color" data-color="#f97316" style="width: 18px; height: 18px; border-radius: 50%; background: #f97316; border: 1.5px solid transparent; cursor: pointer; padding: 0;" title="Orange (Interrupt)"></button>
+                <button class="btn-wire-color" data-color="#f8fafc" style="width: 18px; height: 18px; border-radius: 50%; background: #f8fafc; border: 1.5px solid transparent; cursor: pointer; padding: 0;" title="White (Clock)"></button>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span id="badge-wire-count" class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #38bdf8; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px;">
+                ⚡ ${state.wires.length} Wires Connected
+              </span>
+              <button id="btn-clear-wires" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.72rem; color: #f87171; border-color: rgba(239, 68, 68, 0.3);" title="Remove all jumper wires">
+                🧹 Clear
+              </button>
+              <button id="btn-reset-wires" class="btn btn-secondary" style="padding: 3px 8px; font-size: 0.72rem; color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);" title="Reset to project schematic wiring">
+                ↺ Reset Wires
+              </button>
+            </div>
           </div>
 
           <!-- Interactive Circuit Board Viewport (Canvas Simulation) -->
@@ -2271,13 +2606,87 @@ export function initArduinoLab(containerId) {
           </div>
         </div>
 
-        <!-- 2. Dual-Channel Waveform Plotter View (Initially Hidden) -->
-        <div id="view-serial-plotter" style="display: none; padding: 12px;">
-          <div style="position: relative; height: 160px; background: #03060f; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; overflow: hidden;">
-            <canvas id="plotter-canvas" width="900" height="160" style="width: 100%; height: 100%; display: block;"></canvas>
-            <div style="position: absolute; top: 8px; right: 12px; display: flex; gap: 12px; font-family: monospace; font-size: 0.72rem;">
-              <span style="color: #38bdf8;">■ Ch 1: Signal Telemetry</span>
-              <span style="color: #f59e0b;">■ Ch 2: Sensor / PWM</span>
+        <!-- 2. Dual-Channel Waveform Plotter & Digital Storage Oscilloscope (DSO) View (Initially Hidden) -->
+        <div id="view-serial-plotter" style="display: none; padding: 12px; flex-direction: column; gap: 10px;">
+          <!-- DSO Oscilloscope Controls Header -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; background: rgba(11, 19, 38, 0.8); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 8px 12px;">
+            <!-- Channel Probes -->
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 6px #38bdf8;"></span>
+                <span style="font-size: 0.76rem; font-weight: 700; color: #38bdf8;">CH1:</span>
+                <select id="sel-dso-ch1" style="background: #03060f; color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 5px; padding: 3px 8px; font-size: 0.74rem;">
+                  <option value="pin13" selected>D13 (Status LED / Clock)</option>
+                  <option value="pwm9">D9 (~PWM Pin 9)</option>
+                  <option value="motor">D5 (~PWM Motor Fan)</option>
+                  <option value="buzzer">D8 (Piezo Tone Audio)</option>
+                  <option value="relay">D4 (Relay Armature)</option>
+                  <option value="pin11">D11 (~PWM MOSI)</option>
+                </select>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #facc15; box-shadow: 0 0 6px #facc15;"></span>
+                <span style="font-size: 0.76rem; font-weight: 700; color: #facc15;">CH2:</span>
+                <select id="sel-dso-ch2" style="background: #03060f; color: #facc15; border: 1px solid rgba(250, 204, 21, 0.4); border-radius: 5px; padding: 3px 8px; font-size: 0.74rem;">
+                  <option value="pot" selected>A0 (Analog Potentiometer)</option>
+                  <option value="ldr">A1 (LDR Optical Lux)</option>
+                  <option value="temp">A2 (TMP36 Thermal Voltage)</option>
+                  <option value="dist">Echo (Sonar Distance cm)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Timebase, Volts, Trigger & Freeze -->
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 4px; font-size: 0.74rem; color: #94a3b8;">
+                <span>Time/Div:</span>
+                <select id="sel-dso-timebase" style="background: #03060f; color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 5px; padding: 3px 6px; font-size: 0.72rem;">
+                  <option value="10">10 ms/div</option>
+                  <option value="25">25 ms/div</option>
+                  <option value="50" selected>50 ms/div</option>
+                  <option value="100">100 ms/div</option>
+                  <option value="250">250 ms/div</option>
+                </select>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 4px; font-size: 0.74rem; color: #94a3b8;">
+                <span>V/Div:</span>
+                <select id="sel-dso-volts" style="background: #03060f; color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 5px; padding: 3px 6px; font-size: 0.72rem;">
+                  <option value="1" selected>1.0 V/div</option>
+                  <option value="2">2.0 V/div</option>
+                  <option value="5">5.0 V/div</option>
+                </select>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 4px; font-size: 0.74rem; color: #94a3b8;">
+                <span>Trig:</span>
+                <select id="sel-dso-trigger" style="background: #03060f; color: #f8fafc; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 5px; padding: 3px 6px; font-size: 0.72rem;">
+                  <option value="auto" selected>AUTO</option>
+                  <option value="norm">NORM</option>
+                  <option value="rising">RISING ⎍</option>
+                  <option value="falling">FALLING ⎎</option>
+                </select>
+              </div>
+
+              <button id="btn-dso-freeze" class="btn btn-secondary" style="padding: 3px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; border-color: rgba(245, 158, 11, 0.4); color: #facc15;" title="Freeze or Resume Scope Capture">
+                ⏸ Freeze Frame
+              </button>
+            </div>
+          </div>
+
+          <!-- Oscilloscope Reticle Screen -->
+          <div style="position: relative; height: 200px; background: #02040a; border: 1.5px solid rgba(56, 189, 248, 0.35); border-radius: 8px; overflow: hidden; box-shadow: inset 0 0 25px rgba(0,0,0,0.85);">
+            <canvas id="plotter-canvas" width="900" height="200" style="width: 100%; height: 100%; display: block;"></canvas>
+            
+            <!-- Scope HUD Overlay -->
+            <div style="position: absolute; bottom: 6px; left: 10px; right: 10px; display: flex; justify-content: space-between; align-items: center; pointer-events: none; font-family: monospace; font-size: 0.74rem;">
+              <span id="dso-metrics-ch1" style="color: #38bdf8; background: rgba(3, 7, 18, 0.85); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.25);">
+                CH1: Vpp = 5.00V | Vrms = 3.54V | Freq = 500 Hz | Duty = 50%
+              </span>
+              <span id="dso-metrics-ch2" style="color: #facc15; background: rgba(3, 7, 18, 0.85); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(250, 204, 21, 0.25);">
+                CH2: Vpp = 2.50V | Vrms = 1.77V | Mean = 2.50V
+              </span>
             </div>
           </div>
         </div>
@@ -2523,6 +2932,108 @@ export function initArduinoLab(containerId) {
   const blueprintContentBox = document.getElementById("blueprint-content-box");
   const expDifficultyBadge = document.getElementById("exp-difficulty-badge");
 
+  // Wire Routing Toolbar Elements
+  const btnToggleWireMode = document.getElementById("btn-toggle-wire-mode");
+  const wireModeIcon = document.getElementById("wire-mode-icon");
+  const wireModeText = document.getElementById("wire-mode-text");
+  const badgeWireCount = document.getElementById("badge-wire-count");
+  const btnClearWires = document.getElementById("btn-clear-wires");
+  const btnResetWires = document.getElementById("btn-reset-wires");
+  const wireColorBtns = document.querySelectorAll(".btn-wire-color");
+
+  function updateWireCountBadge() {
+    if (badgeWireCount) {
+      badgeWireCount.textContent = `⚡ ${state.wires.length} Wires Connected`;
+    }
+  }
+
+  btnToggleWireMode?.addEventListener("click", () => {
+    state.isWireMode = !state.isWireMode;
+    if (wireModeIcon) wireModeIcon.textContent = state.isWireMode ? "✂️" : "🔌";
+    if (wireModeText) wireModeText.textContent = state.isWireMode ? "Wire Mode: ON (Click to Route)" : "Wire Routing Mode: OFF";
+    if (btnToggleWireMode) {
+      btnToggleWireMode.style.borderColor = state.isWireMode ? "#22d3ee" : "rgba(6, 182, 212, 0.4)";
+      btnToggleWireMode.style.background = state.isWireMode ? "rgba(6, 182, 212, 0.2)" : "";
+      btnToggleWireMode.style.color = state.isWireMode ? "#22d3ee" : "#38bdf8";
+    }
+    if (canvas) canvas.style.cursor = state.isWireMode ? "crosshair" : "default";
+    audio.playTactileClick(state.isWireMode);
+    addSerialLog(state.isWireMode ? "Wire Routing Mode active: Click header pin or tie point to route" : "Wire Routing Mode deactivated");
+  });
+
+  wireColorBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      wireColorBtns.forEach(b => {
+        b.classList.remove("active");
+        b.style.borderColor = "transparent";
+      });
+      btn.classList.add("active");
+      btn.style.borderColor = "#ffffff";
+      state.activeWireColor = btn.dataset.color || "#ef4444";
+      audio.playTactileClick(false);
+    });
+  });
+
+  btnClearWires?.addEventListener("click", () => {
+    state.wires = [];
+    updateWireCountBadge();
+    audio.playTactileClick(false);
+    addSerialLog("All breadboard jumper wires removed");
+  });
+
+  btnResetWires?.addEventListener("click", () => {
+    const curExp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
+    state.wires = getDefaultWiresForExperiment(curExp?.id || "traffic_light");
+    updateWireCountBadge();
+    audio.playTactileClick(true);
+    addSerialLog(`Restored schematic jumper wires for ${curExp?.title}`);
+  });
+
+  // Dual-Channel DSO Controls Elements
+  const selDsoCh1 = document.getElementById("sel-dso-ch1");
+  const selDsoCh2 = document.getElementById("sel-dso-ch2");
+  const selDsoTimebase = document.getElementById("sel-dso-timebase");
+  const selDsoVolts = document.getElementById("sel-dso-volts");
+  const selDsoTrigger = document.getElementById("sel-dso-trigger");
+  const btnDsoFreeze = document.getElementById("btn-dso-freeze");
+
+  selDsoCh1?.addEventListener("change", (e) => {
+    state.dso.ch1Probe = e.target.value;
+    audio.playTactileClick(false);
+    addSerialLog(`DSO CH1 probe assigned ➔ ${e.target.value}`);
+  });
+
+  selDsoCh2?.addEventListener("change", (e) => {
+    state.dso.ch2Probe = e.target.value;
+    audio.playTactileClick(false);
+    addSerialLog(`DSO CH2 probe assigned ➔ ${e.target.value}`);
+  });
+
+  selDsoTimebase?.addEventListener("change", (e) => {
+    state.dso.timebaseMs = parseInt(e.target.value, 10) || 50;
+    audio.playTactileClick(false);
+  });
+
+  selDsoVolts?.addEventListener("change", (e) => {
+    const v = parseFloat(e.target.value) || 1.0;
+    state.dso.voltsPerDiv1 = v;
+    state.dso.voltsPerDiv2 = v;
+    audio.playTactileClick(false);
+  });
+
+  selDsoTrigger?.addEventListener("change", (e) => {
+    state.dso.triggerMode = e.target.value;
+    audio.playTactileClick(false);
+  });
+
+  btnDsoFreeze?.addEventListener("click", () => {
+    state.dso.isFrozen = !state.dso.isFrozen;
+    btnDsoFreeze.textContent = state.dso.isFrozen ? "▶ Resume Capture" : "⏸ Freeze Frame";
+    btnDsoFreeze.style.color = state.dso.isFrozen ? "#34d399" : "#facc15";
+    audio.playTactileClick(state.dso.isFrozen);
+    addSerialLog(state.dso.isFrozen ? "DSO Waveform capture frozen" : "DSO Real-time capture resumed");
+  });
+
   // Speed selection pills
   document.querySelectorAll(".btn-speed-sel").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -2536,6 +3047,7 @@ export function initArduinoLab(containerId) {
   // -------------------------------------------------------------------------
   // Serial Logging Helper
   // -------------------------------------------------------------------------
+  let serialChirpThrottle = 0;
   function addSerialLog(message) {
     const elapsedSec = (state.simTimeMs / 1000).toFixed(3);
     const logLine = `[${elapsedSec}s] ${message}`;
@@ -2984,6 +3496,10 @@ export function initArduinoLab(containerId) {
       if (expDescBox) expDescBox.textContent = exp.description;
       if (expDifficultyBadge) expDifficultyBadge.textContent = exp.difficultyLabel || "🟢 Easy";
       codeEditor.value = exp.code;
+      state.wires = getDefaultWiresForExperiment(exp.id);
+      updateWireCountBadge();
+      state.isCustomSketchActive = false;
+      state.customSketch = null;
       addSerialLog(`Loaded experiment: ${exp.title}`);
       audio.playUploadChime();
       resetMcuState();
@@ -3254,26 +3770,46 @@ export function initArduinoLab(containerId) {
   // 5. IDE Controls: Verify & Upload
   btnVerify?.addEventListener("click", () => {
     audio.playTactileClick(true);
-    compilerLog.innerHTML = `<span style="color: #38bdf8;">⚙️ Compiling sketch.ino...</span>`;
+    compilerLog.innerHTML = `<span style="color: #38bdf8;">⚙️ Compiling sketch.ino with avr-g++...</span>`;
     setTimeout(() => {
-      compilerLog.innerHTML = `<span style="color: #34d399;">✓ Compilation successful! ROM: 1,428 B (4%) • RAM: 214 B (10%)</span>`;
-      SoundFX.playSuccess();
-    }, 350);
+      const res = compileArduinoSketch(codeEditor ? codeEditor.value : "");
+      if (!res.success) {
+        compilerLog.innerHTML = `<span style="color: #ef4444; font-weight: 700;">❌ Build Failed:</span><br><span style="color: #fca5a5;">${res.error}</span>`;
+        audio.playTactileClick(false);
+      } else {
+        const flashPct = Math.round((res.flashBytes / 32256) * 100);
+        const sramPct = Math.round((res.sramBytes / 2048) * 100);
+        compilerLog.innerHTML = `<span style="color: #34d399; font-weight: 700;">✓ Compilation Successful!</span><br><span style="color: #a7f3d0;">Sketch uses ${res.flashBytes} bytes (${flashPct}%) of program storage space. Maximum is 32,256 bytes.<br>Global variables use ${res.sramBytes} bytes (${sramPct}%) of dynamic memory, leaving ${2048 - res.sramBytes} bytes for local variables.</span>`;
+        if (typeof SoundFX !== "undefined" && SoundFX.playSuccess) SoundFX.playSuccess();
+      }
+    }, 280);
   });
 
   btnUpload?.addEventListener("click", () => {
     audio.playTactileClick(true);
-    compilerLog.innerHTML = `<span style="color: #f59e0b;">⚡ Uploading to Arduino Uno via /dev/ttyACM0...</span>`;
+    const res = compileArduinoSketch(codeEditor ? codeEditor.value : "");
+    if (!res.success) {
+      compilerLog.innerHTML = `<span style="color: #ef4444; font-weight: 700;">❌ Upload Aborted (Compile Error):</span><br><span style="color: #fca5a5;">${res.error}</span>`;
+      return;
+    }
+
+    compilerLog.innerHTML = `<span style="color: #f59e0b;">⚡ Flashing ATmega328P via stk500v1 (/dev/ttyACM0 @ 115200 bps)...</span>`;
     state.components.rxLed = true;
     setTimeout(() => { state.components.txLed = true; }, 120);
     setTimeout(() => {
       state.components.rxLed = false;
       state.components.txLed = false;
-      compilerLog.innerHTML = `<span style="color: #34d399;">✓ Upload Done! Running sketch on ATmega328P.</span>`;
+      state.customSketch = res;
+      state.isCustomSketchActive = true;
+      state.customSketchTimer = 0;
+      const flashPct = Math.round((res.flashBytes / 32256) * 100);
+      compilerLog.innerHTML = `<span style="color: #34d399; font-weight: 700;">✓ Done uploading. Verified 100%.</span><br><span style="color: #a7f3d0;">CPU restarted. Running sketch on ATmega328P (${res.flashBytes} B, ${flashPct}% ROM).</span>`;
       audio.playUploadChime();
-      addSerialLog("Sketch uploaded successfully. Program execution restarted.");
+      addSerialLog("Sketch binary flashed to ATmega328P (stk500v1 OK)");
+      addSerialLog("Custom user sketch loop active");
       resetMcuState();
-    }, 450);
+      state.isCustomSketchActive = true;
+    }, 420);
   });
 
   btnPlayPause?.addEventListener("click", () => {
@@ -3286,6 +3822,8 @@ export function initArduinoLab(containerId) {
     const exp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
     if (exp) {
       codeEditor.value = exp.code;
+      state.isCustomSketchActive = false;
+      state.customSketch = null;
       audio.playTactileClick(false);
       addSerialLog("Reset code to default experiment template");
     }
@@ -3442,6 +3980,82 @@ export function initArduinoLab(containerId) {
   }
 
   function getInteractiveTarget(cx, cy) {
+    state.hoveredPin = null;
+    state.hoveredWireIndex = -1;
+
+    // 0. Wire Hover / Cut Target in Wire Routing Mode
+    if (state.isWireMode && state.wires && state.wires.length > 0) {
+      for (let i = state.wires.length - 1; i >= 0; i--) {
+        const w = state.wires[i];
+        const mx = (w.sx + w.ex) / 2;
+        const sag = Math.max(30, Math.min(90, Math.hypot(w.ex - w.sx, w.ey - w.sy) * 0.28));
+        const my = ((w.sy + w.ey) / 2) < 220 ? (Math.min(w.sy, w.ey) - sag) : (Math.max(w.sy, w.ey) + sag * 0.7);
+        if (Math.hypot(cx - mx, cy - my) <= 18 || Math.hypot(cx - w.sx, cy - w.sy) <= 10 || Math.hypot(cx - w.ex, cy - w.ey) <= 10) {
+          state.hoveredWireIndex = i;
+          return {
+            id: "wire",
+            wire: w,
+            wireIndex: i,
+            label: `Jumper Wire (${w.label || w.from + ' ➔ ' + w.to}) [Click to Unplug]`,
+            cursor: "pointer"
+          };
+        }
+      }
+    }
+
+    // 0b. Pin Terminal Snapping (Arduino Headers & Breadboard Rails/Tiepoints)
+    if (typeof ARDUINO_PINS !== "undefined") {
+      for (const [key, p] of Object.entries(ARDUINO_PINS)) {
+        if (Math.hypot(cx - p.x, cy - p.y) <= 12) {
+          state.hoveredPin = { pinKey: key, name: p.label, x: p.x, y: p.y };
+          return {
+            id: "pin",
+            pinKey: key,
+            name: p.label,
+            x: p.x,
+            y: p.y,
+            label: `Pin ${p.label}`,
+            cursor: state.isWireMode ? "crosshair" : "pointer"
+          };
+        }
+      }
+    }
+    if (typeof BREADBOARD_PINS !== "undefined") {
+      for (const [key, p] of Object.entries(BREADBOARD_PINS)) {
+        if (Math.hypot(cx - p.x, cy - p.y) <= 12) {
+          state.hoveredPin = { pinKey: key, name: p.label, x: p.x, y: p.y };
+          return {
+            id: "pin",
+            pinKey: key,
+            name: p.label,
+            x: p.x,
+            y: p.y,
+            label: p.label,
+            cursor: state.isWireMode ? "crosshair" : "pointer"
+          };
+        }
+      }
+    }
+    if (state.isWireMode && cx >= 440 && cx <= 790 && cy >= 90 && cy <= 250) {
+      const snapX = Math.round((cx - 450) / 15) * 15 + 450;
+      const snapY = Math.round((cy - 100) / 15) * 15 + 100;
+      if (Math.hypot(cx - snapX, cy - snapY) <= 10) {
+        const colLetter = String.fromCharCode(65 + Math.floor((snapX - 450) / 15));
+        const rowNum = Math.floor((snapY - 100) / 15) + 1;
+        const pinName = `BB_${colLetter}${rowNum}`;
+        state.hoveredPin = { pinKey: pinName, name: pinName, x: snapX, y: snapY };
+        return {
+          id: "pin",
+          pinKey: pinName,
+          name: pinName,
+          x: snapX,
+          y: snapY,
+          label: `Tie-Point ${pinName}`,
+          cursor: "crosshair"
+        };
+      }
+    }
+
     // 1. Arduino Board Reset Button
     if (Math.hypot(cx - 125, cy - 90) <= 14) {
       return {
@@ -3724,11 +4338,38 @@ export function initArduinoLab(containerId) {
     const coords = getCanvasCoords(e);
     if (!coords) return;
     const target = getInteractiveTarget(coords.x, coords.y);
-    if (!target) return;
 
     if (e.type === "touchstart") {
       e.preventDefault();
     }
+
+    // Wire Routing Mode Handling
+    if (state.isWireMode) {
+      if (target && target.id === "wire") {
+        const removed = state.wires.splice(target.wireIndex, 1)[0];
+        state.hoveredWireIndex = -1;
+        updateWireCountBadge();
+        audio.playTactileClick(false);
+        addSerialLog(`Cut wire: ${removed ? (removed.label || removed.from + ' ➔ ' + removed.to) : "jumper"}`);
+        return;
+      }
+      if (target && target.id === "pin") {
+        state.wireDrawing = {
+          active: true,
+          startPin: target.name || target.pinKey,
+          sx: target.x,
+          sy: target.y,
+          curX: target.x,
+          curY: target.y,
+          color: state.activeWireColor || "#ef4444"
+        };
+        audio.playTactileClick(true);
+        addSerialLog(`Routing jumper from ${target.name || target.pinKey}... (Click destination pin)`);
+        return;
+      }
+    }
+
+    if (!target) return;
 
     if (target.id === "reset") {
       resetMcuState();
@@ -3860,6 +4501,20 @@ export function initArduinoLab(containerId) {
     const coords = getCanvasCoords(e);
     if (!coords) return;
 
+    if (state.wireDrawing && state.wireDrawing.active) {
+      if (e.type === "touchmove") e.preventDefault();
+      const target = getInteractiveTarget(coords.x, coords.y);
+      if (target && target.id === "pin") {
+        state.wireDrawing.curX = target.x;
+        state.wireDrawing.curY = target.y;
+      } else {
+        state.wireDrawing.curX = coords.x;
+        state.wireDrawing.curY = coords.y;
+      }
+      if (canvas) canvas.style.cursor = "crosshair";
+      return;
+    }
+
     if (isDraggingPot && potDragCenter) {
       if (e.type === "touchmove") e.preventDefault();
       updatePotValueFromCoords(coords.x, coords.y, potDragCenter);
@@ -3868,11 +4523,35 @@ export function initArduinoLab(containerId) {
 
     hoveredTarget = getInteractiveTarget(coords.x, coords.y);
     if (canvas) {
-      canvas.style.cursor = hoveredTarget ? (hoveredTarget.cursor || "pointer") : "default";
+      canvas.style.cursor = hoveredTarget ? (hoveredTarget.cursor || "pointer") : (state.isWireMode ? "crosshair" : "default");
     }
   }
 
-  function handleCanvasPointerUp() {
+  function handleCanvasPointerUp(e) {
+    if (state.wireDrawing && state.wireDrawing.active) {
+      const coords = (e ? getCanvasCoords(e) : null) || { x: state.wireDrawing.curX, y: state.wireDrawing.curY };
+      const target = getInteractiveTarget(coords.x, coords.y);
+      if (target && target.id === "pin" && target.name !== state.wireDrawing.startPin) {
+        const endPin = target.name || target.pinKey;
+        const newWire = {
+          id: "w_usr_" + Date.now(),
+          from: state.wireDrawing.startPin,
+          to: endPin,
+          sx: state.wireDrawing.sx,
+          sy: state.wireDrawing.sy,
+          ex: target.x,
+          ey: target.y,
+          color: state.wireDrawing.color || state.activeWireColor || "#ef4444",
+          label: `${state.wireDrawing.startPin} ➔ ${endPin}`
+        };
+        state.wires.push(newWire);
+        audio.playTactileClick(true);
+        addSerialLog(`Connected wire: ${newWire.label} [${newWire.color}]`);
+        updateWireCountBadge();
+      }
+      state.wireDrawing.active = false;
+    }
+
     if (activeCanvasButton) {
       handleButtonUp();
       activeCanvasButton = false;
@@ -3882,6 +4561,9 @@ export function initArduinoLab(containerId) {
   }
 
   function handleCanvasPointerLeave() {
+    if (state.wireDrawing && state.wireDrawing.active) {
+      state.wireDrawing.active = false;
+    }
     if (activeCanvasButton) {
       handleButtonUp();
       activeCanvasButton = false;
@@ -3889,7 +4571,7 @@ export function initArduinoLab(containerId) {
     isDraggingPot = false;
     potDragCenter = null;
     hoveredTarget = null;
-    if (canvas) canvas.style.cursor = "default";
+    if (canvas) canvas.style.cursor = state.isWireMode ? "crosshair" : "default";
   }
 
   if (canvas) {
@@ -3937,10 +4619,82 @@ export function initArduinoLab(containerId) {
     animationFrameId = requestAnimationFrame(renderLoop);
   }
 
+  // Probe voltage evaluator for DSO channels
+  function getProbeVoltage(probeId, t) {
+    switch (probeId) {
+      case "pin13": return state.components.pin13Led ? 5.0 : 0.0;
+      case "pwm9": {
+        const duty = (state.components.pin9Pwm || 0) / 255;
+        const inst = ((t * 0.490) % 1.0) < duty ? 5.0 : 0.0;
+        return duty > 0 ? (inst > 0 ? 5.0 : 0.0) : 0.0;
+      }
+      case "motor": {
+        const baseV = ((state.components.motorSpeed || 0) / 255) * 5.0;
+        const ripple = state.components.motorSpeed > 0 ? (Math.sin(t * 0.08) * 0.15) : 0;
+        return Math.max(0, Math.min(5.0, baseV + ripple));
+      }
+      case "buzzer": {
+        const tone = state.components.buzzerTone || (state.components.pin13Led ? 440 : 0);
+        return tone > 0 ? (Math.sin(t * 0.001 * tone * 2 * Math.PI) > 0 ? 5.0 : 0.0) : 0.0;
+      }
+      case "relay": return state.components.relayActive ? 5.0 : 0.0;
+      case "pin11": return state.components.pin11Led ? 5.0 : 0.0;
+      case "pot": return ((state.components.potValue || 0) / 1023) * 5.0;
+      case "ldr": return Math.min(5.0, ((state.components.ldrLux || 0) / 1000) * 5.0);
+      case "temp": return Math.min(5.0, Math.max(0.0, ((state.components.temperatureC || 20) * 0.01) + 0.5));
+      case "dist": return Math.min(5.0, ((state.components.obstacleDistCm || 0) / 100) * 5.0);
+      default: return 0.0;
+    }
+  }
+
   // Logic Simulation for current experiment
   function updateSimulationLogic(stepMs) {
     const expId = ARDUINO_EXPERIMENTS[state.selectedExpIndex].id;
     const t = state.simTimeMs;
+
+    // Custom in-browser sketch execution loop
+    if (state.isCustomSketchActive && state.customSketch) {
+      state.customSketchTimer = (state.customSketchTimer || 0) + stepMs;
+      const cycleMs = state.customSketch.totalCycleMs || 1000;
+      const modT = state.customSketchTimer % cycleMs;
+      const src = state.customSketch.source || "";
+
+      // 1. Digital LED Blink parsing
+      if (/digitalWrite\s*\(\s*(13|LED_BUILTIN)\s*,\s*HIGH\s*\)/.test(src)) {
+        const delays = state.customSketch.delays || [500, 500];
+        const highDur = delays[0] || (cycleMs / 2);
+        state.components.pin13Led = (modT < highDur);
+      }
+
+      // 2. PWM & Motor parsing
+      const pwmMatch = src.match(/analogWrite\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+      if (pwmMatch) {
+        const pin = parseInt(pwmMatch[1], 10);
+        const val = parseInt(pwmMatch[2], 10);
+        if (pin === 9 || pin === 10 || pin === 11) state.components.pin9Pwm = val;
+        else if (pin === 5 || pin === 6 || pin === 3) state.components.motorSpeed = val;
+      }
+
+      // 3. Tone parsing
+      const toneMatch = src.match(/tone\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+      if (toneMatch) {
+        const freq = parseInt(toneMatch[2], 10) || 440;
+        state.components.buzzerTone = freq;
+        if (Math.floor(t / 250) % 2 === 0) audio.playTone(freq, 60);
+      }
+
+      // 4. Relay parsing
+      if (/digitalWrite\s*\(\s*4\s*,\s*HIGH\s*\)/.test(src)) {
+        state.components.relayActive = true;
+      } else if (/digitalWrite\s*\(\s*4\s*,\s*LOW\s*\)/.test(src)) {
+        state.components.relayActive = false;
+      }
+
+      // 5. Pot/Analog reads
+      if (/analogRead\s*\(\s*A0\s*\)/.test(src) && /analogWrite\s*\(\s*9/.test(src)) {
+        state.components.pin9Pwm = Math.round((state.components.potValue / 1023) * 255);
+      }
+    }
 
     if (expId === "traffic_light") {
       // Traffic Light State Machine
@@ -4143,17 +4897,23 @@ export function initArduinoLab(containerId) {
       }
     }
 
-    // Buffer waveform points for plotter
-    if (state.waveformPoints.length > 250) state.waveformPoints.shift();
-    state.waveformPoints.push({
-      time: t,
-      pot: state.components.potValue,
-      dist: state.components.obstacleDistCm,
-      ldr: state.components.ldrLux,
-      temp: state.components.temperatureC,
-      pin13: state.components.pin13Led,
-      pwm: state.components.pin9Pwm
-    });
+    // Buffer waveform points for plotter & DSO
+    if (!state.dso || !state.dso.isFrozen) {
+      if (state.waveformPoints.length > 250) state.waveformPoints.shift();
+      const ch1V = getProbeVoltage(state.dso?.ch1Probe || "pin13", t);
+      const ch2V = getProbeVoltage(state.dso?.ch2Probe || "pot", t);
+      state.waveformPoints.push({
+        time: t,
+        ch1: ch1V,
+        ch2: ch2V,
+        pot: state.components.potValue,
+        dist: state.components.obstacleDistCm,
+        ldr: state.components.ldrLux,
+        temp: state.components.temperatureC,
+        pin13: state.components.pin13Led,
+        pwm: state.components.pin9Pwm
+      });
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -5599,35 +6359,152 @@ export function initArduinoLab(containerId) {
 
   // Draw Realistic Curved Jumper Wires connecting Arduino to Breadboard
   function drawJumperWires(c) {
+    if (!c) return;
     c.save();
-    c.lineWidth = 3.5;
-    c.lineCap = "round";
 
-    const wires = [
-      // 5V Power (Red)
-      { sx: 185, sy: 380, ex: 450, ey: 85, color: "#ef4444" },
-      // Ground (Black)
-      { sx: 215, sy: 380, ex: 460, ey: 100, color: "#0f172a" },
-      // Signal wire (D13 Red LED)
-      { sx: 310, sy: 70, ex: 490, ey: 120, color: "#38bdf8" },
-      // Signal wire (D8 Buzzer)
-      { sx: 245, sy: 70, ex: 730, ey: 120, color: "#a855f7" }
-    ];
+    // 1. Draw existing connected wires
+    const wires = state.wires || [];
+    wires.forEach((w, idx) => {
+      const dx = w.ex - w.sx;
+      const dy = w.ey - w.sy;
+      const dist = Math.hypot(dx, dy);
 
-    wires.forEach(w => {
-      c.strokeStyle = w.color;
+      // Calculate realistic sag / arch
+      const sag = Math.max(30, Math.min(90, dist * 0.28));
+      const midY = (w.sy + w.ey) / 2;
+      const isTopArc = midY < 220;
+      const cp1x = w.sx + dx * 0.28;
+      const cp1y = isTopArc ? (Math.min(w.sy, w.ey) - sag) : (Math.max(w.sy, w.ey) + sag * 0.7);
+      const cp2x = w.sx + dx * 0.72;
+      const cp2y = isTopArc ? (Math.min(w.sy, w.ey) - sag) : (Math.max(w.sy, w.ey) + sag * 0.7);
+
+      // (a) Soft ambient contact shadow on PCB / bench mat
+      c.strokeStyle = "rgba(0, 0, 0, 0.4)";
+      c.lineWidth = 4.5;
+      c.lineCap = "round";
+      c.beginPath();
+      c.moveTo(w.sx, w.sy + 3);
+      c.bezierCurveTo(cp1x, cp1y + 6, cp2x, cp2y + 6, w.ex, w.ey + 3);
+      c.stroke();
+
+      // (b) Metallic crimp ferrule / pin terminal sleeves at both ends
+      c.fillStyle = "#64748b";
+      c.fillRect(w.sx - 2.5, w.sy - 4, 5, 8);
+      c.fillRect(w.ex - 2.5, w.ey - 4, 5, 8);
+      c.fillStyle = "#e2e8f0";
+      c.fillRect(w.sx - 1.5, w.sy - 3, 3, 6);
+      c.fillRect(w.ex - 1.5, w.ey - 3, 3, 6);
+
+      // (c) Colored insulated jacket
+      c.strokeStyle = w.color || "#ef4444";
+      c.lineWidth = 3.6;
+      c.lineCap = "round";
       c.beginPath();
       c.moveTo(w.sx, w.sy);
-      const cx1 = w.sx + (w.ex - w.sx) * 0.5;
-      const cy1 = Math.min(w.sy, w.ey) - 40;
-      c.quadraticCurveTo(cx1, cy1, w.ex, w.ey);
+      c.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, w.ex, w.ey);
       c.stroke();
+
+      // (d) Specular glossy highlight along upper crest
+      c.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      c.lineWidth = 1.2;
+      c.beginPath();
+      c.moveTo(w.sx, w.sy - 0.8);
+      c.bezierCurveTo(cp1x, cp1y - 0.8, cp2x, cp2y - 0.8, w.ex, w.ey - 0.8);
+      c.stroke();
+
+      // (e) Highlight if hovered in wire mode
+      if (state.isWireMode && state.hoveredWireIndex === idx) {
+        c.strokeStyle = "#f43f5e";
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.moveTo(w.sx, w.sy);
+        c.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, w.ex, w.ey);
+        c.stroke();
+
+        // Draw small unplug badge near midpoint
+        const mx = (w.sx + w.ex) / 2;
+        const my = (cp1y + cp2y) / 2;
+        c.fillStyle = "rgba(239, 68, 68, 0.9)";
+        c.fillRect(mx - 18, my - 9, 36, 18);
+        c.fillStyle = "#ffffff";
+        c.font = "bold 9px sans-serif";
+        c.textAlign = "center";
+        c.textBaseline = "middle";
+        c.fillText("✂ Cut", mx, my);
+      }
     });
+
+    // 2. Active wire drawing rubberband
+    if (state.wireDrawing && state.wireDrawing.active) {
+      const wd = state.wireDrawing;
+      const dx = wd.curX - wd.sx;
+      const dy = wd.curY - wd.sy;
+      const dist = Math.hypot(dx, dy);
+      const sag = Math.max(20, Math.min(70, dist * 0.25));
+      const cp1x = wd.sx + dx * 0.3;
+      const cp1y = Math.min(wd.sy, wd.curY) - sag;
+      const cp2x = wd.sx + dx * 0.7;
+      const cp2y = Math.min(wd.sy, wd.curY) - sag;
+
+      // Pulsing animated dashed wire preview
+      c.setLineDash([6, 4]);
+      c.strokeStyle = wd.color || state.activeWireColor || "#38bdf8";
+      c.lineWidth = 3.2;
+      c.lineCap = "round";
+      c.beginPath();
+      c.moveTo(wd.sx, wd.sy);
+      c.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, wd.curX, wd.curY);
+      c.stroke();
+      c.setLineDash([]);
+
+      // Start pin halo
+      c.fillStyle = wd.color || "#38bdf8";
+      c.beginPath();
+      c.arc(wd.sx, wd.sy, 4, 0, Math.PI * 2);
+      c.fill();
+
+      // Current tip cursor halo
+      c.strokeStyle = "#ffffff";
+      c.lineWidth = 2;
+      c.beginPath();
+      c.arc(wd.curX, wd.curY, 6, 0, Math.PI * 2);
+      c.stroke();
+    }
+
+    // 3. Pin highlight when hovered in wire mode or interacting
+    if (state.hoveredPin) {
+      const hp = state.hoveredPin;
+      c.save();
+      c.strokeStyle = "#22d3ee";
+      c.lineWidth = 2;
+      c.shadowColor = "#38bdf8";
+      c.shadowBlur = 10;
+      c.beginPath();
+      c.arc(hp.x, hp.y, 8, 0, Math.PI * 2);
+      c.stroke();
+
+      // Label tooltip
+      c.shadowBlur = 0;
+      c.fillStyle = "rgba(15, 23, 42, 0.9)";
+      c.strokeStyle = "rgba(56, 189, 248, 0.5)";
+      c.lineWidth = 1;
+      const txt = hp.name || hp.pinKey;
+      c.font = "bold 9px monospace";
+      const tw = c.measureText(txt).width + 10;
+      c.fillRect(hp.x - tw / 2, hp.y - 20, tw, 15);
+      c.strokeRect(hp.x - tw / 2, hp.y - 20, tw, 15);
+      c.fillStyle = "#38bdf8";
+      c.textAlign = "center";
+      c.textBaseline = "middle";
+      c.fillText(txt, hp.x, hp.y - 13);
+      c.restore();
+    }
+
     c.restore();
   }
 
   // -------------------------------------------------------------------------
-  // Serial Waveform Plotter Canvas Rendering
+  // Serial Waveform Plotter & Dual-Channel DSO Canvas Rendering
   // -------------------------------------------------------------------------
   function drawPlotterWaveforms() {
     if (!plotterCtx || !plotterCanvas) return;
@@ -5636,51 +6513,188 @@ export function initArduinoLab(containerId) {
 
     plotterCtx.clearRect(0, 0, pw, ph);
 
-    // Plotter dark background & grid
-    plotterCtx.fillStyle = "#03060f";
+    // 1. Deep Oscilloscope Phosphor Graticule Screen Background
+    plotterCtx.fillStyle = "#020409";
     plotterCtx.fillRect(0, 0, pw, ph);
 
-    plotterCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    // Sub-division dimensions (10 horizontal div × 8 vertical div)
+    const numDivX = 10;
+    const numDivY = 8;
+    const divW = pw / numDivX;
+    const divH = ph / numDivY;
+
+    // Major Grid Lines
+    plotterCtx.strokeStyle = "rgba(56, 189, 248, 0.12)";
     plotterCtx.lineWidth = 1;
-    for (let x = 0; x < pw; x += 50) {
+    for (let x = 0; x <= pw; x += divW) {
       plotterCtx.beginPath();
       plotterCtx.moveTo(x, 0);
       plotterCtx.lineTo(x, ph);
       plotterCtx.stroke();
     }
-    for (let y = 0; y < ph; y += 30) {
+    for (let y = 0; y <= ph; y += divH) {
       plotterCtx.beginPath();
       plotterCtx.moveTo(0, y);
       plotterCtx.lineTo(pw, y);
       plotterCtx.stroke();
     }
 
-    // Draw Channel 1 (Cyan): Pot / Signal Telemetry
-    if (state.waveformPoints.length > 1) {
-      plotterCtx.strokeStyle = "#38bdf8";
-      plotterCtx.lineWidth = 2;
-      plotterCtx.beginPath();
-      state.waveformPoints.forEach((pt, i) => {
-        const x = (i / 250) * pw;
-        const normVal = pt.pot / 1023; // 0 to 1
-        const y = ph - (normVal * (ph - 20) + 10);
-        if (i === 0) plotterCtx.moveTo(x, y);
-        else plotterCtx.lineTo(x, y);
-      });
-      plotterCtx.stroke();
+    // Central Major Axes Crosshair with Sub-division Tick Marks (5 ticks/div)
+    const midX = pw / 2;
+    const midY = ph / 2;
+    plotterCtx.strokeStyle = "rgba(56, 189, 248, 0.28)";
+    plotterCtx.lineWidth = 1.2;
 
-      // Draw Channel 2 (Amber): Pin 13 / Sonar Distance
-      plotterCtx.strokeStyle = "#f59e0b";
-      plotterCtx.lineWidth = 1.5;
+    plotterCtx.beginPath();
+    plotterCtx.moveTo(midX, 0);
+    plotterCtx.lineTo(midX, ph);
+    plotterCtx.moveTo(0, midY);
+    plotterCtx.lineTo(pw, midY);
+    plotterCtx.stroke();
+
+    // Central axis sub-ticks
+    plotterCtx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    const tickLen = 3;
+    for (let x = 0; x <= pw; x += divW / 5) {
       plotterCtx.beginPath();
-      state.waveformPoints.forEach((pt, i) => {
-        const x = (i / 250) * pw;
-        const normVal = Math.min(1.0, pt.dist / 150);
-        const y = ph - (normVal * (ph - 20) + 10);
-        if (i === 0) plotterCtx.moveTo(x, y);
-        else plotterCtx.lineTo(x, y);
-      });
+      plotterCtx.moveTo(x, midY - tickLen);
+      plotterCtx.lineTo(x, midY + tickLen);
       plotterCtx.stroke();
+    }
+    for (let y = 0; y <= ph; y += divH / 5) {
+      plotterCtx.beginPath();
+      plotterCtx.moveTo(midX - tickLen, y);
+      plotterCtx.lineTo(midX + tickLen, y);
+      plotterCtx.stroke();
+    }
+
+    // Ground reference indicators on left margin:
+    const ch1GndY = ph - 18;
+    plotterCtx.fillStyle = "#38bdf8";
+    plotterCtx.beginPath();
+    plotterCtx.moveTo(2, ch1GndY - 4);
+    plotterCtx.lineTo(8, ch1GndY);
+    plotterCtx.lineTo(2, ch1GndY + 4);
+    plotterCtx.closePath();
+    plotterCtx.fill();
+    plotterCtx.font = "bold 8px sans-serif";
+    plotterCtx.fillText("1", 10, ch1GndY + 3);
+
+    // CH2 GND at y = ph - 18
+    plotterCtx.fillStyle = "#facc15";
+    plotterCtx.beginPath();
+    plotterCtx.moveTo(2, ch1GndY - 14);
+    plotterCtx.lineTo(8, ch1GndY - 10);
+    plotterCtx.lineTo(2, ch1GndY - 6);
+    plotterCtx.closePath();
+    plotterCtx.fill();
+    plotterCtx.fillText("2", 10, ch1GndY - 7);
+
+    // Trigger level indicator on right margin
+    const trigY = ph / 2;
+    plotterCtx.fillStyle = "#f59e0b";
+    plotterCtx.beginPath();
+    plotterCtx.moveTo(pw - 2, trigY - 4);
+    plotterCtx.lineTo(pw - 8, trigY);
+    plotterCtx.lineTo(pw - 2, trigY + 4);
+    plotterCtx.closePath();
+    plotterCtx.fill();
+    plotterCtx.font = "bold 8px sans-serif";
+    plotterCtx.fillText("T", pw - 18, trigY + 3);
+
+    const pts = state.waveformPoints;
+    if (!pts || pts.length < 2) return;
+
+    // Timebase and scaling
+    const vPerDiv1 = state.dso?.voltsPerDiv1 || 1.0;
+    const vPerDiv2 = state.dso?.voltsPerDiv2 || 1.0;
+    const totalVRange1 = vPerDiv1 * 8;
+    const totalVRange2 = vPerDiv2 * 8;
+
+    const numPoints = Math.min(pts.length, 250);
+    const startIdx = pts.length - numPoints;
+
+    // 2. Render Channel 1 Trace (Cyan #38bdf8) with Phosphorescent Bloom
+    plotterCtx.save();
+    plotterCtx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    plotterCtx.lineWidth = 4.5;
+    plotterCtx.lineJoin = "round";
+    plotterCtx.beginPath();
+    for (let i = 0; i < numPoints; i++) {
+      const pt = pts[startIdx + i];
+      const x = (i / (numPoints - 1)) * pw;
+      const v = pt.ch1 !== undefined ? pt.ch1 : (pt.pin13 ? 5.0 : 0.0);
+      const normV = Math.max(0, Math.min(1.0, v / totalVRange1));
+      const y = ch1GndY - normV * (ph - 36);
+      if (i === 0) plotterCtx.moveTo(x, y);
+      else plotterCtx.lineTo(x, y);
+    }
+    plotterCtx.stroke();
+
+    // Pass 2: Core Electron Beam
+    plotterCtx.strokeStyle = "#38bdf8";
+    plotterCtx.lineWidth = 1.8;
+    plotterCtx.stroke();
+    plotterCtx.restore();
+
+    // 3. Render Channel 2 Trace (Amber #facc15) with Phosphorescent Bloom
+    plotterCtx.save();
+    plotterCtx.strokeStyle = "rgba(250, 204, 21, 0.25)";
+    plotterCtx.lineWidth = 4.5;
+    plotterCtx.lineJoin = "round";
+    plotterCtx.beginPath();
+    for (let i = 0; i < numPoints; i++) {
+      const pt = pts[startIdx + i];
+      const x = (i / (numPoints - 1)) * pw;
+      const v = pt.ch2 !== undefined ? pt.ch2 : ((pt.pot / 1023) * 5.0);
+      const normV = Math.max(0, Math.min(1.0, v / totalVRange2));
+      const y = (ch1GndY - 10) - normV * (ph - 36);
+      if (i === 0) plotterCtx.moveTo(x, y);
+      else plotterCtx.lineTo(x, y);
+    }
+    plotterCtx.stroke();
+
+    // Pass 2: Core Electron Beam
+    plotterCtx.strokeStyle = "#facc15";
+    plotterCtx.lineWidth = 1.8;
+    plotterCtx.stroke();
+    plotterCtx.restore();
+
+    // 4. Calculate Live Analytical Telemetry for Probes
+    let ch1Min = Infinity, ch1Max = -Infinity, ch1SumSq = 0;
+    let ch2Min = Infinity, ch2Max = -Infinity, ch2SumSq = 0;
+    let highCount1 = 0;
+
+    for (let i = 0; i < numPoints; i++) {
+      const pt = pts[startIdx + i];
+      const v1 = pt.ch1 !== undefined ? pt.ch1 : (pt.pin13 ? 5.0 : 0.0);
+      const v2 = pt.ch2 !== undefined ? pt.ch2 : ((pt.pot / 1023) * 5.0);
+
+      if (v1 < ch1Min) ch1Min = v1;
+      if (v1 > ch1Max) ch1Max = v1;
+      ch1SumSq += v1 * v1;
+      if (v1 > 2.5) highCount1++;
+
+      if (v2 < ch2Min) ch2Min = v2;
+      if (v2 > ch2Max) ch2Max = v2;
+      ch2SumSq += v2 * v2;
+    }
+
+    const ch1Vpp = Math.max(0, ch1Max - ch1Min);
+    const ch1Vrms = Math.sqrt(ch1SumSq / numPoints);
+    const dutyPercent = Math.round((highCount1 / numPoints) * 100);
+
+    const ch2Vpp = Math.max(0, ch2Max - ch2Min);
+    const ch2Vrms = Math.sqrt(ch2SumSq / numPoints);
+
+    // Update DSO Telemetry Badges in DOM
+    const dsoMetricsCh1 = document.getElementById("dso-metrics-ch1");
+    const dsoMetricsCh2 = document.getElementById("dso-metrics-ch2");
+    if (dsoMetricsCh1) {
+      dsoMetricsCh1.textContent = `CH1 (${state.dso?.ch1Probe || "pin13"}): Vpp = ${ch1Vpp.toFixed(2)}V | Vrms = ${ch1Vrms.toFixed(2)}V | Duty = ${dutyPercent}%`;
+    }
+    if (dsoMetricsCh2) {
+      dsoMetricsCh2.textContent = `CH2 (${state.dso?.ch2Probe || "pot"}): Vpp = ${ch2Vpp.toFixed(2)}V | Vrms = ${ch2Vrms.toFixed(2)}V | Max = ${ch2Max.toFixed(2)}V`;
     }
   }
 
@@ -5706,6 +6720,7 @@ export function initArduinoLab(containerId) {
     audio.destroy();
   };
 
+  cleanup.state = state;
   _currentArduinoCleanup = cleanup;
   return cleanup;
 }

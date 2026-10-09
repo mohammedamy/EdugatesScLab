@@ -88,7 +88,8 @@ class MockElement {
       measureText: () => ({ width: 100 }),
       createLinearGradient: () => ({ addColorStop: () => {} }),
       createRadialGradient: () => ({ addColorStop: () => {} }),
-      quadraticCurveTo: () => {}
+      quadraticCurveTo: () => {},
+      bezierCurveTo: () => {}
     };
   }
 }
@@ -253,11 +254,125 @@ check(sensorParts.length >= 5, `Component Library includes diverse sensors & inp
 check(passiveParts.length >= 3, `Component Library includes passives and displays (${passiveParts.length} parts)`);
 
 // ----------------------------------------------------
-// Test 3: Lifecycle Mount & Clean Teardown
+// Test 3: Pin Geometry Map & Wire Netlists
+// ----------------------------------------------------
+console.log("\n📐 Pin Geometry Map & Interactive Wire Netlists:");
+check(typeof mod.ARDUINO_PINS === "object", "phys-arduino.js exports ARDUINO_PINS map");
+const pinKeys = Object.keys(mod.ARDUINO_PINS);
+check(pinKeys.length === 29, `ARDUINO_PINS contains exactly 29 Uno header pins (Found: ${pinKeys.length})`);
+
+// Verify Digital Pins D0-D13, AREF, and GND_TOP
+const hasAllDigitalPins = ["AREF", "GND_TOP", "D13", "D12", "D11", "D10", "D9", "D8", "D7", "D6", "D5", "D4", "D3", "D2", "TX", "RX"].every(p => !!mod.ARDUINO_PINS[p]);
+check(hasAllDigitalPins, "All 16 top digital header pins correctly mapped with exact canvas coordinates");
+check(mod.ARDUINO_PINS["D13"].y === 75, "D13 pin positioned at top digital header (y = 75)");
+
+// Verify Power and Analog Pins
+const hasAllPowerAnalogPins = ["IOREF", "RESET", "3.3V", "5V", "GND", "GND_2", "VIN", "A0", "A1", "A2", "A3", "A4", "A5"].every(p => !!mod.ARDUINO_PINS[p]);
+check(hasAllPowerAnalogPins, "All 12 bottom power & analog pins mapped (y = 385)");
+
+check(typeof mod.BREADBOARD_PINS === "object", "phys-arduino.js exports BREADBOARD_PINS map");
+const bbKeys = Object.keys(mod.BREADBOARD_PINS);
+check(bbKeys.length === 4, `BREADBOARD_PINS contains all 4 power bus rails (Found: ${bbKeys.length})`);
+
+// Verify default wire netlists for experiments
+check(typeof mod.getDefaultWiresForExperiment === "function", "phys-arduino.js exports getDefaultWiresForExperiment()");
+const trafficWires = mod.getDefaultWiresForExperiment("traffic_light");
+check(Array.isArray(trafficWires) && trafficWires.length === 7, `Traffic Light experiment returns complete 7-wire netlist (Found: ${trafficWires.length})`);
+
+const servoWires = mod.getDefaultWiresForExperiment("servo_control");
+check(Array.isArray(servoWires) && servoWires.length === 4, `Servo Control experiment returns 4-wire netlist with power & signal (Found: ${servoWires.length})`);
+
+// Verify all 16 projects generate valid netlists with valid endpoints and colors
+const allNetlistsValid = mod.ARDUINO_EXPERIMENTS.every(exp => {
+  const wires = mod.getDefaultWiresForExperiment(exp.id);
+  return Array.isArray(wires) && wires.length > 0 && wires.every(w => 
+    typeof w.id === "string" &&
+    typeof w.from === "string" &&
+    typeof w.to === "string" &&
+    typeof w.sx === "number" &&
+    typeof w.sy === "number" &&
+    typeof w.ex === "number" &&
+    typeof w.ey === "number" &&
+    typeof w.color === "string" &&
+    w.color.startsWith("#")
+  );
+});
+check(allNetlistsValid, "All 16 experiments provide valid pre-routed jumper wire netlists with calibrated geometry");
+
+// ----------------------------------------------------
+// Test 4: In-Browser C++ Micro-Compiler & Syntax Verification
+// ----------------------------------------------------
+console.log("\n⚡ In-Browser C++ Arduino Micro-Compiler:");
+check(typeof mod.compileArduinoSketch === "function", "phys-arduino.js exports compileArduinoSketch()");
+
+// 1. Valid Sketch
+const validSketch = `
+void setup() {
+  pinMode(13, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  digitalWrite(13, HIGH);
+  delay(1000);
+  digitalWrite(13, LOW);
+  delay(500);
+}
+`;
+const compSuccess = mod.compileArduinoSketch(validSketch);
+check(compSuccess.success === true, "Valid C++ sketch compiles successfully without errors");
+check(compSuccess.flashBytes > 1000 && compSuccess.flashBytes <= 32256, `Flash ROM calculated within ATmega328P limits (${compSuccess.flashBytes} bytes / 32,256 max)`);
+check(compSuccess.sramBytes > 0 && compSuccess.sramBytes <= 2048, `SRAM calculated within ATmega328P limits (${compSuccess.sramBytes} bytes / 2,048 max)`);
+check(compSuccess.delays && compSuccess.delays.length === 2, "Accurately extracted delay() statements from loop()");
+check(compSuccess.totalCycleMs === 1500, `Total cycle period calculated correctly (Expected: 1500ms, Got: ${compSuccess.totalCycleMs}ms)`);
+
+// 2. Missing setup()
+const noSetupSketch = `
+void loop() {
+  digitalWrite(13, HIGH);
+}
+`;
+const compNoSetup = mod.compileArduinoSketch(noSetupSketch);
+check(compNoSetup.success === false && compNoSetup.error.includes("setup()"), "Detects missing void setup() function with linker diagnostic error");
+
+// 3. Missing loop()
+const noLoopSketch = `
+void setup() {
+  pinMode(13, OUTPUT);
+}
+`;
+const compNoLoop = mod.compileArduinoSketch(noLoopSketch);
+check(compNoLoop.success === false && compNoLoop.error.includes("loop()"), "Detects missing void loop() function with linker diagnostic error");
+
+// 4. Extraneous closing brace '}'
+const extraBraceSketch = `
+void setup() {}
+}
+void loop() {}
+`;
+const compExtraBrace = mod.compileArduinoSketch(extraBraceSketch);
+check(compExtraBrace.success === false && compExtraBrace.error.includes("extraneous closing brace"), "Catches extraneous closing brace '}' with line/column diagnostic");
+
+// 5. Unmatched opening brace '{'
+const unclosedBraceSketch = `
+void setup() {
+void loop() {}
+`;
+const compUnclosedBrace = mod.compileArduinoSketch(unclosedBraceSketch);
+check(compUnclosedBrace.success === false && compUnclosedBrace.error.includes("unmatched opening brace"), "Catches missing closing brace '}'");
+
+// 6. Empty sketch
+const emptyComp = mod.compileArduinoSketch("   ");
+check(emptyComp.success === false && emptyComp.error.includes("Empty"), "Rejects empty source code");
+
+// ----------------------------------------------------
+// Test 5: Lifecycle Mount, Interactive Wires & DSO Controls
 // ----------------------------------------------------
 console.log("\n🔄 Lifecycle Mount & Teardown Execution:");
 const cleanup = mod.initArduinoLab("test-mount");
 check(typeof cleanup === "function", "initArduinoLab returns valid teardown cleanup function");
+check(cleanup.state && Array.isArray(cleanup.state.wires), "initArduinoLab state initialized with wire netlist");
+check(cleanup.state.dso && typeof cleanup.state.dso === "object", "initArduinoLab state initialized with DSO oscilloscope");
 
 const canvas = document.getElementById("arduino-canvas");
 const mousedownListeners = canvas._listeners.get("mousedown") || [];
@@ -265,6 +380,56 @@ check(mousedownListeners.length > 0, "Canvas registers direct pointer/click 'mou
 
 const touchstartListeners = canvas._listeners.get("touchstart") || [];
 check(touchstartListeners.length > 0, "Canvas registers direct touch 'touchstart' event listener");
+
+// Test Wire Toolbar Controls
+const btnToggleWire = document.getElementById("btn-toggle-wire-mode");
+check(btnToggleWire && btnToggleWire._listeners.get("click")?.length > 0, "Wire toolbar registers toggle wire mode listener");
+check(cleanup.state.isWireMode === false, "Wire mode initially OFF");
+btnToggleWire.dispatch("click");
+check(cleanup.state.isWireMode === true, "Clicking '#btn-toggle-wire-mode' turns Wire Mode ON");
+btnToggleWire.dispatch("click");
+check(cleanup.state.isWireMode === false, "Clicking '#btn-toggle-wire-mode' turns Wire Mode OFF");
+
+// Test Clear & Reset Wires
+const btnClearWires = document.getElementById("btn-clear-wires");
+const btnResetWires = document.getElementById("btn-reset-wires");
+check(cleanup.state.wires.length > 0, "Wires present initially");
+btnClearWires.dispatch("click");
+check(cleanup.state.wires.length === 0, "Clicking '#btn-clear-wires' clears all breadboard wires");
+btnResetWires.dispatch("click");
+check(cleanup.state.wires.length > 0, "Clicking '#btn-reset-wires' restores schematic netlist");
+
+// Test DSO Oscilloscope Channel & Trigger Controls
+const selDsoCh1 = document.getElementById("sel-dso-ch1");
+const selDsoCh2 = document.getElementById("sel-dso-ch2");
+const selDsoTimebase = document.getElementById("sel-dso-timebase");
+const selDsoVolts = document.getElementById("sel-dso-volts");
+const selDsoTrigger = document.getElementById("sel-dso-trigger");
+const btnDsoFreeze = document.getElementById("btn-dso-freeze");
+
+check(cleanup.state.dso.ch1Probe === "pin13", "DSO CH1 default probe is 'pin13'");
+check(cleanup.state.dso.ch2Probe === "pot", "DSO CH2 default probe is 'pot'");
+
+selDsoCh1.dispatch("change", { target: { value: "pwm9" } });
+check(cleanup.state.dso.ch1Probe === "pwm9", "DSO CH1 probe updates on select change to 'pwm9'");
+
+selDsoCh2.dispatch("change", { target: { value: "temp" } });
+check(cleanup.state.dso.ch2Probe === "temp", "DSO CH2 probe updates on select change to 'temp'");
+
+selDsoTimebase.dispatch("change", { target: { value: "100" } });
+check(cleanup.state.dso.timebaseMs === 100, "DSO Timebase updates on select change to 100ms/div");
+
+selDsoVolts.dispatch("change", { target: { value: "2" } });
+check(cleanup.state.dso.voltsPerDiv1 === 2, "DSO Volts/Div updates on select change to 2V/div");
+
+selDsoTrigger.dispatch("change", { target: { value: "rising" } });
+check(cleanup.state.dso.triggerMode === "rising", "DSO Trigger Mode updates on select change to 'rising'");
+
+check(cleanup.state.dso.isFrozen === false, "DSO capture initially running (not frozen)");
+btnDsoFreeze.dispatch("click");
+check(cleanup.state.dso.isFrozen === true, "Clicking '#btn-dso-freeze' freezes waveform capture");
+btnDsoFreeze.dispatch("click");
+check(cleanup.state.dso.isFrozen === false, "Clicking '#btn-dso-freeze' resumes waveform capture");
 
 // Test direct component interaction via canvas pointer dispatch
 let canvasPointerDispatchedWithoutError = true;
