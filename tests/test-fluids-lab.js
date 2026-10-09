@@ -201,10 +201,104 @@ test("phys-fluids-buoyancy.js includes Reynolds number telemetry and regime indi
   assert(code.includes("gasoline:"), "Must include Gasoline in FLUIDS");
 });
 
-test("phys-fluids-buoyancy.js btn-fluid-mode switches between Archimedes and Venturi modes cleanly", () => {
+test("phys-fluids-buoyancy.js btn-fluid-mode switches between Archimedes, Venturi, and Torricelli modes cleanly", () => {
   const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
   assert(code.includes('container.querySelector("#btn-fluid-mode")?.addEventListener("click"'), "Must bind click listener to mode button");
   assert(code.includes('const calc = getCalculations();'), "Must safely obtain calculations object in mode switch");
+  assert(code.includes('apparatusMode === "torricelli"'), "Must support Torricelli mode in switcher");
+});
+
+test("Torricelli's Law efflux velocity v = C_d · √(2gh) and discharge coefficients", () => {
+  const g = 9.81;
+  const H = 0.80; // m
+  const yh = 0.40; // m orifice elevation
+  const head = H - yh; // 0.40 m liquid head
+  const vIdeal = Math.sqrt(2 * g * head);
+  assert(Math.abs(vIdeal - 2.8014) < 0.01, `Ideal efflux velocity should be ~2.80 m/s, got ${vIdeal}`);
+
+  // Sharp-edged orifice Cd = 0.62 (vena contracta)
+  const vSharp = 0.62 * vIdeal;
+  assert(Math.abs(vSharp - 1.7369) < 0.01, `Sharp-edged orifice efflux should be ~1.74 m/s, got ${vSharp}`);
+
+  // Well-rounded streamlined nozzle Cd = 0.98
+  const vRounded = 0.98 * vIdeal;
+  assert(Math.abs(vRounded - 2.7454) < 0.01, `Streamlined nozzle efflux should be ~2.75 m/s, got ${vRounded}`);
+
+  // Frictionless ideal Cd = 1.00
+  const vFrictionless = 1.00 * vIdeal;
+  assert(Math.abs(vFrictionless - vIdeal) < 1e-9, "Ideal Cd = 1.00 should match vIdeal");
+});
+
+test("Torricelli horizontal range symmetry R(y) = R(H - y) and peak range at y = H/2", () => {
+  const g = 9.81;
+  const H = 0.80;
+  const Cd = 0.62;
+
+  function calcRange(yh) {
+    const head = H - yh;
+    const v = Cd * Math.sqrt(2 * g * head);
+    const tFlight = Math.sqrt((2 * yh) / g);
+    return v * tFlight; // Identically 2 * Cd * sqrt(yh * (H - yh))
+  }
+
+  // Symmetry check: yh = 0.20 m and yh = 0.60 m must yield identical horizontal range
+  const r20 = calcRange(0.20);
+  const r60 = calcRange(0.60);
+  assert(Math.abs(r20 - r60) < 1e-6, `Symmetry violated: R(0.20) = ${r20} != R(0.60) = ${r60}`);
+  assert(Math.abs(r20 - 0.4295) < 0.01, `Expected range ~0.43 m for y=0.20m, got ${r20}`);
+
+  // Maximum Range Theorem: Peak range occurs strictly at yh = H / 2 = 0.40 m
+  const rMid = calcRange(0.40);
+  const rMaxTheoretical = Cd * H; // 0.62 * 0.80 = 0.496 m
+  assert(Math.abs(rMid - rMaxTheoretical) < 1e-6, `Midpoint range must equal Cd * H = ${rMaxTheoretical}, got ${rMid}`);
+
+  // Test across search grid that no elevation achieves higher range than H / 2
+  for (let y = 0.05; y <= 0.75; y += 0.05) {
+    const rTest = calcRange(y);
+    assert(rTest <= rMid + 1e-9, `Range at y=${y} (${rTest}) exceeded midpoint max range (${rMid})`);
+  }
+});
+
+test("Hydrostatic depth pressure probe formula P_gauge = ρ·g·h and P_abs = P_atm + ρ·g·h", () => {
+  const g = 9.81;
+  const pAtmKPa = 101.325;
+
+  // Pure water (1000 kg/m³) at depth 10 cm (0.10 m)
+  const rhoWater = 1000.0;
+  const h10cm = 0.10;
+  const pGaugeWater = rhoWater * g * h10cm; // 981 Pa = 0.981 kPa
+  const pAbsWater = pAtmKPa + pGaugeWater / 1000;
+  assert(Math.abs(pGaugeWater - 981.0) < 0.01, `Water gauge pressure at 10cm should be 981 Pa, got ${pGaugeWater}`);
+  assert(Math.abs(pAbsWater - 102.306) < 0.01, `Water absolute pressure at 10cm should be 102.31 kPa, got ${pAbsWater}`);
+
+  // Denser glycerin (1261 kg/m³) at depth 20 cm (0.20 m)
+  const rhoGlycerin = 1261.0;
+  const h20cm = 0.20;
+  const pGaugeGlycerin = rhoGlycerin * g * h20cm;
+  assert(Math.abs(pGaugeGlycerin - 2474.08) < 0.1, `Glycerin gauge pressure at 20cm should be ~2474 Pa, got ${pGaugeGlycerin}`);
+
+  // Gasoline (680 kg/m³) lower hydrostatic pressure
+  const rhoGasoline = 680.0;
+  const pGaugeGasoline = rhoGasoline * g * h10cm;
+  assert(pGaugeGasoline < pGaugeWater, "Gasoline hydrostatic pressure must be strictly less than water");
+});
+
+test("phys-fluids-buoyancy.js implements Torricelli and Mano-Probe UI and canvas components", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
+  assert(code.includes("btn-fluid-probe"), "Must include Depth Probe button");
+  assert(code.includes("panel-torricelli-controls"), "Must include Torricelli control panel");
+  assert(code.includes("slider-orifice-height"), "Must include orifice elevation slider");
+  assert(code.includes("select-nozzle-type"), "Must include nozzle geometry selector");
+  assert(code.includes("slider-probe-depth"), "Must include probe depth slider");
+  assert(code.includes("val-probe-gauge"), "Must include probe gauge pressure readout");
+  assert(code.includes("val-probe-abs"), "Must include probe absolute pressure readout");
+  assert(code.includes("val-torricelli-range"), "Must include Torricelli horizontal range readout");
+  assert(code.includes("val-torricelli-vel"), "Must include Torricelli efflux velocity readout");
+  assert(code.includes("badge-max-range"), "Must include maximum range theorem badge");
+  assert(code.includes("function drawTorricelliTank"), "Must include photorealistic Torricelli tank renderer");
+  assert(code.includes("torricelliParticles"), "Must include streaming efflux jet droplets");
+  assert(code.includes("openLabReportModal"), "Must integrate Lab Dossier report modal with Torricelli formulas");
+  assert(code.includes("Torricelli's Efflux Velocity"), "Lab report modal must include Torricelli equation");
 });
 
 console.log("\n========================================================");
