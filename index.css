@@ -5517,6 +5517,7 @@ body.modal-open .sb-toolbar-toggle {
   .beer-layout,
   .neuro-layout,
   .circuits-layout,
+  .orbital-layout,
   .arduino-grid-split {
     grid-template-columns: 1fr !important;
   }
