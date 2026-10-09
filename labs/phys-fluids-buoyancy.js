@@ -76,6 +76,19 @@ export function initFluidsBuoyancyLab(containerId) {
     });
   }
 
+  // Ambient Micro-Bubbles in Fluid Tank
+  const ambientBubbles = [];
+  for (let i = 0; i < 22; i++) {
+    ambientBubbles.push({
+      x: 10 + Math.random() * 190,
+      y: 10 + Math.random() * 210,
+      r: 0.8 + Math.random() * 1.6,
+      speed: 0.35 + Math.random() * 0.55,
+      wobblePhase: Math.random() * Math.PI * 2,
+      wobbleSpeed: 1.5 + Math.random() * 2.5
+    });
+  }
+
   container.innerHTML = `
     <div class="lab-container">
       <!-- Header -->
@@ -450,6 +463,82 @@ export function initFluidsBuoyancyLab(containerId) {
     }
   }
 
+  function getBlockDimensions(volLiters) {
+    const scale = Math.cbrt(Math.max(0.1, volLiters) / 1.0);
+    return {
+      w: Math.round(72 * scale),
+      h: Math.round(76 * scale),
+      scale
+    };
+  }
+
+  function drawVectorPill(c, x, y, text, color, align = "center") {
+    c.save();
+    c.font = "bold 10px var(--font-mono, monospace)";
+    const textWidth = c.measureText(text).width;
+    const pillW = textWidth + 22;
+    const pillH = 20;
+    let pillX = x;
+    if (align === "center") pillX = x - pillW / 2;
+    else if (align === "right") pillX = x - pillW;
+    const pillY = y - pillH / 2;
+
+    c.fillStyle = "rgba(15, 23, 42, 0.92)";
+    c.strokeStyle = color;
+    c.lineWidth = 1.3;
+    c.beginPath();
+    c.roundRect(pillX, pillY, pillW, pillH, 10);
+    c.fill();
+    c.stroke();
+
+    c.fillStyle = color;
+    c.beginPath();
+    c.arc(pillX + 8, y, 3, 0, Math.PI * 2);
+    c.fill();
+
+    c.fillStyle = "#f8fafc";
+    c.textAlign = "left";
+    c.textBaseline = "middle";
+    c.fillText(text, pillX + 15, y);
+    c.restore();
+  }
+
+  function drawCoiledSpring(c, startX, startY, endY, numCoils = 6, coilRadius = 6) {
+    c.save();
+    c.lineWidth = 2.2;
+    c.strokeStyle = "#94a3b8";
+    c.lineCap = "round";
+    c.lineJoin = "round";
+    c.beginPath();
+    c.moveTo(startX, startY);
+    const lead = 3;
+    c.lineTo(startX, startY + lead);
+    const coilH = endY - startY - lead * 2;
+    const totalSteps = numCoils * 10;
+    for (let s = 1; s <= totalSteps; s++) {
+      const t = s / totalSteps;
+      const y = startY + lead + t * coilH;
+      const x = startX + Math.sin(t * numCoils * Math.PI * 2) * coilRadius;
+      c.lineTo(x, y);
+    }
+    c.lineTo(startX, endY);
+    c.stroke();
+
+    // Specular highlight gleam on spring wire
+    c.lineWidth = 0.9;
+    c.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    c.beginPath();
+    for (let s = 2; s < totalSteps; s += 10) {
+      const t = s / totalSteps;
+      const y = startY + lead + t * coilH;
+      const x = startX + Math.sin(t * numCoils * Math.PI * 2) * coilRadius;
+      c.moveTo(x - 1.5, y);
+      c.lineTo(x + 1.5, y);
+    }
+    c.stroke();
+    c.restore();
+  }
+
   function drawBuoyancyApparatus() {
     const canvasWidth = canvas.getBoundingClientRect().width || 620;
     const canvasHeight = 530;
@@ -459,51 +548,241 @@ export function initFluidsBuoyancyLab(containerId) {
     if (apparatusMode === "buoyancy") {
       // Coordinate layout
       const scaleX = Math.round(canvasWidth * 0.40);
-      const scaleY = 40;
+      const scaleY = 32;
 
-      // 1. Digital Spring Scale / Dynamometer at Top
-      ctx.fillStyle = "#1e293b";
-      ctx.strokeStyle = isFreeFloating ? "#475569" : "#38bdf8";
-      ctx.lineWidth = 2;
+      // Tabletop Bench Surface
+      const benchY = 485;
+      const benchGrad = ctx.createLinearGradient(0, benchY, 0, canvasHeight);
+      benchGrad.addColorStop(0, "#0f172a");
+      benchGrad.addColorStop(0.12, "#1e293b");
+      benchGrad.addColorStop(1, "#090d16");
+      ctx.fillStyle = benchGrad;
+      ctx.fillRect(0, benchY, canvasWidth, canvasHeight - benchY);
+
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.roundRect(scaleX - 50, scaleY, 100, 52, 8);
-      ctx.fill();
+      ctx.moveTo(0, benchY);
+      ctx.lineTo(canvasWidth, benchY);
       ctx.stroke();
 
-      ctx.fillStyle = isFreeFloating ? "#64748b" : "#10b981";
-      ctx.font = "bold 14px var(--font-mono, monospace)";
-      ctx.textAlign = "center";
-      ctx.fillText(isFreeFloating ? "0.00 N (FREE)" : `${calc.weightAppN.toFixed(2)} N`, scaleX, scaleY + 28);
-      ctx.fillStyle = "#94a3b8";
-      ctx.font = "8px system-ui, sans-serif";
-      ctx.fillText(isFreeFloating ? "SCALE DETACHED" : "SPRING SCALE TENSION", scaleX, scaleY + 42);
-
-      // 2. Main Overflow Tank with Glass Refraction & Spout
+      // Main Overflow Tank Geometry
       const tankX = scaleX - 105;
       const tankY = 175;
       const tankW = 210;
       const tankH = 270;
       const waterSurfaceY = tankY + 50;
+      const tankFloorY = tankY + tankH - 6;
 
-      // Tank Body Glass
-      ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
-      ctx.lineWidth = 2.5;
+      // 1. Heavy Retort Stand (Upright Rod & Base holding the scale)
+      const standX = tankX - 16;
+      // Heavy cast-iron bench clamp base
+      ctx.fillStyle = "#1e293b";
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(tankX, tankY);
-      ctx.lineTo(tankX, tankY + tankH);
-      ctx.lineTo(tankX + tankW, tankY + tankH);
-      ctx.lineTo(tankX + tankW, waterSurfaceY); // Spout opening
-      // Spout beak
-      ctx.lineTo(tankX + tankW + 45, waterSurfaceY + 20);
-      ctx.lineTo(tankX + tankW + 45, waterSurfaceY + 30);
-      ctx.lineTo(tankX + tankW, waterSurfaceY + 10);
-      ctx.lineTo(tankX + tankW, tankY);
+      ctx.roundRect(standX - 20, benchY - 8, 40, 10, 3);
+      ctx.fill();
       ctx.stroke();
 
-      // Fluid in main tank up to spout level
-      ctx.fillStyle = calc.f.color;
+      // Stainless steel vertical upright rod
+      const rodGrad = ctx.createLinearGradient(standX - 4, 0, standX + 4, 0);
+      rodGrad.addColorStop(0, "#334155");
+      rodGrad.addColorStop(0.35, "#f1f5f9");
+      rodGrad.addColorStop(0.7, "#94a3b8");
+      rodGrad.addColorStop(1, "#1e293b");
+      ctx.fillStyle = rodGrad;
+      ctx.fillRect(standX - 3.5, 18, 7, benchY - 26);
+
+      // Bosshead clamp at scale top
+      const clampY = 24;
+      ctx.fillStyle = "#0f172a";
+      ctx.strokeStyle = "#64748b";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(standX - 6, clampY - 5, 12, 14, 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#94a3b8";
+      ctx.fillRect(standX - 10, clampY - 1, 4, 4);
+
+      // Horizontal chrome support arm extending to scaleX
+      const armGrad = ctx.createLinearGradient(0, clampY - 2.5, 0, clampY + 2.5);
+      armGrad.addColorStop(0, "#f8fafc");
+      armGrad.addColorStop(0.5, "#94a3b8");
+      armGrad.addColorStop(1, "#334155");
+      ctx.fillStyle = armGrad;
+      ctx.fillRect(standX + 6, clampY - 2.5, (scaleX - standX) + 12, 5);
+
+      // Suspension collar ring holding dynamometer top
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(scaleX, clampY + 4, 4.5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // 2. Precision Laboratory Dynamometer (Spring Scale)
+      const dynW = 72;
+      const dynH = 92;
+      const dynX = scaleX - dynW / 2;
+
+      // Outer Casing: brushed navy/slate polycarbonate housing
+      const caseGrad = ctx.createLinearGradient(dynX, scaleY, dynX + dynW, scaleY);
+      caseGrad.addColorStop(0, "#1e293b");
+      caseGrad.addColorStop(0.5, "#334155");
+      caseGrad.addColorStop(1, "#1e293b");
+      ctx.fillStyle = caseGrad;
+      ctx.strokeStyle = isFreeFloating ? "#475569" : "#38bdf8";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(dynX, scaleY, dynW, dynH, 8);
+      ctx.fill();
+      ctx.stroke();
+
+      // Top mounting eyelet on dynamometer
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(scaleX, scaleY, 5, Math.PI, 0);
+      ctx.stroke();
+
+      // Recessed Transparent Measurement Window
+      const winX = scaleX - 22;
+      const winY = scaleY + 10;
+      const winW = 44;
+      const winH = 50;
+
+      ctx.fillStyle = "#090d16";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(winX, winY, winW, winH, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      // Calibrated Newton Scale Markings (0 to 30 N)
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+      ctx.font = "7px var(--font-mono, monospace)";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      for (let n = 0; n <= 30; n += 5) {
+        const tickY = winY + 4 + (n / 30.0) * (winH - 8);
+        ctx.beginPath();
+        ctx.moveTo(winX + 2, tickY);
+        ctx.lineTo(winX + (n % 10 === 0 ? 8 : 5), tickY);
+        ctx.stroke();
+        if (n % 10 === 0) {
+          ctx.fillText(`${n}`, winX + 10, tickY);
+        }
+      }
+
+      // Physical Coiled Spring
+      const springTopY = winY + 4;
+      const maxStretch = 30;
+      const stretch = isFreeFloating ? 0 : Math.min(maxStretch, (calc.weightAppN / 30.0) * maxStretch);
+      const springEndY = springTopY + 12 + stretch;
+
+      drawCoiledSpring(ctx, scaleX + 8, springTopY, springEndY, 6, 6);
+
+      // Indicator Pointer at bottom of spring
+      ctx.fillStyle = isFreeFloating ? "#64748b" : "#ef4444";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(scaleX + 8, springEndY);
+      ctx.lineTo(winX + 4, springEndY);
+      ctx.lineTo(winX + 7, springEndY - 3);
+      ctx.lineTo(winX + 7, springEndY + 3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Pointer central rod extending through bottom of housing
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(scaleX, springEndY);
+      ctx.lineTo(scaleX, scaleY + dynH);
+      ctx.stroke();
+
+      // Bottom Suspension Hook
+      const bottomHookY = scaleY + dynH + 4;
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(scaleX, bottomHookY, 4.5, -Math.PI / 2, Math.PI / 2);
+      ctx.stroke();
+
+      // Digital OLED Display Window at bottom of scale
+      const oledX = scaleX - 26;
+      const oledY = scaleY + 66;
+      const oledW = 52;
+      const oledH = 18;
+
+      ctx.fillStyle = "#020617";
+      ctx.strokeStyle = isFreeFloating ? "#334155" : "rgba(16, 185, 129, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(oledX, oledY, oledW, oledH, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.font = "bold 9.5px var(--font-mono, monospace)";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      if (isFreeFloating) {
+        ctx.fillStyle = "#64748b";
+        ctx.fillText("0.00 N", scaleX, oledY + 9);
+      } else {
+        ctx.fillStyle = "#10b981";
+        ctx.fillText(`${calc.weightAppN.toFixed(2)} N`, scaleX, oledY + 9);
+      }
+
+      // 3. Main Overflow Tank with Borosilicate Glass & Spout
+      const spoutTipX = tankX + tankW + 42;
+      const spoutTipY = waterSurfaceY + 22;
+
+      // Tank Body Glass Backdrop
+      ctx.fillStyle = "rgba(15, 23, 42, 0.82)";
+      ctx.fillRect(tankX, tankY, tankW, tankH);
+
+      // Fluid in main tank up to spout level with depth gradient
+      const fluidDepthGrad = ctx.createLinearGradient(0, waterSurfaceY, 0, tankY + tankH);
+      fluidDepthGrad.addColorStop(0, calc.f.color);
+      fluidDepthGrad.addColorStop(1, "rgba(10, 45, 75, 0.88)");
+      ctx.fillStyle = fluidDepthGrad;
       ctx.fillRect(tankX + 4, waterSurfaceY, tankW - 8, tankH - (waterSurfaceY - tankY) - 4);
+
+      // Fluid inside spout neck
+      ctx.fillStyle = calc.f.color;
+      ctx.beginPath();
+      ctx.moveTo(tankX + tankW - 4, waterSurfaceY);
+      ctx.lineTo(spoutTipX, spoutTipY);
+      ctx.lineTo(spoutTipX, spoutTipY + 8);
+      ctx.lineTo(tankX + tankW - 4, waterSurfaceY + 12);
+      ctx.closePath();
+      ctx.fill();
+
+      // Ambient Rising Micro-Bubbles in Fluid
+      ctx.save();
+      ambientBubbles.forEach(b => {
+        b.y -= b.speed;
+        if (b.y < waterSurfaceY + 4) {
+          b.y = tankY + tankH - 12;
+          b.x = 10 + Math.random() * (tankW - 20);
+        }
+        const curX = tankX + b.x + Math.sin(simTime * b.wobbleSpeed + b.wobblePhase) * 1.5;
+        ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.beginPath();
+        ctx.arc(curX, b.y, b.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+        ctx.beginPath();
+        ctx.arc(curX - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.35, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
 
       // Surface meniscus ripples
       surfaceRippleAmp = Math.max(0, surfaceRippleAmp * 0.96);
@@ -517,178 +796,561 @@ export function initFluidsBuoyancyLab(containerId) {
       }
       ctx.stroke();
 
-      // Graduated volume ticks on side of tank
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
-      ctx.lineWidth = 1;
-      for (let y = waterSurfaceY + 20; y < tankY + tankH - 10; y += 35) {
+      // Tank Outer Glass Contour & Molded Spout
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.42)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(tankX, tankY);
+      ctx.lineTo(tankX, tankY + tankH);
+      ctx.lineTo(tankX + tankW, tankY + tankH);
+      ctx.lineTo(tankX + tankW, waterSurfaceY + 12);
+      ctx.lineTo(spoutTipX, spoutTipY + 8);
+      ctx.lineTo(spoutTipX, spoutTipY);
+      ctx.lineTo(tankX + tankW, waterSurfaceY);
+      ctx.lineTo(tankX + tankW, tankY);
+      ctx.stroke();
+
+      // Inner glass refraction line
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.16)";
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(tankX + 3, tankY + 3, tankW - 6, tankH - 6);
+
+      // Heavy glass bottom plate
+      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(tankX - 4, tankY + tankH, tankW + 8, 6, 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Enameled White Graduated Volume Markings on Glass Wall
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.lineWidth = 1.2;
+      ctx.font = "8px var(--font-mono, monospace)";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      const volLabels = ["2000 mL", "1500 mL", "1000 mL", "500 mL"];
+      let vIdx = 0;
+      for (let y = waterSurfaceY + 25; y < tankY + tankH - 25; y += 45) {
         ctx.beginPath();
         ctx.moveTo(tankX + 4, y);
         ctx.lineTo(tankX + 16, y);
         ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(tankX + 4, y + 22.5);
+        ctx.lineTo(tankX + 10, y + 22.5);
+        ctx.stroke();
+        if (vIdx < volLabels.length) {
+          ctx.fillText(volLabels[vIdx], tankX + 20, y);
+          vIdx++;
+        }
       }
 
-      // Overflow Catch Beaker on tare balance (Right side)
+      // 4. Overflow Catch Beaker on Tare Balance (Right side)
       const catchX = tankX + tankW + 35;
-      const catchY = tankY + 130;
-      const catchW = 85;
-      const catchH = 135;
+      const catchY = tankY + 120;
+      const catchW = 80;
+      const catchH = 145;
 
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-      ctx.lineWidth = 2;
+      ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+      ctx.fillRect(catchX, catchY, catchW, catchH);
+
+      const maxCatchVolL = 3.2;
+      const curDispVolL = calc.dispVolM3 * 1000;
+      const dispLiquidHeight = Math.min(catchH - 12, (curDispVolL / maxCatchVolL) * (catchH - 20));
+
+      if (dispLiquidHeight > 1) {
+        const catchFluidGrad = ctx.createLinearGradient(0, catchY + catchH - dispLiquidHeight, 0, catchY + catchH);
+        catchFluidGrad.addColorStop(0, calc.f.color);
+        catchFluidGrad.addColorStop(1, "rgba(10, 45, 75, 0.9)");
+        ctx.fillStyle = catchFluidGrad;
+        ctx.fillRect(catchX + 3, catchY + catchH - dispLiquidHeight, catchW - 6, dispLiquidHeight);
+
+        ctx.strokeStyle = calc.f.surfaceColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(catchX + 3, catchY + catchH - dispLiquidHeight);
+        ctx.lineTo(catchX + catchW - 3, catchY + catchH - dispLiquidHeight);
+        ctx.stroke();
+      }
+
+      // Catch glass beaker outline
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.lineWidth = 2.2;
       ctx.beginPath();
-      ctx.moveTo(catchX, catchY);
+      ctx.moveTo(catchX - 4, catchY - 4);
+      ctx.lineTo(catchX, catchY);
       ctx.lineTo(catchX, catchY + catchH);
       ctx.lineTo(catchX + catchW, catchY + catchH);
       ctx.lineTo(catchX + catchW, catchY);
       ctx.stroke();
 
-      // Displaced liquid in catch beaker
-      const dispLiquidHeight = Math.min(catchH - 12, (calc.dispVolM3 * 1000) * 32);
-      ctx.fillStyle = calc.f.color;
-      ctx.fillRect(catchX + 3, catchY + catchH - dispLiquidHeight, catchW - 6, dispLiquidHeight);
+      // Graduated ticks on catch cylinder
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+      ctx.font = "8px var(--font-mono, monospace)";
+      ctx.textAlign = "right";
+      for (let volL = 0.5; volL <= 2.5; volL += 0.5) {
+        const tickY = catchY + catchH - (volL / maxCatchVolL) * (catchH - 20);
+        ctx.beginPath();
+        ctx.moveTo(catchX + catchW - 3, tickY);
+        ctx.lineTo(catchX + catchW - 12, tickY);
+        ctx.stroke();
+        if (volL % 1.0 === 0) {
+          ctx.fillText(`${volL.toFixed(1)}L`, catchX + catchW - 15, tickY + 3);
+        }
+      }
 
-      // Animated Overflow Pouring Stream & Droplets
+      // Animated Parabolic Overflow Pouring Stream
       if (calc.effectiveSubmersion > 0.5) {
         ctx.save();
-        ctx.strokeStyle = calc.f.surfaceColor;
-        ctx.lineWidth = 2.5;
+        const streamTargetX = catchX + catchW * 0.45;
+        const streamTargetY = catchY + catchH - Math.max(8, dispLiquidHeight);
+
+        // Fluid stream arc
+        ctx.strokeStyle = calc.f.color;
+        ctx.lineWidth = 4.5;
         ctx.beginPath();
-        // Stream arc from spout to catch beaker
-        ctx.moveTo(tankX + tankW + 45, waterSurfaceY + 25);
+        ctx.moveTo(spoutTipX, spoutTipY + 4);
         ctx.quadraticCurveTo(
-          catchX + 15,
-          waterSurfaceY + 45,
-          catchX + catchW / 2,
-          catchY + catchH - dispLiquidHeight
+          spoutTipX + 16,
+          spoutTipY + 28,
+          streamTargetX,
+          streamTargetY
         );
         ctx.stroke();
 
-        // Glistening droplets along stream
-        const dropT = (simTime * 4) % 1.0;
-        const dropX = (1 - dropT) * (1 - dropT) * (tankX + tankW + 45) + 2 * (1 - dropT) * dropT * (catchX + 15) + dropT * dropT * (catchX + catchW / 2);
-        const dropY = (1 - dropT) * (1 - dropT) * (waterSurfaceY + 25) + 2 * (1 - dropT) * dropT * (waterSurfaceY + 45) + dropT * dropT * (catchY + catchH - dispLiquidHeight);
-        ctx.fillStyle = "#ffffff";
+        // Highlight core stream
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Animated traveling droplets
+        for (let k = 0; k < 3; k++) {
+          const dropT = ((simTime * 3.5) + k * 0.33) % 1.0;
+          const cpX = spoutTipX + 16;
+          const cpY = spoutTipY + 28;
+          const dx = (1 - dropT) * (1 - dropT) * spoutTipX + 2 * (1 - dropT) * dropT * cpX + dropT * dropT * streamTargetX;
+          const dy = (1 - dropT) * (1 - dropT) * (spoutTipY + 4) + 2 * (1 - dropT) * dropT * cpY + dropT * dropT * streamTargetY;
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(dx, dy, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Impact ripples at beaker liquid surface
+        const splashPhase = (simTime * 5) % 1.0;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.7 * (1 - splashPhase)})`;
+        ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.arc(dropX, dropY, 2.5, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.ellipse(streamTargetX, streamTargetY, 4 + splashPhase * 8, 1.5 + splashPhase * 3, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
         ctx.restore();
       }
 
-      // Catch balance platform & readout
-      ctx.fillStyle = "#1e293b";
-      ctx.fillRect(catchX - 10, catchY + catchH, catchW + 20, 22);
-      ctx.fillStyle = "#38bdf8";
-      ctx.font = "bold 11px var(--font-mono, monospace)";
-      ctx.textAlign = "center";
-      ctx.fillText(`${(calc.massDispKg * 1000).toFixed(0)} g (${calc.fbN.toFixed(2)} N)`, catchX + catchW / 2, catchY + catchH + 15);
+      // Precision Digital Tare Balance Base
+      const balX = catchX - 10;
+      const balY = catchY + catchH;
+      const balW = catchW + 20;
+      const balH = 26;
 
-      // Immersed Solid Block calculations
-      const blockW = 68;
-      const blockH = 68;
-      let blockBottomTargetY = waterSurfaceY + (calc.effectiveSubmersion / 100.0) * blockH;
-      let blockY = blockBottomTargetY - blockH;
-
-      // Suspension wire from scale to block
-      ctx.strokeStyle = isFreeFloating ? "rgba(148, 163, 184, 0.3)" : "#94a3b8";
-      ctx.lineWidth = isFreeFloating ? 1 : 2;
-      ctx.setLineDash(isFreeFloating ? [3, 3] : []);
+      // Stainless steel pan
+      const panGrad = ctx.createLinearGradient(balX, balY, balX + balW, balY);
+      panGrad.addColorStop(0, "#94a3b8");
+      panGrad.addColorStop(0.5, "#f1f5f9");
+      panGrad.addColorStop(1, "#64748b");
+      ctx.fillStyle = panGrad;
       ctx.beginPath();
-      ctx.moveTo(scaleX, scaleY + 52);
-      ctx.lineTo(scaleX, isFreeFloating ? scaleY + 80 : blockY);
-      ctx.stroke();
-      ctx.setLineDash([]);
+      ctx.roundRect(balX + 4, balY, balW - 8, 4, 1);
+      ctx.fill();
 
-      // Top suspension hook on block
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
+      // Scale chassis
+      ctx.fillStyle = "#0f172a";
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(scaleX, blockY - 5, 5, 0, Math.PI);
-      ctx.stroke();
-
-      // Draw Block with material shading and border
-      ctx.fillStyle = calc.m.color;
-      ctx.strokeStyle = calc.m.borderColor;
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.roundRect(scaleX - blockW / 2, blockY, blockW, blockH, 4);
+      ctx.roundRect(balX, balY + 4, balW, balH - 4, [0, 0, 6, 6]);
       ctx.fill();
       ctx.stroke();
 
-      // High-tech tactile dragging ring when dragging
+      // Rubber feet
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(balX + 4, balY + balH, 8, 3);
+      ctx.fillRect(balX + balW - 12, balY + balH, 8, 3);
+
+      // OLED screen
+      ctx.fillStyle = "#020617";
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(balX + 8, balY + 7, balW - 16, 14, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "bold 9px var(--font-mono, monospace)";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const dispMassG = (calc.massDispKg * 1000).toFixed(0);
+      ctx.fillText(`${dispMassG} g (${calc.fbN.toFixed(2)} N)`, balX + balW / 2, balY + 14);
+
+      // 5. Immersed Solid Block with Responsive Volumetric Sizing
+      const blockDim = getBlockDimensions(blockVolumeLiters);
+      const blockW = blockDim.w;
+      const blockH = blockDim.h;
+
+      let blockBottomTargetY = waterSurfaceY + (calc.effectiveSubmersion / 100.0) * blockH;
+      let blockY = blockBottomTargetY - blockH;
+
+      // Sinking to tank floor when free-floating and denser than fluid
+      if (isFreeFloating && !calc.canFloat) {
+        blockY = tankFloorY - blockH;
+        blockBottomTargetY = tankFloorY;
+      }
+      const blockX = scaleX - blockW / 2;
+
+      // Suspension wire from scale to block
+      if (!isFreeFloating) {
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.moveTo(scaleX, bottomHookY + 4);
+        ctx.lineTo(scaleX, blockY - 8);
+        ctx.stroke();
+
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.35)";
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(scaleX, bottomHookY + 4);
+        ctx.lineTo(scaleX, blockY - 8);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      } else {
+        // Disconnected wire segment at hook
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(scaleX, bottomHookY + 4);
+        ctx.quadraticCurveTo(scaleX + 4, bottomHookY + 10, scaleX, bottomHookY + 14);
+        ctx.stroke();
+      }
+
+      // Top suspension eye-bolt bracket on block
+      ctx.fillStyle = "#64748b";
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(scaleX - 10, blockY - 3, 20, 4, 1);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(scaleX, blockY - 8, 5, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Authentic Material Shaders
+      if (materialKey === "wood") {
+        const woodGrad = ctx.createLinearGradient(blockX, blockY, blockX + blockW, blockY + blockH);
+        woodGrad.addColorStop(0, "#d97706");
+        woodGrad.addColorStop(0.3, "#b45309");
+        woodGrad.addColorStop(0.7, "#92400e");
+        woodGrad.addColorStop(1, "#78350f");
+        ctx.fillStyle = woodGrad;
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.clip();
+        ctx.strokeStyle = "rgba(69, 26, 3, 0.35)";
+        ctx.lineWidth = 1.5;
+        for (let gx = blockX + 6; gx < blockX + blockW; gx += 10) {
+          ctx.beginPath();
+          ctx.moveTo(gx, blockY);
+          ctx.bezierCurveTo(
+            gx + Math.sin(gx) * 6, blockY + blockH * 0.35,
+            gx - Math.cos(gx) * 6, blockY + blockH * 0.7,
+            gx + 2, blockY + blockH
+          );
+          ctx.stroke();
+        }
+        ctx.strokeStyle = "rgba(69, 26, 3, 0.4)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(blockX + blockW * 0.7, blockY + blockH * 0.4, 5, 9, 0.2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      } else if (materialKey === "ice") {
+        const iceGrad = ctx.createLinearGradient(blockX, blockY, blockX + blockW, blockY + blockH);
+        iceGrad.addColorStop(0, "rgba(224, 242, 254, 0.92)");
+        iceGrad.addColorStop(0.5, "rgba(186, 230, 253, 0.8)");
+        iceGrad.addColorStop(1, "rgba(125, 211, 252, 0.88)");
+        ctx.fillStyle = iceGrad;
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.clip();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(blockX + 8, blockY + 12);
+        ctx.lineTo(blockX + blockW * 0.4, blockY + blockH * 0.45);
+        ctx.lineTo(blockX + blockW * 0.35, blockY + blockH * 0.75);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(blockX + blockW * 0.4, blockY + blockH * 0.45);
+        ctx.lineTo(blockX + blockW * 0.78, blockY + blockH * 0.3);
+        ctx.stroke();
+        ctx.restore();
+      } else if (materialKey === "aluminum") {
+        const alGrad = ctx.createLinearGradient(blockX, blockY, blockX + blockW, blockY + blockH);
+        alGrad.addColorStop(0, "#f1f5f9");
+        alGrad.addColorStop(0.2, "#cbd5e1");
+        alGrad.addColorStop(0.5, "#94a3b8");
+        alGrad.addColorStop(0.8, "#64748b");
+        alGrad.addColorStop(1, "#94a3b8");
+        ctx.fillStyle = alGrad;
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.clip();
+        for (let gy = blockY + 4; gy < blockY + blockH; gy += 3) {
+          ctx.strokeStyle = (gy % 6 === 0) ? "rgba(255, 255, 255, 0.22)" : "rgba(0, 0, 0, 0.12)";
+          ctx.lineWidth = 0.8;
+          ctx.beginPath();
+          ctx.moveTo(blockX, gy);
+          ctx.lineTo(blockX + blockW, gy);
+          ctx.stroke();
+        }
+        const sheenGrad = ctx.createLinearGradient(blockX, blockY, blockX + blockW, blockY + blockH);
+        sheenGrad.addColorStop(0, "rgba(255,255,255,0)");
+        sheenGrad.addColorStop(0.4, "rgba(255,255,255,0.22)");
+        sheenGrad.addColorStop(0.5, "rgba(255,255,255,0.45)");
+        sheenGrad.addColorStop(0.6, "rgba(255,255,255,0.15)");
+        sheenGrad.addColorStop(1, "rgba(255,255,255,0)");
+        ctx.fillStyle = sheenGrad;
+        ctx.fillRect(blockX, blockY, blockW, blockH);
+        ctx.restore();
+      } else if (materialKey === "iron") {
+        const ironGrad = ctx.createLinearGradient(blockX, blockY, blockX + blockW, blockY + blockH);
+        ironGrad.addColorStop(0, "#475569");
+        ironGrad.addColorStop(0.4, "#334155");
+        ironGrad.addColorStop(0.8, "#1e293b");
+        ironGrad.addColorStop(1, "#0f172a");
+        ctx.fillStyle = ironGrad;
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.clip();
+        ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+        for (let i = 0; i < 25; i++) {
+          const sx = blockX + ((i * 17) % Math.max(1, blockW - 6)) + 3;
+          const sy = blockY + ((i * 23) % Math.max(1, blockH - 6)) + 3;
+          ctx.fillRect(sx, sy, 1.5, 1.5);
+        }
+        ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+        for (let i = 0; i < 25; i++) {
+          const sx = blockX + ((i * 29) % Math.max(1, blockW - 6)) + 3;
+          const sy = blockY + ((i * 19) % Math.max(1, blockH - 6)) + 3;
+          ctx.fillRect(sx, sy, 1.5, 1.5);
+        }
+        ctx.restore();
+      } else {
+        // Pure Lead
+        const leadGrad = ctx.createLinearGradient(blockX, blockY, blockX + blockW, blockY + blockH);
+        leadGrad.addColorStop(0, "#64748b");
+        leadGrad.addColorStop(0.3, "#475569");
+        leadGrad.addColorStop(0.7, "#334155");
+        leadGrad.addColorStop(1, "#1e293b");
+        ctx.fillStyle = leadGrad;
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+        ctx.clip();
+        const leadSheen = ctx.createRadialGradient(
+          blockX + blockW * 0.35, blockY + blockH * 0.35, 2,
+          blockX + blockW * 0.35, blockY + blockH * 0.35, blockW * 0.6
+        );
+        leadSheen.addColorStop(0, "rgba(255, 255, 255, 0.2)");
+        leadSheen.addColorStop(1, "rgba(0, 0, 0, 0.15)");
+        ctx.fillStyle = leadSheen;
+        ctx.fillRect(blockX, blockY, blockW, blockH);
+        ctx.restore();
+      }
+
+      // Outer bevel chamfer border
+      ctx.strokeStyle = calc.m.borderColor;
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      ctx.roundRect(blockX, blockY, blockW, blockH, 5);
+      ctx.stroke();
+
+      // Tactile dragging border when active
       if (isDragging) {
         ctx.strokeStyle = "#38bdf8";
         ctx.lineWidth = 2;
         ctx.setLineDash([4, 4]);
-        ctx.strokeRect(scaleX - blockW / 2 - 4, blockY - 4, blockW + 8, blockH + 8);
+        ctx.strokeRect(scaleX - blockW / 2 - 5, blockY - 5, blockW + 10, blockH + 10);
         ctx.setLineDash([]);
       }
 
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 11px system-ui, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(calc.m.name.split(" ")[0], scaleX, blockY + 30);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-      ctx.font = "9px var(--font-mono, monospace)";
-      ctx.fillText(`${calc.m.density} kg/m³`, scaleX, blockY + 44);
+      // Stamped Industrial Specification Plaque
+      const plaqueW = Math.max(40, Math.min(blockW - 12, 70));
+      const plaqueH = Math.max(26, Math.min(blockH - 14, 40));
+      const plaqueX = scaleX - plaqueW / 2;
+      const plaqueY = blockY + blockH / 2 - plaqueH / 2;
 
-      // Free-Body Force Vectors
-      // 1. Gravity (Down Red Arrow)
-      const arrowLengthFg = Math.min(80, calc.weightRealN * 2.2);
+      ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(plaqueX, plaqueY, plaqueW, plaqueH, 3);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold ${Math.max(8, Math.min(10, Math.round(10 * blockDim.scale)))}px system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(calc.m.name.split(" ")[0].toUpperCase(), scaleX, plaqueY + plaqueH * 0.26);
+
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = `${Math.max(7, Math.min(9, Math.round(9 * blockDim.scale)))}px var(--font-mono, monospace)`;
+      ctx.fillText(`${calc.m.density} kg/m³`, scaleX, plaqueY + plaqueH * 0.54);
+
+      ctx.fillStyle = "#10b981";
+      ctx.font = `bold ${Math.max(7, Math.min(9, Math.round(9 * blockDim.scale)))}px var(--font-mono, monospace)`;
+      ctx.fillText(`V = ${blockVolumeLiters.toFixed(2)} L`, scaleX, plaqueY + plaqueH * 0.80);
+
+      // Submersion Refraction Tint & Waterline Meniscus
+      if (calc.effectiveSubmersion > 0) {
+        const subH = Math.min(blockH, (calc.effectiveSubmersion / 100.0) * blockH);
+        const subTopY = blockY + blockH - subH;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(blockX, subTopY, blockW, subH, [0, 0, 5, 5]);
+        ctx.clip();
+        ctx.fillStyle = calc.f.color;
+        ctx.fillRect(blockX, subTopY, blockW, subH);
+
+        // Waterline capillary meniscus curve
+        ctx.strokeStyle = calc.f.surfaceColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(blockX - 3, subTopY);
+        ctx.quadraticCurveTo(blockX + 4, subTopY + 2, blockX + 8, subTopY);
+        ctx.lineTo(blockX + blockW - 8, subTopY);
+        ctx.quadraticCurveTo(blockX + blockW - 4, subTopY + 2, blockX + blockW + 3, subTopY);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 6. Textbook-Grade Free-Body Force Vectors
+      const vecLeftX = scaleX - (blockW / 2 + 32);
+      const vecRightX = scaleX + (blockW / 2 + 32);
+      const blockCenterY = blockY + blockH / 2;
+
+      // 1. Gravity F_g (Down Red Arrow) starting at center of mass
+      const arrowLengthFg = Math.min(85, Math.max(28, calc.weightRealN * 2.2));
       ctx.strokeStyle = "#ef4444";
       ctx.fillStyle = "#ef4444";
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 2.8;
       ctx.beginPath();
-      ctx.moveTo(scaleX, blockY + blockH / 2);
-      ctx.lineTo(scaleX, blockY + blockH / 2 + arrowLengthFg);
+      ctx.moveTo(scaleX, blockCenterY);
+      ctx.lineTo(scaleX, blockCenterY + arrowLengthFg);
       ctx.stroke();
       // Arrowhead
       ctx.beginPath();
-      ctx.moveTo(scaleX - 5, blockY + blockH / 2 + arrowLengthFg - 8);
-      ctx.lineTo(scaleX + 5, blockY + blockH / 2 + arrowLengthFg - 8);
-      ctx.lineTo(scaleX, blockY + blockH / 2 + arrowLengthFg);
+      ctx.moveTo(scaleX - 5, blockCenterY + arrowLengthFg - 8);
+      ctx.lineTo(scaleX + 5, blockCenterY + arrowLengthFg - 8);
+      ctx.lineTo(scaleX, blockCenterY + arrowLengthFg);
       ctx.fill();
-      ctx.font = "bold 10px var(--font-mono, monospace)";
-      ctx.fillText(`F_g = ${calc.weightRealN.toFixed(1)} N`, scaleX, blockY + blockH / 2 + arrowLengthFg + 14);
 
-      // 2. Buoyancy (Up Cyan Arrow)
-      if (calc.fbN > 0.2) {
-        const arrowLengthFb = Math.min(80, calc.fbN * 2.2);
-        const fbStartY = blockY + blockH - (calc.effectiveSubmersion / 100 * blockH) / 2;
+      drawVectorPill(ctx, scaleX, blockCenterY + arrowLengthFg + 16, `F_g = ${calc.weightRealN.toFixed(1)} N`, "#ef4444", "center");
+
+      // 2. Buoyant Force F_b (Up Cyan Arrow)
+      if (calc.fbN > 0.1) {
+        const arrowLengthFb = Math.min(85, Math.max(24, calc.fbN * 2.2));
+        const subCenterY = blockY + blockH - (calc.effectiveSubmersion / 100 * blockH) / 2;
         ctx.strokeStyle = "#38bdf8";
         ctx.fillStyle = "#38bdf8";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.8;
         ctx.beginPath();
-        ctx.moveTo(scaleX + 42, fbStartY);
-        ctx.lineTo(scaleX + 42, fbStartY - arrowLengthFb);
+        ctx.moveTo(vecRightX, subCenterY);
+        ctx.lineTo(vecRightX, subCenterY - arrowLengthFb);
         ctx.stroke();
         // Arrowhead
         ctx.beginPath();
-        ctx.moveTo(scaleX + 42 - 5, fbStartY - arrowLengthFb + 8);
-        ctx.lineTo(scaleX + 42 + 5, fbStartY - arrowLengthFb + 8);
-        ctx.lineTo(scaleX + 42, fbStartY - arrowLengthFb);
+        ctx.moveTo(vecRightX - 5, subCenterY - arrowLengthFb + 8);
+        ctx.lineTo(vecRightX + 5, subCenterY - arrowLengthFb + 8);
+        ctx.lineTo(vecRightX, subCenterY - arrowLengthFb);
         ctx.fill();
-        ctx.textAlign = "left";
-        ctx.fillText(`F_b = ${calc.fbN.toFixed(1)} N`, scaleX + 50, fbStartY - arrowLengthFb + 4);
+
+        drawVectorPill(ctx, vecRightX, subCenterY - arrowLengthFb - 14, `F_b = ${calc.fbN.toFixed(1)} N`, "#38bdf8", "center");
       }
 
-      // 3. Tension or Normal Force
-      if (!isFreeFloating && calc.weightAppN > 0.2) {
-        const arrowLengthT = Math.min(70, calc.weightAppN * 2.2);
+      // 3. Tension T or Normal Force F_N
+      if (!isFreeFloating && calc.weightAppN > 0.1) {
+        const arrowLengthT = Math.min(85, Math.max(24, calc.weightAppN * 2.2));
         ctx.strokeStyle = "#f59e0b";
         ctx.fillStyle = "#f59e0b";
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 2.8;
         ctx.beginPath();
-        ctx.moveTo(scaleX - 42, blockY);
-        ctx.lineTo(scaleX - 42, blockY - arrowLengthT);
+        ctx.moveTo(vecLeftX, blockY);
+        ctx.lineTo(vecLeftX, blockY - arrowLengthT);
         ctx.stroke();
         // Arrowhead
         ctx.beginPath();
-        ctx.moveTo(scaleX - 42 - 5, blockY - arrowLengthT + 8);
-        ctx.lineTo(scaleX - 42 + 5, blockY - arrowLengthT + 8);
-        ctx.lineTo(scaleX - 42, blockY - arrowLengthT);
+        ctx.moveTo(vecLeftX - 5, blockY - arrowLengthT + 8);
+        ctx.lineTo(vecLeftX + 5, blockY - arrowLengthT + 8);
+        ctx.lineTo(vecLeftX, blockY - arrowLengthT);
         ctx.fill();
-        ctx.textAlign = "right";
-        ctx.fillText(`T = ${calc.weightAppN.toFixed(1)} N`, scaleX - 50, blockY - arrowLengthT + 4);
+
+        drawVectorPill(ctx, vecLeftX, blockY - arrowLengthT - 14, `T = ${calc.weightAppN.toFixed(1)} N`, "#f59e0b", "center");
+      } else if (isFreeFloating && !calc.canFloat && calc.normalForceN > 0.1) {
+        // Sunk to floor: Normal force F_N from tank bottom
+        const arrowLengthFn = Math.min(85, Math.max(24, calc.normalForceN * 2.2));
+        const floorContactY = blockY + blockH;
+        ctx.strokeStyle = "#10b981";
+        ctx.fillStyle = "#10b981";
+        ctx.lineWidth = 2.8;
+        ctx.beginPath();
+        ctx.moveTo(vecLeftX, floorContactY);
+        ctx.lineTo(vecLeftX, floorContactY - arrowLengthFn);
+        ctx.stroke();
+        // Arrowhead
+        ctx.beginPath();
+        ctx.moveTo(vecLeftX - 5, floorContactY - arrowLengthFn + 8);
+        ctx.lineTo(vecLeftX + 5, floorContactY - arrowLengthFn + 8);
+        ctx.lineTo(vecLeftX, floorContactY - arrowLengthFn);
+        ctx.fill();
+
+        drawVectorPill(ctx, vecLeftX, floorContactY - arrowLengthFn - 14, `F_N = ${calc.normalForceN.toFixed(1)} N`, "#10b981", "center");
       }
     } else {
       // Venturi Flow Tube Mode
@@ -979,13 +1641,17 @@ export function initFluidsBuoyancyLab(containerId) {
     const canvasWidth = coords.width;
     const scaleX = Math.round(canvasWidth * 0.40);
     const tankY = 175;
+    const tankH = 270;
     const waterSurfaceY = tankY + 50;
-    const blockH = 68;
-    const blockW = 68;
+    const { w: blockW, h: blockH } = getBlockDimensions(blockVolumeLiters);
 
     const calc = getCalculations();
-    const blockBottomTargetY = waterSurfaceY + (calc.effectiveSubmersion / 100.0) * blockH;
-    const blockY = blockBottomTargetY - blockH;
+    let blockBottomTargetY = waterSurfaceY + (calc.effectiveSubmersion / 100.0) * blockH;
+    let blockY = blockBottomTargetY - blockH;
+
+    if (isFreeFloating && !calc.canFloat) {
+      blockY = tankY + tankH - 6 - blockH;
+    }
 
     // Hit test on block
     if (
@@ -1008,13 +1674,17 @@ export function initFluidsBuoyancyLab(containerId) {
     const canvasWidth = coords.width;
     const scaleX = Math.round(canvasWidth * 0.40);
     const tankY = 175;
+    const tankH = 270;
     const waterSurfaceY = tankY + 50;
-    const blockH = 68;
-    const blockW = 68;
+    const { w: blockW, h: blockH } = getBlockDimensions(blockVolumeLiters);
 
     const calc = getCalculations();
-    const blockBottomTargetY = waterSurfaceY + (calc.effectiveSubmersion / 100.0) * blockH;
-    const blockY = blockBottomTargetY - blockH;
+    let blockBottomTargetY = waterSurfaceY + (calc.effectiveSubmersion / 100.0) * blockH;
+    let blockY = blockBottomTargetY - blockH;
+
+    if (isFreeFloating && !calc.canFloat) {
+      blockY = tankY + tankH - 6 - blockH;
+    }
 
     if (isDragging) {
       const deltaY = coords.y - dragStartY;
@@ -1109,7 +1779,7 @@ export function initFluidsBuoyancyLab(containerId) {
     const isPhotoOverlay = fluidsPhotoOverlay && fluidsPhotoOverlay.style.display === "block";
 
     if (!isPhotoOverlay) {
-      if (apparatusMode === "venturi" || isFreeFloating || isDragging || surfaceRippleAmp > 0.05) {
+      if (apparatusMode === "venturi" || apparatusMode === "buoyancy" || isFreeFloating || isDragging || surfaceRippleAmp > 0.05) {
         if (!now || now - lastFrameTime >= interval) {
           lastFrameTime = now || performance.now();
           simTime += (interval / 1000);
