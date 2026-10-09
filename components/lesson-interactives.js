@@ -63,7 +63,7 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
       <div class="interactive-inquiry-box">
         <span class="inquiry-icon">💡</span>
         <div class="inquiry-text">
-          <strong>Inquiry Investigation:</strong> ${spec.inquiry}
+          <strong>Inquiry Investigation:</strong> ${formatMathText(spec.inquiry)}
         </div>
       </div>
 
@@ -86,7 +86,7 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
 
         <!-- Theory Narrative -->
         <div class="theory-narrative-card" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; margin-bottom: 16px; line-height: 1.7; font-size: 0.94rem; color: var(--text-main); box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-          ${theory.coreTheory.split('\n\n').map(p => `<p style="margin-bottom: 12px; margin-top: 0;">${p}</p>`).join("")}
+          ${theory.coreTheory.split('\n\n').map(p => `<p style="margin-bottom: 12px; margin-top: 0;">${formatMathText(p)}</p>`).join("")}
         </div>
 
         <!-- 3-Column Mechanism, Math & Real-World Grid -->
@@ -97,7 +97,7 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
               <span>🔬</span> Particulate / Molecular Mechanism
             </div>
             <ul style="margin: 0; padding-left: 18px; font-size: 0.86rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; line-height: 1.5;">
-              ${theory.mechanism.map(m => `<li>${m}</li>`).join("")}
+              ${theory.mechanism.map(m => `<li>${formatMathText(m)}</li>`).join("")}
             </ul>
           </div>
 
@@ -125,7 +125,7 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
               <span>🚀</span> Real-World Engineering Applications
             </div>
             <ul style="margin: 0; padding-left: 18px; font-size: 0.86rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; line-height: 1.5;">
-              ${theory.applications.map(app => `<li>${app}</li>`).join("")}
+              ${theory.applications.map(app => `<li>${formatMathText(app)}</li>`).join("")}
             </ul>
           </div>
         </div>
@@ -142,13 +142,13 @@ export function mountLessonInteractive(containerId, subjectCode, moduleId, lesso
               </span>
             </div>
             <div style="font-size: 0.9rem; color: var(--text-main); font-weight: 600; margin-bottom: 10px; line-height: 1.5;">
-              <strong>Problem:</strong> ${theory.workedExample.problem}
+              <strong>Problem:</strong> ${formatMathText(theory.workedExample.problem)}
             </div>
             <div style="font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-muted); margin-bottom: 10px; background: rgba(0,0,0,0.15); padding: 6px 12px; border-radius: 6px;">
               <strong>Given Data:</strong> ${renderLatex(theory.workedExample.given, false)}
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; color: var(--text-main); margin-bottom: 12px; line-height: 1.5;">
-              ${theory.workedExample.steps.map(s => `<div>${s}</div>`).join("")}
+              ${theory.workedExample.steps.map(s => `<div>${formatMathText(s)}</div>`).join("")}
             </div>
             <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); padding: 8px 14px; border-radius: 8px;">
               <span style="font-weight: 700; color: var(--text-main); font-size: 0.88rem;">Final Calculated Result:</span>
@@ -16599,6 +16599,8 @@ function buildEmbryonicDevelopmentInteractive(mountId, params) {
       btnToggleScale.classList.toggle("active", showScale);
     });
   }
+}
+
 /**
  * 28C. Biology: Meiosis & Crossing Over Recombination Simulator
  * Realistic 60 FPS homologous synapsis, chiasmata recombination, independent assortment,

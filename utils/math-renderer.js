@@ -68,6 +68,8 @@ const LATEX_SYMBOLS = {
   "\\propto": "∝",
   "\\partial": "∂",
   "\\nabla": "∇",
+  "\\oiint": "∯",
+  "\\oint": "∮",
   "\\iint": "∬",
   "\\int": "∫",
   "\\prod": "∏",
@@ -82,6 +84,9 @@ const LATEX_SYMBOLS = {
   "\\parallel": "∥",
   "\\perp": "⊥",
   "\\hbar": "ℏ",
+  "\\AA": "Å",
+  "\\angstrom": "Å",
+  "\\micro": "μ",
   "\\degree": "°",
   "\\circ": "°",
   "\\cdots": "⋯",
@@ -174,6 +179,9 @@ export function sanitizeLatex(latex) {
     s = s.slice(1, -1).trim();
   }
 
+  // Normalize double backslashes before command names (e.g. from JSON or template strings)
+  s = s.replace(/\\\\([a-zA-Z]+)/g, "\\$1");
+
   // Normalize HTML entity escapes
   s = s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
 
@@ -231,7 +239,8 @@ export function sanitizeLatex(latex) {
   s = s.replace(/√\s*\(([^)]+)\)/g, "\\sqrt{$1}");
   s = s.replace(/√\s*([a-zA-Z0-9]+)/g, "\\sqrt{$1}");
 
-  // Auto-brace multi-letter subscripts like _fluid -> _{\text{fluid}}, _disp -> _{\text{disp}}
+  // Auto-brace multi-letter subscripts like _fluid or _{fluid} -> _{\text{fluid}}
+  s = s.replace(/_\{(?!\s*\\text|\s*\\mathrm)([a-zA-Z]{2,})\}/g, "_{\\text{$1}}");
   s = s.replace(/_([a-zA-Z]{2,})\b/g, "_{\\text{$1}}");
 
   // Pre-fix unescaped underscores inside \text{...}, \mathrm{...}, \textbf{...}, \mathbf{...}
@@ -665,17 +674,31 @@ export function formatMathText(text) {
   });
 
   // Smart heuristic pass: render parenthesized formulas or equations like (F_b = ρ_fluid · V_disp · g)
-  // or (A₁v₁ = A₂v₂) or (P + ½ρv² = const) that were authored without explicit $ delimiters
-  result = result.replace(/\(([A-Za-z_ΔλμπΩρθεωσγαβΦΨΠ][^(),\n]*?(?:=|[<>≤≥]|⇌|→)[^(),\n]*?)(,\s*[^()]+)?\)/g, (match, formula, tail) => {
-    const trimmed = formula.trim();
+  // or (A₁v₁ = A₂v₂) or multiple comma-separated equations like (λ = 632.8 nm, d = 0.20 mm, L = 2.0 m)
+  result = result.replace(/\(([^()\n]+?(?:=|[<>≤≥]|⇌|→)[^()\n]*?)\)/g, (match, inner) => {
+    if (inner.includes("<span") || inner.includes("<div") || inner.includes("data-latex") || inner.includes("$")) {
+      return match;
+    }
+    if (inner.includes(",")) {
+      const parts = inner.split(",");
+      const formattedParts = parts.map(p => {
+        const trimmed = p.trim();
+        return isFormulaLike(trimmed) ? renderLatex(trimmed, false) : p;
+      });
+      return `(${formattedParts.join(", ")})`;
+    }
+    const trimmed = inner.trim();
     if (isFormulaLike(trimmed)) {
-      return `(${renderLatex(trimmed, false)}${tail || ""})`;
+      return `(${renderLatex(trimmed, false)})`;
     }
     return match;
   });
 
   // Heuristic pass for parenthesized subscript variables like (F_b), (vᵧ), (aₓ), (W_app)
   result = result.replace(/\(([A-Za-z_ΔλμπΩρθεωσγαβΦΨΠ]_[a-zA-Z0-9]+|[A-Za-z][₀-₉ᵧₓ])\)/g, (match, inner) => {
+    if (inner.includes("<span") || inner.includes("<div") || inner.includes("data-latex") || inner.includes("$")) {
+      return match;
+    }
     return `(${renderLatex(inner, false)})`;
   });
 
@@ -786,18 +809,27 @@ export function isFormulaLike(text) {
   const nonMathWords = longWords.filter(w => !mathKw.has(w.toLowerCase()));
   if (nonMathWords.length >= 3) return false;
 
-  // Single variable with subscript like F_b, W_app, v_y, a_x, v₁, v₂
-  if (/^[A-Za-z]_[a-zA-Z0-9]+$/.test(s) || /^[A-Za-z][₀-₉ᵧₓ]$/.test(s)) {
+  // Single variable with subscript, index, or Greek delta like F_b, W_app, v_y, a_x, v₁, v₂, v1, v2, ΔH, ΔG, ΔTf
+  if (
+    /^[A-Za-z_ΔλμπΩρθεωσγαβΦΨΠ]_[a-zA-Z0-9]+$/.test(s) ||
+    /^[A-Za-z][₀-₉ᵧₓ]$/.test(s) ||
+    /^[A-Za-z][0-9]$/.test(s) ||
+    /^Δ[A-Za-z]{1,2}$/.test(s) ||
+    /^(?:E_?a|K_?max|V_?stop|V_?disp|W_?app|F_?b)$/i.test(s)
+  ) {
     return true;
   }
   // If contains equation or inequality with math operators/scripts/superscripts
-  if (/[=<>≤≥⇌→∝]/.test(s) && (/[_\^•·ΔλμπΩρθεωσγαβΦΨΠ±√½⅓¼₀-₉²³⁴⁰¹ᵧₓ]/.test(s) || /[a-zA-Z]\[[a-zA-Z]\]/.test(s) || /\be\^/.test(s) || /\b(?:mc|hf|kx|GM|2f|k_e|V_stop|V_{stop}|A₁|A₂|v₁|v₂|F_b|W_app|V_disp)\b/.test(s) || /^[A-Za-zΔλμ]\s*[=<>≤≥]\s*[-+]?\d+/.test(s))) {
-    return true;
+  if (/[=<>≤≥⇌→∝]/.test(s)) {
+    if (/^[A-Za-z0-9_./]+\s*[=<>≤≥⇌→∝]\s*[-+]?[A-Za-z0-9_./\s]+$/.test(s)) return true;
+    if (/[_\^•·ΔλμπΩρθεωσγαβΦΨΠ±√½⅓¼₀-₉²³⁴⁰¹ᵧₓ]/.test(s) || /[a-zA-Z]\[[a-zA-Z]\]/.test(s) || /\be\^/.test(s) || /\b(?:mc|hf|kx|GM|2f|k_e|V_stop|V_{stop}|A₁|A₂|v₁|v₂|F_b|W_app|V_disp)\b/.test(s) || /^[A-Za-zΔλμ]\s*[=<>≤≥]\s*[-+]?\d+/.test(s)) {
+      return true;
+    }
   }
   // Common thermodynamic, chemical or physical equations
   if (/\b(?:K_c|K_{sp}|K_a|K_b|K_{eq}|Q\s+vs\s+K|F_b|W_app|V_disp|v₁|v₂|A₁v₁|OD₄₅₀)\b/.test(s)) return true;
-  // Standalone simple equations or relations like "PV = nRT" or "I = V/R" or "ΔH > 0"
-  if (/^[A-Za-z_ΔλμπΩρθε]+\s*[=<>≤≥]\s*[^.!?]+$/.test(s) && (s.includes("^") || s.includes("_") || s.includes("·") || s.includes("•") || s.includes("/") || s.includes("Δ") || s.includes("λ") || s.length < 35)) {
+  // Standalone simple equations or relations like "PV = nRT" or "I = V/R" or "ΔH > 0" or "dA/dt = constant"
+  if (/^[A-Za-z_ΔλμπΩρθε0-9/]+\s*[=<>≤≥]\s*[^.!?]+$/.test(s) && (s.includes("^") || s.includes("_") || s.includes("·") || s.includes("•") || s.includes("/") || s.includes("Δ") || s.includes("λ") || s.length < 35)) {
     return true;
   }
   return false;
@@ -817,7 +849,14 @@ export function renderMathInElement(container) {
 
     let node;
     while ((node = walker.nextNode())) {
-      if (node.nodeValue && (node.nodeValue.includes("$") || (node.nodeValue.includes("(") && /[=_\^•·ΔλμπΩρθε]/.test(node.nodeValue)))) {
+      const val = node.nodeValue;
+      if (val && (
+        val.includes("$") ||
+        /\\[a-zA-Z]+/.test(val) ||
+        (val.includes("(") && /[=_\^•·ΔλμπΩρθεωσγαβΦΨΠ]/.test(val)) ||
+        (/[=<>≤≥⇌→∝]/.test(val) && /[_\^•·ΔλμπΩρθεωσγαβΦΨΠ±√₀-₉²³⁴]/.test(val)) ||
+        /\b[A-Za-z]_[a-zA-Z0-9]+\b/.test(val)
+      )) {
         const parentTag = node.parentElement ? node.parentElement.tagName.toLowerCase() : "";
         if (parentTag !== "script" && parentTag !== "style" && parentTag !== "textarea") {
           nodesToReplace.push(node);
@@ -839,7 +878,7 @@ export function renderMathInElement(container) {
 
   // 2. Scan elements that are badges or formulas containing unrendered math
   try {
-    const mathTargets = container.querySelectorAll(".badge, .lab-badge, [data-math], .formula, .lab-formula, .math-target, .lab-question-text, .lab-option-text, .lab-explanation-box");
+    const mathTargets = container.querySelectorAll(".badge, .lab-badge, [data-math], .formula, .lab-formula, .math-target, .lab-question-text, .lab-option-text, .lab-explanation-box, .q-diagram-caption, .print-diagram-caption, .presenter-diagram-caption, .diag-picker-caption, .diag-picker-title, .worked-example-prob, .modal-big-idea-text, .modal-inquiry-prompt, .param-desc, .theory-narrative-card p");
     for (const el of mathTargets) {
       if (el.querySelector(".math-rendered, .math-katex-wrapper, .katex") || el.getAttribute("data-latex")) continue;
       const text = el.textContent ? el.textContent.trim() : "";

@@ -2,7 +2,7 @@
 // Detailed lesson reader, formulas, CER inquiry, and bespoke lesson-specific virtual lab launcher
 
 import { ProgressStore } from "./progress-tracker.js";
-import { renderLatex, renderMathInElement } from "../utils/math-renderer.js";
+import { renderLatex, formatMathText, renderMathInElement } from "../utils/math-renderer.js";
 import { getLessonInteractiveSpec } from "../data/lesson-interactive-specs.js";
 import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js";
 import { SoundFX } from "../utils/audio-synth.js";
@@ -461,7 +461,6 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
     } else if (activeTab === "lab") {
       mountLabTab();
     } else {
-      renderMathInElement(document.getElementById("modal-tab-content"));
       const btnConceptsPlan = document.getElementById("btn-concepts-lesson-plan");
       if (btnConceptsPlan) {
         btnConceptsPlan.addEventListener("click", () => {
@@ -476,6 +475,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
         initWorkedExampleListeners(weRoot, theory.workedExample);
       }
     }
+    renderMathInElement(document.getElementById("modal-tab-content"));
   }
 
   function getTabBody() {
@@ -488,7 +488,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
               <span>Encounter The Phenomenon (Inquiry Prompt)</span>
             </div>
             <div class="modal-inquiry-prompt">
-              "${moduleData.phenomenon}"
+              "${formatMathText(moduleData.phenomenon)}"
             </div>
           </div>
 
@@ -498,7 +498,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
               Module Big Idea
             </h3>
             <p class="modal-big-idea-text">
-              ${moduleData.bigIdea}
+              ${formatMathText(moduleData.bigIdea)}
             </p>
           </div>
 
@@ -542,7 +542,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
                           </span>
                         </div>
                         <ul class="modal-objectives-list">
-                          ${les.objectives.map(obj => `<li>${obj}</li>`).join("")}
+                          ${les.objectives.map(obj => `<li>${formatMathText(obj)}</li>`).join("")}
                         </ul>
                       </div>
                       <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
@@ -645,7 +645,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
               </div>
             </div>
             <div class="modal-theory-core-body">
-              ${theory.coreTheory.split('\n\n').map(p => `<p style="margin: 0;">${p}</p>`).join("")}
+              ${theory.coreTheory.split('\n\n').map(p => `<p style="margin: 0;">${formatMathText(p)}</p>`).join("")}
             </div>
           </div>
 
@@ -671,7 +671,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
                 <span>🔬</span> Particulate / Molecular Mechanism
               </div>
               <ul style="margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 10px; line-height: 1.5;">
-                ${theory.mechanism.map(m => `<li>${m}</li>`).join("")}
+                ${theory.mechanism.map(m => `<li>${formatMathText(m)}</li>`).join("")}
               </ul>
             </div>
 
@@ -687,7 +687,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
                       <span style="color: #0284c7; font-weight: 700;">${renderLatex(p.sym, false)}: ${p.name}</span>
                       <span style="color: var(--text-main); font-family: var(--font-mono); font-weight: 600;">${renderLatex(p.unit, false)}</span>
                     </div>
-                    <div class="param-desc" style="color: var(--text-dim); font-size: 0.78rem;">${p.desc}</div>
+                    <div class="param-desc" style="color: var(--text-dim); font-size: 0.78rem;">${formatMathText(p.desc)}</div>
                   </div>
                 `).join("")}
               </div>
@@ -699,7 +699,7 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
                 <span>🚀</span> Modern STEM Applications
               </div>
               <ul style="margin: 0; padding-left: 18px; font-size: 0.88rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 10px; line-height: 1.5;">
-                ${theory.applications.map(app => `<li>${app}</li>`).join("")}
+                ${theory.applications.map(app => `<li>${formatMathText(app)}</li>`).join("")}
               </ul>
             </div>
           </div>

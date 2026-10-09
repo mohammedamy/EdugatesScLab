@@ -107,29 +107,29 @@ export function initFluidsBuoyancyLab(containerId) {
 
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
           <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
-            <button id="view-mode-fluids-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+            <button id="view-mode-fluids-sim" class="btn btn-secondary active" aria-label="Switch to Fluids Simulator Canvas" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
               🔬 Fluids Simulator
             </button>
-            <button id="view-mode-fluids-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+            <button id="view-mode-fluids-photo" class="btn btn-secondary" aria-label="Switch to 4K Real Laboratory Bench Photo" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
               📸 4K Real Bench
             </button>
           </div>
-          <button class="btn btn-secondary btn-sm" id="btn-fluid-mode" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(6, 182, 212, 0.4); color: #38bdf8;" title="Hotkey: M">
+          <button class="btn btn-secondary btn-sm" id="btn-fluid-mode" aria-label="Switch Mode between Archimedes Tank and Venturi Tube" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(6, 182, 212, 0.4); color: #38bdf8;" title="Hotkey: M">
             🔀 Switch Mode
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-fluid-float" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: #facc15;" title="Toggle Free Float vs Suspended Scale (Hotkey: F)">
+          <button class="btn btn-secondary btn-sm" id="btn-fluid-float" aria-label="Toggle Free Float vs Suspended Scale" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(245, 158, 11, 0.4); color: #facc15;" title="Toggle Free Float vs Suspended Scale (Hotkey: F)">
             🪝 Release to Float
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-record-trial" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #34d399;" title="Record Trial (Hotkey: T)">
+          <button class="btn btn-secondary btn-sm" id="btn-record-trial" aria-label="Record Fluid Dynamics Trial Data" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #34d399;" title="Record Trial (Hotkey: T)">
             📌 Record Trial
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-fluid-report" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Open Lab Dossier Report (Hotkey: R)">
+          <button class="btn btn-secondary btn-sm" id="btn-fluid-report" aria-label="Open Fluid Dynamics Lab Dossier Report" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Open Lab Dossier Report (Hotkey: R)">
             📋 Lab Dossier
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-fluid-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(148, 163, 184, 0.4); color: #94a3b8;" title="Export CSV Data">
+          <button class="btn btn-secondary btn-sm" id="btn-fluid-export" aria-label="Export Fluid Dynamics Trials to CSV" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(148, 163, 184, 0.4); color: #94a3b8;" title="Export CSV Data">
             📥 CSV
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-fluid-reset" style="padding: 5px 12px; font-size: 0.78rem;">
+          <button class="btn btn-secondary btn-sm" id="btn-fluid-reset" aria-label="Reset Fluid Dynamics Simulation Parameters" style="padding: 5px 12px; font-size: 0.78rem;">
             ⟲ Reset
           </button>
         </div>
@@ -143,7 +143,7 @@ export function initFluidsBuoyancyLab(containerId) {
 
           <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
           <div id="fluids-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
-            <img src="assets/labs/fluids_bench.jpg" alt="4K Fluid Mechanics & Archimedes Buoyancy Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            <img src="assets/labs/fluids_bench.jpg" alt="4K Fluid Mechanics & Archimedes Buoyancy Bench" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
             
             <!-- Live Analytical Telemetry Callout on Photo -->
             <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(6, 182, 212, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
@@ -208,15 +208,15 @@ export function initFluidsBuoyancyLab(containerId) {
             <div id="panel-buoyancy-controls">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div>
-                  <label style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 4px;">Liquid Medium</label>
-                  <select id="select-fluids-fluid" class="form-control" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 6px; padding: 6px 10px; font-size: 0.82rem;">
+                  <label for="select-fluids-fluid" style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 4px;">Liquid Medium</label>
+                  <select id="select-fluids-fluid" class="form-control" aria-label="Liquid Medium Selection" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 6px; padding: 6px 10px; font-size: 0.82rem;">
                     ${Object.entries(FLUIDS).map(([k, f]) => `<option value="${k}">${f.name}</option>`).join("")}
                   </select>
                 </div>
 
                 <div>
-                  <label style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 4px;">Solid Material</label>
-                  <select id="select-fluids-material" class="form-control" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 6px; padding: 6px 10px; font-size: 0.82rem;">
+                  <label for="select-fluids-material" style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 4px;">Solid Material</label>
+                  <select id="select-fluids-material" class="form-control" aria-label="Solid Material Selection" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 6px; padding: 6px 10px; font-size: 0.82rem;">
                     ${Object.entries(MATERIALS).map(([k, m]) => `<option value="${k}" ${k === 'aluminum' ? 'selected' : ''}>${m.name}</option>`).join("")}
                   </select>
                 </div>
@@ -225,19 +225,19 @@ export function initFluidsBuoyancyLab(containerId) {
               <!-- Submersion Depth Slider -->
               <div id="row-submersion-slider" style="margin-bottom: 12px;">
                 <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
-                  <span style="color: #94a3b8;">Submersion Depth (Immersion %)</span>
+                  <label for="slider-fluids-submersion" style="color: #94a3b8;">Submersion Depth (Immersion %)</label>
                   <span id="lbl-fluids-submersion" style="font-weight: 700; color: #38bdf8; font-family: var(--font-mono);">100%</span>
                 </div>
-                <input type="range" id="slider-fluids-submersion" min="0" max="100" step="1" value="100" style="width: 100%; accent-color: #38bdf8;">
+                <input type="range" id="slider-fluids-submersion" min="0" max="100" step="1" value="100" role="slider" aria-label="Submersion Depth Percentage" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" style="width: 100%; accent-color: #38bdf8;">
               </div>
 
               <!-- Block Volume Slider -->
               <div style="margin-bottom: 12px;">
                 <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
-                  <span style="color: #94a3b8;">Solid Object Volume (V)</span>
+                  <label for="slider-fluids-vol" style="color: #94a3b8;">Solid Object Volume (V)</label>
                   <span id="lbl-fluids-vol" style="font-weight: 700; color: #10b981; font-family: var(--font-mono);">1.00 L (1000 cm³)</span>
                 </div>
-                <input type="range" id="slider-fluids-vol" min="0.2" max="3.0" step="0.1" value="1.0" style="width: 100%; accent-color: #10b981;">
+                <input type="range" id="slider-fluids-vol" min="0.2" max="3.0" step="0.1" value="1.0" role="slider" aria-label="Solid Object Volume" aria-valuemin="0.2" aria-valuemax="3.0" aria-valuenow="1.0" style="width: 100%; accent-color: #10b981;">
               </div>
             </div>
 
@@ -245,10 +245,10 @@ export function initFluidsBuoyancyLab(containerId) {
             <div id="panel-venturi-controls" style="display: none; margin-bottom: 12px;">
               <div style="margin-bottom: 12px;">
                 <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
-                  <span style="color: #94a3b8;">Volumetric Flow Rate (Q)</span>
+                  <label for="slider-venturi-flow" style="color: #94a3b8;">Volumetric Flow Rate (Q)</label>
                   <span id="lbl-venturi-flow" style="font-weight: 700; color: #38bdf8; font-family: var(--font-mono);">2.00 L/s</span>
                 </div>
-                <input type="range" id="slider-venturi-flow" min="0.5" max="5.0" step="0.1" value="2.0" style="width: 100%; accent-color: #38bdf8;">
+                <input type="range" id="slider-venturi-flow" min="0.5" max="5.0" step="0.1" value="2.0" role="slider" aria-label="Volumetric Flow Rate" aria-valuemin="0.5" aria-valuemax="5.0" aria-valuenow="2.0" style="width: 100%; accent-color: #38bdf8;">
               </div>
 
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.76rem; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 10px;">

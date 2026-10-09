@@ -15,6 +15,9 @@ import {
   upgradeAllMath
 } from "../utils/math-renderer.js";
 import { LAB_CHECKPOINTS } from "../labs/lab-telemetry-exporter.js";
+import { CHEM_DIAGRAMS } from "../data/diagrams-chem.js";
+import { PHYS_DIAGRAMS } from "../data/diagrams-phys.js";
+import { BIO_DIAGRAMS } from "../data/diagrams-bio.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -254,6 +257,173 @@ test("mountLabCheckpoint wraps questions, options, and explanations with formatM
   assert(
     exporterSrc.includes("${formatMathText(q.explanation)}"),
     "mountLabCheckpoint must wrap q.explanation with formatMathText"
+  );
+});
+
+// ----------------------------------------------------
+// 8. LaTeX Double-Backslash Normalization & Subscript Formatting
+// ----------------------------------------------------
+test("sanitizeLatex normalizes double backslashes and formats multi-letter subscripts with \\text", () => {
+  const rawWithDoubleSlashes = "\\\\frac{1}{\\\\sqrt{LC}} \\\\cdot \\\\Delta H";
+  const sanitized = sanitizeLatex(rawWithDoubleSlashes);
+  assert(sanitized.includes("\\frac{1}{\\sqrt{LC}}"), "Double-slashed \\\\frac must normalize to \\frac");
+  assert(sanitized.includes("\\Delta H"), "Double-slashed \\\\Delta must normalize to \\Delta");
+
+  const rawSubscripts = "F_{net} = m a \\quad \\rho_{fluid} \\cdot V_{disp} \\cdot g";
+  const formattedSubscripts = sanitizeLatex(rawSubscripts);
+  assert(formattedSubscripts.includes("_{\\text{net}}"), "F_{net} must become F_{\\text{net}}");
+  assert(formattedSubscripts.includes("_{\\text{fluid}}"), "\\rho_{fluid} must become \\rho_{\\text{fluid}}");
+  assert(formattedSubscripts.includes("_{\\text{disp}}"), "V_{disp} must become V_{\\text{disp}}");
+});
+
+test("LATEX_SYMBOLS supports contour integrals, angstroms, and micro units", () => {
+  const contour = renderLatex("\\oint B \\cdot dl = \\mu_0 I");
+  assert(contour.includes("∮"), "\\oint must render contour integral symbol");
+
+  const angstrom = renderLatex("\\lambda = 5500 \\AA = 5500 \\angstrom");
+  assert(angstrom.includes("Å"), "\\AA and \\angstrom must render Å");
+
+  const micro = renderLatex("C = 10 \\micro F");
+  assert(micro.includes("μ"), "\\micro must render μ");
+});
+
+// ----------------------------------------------------
+// 9. All 90 Diagram Captions & Titles Math Verification
+// ----------------------------------------------------
+test("All diagram captions with formulas/symbols render valid math-rendered elements", () => {
+  const allDiagrams = { ...CHEM_DIAGRAMS, ...PHYS_DIAGRAMS, ...BIO_DIAGRAMS };
+  assert.strictEqual(Object.keys(allDiagrams).length, 90, "Total diagram bank must have exactly 90 diagrams");
+
+  let mathCaptionsCount = 0;
+  for (const [id, d] of Object.entries(allDiagrams)) {
+    if (d.caption && d.caption.includes("$")) {
+      mathCaptionsCount++;
+      const rendered = formatMathText(d.caption);
+      assert(
+        rendered.includes('math-rendered'),
+        `Diagram ${id} caption with LaTeX delimiters must render a math-rendered container: ${d.caption}`
+      );
+      assert(
+        !rendered.includes("\\\\frac") && !rendered.includes("\\\\sqrt"),
+        `Diagram ${id} caption must not retain un-normalized double backslashes`
+      );
+    }
+  }
+
+  assert(mathCaptionsCount >= 20, `Expected at least 20 math-enhanced diagram captions, found ${mathCaptionsCount}`);
+});
+
+// ----------------------------------------------------
+// 10. Quiz Engine CER Rubric & Diagram Integration
+// ----------------------------------------------------
+test("quiz-engine.js applies formatMathText to diagram captions and CER rubrics across all view modes", () => {
+  const quizSrc = fs.readFileSync(path.join(rootDir, "components", "quiz-engine.js"), "utf8");
+
+  // Diagram HTML caption
+  assert(
+    quizSrc.includes("formatMathText(caption)"),
+    "renderQuestionDiagramHtml must wrap caption in formatMathText"
+  );
+
+  // Presenter diagram caption
+  assert(
+    quizSrc.includes("formatMathText(q.diagram.caption)"),
+    "Presenter diagram caption must be wrapped in formatMathText"
+  );
+
+  // Diagram Picker Modal
+  assert(
+    quizSrc.includes("formatMathText(d.title)") && quizSrc.includes("formatMathText(d.caption"),
+    "Diagram bank modal must wrap title and caption in formatMathText"
+  );
+
+  // Practice CER rubric
+  assert(
+    quizSrc.includes("formatMathText(q.rubricCER.claim)") &&
+    quizSrc.includes("formatMathText(q.rubricCER.evidence)") &&
+    quizSrc.includes("formatMathText(q.rubricCER.reasoning)") &&
+    quizSrc.includes("formatMathText(q.rubricCER.scientificLanguage)"),
+    "quiz-engine.js practice card must wrap all 4 CER rubric fields in formatMathText"
+  );
+});
+
+// ----------------------------------------------------
+// 11. Module Viewer Lessons & Overview Math Formatting
+// ----------------------------------------------------
+test("module-viewer.js formats math on phenomenon, bigIdea, objectives, and theory sections", () => {
+  const viewerSrc = fs.readFileSync(path.join(rootDir, "components", "module-viewer.js"), "utf8");
+
+  assert(
+    viewerSrc.includes("formatMathText(moduleData.phenomenon)"),
+    "module-viewer.js must format phenomenon inquiry prompt"
+  );
+  assert(
+    viewerSrc.includes("formatMathText(moduleData.bigIdea)"),
+    "module-viewer.js must format module big idea"
+  );
+  assert(
+    viewerSrc.includes("formatMathText(obj)"),
+    "module-viewer.js must format lesson objectives"
+  );
+  assert(
+    viewerSrc.includes("formatMathText(m)"),
+    "module-viewer.js must format submicroscopic mechanism bullet points"
+  );
+  assert(
+    viewerSrc.includes("formatMathText(app)"),
+    "module-viewer.js must format modern STEM applications bullet points"
+  );
+  assert(
+    viewerSrc.includes("formatMathText(p.desc)"),
+    "module-viewer.js must format parameter descriptions"
+  );
+});
+
+// ----------------------------------------------------
+// 12. Worked Example Solver Math Formatting & Progressive Enhancement
+// ----------------------------------------------------
+test("worked-example-solver.js formats math on problem statement, steps, hints, and derivations", () => {
+  const solverSrc = fs.readFileSync(path.join(rootDir, "components", "worked-example-solver.js"), "utf8");
+
+  assert(
+    solverSrc.includes("formatMathText(workedExample.problem)"),
+    "worked-example-solver.js must format problem statement"
+  );
+  assert(
+    solverSrc.includes("formatMathText(s)"),
+    "worked-example-solver.js must format step-by-step derivation text"
+  );
+  assert(
+    solverSrc.includes("formatMathText(st.prompt)"),
+    "worked-example-solver.js must format step prompts"
+  );
+  assert(
+    solverSrc.includes("formatMathText(st.hint)"),
+    "worked-example-solver.js must format step hints"
+  );
+  assert(
+    solverSrc.includes("formatMathText(st.derivation)"),
+    "worked-example-solver.js must format complete step derivations"
+  );
+});
+
+// ----------------------------------------------------
+// 13. Lesson Interactives Theory & Worked Example Math
+// ----------------------------------------------------
+test("lesson-interactives.js formats math on inquiry, theory narrative, and worked example steps", () => {
+  const interactivesSrc = fs.readFileSync(path.join(rootDir, "components", "lesson-interactives.js"), "utf8");
+
+  assert(
+    interactivesSrc.includes("formatMathText(spec.inquiry)"),
+    "lesson-interactives.js must format inquiry investigation prompt"
+  );
+  assert(
+    interactivesSrc.includes("formatMathText(theory.workedExample.problem)"),
+    "lesson-interactives.js must format worked example problem"
+  );
+  assert(
+    interactivesSrc.includes("formatMathText(s)"),
+    "lesson-interactives.js must format worked example step lines"
   );
 });
 

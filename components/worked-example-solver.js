@@ -1,7 +1,7 @@
 // Edugates-ClipSAT Science Labs - Step-by-Step Interactive Worked Example Solver
 // Provides guided numerical calculation steps, intermediate validation with SI tolerance, hints, and derivations.
 
-import { renderLatex, renderMathInElement } from "../utils/math-renderer.js";
+import { renderLatex, formatMathText, renderMathInElement } from "../utils/math-renderer.js";
 import { SoundFX } from "../utils/audio-synth.js";
 
 /**
@@ -194,7 +194,7 @@ export function renderWorkedExampleHTML(workedExample, isVerified = false, initi
 
       <!-- Problem Statement & Given Data (Common to both modes) -->
       <div class="worked-example-prob" style="margin-bottom: 10px; font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
-        <strong style="color: #38bdf8;">Problem:</strong> ${workedExample.problem}
+        <strong style="color: #38bdf8;">Problem:</strong> ${formatMathText(workedExample.problem)}
       </div>
       <div class="worked-example-given" style="margin-bottom: 14px; background: rgba(56,189,248,0.06); border-left: 3px solid #0284c7; padding: 10px 14px; border-radius: 0 8px 8px 0;">
         <strong style="color: #0284c7;">Given Parameters:</strong>
@@ -206,7 +206,7 @@ export function renderWorkedExampleHTML(workedExample, isVerified = false, initi
         <div class="worked-example-steps" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px;">
           ${(workedExample.steps || []).map((s, i) => `
             <div style="background: var(--bg-surface, rgba(15,23,42,0.4)); border: 1px solid var(--border-color, rgba(255,255,255,0.08)); border-radius: 8px; padding: 12px 16px; line-height: 1.5; color: var(--text-muted); font-size: 0.9rem;">
-              ${s}
+              ${formatMathText(s)}
             </div>
           `).join("")}
         </div>
@@ -260,7 +260,7 @@ export function renderWorkedExampleHTML(workedExample, isVerified = false, initi
               <!-- Step Calculation Prompt & Derivation Body -->
               <div class="we-step-body" id="we-body-${i}" style="display: ${i === 0 ? 'block' : 'none'}; margin-top: 10px;">
                 <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0 0 12px 0; line-height: 1.5;">
-                  ${st.prompt}
+                  ${formatMathText(st.prompt)}
                 </p>
 
                 <!-- Input Row -->
@@ -285,7 +285,7 @@ export function renderWorkedExampleHTML(workedExample, isVerified = false, initi
 
                 <!-- Hint Container (Initially hidden) -->
                 <div class="we-step-hint-box" id="we-hint-${i}" style="display: none; background: rgba(245,158,11,0.08); border-left: 3px solid #f59e0b; padding: 8px 12px; border-radius: 0 6px 6px 0; font-size: 0.82rem; color: #fbbf24; margin-bottom: 10px;">
-                  <strong>Hint:</strong> ${st.hint}
+                  <strong>Hint:</strong> ${formatMathText(st.hint)}
                 </div>
 
                 <!-- Feedback Alert (Initially hidden) -->
@@ -294,7 +294,7 @@ export function renderWorkedExampleHTML(workedExample, isVerified = false, initi
                 <!-- Full Step Derivation (Shown once solved or revealed) -->
                 <div class="we-step-solution" id="we-solution-${i}" style="display: none; background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.25); border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: var(--text-main); margin-top: 8px;">
                   <strong style="color: #10b981;">Complete Derivation:</strong>
-                  <div style="margin-top: 4px; color: var(--text-muted);">${st.derivation}</div>
+                  <div style="margin-top: 4px; color: var(--text-muted);">${formatMathText(st.derivation)}</div>
                 </div>
               </div>
             </div>
@@ -431,7 +431,10 @@ export function initWorkedExampleListeners(rootElement, workedExample) {
       status.textContent = "Solved";
       status.style.color = "#10b981";
     }
-    if (solution) solution.style.display = "block";
+    if (solution) {
+      solution.style.display = "block";
+      renderMathInElement(solution);
+    }
     if (input) {
       input.disabled = true;
       input.style.borderColor = "rgba(16,185,129,0.4)";
@@ -494,6 +497,7 @@ export function initWorkedExampleListeners(rootElement, workedExample) {
       const hintBox = rootElement.querySelector(`#we-hint-${idx}`);
       if (hintBox) {
         hintBox.style.display = hintBox.style.display === "none" ? "block" : "none";
+        if (hintBox.style.display === "block") renderMathInElement(hintBox);
         SoundFX.playClick();
       }
     });

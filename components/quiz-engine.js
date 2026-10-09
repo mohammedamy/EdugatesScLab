@@ -140,7 +140,7 @@ export function renderQuestionDiagramHtml(diagram, isPrint = false) {
   if (isPrint) {
     return `
       <div class="print-diagram-container" style="margin: 12px 0 16px 0; text-align: center; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; background: #ffffff; color: #000000; page-break-inside: avoid;">
-        ${caption ? `<div class="print-diagram-caption" style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 8px; text-align: center;">${escapeHtml(caption)}</div>` : ""}
+        ${caption ? `<div class="print-diagram-caption" style="font-size: 0.95rem; font-weight: 800; color: #000000; margin-bottom: 8px; text-align: center;">${formatMathText(caption)}</div>` : ""}
         <div class="print-diagram-svg" style="display: flex; justify-content: center; align-items: center; background: #ffffff; width: 100%;">${contentHtml}</div>
       </div>
     `;
@@ -148,7 +148,7 @@ export function renderQuestionDiagramHtml(diagram, isPrint = false) {
 
   return `
     <div class="q-diagram-container">
-      ${caption ? `<div class="q-diagram-caption">${escapeHtml(caption)}</div>` : ""}
+      ${caption ? `<div class="q-diagram-caption">${formatMathText(caption)}</div>` : ""}
       <div class="q-diagram-svg">${contentHtml}</div>
     </div>
   `;
@@ -265,10 +265,10 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
                 <span style="font-size: 0.72rem; color: #64748b; font-family: var(--font-mono, monospace); font-weight: 600;">${d.id}</span>
               </div>
               <div class="diag-picker-title" style="font-size: 0.95rem; font-weight: 800; color: #0f172a; line-height: 1.35; margin-bottom: 4px;">
-                ${escapeHtml(d.title)}
+                ${formatMathText(d.title)}
               </div>
               <div class="diag-picker-caption" style="font-size: 0.78rem; color: #475569; line-height: 1.45;">
-                ${escapeHtml(d.caption || '')}
+                ${formatMathText(d.caption || '')}
               </div>
             </div>
             <button type="button" class="btn btn-primary btn-choose-diagram" data-id="${d.id}" style="width: 100%; margin-top: 8px; font-weight: 800; font-size: 0.86rem; padding: 10px 16px; border-radius: 8px; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);">
@@ -278,6 +278,8 @@ export function openDiagramBankPickerModal(onSelectDiagram) {
         </div>
       `;
     }).join("");
+
+    renderMathInElement(gridEl);
 
     function selectDiagramById(id) {
       const diag = SCIENTIFIC_DIAGRAMS[id];
@@ -3796,10 +3798,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               <div style="margin-top: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.18); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px;">
                 <div style="font-weight: 800; font-size: 0.85rem; color: #34d399; margin-bottom: 6px;">Scoring Rubric (10 Pts Total):</div>
                 <div style="font-size: 0.82rem; line-height: 1.5; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px;">
-                  ${q.rubricCER.claim ? `<div><strong style="color: #f1f5f9;">Claim:</strong> ${q.rubricCER.claim}</div>` : ''}
-                  ${q.rubricCER.evidence ? `<div><strong style="color: #f1f5f9;">Evidence:</strong> ${q.rubricCER.evidence}</div>` : ''}
-                  ${q.rubricCER.reasoning ? `<div><strong style="color: #f1f5f9;">Reasoning:</strong> ${q.rubricCER.reasoning}</div>` : ''}
-                  ${q.rubricCER.scientificLanguage ? `<div><strong style="color: #f1f5f9;">Scientific Terminology:</strong> ${q.rubricCER.scientificLanguage}</div>` : ''}
+                  ${q.rubricCER.claim ? `<div><strong style="color: #f1f5f9;">Claim:</strong> ${formatMathText(q.rubricCER.claim)}</div>` : ''}
+                  ${q.rubricCER.evidence ? `<div><strong style="color: #f1f5f9;">Evidence:</strong> ${formatMathText(q.rubricCER.evidence)}</div>` : ''}
+                  ${q.rubricCER.reasoning ? `<div><strong style="color: #f1f5f9;">Reasoning:</strong> ${formatMathText(q.rubricCER.reasoning)}</div>` : ''}
+                  ${q.rubricCER.scientificLanguage ? `<div><strong style="color: #f1f5f9;">Scientific Terminology:</strong> ${formatMathText(q.rubricCER.scientificLanguage)}</div>` : ''}
                 </div>
               </div>
             ` : ''}
@@ -3884,7 +3886,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
 
         ${q.diagram ? `
           <div class="presenter-diagram-container">
-            ${(typeof q.diagram === "object" && q.diagram !== null && q.diagram.caption) ? `<div class="presenter-diagram-caption">${escapeHtml(q.diagram.caption)}</div>` : ""}
+            ${(typeof q.diagram === "object" && q.diagram !== null && q.diagram.caption) ? `<div class="presenter-diagram-caption">${formatMathText(q.diagram.caption)}</div>` : ""}
             <div class="presenter-diagram-svg">
               ${(typeof q.diagram === "object" && q.diagram?.imageUrl) 
                 ? `<img src="${q.diagram.imageUrl}" alt="${escapeHtml(q.diagram.caption || 'Scientific Model')}" style="max-height: 420px; max-width: 100%; object-fit: contain; margin: 0 auto; display: block; border-radius: 8px;">` 
@@ -4021,10 +4023,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
               <div style="margin-top: 14px; padding: 14px 18px; background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px;">
                 <div style="font-weight: 800; font-size: 0.95rem; color: #34d399; margin-bottom: 10px;">Official NGSS Scoring Rubric:</div>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; font-size: 0.86rem;">
-                  ${q.rubricCER.claim ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #38bdf8;">Claim:</strong> ${q.rubricCER.claim}</div>` : ''}
-                  ${q.rubricCER.evidence ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #f59e0b;">Evidence:</strong> ${q.rubricCER.evidence}</div>` : ''}
-                  ${q.rubricCER.reasoning ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #10b981;">Reasoning:</strong> ${q.rubricCER.reasoning}</div>` : ''}
-                  ${q.rubricCER.scientificLanguage ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #a78bfa;">Language:</strong> ${q.rubricCER.scientificLanguage}</div>` : ''}
+                  ${q.rubricCER.claim ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #38bdf8;">Claim:</strong> ${formatMathText(q.rubricCER.claim)}</div>` : ''}
+                  ${q.rubricCER.evidence ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #f59e0b;">Evidence:</strong> ${formatMathText(q.rubricCER.evidence)}</div>` : ''}
+                  ${q.rubricCER.reasoning ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #10b981;">Reasoning:</strong> ${formatMathText(q.rubricCER.reasoning)}</div>` : ''}
+                  ${q.rubricCER.scientificLanguage ? `<div style="background: rgba(255,255,255,0.04); padding: 10px 14px; border-radius: 6px;"><strong style="color: #a78bfa;">Language:</strong> ${formatMathText(q.rubricCER.scientificLanguage)}</div>` : ''}
                 </div>
               </div>
             ` : ''}
@@ -4800,10 +4802,10 @@ export function renderQuizEngine(containerId, initialConfig = null) {
                         <div style="margin-top: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #ffffff; padding: 8px 12px; font-size: 0.82rem;">
                           <div style="font-weight: 700; margin-bottom: 4px; color: #0369a1;">Standard Scoring Rubric (CER):</div>
                           <ul style="margin: 0; padding-left: 18px; color: #334155;">
-                            ${q.rubricCER.claim ? `<li><strong>Claim:</strong> ${q.rubricCER.claim}</li>` : ''}
-                            ${q.rubricCER.evidence ? `<li><strong>Evidence:</strong> ${q.rubricCER.evidence}</li>` : ''}
-                            ${q.rubricCER.reasoning ? `<li><strong>Reasoning:</strong> ${q.rubricCER.reasoning}</li>` : ''}
-                            ${q.rubricCER.scientificLanguage ? `<li><strong>Scientific Terminology:</strong> ${q.rubricCER.scientificLanguage}</li>` : ''}
+                            ${q.rubricCER.claim ? `<li><strong>Claim:</strong> ${formatMathText(q.rubricCER.claim)}</li>` : ''}
+                            ${q.rubricCER.evidence ? `<li><strong>Evidence:</strong> ${formatMathText(q.rubricCER.evidence)}</li>` : ''}
+                            ${q.rubricCER.reasoning ? `<li><strong>Reasoning:</strong> ${formatMathText(q.rubricCER.reasoning)}</li>` : ''}
+                            ${q.rubricCER.scientificLanguage ? `<li><strong>Scientific Terminology:</strong> ${formatMathText(q.rubricCER.scientificLanguage)}</li>` : ''}
                           </ul>
                         </div>
                       ` : ''}

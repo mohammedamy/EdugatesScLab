@@ -168,14 +168,152 @@ for f in tests/*.js; do node "$f"; done
 
 ---
 
+## 🔬 How to Add New Experiments to the Portal
+
+The Edugates Science Lab portal uses a modular, decoupled architecture for simulations, catalog metadata, and safety integration. Follow this step-by-step workflow to introduce new experiments:
+
+### Step 1: Create the Virtual Lab Simulation Script
+Create a new ES Module inside `labs/` (e.g., `labs/chem-electroplating.js` or `labs/phys-thermodynamics.js`):
+
+```javascript
+// labs/chem-electroplating.js
+export function initLab(mountElement) {
+  mountElement.innerHTML = `
+    <div class="lab-container">
+      <div class="lab-controls">
+        <!-- Sliders, buttons, and switches with accessible ARIA tags -->
+        <label for="voltage-slider">Cell Voltage (V):</label>
+        <input type="range" id="voltage-slider" min="0" max="12" step="0.1" value="3.0" role="slider" aria-label="Electrochemical Cell Voltage">
+        <span id="voltage-readout">3.0 V</span>
+      </div>
+      <div class="lab-canvas-wrapper">
+        <canvas id="electroplating-canvas" width="800" height="500"></canvas>
+      </div>
+    </div>
+  `;
+
+  let animationFrameId = null;
+  const canvas = mountElement.querySelector("#electroplating-canvas");
+  const ctx = canvas.getContext("2d");
+
+  function renderLoop() {
+    // 60 FPS physics/chemistry simulation rendering
+    // ...
+    animationFrameId = requestAnimationFrame(renderLoop);
+  }
+  renderLoop();
+
+  // Return a cleanup function to prevent memory leaks on tab/lab navigation
+  return function cleanup() {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    // Remove event listeners and free resources
+  };
+}
+```
+
+### Step 2: Register in `VIRTUAL_LABS_REGISTRY` (`app.js`)
+Open `app.js` and add your workbench to `VIRTUAL_LABS_REGISTRY`:
+
+```javascript
+{
+  id: "electroplating",
+  subject: "chem", // "chem", "phys", or "bio"
+  title: "Electroplating & Faraday's Law",
+  icon: icons.electrochem,
+  ariaLabel: "Electroplating and Faraday's Law Virtual Lab",
+  href: "#labs/electroplating"
+}
+```
+
+### Step 3: Register in `EXPERIMENT_CATALOG` (`components/experiment-card.js`)
+To enable the interactive experiment card on the **Home Portal** and in the **Search/Filter Explorer**, add the metadata entry to `EXPERIMENT_CATALOG` in `components/experiment-card.js`:
+
+```javascript
+{
+  id: "electroplating",
+  title: "Electrolytic Deposition & Faraday's Law",
+  subject: "chem",
+  subjectName: "Chemistry",
+  difficulty: "Intermediate", // "Beginner", "Intermediate", or "Advanced"
+  estimatedTime: "40 mins",
+  equipment: ["DC Power Supply", "Copper Anode", "Brass Cathode", "CuSO4 Electrolyte Bath", "Precision Analytical Balance"],
+  formula: "m = \\frac{I \\cdot t \\cdot M}{z \\cdot F}", // KaTeX math expression
+  description: "Investigate quantitative electrodeposition on metallic substrates, verify Faraday's electrochemical laws, and measure electron transfer stoichiometry.",
+  pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf", // Path to downloadable manual
+  thumbnail: "assets/labs/electrochem_bench.jpg", // Relative bench image (or WebP)
+  launchHref: "#labs/electroplating"
+}
+```
+
+> **Note**: Formulas specified in `formula` or enclosed in `$...$` within `description` are automatically typeset via KaTeX upon rendering!
+
+### Step 4: Add Relevant Chemical Safety Data (`components/lab-safety-dashboard.js`)
+If the experiment introduces hazardous reagents or materials, add an SDS reference item to `SDS_REAGENTS` in `components/lab-safety-dashboard.js`:
+
+```javascript
+{
+  name: "Copper(II) Sulfate Pentahydrate",
+  formula: "CuSO4·5H2O",
+  hazards: ["Skin & Eye Irritant", "Harmful if swallowed", "Aquatic Toxicity"],
+  ghs: ["Harmful", "Aquatic"],
+  color: "#0284c7",
+  ppe: "ANSI Z87.1 Safety Goggles, Nitrile Gloves, Lab Apron.",
+  firstAid: "Flush affected area with copious clean water for 15 minutes. Avoid disposal down common drains."
+}
+```
+
+### Step 5: Test the Integration
+Run the automated test suites to verify syntax, routing, and deep-link resolution:
+```bash
+node tests/test-virtual-labs.js
+node tests/test-lab-links.js
+```
+
+---
+
+## 🖼️ Media & WebP Asset Conversion Pipeline
+
+To ensure sub-second first contentful paint (FCP) and optimal caching on mobile and smartboard networks, image assets should be converted to WebP.
+
+### Automatic Conversion Script
+Use the built-in optimizer script located in `scripts/convert-assets-webp.mjs`:
+
+```bash
+# 1. Preview candidates and compression savings (Dry-Run):
+node scripts/convert-assets-webp.mjs
+
+# 2. Execute WebP conversion with high quality (85%):
+node scripts/convert-assets-webp.mjs --run --quality 85
+
+# 3. Clean up legacy uncompressed PNG/JPG after conversion:
+node scripts/convert-assets-webp.mjs --run --clean
+```
+
+The script utilizes system `cwebp` (Google WebP Encoder) to convert `.png` and `.jpg` assets with multi-threaded encoding, automatically updating or generating corresponding `.webp` files.
+
+---
+
+## 🎨 Edugates Brand Design System & Accessibility (A11y)
+
+The portal adheres to the official **Edugates International School** design system:
+- **Primary Brand Colors**: Deep Blues (`#0a192f`, `#0f172a`), Cyan/Teal (`#06b6d4`, `#38bdf8`), Emerald Green (`#10b981`), Indigo (`#6366f1`).
+- **Typography**: Plus Jakarta Sans (Headings & UI), JetBrains Mono (Readouts & Formulations), STIX Two Text (Pedagogical prose).
+- **Sticky Persistent Navigation**: Sticky top navigation bar provides instant access to **Home**, **Biology**, **Chemistry**, **Physics**, and **Safety** across all viewports.
+- **Contrast Compliance**: Minimum **4.5:1** contrast ratio (WCAG 2.1 AA) across both Day and Night modes.
+- **Semantic Landmarks**: Strict HTML5 structure using `<header>`, `<nav>`, `<main>`, `<section>`, and `<footer role="contentinfo">`.
+- **Keyboard Navigation & ARIA**: Full keyboard accessibility (`Tab`, `Shift+Tab`, `ArrowDown`, `Enter`, `Escape`), skip links (`#main-content-view`), and dynamic ARIA state management.
+
+---
+
 ## 📜 Standards & Compliance
 
 - **Curriculum Alignment**: Next Generation Science Standards (NGSS), AP Chemistry, AP Biology, and AP Physics 1 & 2 frameworks.
-- **Accessibility**: WCAG 2.1 AAA High-Contrast Day and Dark Themes with full keyboard navigation and ARIA landmarks.
+- **Safety Standards**: OSHA Laboratory Standard (29 CFR 1910.1450), ANSI Z87.1 eye protection, and GHS classification.
+- **Accessibility**: WCAG 2.1 AA High-Contrast Day and Dark Themes with full keyboard navigation and ARIA landmarks.
 - **Offline Delivery**: Progressive Web App (PWA) with Cache-First static shell and Stale-While-Revalidate assets.
 
 ---
 
 ## 📄 License
 
-Edugates-ClipSAT Science Labs. All rights reserved.
+Edugates International School Science Labs. All rights reserved.

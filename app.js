@@ -7,10 +7,12 @@ import { physicsCurriculum } from "./data/physics-curriculum.js";
 import { icons } from "./assets/icons.js";
 import { openModuleModal } from "./components/module-viewer.js";
 import { openProgressModal, ProgressStore, formatRelativeTime } from "./components/progress-tracker.js";
-import { renderMathInElement, renderLatex } from "./utils/math-renderer.js";
+import { renderMathInElement, renderLatex, formatMathText } from "./utils/math-renderer.js";
 import { getLessonInteractiveSpec } from "./data/lesson-interactive-specs.js";
 import { SoundFX } from "./utils/audio-synth.js";
 import { showToast, copyShareLink } from "./utils/toast.js";
+import { renderLabSafetyDashboard } from "./components/lab-safety-dashboard.js";
+import { renderExperimentExplorer, EXPERIMENT_CATALOG } from "./components/experiment-card.js";
 
 // Theme-Color Meta Tag Synchronizer
 export function syncThemeColor(theme) {
@@ -64,7 +66,7 @@ let currentActiveLabCleanup = null;
 let currentActiveQuizCleanup = null;
 
 const AppState = {
-  currentTab: "chem", // 'chem', 'bio', 'phys', 'labs', 'quiz', 'flashcards'
+  currentTab: "home", // 'home', 'chem', 'bio', 'phys', 'labs', 'safety', 'quiz', 'flashcards'
   deviceMode: "auto", // 'auto', 'smartboard', 'desktop', 'tablet', 'mobile'
   theme: savedTheme, // 'day', 'night'
   homeViewMode: "chapters", // 'chapters', 'lessons'
@@ -443,23 +445,51 @@ function renderAppShell() {
     <!-- Navigation Header -->
     <header class="app-navbar">
       <!-- Brand & Title -->
-      <a href="#chem" class="brand-section" id="nav-brand-home" title="Edugates-ClipSAT Science Labs - Home" aria-label="Edugates-ClipSAT Science Labs Home" style="text-decoration: none; color: inherit;">
+      <a href="#home" class="brand-section" id="nav-brand-home" title="Edugates Science Lab - Home" aria-label="Edugates Science Lab Home" style="text-decoration: none; color: inherit;">
         <div class="brand-logo-box" id="brand-logo-wrapper">
-          <img src="assets/logo.png" alt="Edugates-ClipSAT Science Labs Logo" class="brand-logo-img" id="brand-logo-img" onerror="this.style.display='none'; document.getElementById('brand-logo-fallback').style.display='flex';">
+          <img src="assets/logo.png" alt="Edugates Science Lab Logo" class="brand-logo-img" id="brand-logo-img" onerror="this.style.display='none'; document.getElementById('brand-logo-fallback').style.display='flex';">
           <div id="brand-logo-fallback" class="brand-logo-icon" style="display: none;">
             ${icons.logo}
           </div>
         </div>
         <div class="brand-text">
-          <h1><span class="brand-title-prefix">Edugates-ClipSAT</span> <span class="logo-highlight">Science Labs</span></h1>
+          <h1><span class="brand-title-prefix">Edugates</span> <span class="logo-highlight">Science Lab</span></h1>
           <div class="brand-tagline">
-            <span class="tagline-core">Virtual Labs &amp; STEM Curriculum</span><span class="tagline-extra"> • Chemistry • Biology • Physics</span>
+            <span class="tagline-core">Virtual Portal &amp; Resources</span><span class="tagline-extra"> • Chemistry • Biology • Physics</span>
           </div>
         </div>
       </a>
 
       <!-- Semantic Main Navigation Landmark -->
       <nav class="app-nav-container app-nav-center" aria-label="Main Navigation">
+        <!-- Persistent Sticky Navigation Menu: Home, Biology, Chemistry, Physics, Safety, Virtual Labs -->
+        <div class="nav-persistent-menu" role="menubar" aria-label="Science Disciplines &amp; Safety Menu">
+          <a href="#home" class="nav-menu-link ${AppState.currentTab === 'home' ? 'active' : ''}" data-nav="home" role="menuitem" aria-label="Home Portal">
+            <span class="nav-menu-icon" aria-hidden="true">🏠</span>
+            <span class="nav-menu-label">Home</span>
+          </a>
+          <a href="#bio" class="nav-menu-link tab-bio ${AppState.currentTab === 'bio' ? 'active' : ''}" data-nav="bio" role="menuitem" aria-label="Biology Curriculum">
+            <span class="nav-menu-icon" aria-hidden="true">${icons.biology}</span>
+            <span class="nav-menu-label">Biology</span>
+          </a>
+          <a href="#chem" class="nav-menu-link tab-chem ${AppState.currentTab === 'chem' ? 'active' : ''}" data-nav="chem" role="menuitem" aria-label="Chemistry Curriculum">
+            <span class="nav-menu-icon" aria-hidden="true">${icons.chemistry}</span>
+            <span class="nav-menu-label">Chemistry</span>
+          </a>
+          <a href="#phys" class="nav-menu-link tab-phys ${AppState.currentTab === 'phys' ? 'active' : ''}" data-nav="phys" role="menuitem" aria-label="Physics Curriculum">
+            <span class="nav-menu-icon" aria-hidden="true">${icons.physics}</span>
+            <span class="nav-menu-label">Physics</span>
+          </a>
+          <a href="#safety" class="nav-menu-link tab-safety ${AppState.currentTab === 'safety' ? 'active' : ''}" data-nav="safety" role="menuitem" aria-label="Laboratory Safety Dashboard">
+            <span class="nav-menu-icon" aria-hidden="true">🛡️</span>
+            <span class="nav-menu-label">Safety</span>
+          </a>
+          <a href="#labs" class="nav-menu-link tab-labs ${AppState.currentTab === 'labs' ? 'active' : ''}" data-nav="labs" role="menuitem" aria-label="Virtual Science Laboratories">
+            <span class="nav-menu-icon" aria-hidden="true">${icons.microscope}</span>
+            <span class="nav-menu-label">Labs</span>
+          </a>
+        </div>
+
         <!-- Responsive Segmented Subject Tabs (Desktop & Large Touch / MAXHUB screens >= 960px) -->
         <div class="nav-subject-tabs" role="tablist" aria-label="Curriculum Subjects and Laboratories">
           <!-- Subjects Dropdown Menu Pill (Collects Chemistry, Biology, Physics) -->
@@ -669,6 +699,80 @@ function renderAppShell() {
 
     <!-- Main Viewport Area -->
     <main class="app-main" id="main-content-view" tabindex="-1"></main>
+
+    <!-- Semantic Application Footer -->
+    <footer class="app-footer" role="contentinfo">
+      <div class="footer-container">
+        <div class="footer-top-grid">
+          <div>
+            <div class="footer-brand">
+              <img src="assets/logo.png" alt="Edugates Science Lab Logo" class="footer-logo-img" loading="lazy">
+              <div>
+                <div class="footer-title">Edugates Science Lab</div>
+                <div class="footer-subtitle">Virtual Portal &amp; Resources</div>
+              </div>
+            </div>
+            <p class="footer-desc">
+              Next-generation interactive STEM laboratory environments covering Inspire Chemistry, Biology, and Physics curricula for Smartboards, PCs, Tablets, and Mobiles.
+            </p>
+            <div class="footer-compliance-badges">
+              <span class="badge">NGSS Aligned</span>
+              <span class="badge">ANSI Z87.1 Safety</span>
+              <span class="badge">OSHA 1910.1450</span>
+              <span class="badge">WCAG 2.1 AA</span>
+              <span class="badge">60 FPS Hardware Turbo</span>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="footer-heading">Curriculum</h3>
+            <ul class="footer-links">
+              <li><a href="#chem" aria-label="Chemistry Curriculum Modules">Chemistry (23 Modules)</a></li>
+              <li><a href="#bio" aria-label="Biology Curriculum Modules">Biology (27 Modules)</a></li>
+              <li><a href="#phys" aria-label="Physics Curriculum Modules">Physics (24 Modules)</a></li>
+              <li><a href="#labs" aria-label="Virtual Science Laboratories Hub">45 Virtual Lab Benches</a></li>
+              <li><a href="#quiz" aria-label="Automated Assessment Generator">Assessment Generator</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="footer-heading">Lab &amp; Safety</h3>
+            <ul class="footer-links">
+              <li><a href="#safety" aria-label="Laboratory Safety Standards">Safety Standards &amp; OSHA</a></li>
+              <li><a href="#safety" aria-label="Chemical SDS Database">Chemical SDS Lookup</a></li>
+              <li><a href="Edugates_STEM_Labs_Teacher_Guide.pdf" target="_blank" rel="noopener noreferrer" download aria-label="Download Teacher Guide PDF">Teacher Guide (PDF)</a></li>
+              <li><a href="#mastery" aria-label="Student STEM Mastery Telemetry">Mastery Telemetry</a></li>
+              <li><a href="#flashcards" aria-label="STEM Terminology Flashcards">Flashcard Decks</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="footer-heading">Institution</h3>
+            <ul class="footer-links">
+              <li><span>Edugates International School</span></li>
+              <li><span>Department of Natural Sciences</span></li>
+              <li><span style="color: #38bdf8;">Status: Fully Operational</span></li>
+              <li><span style="color: #10b981;">PWA Offline: Enabled</span></li>
+              <li><a href="https://github.com/mohammedamy/EdugatesScLab" target="_blank" rel="noopener noreferrer" aria-label="View Project on GitHub">GitHub Repository</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom-bar">
+          <div>
+            &copy; 2026 Edugates International School. All rights reserved. Virtual Science Laboratory Portal &amp; Resources.
+          </div>
+          <div class="footer-extra-links">
+            <a href="#home" aria-label="Return to Portal Home">Home</a> &bull;
+            <a href="#safety" aria-label="Read Safety Protocol">Safety Protocol</a> &bull;
+            <a href="#labs" aria-label="Browse All Labs">Virtual Benches</a> &bull;
+            <a href="#chem" aria-label="Explore Chemistry">Chemistry</a> &bull;
+            <a href="#bio" aria-label="Explore Biology">Biology</a> &bull;
+            <a href="#phys" aria-label="Explore Physics">Physics</a>
+          </div>
+        </div>
+      </div>
+    </footer>
   `;
 }
 
@@ -1026,8 +1130,12 @@ export function findModuleByCode(rawCode) {
 
 export function handleHashRoute() {
   const hash = window.location.hash.slice(1);
-  if (!hash) {
-    switchTab("chem", false);
+  if (!hash || hash === "home") {
+    switchTab("home", false);
+    return;
+  }
+  if (hash === "safety") {
+    switchTab("safety", false);
     return;
   }
 
@@ -1041,7 +1149,7 @@ export function handleHashRoute() {
   }
 
   const segments = pathPart.split("/").filter(Boolean);
-  const route = (segments[0] || "chem").toLowerCase();
+  const route = (segments[0] || "home").toLowerCase();
 
   // Accessibility Skip-Link Target Anchor Focus Management
   if (route === "main-content-view") {
@@ -1054,7 +1162,7 @@ export function handleHashRoute() {
   }
 
   // Route 1: Main Curriculum Tabs & Hubs
-  if (["chem", "bio", "phys", "labs", "lab", "quiz", "flashcards"].includes(route)) {
+  if (["home", "safety", "chem", "bio", "phys", "labs", "lab", "quiz", "flashcards"].includes(route)) {
     if (window.closeActiveModuleModal) window.closeActiveModuleModal();
     if (window.closeActiveLessonPlanModal) window.closeActiveLessonPlanModal();
     if (window.closeActiveProgressModal) window.closeActiveProgressModal();
@@ -1181,7 +1289,15 @@ function switchTab(tabId, updateHash = true) {
     }
   }
 
-  const sub = NAV_SUBJECTS.find(s => s.id === tabId) || NAV_SUBJECTS[0];
+  const sub = NAV_SUBJECTS.find(s => s.id === tabId) || {
+    id: tabId,
+    name: tabId === "home" ? "Home Portal" : (tabId === "safety" ? "Lab Safety" : "Chemistry"),
+    badge: tabId === "home" ? "Portal" : (tabId === "safety" ? "OSHA" : "Science"),
+    tagline: tabId === "home" ? "Edugates Science Lab Portal & Resources" : "Laboratory Safety Standards",
+    icon: tabId === "home" ? "🏠" : (tabId === "safety" ? "🛡️" : icons.chemistry),
+    themeClass: tabId === "safety" ? "tab-safety" : (tabId === "home" ? "tab-home" : "tab-chem"),
+    color: tabId === "safety" ? "#10b981" : "#0284c7"
+  };
   const isCurriculum = CURRICULUM_SUBJECT_IDS.includes(tabId);
 
   // Update mobile dropdown trigger button appearance
@@ -1230,6 +1346,13 @@ function switchTab(tabId, updateHash = true) {
   // Backward compatibility with any legacy nav tabs
   document.querySelectorAll(".nav-tab-btn").forEach(b => {
     b.classList.toggle("active", b.dataset.tab === tabId);
+  });
+
+  // Update persistent sticky navigation menu links
+  document.querySelectorAll(".nav-menu-link").forEach(link => {
+    const isAct = link.dataset.nav === tabId;
+    link.classList.toggle("active", isAct);
+    link.setAttribute("aria-current", isAct ? "page" : "false");
   });
 
   // Close dropdown menu
@@ -1344,6 +1467,16 @@ function renderCurrentView() {
   const container = document.getElementById("main-content-view");
   if (!container) return;
 
+  if (AppState.currentTab === "home") {
+    renderHomePortal(container);
+    return;
+  }
+
+  if (AppState.currentTab === "safety") {
+    renderLabSafetyDashboard(container);
+    return;
+  }
+
   if (AppState.currentTab === "flashcards") {
     container.innerHTML = `<div id="flashcards-mount"><div style="padding: 40px; text-align: center; color: var(--text-muted);">Loading Flashcards Deck...</div></div>`;
     const initialFilter = AppState.flashcardFilter || {};
@@ -1391,6 +1524,247 @@ function renderCurrentView() {
   }
 
   renderSubjectView(container, curData, themeColor);
+}
+
+function renderHomePortal(container) {
+  if (!container) return;
+  container.innerHTML = `
+    <div class="home-portal-container" style="max-width: 1320px; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 40px;">
+      
+      <!-- Hero Section -->
+      <section class="home-hero-section" aria-labelledby="home-hero-title" style="position: relative; background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(10, 25, 47, 0.9) 100%); border: 1.5px solid rgba(56, 189, 248, 0.25); border-radius: 20px; padding: 48px 36px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,0.35);">
+        <div style="position: absolute; top: -60px; right: -60px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(2, 132, 199, 0.25) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+        <div style="position: absolute; bottom: -60px; left: -60px; width: 260px; height: 260px; background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+
+        <div style="position: relative; z-index: 2; max-width: 820px;">
+          <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 9999px; padding: 6px 16px; margin-bottom: 20px;">
+            <span style="font-size: 0.85rem;">🏫</span>
+            <span style="font-size: 0.82rem; font-weight: 700; color: #38bdf8; letter-spacing: 0.04em; text-transform: uppercase;">Edugates International School</span>
+          </div>
+
+          <h1 id="home-hero-title" style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; line-height: 1.15; color: #ffffff; margin: 0 0 16px; letter-spacing: -0.02em;">
+            Edugates Science Lab <br>
+            <span style="background: linear-gradient(90deg, #38bdf8, #818cf8, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Virtual Portal &amp; Resources</span>
+          </h1>
+
+          <p style="font-size: 1.05rem; line-height: 1.65; color: #94a3b8; margin: 0 0 28px; max-width: 720px;">
+            Welcome to the official digital STEM laboratory suite. Engage in 45 high-fidelity 60 FPS interactive laboratory workbenches, explore rigorous Inspire Chemistry, Biology, and Physics curricula, and review certified OSHA safety protocols.
+          </p>
+
+          <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 32px;">
+            <a href="#labs" class="btn btn-primary" style="padding: 12px 24px; font-size: 0.95rem; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;" aria-label="Launch Virtual Laboratory Workbenches">
+              <span>🔬</span>
+              <span>Launch Virtual Labs</span>
+            </a>
+            <a href="#safety" class="btn btn-secondary" style="padding: 12px 22px; font-size: 0.95rem; font-weight: 700; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; border-color: rgba(16, 185, 129, 0.4); color: #34d399;" aria-label="Open Laboratory Safety Standards">
+              <span>🛡️</span>
+              <span>Lab Safety Dashboard</span>
+            </a>
+            <a href="Edugates_STEM_Labs_Teacher_Guide.pdf" target="_blank" rel="noopener noreferrer" download class="btn btn-secondary" style="padding: 12px 20px; font-size: 0.92rem; font-weight: 600; border-radius: 10px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;" aria-label="Download Teacher Implementation Guide PDF">
+              <span>📄</span>
+              <span>Teacher Manual (PDF)</span>
+            </a>
+          </div>
+
+          <!-- Hero Metrics -->
+          <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 18px;">
+              <div style="font-size: 1.4rem; font-weight: 800; color: #38bdf8;">74</div>
+              <div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Inspire Modules</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 18px;">
+              <div style="font-size: 1.4rem; font-weight: 800; color: #34d399;">45</div>
+              <div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Virtual Workbenches</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 18px;">
+              <div style="font-size: 1.4rem; font-weight: 800; color: #a78bfa;">ANSI Z87.1</div>
+              <div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Safety Standard</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 18px;">
+              <div style="font-size: 1.4rem; font-weight: 800; color: #f59e0b;">60 FPS</div>
+              <div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Hardware Turbo</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scientific Disciplines Grid (Biology, Chemistry, Physics) -->
+      <section class="home-disciplines-section" aria-labelledby="home-disciplines-title">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">Curriculum Core</div>
+            <h2 id="home-disciplines-title" style="font-size: 1.6rem; font-weight: 800; color: #ffffff; margin: 4px 0 0;">Scientific Disciplines</h2>
+          </div>
+          <div style="font-size: 0.88rem; color: #94a3b8;">
+            Select a branch to explore NGSS-aligned units, interactive simulations, and chapter quizzes.
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+          
+          <!-- Chemistry Card -->
+          <div class="discipline-card tab-chem" style="background: rgba(15, 23, 42, 0.75); border: 1.5px solid rgba(6, 182, 212, 0.3); border-radius: 16px; padding: 28px 24px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.4); display: flex; align-items: center; justify-content: center; color: #22d3ee;">
+                  ${icons.chemistry}
+                </div>
+                <span style="font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: rgba(6, 182, 212, 0.15); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.3);">
+                  23 Modules
+                </span>
+              </div>
+              <h3 style="font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0 0 8px;">Inspire Chemistry</h3>
+              <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.55; margin: 0 0 20px;">
+                Master atomic structure, thermochemistry ($q = mc\\Delta T$), titration neutralization, reaction kinetics, and chemical equilibrium.
+              </p>
+            </div>
+            <a href="#chem" class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 10px 16px; font-weight: 700; border-color: rgba(6, 182, 212, 0.4); color: #22d3ee; text-decoration: none;" aria-label="Enter Chemistry Curriculum">
+              Enter Chemistry Curriculum &rarr;
+            </a>
+          </div>
+
+          <!-- Biology Card -->
+          <div class="discipline-card tab-bio" style="background: rgba(15, 23, 42, 0.75); border: 1.5px solid rgba(16, 185, 129, 0.3); border-radius: 16px; padding: 28px 24px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; color: #34d399;">
+                  ${icons.biology}
+                </div>
+                <span style="font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                  27 Modules
+                </span>
+              </div>
+              <h3 style="font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0 0 8px;">Inspire Biology</h3>
+              <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.55; margin: 0 0 20px;">
+                Investigate cellular respiration, Mendelian and non-Mendelian genetics, CRISPR gene editing, ecology, and compound light microscopy.
+              </p>
+            </div>
+            <a href="#bio" class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 10px 16px; font-weight: 700; border-color: rgba(16, 185, 129, 0.4); color: #34d399; text-decoration: none;" aria-label="Enter Biology Curriculum">
+              Enter Biology Curriculum &rarr;
+            </a>
+          </div>
+
+          <!-- Physics Card -->
+          <div class="discipline-card tab-phys" style="background: rgba(15, 23, 42, 0.75); border: 1.5px solid rgba(99, 102, 241, 0.3); border-radius: 16px; padding: 28px 24px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; box-shadow: 0 8px 24px rgba(0,0,0,0.2);">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.4); display: flex; align-items: center; justify-content: center; color: #a5b4fc;">
+                  ${icons.physics}
+                </div>
+                <span style="font-size: 0.78rem; font-weight: 700; padding: 4px 10px; border-radius: 9999px; background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3);">
+                  24 Modules
+                </span>
+              </div>
+              <h3 style="font-size: 1.3rem; font-weight: 800; color: #ffffff; margin: 0 0 8px;">Inspire Physics</h3>
+              <p style="font-size: 0.88rem; color: #94a3b8; line-height: 1.55; margin: 0 0 20px;">
+                Simulate 2D projectile trajectory, Ohm's law circuits, Snell's law optics, buoyancy Archimedes principle, and nuclear radioactive decay.
+              </p>
+            </div>
+            <a href="#phys" class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 10px 16px; font-weight: 700; border-color: rgba(99, 102, 241, 0.4); color: #a5b4fc; text-decoration: none;" aria-label="Enter Physics Curriculum">
+              Enter Physics Curriculum &rarr;
+            </a>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Prominent Lab Safety Banner with 3 SVG Icons -->
+      <section class="home-safety-banner" aria-labelledby="home-safety-banner-title" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(15, 23, 42, 0.85) 100%); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 18px; padding: 32px 28px; box-shadow: 0 8px 30px rgba(0,0,0,0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px;">
+          
+          <div style="flex: 1; min-width: 300px;">
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 6px; padding: 3px 10px; font-size: 0.75rem; font-weight: 800; color: #34d399; margin-bottom: 12px; text-transform: uppercase;">
+              Certified Standard OSHA 29 CFR 1910.1450 &bull; ANSI Z87.1
+            </div>
+            <h2 id="home-safety-banner-title" style="font-size: 1.5rem; font-weight: 800; color: #ffffff; margin: 0 0 8px;">
+              Laboratory Safety &amp; Biosafety Module
+            </h2>
+            <p style="font-size: 0.9rem; color: #94a3b8; line-height: 1.55; margin: 0 0 16px; max-width: 600px;">
+              Prior to conducting physical or simulated experiments, review personal protective equipment (PPE), chemical SDS hazard classifications, and emergency protocols.
+            </p>
+            <a href="#safety" class="btn btn-secondary" style="padding: 10px 20px; font-size: 0.9rem; font-weight: 700; border-radius: 8px; border-color: rgba(16, 185, 129, 0.5); color: #34d399; display: inline-flex; align-items: center; gap: 8px; text-decoration: none;" aria-label="Open Full Safety Standards &amp; SDS Lookup">
+              <span>🛡️</span>
+              <span>Open Safety Standards &amp; SDS Lookup &rarr;</span>
+            </a>
+          </div>
+
+          <!-- 3 Dedicated Required SVG Safety Icons -->
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+            <div class="safety-icon-card" style="width: 90px; height: 105px; background: rgba(15, 23, 42, 0.8); border: 1.5px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center;">
+              <div style="width: 44px; height: 44px;">
+                <svg viewBox="0 0 64 64" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Goggles Required Icon">
+                  <circle cx="32" cy="32" r="30" fill="#0284c7" fill-opacity="0.15" stroke="#38bdf8" stroke-width="2.5"/>
+                  <path d="M12 28 C12 20, 28 20, 30 28 C31 32, 33 32, 34 28 C36 20, 52 20, 52 28 C52 40, 38 42, 33 36 C32 35, 32 35, 31 36 C26 42, 12 40, 12 28 Z" fill="#0f172a" stroke="#38bdf8" stroke-width="2.5" stroke-linejoin="round"/>
+                  <ellipse cx="22" cy="30" rx="7" ry="6" fill="#38bdf8" fill-opacity="0.35"/>
+                  <path d="M17 27 Q 21 24, 25 25" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+                  <ellipse cx="42" cy="30" rx="7" ry="6" fill="#38bdf8" fill-opacity="0.35"/>
+                  <path d="M37 27 Q 41 24, 45 25" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round"/>
+                  <path d="M12 30 Q 6 32, 4 32" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M52 30 Q 58 32, 60 32" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <span style="font-size: 0.68rem; font-weight: 800; color: #38bdf8; text-transform: uppercase;">Goggles Req.</span>
+            </div>
+
+            <div class="safety-icon-card" style="width: 90px; height: 105px; background: rgba(15, 23, 42, 0.8); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center;">
+              <div style="width: 44px; height: 44px;">
+                <svg viewBox="0 0 64 64" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Chemical Hazard Corrosive Icon">
+                  <rect x="32" y="4" width="40" height="40" rx="4" transform="rotate(45 32 4)" fill="#ef4444" fill-opacity="0.15" stroke="#ef4444" stroke-width="2.5"/>
+                  <path d="M18 20 L28 10 C29 9, 31 9, 32 10 L34 12 C35 13, 35 15, 34 16 L24 26" stroke="#f87171" stroke-width="2" stroke-linecap="round"/>
+                  <circle cx="28" cy="32" r="1.5" fill="#f87171"/>
+                  <circle cx="29" cy="38" r="2" fill="#ef4444"/>
+                  <rect x="18" y="44" width="16" height="5" rx="1" fill="#64748b"/>
+                  <path d="M46 36 C44 34, 40 35, 38 38 L36 41 C35 43, 36 45, 38 45 L46 45 C48 45, 50 43, 50 41 Z" fill="#334155" stroke="#f87171" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <span style="font-size: 0.68rem; font-weight: 800; color: #f87171; text-transform: uppercase;">Chemical Haz.</span>
+            </div>
+
+            <div class="safety-icon-card" style="width: 90px; height: 105px; background: rgba(15, 23, 42, 0.8); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center;">
+              <div style="width: 44px; height: 44px;">
+                <svg viewBox="0 0 64 64" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Emergency Exit & Evacuation Icon">
+                  <circle cx="32" cy="32" r="30" fill="#10b981" fill-opacity="0.15" stroke="#10b981" stroke-width="2.5"/>
+                  <rect x="36" y="14" width="16" height="36" rx="2" fill="#0f172a" stroke="#34d399" stroke-width="2"/>
+                  <circle cx="26" cy="22" r="4" fill="#34d399"/>
+                  <path d="M26 27 L22 36 L28 37 L30 46" stroke="#34d399" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M26 28 L32 29 L38 24" stroke="#34d399" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12 18 L18 18 M16 15 L19 18 L16 21" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span style="font-size: 0.68rem; font-weight: 800; color: #34d399; text-transform: uppercase;">Emergency Exit</span>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Interactive Experiment Explorer Section -->
+      <section class="home-experiments-section" aria-labelledby="home-exp-title">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <div style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">Interactive Catalog</div>
+            <h2 id="home-exp-title" style="font-size: 1.6rem; font-weight: 800; color: #ffffff; margin: 4px 0 0;">Experiment Explorer &amp; Equipment Search</h2>
+          </div>
+          <div style="font-size: 0.88rem; color: #94a3b8;">
+            Filter by apparatus equipment, difficulty level, or search directly for specific laboratory protocols.
+          </div>
+        </div>
+
+        <div id="home-experiment-explorer-mount"></div>
+      </section>
+
+    </div>
+  `;
+
+  // Mount Experiment Explorer into home mount point
+  const explorerMount = container.querySelector("#home-experiment-explorer-mount");
+  if (explorerMount) {
+    renderExperimentExplorer(explorerMount, "all");
+  }
+
+  // Format formulas with KaTeX
+  renderMathInElement(container);
 }
 
 function mCode(num) {
@@ -1904,7 +2278,7 @@ function renderSubjectView(container, curData, themeColor) {
                   </h3>
                   <div class="module-phenomenon">
                     <span class="phenomenon-label">Encounter Phenomenon</span>
-                    <div class="phenomenon-text">"${m.phenomenon}"</div>
+                    <div class="phenomenon-text">"${formatMathText(m.phenomenon)}"</div>
                   </div>
                 </div>
 
