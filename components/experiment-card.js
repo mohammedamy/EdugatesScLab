@@ -106,6 +106,20 @@ export const EXPERIMENT_CATALOG = [
     thumbnail: "assets/labs/electrochem_bench.jpg",
     launchHref: "#labs/electrochem"
   },
+  {
+    id: "flametest",
+    title: "Atomic Emission Spectra & Flame Tests",
+    subject: "chem",
+    subjectName: "Chemistry",
+    difficulty: "Beginner",
+    estimatedTime: "30 mins",
+    equipment: ["Bunsen Burner", "Platinum/Nichrome Wire Loop", "Optical Spectroscope", "Metal Chloride Salts ($LiCl, NaCl, CuCl_2, SrCl_2$)", "Cobalt Blue Glass"],
+    formula: "E = h \\nu = \\frac{h c}{\\lambda} \\quad \\bullet \\quad \\Delta E = -R_H \\left(\\frac{1}{n_f^2} - \\frac{1}{n_i^2}\\right)",
+    description: "Excite metal cations in oxidizing flame zones, observe characteristic atomic photon emissions, and resolve discrete line spectra with calibrated spectroscopes.",
+    pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
+    thumbnail: "assets/labs/flame_test_bench.jpg",
+    launchHref: "#labs/flametest"
+  },
 
   // Physics Experiments
   {
@@ -192,6 +206,34 @@ export const EXPERIMENT_CATALOG = [
     thumbnail: "assets/labs/photoelectric_bench.jpg",
     launchHref: "#labs/photoelectric"
   },
+  {
+    id: "harmonic",
+    title: "Simple Harmonic Motion & Hooke's Law",
+    subject: "phys",
+    subjectName: "Physics",
+    difficulty: "Beginner",
+    estimatedTime: "35 mins",
+    equipment: ["Mass-Spring Oscillator", "Simple Gravity Pendulum", "Smart Photogate Timer", "Hooke Restoring Force Sensor", "Metric Vernier Scale"],
+    formula: "T = 2\\pi \\sqrt{\\frac{m}{k}} \\quad \\bullet \\quad T = 2\\pi \\sqrt{\\frac{L}{g}}",
+    description: "Investigate oscillatory kinematics across Hooke springs and gravity pendulums, toggle celestial gravity (Earth/Moon/Mars), and evaluate energy conservation (KE + PE).",
+    pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
+    thumbnail: "assets/labs/harmonic_bench.jpg",
+    launchHref: "#labs/harmonic"
+  },
+  {
+    id: "collisions",
+    title: "Momentum Conservation & Kinetic Collisions",
+    subject: "phys",
+    subjectName: "Physics",
+    difficulty: "Intermediate",
+    estimatedTime: "40 mins",
+    equipment: ["Air Track System", "Linear Gliders with Springs & Velcro", "Dual Millisecond Photogates", "Precision Digital Mass Scale"],
+    formula: "p_1 + p_2 = p_1' + p_2' \\quad \\bullet \\quad e = \\frac{v_2' - v_1'}{v_1 - v_2}",
+    description: "Analyze 1D elastic and inelastic collisions on frictionless air tracks, measure pre/post-impact velocities, and compute coefficient of restitution and energy loss.",
+    pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
+    thumbnail: "assets/labs/collisions_bench.jpg",
+    launchHref: "#labs/collisions"
+  },
 
   // Biology Experiments
   {
@@ -277,6 +319,20 @@ export const EXPERIMENT_CATALOG = [
     pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
     thumbnail: "assets/labs/photosynthesis_bench.jpg",
     launchHref: "#labs/photosynthesis"
+  },
+  {
+    id: "mitosis",
+    title: "Cell Cycle, Mitosis & Chromosome Dynamics",
+    subject: "bio",
+    subjectName: "Biology",
+    difficulty: "Intermediate",
+    estimatedTime: "40 mins",
+    equipment: ["High-Power Binocular Microscope", "Stained Allium Cepa (Onion Root Tip) Slides", "Mechanical Stage Micrometer", "Phase Contrast Annulus"],
+    formula: "\\text{Mitotic Index} = \\frac{\\text{Cells in Mitosis}}{\\text{Total Counted Cells}} \\times 100\\%",
+    description: "Identify and tally cellular mitotic stages (Prophase, Metaphase, Anaphase, Telophase), compute relative stage durations, and calculate root meristem mitotic indices.",
+    pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
+    thumbnail: "assets/labs/mitosis_bench.jpg",
+    launchHref: "#labs/mitosis"
   }
 ];
 
