@@ -172,7 +172,10 @@ export function initAntibioticResistanceLab(containerId) {
 
           <!-- 4K Real Laboratory Photograph Overlay -->
           <div id="antibiotic-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
-            <img src="assets/labs/antibiotic_bench.jpg" alt="4K Research Microbiology Kirby-Bauer Antibiotic Sensitivity Workbench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            <picture>
+              <source srcset="assets/labs/antibiotic_bench.webp" type="image/webp">
+              <img src="assets/labs/antibiotic_bench.jpg" decoding="async" loading="lazy" alt="4K Research Microbiology Kirby-Bauer Antibiotic Sensitivity Workbench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            </picture>
             
             <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
               <div>

@@ -66,7 +66,10 @@ export function initOpticsLab(containerId) {
 
         <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
         <div id="optics-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
-          <img src="assets/labs/optics_bench.jpg" alt="4K Geometric Optics Precision Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+          <picture>
+              <source srcset="assets/labs/optics_bench.webp" type="image/webp">
+              <img src="assets/labs/optics_bench.jpg" decoding="async" loading="lazy" alt="4K Geometric Optics Precision Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            </picture>
           
           <!-- Live Analytical Telemetry Callout on Photo -->
           <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 12px; padding: 14px 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">

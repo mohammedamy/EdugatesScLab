@@ -171,7 +171,10 @@ export function initOsmosisLab(containerId) {
 
             <!-- 4K Real Lab Bench Photo Overlay (Hidden by default) -->
             <div id="photo-overlay" style="display: none; position: absolute; inset: 0; background: #020617;">
-              <img src="assets/labs/osmosis_bench.jpg" alt="Cell Membrane Osmosis U-Tube 4K Bench" style="width: 100%; height: 100%; object-fit: cover;" />
+              <picture>
+              <source srcset="assets/labs/osmosis_bench.webp" type="image/webp">
+              <img src="assets/labs/osmosis_bench.jpg" decoding="async" loading="lazy" alt="Cell Membrane Osmosis U-Tube 4K Bench" style="width: 100%; height: 100%; object-fit: cover;" />
+            </picture>
               <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(2,6,23,0.3) 0%, rgba(2,6,23,0.85) 100%); pointer-events: none;"></div>
               
               <!-- Bench Callout Badges -->

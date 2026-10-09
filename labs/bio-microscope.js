@@ -65,12 +65,15 @@ export function initMicroscopeLab(containerId) {
           </span>
         </div>
         <div class="bench-photo-frame" style="position: relative; width: 100%; height: 530px; min-height: 480px; max-height: 580px; background: #030712; border-radius: var(--radius-md); overflow: hidden; border: 1.5px solid rgba(56, 189, 248, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85);">
-          <img src="assets/labs/microscope_bench.jpg"
+          <picture>
+              <source srcset="assets/labs/microscope_bench.webp" type="image/webp">
+              <img src="assets/labs/microscope_bench.jpg" loading="lazy"
                alt="Research Microscope Setup"
                class="bench-img"
                decoding="async"
                style="width: 100%; height: 100%; object-fit: cover; display: block;"
                onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='assets/bench-photos/bio_microscope.jpg';}else if(this.dataset.retried==='1'){this.dataset.retried='2';this.src='./assets/labs/microscope_bench.jpg';}else if(this.dataset.retried==='2'){this.dataset.retried='3';this.src='https://mohammedamy.github.io/EdugatesScLab/assets/labs/microscope_bench.jpg';}">
+            </picture>
           
           <!-- Optical Vignette Gradient -->
           <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(2,6,23,0.15) 0%, rgba(2,6,23,0.65) 100%); pointer-events: none;"></div>
