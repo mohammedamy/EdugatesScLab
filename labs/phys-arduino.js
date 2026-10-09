@@ -397,11 +397,37 @@ class ArduinoAudioEngine {
 // 6 Guided Educational Arduino Experiments & Sketches
 // ---------------------------------------------------------------------------
 export const ARDUINO_EXPERIMENTS = [
+  // -------------------------------------------------------------------------
+  // TIER 1: 5 EASY FOUNDATIONAL PROJECTS
+  // -------------------------------------------------------------------------
   {
     id: "traffic_light",
     title: "1. Traffic Light & Crosswalk Assist",
+    difficulty: "easy",
+    difficultyLabel: "🟢 Easy",
     category: "Digital I/O & State Machines",
     description: "Multi-LED sequence with pedestrian crosswalk button trigger, visual transitions, and warning beeper.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "TRAFFIC LIGHT & CROSSWALK SCHEMATIC BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV1",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["D13 (Red)", "D12 (Yellow)", "D11 (Green)", "D2 (Button)", "D8 (Piezo)", "GND"],
+      componentsSummary: "3x 5mm LEDs, 1x Tactile Switch, 1x Piezo Buzzer, 3x 220Ω Resistors",
+      theoryEquation: "V = I \\cdot R \\quad | \\quad P = V \\cdot I",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Stop Indicator", part: "5mm Red Diffused LED (2.0V, 20mA)", qty: 1 },
+        { item: "Caution Indicator", part: "5mm Yellow Diffused LED (2.1V, 20mA)", qty: 1 },
+        { item: "Go Indicator", part: "5mm Green Diffused LED (2.2V, 20mA)", qty: 1 },
+        { item: "Current Limiters", part: "220Ω 1/4W Metal Film Resistors", qty: 3 },
+        { item: "Pedestrian Button", part: "6x6mm Tactile Micro-Switch", qty: 1 },
+        { item: "Acoustic Beeper", part: "Piezoelectric Sounder (12V rated)", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
     circuitWiring: [
       { from: "D13", to: "Red LED Anode", color: "#ef4444" },
       { from: "D12", to: "Yellow LED Anode", color: "#f59e0b" },
@@ -463,74 +489,32 @@ void loop() {
 }`
   },
   {
-    id: "ultrasonic_radar",
-    title: "2. Ultrasonic Distance Radar & Parking Assist",
-    category: "Sensors & Time-of-Flight",
-    description: "HC-SR04 sonar pulses measure obstacle distance (2–400 cm) with adaptive acoustic pitch and proximity alert.",
-    circuitWiring: [
-      { from: "D9", to: "HC-SR04 Trig", color: "#38bdf8" },
-      { from: "D10", to: "HC-SR04 Echo", color: "#facc15" },
-      { from: "D8", to: "Piezo Buzzer (+)", color: "#c084fc" },
-      { from: "D13", to: "Warning Red LED", color: "#ef4444" },
-      { from: "5V", to: "HC-SR04 VCC", color: "#dc2626" },
-      { from: "GND", to: "HC-SR04 GND", color: "#1e293b" }
-    ],
-    code: `// Edugates STEM - Experiment 2: Ultrasonic Radar & Reverse Assist
-const int trigPin = 9;
-const int echoPin = 10;
-const int buzzerPin = 8;
-const int ledPin = 13;
-
-void setup() {
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
-  pinMode(buzzerPin, OUTPUT);
-  pinMode(ledPin, OUTPUT);
-  Serial.begin(9600);
-  Serial.println("HC-SR04 Radar Initialized");
-}
-
-void loop() {
-  // Trigger 10us ultrasonic burst
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-
-  // Measure echo pulse duration in microseconds
-  long duration = pulseIn(echoPin, HIGH);
-  // Distance in cm = (duration * speed of sound 0.0343 cm/us) / 2
-  float distance = (duration * 0.0343) / 2.0;
-
-  Serial.print("Distance: ");
-  Serial.print(distance);
-  Serial.println(" cm");
-
-  if (distance < 15.0) {
-    // Critical proximity warning!
-    digitalWrite(ledPin, HIGH);
-    tone(buzzerPin, 1200, 100);
-    delay(100);
-  } else if (distance < 40.0) {
-    // Medium caution distance
-    digitalWrite(ledPin, HIGH);
-    tone(buzzerPin, 750, 100);
-    delay(300);
-    digitalWrite(ledPin, LOW);
-    delay(100);
-  } else {
-    // Safe distance
-    digitalWrite(ledPin, LOW);
-    delay(500);
-  }
-}`
-  },
-  {
     id: "ldr_nightlight",
-    title: "3. Smart LDR Nightlight & PWM Dimmer",
+    title: "2. Smart LDR Nightlight & PWM Dimmer",
+    difficulty: "easy",
+    difficultyLabel: "🟢 Easy",
     category: "Analog Input & PWM Regulation",
     description: "Photoresistor voltage divider triggers automatic illumination with smooth PWM brightness modulation.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "SMART LDR NIGHTLIGHT & PWM DIMMER BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV2",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["A1 (LDR ADC)", "A0 (Pot ADC)", "PWM ~9 (LED)", "5V", "GND"],
+      componentsSummary: "1x CdS Photoresistor, 1x Blue LED, 1x 10kΩ Potentiometer, 1x 10kΩ Resistor, 1x 220Ω Resistor",
+      theoryEquation: "V_{\\text{out}} = V_{\\text{cc}} \\cdot \\frac{R_{\\text{fixed}}}{R_{\\text{ldr}} + R_{\\text{fixed}}} \\quad | \\quad \\text{PWM Duty} = \\frac{\\text{Val}}{255}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Optical Transducer", part: "Cadmium Sulfide (CdS) 5mm Photocell", qty: 1 },
+        { item: "Threshold Trimmer", part: "10kΩ Linear Potentiometer", qty: 1 },
+        { item: "PWM Nightlight", part: "5mm High-Efficiency Blue LED", qty: 1 },
+        { item: "Divider Resistor", part: "10kΩ 1/4W Carbon Film Resistor", qty: 1 },
+        { item: "Ballast Resistor", part: "220Ω 1/4W Metal Film Resistor", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
     circuitWiring: [
       { from: "A1", to: "LDR Voltage Divider", color: "#34d399" },
       { from: "A0", to: "Potentiometer Wiper", color: "#38bdf8" },
@@ -538,7 +522,7 @@ void loop() {
       { from: "5V", to: "10k Resistor & Pot", color: "#ef4444" },
       { from: "GND", to: "Common Ground", color: "#1e293b" }
     ],
-    code: `// Edugates STEM - Experiment 3: Smart LDR Nightlight
+    code: `// Edugates STEM - Experiment 2: Smart LDR Nightlight
 const int ldrPin = A1;
 const int potPin = A0;
 const int ledPin = 9; // PWM pin ~9
@@ -571,58 +555,38 @@ void loop() {
 }`
   },
   {
-    id: "servo_control",
-    title: "4. Micro-Servo Angle Sweeper & Joy-Dial",
-    category: "PWM Actuators & Robotics",
-    description: "SG90 micro-servo motor precisely controlled via 10k potentiometer dial with gear sound acoustics.",
-    circuitWiring: [
-      { from: "A0", to: "Potentiometer Wiper", color: "#f59e0b" },
-      { from: "~D6", to: "SG90 Servo PWM Signal", color: "#fb923c" },
-      { from: "5V", to: "Servo VCC (Red)", color: "#ef4444" },
-      { from: "GND", to: "Servo GND (Brown)", color: "#1e293b" }
-    ],
-    code: `// Edugates STEM - Experiment 4: Servo Motor Angle Steering
-#include <Servo.h>
-
-Servo myServo;
-const int potPin = A0;
-const int servoPin = 6;
-
-void setup() {
-  myServo.attach(servoPin);
-  Serial.begin(9600);
-  Serial.println("Robotic Servo Actuator Linked to D6");
-}
-
-void loop() {
-  // Read analog potentiometer (0 - 1023)
-  int val = analogRead(potPin);
-  // Map ADC reading to servo degrees (0 - 180 deg)
-  int angle = map(val, 0, 1023, 0, 180);
-
-  myServo.write(angle);
-
-  Serial.print("Pot ADC: ");
-  Serial.print(val);
-  Serial.print(" -> Servo Angle: ");
-  Serial.print(angle);
-  Serial.println(" deg");
-
-  delay(60);
-}`
-  },
-  {
     id: "chiptune_melody",
-    title: "5. 8-Bit Chiptune Musical Jukebox",
+    title: "3. 8-Bit Chiptune Melody Player & Jukebox",
+    difficulty: "easy",
+    difficultyLabel: "🟢 Easy",
     category: "Audio Synthesis & Microsecond Frequencies",
     description: "Piezoelectric transducer synthesized with real mathematical square waves playing classic 8-bit melodies.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "8-BIT CHIPTUNE MELODY PLAYER SCHEMATIC [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV3",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["D8 (Buzzer)", "D2 (Next Track Button)", "D13 (Tempo LED)", "GND"],
+      componentsSummary: "1x Piezoelectric Transducer, 1x Yellow Beat LED, 1x Tactile Button, 1x 220Ω Resistor",
+      theoryEquation: "f = \\frac{1}{T} \\implies \\text{Period } T = \\frac{1}{f} \\quad | \\quad \\text{Middle C (C4)} = 261.63\\,\\text{Hz}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Acoustic Transducer", part: "Piezoelectric Buzzer (Passive 4kHz resonance)", qty: 1 },
+        { item: "Tempo Indicator", part: "5mm Amber Yellow LED", qty: 1 },
+        { item: "Song Advance Switch", part: "6x6mm Momentary Pushbutton", qty: 1 },
+        { item: "Limiting Resistor", part: "220Ω 1/4W Metal Film Resistor", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
     circuitWiring: [
       { from: "D8", to: "Piezo Buzzer (+)", color: "#818cf8" },
       { from: "D2", to: "Song Next Button", color: "#38bdf8" },
       { from: "D13", to: "Tempo Beat LED", color: "#fbbf24" },
       { from: "GND", to: "Common Ground", color: "#1e293b" }
     ],
-    code: `// Edugates STEM - Experiment 5: 8-Bit Chiptune Jukebox
+    code: `// Edugates STEM - Experiment 3: 8-Bit Chiptune Jukebox
 const int buzzerPin = 8;
 const int ledPin = 13;
 
@@ -676,10 +640,345 @@ void loop() {
 }`
   },
   {
+    id: "rgb_mood_lamp",
+    title: "4. Interactive RGB Color Mixer & Mood Lamp",
+    difficulty: "easy",
+    difficultyLabel: "🟢 Easy",
+    category: "Color Science & Multi-Channel PWM",
+    description: "4-pin common cathode RGB LED with triple PWM channel color mixing (Red, Green, Blue) modulated by ambient light.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "INTERACTIVE RGB MOOD LAMP BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV4",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["PWM ~D9 (Red)", "PWM ~D10 (Green)", "PWM ~D11 (Blue)", "A0 (Hue Pot)", "GND"],
+      componentsSummary: "1x Common-Cathode RGB LED, 3x 220Ω Resistors, 1x 10kΩ Potentiometer",
+      theoryEquation: "C = R_{\\text{norm}} \\cdot \\mathbf{r} + G_{\\text{norm}} \\cdot \\mathbf{g} + B_{\\text{norm}} \\cdot \\mathbf{b} \\quad | \\quad 0 \\le \\text{Hue} < 360^\\circ",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Tri-Color Emitter", part: "5mm Common-Cathode Diffused RGB LED", qty: 1 },
+        { item: "Current Limiters", part: "220Ω 1/4W Metal Film Resistors", qty: 3 },
+        { item: "Hue Controller", part: "10kΩ Rotary Trimpot", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
+    circuitWiring: [
+      { from: "~D9", to: "RGB Red Anode (via 220Ω)", color: "#ef4444" },
+      { from: "~D10", to: "RGB Green Anode (via 220Ω)", color: "#10b981" },
+      { from: "~D11", to: "RGB Blue Anode (via 220Ω)", color: "#3b82f6" },
+      { from: "GND", to: "RGB Common Cathode", color: "#0f172a" },
+      { from: "A0", to: "Hue Potentiometer Wiper", color: "#f59e0b" },
+      { from: "A1", to: "LDR Ambient Sensor", color: "#34d399" }
+    ],
+    code: `// Edugates STEM - Experiment 4: Interactive RGB Color Mixer
+const int redPin = 9;    // PWM ~9
+const int greenPin = 10; // PWM ~10
+const int bluePin = 11;  // PWM ~11
+const int potPin = A0;   // Hue selector
+const int ldrPin = A1;   // Ambient brightness
+
+void setup() {
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("RGB Mood Lamp Initialized");
+}
+
+void loop() {
+  int hueVal = analogRead(potPin); // 0 - 1023
+  int ambient = analogRead(ldrPin); // 0 - 1000 lux
+
+  // Map 10-bit hue across RGB rainbow spectrum
+  int r = 0, g = 0, b = 0;
+  if (hueVal < 341) {
+    r = map(hueVal, 0, 341, 255, 0);
+    g = map(hueVal, 0, 341, 0, 255);
+    b = 0;
+  } else if (hueVal < 682) {
+    r = 0;
+    g = map(hueVal, 341, 682, 255, 0);
+    b = map(hueVal, 341, 682, 0, 255);
+  } else {
+    r = map(hueVal, 682, 1023, 0, 255);
+    g = 0;
+    b = map(hueVal, 682, 1023, 255, 0);
+  }
+
+  // Scale total brightness by ambient light
+  float scale = map(ambient, 0, 1023, 255, 50) / 255.0;
+  analogWrite(redPin, (int)(r * scale));
+  analogWrite(greenPin, (int)(g * scale));
+  analogWrite(bluePin, (int)(b * scale));
+
+  Serial.print("RGB Color -> R:");
+  Serial.print((int)(r * scale));
+  Serial.print(" G:");
+  Serial.print((int)(g * scale));
+  Serial.print(" B:");
+  Serial.println((int)(b * scale));
+
+  delay(60);
+}`
+  },
+  {
+    id: "button_toggle",
+    title: "5. Digital Pushbutton Toggle & Debounce Counter",
+    difficulty: "easy",
+    difficultyLabel: "🟢 Easy",
+    category: "Digital Inputs & Debounce Logic",
+    description: "Momentary tactile switch with hardware pull-up resistor and software debounce algorithm; toggles LED latch and streams event counts to Serial Monitor.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "DIGITAL PUSHBUTTON TOGGLE & DEBOUNCE SCHEMATIC [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV5",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["D2 (Interrupt/Input)", "D13 (Status Output)", "GND", "5V"],
+      componentsSummary: "1x Tactile Pushbutton, 1x Red 5mm LED, 1x 220Ω Resistor, 1x 10kΩ Pull-Up Resistor",
+      theoryEquation: "\\text{Debounce Window}: \\Delta t > 50\\,\\text{ms} \\implies \\text{Stable State Transition}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Tactile Switch", part: "6x6mm Momentary Pushbutton", qty: 1 },
+        { item: "Indicator LED", part: "5mm Red Diffused LED (2.0V, 20mA)", qty: 1 },
+        { item: "Ballast Resistor", part: "220Ω 1/4W Metal Film Resistor", qty: 1 },
+        { item: "Pull-up Resistor", part: "10kΩ 1/4W Carbon Film Resistor", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
+    circuitWiring: [
+      { from: "D2", to: "Tactile Button Terminal 1", color: "#38bdf8" },
+      { from: "D13", to: "Red LED Anode (+)", color: "#ef4444" },
+      { from: "5V", to: "10kΩ Pull-Up Resistor", color: "#dc2626" },
+      { from: "GND", to: "Button Terminal 2 & LED Cathode", color: "#1e293b" }
+    ],
+    code: `// Edugates STEM - Experiment 5: Digital Pushbutton Toggle & Software Debounce
+const int buttonPin = 2;
+const int ledPin = 13;
+
+int ledState = LOW;
+int buttonState = HIGH;
+int lastButtonState = HIGH;
+unsigned long lastDebounceTime = 0;
+const unsigned long debounceDelay = 50;
+unsigned long pressCount = 0;
+
+void setup() {
+  pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, ledState);
+  Serial.begin(9600);
+  Serial.println("System Ready: Pushbutton Toggle Active");
+  Serial.println("Press tactile switch on breadboard to toggle LED latch.");
+}
+
+void loop() {
+  int reading = digitalRead(buttonPin);
+
+  // Check if button state changed (due to noise or pressing)
+  if (reading != lastButtonState) {
+    lastDebounceTime = millis();
+  }
+
+  // If reading has persisted longer than debounceDelay, accept it
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      // Only toggle if the new button state is LOW (pressed with pull-up)
+      if (buttonState == LOW) {
+        ledState = !ledState;
+        digitalWrite(ledPin, ledState);
+        pressCount++;
+        Serial.print("Button Pressed! Count: ");
+        Serial.print(pressCount);
+        Serial.print(" | LED Latch: ");
+        Serial.println(ledState ? "ON (HIGH)" : "OFF (LOW)");
+      }
+    }
+  }
+
+  lastButtonState = reading;
+}`
+  },
+
+  // -------------------------------------------------------------------------
+  // TIER 2: 5 INTERMEDIATE SENSOR & ACTUATOR PROJECTS
+  // -------------------------------------------------------------------------
+  {
+    id: "ultrasonic_radar",
+    title: "6. Ultrasonic Distance Radar & Parking Assist",
+    difficulty: "intermediate",
+    difficultyLabel: "🟡 Intermediate",
+    category: "Sensors & Time-of-Flight",
+    description: "HC-SR04 sonar pulses measure obstacle distance (2–400 cm) with adaptive acoustic pitch and proximity alert.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "ULTRASONIC DISTANCE RADAR SCHEMATIC BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV6",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["D9 (Trig)", "D10 (Echo)", "D8 (Buzzer)", "D13 (Warning LED)", "5V", "GND"],
+      componentsSummary: "1x HC-SR04 Sonar Module, 1x Piezo Buzzer, 1x Red LED, 1x 220Ω Resistor",
+      theoryEquation: "d = \\frac{v_{\\text{sound}} \\cdot \\Delta t}{2} = \\frac{0.0343\\,\\text{cm/\\mu s} \\cdot \\Delta t}{2}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Ultrasonic Transceiver", part: "HC-SR04 (40kHz Acoustic Transducers)", qty: 1 },
+        { item: "Warning Sounder", part: "Piezoelectric Transducer", qty: 1 },
+        { item: "Visual Proximity LED", part: "5mm Red Diffused LED", qty: 1 },
+        { item: "Limiting Resistor", part: "220Ω 1/4W Metal Film Resistor", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
+    circuitWiring: [
+      { from: "D9", to: "HC-SR04 Trig", color: "#38bdf8" },
+      { from: "D10", to: "HC-SR04 Echo", color: "#facc15" },
+      { from: "D8", to: "Piezo Buzzer (+)", color: "#c084fc" },
+      { from: "D13", to: "Warning Red LED", color: "#ef4444" },
+      { from: "5V", to: "HC-SR04 VCC", color: "#dc2626" },
+      { from: "GND", to: "HC-SR04 GND", color: "#1e293b" }
+    ],
+    code: `// Edugates STEM - Experiment 6: Ultrasonic Radar & Reverse Assist
+const int trigPin = 9;
+const int echoPin = 10;
+const int buzzerPin = 8;
+const int ledPin = 13;
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("HC-SR04 Radar Initialized");
+}
+
+void loop() {
+  // Trigger 10us ultrasonic burst
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Measure echo pulse duration in microseconds
+  long duration = pulseIn(echoPin, HIGH);
+  // Distance in cm = (duration * speed of sound 0.0343 cm/us) / 2
+  float distance = (duration * 0.0343) / 2.0;
+
+  Serial.print("Distance: ");
+  Serial.print(distance);
+  Serial.println(" cm");
+
+  if (distance < 15.0) {
+    // Critical proximity warning!
+    digitalWrite(ledPin, HIGH);
+    tone(buzzerPin, 1200, 100);
+    delay(100);
+  } else if (distance < 40.0) {
+    // Medium caution distance
+    digitalWrite(ledPin, HIGH);
+    tone(buzzerPin, 750, 100);
+    delay(300);
+    digitalWrite(ledPin, LOW);
+    delay(100);
+  } else {
+    // Safe distance
+    digitalWrite(ledPin, LOW);
+    delay(500);
+  }
+}`
+  },
+  {
+    id: "servo_control",
+    title: "7. Micro-Servo Angle Sweeper & Joy-Dial",
+    difficulty: "intermediate",
+    difficultyLabel: "🟡 Intermediate",
+    category: "PWM Actuators & Robotics",
+    description: "SG90 micro-servo motor precisely controlled via 10k potentiometer dial with gear sound acoustics.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "SG90 MICRO-SERVO ANGLE CONTROLLER BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV7",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["A0 (Potentiometer)", "PWM ~D6 (Servo Pulse)", "5V", "GND"],
+      componentsSummary: "1x TowerPro SG90 9g Micro Servo, 1x 10kΩ Potentiometer, 1x 100µF Decoupling Capacitor",
+      theoryEquation: "t_{\\text{high}} = 1.0\\,\\text{ms} + \\left(\\frac{\\theta}{180^\\circ}\\right) \\cdot 1.0\\,\\text{ms} \\quad (50\\,\\text{Hz PWM})",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Position Servo", part: "TowerPro SG90 9g Micro Servo (1.8 kg·cm)", qty: 1 },
+        { item: "Steering Potentiometer", part: "10kΩ Linear Potentiometer", qty: 1 },
+        { item: "Buffer Capacitor", part: "100µF 16V Electrolytic Capacitor", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
+    circuitWiring: [
+      { from: "A0", to: "Potentiometer Wiper", color: "#f59e0b" },
+      { from: "~D6", to: "SG90 Servo PWM Signal", color: "#fb923c" },
+      { from: "5V", to: "Servo VCC (Red)", color: "#ef4444" },
+      { from: "GND", to: "Servo GND (Brown)", color: "#1e293b" }
+    ],
+    code: `// Edugates STEM - Experiment 7: Servo Motor Angle Steering
+#include <Servo.h>
+
+Servo myServo;
+const int potPin = A0;
+const int servoPin = 6;
+
+void setup() {
+  myServo.attach(servoPin);
+  Serial.begin(9600);
+  Serial.println("Robotic Servo Actuator Linked to D6");
+}
+
+void loop() {
+  // Read analog potentiometer (0 - 1023)
+  int val = analogRead(potPin);
+  // Map ADC reading to servo degrees (0 - 180 deg)
+  int angle = map(val, 0, 1023, 0, 180);
+
+  myServo.write(angle);
+
+  Serial.print("Pot ADC: ");
+  Serial.print(val);
+  Serial.print(" -> Servo Angle: ");
+  Serial.print(angle);
+  Serial.println(" deg");
+
+  delay(60);
+}`
+  },
+  {
     id: "weather_station",
-    title: "6. Smart LCD Weather Station & Overheat Alarm",
+    title: "8. TMP36 Precision Digital Weather Station",
+    difficulty: "intermediate",
+    difficultyLabel: "🟡 Intermediate",
     category: "I2C Displays & Environmental Sensors",
     description: "TMP36 precision temperature sensor with 16x2 LCD display readout, Celsius conversion, and siren alert.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "TMP36 DIGITAL WEATHER STATION & LCD BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV8",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["A2 (TMP36 Vout)", "A4 (SDA)", "A5 (SCL)", "D8 (Buzzer)", "5V", "GND"],
+      componentsSummary: "1x TMP36 Temperature Sensor, 1x 16x2 HD44780 LCD, 1x Piezo Buzzer",
+      theoryEquation: "T_C = (V_{\\text{out}} - 0.5\\,\\text{V}) \\times 100\\,^\\circ\\text{C/V} \\quad | \\quad 10\\,\\text{mV/}^\\circ\\text{C Scale}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Thermal Sensor", part: "TMP36 Analog Temperature Sensor (±1°C)", qty: 1 },
+        { item: "Character Display", part: "16x2 Alphanumeric LCD with HD44780", qty: 1 },
+        { item: "Thermal Alarm", part: "Piezo Transducer Buzzer", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
     circuitWiring: [
       { from: "A2", to: "TMP36 Vout (Pin 2)", color: "#06b6d4" },
       { from: "A4", to: "I2C LCD SDA", color: "#38bdf8" },
@@ -688,7 +987,7 @@ void loop() {
       { from: "5V", to: "TMP36 & LCD VCC", color: "#ef4444" },
       { from: "GND", to: "Common Ground", color: "#1e293b" }
     ],
-    code: `// Edugates STEM - Experiment 6: Smart Weather Station
+    code: `// Edugates STEM - Experiment 8: Smart Weather Station
 #include <LiquidCrystal_I2C.h>
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -741,74 +1040,33 @@ void loop() {
 }`
   },
   {
-    id: "rgb_mood_lamp",
-    title: "7. Interactive RGB Color Mixer & Mood Lamp",
-    category: "Color Science & Multi-Channel PWM",
-    description: "4-pin common cathode RGB LED with triple PWM channel color mixing (Red, Green, Blue) modulated by ambient light.",
-    circuitWiring: [
-      { from: "~D9", to: "RGB Red Anode (via 220Ω)", color: "#ef4444" },
-      { from: "~D10", to: "RGB Green Anode (via 220Ω)", color: "#10b981" },
-      { from: "~D11", to: "RGB Blue Anode (via 220Ω)", color: "#3b82f6" },
-      { from: "GND", to: "RGB Common Cathode", color: "#0f172a" },
-      { from: "A0", to: "Hue Potentiometer Wiper", color: "#f59e0b" },
-      { from: "A1", to: "LDR Ambient Sensor", color: "#34d399" }
-    ],
-    code: `// Edugates STEM - Experiment 7: Interactive RGB Color Mixer
-const int redPin = 9;    // PWM ~9
-const int greenPin = 10; // PWM ~10
-const int bluePin = 11;  // PWM ~11
-const int potPin = A0;   // Hue selector
-const int ldrPin = A1;   // Ambient brightness
-
-void setup() {
-  pinMode(redPin, OUTPUT);
-  pinMode(greenPin, OUTPUT);
-  pinMode(bluePin, OUTPUT);
-  Serial.begin(9600);
-  Serial.println("RGB Mood Lamp Initialized");
-}
-
-void loop() {
-  int hueVal = analogRead(potPin); // 0 - 1023
-  int ambient = analogRead(ldrPin); // 0 - 1000 lux
-
-  // Map 10-bit hue across RGB rainbow spectrum
-  int r = 0, g = 0, b = 0;
-  if (hueVal < 341) {
-    r = map(hueVal, 0, 341, 255, 0);
-    g = map(hueVal, 0, 341, 0, 255);
-    b = 0;
-  } else if (hueVal < 682) {
-    r = 0;
-    g = map(hueVal, 341, 682, 255, 0);
-    b = map(hueVal, 341, 682, 0, 255);
-  } else {
-    r = map(hueVal, 682, 1023, 0, 255);
-    g = 0;
-    b = map(hueVal, 682, 1023, 255, 0);
-  }
-
-  // Scale total brightness by ambient light
-  float scale = map(ambient, 0, 1023, 255, 50) / 255.0;
-  analogWrite(redPin, (int)(r * scale));
-  analogWrite(greenPin, (int)(g * scale));
-  analogWrite(bluePin, (int)(b * scale));
-
-  Serial.print("RGB Color -> R:");
-  Serial.print((int)(r * scale));
-  Serial.print(" G:");
-  Serial.print((int)(g * scale));
-  Serial.print(" B:");
-  Serial.println((int)(b * scale));
-
-  delay(60);
-}`
-  },
-  {
     id: "dc_motor_speed",
-    title: "8. PWM DC Motor Fan & Thermal Cooling Rig",
+    title: "9. PWM DC Motor Fan & Thermal Cooling Rig",
+    difficulty: "intermediate",
+    difficultyLabel: "🟡 Intermediate",
     category: "Electromechanics & Transistor Drivers",
     description: "High-current DC motor with aerodynamic propeller fan regulated by PWM speed and thermal thresholds.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "PWM DC MOTOR FAN COOLING RIG BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV9",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["PWM ~D5 (Gate)", "D7 (Relay)", "A0 (Speed Pot)", "A2 (TMP36)", "5V", "GND"],
+      componentsSummary: "1x High-RPM DC Motor with Propeller Fan, 1x TIP120/2N2222 Transistor, 1x 1N4007 Diode, 1x 10kΩ Pot",
+      theoryEquation: "V_{\\text{avg}} = \\frac{\\text{PWM}}{255} \\cdot V_{\\text{cc}} \\quad | \\quad \\text{Back-EMF}: V_L = -L \\frac{di}{dt}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Actuator Motor", part: "DC Brush Motor with 3-Blade Impeller Fan", qty: 1 },
+        { item: "Power Transistor", part: "2N2222 NPN Silicon Power Transistor", qty: 1 },
+        { item: "Flyback Diode", part: "1N4007 1A 1000V Silicon Rectifier", qty: 1 },
+        { item: "Base Resistor", part: "1kΩ 1/4W Metal Film Resistor", qty: 1 },
+        { item: "Speed Potentiometer", part: "10kΩ Rotary Trimpot", qty: 1 },
+        { item: "Thermal Sensor", part: "TMP36 Analog Temperature Sensor", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
     circuitWiring: [
       { from: "~D5", to: "NPN Transistor Base / PWM", color: "#38bdf8" },
       { from: "D7", to: "Songle Relay Control Pin", color: "#3b82f6" },
@@ -817,7 +1075,7 @@ void loop() {
       { from: "5V", to: "Relay & Motor VCC", color: "#ef4444" },
       { from: "GND", to: "Common Ground", color: "#0f172a" }
     ],
-    code: `// Edugates STEM - Experiment 8: DC Motor Fan Cooling System
+    code: `// Edugates STEM - Experiment 9: DC Motor Fan Cooling System
 const int motorPin = 5;  // PWM ~5 for speed regulation
 const int relayPin = 7;  // Digital 7 for safety cutoff relay
 const int potPin = A0;   // Manual speed trim
@@ -856,62 +1114,30 @@ void loop() {
 }`
   },
   {
-    id: "pir_alarm",
-    title: "9. PIR Motion Intruder Security Alarm",
-    category: "Security Systems & Digital Sensors",
-    description: "Pyroelectric infrared (PIR) motion sensor detecting thermal movement with piezoelectric siren and relay switching.",
-    circuitWiring: [
-      { from: "D2", to: "PIR Motion Sensor Out", color: "#10b981" },
-      { from: "D8", to: "Piezo Siren Buzzer (+)", color: "#c084fc" },
-      { from: "D7", to: "Relay Module Trigger", color: "#38bdf8" },
-      { from: "D13", to: "Strobe Warning LED", color: "#ef4444" },
-      { from: "5V", to: "PIR & Relay VCC", color: "#dc2626" },
-      { from: "GND", to: "Common Ground Rail", color: "#0f172a" }
-    ],
-    code: `// Edugates STEM - Experiment 9: PIR Motion Intruder Alarm
-const int pirPin = 2;    // PIR Motion Sensor Input
-const int buzzerPin = 8; // Alarm Siren
-const int relayPin = 7;  // Security floodlight relay
-const int strobePin = 13;// Red strobe LED
-
-void setup() {
-  pinMode(pirPin, INPUT);
-  pinMode(buzzerPin, OUTPUT);
-  pinMode(relayPin, OUTPUT);
-  pinMode(strobePin, OUTPUT);
-  Serial.begin(9600);
-  Serial.println("PIR Security Perimeter Armed. Calibrating...");
-  delay(1000);
-  Serial.println("System Ready: Monitoring motion events.");
-}
-
-void loop() {
-  int motionDetected = digitalRead(pirPin);
-
-  if (motionDetected == HIGH) {
-    Serial.println("ALERT! Motion detected in security zone!");
-    digitalWrite(relayPin, HIGH); // Trip floodlight relay
-    
-    // Multi-tone siren frequency sweep
-    for (int freq = 700; freq <= 1400; freq += 70) {
-      digitalWrite(strobePin, HIGH);
-      tone(buzzerPin, freq, 30);
-      delay(30);
-      digitalWrite(strobePin, LOW);
-    }
-  } else {
-    digitalWrite(relayPin, LOW);
-    digitalWrite(strobePin, LOW);
-    noTone(buzzerPin);
-    delay(100);
-  }
-}`
-  },
-  {
     id: "seven_seg_counter",
     title: "10. Digital 7-Segment Decimal Decade Counter",
+    difficulty: "intermediate",
+    difficultyLabel: "🟡 Intermediate",
     category: "Digital Logic & Numerical Multiplexing",
     description: "Direct segment mapping (A-G + DP) counting 0 through 9 with tactile step button and auto-increment clock.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "7-SEGMENT DECADE COUNTER SCHEMATIC BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV10",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["D3-D9 (Segments A-G)", "D10 (DP)", "D2 (Step Button)", "GND"],
+      componentsSummary: "1x Common-Cathode 7-Segment LED Display, 7x 220Ω Resistors, 1x Tactile Button",
+      theoryEquation: "\\text{Bitmask Table}: \\text{Digit}_N = \\sum_{k=0}^{6} 2^k \\cdot s_k \\quad | \\quad s_k \\in \\{0, 1\\}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Numerical Display", part: "0.56-inch Common-Cathode 7-Segment Display", qty: 1 },
+        { item: "Segment Limiters", part: "220Ω 1/4W Metal Film Resistors", qty: 7 },
+        { item: "Reset/Step Switch", part: "6x6mm Tactile Pushbutton", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
     circuitWiring: [
       { from: "D2", to: "Pushbutton Step Clock", color: "#38bdf8" },
       { from: "D3-D9", to: "7-Seg Pins (A, B, C, D, E, F, G)", color: "#f59e0b" },
@@ -967,11 +1193,108 @@ void displayDigit(int num) {
   }
 }`
   },
+
+  // -------------------------------------------------------------------------
+  // TIER 3: 5 ADVANCED SECURITY, ROBOTICS & INDUSTRIAL AUTOMATION PROJECTS
+  // -------------------------------------------------------------------------
+  {
+    id: "pir_alarm",
+    title: "11. PIR Motion Intruder Security Alarm with Floodlight Relay",
+    difficulty: "advanced",
+    difficultyLabel: "🔴 Advanced",
+    category: "Security Systems & Power Relays",
+    description: "HC-SR501 passive infrared motion detector triggers high-current 5V Songle mechanical relay, strobe alert LED, and multi-frequency piezo alarm.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "PIR SECURITY ALARM & RELAY BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV11",
+      circuitVoltage: "5.0V DC (USB Regulated) / 250VAC Relay Switched",
+      activePins: ["D2 (PIR Signal)", "D8 (Siren Buzzer)", "D7 (Relay Coil)", "D13 (Strobe LED)", "5V", "GND"],
+      componentsSummary: "1x HC-SR501 PIR Sensor, 1x Songle 5V Sugar-Cube Relay, 1x Piezo Siren, 1x Strobe LED",
+      theoryEquation: "\\Delta V_{\\text{pyro}} \\propto \\frac{d\\Phi}{dt} \\implies \\text{Fresnel Zone Motion Detection}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Infrared Motion Unit", part: "HC-SR501 Pyroelectric Sensor Module with Fresnel Lens", qty: 1 },
+        { item: "Power Relay Module", part: "Songle SRD-05VDC-SL-C 5V Relay (10A 250VAC)", qty: 1 },
+        { item: "Security Sounder", part: "Piezo Transducer Siren (1.2–3.5 kHz)", qty: 1 },
+        { item: "Intruder Strobe", part: "5mm Ultra-Bright Red LED", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
+    circuitWiring: [
+      { from: "D2", to: "PIR Motion Sensor Out", color: "#10b981" },
+      { from: "D8", to: "Piezo Siren Buzzer (+)", color: "#c084fc" },
+      { from: "D7", to: "Relay Module Trigger", color: "#38bdf8" },
+      { from: "D13", to: "Strobe Warning LED", color: "#ef4444" },
+      { from: "5V", to: "PIR & Relay VCC", color: "#dc2626" },
+      { from: "GND", to: "Common Ground Rail", color: "#0f172a" }
+    ],
+    code: `// Edugates STEM - Experiment 11: PIR Motion Intruder Alarm
+const int pirPin = 2;    // PIR Motion Sensor Input
+const int buzzerPin = 8; // Alarm Siren
+const int relayPin = 7;  // Security floodlight relay
+const int strobePin = 13;// Red strobe LED
+
+void setup() {
+  pinMode(pirPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(relayPin, OUTPUT);
+  pinMode(strobePin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("PIR Security Perimeter Armed. Calibrating...");
+  delay(1000);
+  Serial.println("System Ready: Monitoring motion events.");
+}
+
+void loop() {
+  int motionDetected = digitalRead(pirPin);
+
+  if (motionDetected == HIGH) {
+    Serial.println("ALERT! Motion detected in security zone!");
+    digitalWrite(relayPin, HIGH); // Trip floodlight relay
+    
+    // Multi-tone siren frequency sweep
+    for (int freq = 700; freq <= 1400; freq += 70) {
+      digitalWrite(strobePin, HIGH);
+      tone(buzzerPin, freq, 30);
+      delay(30);
+      digitalWrite(strobePin, LOW);
+    }
+  } else {
+    digitalWrite(relayPin, LOW);
+    digitalWrite(strobePin, LOW);
+    noTone(buzzerPin);
+    delay(100);
+  }
+}`
+  },
   {
     id: "joystick_pan_tilt",
-    title: "11. 2-Axis Thumbstick & Servo Pan-Tilt Rig",
+    title: "12. 2-Axis Thumbstick & Servo Pan-Tilt Camera Rig",
+    difficulty: "advanced",
+    difficultyLabel: "🔴 Advanced",
     category: "Human Interface Devices (HID) & Robotics",
     description: "Dual-axis analog potentiometer thumbstick controlling SG90 servo position and center-click laser/buzzer trigger.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "2-AXIS JOYSTICK & SERVO GIMBAL BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV12",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["A0 (Joy X)", "A1 (Joy Y)", "D2 (Joy Switch)", "PWM ~D6 (Servo)", "D8 (Trigger Buzzer)", "5V", "GND"],
+      componentsSummary: "1x 2-Axis Analog Thumbstick, 1x TowerPro SG90 Servo, 1x Piezo Sounder",
+      theoryEquation: "\\vec{v} = \\begin{bmatrix} X - 512 \\\\ Y - 512 \\end{bmatrix} \\implies \\theta = \\arctan2(Y-512, X-512)",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Analog Thumbstick", part: "Dual 10k Potentiometer + Pushbutton (PlayStation-style)", qty: 1 },
+        { item: "Actuator Motor", part: "TowerPro SG90 9g Micro Servo Motor", qty: 1 },
+        { item: "Target Trigger", part: "Piezo Acoustic Transducer", qty: 1 },
+        { item: "Prototyping", part: "Half-Size Solderless Breadboard", qty: 1 }
+      ]
+    },
     circuitWiring: [
       { from: "A0", to: "Joystick X-Axis (VRx)", color: "#38bdf8" },
       { from: "A1", to: "Joystick Y-Axis (VRy)", color: "#10b981" },
@@ -981,7 +1304,7 @@ void displayDigit(int num) {
       { from: "5V", to: "Joystick & Servo VCC", color: "#ef4444" },
       { from: "GND", to: "Common Ground", color: "#0f172a" }
     ],
-    code: `// Edugates STEM - Experiment 11: 2-Axis Thumbstick Servo Director
+    code: `// Edugates STEM - Experiment 12: 2-Axis Thumbstick Servo Director
 #include <Servo.h>
 
 Servo panServo;
@@ -1025,10 +1348,383 @@ void loop() {
 }`
   },
   {
+    id: "sonar_lcd_scope",
+    title: "13. Ultrasonic Radar Rangefinder & 16x2 LCD Radar Scope",
+    difficulty: "advanced",
+    difficultyLabel: "🔴 Advanced",
+    category: "Telemetry, Instrumentation & LCD",
+    description: "HC-SR04 sonar sensor coupled to 16x2 alphanumeric LCD scope displaying live distance in cm/inches, dynamic ASCII range-bar graph, and multi-tier acoustic warning beeper.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "ULTRASONIC RADAR & 16x2 LCD INSTRUMENTATION BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV13",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["D9 (Trig)", "D10 (Echo)", "D8 (Buzzer)", "D13 (Warn LED)", "A4/A5 (I2C LCD)"],
+      componentsSummary: "1x HC-SR04 Sonar, 1x 16x2 HD44780 LCD, 1x Piezo Buzzer, 1x Red LED, 1x 220Ω Resistor",
+      theoryEquation: "d = \\frac{v_{\\text{sound}} \\cdot \\Delta t}{2} = \\frac{343\\,\\text{m/s} \\cdot \\Delta t}{2}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Ultrasonic Transceiver", part: "HC-SR04 Time-of-Flight Sonar", qty: 1 },
+        { item: "Alphanumeric Display", part: "1602 HD44780 LCD Display", qty: 1 },
+        { item: "Acoustic Transducer", part: "Piezoelectric Sounder (12V rated)", qty: 1 },
+        { item: "Proximity LED", part: "5mm Red Diffused LED", qty: 1 },
+        { item: "Breadboard & Jumpers", part: "830-Point Solderless Board + M-M Wires", qty: 1 }
+      ]
+    },
+    circuitWiring: [
+      { from: "D9", to: "HC-SR04 Trig Pin", color: "#38bdf8" },
+      { from: "D10", to: "HC-SR04 Echo Pin", color: "#facc15" },
+      { from: "D8", to: "Piezo Buzzer (+)", color: "#818cf8" },
+      { from: "D13", to: "Warning Red LED", color: "#ef4444" },
+      { from: "A4 (SDA)", to: "16x2 LCD SDA", color: "#10b981" },
+      { from: "A5 (SCL)", to: "16x2 LCD SCL", color: "#06b6d4" },
+      { from: "5V", to: "HC-SR04 VCC & LCD VDD", color: "#dc2626" },
+      { from: "GND", to: "Common Ground Rail", color: "#1e293b" }
+    ],
+    code: `// Edugates STEM - Experiment 13: Ultrasonic Radar & 16x2 LCD Scope
+#include <LiquidCrystal.h>
+
+const int trigPin = 9;
+const int echoPin = 10;
+const int buzzerPin = 8;
+const int alertLedPin = 13;
+
+// Initialize LCD in 4-bit mode (RS, Enable, D4, D5, D6, D7)
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+void setup() {
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(alertLedPin, OUTPUT);
+  
+  lcd.begin(16, 2);
+  lcd.print("RADAR SCOPE v4.0");
+  lcd.setCursor(0, 1);
+  lcd.print("Calibrating Ping");
+  
+  Serial.begin(9600);
+  Serial.println("SYSTEM BOOT: Ultrasonic Radar & LCD Instrumentation");
+  delay(1200);
+  lcd.clear();
+}
+
+void loop() {
+  // Transmit 10 microsecond ultrasonic pulse trigger
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Measure echo return flight time in microseconds
+  long durationUs = pulseIn(echoPin, HIGH, 30000);
+  float distanceCm = (durationUs * 0.0343) / 2.0;
+
+  if (durationUs == 0 || distanceCm > 150.0) distanceCm = 150.0;
+
+  // Format LCD Line 1: Numeric Distance
+  lcd.setCursor(0, 0);
+  lcd.print("DIST: ");
+  lcd.print(distanceCm, 1);
+  lcd.print(" cm   ");
+
+  // Format LCD Line 2: Graphical Range Bar Scope
+  lcd.setCursor(0, 1);
+  int bars = map((int)constrain(distanceCm, 2, 80), 2, 80, 1, 16);
+  for (int i = 0; i < 16; i++) {
+    if (i < bars) lcd.print("=");
+    else lcd.print(" ");
+  }
+
+  // Multi-tier Proximity Alert
+  if (distanceCm < 15.0) {
+    digitalWrite(alertLedPin, HIGH);
+    tone(buzzerPin, 1400, 60);
+    Serial.print("CRITICAL PROXIMITY! Dist: ");
+  } else if (distanceCm < 35.0) {
+    digitalWrite(alertLedPin, (millis() / 200) % 2);
+    tone(buzzerPin, 850, 40);
+    Serial.print("Warning Zone. Dist: ");
+  } else {
+    digitalWrite(alertLedPin, LOW);
+    noTone(buzzerPin);
+    Serial.print("Clear Path. Dist: ");
+  }
+
+  Serial.print(distanceCm);
+  Serial.println(" cm");
+  delay(120);
+}`
+  },
+  {
+    id: "thermostat_relay_fan",
+    title: "14. Smart Thermostatic Relay Cooling Station",
+    difficulty: "advanced",
+    difficultyLabel: "🔴 Advanced",
+    category: "Closed-Loop HVAC Automation & Power Relays",
+    description: "Autonomous HVAC thermal regulator: TMP36 sensor monitors ambient temperature with deadband hysteresis; trips 5V mechanical relay to engage high-RPM DC cooling fan and RGB status indicator.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "SMART THERMOSTATIC RELAY COOLING STATION BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV14",
+      circuitVoltage: "5.0V DC (USB Regulated) / 12V Auxiliary",
+      activePins: ["A0 (TMP36)", "D7 (Relay Coil)", "D5 (PWM Fan)", "D9/10/11 (RGB LED)", "D4 (Manual Switch)"],
+      componentsSummary: "1x TMP36 Sensor, 1x 5V Songle Relay, 1x DC Motor Fan, 1x RGB LED, 1x Slide Switch",
+      theoryEquation: "T_C = (V_{\\text{out}} - 0.5\\,\\text{V}) \\times 100\\,^\\circ\\text{C/V} \\quad | \\quad Hysteresis: \\Delta T = \\pm 1.5\\,^\\circ\\text{C}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Precision Temp Sensor", part: "TMP36 Analog Temperature IC (±1°C)", qty: 1 },
+        { item: "Electromechanical Relay", part: "Songle 5V Sugar-Cube Relay Module (10A 250VAC)", qty: 1 },
+        { item: "Cooling Fan Motor", part: "DC Brush Motor with 3-Blade Impeller", qty: 1 },
+        { item: "Flyback Diode", part: "1N4007 1A 1000V Silicon Rectifier", qty: 1 },
+        { item: "Switching Transistor", part: "2N2222 NPN Silicon Power Transistor", qty: 1 },
+        { item: "Status Tricolor LED", part: "5mm Common-Cathode RGB LED", qty: 1 }
+      ]
+    },
+    circuitWiring: [
+      { from: "A0", to: "TMP36 Vout Pin", color: "#f43f5e" },
+      { from: "D7", to: "Songle Relay Signal (IN)", color: "#2563eb" },
+      { from: "D5", to: "DC Fan PWM Driver Gate", color: "#38bdf8" },
+      { from: "D9", to: "RGB Red (Hot Indicator)", color: "#ef4444" },
+      { from: "D10", to: "RGB Green (Nominal)", color: "#10b981" },
+      { from: "D11", to: "RGB Blue (Cold Indicator)", color: "#3b82f6" },
+      { from: "D4", to: "Manual Override Slide Switch", color: "#64748b" },
+      { from: "5V", to: "TMP36 VCC & Relay VCC", color: "#dc2626" },
+      { from: "GND", to: "Common Ground Rail", color: "#1e293b" }
+    ],
+    code: `// Edugates STEM - Experiment 14: Smart Thermostatic Relay Cooling Station
+const int tempPin = A0;
+const int relayPin = 7;
+const int fanPwmPin = 5;
+const int switchOverridePin = 4;
+const int ledRedPin = 9;
+const int ledGreenPin = 10;
+const int ledBluePin = 11;
+
+// Thermal setpoints with hysteresis deadband
+const float TEMP_THRESHOLD_HIGH = 28.5; // Fan kicks ON at 28.5 C
+const float TEMP_THRESHOLD_LOW = 26.0;  // Fan shuts OFF at 26.0 C
+bool coolingActive = false;
+
+void setup() {
+  pinMode(relayPin, OUTPUT);
+  pinMode(fanPwmPin, OUTPUT);
+  pinMode(ledRedPin, OUTPUT);
+  pinMode(ledGreenPin, OUTPUT);
+  pinMode(ledBluePin, OUTPUT);
+  pinMode(switchOverridePin, INPUT_PULLUP);
+
+  digitalWrite(relayPin, LOW); // Relay NO contacts open
+  analogWrite(fanPwmPin, 0);
+
+  Serial.begin(9600);
+  Serial.println("SYSTEM INITIATED: Closed-Loop HVAC Thermostat Station");
+  Serial.println("Thresholds: High Setpoint = 28.5 C | Low Cutoff = 26.0 C");
+}
+
+void loop() {
+  // Read TMP36 Analog Voltage: 10 mV/C with 500 mV offset at 0 C
+  int rawAdc = analogRead(tempPin);
+  float voltage = (rawAdc / 1023.0) * 5.0;
+  float temperatureC = (voltage - 0.5) * 100.0;
+
+  bool manualOverride = (digitalRead(switchOverridePin) == LOW);
+
+  // Closed-loop bang-bang controller with deadband hysteresis
+  if (manualOverride) {
+    coolingActive = true;
+    Serial.println("[MANUAL OVERRIDE] Operator forced cooling ON");
+  } else if (temperatureC >= TEMP_THRESHOLD_HIGH) {
+    coolingActive = true;
+  } else if (temperatureC <= TEMP_THRESHOLD_LOW) {
+    coolingActive = false;
+  }
+
+  // Actuate Relay & Cooling Fan
+  if (coolingActive) {
+    digitalWrite(relayPin, HIGH); // Snap relay energized
+    analogWrite(fanPwmPin, 255);  // Full throttle fan
+
+    // Status: Red (Alert / Active Exhaust)
+    analogWrite(ledRedPin, 255);
+    analogWrite(ledGreenPin, 0);
+    analogWrite(ledBluePin, 0);
+  } else {
+    digitalWrite(relayPin, LOW);
+    analogWrite(fanPwmPin, 0);
+
+    // Status: Blue if chilly (<20 C), else Green nominal
+    if (temperatureC < 20.0) {
+      analogWrite(ledRedPin, 0);
+      analogWrite(ledGreenPin, 50);
+      analogWrite(ledBluePin, 255);
+    } else {
+      analogWrite(ledRedPin, 0);
+      analogWrite(ledGreenPin, 255);
+      analogWrite(ledBluePin, 0);
+    }
+  }
+
+  // Telemetry stream
+  Serial.print("Temp: ");
+  Serial.print(temperatureC, 2);
+  Serial.print(" C | Relay: ");
+  Serial.print(coolingActive ? "CLOSED (ON)" : "OPEN (OFF)");
+  Serial.print(" | Fan: ");
+  Serial.println(coolingActive ? "100% PWM" : "0% IDLE");
+
+  delay(250);
+}`
+  },
+  {
+    id: "multi_sensor_alarm",
+    title: "15. Autonomous Multi-Sensor Annunciator Hub",
+    difficulty: "advanced",
+    difficultyLabel: "🔴 Advanced",
+    category: "Industrial Safety & Sensor Fusion",
+    description: "Multi-hazard industrial annunciator integrating PIR pyroelectric motion, CdS optical darkness, and TMP36 thermal monitoring; orchestrates staged warning sirens, relay power cutoff, and telemetry broadcast.",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "AUTONOMOUS MULTI-SENSOR ANNUNCIATOR HUB BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-REV15",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["D2 (PIR Motion)", "A1 (LDR Light)", "A0 (TMP36)", "D7 (Relay Interlock)", "D8 (Siren)", "D13 (Strobe)", "D4 (Arm Switch)"],
+      componentsSummary: "1x PIR Sensor, 1x LDR Photoresistor, 1x TMP36 IC, 1x 5V Relay, 1x Piezo Siren, 1x Slide Switch, 1x Strobe LED",
+      theoryEquation: "\\text{Hazard Vector}: H = \\{M_{\\text{PIR}}, \\; L_{\\text{dark}}, \\; T_{\\text{overheat}}\\} \\implies \\text{Interlock Relay Actuation}",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "PIR Motion Sensor", part: "HC-SR501 Pyroelectric Sensor Module", qty: 1 },
+        { item: "Cadmium Sulfide LDR", part: "5mm Photocell (10kΩ dark resistance)", qty: 1 },
+        { item: "Temperature Transducer", part: "TMP36 Analog Temperature Sensor", qty: 1 },
+        { item: "Interlock Relay", part: "Songle 5V Sugar-Cube Relay Module", qty: 1 },
+        { item: "Acoustic Warbler", part: "Piezo Transducer Siren", qty: 1 },
+        { item: "Alarm Strobe", part: "High-Luminance Red 5mm LED", qty: 1 }
+      ]
+    },
+    circuitWiring: [
+      { from: "D2", to: "HC-SR501 PIR Out", color: "#10b981" },
+      { from: "A1", to: "LDR Voltage Divider", color: "#d97706" },
+      { from: "A0", to: "TMP36 Vout Pin", color: "#f43f5e" },
+      { from: "D7", to: "Relay Module Signal", color: "#2563eb" },
+      { from: "D8", to: "Piezo Buzzer (+)", color: "#818cf8" },
+      { from: "D13", to: "Alarm Strobe Red LED", color: "#ef4444" },
+      { from: "D4", to: "System Arm/Disarm Switch", color: "#64748b" },
+      { from: "5V", to: "Common 5V Supply Rail", color: "#dc2626" },
+      { from: "GND", to: "Common Ground Rail", color: "#1e293b" }
+    ],
+    code: `// Edugates STEM - Experiment 15: Autonomous Multi-Sensor Annunciator Hub
+const int pirPin = 2;
+const int ldrPin = A1;
+const int tempPin = A0;
+const int relayPin = 7;
+const int sirenPin = 8;
+const int strobePin = 13;
+const int armSwitchPin = 4;
+
+void setup() {
+  pinMode(pirPin, INPUT);
+  pinMode(armSwitchPin, INPUT_PULLUP);
+  pinMode(relayPin, OUTPUT);
+  pinMode(sirenPin, OUTPUT);
+  pinMode(strobePin, OUTPUT);
+
+  digitalWrite(relayPin, LOW);
+  digitalWrite(strobePin, LOW);
+
+  Serial.begin(9600);
+  Serial.println("==================================================");
+  Serial.println("🚨 MULTI-SENSOR ANNUNCIATOR HUB v5.2 ACTIVE 🚨");
+  Serial.println("Sensors Armed: PIR Motion | CdS Optical | TMP36 Heat");
+  Serial.println("==================================================");
+}
+
+void loop() {
+  bool isArmed = (digitalRead(armSwitchPin) == LOW);
+
+  // 1. Read PIR Motion Sensor
+  bool motionDetected = (digitalRead(pirPin) == HIGH);
+
+  // 2. Read LDR Ambient Light (0-1023)
+  int lightAdc = analogRead(ldrPin);
+  bool darknessDetected = (lightAdc < 220);
+
+  // 3. Read TMP36 Temperature
+  int tempAdc = analogRead(tempPin);
+  float voltage = (tempAdc / 1023.0) * 5.0;
+  float tempC = (voltage - 0.5) * 100.0;
+  bool thermalHazard = (tempC > 36.0);
+
+  // Sensor Fusion Matrix
+  bool alarmTriggered = isArmed && (motionDetected || darknessDetected || thermalHazard);
+
+  if (alarmTriggered) {
+    // Trip safety interlock relay
+    digitalWrite(relayPin, HIGH);
+
+    // Strobe warning flasher
+    digitalWrite(strobePin, (millis() / 100) % 2);
+
+    // Dual-tone siren warble
+    int freq = ((millis() / 250) % 2 == 0) ? 1450 : 920;
+    tone(sirenPin, freq, 80);
+
+    Serial.print("⚠️ HAZARD DETECTED! [");
+    if (motionDetected) Serial.print(" MOTION ");
+    if (darknessDetected) Serial.print(" DARKNESS ");
+    if (thermalHazard) Serial.print(" OVERHEAT ");
+    Serial.print("] Temp: ");
+    Serial.print(tempC, 1);
+    Serial.println(" C | Relay CUTOFF ENGAGED");
+  } else {
+    digitalWrite(relayPin, LOW);
+    digitalWrite(strobePin, LOW);
+    noTone(sirenPin);
+
+    Serial.print("STATUS: ");
+    Serial.print(isArmed ? "ARMED (All Clear)" : "STANDBY (Disarmed)");
+    Serial.print(" | Ambient Temp: ");
+    Serial.print(tempC, 1);
+    Serial.print(" C | Light: ");
+    Serial.println(lightAdc);
+  }
+
+  delay(200);
+}`
+  },
+
+  // -------------------------------------------------------------------------
+  // TIER 4: 🛠️ CUSTOM BREADBOARD BUILDER & OPEN ENGINEERING SANDBOX
+  // -------------------------------------------------------------------------
+  {
     id: "custom_sandbox",
-    title: "12. 🛠️ Custom Project Builder & Breadboard Sandbox",
+    title: "16. 🛠️ Custom Project Builder & Breadboard Sandbox",
+    difficulty: "sandbox",
+    difficultyLabel: "🛠️ Sandbox",
     category: "Freeform Engineering & Breadboard Prototyping",
     description: "Interactive open sandbox: place any components from the Parts Bin onto the breadboard, customize wiring, and write your own C++ sketch!",
+    image: "assets/labs/arduino_bench.jpg",
+    blueprint4k: {
+      resolution: "3840 x 2160 UHD",
+      aspectRatio: "16:9",
+      title: "CUSTOM BREADBOARD PROTOTYPING BLUEPRINT [4K UHD]",
+      schematicClass: "CAD-ELEC-4K-SANDBOX",
+      circuitVoltage: "5.0V DC (USB Regulated)",
+      activePins: ["Configurable User Pins (D0-D13, A0-A5)"],
+      componentsSummary: "User-defined arrangement from 22 components in Parts Bin library",
+      theoryEquation: "\\sum I_{\\text{in}} = \\sum I_{\\text{out}} \\quad | \\quad \\sum V_k = 0 \\quad (\\text{Kirchhoff's Laws})",
+      bomList: [
+        { item: "Microcontroller Board", part: "Arduino Uno R3 (ATmega328P)", qty: 1 },
+        { item: "Prototyping Platform", part: "Solderless Breadboard with Dual Power Bus", qty: 1 },
+        { item: "Modular Components", part: "Selected from 22 Available Hardware Parts", qty: "N" }
+      ]
+    },
     circuitWiring: [
       { from: "Any Pin", to: "Any Placed Component", color: "#38bdf8" },
       { from: "5V", to: "Power Bus Rail", color: "#ef4444" },
@@ -1125,6 +1821,9 @@ export function initArduinoLab(containerId) {
       txLed: false,
       rxLed: false,
       buttonPressed: false,
+      buttonToggleState: false,
+      lastButtonState: false,
+      buttonPressCount: 0,
       potValue: 512,      // 0 - 1023
       ldrLux: 450,        // 0 - 1000 lux
       obstacleDistCm: 25, // 2 - 400 cm
@@ -1237,22 +1936,67 @@ export function initArduinoLab(containerId) {
         <div style="display: flex; flex-direction: column; gap: 14px;">
           
           <!-- Experiment Preset Selector Bar -->
-          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 12px 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em;">
-                Choose Laboratory Experiment:
-              </span>
-              <span id="exp-category-badge" class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-size: 0.7rem; padding: 2px 8px; border-radius: 6px;">
-                ${ARDUINO_EXPERIMENTS[0].category}
-              </span>
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.4);">
+            <!-- Top Controls Row: Header, 4K Studio Button & Category Badge -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em;">
+                  Choose Guided Experiment (15 Projects):
+                </span>
+                <span id="exp-category-badge" class="badge" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-size: 0.7rem; padding: 2px 8px; border-radius: 6px;">
+                  ${ARDUINO_EXPERIMENTS[0].category}
+                </span>
+              </div>
+              
+              <!-- 4K UHD Picture & Technical Blueprint Studio Button -->
+              <button id="btn-open-4k-modal" class="btn btn-secondary" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(99, 102, 241, 0.25)); border: 1px solid #38bdf8; font-size: 0.76rem; font-weight: 700; color: #38bdf8; padding: 4px 12px; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;" title="View 4K Ultra-HD Workbench Photo & CAD Blueprint">
+                <span>🖼️</span> <span>4K UHD Picture & Blueprint</span>
+              </button>
             </div>
-            <select id="sel-arduino-exp" class="form-select" style="width: 100%; background: #0f172a; color: #f1f5f9; border: 1px solid rgba(56, 189, 248, 0.35); padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer;">
+
+            <!-- Difficulty Tier Filter Pills -->
+            <div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">
+              <button type="button" class="btn btn-tier-filter active" data-tier="all" style="padding: 3px 10px; font-size: 0.73rem; font-weight: 700; border-radius: 6px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid #38bdf8;">
+                All (15 Projects)
+              </button>
+              <button type="button" class="btn btn-tier-filter" data-tier="easy" style="padding: 3px 10px; font-size: 0.73rem; font-weight: 600; border-radius: 6px; background: rgba(15, 23, 42, 0.8); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.4);">
+                🟢 Easy (5)
+              </button>
+              <button type="button" class="btn btn-tier-filter" data-tier="intermediate" style="padding: 3px 10px; font-size: 0.73rem; font-weight: 600; border-radius: 6px; background: rgba(15, 23, 42, 0.8); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4);">
+                🟡 Intermediate (5)
+              </button>
+              <button type="button" class="btn btn-tier-filter" data-tier="advanced" style="padding: 3px 10px; font-size: 0.73rem; font-weight: 600; border-radius: 6px; background: rgba(15, 23, 42, 0.8); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.4);">
+                🔴 Advanced (5)
+              </button>
+              <button type="button" class="btn btn-tier-filter" data-tier="sandbox" style="padding: 3px 10px; font-size: 0.73rem; font-weight: 600; border-radius: 6px; background: rgba(15, 23, 42, 0.8); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.4);">
+                🛠️ Sandbox
+              </button>
+            </div>
+
+            <!-- Experiment Select Dropdown -->
+            <select id="sel-arduino-exp" class="form-select" style="width: 100%; background: #0f172a; color: #f1f5f9; border: 1.5px solid rgba(56, 189, 248, 0.4); padding: 8px 12px; border-radius: 8px; font-weight: 700; font-size: 0.88rem; cursor: pointer;">
               ${ARDUINO_EXPERIMENTS.map((exp, idx) => `
-                <option value="${idx}" ${idx === 0 ? "selected" : ""}>${exp.title}</option>
+                <option value="${idx}" ${idx === 0 ? "selected" : ""}>
+                  ${exp.difficultyLabel ? `[${exp.difficultyLabel}] ` : ""}${exp.title}
+                </option>
               `).join("")}
             </select>
-            <div id="exp-desc-box" style="font-size: 0.78rem; color: #cbd5e1; margin-top: 8px; line-height: 1.4;">
+
+            <div id="exp-desc-box" style="font-size: 0.78rem; color: #cbd5e1; margin-top: 8px; line-height: 1.45;">
               ${ARDUINO_EXPERIMENTS[0].description}
+            </div>
+
+            <!-- Live Experiment Badges -->
+            <div style="display: flex; gap: 8px; margin-top: 8px; align-items: center; flex-wrap: wrap;">
+              <span id="exp-difficulty-badge" class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(52, 211, 153, 0.3);">
+                ${ARDUINO_EXPERIMENTS[0].difficultyLabel || "🟢 Easy"}
+              </span>
+              <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(129, 140, 248, 0.3);">
+                🖼️ 4K UHD 3840×2160
+              </span>
+              <span id="exp-voltage-badge" class="badge" style="background: rgba(245, 158, 11, 0.15); color: #fde047; font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(253, 224, 71, 0.3);">
+                5.0V USB Regulated
+              </span>
             </div>
           </div>
 
@@ -1539,6 +2283,108 @@ export function initArduinoLab(containerId) {
         </div>
       </div>
 
+      <!-- 4K Ultra-HD Project Blueprint & Photo Studio Modal -->
+      <div id="modal-arduino-4k" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(3, 7, 18, 0.88); backdrop-filter: blur(14px); overflow-y: auto; padding: 20px;" role="dialog" aria-modal="true" aria-labelledby="modal-4k-title">
+        <div style="max-width: 1100px; margin: 20px auto; background: #070c18; border: 1.5px solid rgba(6, 182, 212, 0.4); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85); overflow: hidden; display: flex; flex-direction: column;">
+          
+          <!-- Modal Header -->
+          <div style="padding: 16px 20px; background: linear-gradient(90deg, #0b1329, #0f172a); border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.4rem;">🖼️</span>
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <h3 id="modal-4k-title" style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #f8fafc;">
+                    ${ARDUINO_EXPERIMENTS[0].title}
+                  </h3>
+                  <span id="modal-4k-tier-badge" class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.72rem; padding: 2px 8px; border-radius: 6px;">
+                    ${ARDUINO_EXPERIMENTS[0].difficultyLabel}
+                  </span>
+                </div>
+                <div style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;">
+                  Ultra-HD 4K Hardware Visual Bench & Technical Blueprint Studio
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="badge" style="background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; font-family: monospace; font-size: 0.75rem; padding: 4px 10px; border-radius: 6px;">
+                4K UHD · 3840 × 2160
+              </span>
+              <button id="btn-close-4k-modal" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem; border-radius: 8px;" aria-label="Close modal">
+                ✖ Close
+              </button>
+            </div>
+          </div>
+
+          <!-- View Mode Toggles Bar -->
+          <div style="padding: 10px 20px; background: rgba(15, 23, 42, 0.6); border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; gap: 8px;">
+              <button id="btn-tab-4k-photo" class="btn btn-secondary active" style="padding: 5px 14px; font-size: 0.76rem; font-weight: 700; border-radius: 6px;">
+                📷 Photorealistic Workbench (4K)
+              </button>
+              <button id="btn-tab-4k-blueprint" class="btn btn-secondary" style="padding: 5px 14px; font-size: 0.76rem; font-weight: 700; border-radius: 6px;">
+                📐 CAD Schematic Blueprint
+              </button>
+            </div>
+            
+            <!-- Download 4K Action -->
+            <button id="btn-download-4k-png" class="btn btn-primary" style="padding: 6px 16px; font-size: 0.78rem; font-weight: 800; border-radius: 8px; background: linear-gradient(135deg, #0891b2, #6366f1); display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);">
+              📥 Download 4K UHD Picture (3840x2160 PNG)
+            </button>
+          </div>
+
+          <!-- Modal Body with Split View -->
+          <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+            <!-- Main 4K Image / Blueprint Canvas Viewport -->
+            <div style="position: relative; width: 100%; border-radius: 12px; overflow: hidden; border: 1.5px solid rgba(56, 189, 248, 0.3); background: #030712; min-height: 380px; box-shadow: inset 0 0 40px rgba(0,0,0,0.85);">
+              
+              <!-- 1. Photorealistic Workbench Image View -->
+              <div id="view-4k-photo" style="display: block; width: 100%; height: 100%;">
+                <img id="img-4k-bench" src="${ARDUINO_EXPERIMENTS[0].image}" alt="Arduino 4K Workbench Photo" style="width: 100%; max-height: 480px; object-fit: cover; display: block;">
+                <div style="position: absolute; bottom: 12px; left: 16px; right: 16px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                  <div style="font-size: 0.76rem; color: #e2e8f0;">
+                    <span style="color: #38bdf8; font-weight: 700;">Photorealistic Hardware Digital Twin:</span> Genuine workbench setup with breadboard apparatus, precision jumper leads, and ATmega328P microcontroller.
+                  </div>
+                  <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; font-size: 0.7rem; padding: 2px 8px; border-radius: 4px;">
+                    True 3840×2160 Output
+                  </span>
+                </div>
+              </div>
+
+              <!-- 2. Interactive CAD Blueprint View -->
+              <div id="view-4k-blueprint" style="display: none; width: 100%; padding: 20px; background: #07152d; background-image: radial-gradient(rgba(56, 189, 248, 0.12) 1px, transparent 1px); background-size: 20px 20px;">
+                <div id="blueprint-content-box" style="font-family: monospace; color: #bae6fd; line-height: 1.5; font-size: 0.82rem;">
+                  <!-- Dynamic Blueprint rendered here -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Technical Specifications & Bill of Materials Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+              <!-- Left: Circuit Specs & Wiring Table -->
+              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #38bdf8; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <span>⚡</span> Circuit Specifications & Connections
+                </div>
+                <div id="modal-4k-specs" style="font-size: 0.76rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 6px;">
+                  <!-- Dynamic Specs -->
+                </div>
+              </div>
+
+              <!-- Right: Bill of Materials (BOM) Table -->
+              <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #34d399; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                  <span>📋</span> Bill of Materials (BOM)
+                </div>
+                <div id="modal-4k-bom" style="font-size: 0.75rem; color: #cbd5e1; max-height: 180px; overflow-y: auto;">
+                  <!-- Dynamic BOM Table -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Interactive Competency Checkpoint Questions Container -->
       <div id="arduino-checkpoint-mount" style="margin-top: 18px;"></div>
     </div>
@@ -1660,6 +2506,23 @@ export function initArduinoLab(containerId) {
   const mcuCurrentDraw = document.getElementById("mcu-current-draw");
   const mcuPowerDraw = document.getElementById("mcu-power-draw");
 
+  // 4K Studio Modal & Tier Filter Elements
+  const btnOpen4kModal = document.getElementById("btn-open-4k-modal");
+  const modal4k = document.getElementById("modal-arduino-4k");
+  const btnClose4kModal = document.getElementById("btn-close-4k-modal");
+  const btnTab4kPhoto = document.getElementById("btn-tab-4k-photo");
+  const btnTab4kBlueprint = document.getElementById("btn-tab-4k-blueprint");
+  const btnDownload4kPng = document.getElementById("btn-download-4k-png");
+  const view4kPhoto = document.getElementById("view-4k-photo");
+  const view4kBlueprint = document.getElementById("view-4k-blueprint");
+  const img4kBench = document.getElementById("img-4k-bench");
+  const modal4kTitle = document.getElementById("modal-4k-title");
+  const modal4kTierBadge = document.getElementById("modal-4k-tier-badge");
+  const modal4kSpecs = document.getElementById("modal-4k-specs");
+  const modal4kBom = document.getElementById("modal-4k-bom");
+  const blueprintContentBox = document.getElementById("blueprint-content-box");
+  const expDifficultyBadge = document.getElementById("exp-difficulty-badge");
+
   // Speed selection pills
   document.querySelectorAll(".btn-speed-sel").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -1701,6 +2564,328 @@ export function initArduinoLab(containerId) {
   }
 
   // -------------------------------------------------------------------------
+  // 4K Studio Modal Helper & Populator
+  // -------------------------------------------------------------------------
+  function populate4kModalData(exp) {
+    if (!exp) return;
+    if (modal4kTitle) modal4kTitle.textContent = exp.title;
+    if (modal4kTierBadge) {
+      modal4kTierBadge.textContent = exp.difficultyLabel || "🟢 Easy";
+      if (exp.difficulty === "easy") {
+        modal4kTierBadge.style.color = "#34d399";
+        modal4kTierBadge.style.background = "rgba(16, 185, 129, 0.15)";
+      } else if (exp.difficulty === "intermediate") {
+        modal4kTierBadge.style.color = "#fbbf24";
+        modal4kTierBadge.style.background = "rgba(245, 158, 11, 0.15)";
+      } else if (exp.difficulty === "advanced") {
+        modal4kTierBadge.style.color = "#f87171";
+        modal4kTierBadge.style.background = "rgba(239, 68, 68, 0.15)";
+      } else {
+        modal4kTierBadge.style.color = "#c084fc";
+        modal4kTierBadge.style.background = "rgba(192, 132, 252, 0.15)";
+      }
+    }
+    if (img4kBench && exp.image) {
+      img4kBench.src = exp.image;
+    }
+
+    const bp = exp.blueprint4k || {};
+
+    // Populate Specs
+    if (modal4kSpecs) {
+      modal4kSpecs.innerHTML = `
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 4px;">
+          <span style="color: #94a3b8;">Blueprint Code:</span>
+          <span style="font-family: monospace; font-weight: 700; color: #38bdf8;">${bp.schematicClass || "UHD-CAD-4K"}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 4px;">
+          <span style="color: #94a3b8;">UHD Resolution:</span>
+          <span style="font-family: monospace; font-weight: 700; color: #34d399;">${bp.resolution || "3840 x 2160 UHD"}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 4px;">
+          <span style="color: #94a3b8;">Operating Voltage:</span>
+          <span style="font-family: monospace; font-weight: 700; color: #fde047;">${bp.circuitVoltage || "5.0V DC (USB)"}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 4px;">
+          <span style="color: #94a3b8;">Active Pinout:</span>
+          <span style="font-family: monospace; font-size: 0.72rem; color: #cbd5e1;">${(bp.activePins || []).join(", ")}</span>
+        </div>
+        <div style="margin-top: 4px;">
+          <div style="color: #94a3b8; margin-bottom: 2px;">Governing Theory & Equation:</div>
+          <div style="font-family: monospace; font-size: 0.72rem; background: rgba(0,0,0,0.4); padding: 5px 8px; border-radius: 6px; color: #7dd3fc; border: 1px solid rgba(56,189,248,0.2);">
+            ${bp.theoryEquation || "V = I × R"}
+          </div>
+        </div>
+      `;
+    }
+
+    // Populate BOM
+    if (modal4kBom) {
+      const bom = bp.bomList || [];
+      if (bom.length === 0) {
+        modal4kBom.innerHTML = `<div style="color: #94a3b8;">Standard Arduino Uno component assembly.</div>`;
+      } else {
+        modal4kBom.innerHTML = `
+          <table style="width: 100%; border-collapse: collapse; font-size: 0.72rem;">
+            <thead>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: #94a3b8; text-align: left;">
+                <th style="padding: 4px 6px;">Item</th>
+                <th style="padding: 4px 6px;">Part Specification</th>
+                <th style="padding: 4px 6px; text-align: center;">Qty</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${bom.map(b => `
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.04);">
+                  <td style="padding: 4px 6px; font-weight: 600; color: #f1f5f9;">${b.item}</td>
+                  <td style="padding: 4px 6px; color: #94a3b8; font-family: monospace;">${b.part}</td>
+                  <td style="padding: 4px 6px; text-align: center; color: #38bdf8; font-weight: 700;">${b.qty}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    // Populate CAD Blueprint text / vector details
+    if (blueprintContentBox) {
+      blueprintContentBox.innerHTML = `
+        <div style="border: 1px dashed rgba(56, 189, 248, 0.4); padding: 16px; border-radius: 8px; background: rgba(3, 7, 18, 0.6);">
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(56,189,248,0.3); padding-bottom: 8px; margin-bottom: 12px;">
+            <span style="font-weight: 800; color: #38bdf8;">CAD SCHEMATIC NETLIST · ${bp.title || exp.title.toUpperCase()}</span>
+            <span style="color: #34d399;">SCALE: 1:1 · ULTRA-HD 4K</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+            <div>
+              <div style="color: #67e8f9; font-weight: 700; margin-bottom: 4px;">WIRE CONNECTIONS (NETS):</div>
+              <ul style="margin: 0; padding-left: 18px; color: #cbd5e1; font-size: 0.74rem;">
+                ${exp.circuitWiring.map(w => `<li><span style="color: ${w.color}; font-weight: 700;">■</span> ${w.from} &rarr; ${w.to}</li>`).join("")}
+              </ul>
+            </div>
+            <div>
+              <div style="color: #67e8f9; font-weight: 700; margin-bottom: 4px;">SYSTEM ARCHITECTURE:</div>
+              <div style="font-size: 0.74rem; color: #94a3b8; line-height: 1.6;">
+                <div>• CPU: ATmega328P 8-Bit RISC @ 16 MHz</div>
+                <div>• Flash Memory: 32 KB (0.5 KB Bootloader)</div>
+                <div>• Operating Voltage: 5.0 V DC (USB/External)</div>
+                <div>• Logic Resolution: 1024 ADC Steps (4.89 mV)</div>
+                <div>• Clock Source: External 16.000 MHz Resonator</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // 4K Ultra-HD Offscreen Blueprint Image Generation (3840x2160 PNG)
+  // -------------------------------------------------------------------------
+  function export4kUhdPicture(exp) {
+    if (!exp) return;
+    const canvas4k = document.createElement("canvas");
+    canvas4k.width = 3840;
+    canvas4k.height = 2160;
+    const c = canvas4k.getContext("2d");
+    if (!c) return;
+
+    // 1. Antistatic Workbench Mat Background Gradient
+    const bgGrad = c.createLinearGradient(0, 0, 3840, 2160);
+    bgGrad.addColorStop(0, "#050914");
+    bgGrad.addColorStop(0.5, "#080f21");
+    bgGrad.addColorStop(1, "#03060c");
+    c.fillStyle = bgGrad;
+    c.fillRect(0, 0, 3840, 2160);
+
+    // Grid lines every 60px
+    c.strokeStyle = "rgba(56, 189, 248, 0.04)";
+    c.lineWidth = 1.5;
+    for (let x = 0; x < 3840; x += 60) {
+      c.beginPath();
+      c.moveTo(x, 0);
+      c.lineTo(x, 2160);
+      c.stroke();
+    }
+    for (let y = 0; y < 2160; y += 60) {
+      c.beginPath();
+      c.moveTo(0, y);
+      c.lineTo(3840, y);
+      c.stroke();
+    }
+
+    // 2. Blueprint Header Banner
+    c.fillStyle = "#0c172e";
+    c.fillRect(60, 50, 3720, 180);
+    c.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    c.lineWidth = 3;
+    c.strokeRect(60, 50, 3720, 180);
+
+    // Title & Metadata
+    c.fillStyle = "#38bdf8";
+    c.font = "bold 44px 'Segoe UI', system-ui, -apple-system, sans-serif";
+    c.fillText("EDUGATES STEM ADVANCED EMBEDDED SYSTEMS WORKBENCH", 100, 115);
+
+    c.fillStyle = "#f8fafc";
+    c.font = "bold 34px 'Segoe UI', system-ui, -apple-system, sans-serif";
+    c.fillText(`PROJECT BLUEPRINT: ${exp.title.toUpperCase()} [${exp.difficultyLabel.toUpperCase()}]`, 100, 175);
+
+    // Right header badges
+    c.fillStyle = "#34d399";
+    c.font = "bold 32px 'JetBrains Mono', monospace";
+    c.fillText("4K ULTRA-HD (3840 × 2160)", 3000, 115);
+
+    c.fillStyle = "#94a3b8";
+    c.font = "24px 'JetBrains Mono', monospace";
+    c.fillText("ATmega328P · 16MHz · 5.0V DC", 3000, 165);
+
+    // 3. Render Large Arduino Uno R3 on Left (Scale: ~3.8x)
+    c.save();
+    c.translate(140, 320);
+    c.scale(3.8, 3.8);
+    drawArduinoBoard(c, 0, 0, 340, 350);
+    c.restore();
+
+    // 4. Render Large Breadboard on Right-Center (Scale: ~3.8x)
+    c.save();
+    c.translate(1520, 320);
+    c.scale(3.8, 3.8);
+    drawBreadboard(c, 0, 0, 390, 350);
+    c.restore();
+
+    // 5. Render Right Engineering Specifications Panel
+    const rx = 3080;
+    const ry = 300;
+    const rw = 700;
+    const rh = 1760;
+
+    c.fillStyle = "rgba(10, 18, 38, 0.95)";
+    c.fillRect(rx, ry, rw, rh);
+    c.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    c.lineWidth = 3;
+    c.strokeRect(rx, ry, rw, rh);
+
+    // Right Panel Header
+    c.fillStyle = "#0284c7";
+    c.fillRect(rx, ry, rw, 70);
+    c.fillStyle = "#f8fafc";
+    c.font = "bold 28px 'Segoe UI', sans-serif";
+    c.fillText("CIRCUIT SCHEMATIC & BOM", rx + 30, ry + 46);
+
+    let ty = ry + 120;
+    const bp = exp.blueprint4k || {};
+
+    // Key Specs
+    c.fillStyle = "#38bdf8";
+    c.font = "bold 24px 'Segoe UI', sans-serif";
+    c.fillText("1. TECHNICAL SPECIFICATIONS", rx + 30, ty);
+    ty += 40;
+
+    const specs = [
+      ["Blueprint Code", bp.schematicClass || "UHD-CAD-4K"],
+      ["Operating Voltage", bp.circuitVoltage || "5.0V DC (USB Regulated)"],
+      ["Microcontroller", "ATmega328P 8-Bit RISC @ 16 MHz"],
+      ["ADC Precision", "10-Bit Quantization (4.89 mV/LSB)"],
+      ["PWM Channels", "8-Bit Fast PWM (~3, ~5, ~6, ~9, ~10, ~11)"],
+      ["Active Pinout", (bp.activePins || []).slice(0, 3).join(", ")]
+    ];
+
+    c.font = "20px 'JetBrains Mono', monospace";
+    specs.forEach(([k, v]) => {
+      c.fillStyle = "#94a3b8";
+      c.fillText(k + ":", rx + 30, ty);
+      c.fillStyle = "#f1f5f9";
+      c.fillText(v, rx + 260, ty);
+      ty += 34;
+    });
+
+    ty += 20;
+    // 2. Governing Equations
+    c.fillStyle = "#f59e0b";
+    c.font = "bold 24px 'Segoe UI', sans-serif";
+    c.fillText("2. GOVERNING STEM FORMULAS", rx + 30, ty);
+    ty += 40;
+
+    c.fillStyle = "rgba(15, 23, 42, 0.8)";
+    c.fillRect(rx + 30, ty - 26, rw - 60, 70);
+    c.strokeStyle = "rgba(245, 158, 11, 0.3)";
+    c.strokeRect(rx + 30, ty - 26, rw - 60, 70);
+
+    c.fillStyle = "#fde047";
+    c.font = "bold 20px 'JetBrains Mono', monospace";
+    c.fillText(bp.theoryEquation || "V = I * R | P = V * I", rx + 45, ty + 16);
+    ty += 80;
+
+    // 3. Bill of Materials
+    c.fillStyle = "#10b981";
+    c.font = "bold 24px 'Segoe UI', sans-serif";
+    c.fillText("3. BILL OF MATERIALS (BOM)", rx + 30, ty);
+    ty += 40;
+
+    const bom = bp.bomList || [];
+    c.fillStyle = "#64748b";
+    c.font = "bold 18px 'Segoe UI', sans-serif";
+    c.fillText("ITEM", rx + 30, ty);
+    c.fillText("PART SPECIFICATION", rx + 240, ty);
+    c.fillText("QTY", rx + rw - 70, ty);
+    ty += 28;
+
+    c.strokeStyle = "rgba(255,255,255,0.1)";
+    c.beginPath();
+    c.moveTo(rx + 30, ty - 12);
+    c.lineTo(rx + rw - 30, ty - 12);
+    c.stroke();
+
+    c.font = "19px 'Segoe UI', sans-serif";
+    bom.forEach(b => {
+      c.fillStyle = "#f8fafc";
+      c.fillText(b.item, rx + 30, ty);
+      c.fillStyle = "#94a3b8";
+      c.font = "18px 'JetBrains Mono', monospace";
+      c.fillText(b.part.length > 28 ? b.part.slice(0, 26) + "..." : b.part, rx + 240, ty);
+      c.fillStyle = "#38bdf8";
+      c.fillText(String(b.qty), rx + rw - 60, ty);
+      c.font = "19px 'Segoe UI', sans-serif";
+      ty += 34;
+    });
+
+    // 4. Lab Approval Stamp at bottom
+    c.fillStyle = "rgba(16, 185, 129, 0.15)";
+    c.fillRect(rx + 30, ry + rh - 160, rw - 60, 120);
+    c.strokeStyle = "rgba(16, 185, 129, 0.4)";
+    c.lineWidth = 2;
+    c.strokeRect(rx + 30, ry + rh - 160, rw - 60, 120);
+
+    c.fillStyle = "#34d399";
+    c.font = "bold 24px 'Segoe UI', sans-serif";
+    c.fillText("EDUGATES VIRTUAL STEM LAB · VERIFIED", rx + 50, ry + rh - 105);
+    c.fillStyle = "#94a3b8";
+    c.font = "18px 'JetBrains Mono', monospace";
+    c.fillText(`STAMP: ${new Date().toISOString().slice(0, 10)} · UHD-4K-CALIBRATED`, rx + 50, ry + rh - 65);
+
+    // Convert Canvas to Blob and Trigger Download
+    if (typeof canvas4k.toBlob === "function") {
+      canvas4k.toBlob(blob => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `edugates_${exp.id}_4k_uhd_blueprint.png`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 200);
+        addSerialLog(`Exported 4K UHD Project Picture: ${exp.title} (3840×2160 PNG)`);
+        audio.playUploadChime();
+      }, "image/png");
+    } else {
+      addSerialLog(`Exported 4K UHD Project Picture: ${exp.title} (3840×2160 PNG)`);
+    }
+  }
+
+  // -------------------------------------------------------------------------
   // Event Bindings
   // -------------------------------------------------------------------------
   // 1. Audio Mute Toggle
@@ -1710,18 +2895,101 @@ export function initArduinoLab(containerId) {
     muteLabel.textContent = muted ? "Unmute Audio" : "Sound Effects ON";
   });
 
+  // 1b. 4K Studio Modal Handlers
+  btnOpen4kModal?.addEventListener("click", () => {
+    const exp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
+    if (!exp) return;
+    populate4kModalData(exp);
+    if (modal4k) modal4k.style.display = "block";
+    audio.playTactileClick(false);
+  });
+
+  btnClose4kModal?.addEventListener("click", () => {
+    if (modal4k) modal4k.style.display = "none";
+    audio.playTactileClick(false);
+  });
+
+  modal4k?.addEventListener("click", (e) => {
+    if (e.target === modal4k) {
+      modal4k.style.display = "none";
+      audio.playTactileClick(false);
+    }
+  });
+
+  btnTab4kPhoto?.addEventListener("click", () => {
+    btnTab4kPhoto.classList.add("active");
+    btnTab4kBlueprint?.classList.remove("active");
+    if (view4kPhoto) view4kPhoto.style.display = "block";
+    if (view4kBlueprint) view4kBlueprint.style.display = "none";
+    audio.playTactileClick(false);
+  });
+
+  btnTab4kBlueprint?.addEventListener("click", () => {
+    btnTab4kBlueprint.classList.add("active");
+    btnTab4kPhoto?.classList.remove("active");
+    if (view4kPhoto) view4kPhoto.style.display = "none";
+    if (view4kBlueprint) view4kBlueprint.style.display = "block";
+    audio.playTactileClick(false);
+  });
+
+  btnDownload4kPng?.addEventListener("click", () => {
+    const exp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
+    if (exp) export4kUhdPicture(exp);
+  });
+
+  // 1c. Difficulty Tier Filter Pills Handler
+  document.querySelectorAll(".btn-tier-filter").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".btn-tier-filter").forEach(b => {
+        b.classList.remove("active");
+        b.style.border = "1px solid rgba(255,255,255,0.1)";
+        b.style.background = "rgba(15, 23, 42, 0.8)";
+      });
+      btn.classList.add("active");
+      btn.style.border = "1px solid #38bdf8";
+      btn.style.background = "rgba(56, 189, 248, 0.2)";
+
+      const tier = btn.dataset.tier;
+      audio.playTactileClick(false);
+
+      if (!selExp) return;
+      selExp.innerHTML = "";
+      ARDUINO_EXPERIMENTS.forEach((exp, idx) => {
+        if (tier === "all" || exp.difficulty === tier) {
+          const opt = document.createElement("option");
+          opt.value = String(idx);
+          opt.textContent = `${exp.difficultyLabel ? `[${exp.difficultyLabel}] ` : ""}${exp.title}`;
+          selExp.appendChild(opt);
+        }
+      });
+
+      // If current experiment matches tier, select it, otherwise select first available in filtered tier
+      const curExp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
+      if (curExp && (tier === "all" || curExp.difficulty === tier)) {
+        selExp.value = String(state.selectedExpIndex);
+      } else if (selExp.options.length > 0) {
+        selExp.selectedIndex = 0;
+        selExp.dispatchEvent(new Event("change"));
+      }
+    });
+  });
+
   // 2. Experiment Selection
   selExp?.addEventListener("change", (e) => {
     const idx = parseInt(e.target.value, 10) || 0;
     state.selectedExpIndex = idx;
     const exp = ARDUINO_EXPERIMENTS[idx];
     if (exp) {
-      expCategoryBadge.textContent = exp.category;
-      expDescBox.textContent = exp.description;
+      if (expCategoryBadge) expCategoryBadge.textContent = exp.category;
+      if (expDescBox) expDescBox.textContent = exp.description;
+      if (expDifficultyBadge) expDifficultyBadge.textContent = exp.difficultyLabel || "🟢 Easy";
       codeEditor.value = exp.code;
       addSerialLog(`Loaded experiment: ${exp.title}`);
       audio.playUploadChime();
       resetMcuState();
+      if (modal4k && modal4k.style.display !== "none") {
+        populate4kModalData(exp);
+      }
     }
   });
 
@@ -2372,6 +3640,49 @@ export function initArduinoLab(containerId) {
       if (cx >= 660 && cx <= 735 && cy >= 150 && cy <= 245) {
         return { id: "servo", label: "Pan-Tilt Micro Servo Motor (PWM ~9)", cursor: "pointer", box: { x: 660, y: 150, w: 75, h: 95 }, center: { x: 697, y: 197 } };
       }
+    } else if (expId === "button_toggle") {
+      if (cx >= 520 && cx <= 560 && cy >= 110 && cy <= 150) {
+        return { id: "button", label: "Debounced Pushbutton (Pin D2)", cursor: "pointer", box: { x: 524, y: 114, w: 32, h: 32 }, center: { x: 540, y: 130 } };
+      }
+      if (Math.hypot(cx - 660, cy - 135) <= 14) {
+        return { id: "led_toggle", label: "Toggle Status LED (Pin D13)", cursor: "pointer", circle: { x: 660, y: 135, r: 14 }, center: { x: 660, y: 135 } };
+      }
+    } else if (expId === "sonar_lcd_scope") {
+      if (cx >= 480 && cx <= 710 && cy >= 85 && cy <= 160) {
+        return { id: "lcd", label: "16x2 LCD Radar Scope", cursor: "pointer", box: { x: 480, y: 85, w: 230, h: 75 }, center: { x: 595, y: 122 } };
+      }
+      if (cx >= 470 && cx <= 610 && cy >= 165 && cy <= 225) {
+        return { id: "sonar", label: "HC-SR04 Ultrasonic Radar", cursor: "pointer", box: { x: 470, y: 165, w: 140, h: 60 }, center: { x: 540, y: 195 } };
+      }
+      if (Math.hypot(cx - 745, cy - 185) <= 24) {
+        return { id: "buzzer", label: "Radar Warning Buzzer (Pin D13)", cursor: "pointer", circle: { x: 745, y: 185, r: 22 }, center: { x: 745, y: 185 } };
+      }
+    } else if (expId === "thermostat_relay_fan") {
+      if (Math.hypot(cx - 470, cy - 135) <= 18) {
+        return { id: "temp", label: "TMP36 Thermal Sensor (ADC A0)", cursor: "pointer", circle: { x: 470, y: 135, r: 16 }, center: { x: 470, y: 135 } };
+      }
+      if (Math.hypot(cx - 550, cy - 130) <= 22) {
+        return { id: "pot", label: "Thermostat Threshold Potentiometer (ADC A1)", cursor: "grab", box: { x: 531, y: 111, w: 38, h: 38 }, center: { x: 550, y: 130 } };
+      }
+      if (cx >= 600 && cx <= 665 && cy >= 90 && cy <= 155) {
+        return { id: "relay", label: "Cooling Fan Relay Module (Pin D4)", cursor: "pointer", box: { x: 600, y: 90, w: 65, h: 65 }, center: { x: 632, y: 122 } };
+      }
+      if (Math.hypot(cx - 730, cy - 140) <= 35) {
+        return { id: "motor", label: "High-RPM DC Cooling Fan (Pin D5)", cursor: "pointer", circle: { x: 730, y: 140, r: 35 }, center: { x: 730, y: 140 } };
+      }
+    } else if (expId === "multi_sensor_alarm") {
+      if (Math.hypot(cx - 480, cy - 125) <= 25) {
+        return { id: "pir", label: "HC-SR501 PIR Motion Detector (Pin D7)", cursor: "pointer", circle: { x: 480, y: 125, r: 25 }, center: { x: 480, y: 125 } };
+      }
+      if (Math.hypot(cx - 570, cy - 135) <= 18) {
+        return { id: "ldr", label: "LDR Day/Night Light Sensor (ADC A0)", cursor: "pointer", circle: { x: 570, y: 135, r: 16 }, center: { x: 570, y: 135 } };
+      }
+      if (cx >= 615 && cx <= 680 && cy >= 90 && cy <= 155) {
+        return { id: "relay", label: "Floodlight Driver Relay (Pin D4)", cursor: "pointer", box: { x: 615, y: 90, w: 65, h: 65 }, center: { x: 647, y: 122 } };
+      }
+      if (Math.hypot(cx - 765, cy - 135) <= 24) {
+        return { id: "buzzer", label: "Security Siren Piezo Transducer (Pin D8)", cursor: "pointer", circle: { x: 765, y: 135, r: 22 }, center: { x: 765, y: 135 } };
+      }
     } else if (expId === "custom_sandbox") {
       if (state.components.customPlacedComponents && state.components.customPlacedComponents.length > 0) {
         for (let i = state.components.customPlacedComponents.length - 1; i >= 0; i--) {
@@ -2512,6 +3823,11 @@ export function initArduinoLab(containerId) {
       audio.playTactileClick(true);
       state.components.buttonPressed = !state.components.buttonPressed;
       addSerialLog(`Joystick Thumbstick clicked! (SW -> ${state.components.buttonPressed ? "LOW" : "HIGH"})`);
+    } else if (target.id === "led_toggle") {
+      state.components.buttonToggleState = !state.components.buttonToggleState;
+      state.components.pin13Led = state.components.buttonToggleState;
+      audio.playTactileClick(state.components.buttonToggleState);
+      addSerialLog(`Toggle LED tapped: ${state.components.buttonToggleState ? "HIGH (ON)" : "LOW (OFF)"}`);
     } else if (target.customComp) {
       const comp = target.customComp;
       if (comp.type.includes("button") || comp.type.includes("switch")) {
@@ -2763,6 +4079,62 @@ export function initArduinoLab(containerId) {
         audio.playServoWhine(targetAngle, state.components.currentServoAngle);
       }
       state.components.pin13Led = state.components.buttonPressed;
+    } else if (expId === "button_toggle") {
+      // 5. Digital Pushbutton Toggle & Debounce Counter
+      if (state.components.buttonPressed && !state.components.lastButtonState) {
+        state.components.buttonToggleState = !state.components.buttonToggleState;
+        state.components.buttonPressCount = (state.components.buttonPressCount || 0) + 1;
+        state.components.pin13Led = state.components.buttonToggleState;
+        audio.playTactileClick(state.components.buttonToggleState);
+        addSerialLog(`[DEBOUNCE] Press Event #${state.components.buttonPressCount} -> LED: ${state.components.buttonToggleState ? "HIGH (ON)" : "LOW (OFF)"}`);
+      }
+      state.components.lastButtonState = state.components.buttonPressed;
+      state.components.pin13Led = state.components.buttonToggleState;
+    } else if (expId === "sonar_lcd_scope") {
+      // 13. Ultrasonic Radar Rangefinder & 16x2 LCD Radar Scope
+      const dist = state.components.obstacleDistCm;
+      const barLen = Math.max(1, Math.min(10, Math.round(dist / 4)));
+      const barStr = "#".repeat(barLen).padEnd(10, ".");
+      state.components.lcdLines[0] = `DIST: ${dist.toFixed(1)} cm`.padEnd(16, " ");
+      state.components.lcdLines[1] = `RAD: [${barStr}] ${dist < 20 ? "!!" : "OK"}`.padEnd(16, " ");
+      if (dist < 20.0) {
+        state.components.pin13Led = (Math.floor(t / 150) % 2 === 0);
+        if (Math.floor(t / 200) % 2 === 0) audio.playTone(1100, 70);
+      } else {
+        state.components.pin13Led = false;
+      }
+    } else if (expId === "thermostat_relay_fan") {
+      // 14. Smart Thermostatic Relay Cooling Station
+      const setpointC = 20.0 + (state.components.potValue / 1023) * 30.0;
+      const curTemp = state.components.temperatureC;
+      const overheat = curTemp >= setpointC;
+      state.components.relayActive = overheat;
+      state.components.pin13Led = overheat;
+      if (overheat) {
+        const speed = Math.min(255, 160 + Math.floor(((curTemp - setpointC) / 10.0) * 95));
+        state.components.motorSpeed = speed;
+        state.components.currentMotorAngle += (speed / 255) * (stepMs / 1000) * 40;
+        audio.setMotorWhine(speed / 255);
+      } else {
+        state.components.motorSpeed = 0;
+        audio.setMotorWhine(0);
+      }
+    } else if (expId === "multi_sensor_alarm") {
+      // 15. Autonomous Multi-Sensor Annunciator Hub
+      const isNight = state.components.ldrLux < 350;
+      const motion = state.components.pirMotionDetected;
+      if (motion && isNight) {
+        state.components.relayActive = true;
+        state.components.pin13Led = (Math.floor(t / 100) % 2 === 0);
+        if (Math.floor(t / 200) % 2 === 0) audio.playTone(1450, 80);
+      } else if (motion) {
+        state.components.relayActive = false;
+        state.components.pin13Led = true;
+        if (Math.floor(t / 500) % 2 === 0) audio.playTone(800, 50);
+      } else {
+        state.components.relayActive = false;
+        state.components.pin13Led = false;
+      }
     } else if (expId === "custom_sandbox") {
       // 12. Freeform Custom Breadboard Sandbox
       state.components.pin13Led = (Math.floor(t / 1000) % 2 === 0);
@@ -3222,6 +4594,44 @@ export function initArduinoLab(containerId) {
       drawJoystickModule(c, bx + 80, by + 70, state.components.potValue, 512, state.components.buttonPressed);
       // Pan Servo
       drawServoMotor(c, bx + 240, by + 95, state.components.currentServoAngle);
+
+    } else if (expId === "button_toggle") {
+      // Tactile Pushbutton with debounced status LED
+      drawTactileSwitch(c, bx + 120, by + 75, state.components.buttonPressed, "PUSH (D2)");
+      drawResistor(c, bx + 60, by + 80, 10000, "10kΩ Pull-Down");
+      drawLargeLed(c, bx + 240, by + 80, "#38bdf8", state.components.pin13Led, "TOGGLE (D13)");
+      drawResistor(c, bx + 240, by + 130, 220, "220Ω Limiter");
+
+    } else if (expId === "sonar_lcd_scope") {
+      // 16x2 Character LCD Radar Scope
+      drawLcdModule(c, bx + 60, by + 30, state.components.lcdLines);
+      // HC-SR04 Ultrasonic Sensor Module
+      drawUltrasonicModule(c, bx + 80, by + 120, state.components.obstacleDistCm);
+      // Warning LED & Buzzer
+      drawLargeLed(c, bx + 270, by + 130, "#ef4444", state.components.pin13Led, "ALERT (D13)");
+      drawPiezoBuzzer(c, bx + 325, by + 130, state.components.pin13Led);
+
+    } else if (expId === "thermostat_relay_fan") {
+      // TMP36 Temperature Sensor
+      drawTmp36Sensor(c, bx + 50, by + 80, state.components.temperatureC);
+      // Threshold Potentiometer Setpoint
+      const setpointC = (20.0 + (state.components.potValue / 1023) * 30.0).toFixed(1);
+      drawPotTrim(c, bx + 130, by + 75, state.components.potValue, `SET ${setpointC}°C`);
+      // Songle 5V Relay
+      drawRelayModule(c, bx + 210, by + 65, state.components.relayActive);
+      // DC Motor Cooling Fan
+      drawDcMotorFan(c, bx + 310, by + 85, state.components.motorSpeed, state.components.currentMotorAngle);
+
+    } else if (expId === "multi_sensor_alarm") {
+      // PIR Motion Sensor
+      drawPirSensor(c, bx + 60, by + 70, state.components.pirMotionDetected);
+      // LDR Ambient Light Sensor
+      drawLdrComponent(c, bx + 150, by + 80, state.components.ldrLux);
+      // Relay Module (Floodlight)
+      drawRelayModule(c, bx + 225, by + 65, state.components.relayActive);
+      // Alarm LED & Siren Piezo
+      drawLargeLed(c, bx + 295, by + 80, "#ef4444", state.components.pin13Led, "ARMED");
+      drawPiezoBuzzer(c, bx + 345, by + 80, state.components.pin13Led);
 
     } else if (expId === "custom_sandbox") {
       // Custom Project Sandbox: Render custom placed components

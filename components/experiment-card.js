@@ -161,7 +161,7 @@ export const EXPERIMENT_CATALOG = [
     formula: "V_{\\text{ADC}} = \\frac{\\text{ADC}}{1023} \\times 5.0\\,\\text{V} \\quad \\bullet \\quad d = \\frac{v \\cdot \\Delta t}{2}",
     description: "Construct interactive embedded circuits, program ATmega328P microcontrollers with real-time C++, synthesize piezo audio acoustic frequencies, and interface analog/digital transducers.",
     pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
-    thumbnail: "assets/labs/circuits_bench.jpg",
+    thumbnail: "assets/labs/arduino_bench.jpg",
     launchHref: "#labs/arduino"
   },
   {

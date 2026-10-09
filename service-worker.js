@@ -238,6 +238,7 @@ const SECONDARY_ASSETS = [
   "./assets/labs/action_potential_bench.jpg",
   "./assets/labs/beer_lambert_bench.jpg",
   "./assets/labs/calorimetry_bench.jpg",
+  "./assets/labs/arduino_bench.jpg",
   "./assets/labs/circuits_bench.jpg",
   "./assets/labs/colligative_bench.jpg",
   "./assets/labs/conduction_bench.jpg",
