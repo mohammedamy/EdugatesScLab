@@ -33,6 +33,7 @@ class MockElement {
     this.dataset = {};
     this.innerHTML = "";
     this.value = "";
+    this._listeners = new Map();
     this.classList = {
       _classes: new Set(),
       add(...c) { c.forEach(x => this._classes.add(x)); },
@@ -44,8 +45,23 @@ class MockElement {
   setAttribute(k, v) { this.attributes[k] = String(v); }
   getAttribute(k) { return this.attributes[k] || null; }
   removeAttribute(k) { delete this.attributes[k]; }
-  addEventListener() {}
-  removeEventListener() {}
+  addEventListener(event, fn) {
+    if (!this._listeners.has(event)) this._listeners.set(event, []);
+    this._listeners.get(event).push(fn);
+  }
+  removeEventListener(event, fn) {
+    if (!this._listeners.has(event)) return;
+    const arr = this._listeners.get(event);
+    const idx = arr.indexOf(fn);
+    if (idx !== -1) arr.splice(idx, 1);
+  }
+  dispatch(event, e = {}) {
+    const list = this._listeners.get(event) || [];
+    list.forEach(fn => fn(e));
+  }
+  getBoundingClientRect() {
+    return { left: 0, top: 0, width: 850, height: 460 };
+  }
   querySelectorAll(sel) { return []; }
   querySelector(sel) { return null; }
   appendChild(child) { this.children.push(child); }
@@ -68,6 +84,8 @@ class MockElement {
       rect: () => {},
       closePath: () => {},
       fillText: () => {},
+      setLineDash: () => {},
+      measureText: () => ({ width: 100 }),
       createLinearGradient: () => ({ addColorStop: () => {} }),
       createRadialGradient: () => ({ addColorStop: () => {} }),
       quadraticCurveTo: () => {}
@@ -75,8 +93,14 @@ class MockElement {
   }
 }
 
+const elementsById = new Map();
 const mockDoc = {
-  getElementById: (id) => new MockElement("div"),
+  getElementById: (id) => {
+    if (!elementsById.has(id)) {
+      elementsById.set(id, new MockElement("div"));
+    }
+    return elementsById.get(id);
+  },
   createElement: (tag) => new MockElement(tag),
   querySelectorAll: () => [new MockElement("div")],
   querySelector: () => new MockElement("div"),
@@ -167,11 +191,36 @@ console.log("\n🔄 Lifecycle Mount & Teardown Execution:");
 const cleanup = mod.initArduinoLab("test-mount");
 check(typeof cleanup === "function", "initArduinoLab returns valid teardown cleanup function");
 
+const canvas = document.getElementById("arduino-canvas");
+const mousedownListeners = canvas._listeners.get("mousedown") || [];
+check(mousedownListeners.length > 0, "Canvas registers direct pointer/click 'mousedown' event listener");
+
+const touchstartListeners = canvas._listeners.get("touchstart") || [];
+check(touchstartListeners.length > 0, "Canvas registers direct touch 'touchstart' event listener");
+
+// Test direct component interaction via canvas pointer dispatch
+let canvasPointerDispatchedWithoutError = true;
+try {
+  // Simulate click on Arduino Reset button (x: 125, y: 90)
+  canvas.dispatch("mousedown", { clientX: 125, clientY: 90 });
+  // Simulate hover move across components
+  canvas.dispatch("mousemove", { clientX: 676, clientY: 146 });
+  // Simulate click on breadboard crosswalk button (x: 676, y: 146)
+  canvas.dispatch("mousedown", { clientX: 676, clientY: 146 });
+  canvas.dispatch("mouseup", {});
+} catch (e) {
+  canvasPointerDispatchedWithoutError = false;
+}
+check(canvasPointerDispatchedWithoutError, "Direct canvas touch & pointer events on hardware components dispatch safely");
+
 // Allow a couple simulation frames to cycle
 await new Promise(r => setTimeout(r, 45));
 
 cleanup();
 check(true, "cleanup() safely tears down audio nodes and animation frame loop without throwing");
+
+const mousedownAfterCleanup = canvas._listeners.get("mousedown") || [];
+check(mousedownAfterCleanup.length === 0, "cleanup() unregisters all canvas pointer and touch event listeners");
 
 // ----------------------------------------------------
 // Test 4: App Navigation & Normalization Integration

@@ -1370,6 +1370,341 @@ export function initArduinoLab(containerId) {
   });
 
   // -------------------------------------------------------------------------
+  // 10. Direct Canvas Pointer & Touch Interaction for Hardware Components
+  // -------------------------------------------------------------------------
+  let hoveredTarget = null;
+  let isDraggingPot = false;
+  let activeCanvasButton = false;
+  let potDragCenter = null;
+
+  function getCanvasCoords(e) {
+    if (!canvas) return null;
+    const rect = (canvas.getBoundingClientRect && canvas.getBoundingClientRect()) || {
+      left: 0,
+      top: 0,
+      width: canvas.width || 850,
+      height: canvas.height || 460
+    };
+    let clientX = e.clientX;
+    let clientY = e.clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else if (e.changedTouches && e.changedTouches.length > 0) {
+      clientX = e.changedTouches[0].clientX;
+      clientY = e.changedTouches[0].clientY;
+    }
+    if (clientX === undefined || clientY === undefined) return null;
+    const scaleX = (canvas.width || 850) / (rect.width || 1);
+    const scaleY = (canvas.height || 460) / (rect.height || 1);
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+
+  function getInteractiveTarget(cx, cy) {
+    // 1. Arduino Board Reset Button
+    if (Math.hypot(cx - 125, cy - 90) <= 14) {
+      return {
+        id: "reset",
+        label: "Arduino Hardware Reset",
+        cursor: "pointer",
+        circle: { x: 125, y: 90, r: 12 },
+        center: { x: 125, y: 90 }
+      };
+    }
+
+    // 2. Arduino USB Port & MCU IC
+    if (cx >= 50 && cx <= 105 && cy >= 45 && cy <= 93) {
+      return {
+        id: "usb",
+        label: "USB Type-B Port (/dev/ttyACM0)",
+        cursor: "pointer",
+        box: { x: 50, y: 45, w: 55, h: 48 },
+        center: { x: 77, y: 69 }
+      };
+    }
+    if (cx >= 160 && cx <= 315 && cy >= 205 && cy <= 257) {
+      return {
+        id: "mcu",
+        label: "ATmega328P 8-Bit MCU (16 MHz)",
+        cursor: "pointer",
+        box: { x: 160, y: 205, w: 155, h: 52 },
+        center: { x: 237, y: 231 }
+      };
+    }
+
+    // 3. Breadboard Components per Active Experiment
+    const expId = ARDUINO_EXPERIMENTS[state.selectedExpIndex]?.id;
+
+    if (expId === "traffic_light") {
+      if (cx >= 656 && cx <= 696 && cy >= 126 && cy <= 166) {
+        return {
+          id: "button",
+          label: "Crosswalk Request Pushbutton (Pin D2)",
+          cursor: "pointer",
+          box: { x: 660, y: 130, w: 32, h: 32 },
+          center: { x: 676, y: 146 }
+        };
+      }
+      if (Math.hypot(cx - 748, cy - 148) <= 24) {
+        return {
+          id: "buzzer",
+          label: "Piezo Acoustic Transducer (Pin D8)",
+          cursor: "pointer",
+          circle: { x: 748, y: 148, r: 22 },
+          center: { x: 748, y: 148 }
+        };
+      }
+      if (Math.hypot(cx - 490, cy - 135) <= 14) {
+        return { id: "led_red", label: "Stop LED - Red (Pin D13)", cursor: "pointer", circle: { x: 490, y: 135, r: 14 }, center: { x: 490, y: 135 } };
+      }
+      if (Math.hypot(cx - 540, cy - 135) <= 14) {
+        return { id: "led_yellow", label: "Caution LED - Yellow (Pin D12)", cursor: "pointer", circle: { x: 540, y: 135, r: 14 }, center: { x: 540, y: 135 } };
+      }
+      if (Math.hypot(cx - 590, cy - 135) <= 14) {
+        return { id: "led_green", label: "Go LED - Green (Pin D11)", cursor: "pointer", circle: { x: 590, y: 135, r: 14 }, center: { x: 590, y: 135 } };
+      }
+    } else if (expId === "ultrasonic_radar") {
+      if (cx >= 500 && cx <= 620 && cy >= 125 && cy <= 173) {
+        return {
+          id: "sonar",
+          label: "HC-SR04 Ultrasonic Distance Sensor",
+          cursor: "pointer",
+          box: { x: 500, y: 125, w: 120, h: 48 },
+          center: { x: 560, y: 149 }
+        };
+      }
+      if (Math.hypot(cx - 758, cy - 153) <= 24) {
+        return {
+          id: "buzzer",
+          label: "Radar Warning Buzzer (Pin D8)",
+          cursor: "pointer",
+          circle: { x: 758, y: 153, r: 22 },
+          center: { x: 758, y: 153 }
+        };
+      }
+      if (Math.hypot(cx - 680, cy - 135) <= 14) {
+        return { id: "led_warn", label: "Proximity Warning LED (Pin D13)", cursor: "pointer", circle: { x: 680, y: 135, r: 14 }, center: { x: 680, y: 135 } };
+      }
+    } else if (expId === "ldr_nightlight") {
+      if (Math.hypot(cx - 500, cy - 135) <= 18) {
+        return {
+          id: "ldr",
+          label: "Photoresistor / LDR Ambient Sensor",
+          cursor: "pointer",
+          circle: { x: 500, y: 135, r: 16 },
+          center: { x: 500, y: 135 }
+        };
+      }
+      if (Math.hypot(cx - 717, cy - 147) <= 22) {
+        return {
+          id: "pot",
+          label: "10kΩ Threshold Potentiometer (ADC A0)",
+          cursor: "grab",
+          box: { x: 698, y: 128, w: 38, h: 38 },
+          center: { x: 717, y: 147 }
+        };
+      }
+      if (Math.hypot(cx - 600, cy - 135) <= 14) {
+        return { id: "led_pwm", label: "Nightlight Dimming LED (PWM Pin ~9)", cursor: "pointer", circle: { x: 600, y: 135, r: 14 }, center: { x: 600, y: 135 } };
+      }
+    } else if (expId === "servo_control") {
+      if (cx >= 550 && cx <= 625 && cy >= 150 && cy <= 245) {
+        return {
+          id: "servo",
+          label: "SG90 Micro Servo Motor (PWM Pin ~9)",
+          cursor: "pointer",
+          box: { x: 550, y: 150, w: 75, h: 95 },
+          center: { x: 587, y: 197 }
+        };
+      }
+      if (Math.hypot(cx - 737, cy - 147) <= 22) {
+        return {
+          id: "pot",
+          label: "10kΩ Angle Steering Potentiometer (ADC A0)",
+          cursor: "grab",
+          box: { x: 718, y: 128, w: 38, h: 38 },
+          center: { x: 737, y: 147 }
+        };
+      }
+    } else if (expId === "chiptune_melody") {
+      if (Math.hypot(cx - 598, cy - 158) <= 26) {
+        return {
+          id: "buzzer",
+          label: "8-Bit Jukebox Piezo Transducer (Pin D8)",
+          cursor: "pointer",
+          circle: { x: 598, y: 158, r: 24 },
+          center: { x: 598, y: 158 }
+        };
+      }
+      if (Math.hypot(cx - 700, cy - 140) <= 14) {
+        return { id: "led_tempo", label: "Beat / Tempo LED (Pin D13)", cursor: "pointer", circle: { x: 700, y: 140, r: 14 }, center: { x: 700, y: 140 } };
+      }
+    } else if (expId === "weather_station") {
+      if (cx >= 480 && cx <= 710 && cy >= 105 && cy <= 195) {
+        return {
+          id: "lcd",
+          label: "16x2 Character LCD (HD44780)",
+          cursor: "pointer",
+          box: { x: 480, y: 105, w: 230, h: 90 },
+          center: { x: 595, y: 150 }
+        };
+      }
+      if (Math.hypot(cx - 740, cy - 135) <= 18) {
+        return {
+          id: "temp",
+          label: "TMP36 Analog Temperature Sensor (ADC A1)",
+          cursor: "pointer",
+          circle: { x: 740, y: 135, r: 16 },
+          center: { x: 740, y: 135 }
+        };
+      }
+    }
+
+    return null;
+  }
+
+  function updatePotValueFromCoords(cx, cy, center) {
+    if (!center) return;
+    const angle = Math.atan2(cy - center.y, cx - center.x);
+    let norm = (angle + 0.75 * Math.PI) / (1.5 * Math.PI);
+    if (norm < 0) norm = 0;
+    if (norm > 1) norm = 1;
+    const potVal = Math.round(norm * 1023);
+    state.components.potValue = Math.max(0, Math.min(1023, potVal));
+    if (sliderPot) sliderPot.value = state.components.potValue;
+    const volts = ((state.components.potValue / 1023) * 5.0).toFixed(2);
+    if (valPot) valPot.textContent = `${state.components.potValue} (${volts}V)`;
+    audio.playTactileClick(false);
+  }
+
+  function handleCanvasPointerDown(e) {
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
+    const target = getInteractiveTarget(coords.x, coords.y);
+    if (!target) return;
+
+    if (e.type === "touchstart") {
+      e.preventDefault();
+    }
+
+    if (target.id === "reset") {
+      resetMcuState();
+    } else if (target.id === "button") {
+      activeCanvasButton = true;
+      handleButtonDown();
+    } else if (target.id === "buzzer") {
+      const expId = ARDUINO_EXPERIMENTS[state.selectedExpIndex]?.id;
+      if (expId === "chiptune_melody") {
+        const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25];
+        const note = notes[Math.floor(Math.random() * notes.length)];
+        audio.playTone(note, 220);
+        addSerialLog(`Piezo Melody Keypress -> Tone ${note.toFixed(0)} Hz`);
+      } else {
+        audio.playTone(880, 180);
+        addSerialLog("Direct touch: Piezo Buzzer acoustic frequency test (880 Hz)");
+      }
+    } else if (target.id === "sonar") {
+      const frac = Math.max(0.05, Math.min(0.95, (coords.x - 500) / 120));
+      const dist = Math.round(frac * 120 * 10) / 10;
+      state.components.obstacleDistCm = dist;
+      if (sliderDist) sliderDist.value = dist;
+      if (valDist) valDist.textContent = `${dist.toFixed(1)} cm`;
+      audio.playSonarPing();
+      addSerialLog(`Acoustic Sonar Ping -> Target distance adjusted to ${dist.toFixed(1)} cm`);
+    } else if (target.id === "pot") {
+      isDraggingPot = true;
+      potDragCenter = target.center;
+      updatePotValueFromCoords(coords.x, coords.y, potDragCenter);
+    } else if (target.id === "ldr") {
+      const newLux = state.components.ldrLux > 250 ? 30 : 850;
+      state.components.ldrLux = newLux;
+      if (sliderLdr) sliderLdr.value = newLux;
+      if (valLdr) valLdr.textContent = `${newLux} Lux`;
+      audio.playTactileClick(true);
+      addSerialLog(newLux > 250 ? "Illumination applied: 850 Lux (Light ON)" : "Shadow covered LDR: 30 Lux (Night mode)");
+    } else if (target.id === "servo") {
+      const angles = [0, 45, 90, 135, 180];
+      const cur = state.components.currentServoAngle;
+      let nextAngle = angles.find(a => a > cur + 5);
+      if (nextAngle === undefined) nextAngle = angles[0];
+      state.components.currentServoAngle = nextAngle;
+      audio.playServoWhine(nextAngle);
+      addSerialLog(`Servo PWM signal commanded arm angle to ${nextAngle}°`);
+    } else if (target.id === "temp") {
+      const temps = [18.0, 25.0, 34.0, 45.0];
+      const cur = state.components.temperatureC;
+      let nextTemp = temps.find(t => t > cur + 1.0) || temps[0];
+      state.components.temperatureC = nextTemp;
+      if (sliderTemp) sliderTemp.value = nextTemp;
+      if (valTemp) valTemp.textContent = `${nextTemp.toFixed(1)} °C`;
+      audio.playTactileClick(true);
+      addSerialLog(`TMP36 thermal probe updated: ${nextTemp.toFixed(1)} °C`);
+    } else if (target.id === "usb") {
+      audio.playUploadChime();
+      addSerialLog("USB Serial link verified @ 115200 bps (CDC-ACM virtual port)");
+    } else if (target.id === "mcu") {
+      audio.playTactileClick(true);
+      addSerialLog("ATmega328P: Flash 32KB, SRAM 2KB, EEPROM 1KB, Core Clock 16 MHz");
+    } else if (target.id === "lcd") {
+      audio.playTactileClick(false);
+      addSerialLog("HD44780 LCD: 16x2 controller buffer refreshed");
+    } else if (target.id.startsWith("led_")) {
+      audio.playTactileClick(false);
+      addSerialLog(`${target.label} probed: Continuity verified`);
+    }
+  }
+
+  function handleCanvasPointerMove(e) {
+    const coords = getCanvasCoords(e);
+    if (!coords) return;
+
+    if (isDraggingPot && potDragCenter) {
+      if (e.type === "touchmove") e.preventDefault();
+      updatePotValueFromCoords(coords.x, coords.y, potDragCenter);
+      return;
+    }
+
+    hoveredTarget = getInteractiveTarget(coords.x, coords.y);
+    if (canvas) {
+      canvas.style.cursor = hoveredTarget ? (hoveredTarget.cursor || "pointer") : "default";
+    }
+  }
+
+  function handleCanvasPointerUp() {
+    if (activeCanvasButton) {
+      handleButtonUp();
+      activeCanvasButton = false;
+    }
+    isDraggingPot = false;
+    potDragCenter = null;
+  }
+
+  function handleCanvasPointerLeave() {
+    if (activeCanvasButton) {
+      handleButtonUp();
+      activeCanvasButton = false;
+    }
+    isDraggingPot = false;
+    potDragCenter = null;
+    hoveredTarget = null;
+    if (canvas) canvas.style.cursor = "default";
+  }
+
+  if (canvas) {
+    canvas.addEventListener("mousedown", handleCanvasPointerDown);
+    canvas.addEventListener("mousemove", handleCanvasPointerMove);
+    canvas.addEventListener("mouseup", handleCanvasPointerUp);
+    canvas.addEventListener("mouseleave", handleCanvasPointerLeave);
+    canvas.addEventListener("touchstart", handleCanvasPointerDown, { passive: false });
+    canvas.addEventListener("touchmove", handleCanvasPointerMove, { passive: false });
+    canvas.addEventListener("touchend", handleCanvasPointerUp, { passive: false });
+    canvas.addEventListener("touchcancel", handleCanvasPointerLeave, { passive: false });
+  }
+
+  // -------------------------------------------------------------------------
   // 60 FPS Canvas Rendering & Physics Engine
   // -------------------------------------------------------------------------
   function renderLoop(timestamp) {
@@ -1533,6 +1868,78 @@ export function initArduinoLab(containerId) {
 
     // 4. Draw Connecting Jumper Wires
     drawJumperWires(ctx);
+
+    // 5. Draw Canvas Interactive Hover Highlights & Component Tooltips
+    drawCanvasInteractions(ctx);
+  }
+
+  // Render Canvas Hover Feedback & Interactive Cues
+  function drawCanvasInteractions(c) {
+    if (!c) return;
+
+    // Persistent interactive hint pill on workbench mat
+    c.save();
+    c.fillStyle = "rgba(15, 23, 42, 0.75)";
+    c.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.roundRect(14, 12, 280, 22, [4, 4, 4, 4]);
+    c.fill();
+    c.stroke();
+
+    c.fillStyle = "#94a3b8";
+    c.font = "10px system-ui, -apple-system, sans-serif";
+    c.fillText("⚡ Interactive Workbench: Click & touch hardware components directly", 22, 27);
+    c.restore();
+
+    if (!hoveredTarget) return;
+
+    c.save();
+    // Pulse animation
+    const pulse = 0.5 + 0.5 * Math.sin(state.simTimeMs * 0.008);
+    c.strokeStyle = `rgba(56, 189, 248, ${0.4 + 0.5 * pulse})`;
+    c.lineWidth = 2;
+    c.setLineDash([4, 3]);
+
+    if (hoveredTarget.circle) {
+      c.beginPath();
+      c.arc(hoveredTarget.circle.x, hoveredTarget.circle.y, hoveredTarget.circle.r + 4, 0, Math.PI * 2);
+      c.stroke();
+    } else if (hoveredTarget.box) {
+      c.beginPath();
+      const b = hoveredTarget.box;
+      c.roundRect(b.x - 3, b.y - 3, b.w + 6, b.h + 6, [6, 6, 6, 6]);
+      c.stroke();
+    }
+    c.restore();
+
+    // Floating Tooltip Badge near cursor/target
+    c.save();
+    const tipText = `👆 ${hoveredTarget.label}`;
+    c.font = "bold 11px system-ui, -apple-system, sans-serif";
+    const tw = c.measureText(tipText).width;
+    const badgeW = tw + 22;
+    const badgeH = 24;
+    let badgeX = hoveredTarget.center.x - badgeW / 2;
+    let badgeY = hoveredTarget.center.y - (hoveredTarget.box ? hoveredTarget.box.h / 2 + 28 : 34);
+
+    if (badgeX < 10) badgeX = 10;
+    if (badgeX + badgeW > (canvas ? canvas.width : 850) - 10) badgeX = (canvas ? canvas.width : 850) - badgeW - 10;
+    if (badgeY < 10) badgeY = hoveredTarget.center.y + 30;
+
+    c.fillStyle = "rgba(5, 8, 17, 0.92)";
+    c.strokeStyle = "#38bdf8";
+    c.lineWidth = 1.2;
+    c.shadowColor = "rgba(0, 0, 0, 0.75)";
+    c.shadowBlur = 8;
+    c.beginPath();
+    c.roundRect(badgeX, badgeY, badgeW, badgeH, [5, 5, 5, 5]);
+    c.fill();
+    c.stroke();
+
+    c.fillStyle = "#38bdf8";
+    c.fillText(tipText, badgeX + 11, badgeY + 16);
+    c.restore();
   }
 
   // Render Photorealistic Arduino Uno R3 PCB
@@ -2194,6 +2601,16 @@ export function initArduinoLab(containerId) {
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
+    }
+    if (canvas) {
+      canvas.removeEventListener("mousedown", handleCanvasPointerDown);
+      canvas.removeEventListener("mousemove", handleCanvasPointerMove);
+      canvas.removeEventListener("mouseup", handleCanvasPointerUp);
+      canvas.removeEventListener("mouseleave", handleCanvasPointerLeave);
+      canvas.removeEventListener("touchstart", handleCanvasPointerDown);
+      canvas.removeEventListener("touchmove", handleCanvasPointerMove);
+      canvas.removeEventListener("touchend", handleCanvasPointerUp);
+      canvas.removeEventListener("touchcancel", handleCanvasPointerLeave);
     }
     audio.destroy();
   };
