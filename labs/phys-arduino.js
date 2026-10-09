@@ -1790,7 +1790,11 @@ export const AVAILABLE_PARTS = [
   { type: "seven_seg", name: "7-Segment Display", category: "Actuators", defaultPin: "3-9", icon: "📟", color: "#ef4444", desc: "Common-cathode LED display for numerical digits 0-9" },
   { type: "pir", name: "PIR Motion Sensor", category: "Sensors & Inputs", defaultPin: 2, icon: "🚶", color: "#10b981", desc: "Pyroelectric infrared detector with faceted Fresnel dome lens" },
   { type: "joystick", name: "2-Axis Thumbstick", category: "Sensors & Inputs", defaultPin: "A0,A1,D2", icon: "🕹️", color: "#64748b", desc: "Dual 10k potentiometers (X, Y) + integrated tactile pushbutton" },
-  { type: "lcd_1602", name: "16x2 Character LCD", category: "Passive & Display", defaultPin: "A4,A5", icon: "📺", color: "#047857", desc: "HD44780 controller alphanumeric display with backlit cyan matrix" }
+  { type: "lcd_1602", name: "16x2 Character LCD", category: "Passive & Display", defaultPin: "A4,A5", icon: "📺", color: "#047857", desc: "HD44780 controller alphanumeric display with backlit cyan matrix" },
+  { type: "dht11", name: "DHT11 Temp & Humidity", category: "Sensors & Inputs", defaultPin: 2, icon: "💧", color: "#38bdf8", desc: "Digital relative humidity (20-90% RH) and ambient temperature (0-50°C) single-bus sensor" },
+  { type: "bme280", name: "BME280 Barometer & Alt", category: "Sensors & Inputs", defaultPin: "A4,A5", icon: "🧭", color: "#06b6d4", desc: "Precision I2C atmospheric barometric pressure (300-1100 hPa) & altitude sensor" },
+  { type: "oled_ssd1306", name: "0.96\" I2C OLED Display", category: "Passive & Display", defaultPin: "A4,A5", icon: "📟", color: "#60a5fa", desc: "Monochrome 128x64 graphic OLED display module with SSD1306 driver via I2C" },
+  { type: "stepper_motor", name: "28BYJ-48 Stepper & Driver", category: "Actuators", defaultPin: "8-11", icon: "🔄", color: "#a855f7", desc: "5V 4-phase geared stepper motor with ULN2003 Darlington transistor array driver" }
 ];
 
 // ---------------------------------------------------------------------------
@@ -2059,6 +2063,190 @@ export function compileArduinoSketch(source) {
 }
 
 // ---------------------------------------------------------------------------
+// Circuit Schematic, SPICE Deck & Engineering BOM Netlist Exporter
+// ---------------------------------------------------------------------------
+export function exportCircuitNetlist(exp, wires = [], customComponents = []) {
+  const title = exp?.title || "Custom Arduino Project";
+  const dateStr = new Date().toISOString().split("T")[0];
+  const activeWires = Array.isArray(wires) ? wires : [];
+  const customComps = Array.isArray(customComponents) ? customComponents : [];
+
+  // 1. Generate SPICE Deck (.cir)
+  let spice = `* ===========================================================================\n`;
+  spice += `* EDUGATES STEM LAB - ARDUINO UNO R3 CIRCUIT NETLIST\n`;
+  spice += `* Project: ${title}\n`;
+  spice += `* Date: ${dateStr}\n`;
+  spice += `* Microcontroller: ATmega328P (8-Bit AVR RISC @ 16.0 MHz)\n`;
+  spice += `* Target Simulator: SPICE 3f5 / ngspice / LTspice Compatible\n`;
+  spice += `* ===========================================================================\n\n`;
+  spice += `* --- POWER RAILS & SUPPLIES ---\n`;
+  spice += `VCC 5V 0 DC 5.0\n`;
+  spice += `V33 3V3 0 DC 3.3\n`;
+  spice += `GND 0 0 0\n\n`;
+
+  spice += `* --- ARDUINO UNO R3 I/O NET CONNECTIONS ---\n`;
+  if (activeWires.length > 0) {
+    activeWires.forEach((w, idx) => {
+      const fromNet = (w.from || "NC").toUpperCase().replace(/[^A-Z0-9_]/g, "_");
+      const toNet = (w.to || "NC").toUpperCase().replace(/[^A-Z0-9_]/g, "_");
+      spice += `W${idx + 1} ${fromNet} ${toNet} 0.05 ; ${w.label || 'Jumper Wire'} (${w.color || '#fff'})\n`;
+    });
+  } else {
+    spice += `* No jumper wires connected\n`;
+  }
+
+  spice += `\n* --- PERIPHERALS & TRANSDUCERS ---\n`;
+  if (customComps.length > 0) {
+    customComps.forEach((c, idx) => {
+      const pinNet = `PIN_${c.pin || idx}`;
+      switch (c.type) {
+        case "led_red":
+        case "led_green":
+        case "led_yellow":
+        case "led_blue":
+          spice += `D_LED${idx + 1} ${pinNet} GND LED_${c.type.toUpperCase()} ; ${c.label}\n`;
+          spice += `R_LIM${idx + 1} ${pinNet} D_IN_${idx + 1} 220 ; 220 Ohm Current Limiter\n`;
+          break;
+        case "resistor":
+          spice += `R_CUSTOM${idx + 1} ${pinNet} GND ${c.state?.value || 220} ; ${c.label}\n`;
+          break;
+        case "potentiometer":
+          spice += `R_POT_A${idx + 1} 5V ${pinNet} 5000 ; ${c.label} High Side\n`;
+          spice += `R_POT_B${idx + 1} ${pinNet} GND 5000 ; ${c.label} Low Side\n`;
+          break;
+        case "piezo_buzzer":
+          spice += `L_BZ${idx + 1} ${pinNet} GND 10m ; ${c.label} Acoustic Coil\n`;
+          break;
+        case "dht11":
+          spice += `X_DHT${idx + 1} 5V GND ${pinNet} DHT11_SINGLE_BUS ; ${c.label}\n`;
+          break;
+        case "bme280":
+          spice += `X_BME${idx + 1} 5V GND SDA SCL BME280_I2C ; ${c.label}\n`;
+          break;
+        case "oled_ssd1306":
+          spice += `X_OLED${idx + 1} 5V GND SCL SDA SSD1306_I2C ; ${c.label}\n`;
+          break;
+        case "stepper_motor":
+          spice += `M_STEP${idx + 1} PIN_8 PIN_9 PIN_10 PIN_11 ULN2003_MOTOR ; ${c.label}\n`;
+          break;
+        default:
+          spice += `R_PULL${idx + 1} ${pinNet} 5V 10k ; ${c.label}\n`;
+      }
+    });
+  } else {
+    // Default peripheral schematic mapping based on experiment
+    const expWires = exp?.circuitWiring || [];
+    expWires.forEach((w, idx) => {
+      spice += `R_NET_${idx + 1} ${w.from} ${w.to} 0.01 ; Schematic Net (${w.color})\n`;
+    });
+  }
+
+  spice += `\n* --- SUBCIRCUIT DEFINITIONS ---\n`;
+  spice += `.SUBCKT DHT11_SINGLE_BUS VCC GND DATA\n`;
+  spice += `R_PULL VCC DATA 4.7k\n`;
+  spice += `C_HUM DATA GND 100p\n`;
+  spice += `.ENDS DHT11_SINGLE_BUS\n\n`;
+  spice += `.SUBCKT BME280_I2C VCC GND SDA SCL\n`;
+  spice += `R_SDA VCC SDA 10k\n`;
+  spice += `R_SCL VCC SCL 10k\n`;
+  spice += `C_BUS SDA GND 50p\n`;
+  spice += `.ENDS BME280_I2C\n\n`;
+  spice += `.SUBCKT SSD1306_I2C VCC GND SCL SDA\n`;
+  spice += `R_SCL VCC SCL 4.7k\n`;
+  spice += `R_SDA VCC SDA 4.7k\n`;
+  spice += `C_IN SCL GND 25p\n`;
+  spice += `.ENDS SSD1306_I2C\n\n`;
+  spice += `.SUBCKT ULN2003_MOTOR IN1 IN2 IN3 IN4\n`;
+  spice += `Q1 5V IN1 0 2N2222\n`;
+  spice += `Q2 5V IN2 0 2N2222\n`;
+  spice += `Q3 5V IN3 0 2N2222\n`;
+  spice += `Q4 5V IN4 0 2N2222\n`;
+  spice += `.ENDS ULN2003_MOTOR\n\n`;
+  spice += `* --- DIODE & ACTIVE DEVICE MODELS ---\n`;
+  spice += `.model LED_RED D(Is=1e-22 Rs=6 N=1.8 Cjo=40p)\n`;
+  spice += `.model LED_GREEN D(Is=1e-22 Rs=8 N=2.0 Cjo=35p)\n`;
+  spice += `.model LED_YELLOW D(Is=1e-22 Rs=7 N=1.9 Cjo=38p)\n`;
+  spice += `.model LED_BLUE D(Is=1e-22 Rs=12 N=2.8 Cjo=30p)\n`;
+  spice += `.model 1N4007 D(Is=7.02n Rs=34.15m N=1.8)\n`;
+  spice += `.model 2N2222 NPN(Is=14.34f Xti=3 Eg=1.11 Vaf=74.03 Bf=255.9)\n\n`;
+  spice += `* --- TRANSIENT ANALYSIS ---\n`;
+  spice += `.tran 100u 100m\n`;
+  spice += `.end\n`;
+
+  // 2. Generate JSON Netlist
+  const jsonNetlist = {
+    metadata: {
+      project: title,
+      id: exp?.id || "custom_project",
+      mcu: "ATmega328P",
+      frequency_mhz: 16.0,
+      supply_vcc: 5.0,
+      timestamp: new Date().toISOString()
+    },
+    wires: activeWires.map(w => ({
+      id: w.id,
+      from: w.from,
+      to: w.to,
+      color: w.color,
+      label: w.label || `${w.from} -> ${w.to}`,
+      net: `NET_${(w.from || "NC").toUpperCase().replace(/[^A-Z0-9_]/g, "_")}`
+    })),
+    components: customComps.length > 0 ? customComps.map(c => ({
+      id: c.id,
+      type: c.type,
+      label: c.label,
+      pin: c.pin,
+      x: c.x,
+      y: c.y,
+      state: c.state
+    })) : (exp?.blueprint4k?.bomList || []).map((b, i) => ({
+      id: `part_${i + 1}`,
+      label: b.item,
+      type: b.part,
+      qty: b.qty
+    }))
+  };
+
+  // 3. Generate Bill of Materials (BOM)
+  let bomItems = [];
+  if (customComps.length > 0) {
+    bomItems.push({ item: "Arduino Uno R3", part: "ATmega328P MCU Board", qty: 1, ref: "U1" });
+    bomItems.push({ item: "Solderless Breadboard", part: "Half-Size 400 Tie-Points", qty: 1, ref: "BB1" });
+    if (activeWires.length > 0) {
+      bomItems.push({ item: "Jumper Wires", part: "22 AWG Solid Core Male-to-Male", qty: activeWires.length, ref: `W1-W${activeWires.length}` });
+    }
+    customComps.forEach((c, idx) => {
+      bomItems.push({ item: c.label, part: c.type.toUpperCase(), qty: 1, ref: `COMP${idx + 1}` });
+    });
+  } else if (exp?.blueprint4k?.bomList && exp.blueprint4k.bomList.length > 0) {
+    bomItems = exp.blueprint4k.bomList.map((b, i) => ({
+      item: b.item,
+      part: b.part,
+      qty: b.qty,
+      ref: `E${i + 1}`
+    }));
+  } else {
+    bomItems = [
+      { item: "Arduino Uno R3", part: "ATmega328P Board", qty: 1, ref: "U1" },
+      { item: "Half Breadboard", part: "400 Tie Points", qty: 1, ref: "BB1" },
+      { item: "Assorted Jumpers", part: "Solid 22AWG", qty: activeWires.length || 5, ref: "W_NET" }
+    ];
+  }
+
+  let bomCsv = "Item,Reference,Part Description,Package / Type,Qty\n";
+  bomItems.forEach((b, idx) => {
+    bomCsv += `"${idx + 1}","${b.ref || ('P' + (idx + 1))}","${b.item}","${b.part}","${b.qty}"\n`;
+  });
+
+  return {
+    spice,
+    jsonNetlist,
+    bomCsv,
+    bomItems
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main Arduino Virtual Laboratory Controller
 // ---------------------------------------------------------------------------
 export function initArduinoLab(containerId) {
@@ -2135,6 +2323,12 @@ export function initArduinoLab(containerId) {
     hoveredWireIndex: -1,
     hoveredPin: null,
 
+    // Interactive Breadboard Component Drag & Relocation State
+    isDraggingComp: false,
+    draggedCompIndex: -1,
+    dragCompStart: { x: 0, y: 0 },
+    dragPointerStart: { x: 0, y: 0 },
+
     // Dual-Channel Digital Storage Oscilloscope (DSO) State
     dso: {
       ch1Probe: "pin13", // "pin13", "pwm9", "motor", "buzzer", "relay", "pin11"
@@ -2203,6 +2397,12 @@ export function initArduinoLab(containerId) {
           <button id="btn-arduino-report" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
             <span>📄</span>
             <span>Lab Report</span>
+          </button>
+
+          <!-- Export Schematic & CAD Netlist -->
+          <button id="btn-arduino-netlist" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Export CAD Netlist, SPICE Deck, and Bill of Materials">
+            <span>⚡</span>
+            <span>Netlist &amp; SPICE</span>
           </button>
 
           <!-- Reset Workbench -->
@@ -2622,6 +2822,9 @@ export function initArduinoLab(containerId) {
                   <option value="buzzer">D8 (Piezo Tone Audio)</option>
                   <option value="relay">D4 (Relay Armature)</option>
                   <option value="pin11">D11 (~PWM MOSI)</option>
+                  <option value="dht11">DHT11 (Single-Bus Digital)</option>
+                  <option value="bme280">BME280 (I2C Clock SCL)</option>
+                  <option value="stepper">Stepper (Phase A Coil)</option>
                 </select>
               </div>
 
@@ -2633,6 +2836,9 @@ export function initArduinoLab(containerId) {
                   <option value="ldr">A1 (LDR Optical Lux)</option>
                   <option value="temp">A2 (TMP36 Thermal Voltage)</option>
                   <option value="dist">Echo (Sonar Distance cm)</option>
+                  <option value="dht11">DHT11 (Single-Bus Digital)</option>
+                  <option value="bme280">BME280 (I2C Clock SCL)</option>
+                  <option value="stepper">Stepper (Phase A Coil)</option>
                 </select>
               </div>
             </div>
@@ -2794,6 +3000,57 @@ export function initArduinoLab(containerId) {
         </div>
       </div>
 
+      <!-- Interactive Schematic, SPICE & CAD Netlist Exporter Modal -->
+      <div id="modal-arduino-netlist" style="display: none; position: fixed; inset: 0; z-index: 99999; background: rgba(3, 7, 18, 0.88); backdrop-filter: blur(14px); overflow-y: auto; padding: 20px;" role="dialog" aria-modal="true" aria-labelledby="modal-netlist-title">
+        <div style="max-width: 960px; margin: 24px auto; background: #070c18; border: 1.5px solid rgba(56, 189, 248, 0.4); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85); overflow: hidden; display: flex; flex-direction: column;">
+          
+          <!-- Modal Header -->
+          <div style="padding: 16px 20px; background: linear-gradient(90deg, #0b1329, #0f172a); border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="font-size: 1.4rem;">⚡</span>
+              <div>
+                <h3 id="modal-netlist-title" style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #f8fafc;">
+                  Circuit Schematic &amp; CAD Netlist Exporter
+                </h3>
+                <div style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;">
+                  SPICE 3f5 Deck (.cir) · Programmatic JSON Netlist · Engineering Bill of Materials (BOM)
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button id="btn-copy-netlist" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+                📋 Copy
+              </button>
+              <button id="btn-download-netlist" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; background: #0284c7;">
+                💾 Download
+              </button>
+              <button id="btn-close-netlist-modal" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.85rem; border-radius: 8px;" aria-label="Close modal">
+                ✖ Close
+              </button>
+            </div>
+          </div>
+
+          <!-- Format Switcher Tabs -->
+          <div style="padding: 10px 20px; background: rgba(15, 23, 42, 0.6); border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; gap: 8px;">
+            <button id="btn-netlist-tab-spice" class="btn btn-secondary active" style="padding: 5px 14px; font-size: 0.76rem; font-weight: 700; border-radius: 6px;">
+              🔌 SPICE Deck (.cir)
+            </button>
+            <button id="btn-netlist-tab-json" class="btn btn-secondary" style="padding: 5px 14px; font-size: 0.76rem; font-weight: 600; border-radius: 6px; background: transparent;">
+              📄 JSON Netlist
+            </button>
+            <button id="btn-netlist-tab-bom" class="btn btn-secondary" style="padding: 5px 14px; font-size: 0.76rem; font-weight: 600; border-radius: 6px; background: transparent;">
+              📊 BOM Table (CSV)
+            </button>
+          </div>
+
+          <!-- Content Box -->
+          <div style="padding: 20px; max-height: 480px; overflow-y: auto;">
+            <pre id="netlist-content-box" style="margin: 0; background: #030712; border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 16px; color: #a5f3fc; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 0.78rem; line-height: 1.6; white-space: pre-wrap; user-select: text;"></pre>
+          </div>
+        </div>
+      </div>
+
       <!-- Interactive Competency Checkpoint Questions Container -->
       <div id="arduino-checkpoint-mount" style="margin-top: 18px;"></div>
     </div>
@@ -2931,6 +3188,19 @@ export function initArduinoLab(containerId) {
   const modal4kBom = document.getElementById("modal-4k-bom");
   const blueprintContentBox = document.getElementById("blueprint-content-box");
   const expDifficultyBadge = document.getElementById("exp-difficulty-badge");
+
+  // Circuit Schematic & CAD Netlist Modal Elements
+  const btnArduinoNetlist = document.getElementById("btn-arduino-netlist");
+  const modalNetlist = document.getElementById("modal-arduino-netlist");
+  const btnCloseNetlistModal = document.getElementById("btn-close-netlist-modal");
+  const btnCopyNetlist = document.getElementById("btn-copy-netlist");
+  const btnDownloadNetlist = document.getElementById("btn-download-netlist");
+  const btnNetlistTabSpice = document.getElementById("btn-netlist-tab-spice");
+  const btnNetlistTabJson = document.getElementById("btn-netlist-tab-json");
+  const btnNetlistTabBom = document.getElementById("btn-netlist-tab-bom");
+  const netlistContentBox = document.getElementById("netlist-content-box");
+  let currentNetlistTab = "spice";
+  let cachedNetlistData = null;
 
   // Wire Routing Toolbar Elements
   const btnToggleWireMode = document.getElementById("btn-toggle-wire-mode");
@@ -3447,6 +3717,133 @@ export function initArduinoLab(containerId) {
   btnDownload4kPng?.addEventListener("click", () => {
     const exp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
     if (exp) export4kUhdPicture(exp);
+  });
+
+  // 1b-2. Circuit Schematic & CAD Netlist Modal Handlers
+  function updateNetlistModalView() {
+    const exp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
+    if (!exp) return;
+    cachedNetlistData = exportCircuitNetlist(exp, state.wires, state.components.customPlacedComponents || []);
+
+    const tabs = [
+      { id: "spice", btn: btnNetlistTabSpice },
+      { id: "json", btn: btnNetlistTabJson },
+      { id: "bom", btn: btnNetlistTabBom }
+    ];
+
+    tabs.forEach(t => {
+      if (t.btn) {
+        if (currentNetlistTab === t.id) {
+          t.btn.classList.add("active");
+          t.btn.style.background = "#0284c7";
+          t.btn.style.fontWeight = "700";
+        } else {
+          t.btn.classList.remove("active");
+          t.btn.style.background = "transparent";
+          t.btn.style.fontWeight = "600";
+        }
+      }
+    });
+
+    if (!netlistContentBox) return;
+    if (currentNetlistTab === "spice") {
+      netlistContentBox.textContent = cachedNetlistData.spice;
+    } else if (currentNetlistTab === "json") {
+      netlistContentBox.textContent = JSON.stringify(cachedNetlistData.jsonNetlist, null, 2);
+    } else if (currentNetlistTab === "bom") {
+      netlistContentBox.textContent = cachedNetlistData.bomCsv;
+    }
+  }
+
+  btnArduinoNetlist?.addEventListener("click", () => {
+    updateNetlistModalView();
+    if (modalNetlist) modalNetlist.style.display = "block";
+    audio.playTactileClick(false);
+  });
+
+  btnCloseNetlistModal?.addEventListener("click", () => {
+    if (modalNetlist) modalNetlist.style.display = "none";
+    audio.playTactileClick(false);
+  });
+
+  modalNetlist?.addEventListener("click", (e) => {
+    if (e.target === modalNetlist) {
+      modalNetlist.style.display = "none";
+      audio.playTactileClick(false);
+    }
+  });
+
+  btnNetlistTabSpice?.addEventListener("click", () => {
+    currentNetlistTab = "spice";
+    updateNetlistModalView();
+    audio.playTactileClick(false);
+  });
+
+  btnNetlistTabJson?.addEventListener("click", () => {
+    currentNetlistTab = "json";
+    updateNetlistModalView();
+    audio.playTactileClick(false);
+  });
+
+  btnNetlistTabBom?.addEventListener("click", () => {
+    currentNetlistTab = "bom";
+    updateNetlistModalView();
+    audio.playTactileClick(false);
+  });
+
+  btnCopyNetlist?.addEventListener("click", () => {
+    if (!netlistContentBox) return;
+    const text = netlistContentBox.textContent || "";
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        const origText = btnCopyNetlist.textContent;
+        btnCopyNetlist.textContent = "✅ Copied!";
+        setTimeout(() => { btnCopyNetlist.textContent = origText; }, 1800);
+      }).catch(() => {
+        addSerialLog("Failed to copy netlist to clipboard");
+      });
+    }
+    audio.playTactileClick(true);
+    addSerialLog(`Copied ${currentNetlistTab.toUpperCase()} netlist deck to clipboard`);
+  });
+
+  btnDownloadNetlist?.addEventListener("click", () => {
+    if (!cachedNetlistData) updateNetlistModalView();
+    if (!cachedNetlistData) return;
+    const exp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
+    const baseName = (exp?.id || "arduino_circuit") + "_netlist";
+    let filename = "";
+    let mimeType = "text/plain";
+    let content = "";
+
+    if (currentNetlistTab === "spice") {
+      filename = `${baseName}.cir`;
+      content = cachedNetlistData.spice;
+    } else if (currentNetlistTab === "json") {
+      filename = `${baseName}.json`;
+      mimeType = "application/json";
+      content = JSON.stringify(cachedNetlistData.jsonNetlist, null, 2);
+    } else {
+      filename = `${baseName}_bom.csv`;
+      mimeType = "text/csv";
+      content = cachedNetlistData.bomCsv;
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    if (document.body) {
+      document.body.appendChild(a);
+      if (typeof a.click === "function") a.click();
+      if (typeof document.body.removeChild === "function") {
+        document.body.removeChild(a);
+      }
+    }
+    if (typeof URL.revokeObjectURL === "function") URL.revokeObjectURL(url);
+    audio.playTactileClick(true);
+    addSerialLog(`Exported CAD file: ${filename}`);
   });
 
   // 1c. Difficulty Tier Filter Pills Handler
@@ -4301,15 +4698,16 @@ export function initArduinoLab(containerId) {
       if (state.components.customPlacedComponents && state.components.customPlacedComponents.length > 0) {
         for (let i = state.components.customPlacedComponents.length - 1; i >= 0; i--) {
           const comp = state.components.customPlacedComponents[i];
-          const px = 450 + comp.x;
-          const py = 60 + comp.y;
-          if (Math.hypot(cx - px, cy - py) <= 25) {
+          const px = 420 + comp.x;
+          const py = 55 + comp.y;
+          if (Math.hypot(cx - px, cy - py) <= 26) {
             return {
-              id: comp.id,
+              id: "custom_comp",
+              compIndex: i,
               customComp: comp,
               label: `${comp.label} (Pin ${comp.pin})`,
-              cursor: "pointer",
-              circle: { x: px, y: py, r: 24 },
+              cursor: "grab",
+              circle: { x: px, y: py, r: 26 },
               center: { x: px, y: py }
             };
           }
@@ -4469,8 +4867,14 @@ export function initArduinoLab(containerId) {
       state.components.pin13Led = state.components.buttonToggleState;
       audio.playTactileClick(state.components.buttonToggleState);
       addSerialLog(`Toggle LED tapped: ${state.components.buttonToggleState ? "HIGH (ON)" : "LOW (OFF)"}`);
-    } else if (target.customComp) {
+    } else if (target.id === "custom_comp" || target.customComp) {
       const comp = target.customComp;
+      state.isDraggingComp = true;
+      state.draggedCompIndex = target.compIndex !== undefined ? target.compIndex : (state.components.customPlacedComponents ? state.components.customPlacedComponents.indexOf(comp) : -1);
+      state.dragCompStart = { x: comp.x, y: comp.y };
+      state.dragPointerStart = { x: coords.x, y: coords.y };
+      if (canvas) canvas.style.cursor = "grabbing";
+
       if (comp.type.includes("button") || comp.type.includes("switch")) {
         comp.state = comp.state || {};
         comp.state.pressed = !comp.state.pressed;
@@ -4488,8 +4892,8 @@ export function initArduinoLab(containerId) {
         audio.setMotorWhine(state.components.motorSpeed / 255);
         addSerialLog(`${comp.label}: Motor speed toggled`);
       } else {
-        audio.playTactileClick(false);
-        addSerialLog(`${comp.label}: Pin ${comp.pin} tested`);
+        audio.playTactileClick(true);
+        addSerialLog(`Picked up ${comp.label} (Drag across breadboard to relocate)`);
       }
     } else if (target.id.startsWith("led_")) {
       audio.playTactileClick(false);
@@ -4512,6 +4916,38 @@ export function initArduinoLab(containerId) {
         state.wireDrawing.curY = coords.y;
       }
       if (canvas) canvas.style.cursor = "crosshair";
+      return;
+    }
+
+    if (state.isDraggingComp && state.draggedCompIndex >= 0) {
+      if (e.type === "touchmove") e.preventDefault();
+      const comp = state.components.customPlacedComponents ? state.components.customPlacedComponents[state.draggedCompIndex] : null;
+      if (comp) {
+        const dx = coords.x - state.dragPointerStart.x;
+        const dy = coords.y - state.dragPointerStart.y;
+        const rawX = state.dragCompStart.x + dx;
+        const rawY = state.dragCompStart.y + dy;
+
+        // Snap to breadboard tie-point column pitch (12.5px) and row pitch (14px)
+        const snappedX = Math.round(rawX / 12.5) * 12.5;
+        const snappedY = Math.round(rawY / 14.0) * 14.0;
+
+        comp.x = Math.max(30, Math.min(340, snappedX));
+        comp.y = Math.max(40, Math.min(270, snappedY));
+
+        // Dynamically update connecting wires if any
+        (state.wires || []).forEach(w => {
+          if (w.to === comp.id || w.to === comp.label) {
+            w.ex = 420 + comp.x;
+            w.ey = 55 + comp.y;
+          }
+          if (w.from === comp.id || w.from === comp.label) {
+            w.sx = 420 + comp.x;
+            w.sy = 55 + comp.y;
+          }
+        });
+      }
+      if (canvas) canvas.style.cursor = "grabbing";
       return;
     }
 
@@ -4552,6 +4988,19 @@ export function initArduinoLab(containerId) {
       state.wireDrawing.active = false;
     }
 
+    if (state.isDraggingComp) {
+      const comp = state.components.customPlacedComponents ? state.components.customPlacedComponents[state.draggedCompIndex] : null;
+      state.isDraggingComp = false;
+      state.draggedCompIndex = -1;
+      if (comp) {
+        audio.playTactileClick(false);
+        addSerialLog(`Dropped ${comp.label} at breadboard slot (${Math.round(comp.x)}, ${Math.round(comp.y)})`);
+        renderCustomChips();
+      }
+      if (canvas) canvas.style.cursor = state.isWireMode ? "crosshair" : "default";
+      return;
+    }
+
     if (activeCanvasButton) {
       handleButtonUp();
       activeCanvasButton = false;
@@ -4563,6 +5012,10 @@ export function initArduinoLab(containerId) {
   function handleCanvasPointerLeave() {
     if (state.wireDrawing && state.wireDrawing.active) {
       state.wireDrawing.active = false;
+    }
+    if (state.isDraggingComp) {
+      state.isDraggingComp = false;
+      state.draggedCompIndex = -1;
     }
     if (activeCanvasButton) {
       handleButtonUp();
@@ -4643,6 +5096,22 @@ export function initArduinoLab(containerId) {
       case "ldr": return Math.min(5.0, ((state.components.ldrLux || 0) / 1000) * 5.0);
       case "temp": return Math.min(5.0, Math.max(0.0, ((state.components.temperatureC || 20) * 0.01) + 0.5));
       case "dist": return Math.min(5.0, ((state.components.obstacleDistCm || 0) / 100) * 5.0);
+      case "dht11": {
+        // DHT11 1-wire communication frame (idle high at 5V with periodic digital bursts)
+        const inBurst = (t % 1200) < 60;
+        return inBurst ? (((t % 6) < 3) ? 0.2 : 4.8) : 5.0;
+      }
+      case "bme280": {
+        // I2C 3.3V clock/data bus activity bursts
+        const inI2c = (t % 600) < 40;
+        return inI2c ? (((t % 4) < 2) ? 0.3 : 3.3) : 3.3;
+      }
+      case "stepper": {
+        // 4-Phase Stepper driver pulse train (0V to 5V)
+        const stepRate = 25; // 25 Hz
+        const stepState = Math.floor((t * 0.001 * stepRate) % 4);
+        return (stepState === 0 || stepState === 2) ? 5.0 : 0.0;
+      }
       default: return 0.0;
     }
   }
@@ -4977,6 +5446,43 @@ export function initArduinoLab(containerId) {
     c.font = "10px system-ui, -apple-system, sans-serif";
     c.fillText("⚡ Interactive Workbench: Click & touch hardware components directly", 22, 27);
     c.restore();
+
+    // Visual reticle & snapping badge while actively dragging a breadboard component
+    if (state.isDraggingComp && state.draggedCompIndex >= 0) {
+      const comp = state.components.customPlacedComponents ? state.components.customPlacedComponents[state.draggedCompIndex] : null;
+      if (comp) {
+        const cx = 420 + comp.x;
+        const cy = 55 + comp.y;
+        const colNum = Math.round((comp.x - 35) / 12.5) + 1;
+
+        // Snapping reticle crosshair
+        c.save();
+        c.strokeStyle = "#06b6d4";
+        c.lineWidth = 1.5;
+        c.setLineDash([4, 2]);
+        c.beginPath();
+        c.moveTo(cx - 36, cy);
+        c.lineTo(cx + 36, cy);
+        c.moveTo(cx, cy - 36);
+        c.lineTo(cx, cy + 36);
+        c.stroke();
+
+        // Dragging HUD badge
+        const dragTip = `🎯 Relocating ${comp.label} · Tie-Point Col ${Math.max(1, Math.min(26, colNum))}`;
+        c.font = "bold 11px system-ui, -apple-system, sans-serif";
+        const dtw = c.measureText(dragTip).width;
+        c.fillStyle = "rgba(6, 182, 212, 0.95)";
+        c.shadowColor = "rgba(0,0,0,0.8)";
+        c.shadowBlur = 10;
+        c.beginPath();
+        c.roundRect(cx - dtw / 2 - 12, cy - 46, dtw + 24, 24, [6, 6, 6, 6]);
+        c.fill();
+        c.fillStyle = "#020617";
+        c.fillText(dragTip, cx - dtw / 2, cy - 30);
+        c.restore();
+        return;
+      }
+    }
 
     if (!hoveredTarget) return;
 
@@ -5396,7 +5902,7 @@ export function initArduinoLab(containerId) {
     } else if (expId === "custom_sandbox") {
       // Custom Project Sandbox: Render custom placed components
       if (state.components.customPlacedComponents && state.components.customPlacedComponents.length > 0) {
-        state.components.customPlacedComponents.forEach(comp => {
+        state.components.customPlacedComponents.forEach((comp, idx) => {
           const cx = bx + comp.x;
           const cy = by + comp.y;
           switch (comp.type) {
@@ -5416,52 +5922,111 @@ export function initArduinoLab(containerId) {
               drawRgbLed(c, cx, cy, state.components.rgbColor, comp.label);
               break;
             case "resistor":
-              drawResistor(c, cx, cy, comp.state?.value || 220, comp.label);
+            case "resistor_10k":
+              drawResistor(c, cx, cy, comp.type === "resistor_10k" ? 10000 : (comp.state?.value || 220), comp.label);
+              break;
+            case "capacitor":
+              // Disc ceramic decoupling capacitor
+              c.save();
+              c.strokeStyle = "#94a3b8";
+              c.lineWidth = 1.5;
+              c.beginPath();
+              c.moveTo(cx - 3, cy + 8); c.lineTo(cx - 3, cy + 20);
+              c.moveTo(cx + 3, cy + 8); c.lineTo(cx + 3, cy + 20);
+              c.stroke();
+              c.fillStyle = "#f59e0b";
+              c.beginPath();
+              c.arc(cx, cy, 8, 0, Math.PI * 2);
+              c.fill();
+              c.fillStyle = "#0f172a";
+              c.font = "bold 6px monospace";
+              c.textAlign = "center";
+              c.fillText("104", cx, cy + 2);
+              c.textAlign = "left";
+              c.restore();
               break;
             case "pushbutton":
               drawTactileSwitch(c, cx, cy, state.components.buttonPressed || comp.state?.pressed, comp.label);
               break;
+            case "toggle_switch":
             case "slide_switch":
               drawSlideSwitch(c, cx, cy, state.components.toggleSwitchOn, comp.label);
               break;
             case "potentiometer":
               drawPotTrim(c, cx, cy, state.components.potValue, comp.label);
               break;
+            case "buzzer":
             case "piezo_buzzer":
               drawPiezoBuzzer(c, cx, cy, state.components.pin13Led, false, comp.label);
               break;
+            case "ultrasonic":
             case "ultrasonic_sonar":
               drawUltrasonicModule(c, cx, cy, state.components.obstacleDistCm);
               break;
+            case "ldr":
             case "ldr_sensor":
               drawLdrComponent(c, cx, cy, state.components.ldrLux);
               break;
+            case "tmp36":
             case "tmp36_temp":
               drawTmp36Sensor(c, cx, cy, state.components.temperatureC);
               break;
+            case "servo":
             case "servo_motor":
               drawServoMotor(c, cx, cy, state.components.currentServoAngle);
               break;
+            case "dc_motor":
             case "dc_motor_fan":
               drawDcMotorFan(c, cx, cy, state.components.motorSpeed, state.components.currentMotorAngle);
               break;
+            case "relay":
             case "relay_module":
               drawRelayModule(c, cx, cy, state.components.relayActive);
               break;
+            case "seven_seg":
             case "seven_segment":
               drawSevenSegment(c, cx, cy, state.components.sevenSegDigit);
               break;
+            case "pir":
             case "pir_motion":
               drawPirSensor(c, cx, cy, state.components.pirMotionDetected);
               break;
+            case "joystick":
             case "joystick_thumb":
               drawJoystickModule(c, cx, cy, state.components.potValue, 512, state.components.buttonPressed);
               break;
+            case "lcd_1602":
             case "lcd_16x2":
               drawLcdModule(c, cx, cy, state.components.lcdLines);
               break;
+            case "dht11":
+              drawDhtSensor(c, cx, cy, state.components.temperatureC || 24, 55);
+              break;
+            case "bme280":
+              drawBme280Module(c, cx, cy, 1013.25, state.components.temperatureC || 24);
+              break;
+            case "oled_ssd1306":
+              drawOledDisplay(c, cx, cy, ["SSD1306 OLED", "I2C 0x3C 128x64", "SYS: OK"], true);
+              break;
+            case "stepper_motor":
+              drawStepperMotor(c, cx, cy, (state.simTimeMs * 0.1) % 360, Math.floor((state.simTimeMs * 0.02) % 4));
+              break;
             default:
               drawLargeLed(c, cx, cy, "#38bdf8", true, comp.label);
+          }
+
+          // Active dragging ring cue on currently dragged component
+          if (state.isDraggingComp && state.draggedCompIndex === idx) {
+            c.save();
+            c.strokeStyle = "#22d3ee";
+            c.lineWidth = 2.2;
+            c.setLineDash([5, 4]);
+            c.shadowColor = "#22d3ee";
+            c.shadowBlur = 10;
+            c.beginPath();
+            c.arc(cx, cy, 28, 0, Math.PI * 2);
+            c.stroke();
+            c.restore();
           }
         });
       } else {
@@ -6355,6 +6920,280 @@ export function initArduinoLab(containerId) {
     c.fillStyle = "#0f172a";
     c.font = "bold 7px sans-serif";
     c.fillText("DRIVER", tx + 4, ty + 28);
+  }
+
+  // 10. Photorealistic DHT11 Digital Temperature & Humidity Sensor
+  function drawDhtSensor(c, cx, cy, tempC = 24, humidityRh = 55) {
+    c.save();
+    // Metal pins dropping down to breadboard tie points
+    c.strokeStyle = "#94a3b8";
+    c.lineWidth = 1.6;
+    for (let i = 0; i < 4; i++) {
+      const px = cx - 9 + i * 6;
+      c.beginPath();
+      c.moveTo(px, cy + 18);
+      c.lineTo(px, cy + 28);
+      c.stroke();
+    }
+
+    // DHT11 Sky Blue Plastic Perforated Enclosure
+    c.fillStyle = "#0284c7";
+    c.shadowColor = "rgba(0,0,0,0.5)";
+    c.shadowBlur = 8;
+    c.beginPath();
+    c.roundRect(cx - 16, cy - 22, 32, 40, [4, 4, 4, 4]);
+    c.fill();
+    c.restore();
+
+    // Subtle 3D gradient highlight on plastic shell
+    const grad = c.createLinearGradient(cx - 16, cy - 22, cx + 16, cy + 18);
+    grad.addColorStop(0, "rgba(255,255,255,0.22)");
+    grad.addColorStop(0.5, "transparent");
+    grad.addColorStop(1, "rgba(0,0,0,0.28)");
+    c.fillStyle = grad;
+    c.beginPath();
+    c.roundRect(cx - 16, cy - 22, 32, 40, [4, 4, 4, 4]);
+    c.fill();
+
+    // Ventilation slotted air intake grill (matrix of slots)
+    c.fillStyle = "#0369a1";
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 3; col++) {
+        c.fillRect(cx - 11 + col * 8, cy - 16 + row * 6, 6, 2.5);
+      }
+    }
+
+    // Silkscreen brand & live telemetry readout
+    c.fillStyle = "#f0f9ff";
+    c.font = "bold 6.5px monospace";
+    c.textAlign = "center";
+    c.fillText("DHT11", cx, cy + 13);
+    c.fillStyle = "#0f172a";
+    c.font = "bold 7.5px sans-serif";
+    c.fillText(`${Math.round(tempC)}°C · ${Math.round(humidityRh)}%RH`, cx, cy + 38);
+    c.textAlign = "left";
+  }
+
+  // 11. Photorealistic BME280 Precision I2C Barometer & Environmental Sensor
+  function drawBme280Module(c, cx, cy, pressureHpa = 1013.25, tempC = 24) {
+    c.save();
+    // Purple Breakout PCB
+    c.fillStyle = "#6d28d9";
+    c.shadowColor = "rgba(0,0,0,0.5)";
+    c.shadowBlur = 8;
+    c.beginPath();
+    c.roundRect(cx - 16, cy - 20, 32, 42, [4, 4, 4, 4]);
+    c.fill();
+    c.restore();
+
+    // Gold mounting hole & corner trace accents
+    c.fillStyle = "#facc15";
+    c.beginPath();
+    c.arc(cx - 10, cy - 14, 2, 0, Math.PI * 2);
+    c.fill();
+
+    // Central Silver Metal MEMS Sensor Can with vent hole
+    c.save();
+    c.fillStyle = "#e2e8f0";
+    c.strokeStyle = "#94a3b8";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.roundRect(cx - 8, cy - 9, 16, 14, [2, 2, 2, 2]);
+    c.fill();
+    c.stroke();
+    // Pinhole barometer air inlet
+    c.fillStyle = "#0f172a";
+    c.beginPath();
+    c.arc(cx - 3, cy - 3, 1.2, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+
+    // Surface Mount I2C Pullups & 3.3V LDO IC
+    c.fillStyle = "#1e293b";
+    c.fillRect(cx - 11, cy + 9, 6, 4);
+    c.fillRect(cx + 5, cy + 9, 6, 4);
+
+    // 6-Pin Gold Breakout Pads at bottom
+    c.fillStyle = "#facc15";
+    for (let i = 0; i < 6; i++) {
+      c.beginPath();
+      c.arc(cx - 12.5 + i * 5, cy + 18, 1.5, 0, Math.PI * 2);
+      c.fill();
+    }
+
+    // Silkscreen
+    c.fillStyle = "#ede9fe";
+    c.font = "bold 6.5px monospace";
+    c.textAlign = "center";
+    c.fillText("BME280", cx, cy - 3);
+    c.fillStyle = "#0f172a";
+    c.font = "bold 7.5px sans-serif";
+    c.fillText(`${Math.round(pressureHpa)} hPa`, cx, cy + 34);
+    c.textAlign = "left";
+  }
+
+  // 12. Photorealistic 0.96" SSD1306 Graphic I2C OLED Module (128x64)
+  function drawOledDisplay(c, cx, cy, lines = ["SSD1306 OLED", "I2C 0x3C 128x64", "SYS: OK"], isPowered = true) {
+    c.save();
+    // Blue / Dark Blue PCB Carrier Base
+    c.fillStyle = "#0f172a";
+    c.shadowColor = "rgba(0,0,0,0.6)";
+    c.shadowBlur = 10;
+    c.beginPath();
+    c.roundRect(cx - 38, cy - 26, 76, 54, [5, 5, 5, 5]);
+    c.fill();
+    c.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    c.lineWidth = 1;
+    c.stroke();
+    c.restore();
+
+    // 4 Corner Gold Mounting Holes
+    c.fillStyle = "#facc15";
+    [[-33, -21], [33, -21], [-33, 23], [33, 23]].forEach(([ox, oy]) => {
+      c.beginPath();
+      c.arc(cx + ox, cy + oy, 2, 0, Math.PI * 2);
+      c.fill();
+    });
+
+    // 4-Pin I2C Header at Top (GND, VCC, SCL, SDA)
+    for (let i = 0; i < 4; i++) {
+      const hx = cx - 12 + i * 8;
+      c.fillStyle = "#475569";
+      c.fillRect(hx - 2, cy - 25, 4, 3);
+      c.fillStyle = "#facc15";
+      c.beginPath();
+      c.arc(hx, cy - 23.5, 1.2, 0, Math.PI * 2);
+      c.fill();
+    }
+
+    // Glossy Black Glass OLED Panel Window
+    c.fillStyle = "#020617";
+    c.beginPath();
+    c.roundRect(cx - 32, cy - 16, 64, 38, [2, 2, 2, 2]);
+    c.fill();
+    c.strokeStyle = "#334155";
+    c.lineWidth = 0.8;
+    c.stroke();
+
+    if (isPowered) {
+      c.save();
+      // Glowing Cyan Pixels
+      c.fillStyle = "#22d3ee";
+      c.shadowColor = "#06b6d4";
+      c.shadowBlur = 5;
+      c.font = "bold 6.5px 'JetBrains Mono', monospace";
+      c.fillText(lines[0] || "SSD1306 OLED", cx - 28, cy - 6);
+      c.font = "6px 'JetBrains Mono', monospace";
+      c.fillText(lines[1] || "I2C 0x3C 128x64", cx - 28, cy + 4);
+
+      // Mini dynamic graphic oscillogram / telemetry graph
+      c.strokeStyle = "#38bdf8";
+      c.lineWidth = 1.2;
+      c.beginPath();
+      const waveT = state.simTimeMs * 0.006;
+      for (let x = 0; x < 54; x += 3) {
+        const y = Math.sin(waveT + x * 0.2) * 5;
+        if (x === 0) c.moveTo(cx - 27 + x, cy + 14 + y);
+        else c.lineTo(cx - 27 + x, cy + 14 + y);
+      }
+      c.stroke();
+      c.restore();
+    }
+
+    c.fillStyle = "#0f172a";
+    c.font = "bold 7.5px sans-serif";
+    c.textAlign = "center";
+    c.fillText("0.96\" OLED (I2C)", cx, cy + 39);
+    c.textAlign = "left";
+  }
+
+  // 13. Photorealistic 28BYJ-48 Stepper Motor + ULN2003 Driver Array
+  function drawStepperMotor(c, cx, cy, angleDeg = 0, phase = 0) {
+    c.save();
+    // Metal mounting ears / flanges
+    c.fillStyle = "#94a3b8";
+    c.beginPath();
+    c.roundRect(cx - 32, cy - 8, 64, 16, [4, 4, 4, 4]);
+    c.fill();
+    // Mounting ear screw slots
+    c.fillStyle = "#f8fafc";
+    c.beginPath();
+    c.arc(cx - 26, cy, 3, 0, Math.PI * 2);
+    c.arc(cx + 26, cy, 3, 0, Math.PI * 2);
+    c.fill();
+
+    // Round Cylindrical Motor Body (Silver metallic gradient)
+    const mGrad = c.createRadialGradient(cx - 5, cy - 5, 2, cx, cy, 22);
+    mGrad.addColorStop(0, "#f1f5f9");
+    mGrad.addColorStop(0.7, "#94a3b8");
+    mGrad.addColorStop(1, "#475569");
+    c.fillStyle = mGrad;
+    c.shadowColor = "rgba(0,0,0,0.55)";
+    c.shadowBlur = 10;
+    c.beginPath();
+    c.arc(cx, cy, 20, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+
+    // Central Brass D-Shaft with flat keyway
+    c.save();
+    c.translate(cx, cy);
+    c.rotate(angleDeg * (Math.PI / 180));
+    // Brass gear collar
+    c.fillStyle = "#ca8a04";
+    c.beginPath();
+    c.arc(0, 0, 7.5, 0, Math.PI * 2);
+    c.fill();
+    // D-Shaft profile
+    c.fillStyle = "#eab308";
+    c.beginPath();
+    c.arc(0, 0, 5, -0.6 * Math.PI, 0.6 * Math.PI, false);
+    c.closePath();
+    c.fill();
+    c.strokeStyle = "#a16207";
+    c.lineWidth = 1;
+    c.stroke();
+    c.restore();
+
+    // 5-Color Wire Harness Bundle Ribbon (Blue, Pink, Yellow, Orange, Red)
+    const wireColors = ["#3b82f6", "#ec4899", "#eab308", "#f97316", "#ef4444"];
+    wireColors.forEach((wc, i) => {
+      c.strokeStyle = wc;
+      c.lineWidth = 1.5;
+      c.beginPath();
+      c.moveTo(cx + 18, cy - 6 + i * 3);
+      c.bezierCurveTo(cx + 28, cy - 6 + i * 3, cx + 24, cy + 16 + i * 2, cx + 34, cy + 22 + i * 2);
+      c.stroke();
+    });
+
+    // ULN2003 Driver Mini-Board Indicator (4 LEDs A, B, C, D)
+    c.save();
+    c.fillStyle = "#1e293b";
+    c.beginPath();
+    c.roundRect(cx - 30, cy + 22, 28, 14, [2, 2, 2, 2]);
+    c.fill();
+    for (let p = 0; p < 4; p++) {
+      const ledX = cx - 26 + p * 6;
+      const ledY = cy + 29;
+      const isLit = (phase % 4) === p;
+      c.fillStyle = isLit ? "#ef4444" : "#475569";
+      if (isLit) {
+        c.shadowColor = "#ef4444";
+        c.shadowBlur = 6;
+      } else {
+        c.shadowBlur = 0;
+      }
+      c.beginPath();
+      c.arc(ledX, ledY, 1.8, 0, Math.PI * 2);
+      c.fill();
+    }
+    c.restore();
+
+    c.fillStyle = "#0f172a";
+    c.font = "bold 7.5px sans-serif";
+    c.textAlign = "center";
+    c.fillText(`STEPPER: ${Math.round(angleDeg % 360)}°`, cx, cy + 44);
+    c.textAlign = "left";
   }
 
   // Draw Realistic Curved Jumper Wires connecting Arduino to Breadboard

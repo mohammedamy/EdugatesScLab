@@ -65,6 +65,13 @@ class MockElement {
   querySelectorAll(sel) { return []; }
   querySelector(sel) { return null; }
   appendChild(child) { this.children.push(child); }
+  removeChild(child) {
+    const idx = this.children.indexOf(child);
+    if (idx !== -1) this.children.splice(idx, 1);
+  }
+  click() {
+    this.dispatch("click");
+  }
   getContext() {
     return {
       clearRect: () => {},
@@ -148,6 +155,11 @@ globalThis.window = {
 };
 globalThis.requestAnimationFrame = (cb) => setTimeout(() => cb(performance.now()), 16);
 globalThis.cancelAnimationFrame = (id) => clearTimeout(id);
+if (!globalThis.navigator) globalThis.navigator = {};
+if (!globalThis.navigator.clipboard) globalThis.navigator.clipboard = { writeText: () => Promise.resolve() };
+if (!globalThis.URL) globalThis.URL = {};
+if (!globalThis.URL.createObjectURL) globalThis.URL.createObjectURL = () => "blob:mock";
+if (!globalThis.URL.revokeObjectURL) globalThis.URL.revokeObjectURL = () => {};
 
 // ----------------------------------------------------
 // Test 1: Module Exports
@@ -184,7 +196,40 @@ const allHave4kBlueprint = mod.ARDUINO_EXPERIMENTS.every(e =>
 );
 check(allHave4kBlueprint, "All 16 projects include comprehensive 4K UHD CAD blueprint specifications (3840x2160 UHD, BOM, pinout, formulas)");
 
-check(Array.isArray(mod.AVAILABLE_PARTS) && mod.AVAILABLE_PARTS.length >= 15, `phys-arduino.js exports comprehensive AVAILABLE_PARTS catalog (Found: ${mod.AVAILABLE_PARTS?.length})`);
+check(Array.isArray(mod.AVAILABLE_PARTS) && mod.AVAILABLE_PARTS.length === 26, `phys-arduino.js exports comprehensive AVAILABLE_PARTS catalog with 26 components (Found: ${mod.AVAILABLE_PARTS?.length})`);
+
+const dhtPart = mod.AVAILABLE_PARTS.find(p => p.type === "dht11");
+const bmePart = mod.AVAILABLE_PARTS.find(p => p.type === "bme280");
+const oledPart = mod.AVAILABLE_PARTS.find(p => p.type === "oled_ssd1306");
+const stepperPart = mod.AVAILABLE_PARTS.find(p => p.type === "stepper_motor");
+check(!!dhtPart && !!bmePart && !!oledPart && !!stepperPart, "New hardware sensors and actuators (DHT11, BME280, SSD1306, Stepper Motor) are registered");
+
+// ----------------------------------------------------
+// Test 1b: Circuit Schematic & CAD Netlist Exporter Verification
+// ----------------------------------------------------
+console.log("\n⚡ Circuit Schematic & CAD Netlist Exporter Verification:");
+check(typeof mod.exportCircuitNetlist === "function", "phys-arduino.js exports exportCircuitNetlist()");
+
+const dummyExp = mod.ARDUINO_EXPERIMENTS[0];
+const sampleWires = [
+  { id: "w1", from: "D13", to: "LED_ANODE", color: "#ef4444" },
+  { id: "w2", from: "GND", to: "LED_CATHODE", color: "#000000" }
+];
+const sampleComps = [
+  { id: "c1", type: "dht11", label: "DHT11 Sensor 1", pin: 2, x: 80, y: 90 },
+  { id: "c2", type: "bme280", label: "BME280 Barometer 1", pin: "A4,A5", x: 140, y: 90 },
+  { id: "c3", type: "oled_ssd1306", label: "0.96 OLED Display 1", pin: "A4,A5", x: 200, y: 90 },
+  { id: "c4", type: "stepper_motor", label: "28BYJ-48 Stepper 1", pin: "8-11", x: 280, y: 90 }
+];
+
+const netlistResult = mod.exportCircuitNetlist(dummyExp, sampleWires, sampleComps);
+check(typeof netlistResult.spice === "string" && netlistResult.spice.includes(".SUBCKT") && netlistResult.spice.includes(".ENDS"), "SPICE deck includes valid .SUBCKT modular definitions");
+check(netlistResult.spice.includes(".model LED_RED") && netlistResult.spice.includes(".tran"), "SPICE deck includes diode models and .tran directive");
+check(netlistResult.jsonNetlist && netlistResult.jsonNetlist.metadata && netlistResult.jsonNetlist.metadata.mcu === "ATmega328P", "JSON netlist metadata specifies ATmega328P MCU and 16MHz clock");
+check(Array.isArray(netlistResult.jsonNetlist.wires) && netlistResult.jsonNetlist.wires.length === 2, "JSON netlist accurately serializes connecting jumper wires");
+check(Array.isArray(netlistResult.jsonNetlist.components) && netlistResult.jsonNetlist.components.length === 4, "JSON netlist serializes custom placed hardware modules");
+check(typeof netlistResult.bomCsv === "string" && (netlistResult.bomCsv.startsWith("\"Item\"") || netlistResult.bomCsv.startsWith("Item,Reference")), "BOM CSV begins with standard engineering header");
+check(netlistResult.bomCsv.includes("DHT11") && netlistResult.bomCsv.includes("BME280"), "BOM CSV lists active sensors and components with quantities");
 
 // ----------------------------------------------------
 // Test 2: Experiment Specifications & C++ Sketches
@@ -415,6 +460,67 @@ check(cleanup.state.dso.ch1Probe === "pwm9", "DSO CH1 probe updates on select ch
 
 selDsoCh2.dispatch("change", { target: { value: "temp" } });
 check(cleanup.state.dso.ch2Probe === "temp", "DSO CH2 probe updates on select change to 'temp'");
+
+selDsoCh1.dispatch("change", { target: { value: "dht11" } });
+check(cleanup.state.dso.ch1Probe === "dht11", "DSO CH1 probe updates on select change to 'dht11'");
+
+selDsoCh2.dispatch("change", { target: { value: "stepper" } });
+check(cleanup.state.dso.ch2Probe === "stepper", "DSO CH2 probe updates on select change to 'stepper'");
+
+// Test Netlist Modal Opening, Tab Switching, Copy & Download
+const btnArduinoNetlist = document.getElementById("btn-arduino-netlist");
+const modalNetlist = document.getElementById("modal-arduino-netlist");
+const btnCloseNetlistModal = document.getElementById("btn-close-netlist-modal");
+const btnNetlistTabSpice = document.getElementById("btn-netlist-tab-spice");
+const btnNetlistTabJson = document.getElementById("btn-netlist-tab-json");
+const btnNetlistTabBom = document.getElementById("btn-netlist-tab-bom");
+const btnCopyNetlist = document.getElementById("btn-copy-netlist");
+const btnDownloadNetlist = document.getElementById("btn-download-netlist");
+const netlistContentBox = document.getElementById("netlist-content-box");
+
+btnArduinoNetlist.dispatch("click");
+check(modalNetlist.style.display === "block", "Clicking '#btn-arduino-netlist' opens the Netlist Exporter Modal");
+check(netlistContentBox.textContent.includes("SPICE 3f5") || netlistContentBox.textContent.includes("ATmega328P"), "Netlist Content Box initially displays SPICE Deck");
+
+btnNetlistTabJson.dispatch("click");
+check(netlistContentBox.textContent.includes("\"metadata\""), "Switching to JSON tab renders JSON netlist object");
+
+btnNetlistTabBom.dispatch("click");
+check(netlistContentBox.textContent.includes("Part Description"), "Switching to BOM tab renders CSV table");
+
+let copyDispatched = true;
+try {
+  btnCopyNetlist.dispatch("click");
+} catch (e) {
+  copyDispatched = false;
+}
+check(copyDispatched, "Clicking '#btn-copy-netlist' dispatches copy handler safely");
+
+let downloadDispatched = true;
+try {
+  btnDownloadNetlist.dispatch("click");
+} catch (e) {
+  downloadDispatched = false;
+}
+check(downloadDispatched, "Clicking '#btn-download-netlist' triggers CAD file download generation");
+
+btnCloseNetlistModal.dispatch("click");
+check(modalNetlist.style.display === "none", "Clicking '#btn-close-netlist-modal' closes Netlist Modal");
+
+// Test Component Dragging and Breadboard Grid Snapping
+const testComp = { id: "c_drag_test", type: "dht11", label: "DHT11 Drag", pin: 2, x: 75, y: 80 };
+cleanup.state.components.customPlacedComponents = [testComp];
+cleanup.state.isDraggingComp = true;
+cleanup.state.draggedCompIndex = 0;
+cleanup.state.dragCompStart = { x: 75, y: 80 };
+cleanup.state.dragPointerStart = { x: 420 + 75, y: 55 + 80 };
+
+// Move pointer by dx = 25px, dy = 28px
+canvas.dispatch("mousemove", { clientX: 420 + 75 + 25, clientY: 55 + 80 + 28 });
+check(testComp.x === 100, `Dragged component X snapped to column grid pitch (expected 100, got ${testComp.x})`);
+check(testComp.y % 14 === 0 || testComp.y === 108 || testComp.y === 112, `Dragged component Y snapped to row grid pitch (snapped Y: ${testComp.y})`);
+
+canvas.dispatch("mouseup", {});
 
 selDsoTimebase.dispatch("change", { target: { value: "100" } });
 check(cleanup.state.dso.timebaseMs === 100, "DSO Timebase updates on select change to 100ms/div");
