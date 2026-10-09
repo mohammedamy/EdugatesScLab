@@ -300,11 +300,14 @@ export function renderExperimentCard(exp) {
     <article class="experiment-card" data-exp-id="${exp.id}" data-subject="${exp.subject}" data-difficulty="${exp.difficulty.toLowerCase()}"
              style="background: var(--bg-card, #0f172a); border: 1px solid var(--border-color, #334155); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 16px rgba(0,0,0,0.2);">
       
-      <!-- Card Image Thumbnail with Lazy Loading -->
+      <!-- Card Image Thumbnail with Lazy Loading & WebP Progressive Enhancement -->
       <div class="exp-card-media" style="position: relative; height: 180px; width: 100%; background: #070a12; overflow: hidden;">
-        <img src="${exp.thumbnail}" alt="Laboratory Bench setup for ${exp.title}" loading="lazy" decoding="async"
-             style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;"
-             onerror="this.src='assets/placeholder-flask.svg'; this.style.objectFit='contain'; this.style.padding='24px';">
+        <picture>
+          <source srcset="${exp.thumbnail.replace(/\.(jpe?g|png)$/i, '.webp')}" type="image/webp">
+          <img src="${exp.thumbnail}" alt="Laboratory Bench setup for ${exp.title}" loading="lazy" decoding="async"
+               style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;"
+               onerror="this.src='assets/placeholder-flask.svg'; this.style.objectFit='contain'; this.style.padding='24px';">
+        </picture>
         <div style="position: absolute; top: 12px; left: 12px; display: flex; gap: 8px;">
           <span style="background: ${subjColor.badgeBg}; border: 1px solid ${subjColor.text}44; color: ${subjColor.text}; font-size: 0.75rem; font-weight: 800; padding: 3px 10px; border-radius: 9999px; backdrop-filter: blur(8px);">
             ${subjColor.icon} ${exp.subjectName}
