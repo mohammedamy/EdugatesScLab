@@ -1285,12 +1285,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "m",
     "options": [
+      "resultant vector Product $Y = 180.00\\text{ m}$",
       "resultant vector Product $Y = 180\\text{ m}$",
-      "resultant vector Product $Y = 180.0\\text{ m}$",
-      "resultant vector Product $Y = 180\\text{ m}$",
-      "resultant vector Product $Y = 200\\text{ m}$"
+      "resultant vector Product $Y = 200\\text{ m}$",
+      "resultant vector Product $Y = 18\\text{ m}$"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 30.0\\text{ m}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (30.0)(6.0) = 180\\text{ m}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 180 to 2 significant figures yields $180\\text{ m}$.",
     "rubricCER": null
   },
@@ -4325,12 +4325,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "m/s",
     "options": [
-      "average velocity Product $Y = 204\\text{ m/s}$",
+      "average velocity Product $Y = 204.0\\text{ m/s}$",
       "average velocity Product $Y = 200\\text{ m/s}$",
-      "average velocity Product $Y = 200\\text{ m/s}$",
-      "average velocity Product $Y = 204.0\\text{ m/s}$"
+      "average velocity Product $Y = 230\\text{ m/s}$",
+      "average velocity Product $Y = 20\\text{ m/s}$"
     ],
-    "correctIndex": 2,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 34.0\\text{ m/s}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (34.0)(6.0) = 204\\text{ m/s}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 204 to 2 significant figures yields $200\\text{ m/s}$.",
     "rubricCER": null
   },
@@ -5845,12 +5845,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "m/s",
     "options": [
+      "average velocity Product $Y = 320.00\\text{ m/s}$",
       "average velocity Product $Y = 320\\text{ m/s}$",
-      "average velocity Product $Y = 320.0\\text{ m/s}$",
       "average velocity Product $Y = 300\\text{ m/s}$",
-      "average velocity Product $Y = 320\\text{ m/s}$"
+      "average velocity Product $Y = 32\\text{ m/s}$"
     ],
-    "correctIndex": 3,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 40.0\\text{ m/s}$ (3 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (40.0)(8.0) = 320\\text{ m/s}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 320 to 2 significant figures yields $320\\text{ m/s}$.",
     "rubricCER": null
   },
@@ -8885,10 +8885,10 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "N",
     "options": [
-      "net force Product $Y = 195\\text{ N}$",
-      "net force Product $Y = 200\\text{ N}$",
       "net force Product $Y = 195.0\\text{ N}$",
-      "net force Product $Y = 200\\text{ N}$"
+      "net force Product $Y = 200\\text{ N}$",
+      "net force Product $Y = 220\\text{ N}$",
+      "net force Product $Y = 20\\text{ N}$"
     ],
     "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 39.0\\text{ N}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (39.0)(5.0) = 195\\text{ N}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 195 to 2 significant figures yields $200\\text{ N}$.",
@@ -11033,24 +11033,24 @@ export const questionBankPhys = [
     "difficulty": "honors",
     "difficultyTier": "medium",
     "angle": "vector_directional_flux",
-    "question": "Refer to the inclined plane free-body vector diagram illustrated in **Figure 5.1**. A crate of mass $m$ rests on an incline of angle $\\theta$. What are the resolved components of the gravitational force ($F_g = mg$) parallel and perpendicular to the incline surface, and what is the magnitude of the normal force ($F_N$) in static equilibrium?",
+    "question": "Refer to the two-dimensional projectile vector trajectory shown in **Figure 5.1P**. A projectile is launched with initial velocity $v_0 = 20.0\\text{ m/s}$ at an angle $\\theta = 30.0^\\circ$ above the horizontal in a vacuum ($g = 9.80\\text{ m/s}^2$). What are the instantaneous velocity vector components $(v_x, v_y)$ and acceleration vector at the trajectory apogee (maximum height)?",
     "options": [
-      "$F_{g,\\parallel} = mg \\cos\\theta$ and $F_{g,\\perp} = mg \\sin\\theta$; $F_N = mg$ regardless of angle.",
-      "$F_{g,\\parallel} = mg \\sin\\theta$ (acting down the slope); $F_{g,\\perp} = mg \\cos\\theta$ (pressing into the incline); in static equilibrium, $F_N = mg \\cos\\theta$.",
-      "$F_{g,\\parallel} = mg \\tan\\theta$; Normal force equals zero on an incline.",
-      "Gravity acts solely perpendicular to the incline with zero component along the slope."
+      "$v_x = v_0 \\cos 30.0^\\circ = 17.3\\text{ m/s}$, $v_y = 0.0\\text{ m/s}$; acceleration is strictly $a = -g = -9.80\\text{ m/s}^2$ downward.",
+      "$v_x = 0.0\\text{ m/s}$, $v_y = 10.0\\text{ m/s}$; acceleration at apogee is $a = 0.0\\text{ m/s}^2$.",
+      "$v_x = 0.0\\text{ m/s}$, $v_y = 0.0\\text{ m/s}$; acceleration reaches zero because the object momentarily stops.",
+      "$v_x = 20.0\\text{ m/s}$, $v_y = 20.0\\text{ m/s}$; acceleration acts horizontally in the direction of launch."
     ],
-    "correctIndex": 1,
-    "explanation": "Decomposing the vertical gravity vector along orthogonal axes rotated to the incline: the component parallel to the ramp is $F_{g,\\parallel} = mg \\sin\\theta$, and perpendicular to the ramp is $F_{g,\\perp} = mg \\cos\\theta$. Since there is no acceleration perpendicular to the ramp, $\\sum F_y = 0 \\implies F_N = mg \\cos\\theta$.",
+    "correctIndex": 0,
+    "explanation": "In ballistic motion with negligible air resistance, horizontal and vertical kinematics are entirely uncoupled ($a_x = 0$, $a_y = -g$). Horizontal velocity remains constant throughout: $v_x = v_0 \\cos\\theta = 20.0 \\cos 30^\\circ = 17.32\\text{ m/s}$. At the apex (maximum height), vertical velocity momentarily drops to $v_y = 0\\text{ m/s}$ as vertical direction reverses. Throughout the flight, downward gravitational acceleration remains invariant at $a_y = -9.80\\text{ m/s}^2$.",
     "rubricCER": null,
     "hasDiagram": true,
     "diagram": {
-      "id": "phys_free_body_incline",
+      "id": "phys_projectile_trajectory",
       "subject": "PHYS",
-      "moduleId": 5,
-      "title": "Free-Body Force Vectors on an Inclined Plane",
-      "caption": "Figure 11: Equilibrium Force Resolution for a Block on a Ramp at Angle θ",
-      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      \n      <!-- Incline Triangle -->\n      <polygon points=\"60,240 460,240 460,70\" fill=\"rgba(30, 41, 59, 0.8)\" stroke=\"#64748b\" stroke-width=\"2\"/>\n      \n      <!-- Incline Angle Arc -->\n      <path d=\"M 120 240 A 60 60 0 0 0 115 220\" fill=\"none\" stroke=\"#facc15\" stroke-width=\"2\"/>\n      <text x=\"130\" y=\"235\" fill=\"#facc15\" font-size=\"12\" font-weight=\"800\">θ = 30°</text>\n      \n      <!-- Block on Incline (Rotated) -->\n      <g transform=\"translate(260, 155) rotate(-23)\">\n        <rect x=\"-35\" y=\"-25\" width=\"70\" height=\"50\" fill=\"#38bdf8\" stroke=\"#f8fafc\" stroke-width=\"2\" rx=\"4\"/>\n        <text x=\"0\" y=\"5\" fill=\"#0f172a\" font-size=\"12\" font-weight=\"800\" text-anchor=\"middle\">m = 5.0 kg</text>\n        \n        <!-- Normal Force Vector (Perpendicular Up) -->\n        <line x1=\"0\" y1=\"-25\" x2=\"0\" y2=\"-90\" stroke=\"#34d399\" stroke-width=\"3\"/>\n        <polygon points=\"0,-95 -5,-85 5,-85\" fill=\"#34d399\"/>\n        <text x=\"10\" y=\"-75\" fill=\"#34d399\" font-size=\"11\" font-weight=\"800\">FN = mg cosθ</text>\n        \n        <!-- Friction Vector (Up the Ramp) -->\n        <line x1=\"35\" y1=\"0\" x2=\"95\" y2=\"0\" stroke=\"#f59e0b\" stroke-width=\"3\"/>\n        <polygon points=\"100,0 90,-5 90,5\" fill=\"#f59e0b\"/>\n        <text x=\"70\" y=\"-10\" fill=\"#f59e0b\" font-size=\"11\" font-weight=\"800\">Ff (friction)</text>\n        \n        <!-- Parallel Gravity Component (Down the Ramp) -->\n        <line x1=\"-35\" y1=\"0\" x2=\"-95\" y2=\"0\" stroke=\"#ec4899\" stroke-width=\"3\"/>\n        <polygon points=\"-100,0 -90,-5 -90,5\" fill=\"#ec4899\"/>\n        <text x=\"-70\" y=\"18\" fill=\"#ec4899\" font-size=\"11\" font-weight=\"800\">mg sinθ</text>\n      </g>\n      \n      <!-- True Gravity Vector (Straight Down) -->\n      <line x1=\"260\" y1=\"155\" x2=\"260\" y2=\"250\" stroke=\"#ef4444\" stroke-width=\"3.5\"/>\n      <polygon points=\"260,255 255,245 265,245\" fill=\"#ef4444\"/>\n      <text x=\"270\" y=\"220\" fill=\"#ef4444\" font-size=\"11\" font-weight=\"800\">Fg = mg = 49.0 N</text>\n    </svg>"
+      "moduleId": 3,
+      "title": "Two-Dimensional Kinematics & Parabolic Trajectory",
+      "caption": "Figure 9: Parabolic Path with Decomposed Velocity Components ($v_x$, $v_y$) and Maximum Altitude",
+      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      \n      <!-- Ground Line -->\n      <line x1=\"40\" y1=\"240\" x2=\"500\" y2=\"240\" stroke=\"#475569\" stroke-width=\"2\"/>\n      \n      <!-- Parabolic Trajectory: y = 240 - 4*170/ (420^2) * x*(420-x) with x from 0 to 420 (screen 60 to 480) -->\n      <!-- Peak at x=270, y=70 (H=170) -->\n      <path d=\"M 60 240 Q 270 -100 480 240\" fill=\"none\" stroke=\"#38bdf8\" stroke-width=\"2.5\" stroke-dasharray=\"6 3\"/>\n      \n      <!-- Origin & Launch Vectors -->\n      <circle cx=\"60\" cy=\"240\" r=\"4\" fill=\"#38bdf8\"/>\n      <!-- Initial velocity v0 -->\n      <line x1=\"60\" y1=\"240\" x2=\"120\" y2=\"170\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      <polygon points=\"120,170 110,175 116,183\" fill=\"#38bdf8\"/>\n      <text x=\"80\" y=\"165\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"800\">v₀</text>\n      <!-- v0x -->\n      <line x1=\"60\" y1=\"240\" x2=\"120\" y2=\"240\" stroke=\"#f59e0b\" stroke-width=\"2\"/>\n      <polygon points=\"120,240 112,236 112,244\" fill=\"#f59e0b\"/>\n      <text x=\"85\" y=\"255\" fill=\"#f59e0b\" font-size=\"10\" font-weight=\"700\">v₀ₓ = v₀ cos θ</text>\n      <!-- v0y -->\n      <line x1=\"60\" y1=\"240\" x2=\"60\" y2=\"170\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <polygon points=\"60,170 56,178 64,178\" fill=\"#10b981\"/>\n      <text x=\"25\" y=\"205\" fill=\"#10b981\" font-size=\"10\" font-weight=\"700\">v₀ᵧ</text>\n      <!-- Launch Angle theta -->\n      <path d=\"M 85 240 A 25 25 0 0 0 80 220\" fill=\"none\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>\n      <text x=\"92\" y=\"230\" fill=\"#f59e0b\" font-size=\"11\" font-weight=\"700\">θ</text>\n      \n      <!-- Apex Point (x=270, y=70) -->\n      <circle cx=\"270\" cy=\"70\" r=\"5\" fill=\"#ef4444\"/>\n      <!-- Apex velocity: vy = 0, vx = v0x -->\n      <line x1=\"270\" y1=\"70\" x2=\"330\" y2=\"70\" stroke=\"#f59e0b\" stroke-width=\"2\"/>\n      <polygon points=\"330,70 322,66 322,74\" fill=\"#f59e0b\"/>\n      <text x=\"335\" y=\"65\" fill=\"#f59e0b\" font-size=\"10\" font-weight=\"700\">vₓ = v₀ₓ</text>\n      <text x=\"270\" y=\"55\" fill=\"#ef4444\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Apex: vᵧ = 0</text>\n      \n      <!-- Maximum Height H Callout -->\n      <line x1=\"270\" y1=\"70\" x2=\"270\" y2=\"240\" stroke=\"#94a3b8\" stroke-width=\"1\" stroke-dasharray=\"3 3\"/>\n      <line x1=\"250\" y1=\"70\" x2=\"250\" y2=\"240\" stroke=\"#94a3b8\" stroke-width=\"1.5\"/>\n      <polygon points=\"250,70 247,78 253,78\" fill=\"#94a3b8\"/>\n      <polygon points=\"250,240 247,232 253,232\" fill=\"#94a3b8\"/>\n      <text x=\"240\" y=\"155\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"700\" text-anchor=\"end\">H_max = v₀ᵧ² / (2g)</text>\n      \n      <!-- Mid-descent vectors at x=390, y=145 -->\n      <circle cx=\"390\" cy=\"145\" r=\"4\" fill=\"#38bdf8\"/>\n      <line x1=\"390\" y1=\"145\" x2=\"445\" y2=\"145\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>\n      <line x1=\"390\" y1=\"145\" x2=\"390\" y2=\"195\" stroke=\"#ef4444\" stroke-width=\"1.5\"/>\n      <polygon points=\"390,195 387,187 393,187\" fill=\"#ef4444\"/>\n      <text x=\"398\" y=\"190\" fill=\"#ef4444\" font-size=\"9\">-vᵧ</text>\n      \n      <!-- Range R Dimension -->\n      <line x1=\"60\" y1=\"275\" x2=\"480\" y2=\"275\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <polygon points=\"60,275 68,272 68,278\" fill=\"#38bdf8\"/>\n      <polygon points=\"480,275 472,272 472,278\" fill=\"#38bdf8\"/>\n      <text x=\"270\" y=\"270\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"700\" text-anchor=\"middle\">Horizontal Range R = (v₀² sin 2θ) / g</text>\n    </svg>"
     }
   },
   {
@@ -14205,12 +14205,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "m/s^2",
     "options": [
+      "centripetal acceleration Product $Y = 300.00\\text{ m/s^2}$",
       "centripetal acceleration Product $Y = 300\\text{ m/s^2}$",
-      "centripetal acceleration Product $Y = 300\\text{ m/s^2}$",
-      "centripetal acceleration Product $Y = 300.0\\text{ m/s^2}$",
-      "centripetal acceleration Product $Y = 300\\text{ m/s^2}$"
+      "centripetal acceleration Product $Y = 350\\text{ m/s^2}$",
+      "centripetal acceleration Product $Y = 30\\text{ m/s^2}$"
     ],
-    "correctIndex": 3,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 50.0\\text{ m/s^2}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (50.0)(6.0) = 300\\text{ m/s^2}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 300 to 2 significant figures yields $300\\text{ m/s^2}$.",
     "rubricCER": null
   },
@@ -16941,11 +16941,11 @@ export const questionBankPhys = [
     "options": [
       "In \"Describing Rotational Motion\", torque is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{N}\\cdot\\text{m})}^{-1}$, confusing rate with state duration.",
       "In \"Describing Rotational Motion\", torque is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Describing Rotational Motion\", torque is expressed in $\\text{\\text{N}\\cdot\\text{m}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Describing Rotational Motion\", torque is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{N}\\cdot\\text{m}}$."
+      "In \"Describing Rotational Motion\", torque is expressed in $\\text{N}\\cdot\\text{m}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Describing Rotational Motion\", torque is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{N}\\cdot\\text{m}$."
     ],
     "correctIndex": 2,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Describing Rotational Motion, torque is quantified in $\\text{\\text{N}\\cdot\\text{m}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Describing Rotational Motion, torque is quantified in $\\text{N}\\cdot\\text{m}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -17014,13 +17014,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{N}\\cdot\\text{m}",
     "options": [
-      "torque = $3.43\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque = $10.29\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque = $6.86\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque = $13.72\\text{ \\text{N}\\cdot\\text{m}}$"
+      "torque = $3.43\\text{N}\\cdot\\text{m}$",
+      "torque = $10.29\\text{N}\\cdot\\text{m}$",
+      "torque = $6.86\\text{N}\\cdot\\text{m}$",
+      "torque = $13.72\\text{N}\\cdot\\text{m}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{3.5} = 6.86\\text{ \\text{N}\\cdot\\text{m}}$$.\nStep 3: Significant figures verify $6.86\\text{ \\text{N}\\cdot\\text{m}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{3.5} = 6.86\\text{N}\\cdot\\text{m}$$.\nStep 3: Significant figures verify $6.86\\text{N}\\cdot\\text{m}$.",
     "rubricCER": null
   },
   {
@@ -17240,18 +17240,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Describing Rotational Motion\", a student measures initial parameters $P_1 = 55.0\\text{ \\text{N}\\cdot\\text{m}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Describing Rotational Motion\", a student measures initial parameters $P_1 = 55.0\\text{N}\\cdot\\text{m}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "280",
     "tolerance": 0.5,
     "unit": "\\text{N}\\cdot\\text{m}",
     "options": [
-      "torque Product $Y = 275\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque Product $Y = 300\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque Product $Y = 275.0\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque Product $Y = 280\\text{ \\text{N}\\cdot\\text{m}}$"
+      "torque Product $Y = 275.0\\text{ N\\cdotm}$",
+      "torque Product $Y = 280\\text{ N\\cdotm}$",
+      "torque Product $Y = 300\\text{ N\\cdotm}$",
+      "torque Product $Y = 28\\text{ N\\cdotm}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 55.0\\text{ \\text{N}\\cdot\\text{m}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (55.0)(5.0) = 275\\text{ \\text{N}\\cdot\\text{m}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 275 to 2 significant figures yields $280\\text{ \\text{N}\\cdot\\text{m}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 55.0\\text{N}\\cdot\\text{m}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (55.0)(5.0) = 275\\text{N}\\cdot\\text{m}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 275 to 2 significant figures yields $280\\text{N}\\cdot\\text{m}$.",
     "rubricCER": null
   },
   {
@@ -17699,13 +17699,13 @@ export const questionBankPhys = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Rotational Dynamics\", what are the correct SI derived units and dimensional representation for **torque** ($\\tau = r F \\sin\\theta$)?",
     "options": [
-      "In \"Rotational Dynamics\", torque is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{N}\\cdot\\text{m}}$.",
-      "In \"Rotational Dynamics\", torque is expressed in $\\text{\\text{N}\\cdot\\text{m}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Rotational Dynamics\", torque is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{N}\\cdot\\text{m}$.",
+      "In \"Rotational Dynamics\", torque is expressed in $\\text{N}\\cdot\\text{m}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Rotational Dynamics\", torque is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{N}\\cdot\\text{m})}^{-1}$, confusing rate with state duration.",
       "In \"Rotational Dynamics\", torque is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Rotational Dynamics, torque is quantified in $\\text{\\text{N}\\cdot\\text{m}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Rotational Dynamics, torque is quantified in $\\text{N}\\cdot\\text{m}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -17774,13 +17774,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{N}\\cdot\\text{m}",
     "options": [
-      "torque = $9.00\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque = $3.00\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque = $12.00\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque = $6.00\\text{ \\text{N}\\cdot\\text{m}}$"
+      "torque = $9.00\\text{N}\\cdot\\text{m}$",
+      "torque = $3.00\\text{N}\\cdot\\text{m}$",
+      "torque = $12.00\\text{N}\\cdot\\text{m}$",
+      "torque = $6.00\\text{N}\\cdot\\text{m}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{4.0} = 6.00\\text{ \\text{N}\\cdot\\text{m}}$$.\nStep 3: Significant figures verify $6.00\\text{ \\text{N}\\cdot\\text{m}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{4.0} = 6.00\\text{N}\\cdot\\text{m}$$.\nStep 3: Significant figures verify $6.00\\text{N}\\cdot\\text{m}$.",
     "rubricCER": null
   },
   {
@@ -18000,18 +18000,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Rotational Dynamics\", a student measures initial parameters $P_1 = 58.0\\text{ \\text{N}\\cdot\\text{m}}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Rotational Dynamics\", a student measures initial parameters $P_1 = 58.0\\text{N}\\cdot\\text{m}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "350",
     "tolerance": 0.5,
     "unit": "\\text{N}\\cdot\\text{m}",
     "options": [
-      "torque Product $Y = 348\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque Product $Y = 300\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque Product $Y = 348.0\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque Product $Y = 350\\text{ \\text{N}\\cdot\\text{m}}$"
+      "torque Product $Y = 348.0\\text{ N\\cdotm}$",
+      "torque Product $Y = 350\\text{ N\\cdotm}$",
+      "torque Product $Y = 300\\text{ N\\cdotm}$",
+      "torque Product $Y = 35\\text{ N\\cdotm}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 58.0\\text{ \\text{N}\\cdot\\text{m}}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (58.0)(6.0) = 348\\text{ \\text{N}\\cdot\\text{m}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 348 to 2 significant figures yields $350\\text{ \\text{N}\\cdot\\text{m}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 58.0\\text{N}\\cdot\\text{m}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (58.0)(6.0) = 348\\text{N}\\cdot\\text{m}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 348 to 2 significant figures yields $350\\text{N}\\cdot\\text{m}$.",
     "rubricCER": null
   },
   {
@@ -18459,13 +18459,13 @@ export const questionBankPhys = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Equilibrium\", what are the correct SI derived units and dimensional representation for **torque** ($\\tau = r F \\sin\\theta$)?",
     "options": [
-      "In \"Equilibrium\", torque is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{N}\\cdot\\text{m}}$.",
+      "In \"Equilibrium\", torque is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{N}\\cdot\\text{m}$.",
       "In \"Equilibrium\", torque is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Equilibrium\", torque is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{N}\\cdot\\text{m})}^{-1}$, confusing rate with state duration.",
-      "In \"Equilibrium\", torque is expressed in $\\text{\\text{N}\\cdot\\text{m}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
+      "In \"Equilibrium\", torque is expressed in $\\text{N}\\cdot\\text{m}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
     ],
     "correctIndex": 3,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Equilibrium, torque is quantified in $\\text{\\text{N}\\cdot\\text{m}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Equilibrium, torque is quantified in $\\text{N}\\cdot\\text{m}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -18534,13 +18534,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{N}\\cdot\\text{m}",
     "options": [
-      "torque = $2.67\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque = $10.66\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque = $5.33\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque = $8.00\\text{ \\text{N}\\cdot\\text{m}}$"
+      "torque = $2.67\\text{N}\\cdot\\text{m}$",
+      "torque = $10.66\\text{N}\\cdot\\text{m}$",
+      "torque = $5.33\\text{N}\\cdot\\text{m}$",
+      "torque = $8.00\\text{N}\\cdot\\text{m}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{4.5} = 5.33\\text{ \\text{N}\\cdot\\text{m}}$$.\nStep 3: Significant figures verify $5.33\\text{ \\text{N}\\cdot\\text{m}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{4.5} = 5.33\\text{N}\\cdot\\text{m}$$.\nStep 3: Significant figures verify $5.33\\text{N}\\cdot\\text{m}$.",
     "rubricCER": null
   },
   {
@@ -18760,18 +18760,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Equilibrium\", a student measures initial parameters $P_1 = 61.0\\text{ \\text{N}\\cdot\\text{m}}$ (3 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Equilibrium\", a student measures initial parameters $P_1 = 61.0\\text{N}\\cdot\\text{m}$ (3 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "430",
     "tolerance": 0.5,
     "unit": "\\text{N}\\cdot\\text{m}",
     "options": [
-      "torque Product $Y = 400\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque Product $Y = 427\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque Product $Y = 430\\text{ \\text{N}\\cdot\\text{m}}$",
-      "torque Product $Y = 427.0\\text{ \\text{N}\\cdot\\text{m}}$"
+      "torque Product $Y = 427.0\\text{ N\\cdotm}$",
+      "torque Product $Y = 430\\text{ N\\cdotm}$",
+      "torque Product $Y = 400\\text{ N\\cdotm}$",
+      "torque Product $Y = 43\\text{ N\\cdotm}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 61.0\\text{ \\text{N}\\cdot\\text{m}}$ (3 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (61.0)(7.0) = 427\\text{ \\text{N}\\cdot\\text{m}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 427 to 2 significant figures yields $430\\text{ \\text{N}\\cdot\\text{m}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 61.0\\text{N}\\cdot\\text{m}$ (3 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (61.0)(7.0) = 427\\text{N}\\cdot\\text{m}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 427 to 2 significant figures yields $430\\text{N}\\cdot\\text{m}$.",
     "rubricCER": null
   },
   {
@@ -19220,12 +19220,12 @@ export const questionBankPhys = [
     "question": "In quantitative metrology for \"Impulse and Momentum\", what are the correct SI derived units and dimensional representation for **impulse** ($J = F \\Delta t = \\Delta p$)?",
     "options": [
       "In \"Impulse and Momentum\", impulse is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{N}\\cdot\\text{s})}^{-1}$, confusing rate with state duration.",
-      "In \"Impulse and Momentum\", impulse is expressed in $\\text{\\text{N}\\cdot\\text{s}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Impulse and Momentum\", impulse is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{N}\\cdot\\text{s}}$.",
+      "In \"Impulse and Momentum\", impulse is expressed in $\\text{N}\\cdot\\text{s}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Impulse and Momentum\", impulse is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{N}\\cdot\\text{s}$.",
       "In \"Impulse and Momentum\", impulse is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Impulse and Momentum, impulse is quantified in $\\text{\\text{N}\\cdot\\text{s}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Impulse and Momentum, impulse is quantified in $\\text{N}\\cdot\\text{s}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -19294,13 +19294,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{N}\\cdot\\text{s}",
     "options": [
-      "impulse = $7.29\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse = $14.58\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse = $3.65\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse = $10.94\\text{ \\text{N}\\cdot\\text{s}}$"
+      "impulse = $7.29\\text{N}\\cdot\\text{s}$",
+      "impulse = $14.58\\text{N}\\cdot\\text{s}$",
+      "impulse = $3.65\\text{N}\\cdot\\text{s}$",
+      "impulse = $10.94\\text{N}\\cdot\\text{s}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 25.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{25.5}{3.5} = 7.29\\text{ \\text{N}\\cdot\\text{s}}$$.\nStep 3: Significant figures verify $7.29\\text{ \\text{N}\\cdot\\text{s}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 25.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{25.5}{3.5} = 7.29\\text{N}\\cdot\\text{s}$$.\nStep 3: Significant figures verify $7.29\\text{N}\\cdot\\text{s}$.",
     "rubricCER": null
   },
   {
@@ -19520,18 +19520,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Impulse and Momentum\", a student measures initial parameters $P_1 = 59.0\\text{ \\text{N}\\cdot\\text{s}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Impulse and Momentum\", a student measures initial parameters $P_1 = 59.0\\text{N}\\cdot\\text{s}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "300",
     "tolerance": 0.5,
     "unit": "\\text{N}\\cdot\\text{s}",
     "options": [
-      "impulse Product $Y = 300\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse Product $Y = 300\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse Product $Y = 295.0\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse Product $Y = 295\\text{ \\text{N}\\cdot\\text{s}}$"
+      "impulse Product $Y = 295.0\\text{ N\\cdots}$",
+      "impulse Product $Y = 300\\text{ N\\cdots}$",
+      "impulse Product $Y = 340\\text{ N\\cdots}$",
+      "impulse Product $Y = 30\\text{ N\\cdots}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 59.0\\text{ \\text{N}\\cdot\\text{s}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (59.0)(5.0) = 295\\text{ \\text{N}\\cdot\\text{s}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 295 to 2 significant figures yields $300\\text{ \\text{N}\\cdot\\text{s}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 59.0\\text{N}\\cdot\\text{s}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (59.0)(5.0) = 295\\text{N}\\cdot\\text{s}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 295 to 2 significant figures yields $300\\text{N}\\cdot\\text{s}$.",
     "rubricCER": null
   },
   {
@@ -19979,13 +19979,13 @@ export const questionBankPhys = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Conservation of Momentum\", what are the correct SI derived units and dimensional representation for **impulse** ($J = F \\Delta t = \\Delta p$)?",
     "options": [
-      "In \"Conservation of Momentum\", impulse is expressed in $\\text{\\text{N}\\cdot\\text{s}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Conservation of Momentum\", impulse is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{N}\\cdot\\text{s}}$.",
+      "In \"Conservation of Momentum\", impulse is expressed in $\\text{N}\\cdot\\text{s}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Conservation of Momentum\", impulse is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{N}\\cdot\\text{s}$.",
       "In \"Conservation of Momentum\", impulse is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Conservation of Momentum\", impulse is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{N}\\cdot\\text{s})}^{-1}$, confusing rate with state duration."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Conservation of Momentum, impulse is quantified in $\\text{\\text{N}\\cdot\\text{s}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Conservation of Momentum, impulse is quantified in $\\text{N}\\cdot\\text{s}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -20054,13 +20054,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{N}\\cdot\\text{s}",
     "options": [
-      "impulse = $6.38\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse = $9.57\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse = $12.76\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse = $3.19\\text{ \\text{N}\\cdot\\text{s}}$"
+      "impulse = $6.38\\text{N}\\cdot\\text{s}$",
+      "impulse = $9.57\\text{N}\\cdot\\text{s}$",
+      "impulse = $12.76\\text{N}\\cdot\\text{s}$",
+      "impulse = $3.19\\text{N}\\cdot\\text{s}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 25.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{25.5}{4.0} = 6.38\\text{ \\text{N}\\cdot\\text{s}}$$.\nStep 3: Significant figures verify $6.38\\text{ \\text{N}\\cdot\\text{s}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 25.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{25.5}{4.0} = 6.38\\text{N}\\cdot\\text{s}$$.\nStep 3: Significant figures verify $6.38\\text{N}\\cdot\\text{s}$.",
     "rubricCER": null
   },
   {
@@ -20280,18 +20280,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Conservation of Momentum\", a student measures initial parameters $P_1 = 62.0\\text{ \\text{N}\\cdot\\text{s}}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Conservation of Momentum\", a student measures initial parameters $P_1 = 62.0\\text{N}\\cdot\\text{s}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "370",
     "tolerance": 0.5,
     "unit": "\\text{N}\\cdot\\text{s}",
     "options": [
-      "impulse Product $Y = 400\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse Product $Y = 370\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse Product $Y = 372.0\\text{ \\text{N}\\cdot\\text{s}}$",
-      "impulse Product $Y = 372\\text{ \\text{N}\\cdot\\text{s}}$"
+      "impulse Product $Y = 372.0\\text{ N\\cdots}$",
+      "impulse Product $Y = 370\\text{ N\\cdots}$",
+      "impulse Product $Y = 400\\text{ N\\cdots}$",
+      "impulse Product $Y = 37\\text{ N\\cdots}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 62.0\\text{ \\text{N}\\cdot\\text{s}}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (62.0)(6.0) = 372\\text{ \\text{N}\\cdot\\text{s}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 372 to 2 significant figures yields $370\\text{ \\text{N}\\cdot\\text{s}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 62.0\\text{N}\\cdot\\text{s}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (62.0)(6.0) = 372\\text{N}\\cdot\\text{s}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 372 to 2 significant figures yields $370\\text{N}\\cdot\\text{s}$.",
     "rubricCER": null
   },
   {
@@ -21805,10 +21805,10 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "J",
     "options": [
-      "work performed Product $Y = 396\\text{ J}$",
+      "work performed Product $Y = 396.0\\text{ J}$",
       "work performed Product $Y = 400\\text{ J}$",
-      "work performed Product $Y = 400\\text{ J}$",
-      "work performed Product $Y = 396.0\\text{ J}$"
+      "work performed Product $Y = 460\\text{ J}$",
+      "work performed Product $Y = 40\\text{ J}$"
     ],
     "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 66.0\\text{ J}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (66.0)(6.0) = 396\\text{ J}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 396 to 2 significant figures yields $400\\text{ J}$.",
@@ -24845,12 +24845,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "Carnot engine efficiency Product $Y = 400\\text{ }$",
-      "Carnot engine efficiency Product $Y = 420\\text{ }$",
-      "Carnot engine efficiency Product $Y = 420.0\\text{ }$",
-      "Carnot engine efficiency Product $Y = 420\\text{ }$"
+      "Carnot engine efficiency Product $Y = 420.00$",
+      "Carnot engine efficiency Product $Y = 420$",
+      "Carnot engine efficiency Product $Y = 400$",
+      "Carnot engine efficiency Product $Y = 42$"
     ],
-    "correctIndex": 3,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 70.0\\text{ }$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (70.0)(6.0) = 420\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 420 to 2 significant figures yields $420\\text{ }$.",
     "rubricCER": null
   },
@@ -24889,24 +24889,24 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "thermodynamic_cycle_pathway",
-    "question": "A heat engine executes the reversible ideal gas Carnot cycle shown on the $P-V$ diagram in **Figure 11.2**, operating between a hot reservoir at $T_H = 600\\text{ K}$ and a cold reservoir at $T_C = 300\\text{ K}$. If the engine absorbs $Q_H = 1200\\text{ J}$ of heat during isothermal expansion $1 \\to 2$, what is the maximum theoretical thermal efficiency ($\\eta_{\\text{Carnot}}$) and the net mechanical work ($W_{\\text{net}}$) delivered per cycle?",
+    "question": "Examine the method of mixtures insulated calorimeter assembly in **Figure 11.2M**. A $0.200\\text{ kg}$ brass sample ($c_{\\text{brass}} = 380\\text{ J}/(\\text{kg}\\cdot\\text{K})$) heated to $95.0^\\circ\\text{C}$ is immersed in $0.400\\text{ kg}$ of water ($c_w = 4186\\text{ J}/(\\text{kg}\\cdot\\text{K})$) at $18.0^\\circ\\text{C}$ inside an isolated calorimeter. What is the final equilibrium temperature $T_f$ (assuming negligible calorimeter heat loss)?",
     "options": [
-      "$\\eta_{\\text{Carnot}} = 66.7\\%$; Net Work $W_{\\text{net}} = 800\\text{ J}$.",
-      "$\\eta_{\\text{Carnot}} = 25.0\\%$; Net Work $W_{\\text{net}} = 300\\text{ J}$.",
-      "$\\eta_{\\text{Carnot}} = 100\\%$; Net Work $W_{\\text{net}} = 1200\\text{ J}$ because ideal gas cycles have zero dissipation.",
-      "$\\eta_{\\text{Carnot}} = 1 - \\frac{T_C}{T_H} = 50.0\\%$; Net Work $W_{\\text{net}} = \\eta Q_H = 600\\text{ J}$ (represented by the enclosed area on the $P-V$ diagram)."
+      "$T_f = 21.3^\\circ\\text{C}$; derived from energy conservation: $m_{\\text{brass}} c_{\\text{brass}} (T_{\\text{hot}} - T_f) = m_w c_w (T_f - T_{\\text{cold}})$.",
+      "$T_f = 56.5^\\circ\\text{C}$; the direct arithmetic average of the two starting temperatures.",
+      "$T_f = 12.0^\\circ\\text{C}$; evaporation from the water surface drops the final temperature below the initial water temperature.",
+      "$T_f = 95.0^\\circ\\text{C}$; brass has high thermal density and does not equilibrate with liquid water."
     ],
-    "correctIndex": 3,
-    "explanation": "Carnot's theorem defines the maximum theoretical efficiency between two thermal reservoirs: $\\eta = 1 - \\frac{T_C}{T_H} = 1 - \\frac{300\\text{ K}}{600\\text{ K}} = 0.500$ ($50.0\\%$). The net work done per cycle is the integral over the closed path $\\oint P\\,dV$, which equals $W_{\\text{net}} = \\eta Q_H = 0.50 \\times 1200\\text{ J} = 600\\text{ J}$, with remaining heat $Q_C = 600\\text{ J}$ exhausted to the cold reservoir.",
+    "correctIndex": 0,
+    "explanation": "By thermal energy conservation in an isolated system: $Q_{\\text{lost}} = Q_{\\text{gained}} \\implies m_b c_b (T_b - T_f) = m_w c_w (T_f - T_w)$. Substituting numerical values: $(0.200)(380)(95.0 - T_f) = (0.400)(4186)(T_f - 18.0) \\implies 76.0(95.0 - T_f) = 1674.4(T_f - 18.0) \\implies 7220 - 76.0 T_f = 1674.4 T_f - 30139.2 \\implies 1750.4 T_f = 37359.2 \\implies T_f = 21.34^\\circ\\text{C} \\approx 21.3^\\circ\\text{C}$.",
     "rubricCER": null,
     "hasDiagram": true,
     "diagram": {
-      "id": "phys_carnot_cycle",
+      "id": "phys_mixing_calorimeter",
       "subject": "PHYS",
-      "moduleId": 11,
-      "title": "Carnot Heat Engine Reversible Thermodynamic Cycle",
-      "caption": "Figure 14: P-V Indicator Diagram for an Ideal Gas Carnot Cycle between TH = 600 K and TC = 300 K",
-      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      <!-- Grid -->\n      <line x1=\"70\" y1=\"240\" x2=\"490\" y2=\"240\" stroke=\"#1e293b\" stroke-width=\"1\"/>\n      <line x1=\"70\" y1=\"180\" x2=\"490\" y2=\"180\" stroke=\"#1e293b\" stroke-width=\"1\" stroke-dasharray=\"4\"/>\n      <line x1=\"70\" y1=\"110\" x2=\"490\" y2=\"110\" stroke=\"#1e293b\" stroke-width=\"1\" stroke-dasharray=\"4\"/>\n      <line x1=\"70\" y1=\"50\" x2=\"490\" y2=\"50\" stroke=\"#1e293b\" stroke-width=\"1\"/>\n      \n      <!-- Coordinate Axes -->\n      <line x1=\"70\" y1=\"250\" x2=\"70\" y2=\"35\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <line x1=\"60\" y1=\"240\" x2=\"500\" y2=\"240\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n      <!-- Labels -->\n      <text x=\"25\" y=\"140\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"700\" transform=\"rotate(-90 25 140)\" text-anchor=\"middle\">Pressure P (kPa)</text>\n      <text x=\"280\" y=\"275\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"700\" text-anchor=\"middle\">Volume V (L)</text>\n      \n      <!-- Enclosed Shaded Work Area -->\n      <path d=\"M 140 60 Q 220 85 270 120 Q 340 180 380 205 Q 260 215 200 185 Q 160 120 140 60 Z\" fill=\"rgba(56, 189, 248, 0.15)\" stroke=\"none\"/>\n      \n      <!-- Process 1 -> 2: Isothermal Expansion at TH = 600 K -->\n      <path d=\"M 140 60 Q 220 85 270 120\" fill=\"none\" stroke=\"#ef4444\" stroke-width=\"3.5\"/>\n      <polygon points=\"210,87 200,80 204,92\" fill=\"#ef4444\"/>\n      <text x=\"180\" y=\"68\" fill=\"#ef4444\" font-size=\"10\" font-weight=\"800\">1→2: Isothermal (TH = 600 K, Qin)</text>\n      \n      <!-- Process 2 -> 3: Adiabatic Expansion (Q = 0) -->\n      <path d=\"M 270 120 Q 340 180 380 205\" fill=\"none\" stroke=\"#f59e0b\" stroke-width=\"3.5\"/>\n      <polygon points=\"330,172 320,165 328,178\" fill=\"#f59e0b\"/>\n      <text x=\"350\" y=\"150\" fill=\"#f59e0b\" font-size=\"10\" font-weight=\"800\">2→3: Adiabatic (Q=0)</text>\n      \n      <!-- Process 3 -> 4: Isothermal Compression at TC = 300 K -->\n      <path d=\"M 380 205 Q 260 215 200 185\" fill=\"none\" stroke=\"#38bdf8\" stroke-width=\"3.5\"/>\n      <polygon points=\"280,210 290,215 287,203\" fill=\"#38bdf8\"/>\n      <text x=\"320\" y=\"232\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"800\">3→4: Isothermal (TC = 300 K, Qout)</text>\n      \n      <!-- Process 4 -> 1: Adiabatic Compression (Q = 0) -->\n      <path d=\"M 200 185 Q 160 120 140 60\" fill=\"none\" stroke=\"#10b981\" stroke-width=\"3.5\"/>\n      <polygon points=\"163,115 160,127 170,122\" fill=\"#10b981\"/>\n      <text x=\"105\" y=\"145\" fill=\"#10b981\" font-size=\"10\" font-weight=\"800\">4→1: Adiabatic</text>\n      \n      <!-- State Nodes -->\n      <circle cx=\"140\" cy=\"60\" r=\"5\" fill=\"#f8fafc\" stroke=\"#ef4444\" stroke-width=\"2\"/>\n      <text x=\"125\" y=\"55\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\">1</text>\n      <circle cx=\"270\" cy=\"120\" r=\"5\" fill=\"#f8fafc\" stroke=\"#f59e0b\" stroke-width=\"2\"/>\n      <text x=\"282\" y=\"118\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\">2</text>\n      <circle cx=\"380\" cy=\"205\" r=\"5\" fill=\"#f8fafc\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n      <text x=\"395\" y=\"210\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\">3</text>\n      <circle cx=\"200\" cy=\"185\" r=\"5\" fill=\"#f8fafc\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <text x=\"185\" y=\"195\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\">4</text>\n      \n      <!-- Center Work Equation Box -->\n      <rect x=\"215\" y=\"135\" width=\"115\" height=\"38\" fill=\"rgba(15, 23, 42, 0.85)\" rx=\"4\" stroke=\"#38bdf8\" stroke-width=\"1\"/>\n      <text x=\"272\" y=\"150\" fill=\"#f8fafc\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Wnet = ∮ P dV</text>\n      <text x=\"272\" y=\"164\" fill=\"#38bdf8\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">η = 1 - TC/TH = 50%</text>\n    </svg>"
+      "moduleId": 5,
+      "title": "Method of Mixtures Dual-Walled Calorimeter Assembly",
+      "caption": "Figure 15: Thermal Equilibrium Measurement Apparatus with Polished Radiation Shield",
+      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      \n      <!-- Outer Metal Vessel (Radiation Shield) -->\n      <rect x=\"140\" y=\"80\" width=\"220\" height=\"170\" rx=\"8\" fill=\"#1e293b\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <text x=\"80\" y=\"120\" fill=\"#94a3b8\" font-size=\"10\" text-anchor=\"end\">Outer Container</text>\n      <line x1=\"85\" y1=\"117\" x2=\"138\" y2=\"117\" stroke=\"#94a3b8\" stroke-width=\"1\"/>\n      \n      <!-- Cork Insulating Supports -->\n      <rect x=\"160\" y=\"230\" width=\"30\" height=\"15\" fill=\"#78350f\" rx=\"2\"/>\n      <rect x=\"310\" y=\"230\" width=\"30\" height=\"15\" fill=\"#78350f\" rx=\"2\"/>\n      <rect x=\"235\" y=\"230\" width=\"30\" height=\"15\" fill=\"#78350f\" rx=\"2\"/>\n      \n      <!-- Inner Calorimeter Vessel -->\n      <rect x=\"170\" y=\"95\" width=\"160\" height=\"135\" rx=\"6\" fill=\"#334155\" stroke=\"#f59e0b\" stroke-width=\"2\"/>\n      \n      <!-- Water Level -->\n      <rect x=\"172\" y=\"130\" width=\"156\" height=\"98\" fill=\"#0284c7\" fill-opacity=\"0.35\"/>\n      <line x1=\"172\" y1=\"130\" x2=\"328\" y2=\"130\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <text x=\"345\" y=\"145\" fill=\"#38bdf8\" font-size=\"10\">Water (m_w, c_w)</text>\n      \n      <!-- Hot Metal Specimen Submerged -->\n      <rect x=\"230\" y=\"165\" width=\"40\" height=\"45\" rx=\"3\" fill=\"#ef4444\" stroke=\"#fca5a5\" stroke-width=\"1.5\"/>\n      <text x=\"250\" y=\"190\" fill=\"#f8fafc\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">Metal</text>\n      <text x=\"250\" y=\"202\" fill=\"#f8fafc\" font-size=\"8\" text-anchor=\"middle\">Sample</text>\n      \n      <!-- Stirrer -->\n      <path d=\"M 210 40 L 210 215 L 225 215\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <circle cx=\"210\" cy=\"35\" r=\"5\" fill=\"#94a3b8\"/>\n      \n      <!-- Precision Thermometer -->\n      <rect x=\"285\" y=\"30\" width=\"10\" height=\"175\" rx=\"5\" fill=\"#f8fafc\" stroke=\"#64748b\" stroke-width=\"1.5\"/>\n      <rect x=\"288\" y=\"150\" width=\"4\" height=\"55\" fill=\"#ef4444\"/>\n      <circle cx=\"290\" cy=\"205\" r=\"7\" fill=\"#ef4444\"/>\n      <text x=\"305\" y=\"55\" fill=\"#f8fafc\" font-size=\"10\">Thermometer</text>\n      \n      <!-- Insulating Wooden Lid -->\n      <rect x=\"130\" y=\"72\" width=\"240\" height=\"15\" rx=\"3\" fill=\"#78350f\" stroke=\"#92400e\" stroke-width=\"1.5\"/>\n      \n      <!-- Conservation Formula Box -->\n      <rect x=\"375\" y=\"175\" width=\"150\" height=\"75\" fill=\"#1e293b\" rx=\"6\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <text x=\"450\" y=\"195\" fill=\"#f8fafc\" font-size=\"10\" font-weight=\"700\" text-anchor=\"middle\">Heat Conservation:</text>\n      <text x=\"450\" y=\"215\" fill=\"#ef4444\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Q_lost = Q_gained</text>\n      <text x=\"450\" y=\"235\" fill=\"#38bdf8\" font-size=\"9\" text-anchor=\"middle\">m_s·c_s·ΔT_s = m_w·c_w·ΔT_w</text>\n    </svg>"
     }
   },
   {
@@ -25301,11 +25301,11 @@ export const questionBankPhys = [
     "options": [
       "In \"Properties of Fluids\", hydrostatic fluid pressure is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Properties of Fluids\", hydrostatic fluid pressure is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{Pa})}^{-1}$, confusing rate with state duration.",
-      "In \"Properties of Fluids\", hydrostatic fluid pressure is expressed in $\\text{\\text{Pa}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Properties of Fluids\", hydrostatic fluid pressure is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{Pa}}$."
+      "In \"Properties of Fluids\", hydrostatic fluid pressure is expressed in $\\text{Pa}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Properties of Fluids\", hydrostatic fluid pressure is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{Pa}$."
     ],
     "correctIndex": 2,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Properties of Fluids, hydrostatic fluid pressure is quantified in $\\text{\\text{Pa}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Properties of Fluids, hydrostatic fluid pressure is quantified in $\\text{Pa}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -25374,13 +25374,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{Pa}",
     "options": [
-      "hydrostatic fluid pressure = $8.57\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $4.29\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $17.14\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $12.86\\text{ \\text{Pa}}$"
+      "hydrostatic fluid pressure = $8.57\\text{Pa}$",
+      "hydrostatic fluid pressure = $4.29\\text{Pa}$",
+      "hydrostatic fluid pressure = $17.14\\text{Pa}$",
+      "hydrostatic fluid pressure = $12.86\\text{Pa}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 30.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{30.0}{3.5} = 8.57\\text{ \\text{Pa}}$$.\nStep 3: Significant figures verify $8.57\\text{ \\text{Pa}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 30.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{30.0}{3.5} = 8.57\\text{Pa}$$.\nStep 3: Significant figures verify $8.57\\text{Pa}$.",
     "rubricCER": null
   },
   {
@@ -25600,18 +25600,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Properties of Fluids\", a student measures initial parameters $P_1 = 71.0\\text{ \\text{Pa}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Properties of Fluids\", a student measures initial parameters $P_1 = 71.0\\text{Pa}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "360",
     "tolerance": 0.5,
     "unit": "\\text{Pa}",
     "options": [
-      "hydrostatic fluid pressure Product $Y = 355\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 355.0\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 400\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 360\\text{ \\text{Pa}}$"
+      "hydrostatic fluid pressure Product $Y = 355.0\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 360\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 400\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 36\\text{ Pa}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 71.0\\text{ \\text{Pa}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (71.0)(5.0) = 355\\text{ \\text{Pa}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 355 to 2 significant figures yields $360\\text{ \\text{Pa}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 71.0\\text{Pa}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (71.0)(5.0) = 355\\text{Pa}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 355 to 2 significant figures yields $360\\text{Pa}$.",
     "rubricCER": null
   },
   {
@@ -26060,12 +26060,12 @@ export const questionBankPhys = [
     "question": "In quantitative metrology for \"Forces within Liquids\", what are the correct SI derived units and dimensional representation for **hydrostatic fluid pressure** ($P = \\rho g h$)?",
     "options": [
       "In \"Forces within Liquids\", hydrostatic fluid pressure is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{Pa})}^{-1}$, confusing rate with state duration.",
-      "In \"Forces within Liquids\", hydrostatic fluid pressure is expressed in $\\text{\\text{Pa}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Forces within Liquids\", hydrostatic fluid pressure is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{Pa}}$.",
+      "In \"Forces within Liquids\", hydrostatic fluid pressure is expressed in $\\text{Pa}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Forces within Liquids\", hydrostatic fluid pressure is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{Pa}$.",
       "In \"Forces within Liquids\", hydrostatic fluid pressure is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Forces within Liquids, hydrostatic fluid pressure is quantified in $\\text{\\text{Pa}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Forces within Liquids, hydrostatic fluid pressure is quantified in $\\text{Pa}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -26134,13 +26134,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{Pa}",
     "options": [
-      "hydrostatic fluid pressure = $11.25\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $15.00\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $7.50\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $3.75\\text{ \\text{Pa}}$"
+      "hydrostatic fluid pressure = $11.25\\text{Pa}$",
+      "hydrostatic fluid pressure = $15.00\\text{Pa}$",
+      "hydrostatic fluid pressure = $7.50\\text{Pa}$",
+      "hydrostatic fluid pressure = $3.75\\text{Pa}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 30.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{30.0}{4.0} = 7.50\\text{ \\text{Pa}}$$.\nStep 3: Significant figures verify $7.50\\text{ \\text{Pa}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 30.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{30.0}{4.0} = 7.50\\text{Pa}$$.\nStep 3: Significant figures verify $7.50\\text{Pa}$.",
     "rubricCER": null
   },
   {
@@ -26360,18 +26360,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Forces within Liquids\", a student measures initial parameters $P_1 = 74.0\\text{ \\text{Pa}}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Forces within Liquids\", a student measures initial parameters $P_1 = 74.0\\text{Pa}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "440",
     "tolerance": 0.5,
     "unit": "\\text{Pa}",
     "options": [
-      "hydrostatic fluid pressure Product $Y = 444.0\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 444\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 400\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 440\\text{ \\text{Pa}}$"
+      "hydrostatic fluid pressure Product $Y = 444.0\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 440\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 400\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 44\\text{ Pa}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 74.0\\text{ \\text{Pa}}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (74.0)(6.0) = 444\\text{ \\text{Pa}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 444 to 2 significant figures yields $440\\text{ \\text{Pa}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 74.0\\text{Pa}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (74.0)(6.0) = 444\\text{Pa}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 444 to 2 significant figures yields $440\\text{Pa}$.",
     "rubricCER": null
   },
   {
@@ -26820,12 +26820,12 @@ export const questionBankPhys = [
     "question": "In quantitative metrology for \"Fluids at Rest and in Motion\", what are the correct SI derived units and dimensional representation for **hydrostatic fluid pressure** ($P = \\rho g h$)?",
     "options": [
       "In \"Fluids at Rest and in Motion\", hydrostatic fluid pressure is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{Pa})}^{-1}$, confusing rate with state duration.",
-      "In \"Fluids at Rest and in Motion\", hydrostatic fluid pressure is expressed in $\\text{\\text{Pa}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Fluids at Rest and in Motion\", hydrostatic fluid pressure is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{Pa}}$.",
+      "In \"Fluids at Rest and in Motion\", hydrostatic fluid pressure is expressed in $\\text{Pa}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Fluids at Rest and in Motion\", hydrostatic fluid pressure is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{Pa}$.",
       "In \"Fluids at Rest and in Motion\", hydrostatic fluid pressure is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Fluids at Rest and in Motion, hydrostatic fluid pressure is quantified in $\\text{\\text{Pa}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Fluids at Rest and in Motion, hydrostatic fluid pressure is quantified in $\\text{Pa}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -26894,13 +26894,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{Pa}",
     "options": [
-      "hydrostatic fluid pressure = $13.34\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $10.00\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $6.67\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $3.33\\text{ \\text{Pa}}$"
+      "hydrostatic fluid pressure = $13.34\\text{Pa}$",
+      "hydrostatic fluid pressure = $10.00\\text{Pa}$",
+      "hydrostatic fluid pressure = $6.67\\text{Pa}$",
+      "hydrostatic fluid pressure = $3.33\\text{Pa}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 30.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{30.0}{4.5} = 6.67\\text{ \\text{Pa}}$$.\nStep 3: Significant figures verify $6.67\\text{ \\text{Pa}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 30.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{30.0}{4.5} = 6.67\\text{Pa}$$.\nStep 3: Significant figures verify $6.67\\text{Pa}$.",
     "rubricCER": null
   },
   {
@@ -27120,18 +27120,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Fluids at Rest and in Motion\", a student measures initial parameters $P_1 = 77.0\\text{ \\text{Pa}}$ (3 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Fluids at Rest and in Motion\", a student measures initial parameters $P_1 = 77.0\\text{Pa}$ (3 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "540",
     "tolerance": 0.5,
     "unit": "\\text{Pa}",
     "options": [
-      "hydrostatic fluid pressure Product $Y = 540\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 539.0\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 539\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 500\\text{ \\text{Pa}}$"
+      "hydrostatic fluid pressure Product $Y = 539.0\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 540\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 500\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 54\\text{ Pa}$"
     ],
-    "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 77.0\\text{ \\text{Pa}}$ (3 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (77.0)(7.0) = 539\\text{ \\text{Pa}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 539 to 2 significant figures yields $540\\text{ \\text{Pa}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 77.0\\text{Pa}$ (3 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (77.0)(7.0) = 539\\text{Pa}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 539 to 2 significant figures yields $540\\text{Pa}$.",
     "rubricCER": null
   },
   {
@@ -27581,11 +27581,11 @@ export const questionBankPhys = [
     "options": [
       "In \"Solids\", hydrostatic fluid pressure is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Solids\", hydrostatic fluid pressure is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{Pa})}^{-1}$, confusing rate with state duration.",
-      "In \"Solids\", hydrostatic fluid pressure is expressed in $\\text{\\text{Pa}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Solids\", hydrostatic fluid pressure is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{Pa}}$."
+      "In \"Solids\", hydrostatic fluid pressure is expressed in $\\text{Pa}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Solids\", hydrostatic fluid pressure is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{Pa}$."
     ],
     "correctIndex": 2,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Solids, hydrostatic fluid pressure is quantified in $\\text{\\text{Pa}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Solids, hydrostatic fluid pressure is quantified in $\\text{Pa}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -27654,13 +27654,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{Pa}",
     "options": [
-      "hydrostatic fluid pressure = $12.00\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $9.00\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $3.00\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure = $6.00\\text{ \\text{Pa}}$"
+      "hydrostatic fluid pressure = $12.00\\text{Pa}$",
+      "hydrostatic fluid pressure = $9.00\\text{Pa}$",
+      "hydrostatic fluid pressure = $3.00\\text{Pa}$",
+      "hydrostatic fluid pressure = $6.00\\text{Pa}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 30.0$, $B = 5.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{30.0}{5.0} = 6.00\\text{ \\text{Pa}}$$.\nStep 3: Significant figures verify $6.00\\text{ \\text{Pa}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 30.0$, $B = 5.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{30.0}{5.0} = 6.00\\text{Pa}$$.\nStep 3: Significant figures verify $6.00\\text{Pa}$.",
     "rubricCER": null
   },
   {
@@ -27880,18 +27880,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Solids\", a student measures initial parameters $P_1 = 80.0\\text{ \\text{Pa}}$ (3 significant figures) and multiplier factor $\\beta = 8.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Solids\", a student measures initial parameters $P_1 = 80.0\\text{Pa}$ (3 significant figures) and multiplier factor $\\beta = 8.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "640",
     "tolerance": 0.5,
     "unit": "\\text{Pa}",
     "options": [
-      "hydrostatic fluid pressure Product $Y = 640\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 640\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 600\\text{ \\text{Pa}}$",
-      "hydrostatic fluid pressure Product $Y = 640.0\\text{ \\text{Pa}}$"
+      "hydrostatic fluid pressure Product $Y = 640.00\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 640\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 600\\text{ Pa}$",
+      "hydrostatic fluid pressure Product $Y = 64\\text{ Pa}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 80.0\\text{ \\text{Pa}}$ (3 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (80.0)(8.0) = 640\\text{ \\text{Pa}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 640 to 2 significant figures yields $640\\text{ \\text{Pa}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 80.0\\text{Pa}$ (3 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (80.0)(8.0) = 640\\text{Pa}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 640 to 2 significant figures yields $640\\text{Pa}$.",
     "rubricCER": null
   },
   {
@@ -30620,12 +30620,12 @@ export const questionBankPhys = [
     "question": "In quantitative metrology for \"Properties and Detection of Sound\", what are the correct SI derived units and dimensional representation for **Doppler shifted frequency** ($f_d = f_s \\left(\\frac{v \\pm v_d}{v \\mp v_s}\\right)$)?",
     "options": [
       "In \"Properties and Detection of Sound\", Doppler shifted frequency is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{Hz})}^{-1}$, confusing rate with state duration.",
-      "In \"Properties and Detection of Sound\", Doppler shifted frequency is expressed in $\\text{\\text{Hz}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Properties and Detection of Sound\", Doppler shifted frequency is expressed in $\\text{Hz}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Properties and Detection of Sound\", Doppler shifted frequency is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Properties and Detection of Sound\", Doppler shifted frequency is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{Hz}}$."
+      "In \"Properties and Detection of Sound\", Doppler shifted frequency is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{Hz}$."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Properties and Detection of Sound, Doppler shifted frequency is quantified in $\\text{\\text{Hz}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Properties and Detection of Sound, Doppler shifted frequency is quantified in $\\text{Hz}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -30694,13 +30694,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{Hz}",
     "options": [
-      "Doppler shifted frequency = $9.43\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency = $14.14\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency = $4.71\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency = $18.86\\text{ \\text{Hz}}$"
+      "Doppler shifted frequency = $9.43\\text{Hz}$",
+      "Doppler shifted frequency = $14.14\\text{Hz}$",
+      "Doppler shifted frequency = $4.71\\text{Hz}$",
+      "Doppler shifted frequency = $18.86\\text{Hz}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 33.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{33.0}{3.5} = 9.43\\text{ \\text{Hz}}$$.\nStep 3: Significant figures verify $9.43\\text{ \\text{Hz}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 33.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{33.0}{3.5} = 9.43\\text{Hz}$$.\nStep 3: Significant figures verify $9.43\\text{Hz}$.",
     "rubricCER": null
   },
   {
@@ -30920,18 +30920,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Properties and Detection of Sound\", a student measures initial parameters $P_1 = 79.0\\text{ \\text{Hz}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Properties and Detection of Sound\", a student measures initial parameters $P_1 = 79.0\\text{Hz}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "400",
     "tolerance": 0.5,
     "unit": "\\text{Hz}",
     "options": [
-      "Doppler shifted frequency Product $Y = 400\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency Product $Y = 395\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency Product $Y = 395.0\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency Product $Y = 400\\text{ \\text{Hz}}$"
+      "Doppler shifted frequency Product $Y = 395.0\\text{ Hz}$",
+      "Doppler shifted frequency Product $Y = 400\\text{ Hz}$",
+      "Doppler shifted frequency Product $Y = 450\\text{ Hz}$",
+      "Doppler shifted frequency Product $Y = 40\\text{ Hz}$"
     ],
-    "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 79.0\\text{ \\text{Hz}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (79.0)(5.0) = 395\\text{ \\text{Hz}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 395 to 2 significant figures yields $400\\text{ \\text{Hz}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 79.0\\text{Hz}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (79.0)(5.0) = 395\\text{Hz}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 395 to 2 significant figures yields $400\\text{Hz}$.",
     "rubricCER": null
   },
   {
@@ -31379,13 +31379,13 @@ export const questionBankPhys = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"The Physics of Music\", what are the correct SI derived units and dimensional representation for **Doppler shifted frequency** ($f_d = f_s \\left(\\frac{v \\pm v_d}{v \\mp v_s}\\right)$)?",
     "options": [
-      "In \"The Physics of Music\", Doppler shifted frequency is expressed in $\\text{\\text{Hz}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"The Physics of Music\", Doppler shifted frequency is expressed in $\\text{Hz}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"The Physics of Music\", Doppler shifted frequency is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{Hz})}^{-1}$, confusing rate with state duration.",
       "In \"The Physics of Music\", Doppler shifted frequency is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"The Physics of Music\", Doppler shifted frequency is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{Hz}}$."
+      "In \"The Physics of Music\", Doppler shifted frequency is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{Hz}$."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Physics of Music, Doppler shifted frequency is quantified in $\\text{\\text{Hz}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Physics of Music, Doppler shifted frequency is quantified in $\\text{Hz}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -31454,13 +31454,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{Hz}",
     "options": [
-      "Doppler shifted frequency = $12.38\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency = $4.13\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency = $16.50\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency = $8.25\\text{ \\text{Hz}}$"
+      "Doppler shifted frequency = $12.38\\text{Hz}$",
+      "Doppler shifted frequency = $4.13\\text{Hz}$",
+      "Doppler shifted frequency = $16.50\\text{Hz}$",
+      "Doppler shifted frequency = $8.25\\text{Hz}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 33.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{33.0}{4.0} = 8.25\\text{ \\text{Hz}}$$.\nStep 3: Significant figures verify $8.25\\text{ \\text{Hz}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 33.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{33.0}{4.0} = 8.25\\text{Hz}$$.\nStep 3: Significant figures verify $8.25\\text{Hz}$.",
     "rubricCER": null
   },
   {
@@ -31680,18 +31680,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Physics of Music\", a student measures initial parameters $P_1 = 82.0\\text{ \\text{Hz}}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Physics of Music\", a student measures initial parameters $P_1 = 82.0\\text{Hz}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "490",
     "tolerance": 0.5,
     "unit": "\\text{Hz}",
     "options": [
-      "Doppler shifted frequency Product $Y = 492\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency Product $Y = 500\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency Product $Y = 490\\text{ \\text{Hz}}$",
-      "Doppler shifted frequency Product $Y = 492.0\\text{ \\text{Hz}}$"
+      "Doppler shifted frequency Product $Y = 492.0\\text{ Hz}$",
+      "Doppler shifted frequency Product $Y = 490\\text{ Hz}$",
+      "Doppler shifted frequency Product $Y = 500\\text{ Hz}$",
+      "Doppler shifted frequency Product $Y = 49\\text{ Hz}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 82.0\\text{ \\text{Hz}}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (82.0)(6.0) = 492\\text{ \\text{Hz}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 492 to 2 significant figures yields $490\\text{ \\text{Hz}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 82.0\\text{Hz}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (82.0)(6.0) = 492\\text{Hz}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 492 to 2 significant figures yields $490\\text{Hz}$.",
     "rubricCER": null
   },
   {
@@ -32140,12 +32140,12 @@ export const questionBankPhys = [
     "question": "In quantitative metrology for \"Illumination\", what are the correct SI derived units and dimensional representation for **illuminance** ($E = \\frac{P}{4\\pi r^2}$)?",
     "options": [
       "In \"Illumination\", illuminance is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Illumination\", illuminance is expressed in $\\text{\\text{lx}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Illumination\", illuminance is expressed in $\\text{lx}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Illumination\", illuminance is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{lx})}^{-1}$, confusing rate with state duration.",
-      "In \"Illumination\", illuminance is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{lx}}$."
+      "In \"Illumination\", illuminance is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{lx}$."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Illumination, illuminance is quantified in $\\text{\\text{lx}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Illumination, illuminance is quantified in $\\text{lx}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -32214,13 +32214,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{lx}",
     "options": [
-      "illuminance = $9.86\\text{ \\text{lx}}$",
-      "illuminance = $4.93\\text{ \\text{lx}}$",
-      "illuminance = $19.72\\text{ \\text{lx}}$",
-      "illuminance = $14.79\\text{ \\text{lx}}$"
+      "illuminance = $9.86\\text{lx}$",
+      "illuminance = $4.93\\text{lx}$",
+      "illuminance = $19.72\\text{lx}$",
+      "illuminance = $14.79\\text{lx}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 34.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{34.5}{3.5} = 9.86\\text{ \\text{lx}}$$.\nStep 3: Significant figures verify $9.86\\text{ \\text{lx}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 34.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{34.5}{3.5} = 9.86\\text{lx}$$.\nStep 3: Significant figures verify $9.86\\text{lx}$.",
     "rubricCER": null
   },
   {
@@ -32440,18 +32440,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Illumination\", a student measures initial parameters $P_1 = 83.0\\text{ \\text{lx}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Illumination\", a student measures initial parameters $P_1 = 83.0\\text{lx}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "420",
     "tolerance": 0.5,
     "unit": "\\text{lx}",
     "options": [
-      "illuminance Product $Y = 415\\text{ \\text{lx}}$",
-      "illuminance Product $Y = 400\\text{ \\text{lx}}$",
-      "illuminance Product $Y = 415.0\\text{ \\text{lx}}$",
-      "illuminance Product $Y = 420\\text{ \\text{lx}}$"
+      "illuminance Product $Y = 415.0\\text{ lx}$",
+      "illuminance Product $Y = 420\\text{ lx}$",
+      "illuminance Product $Y = 400\\text{ lx}$",
+      "illuminance Product $Y = 42\\text{ lx}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 83.0\\text{ \\text{lx}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (83.0)(5.0) = 415\\text{ \\text{lx}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 415 to 2 significant figures yields $420\\text{ \\text{lx}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 83.0\\text{lx}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (83.0)(5.0) = 415\\text{lx}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 415 to 2 significant figures yields $420\\text{lx}$.",
     "rubricCER": null
   },
   {
@@ -32899,13 +32899,13 @@ export const questionBankPhys = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"The Wave Nature of Light\", what are the correct SI derived units and dimensional representation for **illuminance** ($E = \\frac{P}{4\\pi r^2}$)?",
     "options": [
-      "In \"The Wave Nature of Light\", illuminance is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{lx}}$.",
-      "In \"The Wave Nature of Light\", illuminance is expressed in $\\text{\\text{lx}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"The Wave Nature of Light\", illuminance is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{lx}$.",
+      "In \"The Wave Nature of Light\", illuminance is expressed in $\\text{lx}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"The Wave Nature of Light\", illuminance is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"The Wave Nature of Light\", illuminance is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{lx})}^{-1}$, confusing rate with state duration."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Wave Nature of Light, illuminance is quantified in $\\text{\\text{lx}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Wave Nature of Light, illuminance is quantified in $\\text{lx}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -32974,13 +32974,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{lx}",
     "options": [
-      "illuminance = $12.95\\text{ \\text{lx}}$",
-      "illuminance = $17.26\\text{ \\text{lx}}$",
-      "illuminance = $4.32\\text{ \\text{lx}}$",
-      "illuminance = $8.63\\text{ \\text{lx}}$"
+      "illuminance = $12.95\\text{lx}$",
+      "illuminance = $17.26\\text{lx}$",
+      "illuminance = $4.32\\text{lx}$",
+      "illuminance = $8.63\\text{lx}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 34.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{34.5}{4.0} = 8.63\\text{ \\text{lx}}$$.\nStep 3: Significant figures verify $8.63\\text{ \\text{lx}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 34.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{34.5}{4.0} = 8.63\\text{lx}$$.\nStep 3: Significant figures verify $8.63\\text{lx}$.",
     "rubricCER": null
   },
   {
@@ -33200,18 +33200,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Wave Nature of Light\", a student measures initial parameters $P_1 = 86.0\\text{ \\text{lx}}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Wave Nature of Light\", a student measures initial parameters $P_1 = 86.0\\text{lx}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "520",
     "tolerance": 0.5,
     "unit": "\\text{lx}",
     "options": [
-      "illuminance Product $Y = 520\\text{ \\text{lx}}$",
-      "illuminance Product $Y = 516\\text{ \\text{lx}}$",
-      "illuminance Product $Y = 516.0\\text{ \\text{lx}}$",
-      "illuminance Product $Y = 500\\text{ \\text{lx}}$"
+      "illuminance Product $Y = 516.0\\text{ lx}$",
+      "illuminance Product $Y = 520\\text{ lx}$",
+      "illuminance Product $Y = 500\\text{ lx}$",
+      "illuminance Product $Y = 52\\text{ lx}$"
     ],
-    "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 86.0\\text{ \\text{lx}}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (86.0)(6.0) = 516\\text{ \\text{lx}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 516 to 2 significant figures yields $520\\text{ \\text{lx}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 86.0\\text{lx}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (86.0)(6.0) = 516\\text{lx}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 516 to 2 significant figures yields $520\\text{lx}$.",
     "rubricCER": null
   },
   {
@@ -34725,12 +34725,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "Snell's law refraction index Product $Y = 540\\text{ }$",
-      "Snell's law refraction index Product $Y = 500\\text{ }$",
-      "Snell's law refraction index Product $Y = 540.0\\text{ }$",
-      "Snell's law refraction index Product $Y = 540\\text{ }$"
+      "Snell's law refraction index Product $Y = 540.00$",
+      "Snell's law refraction index Product $Y = 540$",
+      "Snell's law refraction index Product $Y = 500$",
+      "Snell's law refraction index Product $Y = 54$"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 90.0\\text{ }$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (90.0)(6.0) = 540\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 540 to 2 significant figures yields $540\\text{ }$.",
     "rubricCER": null
   },
@@ -37080,24 +37080,24 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "spectrometry_electrophoresis",
-    "question": "In the Young's double-slit experiment illustrated in **Figure 17.1**, monochromatic light with wavelength $\\lambda = 632.8\\text{ nm}$ illuminates dual slits separated by $d = 0.200\\text{ mm}$, producing an interference fringe pattern on a screen at distance $L = 2.00\\text{ m}$. What is the linear spacing ($\\Delta y$) between adjacent bright fringes, and what occurs if the apparatus is submerged in water ($n = 1.33$)?",
+    "question": "Refer to the Michelson interferometer configuration shown in **Figure 17.1M**. Monochromatic laser light ($\\lambda = 600\\text{ nm}$) is divided into perpendicular arms by a beam splitter. If movable mirror $M_1$ is translated through a displacement $\\Delta d$, causing $N = 500$ bright fringe cycles to sweep across the photodetector, what is the exact physical displacement $\\Delta d$?",
     "options": [
-      "$\\Delta y = \\frac{\\lambda L}{d} = 6.33\\text{ mm}$; when submerged in water, the wavelength decreases ($\\lambda' = \\lambda / 1.33$), causing the fringe spacing to decrease to $\\Delta y' = 4.76\\text{ mm}$.",
-      "$\\Delta y = 12.66\\text{ mm}$; when submerged in water, the interference pattern disappears completely.",
-      "$\\Delta y = 6.33\\text{ mm}$; the medium index has zero effect on interference fringe spacing.",
-      "$\\Delta y = 1.58\\text{ mm}$; when submerged in water, fringe spacing increases due to optical magnification."
+      "$\\Delta d = \\frac{N\\lambda}{2} = \\frac{500 \\times (600 \\times 10^{-9}\\text{ m})}{2} = 0.150\\text{ mm}$, because moving the mirror by $\\Delta d$ changes the round-trip optical path length by $\\Delta L = 2\\Delta d$.",
+      "$\\Delta d = N\\lambda = 500 \\times (600\\text{ nm}) = 0.300\\text{ mm}$, assuming single-pass path change.",
+      "$\\Delta d = \\frac{\\lambda}{2N} = 0.600\\text{ nm}$; fringe counts represent microscopic atomic lattice spacings.",
+      "$\\Delta d = 3.00\\text{ mm}$; interferometer fringes occur only at millimeter intervals."
     ],
     "correctIndex": 0,
-    "explanation": "For small angles $\\theta$, fringe separation is $\\Delta y = \\frac{\\lambda L}{d} = \\frac{(632.8 \\times 10^{-9}\\text{ m})(2.00\\text{ m})}{0.200 \\times 10^{-3}\\text{ m}} = 6.33\\text{ mm}$. When immersed in an optical medium with refractive index $n = 1.33$, light slows and its wavelength is shortened to $\\lambda_n = \\lambda / n = 475.8\\text{ nm}$. Thus, the fringes contract to $\\Delta y' = \\frac{\\Delta y}{n} = 4.76\\text{ mm}$.",
+    "explanation": "In a Michelson interferometer, the beam reflected by mirror $M_1$ traverses the arm length twice. Displacing the mirror by distance $\\Delta d$ alters the round-trip optical path difference by $\\Delta L = 2\\Delta d$. Each complete fringe transition (light-to-dark-to-light) corresponds to a path difference change of exactly one wavelength ($\\Delta L = \\lambda$). Therefore, $2\\Delta d = N\\lambda \\implies \\Delta d = \\frac{N\\lambda}{2} = \\frac{500 \\times 600 \\times 10^{-9}\\text{ m}}{2} = 1.50 \\times 10^{-4}\\text{ m} = 0.150\\text{ mm}$.",
     "rubricCER": null,
     "hasDiagram": true,
     "diagram": {
-      "id": "phys_double_slit_interference",
+      "id": "phys_michelson_interferometer",
       "subject": "PHYS",
-      "moduleId": 17,
-      "title": "Young's Double-Slit Wave Interference & Intensity Distribution",
-      "caption": "Figure 15: Two-Slit Optical Geometry (λ = 632.8 nm, d = 0.20 mm, L = 2.0 m) and Resulting Screen Fringes",
-      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      \n      <!-- Laser Beam Source (Left) -->\n      <rect x=\"25\" y=\"130\" width=\"45\" height=\"40\" fill=\"#ef4444\" rx=\"4\"/>\n      <text x=\"47\" y=\"155\" fill=\"#ffffff\" font-size=\"9\" font-weight=\"800\" text-anchor=\"middle\">Laser</text>\n      <text x=\"47\" y=\"185\" fill=\"#ef4444\" font-size=\"8\" font-weight=\"700\" text-anchor=\"middle\">λ = 632.8 nm</text>\n      <line x1=\"70\" y1=\"150\" x2=\"130\" y2=\"150\" stroke=\"#ef4444\" stroke-width=\"3\" stroke-dasharray=\"4\"/>\n      \n      <!-- Slit Barrier with 2 Slits (S1, S2) -->\n      <line x1=\"130\" y1=\"35\" x2=\"130\" y2=\"125\" stroke=\"#94a3b8\" stroke-width=\"5\"/>\n      <line x1=\"130\" y1=\"135\" x2=\"130\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"5\"/>\n      <line x1=\"130\" y1=\"175\" x2=\"130\" y2=\"265\" stroke=\"#94a3b8\" stroke-width=\"5\"/>\n      \n      <!-- Slit Labels -->\n      <text x=\"115\" y=\"133\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"800\">S1</text>\n      <text x=\"115\" y=\"183\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"800\">S2</text>\n      <line x1=\"105\" y1=\"130\" x2=\"105\" y2=\"170\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <text x=\"95\" y=\"153\" fill=\"#38bdf8\" font-size=\"9\" font-weight=\"800\" text-anchor=\"middle\">d</text>\n      \n      <!-- Central Optical Axis -->\n      <line x1=\"130\" y1=\"150\" x2=\"410\" y2=\"150\" stroke=\"#475569\" stroke-width=\"1\" stroke-dasharray=\"4\"/>\n      <text x=\"260\" y=\"165\" fill=\"#64748b\" font-size=\"9\" text-anchor=\"middle\">Distance L = 2.00 m</text>\n      \n      <!-- Rays to Target Point P on Screen -->\n      <line x1=\"130\" y1=\"130\" x2=\"410\" y2=\"80\" stroke=\"#ef4444\" stroke-width=\"2\"/>\n      <line x1=\"130\" y1=\"170\" x2=\"410\" y2=\"80\" stroke=\"#ef4444\" stroke-width=\"2\"/>\n      <circle cx=\"410\" cy=\"80\" r=\"4\" fill=\"#ef4444\"/>\n      <text x=\"425\" y=\"75\" fill=\"#f8fafc\" font-size=\"10\" font-weight=\"800\">P (m = +1)</text>\n      <text x=\"425\" y=\"90\" fill=\"#38bdf8\" font-size=\"9\">y = λL/d = 6.33 mm</text>\n      \n      <!-- Screen Barrier (Right) -->\n      <line x1=\"410\" y1=\"35\" x2=\"410\" y2=\"265\" stroke=\"#64748b\" stroke-width=\"3\"/>\n      \n      <!-- Interference Fringes Display (Right edge) -->\n      <!-- Central Max (m=0) -->\n      <rect x=\"420\" y=\"140\" width=\"30\" height=\"20\" fill=\"#ef4444\" rx=\"2\" opacity=\"1\"/>\n      <text x=\"455\" y=\"154\" fill=\"#f8fafc\" font-size=\"9\" font-weight=\"800\">m = 0 (Central Max)</text>\n      \n      <!-- m = +1 Bright Fringe -->\n      <rect x=\"420\" y=\"70\" width=\"26\" height=\"18\" fill=\"#ef4444\" rx=\"2\" opacity=\"0.85\"/>\n      <text x=\"455\" y=\"82\" fill=\"#ef4444\" font-size=\"8\" font-weight=\"700\">m = +1</text>\n      \n      <!-- m = -1 Bright Fringe -->\n      <rect x=\"420\" y=\"212\" width=\"26\" height=\"18\" fill=\"#ef4444\" rx=\"2\" opacity=\"0.85\"/>\n      <text x=\"455\" y=\"224\" fill=\"#ef4444\" font-size=\"8\" font-weight=\"700\">m = -1</text>\n      \n      <!-- Dark Minima Indicator -->\n      <line x1=\"420\" y1=\"110\" x2=\"445\" y2=\"110\" stroke=\"#334155\" stroke-width=\"2\"/>\n      <text x=\"455\" y=\"113\" fill=\"#64748b\" font-size=\"8\">Dark (Destructive)</text>\n      <line x1=\"420\" y1=\"190\" x2=\"445\" y2=\"190\" stroke=\"#334155\" stroke-width=\"2\"/>\n      <text x=\"455\" y=\"193\" fill=\"#64748b\" font-size=\"8\">Dark (Destructive)</text>\n      \n      <!-- Fringe Spacing Dimension Line -->\n      <line x1=\"415\" y1=\"80\" x2=\"415\" y2=\"150\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <polygon points=\"415,80 412,87 418,87\" fill=\"#38bdf8\"/>\n      <polygon points=\"415,150 412,143 418,143\" fill=\"#38bdf8\"/>\n      <text x=\"395\" y=\"118\" fill=\"#38bdf8\" font-size=\"9\" font-weight=\"800\" text-anchor=\"end\">Δy</text>\n    </svg>"
+      "moduleId": 8,
+      "title": "Michelson Optical Interferometer & Coherent Fringe Formation",
+      "caption": "Figure 29: Amplitude Splitting, Variable Optical Path Difference, and Interference Fringe Detector",
+      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      \n      <!-- Monochromatic Laser Source (Left) -->\n      <rect x=\"25\" y=\"130\" width=\"60\" height=\"40\" rx=\"4\" fill=\"#dc2626\" stroke=\"#ef4444\" stroke-width=\"2\"/>\n      <text x=\"55\" y=\"155\" fill=\"#f8fafc\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Laser</text>\n      \n      <!-- Primary Laser Beam -->\n      <line x1=\"85\" y1=\"150\" x2=\"210\" y2=\"150\" stroke=\"#ef4444\" stroke-width=\"2.5\"/>\n      \n      <!-- Beam Splitter (Half-Silvered Mirror inclined at 45 deg at x=220, y=150) -->\n      <line x1=\"200\" y1=\"170\" x2=\"240\" y2=\"130\" stroke=\"#38bdf8\" stroke-width=\"4\"/>\n      <text x=\"185\" y=\"125\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"700\">Beam Splitter (50/50)</text>\n      \n      <!-- Arm 1: Transmitted Beam to Movable Mirror M1 (Right) -->\n      <line x1=\"220\" y1=\"150\" x2=\"350\" y2=\"150\" stroke=\"#ef4444\" stroke-width=\"2\"/>\n      <rect x=\"350\" y=\"125\" width=\"8\" height=\"50\" fill=\"#94a3b8\" stroke=\"#f8fafc\" stroke-width=\"1.5\"/>\n      <text x=\"365\" y=\"145\" fill=\"#f8fafc\" font-size=\"10\" font-weight=\"800\">Movable</text>\n      <text x=\"365\" y=\"160\" fill=\"#f8fafc\" font-size=\"10\" font-weight=\"800\">Mirror M₁</text>\n      <!-- Motion arrows -->\n      <line x1=\"390\" y1=\"175\" x2=\"420\" y2=\"175\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>\n      <polygon points=\"420,175 413,172 413,178\" fill=\"#f59e0b\"/>\n      <polygon points=\"390,175 397,172 397,178\" fill=\"#f59e0b\"/>\n      <text x=\"405\" y=\"195\" fill=\"#f59e0b\" font-size=\"9\" text-anchor=\"middle\">Δd</text>\n      \n      <!-- Arm 2: Reflected Beam to Fixed Mirror M2 (Top) -->\n      <line x1=\"220\" y1=\"150\" x2=\"220\" y2=\"50\" stroke=\"#ef4444\" stroke-width=\"2\"/>\n      <rect x=\"195\" y=\"42\" width=\"50\" height=\"8\" fill=\"#94a3b8\" stroke=\"#f8fafc\" stroke-width=\"1.5\"/>\n      <text x=\"220\" y=\"32\" fill=\"#f8fafc\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Fixed Mirror M₂</text>\n      \n      <!-- Combined Beams to Detector (Bottom) -->\n      <line x1=\"220\" y1=\"150\" x2=\"220\" y2=\"230\" stroke=\"#f59e0b\" stroke-width=\"3\"/>\n      \n      <!-- Screen / Detector -->\n      <rect x=\"180\" y=\"230\" width=\"80\" height=\"15\" rx=\"3\" fill=\"#1e293b\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <text x=\"220\" y=\"242\" fill=\"#10b981\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Detector Screen</text>\n      \n      <!-- Inset: Circular Interference Fringe Pattern -->\n      <g transform=\"translate(460, 220)\">\n        <circle cx=\"0\" cy=\"0\" r=\"32\" fill=\"#0f172a\" stroke=\"#475569\" stroke-width=\"1.5\"/>\n        <circle cx=\"0\" cy=\"0\" r=\"26\" fill=\"none\" stroke=\"#ef4444\" stroke-width=\"3\"/>\n        <circle cx=\"0\" cy=\"0\" r=\"18\" fill=\"none\" stroke=\"#ef4444\" stroke-width=\"3\"/>\n        <circle cx=\"0\" cy=\"0\" r=\"10\" fill=\"none\" stroke=\"#ef4444\" stroke-width=\"3\"/>\n        <circle cx=\"0\" cy=\"0\" r=\"3\" fill=\"#ef4444\"/>\n        <text x=\"0\" y=\"45\" fill=\"#f8fafc\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">Circular Fringes</text>\n      </g>\n      \n      <!-- Path Difference Formula Box -->\n      <rect x=\"25\" y=\"215\" width=\"140\" height=\"60\" fill=\"#1e293b\" rx=\"5\" stroke=\"#334155\" stroke-width=\"1\"/>\n      <text x=\"95\" y=\"235\" fill=\"#f8fafc\" font-size=\"10\" font-weight=\"700\" text-anchor=\"middle\">Path Difference:</text>\n      <text x=\"95\" y=\"252\" fill=\"#ef4444\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Δx = 2 · Δd = m · λ</text>\n      <text x=\"95\" y=\"267\" fill=\"#94a3b8\" font-size=\"9\" text-anchor=\"middle\">λ = 2 · Δd / Δm</text>\n    </svg>"
     }
   },
   {
@@ -41565,12 +41565,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "V",
     "options": [
+      "Ohm's law potential Product $Y = 495.0\\text{ V}$",
       "Ohm's law potential Product $Y = 500\\text{ V}$",
-      "Ohm's law potential Product $Y = 500\\text{ V}$",
-      "Ohm's law potential Product $Y = 495\\text{ V}$",
-      "Ohm's law potential Product $Y = 495.0\\text{ V}$"
+      "Ohm's law potential Product $Y = 570\\text{ V}$",
+      "Ohm's law potential Product $Y = 50\\text{ V}$"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 99.0\\text{ V}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (99.0)(5.0) = 495\\text{ V}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 495 to 2 significant figures yields $500\\text{ V}$.",
     "rubricCER": null
   },
@@ -42643,24 +42643,24 @@ export const questionBankPhys = [
     "difficulty": "foundational",
     "difficultyTier": "easy",
     "angle": "apparatus_identification",
-    "question": "Examine the laboratory apparatus and experimental configuration shown in **Figure 9: DC Circuit Network with Series and Parallel Branches** for \"Simple Circuits\". What is the primary functional role of the key diagnostic instrument or containment component highlighted?",
+    "question": "Examine the Wheatstone bridge null-measurement circuit configuration shown in **Figure 19.3W**. When variable precision resistor $R_3$ is adjusted until zero current flows through the central galvanometer ($I_G = 0$), which mathematical condition defines the unknown resistance $R_x$ in terms of known resistors $R_1$, $R_2$, and $R_3$?",
     "options": [
-      "For \"Simple Circuits\", it isolates the experimental system to ensure controlled boundary conditions, enabling high-precision measurement of Ohm's law potential while minimizing environmental dissipation.",
-      "For \"Simple Circuits\", it continuously alters the chemical identity of the analyte to accelerate reaction progress rather than passively monitoring physical state variables.",
-      "For \"Simple Circuits\", it serves as an open pressure-relief vent that equalizes internal vapor pressure directly with atmospheric fluctuations without trapping volatile condensates.",
-      "For \"Simple Circuits\", it acts as an external thermal reservoir to supply unlimited sensible heat and maintain constant boiling temperature throughout data collection."
+      "At bridge null balance, equal node potentials dictate that $R_x = R_3 \\left(\\frac{R_2}{R_1}\\right)$, allowing ultra-precise resistance determination independent of galvanometer calibration or power supply voltage drift.",
+      "$R_x = R_1 + R_2 + R_3$; null balance requires the branch resistances to sum to the internal battery resistance.",
+      "$R_x = \\frac{R_1 R_2}{R_3}$; null balance occurs when branch resistances form an LC resonant oscillator.",
+      "$R_x = 0\\ \\Omega$; zero meter current indicates that the unknown resistor has been bypassed by a short circuit."
     ],
     "correctIndex": 0,
-    "explanation": "In laboratory investigations of Simple Circuits, experimental hardware (illustrated in Figure 9: DC Circuit Network with Series and Parallel Branches) ensures rigorous boundary control. Calibrated sensors and isolated vessels permit reproducible measurement of Ohm's law potential.",
+    "explanation": "In a balanced Wheatstone bridge, no current flows through the galvanometer ($I_G = 0$), meaning the midpoints of both parallel branches are at identical potential ($V_B = V_D$). Consequently, the voltage drop across $R_1$ equals that across $R_2$ ($I_1 R_1 = I_2 R_2$), and across $R_3$ equals $R_x$ ($I_1 R_3 = I_2 R_x$). Dividing these equations gives $\\frac{R_1}{R_3} = \\frac{R_2}{R_x} \\implies R_x = R_3 \\left(\\frac{R_2}{R_1}\\right)$. Because current is zero at balance, this null method is immune to galvanometer resistance or supply voltage fluctuations.",
     "rubricCER": null,
     "hasDiagram": true,
     "diagram": {
-      "id": "phys_circuit_resistors",
+      "id": "phys_wheatstone_bridge",
       "subject": "PHYS",
-      "moduleId": 20,
-      "title": "Series-Parallel DC Circuit Schematic",
-      "caption": "Figure 9: DC Circuit Network with Series and Parallel Branches",
-      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      \n      <!-- DC Voltage Source (Left) -->\n      <line x1=\"80\" y1=\"80\" x2=\"80\" y2=\"135\" stroke=\"#facc15\" stroke-width=\"2.5\"/>\n      <line x1=\"60\" y1=\"135\" x2=\"100\" y2=\"135\" stroke=\"#facc15\" stroke-width=\"3\"/>\n      <line x1=\"70\" y1=\"145\" x2=\"90\" y2=\"145\" stroke=\"#facc15\" stroke-width=\"2\"/>\n      <line x1=\"80\" y1=\"145\" x2=\"80\" y2=\"220\" stroke=\"#facc15\" stroke-width=\"2.5\"/>\n      <text x=\"50\" y=\"130\" fill=\"#facc15\" font-size=\"12\" font-weight=\"800\">+</text>\n      <text x=\"52\" y=\"158\" fill=\"#facc15\" font-size=\"14\" font-weight=\"800\">-</text>\n      <text x=\"45\" y=\"145\" fill=\"#facc15\" font-size=\"11\" font-weight=\"800\" text-anchor=\"end\">24.0 V</text>\n      \n      <!-- Wire to Series Resistor R1 -->\n      <line x1=\"80\" y1=\"80\" x2=\"160\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      \n      <!-- Resistor R1 (Zigzag) -->\n      <path d=\"M 160 80 L 168 70 L 176 90 L 184 70 L 192 90 L 200 70 L 208 90 L 216 80\" fill=\"none\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      <text x=\"188\" y=\"60\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">R1 = 6.0 Ω</text>\n      \n      <!-- Node A -->\n      <line x1=\"216\" y1=\"80\" x2=\"270\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      <circle cx=\"270\" cy=\"80\" r=\"5\" fill=\"#f8fafc\"/>\n      <text x=\"270\" y=\"68\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Node A</text>\n      \n      <!-- Parallel Split -->\n      <line x1=\"270\" y1=\"80\" x2=\"270\" y2=\"150\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      <line x1=\"270\" y1=\"80\" x2=\"330\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      <line x1=\"270\" y1=\"150\" x2=\"330\" y2=\"150\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      \n      <!-- Top Parallel Resistor R2 -->\n      <path d=\"M 330 80 L 338 70 L 346 90 L 354 70 L 362 90 L 370 70 L 378 90 L 386 80\" fill=\"none\" stroke=\"#10b981\" stroke-width=\"2.5\"/>\n      <text x=\"358\" y=\"60\" fill=\"#10b981\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">R2 = 12.0 Ω</text>\n      <line x1=\"386\" y1=\"80\" x2=\"440\" y2=\"80\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      \n      <!-- Bottom Parallel Resistor R3 -->\n      <path d=\"M 330 150 L 338 140 L 346 160 L 354 140 L 362 160 L 370 140 L 378 160 L 386 150\" fill=\"none\" stroke=\"#f59e0b\" stroke-width=\"2.5\"/>\n      <text x=\"358\" y=\"138\" fill=\"#f59e0b\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">R3 = 24.0 Ω</text>\n      <line x1=\"386\" y1=\"150\" x2=\"440\" y2=\"150\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      \n      <!-- Node B -->\n      <line x1=\"440\" y1=\"80\" x2=\"440\" y2=\"150\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      <circle cx=\"440\" cy=\"80\" r=\"5\" fill=\"#f8fafc\"/>\n      <text x=\"440\" y=\"68\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Node B</text>\n      \n      <!-- Return Path Wire -->\n      <line x1=\"440\" y1=\"115\" x2=\"480\" y2=\"115\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      <line x1=\"480\" y1=\"115\" x2=\"480\" y2=\"220\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      <line x1=\"480\" y1=\"220\" x2=\"80\" y2=\"220\" stroke=\"#38bdf8\" stroke-width=\"2.5\"/>\n      \n      <!-- Current Arrow -->\n      <polygon points=\"120,76 130,80 120,84\" fill=\"#facc15\"/>\n      <text x=\"125\" y=\"70\" fill=\"#facc15\" font-size=\"10\" font-weight=\"700\">Itotal →</text>\n    </svg>"
+      "moduleId": 6,
+      "title": "Wheatstone Bridge DC Resistance Null Measurement Circuit",
+      "caption": "Figure 22: Diamond Balanced Bridge Configuration for Unknown Resistance $R_x$ Determination",
+      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      \n      <!-- Bridge Diamond Nodes: A(100, 140), B(270, 50), C(440, 140), D(270, 230) -->\n      <!-- Branch A-B: Resistor R1 -->\n      <line x1=\"100\" y1=\"140\" x2=\"160\" y2=\"108\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <rect x=\"160\" y=\"85\" width=\"45\" height=\"20\" rx=\"3\" fill=\"#1e293b\" stroke=\"#38bdf8\" stroke-width=\"2\" transform=\"rotate(-28, 182, 95)\"/>\n      <text x=\"175\" y=\"75\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\">R₁</text>\n      <line x1=\"205\" y1=\"84\" x2=\"270\" y2=\"50\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n      <!-- Branch B-C: Resistor R2 -->\n      <line x1=\"270\" y1=\"50\" x2=\"335\" y2=\"84\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <rect x=\"335\" y=\"85\" width=\"45\" height=\"20\" rx=\"3\" fill=\"#1e293b\" stroke=\"#38bdf8\" stroke-width=\"2\" transform=\"rotate(28, 357, 95)\"/>\n      <text x=\"365\" y=\"75\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\">R₂</text>\n      <line x1=\"380\" y1=\"108\" x2=\"440\" y2=\"140\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n      <!-- Branch A-D: Resistor R3 -->\n      <line x1=\"100\" y1=\"140\" x2=\"160\" y2=\"172\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <rect x=\"160\" y=\"175\" width=\"45\" height=\"20\" rx=\"3\" fill=\"#1e293b\" stroke=\"#f59e0b\" stroke-width=\"2\" transform=\"rotate(28, 182, 185)\"/>\n      <text x=\"175\" y=\"215\" fill=\"#f59e0b\" font-size=\"11\" font-weight=\"800\">R₃</text>\n      <line x1=\"205\" y1=\"196\" x2=\"270\" y2=\"230\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n      <!-- Branch D-C: Unknown Resistor Rx -->\n      <line x1=\"270\" y1=\"230\" x2=\"335\" y2=\"196\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <rect x=\"335\" y=\"175\" width=\"45\" height=\"20\" rx=\"3\" fill=\"#1e293b\" stroke=\"#ef4444\" stroke-width=\"2\" transform=\"rotate(-28, 357, 185)\"/>\n      <text x=\"365\" y=\"215\" fill=\"#ef4444\" font-size=\"11\" font-weight=\"800\">R_x</text>\n      <line x1=\"380\" y1=\"172\" x2=\"440\" y2=\"140\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n      <!-- Center Galvanometer Branch B-D -->\n      <line x1=\"270\" y1=\"50\" x2=\"270\" y2=\"115\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <circle cx=\"270\" cy=\"140\" r=\"22\" fill=\"#1e293b\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <text x=\"270\" y=\"146\" fill=\"#10b981\" font-size=\"14\" font-weight=\"900\" text-anchor=\"middle\">G</text>\n      <line x1=\"270\" y1=\"165\" x2=\"270\" y2=\"230\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n      <!-- Node Points -->\n      <circle cx=\"100\" cy=\"140\" r=\"4\" fill=\"#f8fafc\"/>\n      <text x=\"85\" y=\"144\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\">A</text>\n      <circle cx=\"270\" cy=\"50\" r=\"4\" fill=\"#f8fafc\"/>\n      <text x=\"270\" y=\"38\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">B</text>\n      <circle cx=\"440\" cy=\"140\" r=\"4\" fill=\"#f8fafc\"/>\n      <text x=\"455\" y=\"144\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\">C</text>\n      <circle cx=\"270\" cy=\"230\" r=\"4\" fill=\"#f8fafc\"/>\n      <text x=\"270\" y=\"250\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">D</text>\n      \n      <!-- DC Battery Connection Across A and C -->\n      <path d=\"M 100 140 L 100 275 L 245 275\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"1.8\"/>\n      <path d=\"M 440 140 L 440 275 L 295 275\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"1.8\"/>\n      <!-- Battery symbol -->\n      <line x1=\"245\" y1=\"265\" x2=\"245\" y2=\"285\" stroke=\"#ef4444\" stroke-width=\"3\"/>\n      <line x1=\"255\" y1=\"270\" x2=\"255\" y2=\"280\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <line x1=\"265\" y1=\"265\" x2=\"265\" y2=\"285\" stroke=\"#ef4444\" stroke-width=\"3\"/>\n      <line x1=\"275\" y1=\"270\" x2=\"275\" y2=\"280\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <text x=\"260\" y=\"260\" fill=\"#ef4444\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">V_s</text>\n      \n      <!-- Balance Condition Box -->\n      <rect x=\"25\" y=\"20\" width=\"160\" height=\"50\" fill=\"#1e293b\" rx=\"5\" stroke=\"#10b981\" stroke-width=\"1.5\"/>\n      <text x=\"105\" y=\"38\" fill=\"#10b981\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Null Condition (I_g = 0):</text>\n      <text x=\"105\" y=\"56\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"700\" text-anchor=\"middle\">R_x = R₃ · (R₂ / R₁)</text>\n    </svg>"
     }
   },
   {
@@ -46885,12 +46885,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "V",
     "options": [
-      "Faraday induced EMF Product $Y = 700\\text{ V}$",
+      "Faraday induced EMF Product $Y = 660.00\\text{ V}$",
       "Faraday induced EMF Product $Y = 660\\text{ V}$",
-      "Faraday induced EMF Product $Y = 660.0\\text{ V}$",
-      "Faraday induced EMF Product $Y = 660\\text{ V}$"
+      "Faraday induced EMF Product $Y = 700\\text{ V}$",
+      "Faraday induced EMF Product $Y = 66\\text{ V}$"
     ],
-    "correctIndex": 3,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 110.0\\text{ V}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (110.0)(6.0) = 660\\text{ V}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 660 to 2 significant figures yields $660\\text{ V}$.",
     "rubricCER": null
   },
@@ -48480,24 +48480,24 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "spectrometry_electrophoresis",
-    "question": "Refer to the photoelectric effect apparatus and frequency vs. stopping potential graph in **Figure 22.1**. When ultraviolet light exceeds the threshold frequency ($f > f_0$), which observation provided decisive historical proof for Einstein's photon hypothesis over classical Maxwell wave theory?",
+    "question": "Refer to the quantized hydrogen atomic energy level diagram shown in **Figure 22.1B**. When an electron drops from the $n = 3$ excited state ($E_3 = -1.51\\text{ eV}$) directly to the ground state $n = 1$ ($E_1 = -13.60\\text{ eV}$), what is the emitted photon's energy ($\\Delta E$), its spectral region, and its wavelength $\\lambda$?",
     "options": [
-      "Photoelectron kinetic energy increases quadratically with beam intensity regardless of photon frequency.",
-      "The stopping potential drops to zero at all frequencies above the threshold limit.",
-      "Electrons require hours of continuous illumination before accumulating sufficient energy to escape the metal surface.",
-      "Maximum photoelectron kinetic energy ($K_{\\text{max}} = e V_s = hf - \\Phi$) depends linearly on light frequency and is completely independent of light intensity, which only increases emission current."
+      "$\\Delta E = E_3 - E_1 = 12.09\\text{ eV}$; this transition belongs to the ultraviolet Lyman series with wavelength $\\lambda = \\frac{hc}{\\Delta E} = \\frac{1240\\text{ eV}\\cdot\\text{nm}}{12.09\\text{ eV}} \\approx 102.6\\text{ nm}$.",
+      "$\\Delta E = 1.89\\text{ eV}$; emitted in the visible Balmer series with wavelength $\\lambda = 656.3\\text{ nm}$.",
+      "$\\Delta E = 15.11\\text{ eV}$; emitted as ionizing gamma radiation with wavelength $\\lambda = 0.01\\text{ nm}$.",
+      "$\\Delta E = 0.66\\text{ eV}$; emitted in the infrared Paschen series with wavelength $\\lambda = 1875\\text{ nm}$."
     ],
-    "correctIndex": 3,
-    "explanation": "Classical wave theory predicted kinetic energy would depend on wave amplitude (intensity). Einstein's 1905 photoelectric equation proved light is quantized into discrete packets $E = hf$: energy transferred to an electron depends strictly on frequency ($K_{\\text{max}} = hf - \\Phi$), while intensity determines photon flux (current).",
+    "correctIndex": 0,
+    "explanation": "The energy of the emitted photon equals the difference between the two stationary states: $\\Delta E = E_{\\text{initial}} - E_{\\text{final}} = -1.51\\text{ eV} - (-13.60\\text{ eV}) = 12.09\\text{ eV}$. Any radiative de-excitation terminating on the ground state $n = 1$ belongs to the Lyman spectral series, located in the vacuum ultraviolet spectrum. Using Planck-Einstein relation $\\lambda = \\frac{hc}{\\Delta E} = \\frac{1240\\text{ eV}\\cdot\\text{nm}}{12.09\\text{ eV}} = 102.56\\text{ nm} \\approx 102.6\\text{ nm}$.",
     "rubricCER": null,
     "hasDiagram": true,
     "diagram": {
-      "id": "phys_photoelectric_effect",
+      "id": "phys_bohr_atom_levels",
       "subject": "PHYS",
-      "moduleId": 22,
-      "title": "Photoelectric Effect: Work Function & Stopping Potential",
-      "caption": "Figure 17: Photon energy E = hν overcoming surface work function Φ with kinetic energy K_max = hν - Φ = eV_stop",
-      "svg": "<svg viewBox=\"0 0 540 320\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 530px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <defs>\n        <linearGradient id=\"metal-surface-grad\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n          <stop offset=\"0%\" stop-color=\"#475569\"/>\n          <stop offset=\"100%\" stop-color=\"#1e293b\"/>\n        </linearGradient>\n        <linearGradient id=\"band-grad\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n          <stop offset=\"0%\" stop-color=\"#0284c7\" stop-opacity=\"0.4\"/>\n          <stop offset=\"100%\" stop-color=\"#0284c7\" stop-opacity=\"0.1\"/>\n        </linearGradient>\n      </defs>\n      <rect width=\"540\" height=\"320\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n\n      <!-- Header Title Banner -->\n      <text x=\"270\" y=\"24\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"800\" text-anchor=\"middle\" letter-spacing=\"0.5\">EINSTEIN'S PHOTOELECTRIC EFFECT &amp; WORK FUNCTION (Φ)</text>\n\n      <!-- ================= LEFT: ENERGY LEVEL & ESCAPE DIAGRAM ================= -->\n      <g transform=\"translate(15, 45)\">\n        <rect width=\"245\" height=\"255\" rx=\"8\" fill=\"#1e293b\" fill-opacity=\"0.6\" stroke=\"#334155\" stroke-width=\"1\"/>\n        <text x=\"122\" y=\"20\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Potential Energy Diagram</text>\n\n        <!-- Vacuum Level (E = 0) -->\n        <line x1=\"30\" y1=\"50\" x2=\"225\" y2=\"50\" stroke=\"#ef4444\" stroke-width=\"1.5\" stroke-dasharray=\"4,3\"/>\n        <text x=\"228\" y=\"53\" fill=\"#ef4444\" font-size=\"9\" font-weight=\"700\">E_vac = 0</text>\n\n        <!-- Fermi Level (E_F) -->\n        <line x1=\"30\" y1=\"130\" x2=\"225\" y2=\"130\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n        <text x=\"228\" y=\"133\" fill=\"#38bdf8\" font-size=\"9\" font-weight=\"800\">E_F (Fermi)</text>\n\n        <!-- Metal Conduction Band Shading -->\n        <rect x=\"30\" y=\"130\" width=\"195\" height=\"100\" fill=\"url(#band-grad)\"/>\n        <text x=\"127\" y=\"180\" fill=\"#94a3b8\" font-size=\"10\" font-weight=\"600\" text-anchor=\"middle\">Filled Metal States</text>\n\n        <!-- Work Function Φ Arrow (from E_F to E_vac) -->\n        <line x1=\"55\" y1=\"130\" x2=\"55\" y2=\"50\" stroke=\"#f59e0b\" stroke-width=\"2.5\"/>\n        <polygon points=\"55,50 51,58 59,58\" fill=\"#f59e0b\"/>\n        <polygon points=\"55,130 51,122 59,122\" fill=\"#f59e0b\"/>\n        <text x=\"65\" y=\"94\" fill=\"#f59e0b\" font-size=\"11\" font-weight=\"900\">Φ</text>\n        <text x=\"65\" y=\"106\" fill=\"#f59e0b\" font-size=\"7.5\" font-weight=\"700\">Work Function</text>\n\n        <!-- Incident Photon Arrow (hν) -->\n        <path d=\"M 90 230 C 95 210, 105 210, 110 190 C 115 170, 125 170, 130 150 C 135 130, 145 130, 150 110\" fill=\"none\" stroke=\"#ec4899\" stroke-width=\"2.5\"/>\n        <polygon points=\"150,110 142,117 148,122\" fill=\"#ec4899\"/>\n        <text x=\"145\" y=\"175\" fill=\"#ec4899\" font-size=\"10\" font-weight=\"800\">hν</text>\n        <text x=\"145\" y=\"187\" fill=\"#ec4899\" font-size=\"7.5\">(Photon)</text>\n\n        <!-- Ejected Photoelectron with K_max -->\n        <line x1=\"175\" y1=\"50\" x2=\"175\" y2=\"25\" stroke=\"#10b981\" stroke-width=\"2.5\"/>\n        <polygon points=\"175,25 171,33 179,33\" fill=\"#10b981\"/>\n        <circle cx=\"175\" cy=\"50\" r=\"5\" fill=\"#10b981\"/>\n        <text x=\"185\" y=\"36\" fill=\"#10b981\" font-size=\"10\" font-weight=\"900\">K_max</text>\n        <text x=\"185\" y=\"46\" fill=\"#10b981\" font-size=\"7.5\">e⁻ Ejected</text>\n      </g>\n\n      <!-- ================= RIGHT: K_MAX VS FREQUENCY GRAPH ================= -->\n      <g transform=\"translate(275, 45)\">\n        <rect width=\"250\" height=\"255\" rx=\"8\" fill=\"#1e293b\" fill-opacity=\"0.6\" stroke=\"#334155\" stroke-width=\"1\"/>\n        <text x=\"125\" y=\"20\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">K_max vs Incident Frequency (ν)</text>\n\n        <!-- Axes -->\n        <!-- X Axis (Frequency) -->\n        <line x1=\"30\" y1=\"165\" x2=\"235\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"1.8\"/>\n        <polygon points=\"237,165 230,161 230,169\" fill=\"#94a3b8\"/>\n        <text x=\"215\" y=\"180\" fill=\"#cbd5e1\" font-size=\"9\" font-weight=\"700\">ν (Hz)</text>\n\n        <!-- Y Axis (Kinetic Energy) -->\n        <line x1=\"60\" y1=\"230\" x2=\"60\" y2=\"35\" stroke=\"#94a3b8\" stroke-width=\"1.8\"/>\n        <polygon points=\"60,33 56,40 64,40\" fill=\"#94a3b8\"/>\n        <text x=\"20\" y=\"42\" fill=\"#cbd5e1\" font-size=\"9\" font-weight=\"700\">K_max (eV)</text>\n\n        <!-- Linear Line: K_max = hν - Φ -->\n        <!-- Dashed extrapolation to -Φ on Y axis -->\n        <line x1=\"60\" y1=\"210\" x2=\"115\" y2=\"165\" stroke=\"#f59e0b\" stroke-width=\"2\" stroke-dasharray=\"3,3\"/>\n        <circle cx=\"60\" cy=\"210\" r=\"3.5\" fill=\"#f59e0b\"/>\n        <text x=\"45\" y=\"214\" fill=\"#f59e0b\" font-size=\"9\" font-weight=\"800\" text-anchor=\"end\">-Φ</text>\n\n        <!-- Solid Active Photoemission Line -->\n        <line x1=\"115\" y1=\"165\" x2=\"225\" y2=\"75\" stroke=\"#10b981\" stroke-width=\"3\"/>\n        \n        <!-- Threshold Frequency ν_0 (X-Intercept) -->\n        <circle cx=\"115\" cy=\"165\" r=\"4.5\" fill=\"#facc15\" stroke=\"#0f172a\" stroke-width=\"1.5\"/>\n        <text x=\"115\" y=\"182\" fill=\"#facc15\" font-size=\"10\" font-weight=\"900\" text-anchor=\"middle\">ν₀</text>\n        <text x=\"115\" y=\"193\" fill=\"#facc15\" font-size=\"7\" font-weight=\"700\" text-anchor=\"middle\">(Threshold)</text>\n\n        <!-- Slope Indicator: Slope = h -->\n        <line x1=\"160\" y1=\"128\" x2=\"200\" y2=\"128\" stroke=\"#38bdf8\" stroke-width=\"1.2\" stroke-dasharray=\"2,2\"/>\n        <line x1=\"200\" y1=\"128\" x2=\"200\" y2=\"95\" stroke=\"#38bdf8\" stroke-width=\"1.2\" stroke-dasharray=\"2,2\"/>\n        <text x=\"205\" y=\"115\" fill=\"#38bdf8\" font-size=\"9\" font-weight=\"800\">Slope = h</text>\n\n        <!-- Governing Formula Card -->\n        <rect x=\"25\" y=\"222\" width=\"200\" height=\"24\" rx=\"4\" fill=\"#0f172a\" stroke=\"#38bdf8\" stroke-width=\"1\"/>\n        <text x=\"125\" y=\"238\" fill=\"#38bdf8\" font-size=\"9.5\" font-weight=\"800\" text-anchor=\"middle\">K_max = hν - Φ = e · V_stop</text>\n      </g>\n    </svg>"
+      "moduleId": 9,
+      "title": "Quantized Hydrogen Energy Level Transitions & Spectral Series",
+      "caption": "Figure 27: Electronic De-excitations Generating the Lyman (UV), Balmer (Visible), and Paschen (IR) Series",
+      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      \n      <!-- Energy Level Horizontal Lines -->\n      <!-- n=1: E1 = -13.6 eV at y=235 -->\n      <line x1=\"120\" y1=\"235\" x2=\"490\" y2=\"235\" stroke=\"#f8fafc\" stroke-width=\"2\"/>\n      <text x=\"110\" y=\"239\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\" text-anchor=\"end\">n = 1</text>\n      <text x=\"500\" y=\"239\" fill=\"#94a3b8\" font-size=\"10\">−13.60 eV</text>\n      \n      <!-- n=2: E2 = -3.40 eV at y=150 -->\n      <line x1=\"120\" y1=\"150\" x2=\"490\" y2=\"150\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n      <text x=\"110\" y=\"154\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\" text-anchor=\"end\">n = 2</text>\n      <text x=\"500\" y=\"154\" fill=\"#94a3b8\" font-size=\"10\">−3.40 eV</text>\n      \n      <!-- n=3: E3 = -1.51 eV at y=105 -->\n      <line x1=\"120\" y1=\"105\" x2=\"490\" y2=\"105\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>\n      <text x=\"110\" y=\"109\" fill=\"#f59e0b\" font-size=\"11\" font-weight=\"700\" text-anchor=\"end\">n = 3</text>\n      <text x=\"500\" y=\"109\" fill=\"#94a3b8\" font-size=\"10\">−1.51 eV</text>\n      \n      <!-- n=4: E4 = -0.85 eV at y=80 -->\n      <line x1=\"120\" y1=\"80\" x2=\"490\" y2=\"80\" stroke=\"#94a3b8\" stroke-width=\"1.5\"/>\n      <text x=\"110\" y=\"84\" fill=\"#94a3b8\" font-size=\"10\" text-anchor=\"end\">n = 4</text>\n      <text x=\"500\" y=\"84\" fill=\"#94a3b8\" font-size=\"10\">−0.85 eV</text>\n      \n      <!-- n=infinity: E = 0 eV at y=45 -->\n      <line x1=\"120\" y1=\"45\" x2=\"490\" y2=\"45\" stroke=\"#64748b\" stroke-width=\"1\" stroke-dasharray=\"4 2\"/>\n      <text x=\"110\" y=\"49\" fill=\"#64748b\" font-size=\"10\" text-anchor=\"end\">n = ∞</text>\n      <text x=\"500\" y=\"49\" fill=\"#64748b\" font-size=\"10\">0.00 eV (Ionized)</text>\n      \n      <!-- Lyman Series Transitions (To n=1, UV) -->\n      <g stroke=\"#a855f7\" stroke-width=\"2\">\n        <line x1=\"150\" y1=\"150\" x2=\"150\" y2=\"235\"/>\n        <line x1=\"170\" y1=\"105\" x2=\"170\" y2=\"235\"/>\n        <line x1=\"190\" y1=\"80\" x2=\"190\" y2=\"235\"/>\n      </g>\n      <polygon points=\"150,235 147,227 153,227\" fill=\"#a855f7\"/>\n      <polygon points=\"170,235 167,227 173,227\" fill=\"#a855f7\"/>\n      <polygon points=\"190,235 187,227 193,227\" fill=\"#a855f7\"/>\n      <text x=\"170\" y=\"270\" fill=\"#a855f7\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Lyman Series</text>\n      <text x=\"170\" y=\"283\" fill=\"#94a3b8\" font-size=\"9\" text-anchor=\"middle\">(Ultraviolet)</text>\n      \n      <!-- Balmer Series Transitions (To n=2, Visible Spectrum!) -->\n      <!-- Red (3 -> 2, 656 nm) -->\n      <line x1=\"260\" y1=\"105\" x2=\"260\" y2=\"150\" stroke=\"#ef4444\" stroke-width=\"2.5\"/>\n      <polygon points=\"260,150 257,142 263,142\" fill=\"#ef4444\"/>\n      <text x=\"260\" y=\"165\" fill=\"#ef4444\" font-size=\"8\" font-weight=\"700\" text-anchor=\"middle\">656nm</text>\n      \n      <!-- Cyan (4 -> 2, 486 nm) -->\n      <line x1=\"285\" y1=\"80\" x2=\"285\" y2=\"150\" stroke=\"#06b6d4\" stroke-width=\"2.5\"/>\n      <polygon points=\"285,150 282,142 288,142\" fill=\"#06b6d4\"/>\n      <text x=\"285\" y=\"165\" fill=\"#06b6d4\" font-size=\"8\" font-weight=\"700\" text-anchor=\"middle\">486nm</text>\n      \n      <!-- Blue (5 -> 2, 434 nm) -->\n      <line x1=\"310\" y1=\"65\" x2=\"310\" y2=\"150\" stroke=\"#3b82f6\" stroke-width=\"2.5\"/>\n      <polygon points=\"310,150 307,142 313,142\" fill=\"#3b82f6\"/>\n      <text x=\"310\" y=\"165\" fill=\"#3b82f6\" font-size=\"8\" font-weight=\"700\" text-anchor=\"middle\">434nm</text>\n      \n      <text x=\"285\" y=\"190\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Balmer Series</text>\n      <text x=\"285\" y=\"203\" fill=\"#94a3b8\" font-size=\"9\" text-anchor=\"middle\">(Visible Lines)</text>\n      \n      <!-- Paschen Series (To n=3, Infrared) -->\n      <line x1=\"390\" y1=\"80\" x2=\"390\" y2=\"105\" stroke=\"#f59e0b\" stroke-width=\"2\"/>\n      <polygon points=\"390,105 387,98 393,98\" fill=\"#f59e0b\"/>\n      <text x=\"390\" y=\"125\" fill=\"#f59e0b\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Paschen</text>\n      <text x=\"390\" y=\"137\" fill=\"#94a3b8\" font-size=\"8\" text-anchor=\"middle\">(Infrared)</text>\n      \n      <!-- Rydberg Formula Callout -->\n      <rect x=\"25\" y=\"15\" width=\"80\" height=\"24\" fill=\"#1e293b\" rx=\"4\" stroke=\"#334155\"/>\n      <text x=\"65\" y=\"31\" fill=\"#f8fafc\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">ΔE = h·f</text>\n    </svg>"
     }
   },
   {
@@ -50685,12 +50685,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "J",
     "options": [
+      "photon energy Product $Y = 960.00\\text{ J}$",
       "photon energy Product $Y = 960\\text{ J}$",
-      "photon energy Product $Y = 960.0\\text{ J}$",
       "photon energy Product $Y = 1000\\text{ J}$",
-      "photon energy Product $Y = 960\\text{ J}$"
+      "photon energy Product $Y = 96\\text{ J}$"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 120.0\\text{ J}$ (4 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (120.0)(8.0) = 960\\text{ J}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 960 to 2 significant figures yields $960\\text{ J}$.",
     "rubricCER": null
   },
@@ -51139,13 +51139,13 @@ export const questionBankPhys = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Conduction in Solids\", what are the correct SI derived units and dimensional representation for **Shockley diode current** ($I = I_0 \\left(e^{qV/k_B T} - 1\\right)$)?",
     "options": [
-      "In \"Conduction in Solids\", Shockley diode current is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{A}}$.",
-      "In \"Conduction in Solids\", Shockley diode current is expressed in $\\text{\\text{A}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Conduction in Solids\", Shockley diode current is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{A}$.",
+      "In \"Conduction in Solids\", Shockley diode current is expressed in $\\text{A}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Conduction in Solids\", Shockley diode current is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{A})}^{-1}$, confusing rate with state duration.",
       "In \"Conduction in Solids\", Shockley diode current is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Conduction in Solids, Shockley diode current is quantified in $\\text{\\text{A}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Conduction in Solids, Shockley diode current is quantified in $\\text{A}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -51214,13 +51214,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{A}",
     "options": [
-      "Shockley diode current = $6.64\\text{ \\text{A}}$",
-      "Shockley diode current = $13.29\\text{ \\text{A}}$",
-      "Shockley diode current = $19.93\\text{ \\text{A}}$",
-      "Shockley diode current = $26.58\\text{ \\text{A}}$"
+      "Shockley diode current = $6.64\\text{A}$",
+      "Shockley diode current = $13.29\\text{A}$",
+      "Shockley diode current = $19.93\\text{A}$",
+      "Shockley diode current = $26.58\\text{A}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{3.5} = 13.29\\text{ \\text{A}}$$.\nStep 3: Significant figures verify $13.29\\text{ \\text{A}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{3.5} = 13.29\\text{A}$$.\nStep 3: Significant figures verify $13.29\\text{A}$.",
     "rubricCER": null
   },
   {
@@ -51440,18 +51440,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Conduction in Solids\", a student measures initial parameters $P_1 = 115.0\\text{ \\text{A}}$ (4 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Conduction in Solids\", a student measures initial parameters $P_1 = 115.0\\text{A}$ (4 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "580",
     "tolerance": 0.5,
     "unit": "\\text{A}",
     "options": [
-      "Shockley diode current Product $Y = 600\\text{ \\text{A}}$",
-      "Shockley diode current Product $Y = 580\\text{ \\text{A}}$",
-      "Shockley diode current Product $Y = 575\\text{ \\text{A}}$",
-      "Shockley diode current Product $Y = 575.0\\text{ \\text{A}}$"
+      "Shockley diode current Product $Y = 575.0\\text{ A}$",
+      "Shockley diode current Product $Y = 580\\text{ A}$",
+      "Shockley diode current Product $Y = 600\\text{ A}$",
+      "Shockley diode current Product $Y = 58\\text{ A}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 115.0\\text{ \\text{A}}$ (4 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (115.0)(5.0) = 575\\text{ \\text{A}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 575 to 2 significant figures yields $580\\text{ \\text{A}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 115.0\\text{A}$ (4 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (115.0)(5.0) = 575\\text{A}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 575 to 2 significant figures yields $580\\text{A}$.",
     "rubricCER": null
   },
   {
@@ -51899,13 +51899,13 @@ export const questionBankPhys = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Electronic Components\", what are the correct SI derived units and dimensional representation for **Shockley diode current** ($I = I_0 \\left(e^{qV/k_B T} - 1\\right)$)?",
     "options": [
-      "In \"Electronic Components\", Shockley diode current is expressed in $\\text{\\text{A}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Electronic Components\", Shockley diode current is expressed in $\\text{A}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Electronic Components\", Shockley diode current is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Electronic Components\", Shockley diode current is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{A}}$.",
+      "In \"Electronic Components\", Shockley diode current is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{A}$.",
       "In \"Electronic Components\", Shockley diode current is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{A})}^{-1}$, confusing rate with state duration."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Electronic Components, Shockley diode current is quantified in $\\text{\\text{A}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Electronic Components, Shockley diode current is quantified in $\\text{A}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -51974,13 +51974,13 @@ export const questionBankPhys = [
     "tolerance": 0.05,
     "unit": "\\text{A}",
     "options": [
-      "Shockley diode current = $23.26\\text{ \\text{A}}$",
-      "Shockley diode current = $5.82\\text{ \\text{A}}$",
-      "Shockley diode current = $11.63\\text{ \\text{A}}$",
-      "Shockley diode current = $17.45\\text{ \\text{A}}$"
+      "Shockley diode current = $23.26\\text{A}$",
+      "Shockley diode current = $5.82\\text{A}$",
+      "Shockley diode current = $11.63\\text{A}$",
+      "Shockley diode current = $17.45\\text{A}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{4.0} = 11.63\\text{ \\text{A}}$$.\nStep 3: Significant figures verify $11.63\\text{ \\text{A}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{4.0} = 11.63\\text{A}$$.\nStep 3: Significant figures verify $11.63\\text{A}$.",
     "rubricCER": null
   },
   {
@@ -52200,18 +52200,18 @@ export const questionBankPhys = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Electronic Components\", a student measures initial parameters $P_1 = 118.0\\text{ \\text{A}}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Electronic Components\", a student measures initial parameters $P_1 = 118.0\\text{A}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "710",
     "tolerance": 0.5,
     "unit": "\\text{A}",
     "options": [
-      "Shockley diode current Product $Y = 700\\text{ \\text{A}}$",
-      "Shockley diode current Product $Y = 708.0\\text{ \\text{A}}$",
-      "Shockley diode current Product $Y = 708\\text{ \\text{A}}$",
-      "Shockley diode current Product $Y = 710\\text{ \\text{A}}$"
+      "Shockley diode current Product $Y = 708.0\\text{ A}$",
+      "Shockley diode current Product $Y = 710\\text{ A}$",
+      "Shockley diode current Product $Y = 700\\text{ A}$",
+      "Shockley diode current Product $Y = 71\\text{ A}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 118.0\\text{ \\text{A}}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (118.0)(6.0) = 708\\text{ \\text{A}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 708 to 2 significant figures yields $710\\text{ \\text{A}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 118.0\\text{A}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (118.0)(6.0) = 708\\text{A}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 708 to 2 significant figures yields $710\\text{A}$.",
     "rubricCER": null
   },
   {
@@ -52965,12 +52965,12 @@ export const questionBankPhys = [
     "tolerance": 0.5,
     "unit": "J",
     "options": [
-      "nuclear binding energy Product $Y = 595\\text{ J}$",
-      "nuclear binding energy Product $Y = 600\\text{ J}$",
       "nuclear binding energy Product $Y = 595.0\\text{ J}$",
-      "nuclear binding energy Product $Y = 600\\text{ J}$"
+      "nuclear binding energy Product $Y = 600\\text{ J}$",
+      "nuclear binding energy Product $Y = 680\\text{ J}$",
+      "nuclear binding energy Product $Y = 60\\text{ J}$"
     ],
-    "correctIndex": 3,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 119.0\\text{ J}$ (4 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (119.0)(5.0) = 595\\text{ J}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 595 to 2 significant figures yields $600\\text{ J}$.",
     "rubricCER": null
   },

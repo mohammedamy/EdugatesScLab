@@ -137,9 +137,9 @@ export function generateQuestionsForLesson(curriculum, m, l) {
   // --- ANGLE 4 (Q04): Visual Laboratory Apparatus / Setup Identification (Diagram / MCQ - Easy) ---
   let appDiag;
   if (subKey === "CHEM" && m.id === 19 && l.id === 1) {
-    appDiag = SCIENTIFIC_DIAGRAMS.chem_galvanic_cell;
+    appDiag = SCIENTIFIC_DIAGRAMS.chem_standard_hydrogen_electrode;
   } else if (subKey === "PHYS" && m.id === 19 && l.id === 3) {
-    appDiag = SCIENTIFIC_DIAGRAMS.phys_circuit_resistors;
+    appDiag = SCIENTIFIC_DIAGRAMS.phys_wheatstone_bridge;
   } else {
     appDiag = getOrGenerateDiagram(subKey, m, l, p, "apparatus");
   }
@@ -416,6 +416,16 @@ export function generateQuestionsForLesson(curriculum, m, l) {
       `Chemical covalent bonds within the molecules are breaking, transforming the substance into a new compound.`
     ];
     graphExpl = `Along horizontal plateau Segment II (from Point B to Point C), Substance X undergoes a solid-to-liquid phase transition at its melting point ($T_m = 0^\\circ\\text{C}$). The added thermal energy ($q = m\\Delta H_{\\text{fus}}$) does not increase molecular kinetic energy (so temperature remains strictly constant); instead, it provides the latent heat needed to overcome intermolecular potential energy barriers.`;
+  } else if (subKey === "CHEM" && m.id === 3 && l.id === 2) {
+    graphDiag = SCIENTIFIC_DIAGRAMS.chem_bohr_emission_spectra;
+    graphQuestionText = `Refer to the Bohr atomic emission spectra and quantized electronic transitions illustrated in **Figure 3.2E**. When an electron in a hydrogen atom transitions from the higher $n = 3$ quantum shell to the lower $n = 2$ Balmer level, releasing a visible red photon at $\\lambda = 656.3\\text{ nm}$, what fundamental physical mechanism dictates the discrete, line-like nature of the emission spectrum?`;
+    graphOptions = [
+      `Electrons are restricted to stationary quantized energy levels with fixed orbital radii ($E_n \\propto -1/n^2$); transition between distinct quantum states emits a single photon of exact energy $\\Delta E = h\\nu = \\frac{hc}{\\lambda}$, producing discrete line spectra rather than a continuous continuum.`,
+      `Atomic nuclei emit continuous thermal blackbody radiation that is selectively absorbed by surrounding ambient atmospheric gases.`,
+      `Collisional Doppler broadening continually shifts emitted wavelengths into an unbroken uniform continuum across all visible frequencies.`,
+      `Photon emission occurs exclusively when the electron gains sufficient relativistic kinetic energy to escape the Coulomb nuclear barrier into the continuum.`
+    ];
+    graphExpl = `In the Bohr model of the hydrogen atom, atomic energy states are quantized according to $E_n = -\\frac{13.6\\text{ eV}}{n^2}$. An electronic transition from $n = 3$ ($E_3 = -1.51\\text{ eV}$) to $n = 2$ ($E_2 = -3.40\\text{ eV}$) releases energy $\\Delta E = E_3 - E_2 = 1.89\\text{ eV}$. By Planck's relation $\\Delta E = \\frac{hc}{\\lambda}$, this precisely matches a photon of wavelength $\\lambda = \\frac{1240\\text{ eV}\\cdot\\text{nm}}{1.89\\text{ eV}} \\approx 656.3\\text{ nm}$ (the $H_\\alpha$ line of the Balmer series). Because bound electron energy states are discrete, only characteristic line emissions occur.`;
   } else if (subKey === "CHEM" && m.id === 15 && l.id === 2) {
     graphDiag = SCIENTIFIC_DIAGRAMS.chem_energy_diagram;
     graphQuestionText = `Refer to the reaction coordinate potential energy profile shown in **Figure 15.2**. How does the presence of the catalyst affect the forward activation energy ($E_a$) and the overall reaction enthalpy change ($\\Delta H$)?`;
@@ -466,6 +476,26 @@ export function generateQuestionsForLesson(curriculum, m, l) {
       `Membrane voltage changes randomly without ion channel gating.`
     ];
     graphExpl = `At threshold ($-55\\text{ mV}$), voltage-gated $\\text{Na}^+$ channels open rapidly, driving sodium down its electrochemical gradient to peak $+30\\text{ mV}$. Inactivation of $\\text{Na}^+$ channels and opening of delayed-rectifier $\\text{K}^+$ channels allows potassium efflux to repolarize the membrane.`;
+  } else if (subKey === "BIO" && m.id === 7 && l.id === 4) {
+    graphDiag = SCIENTIFIC_DIAGRAMS.bio_osmosis_tonicity_cells;
+    graphQuestionText = `Refer to the cellular tonicity diagrams and volume response profiles in **Figure 7.4T**. When animal erythrocytes (red blood cells) and walled plant cells are simultaneously immersed in a hypotonic medium ($0.05\\text{ M NaCl}$ vs. intracellular $0.15\\text{ M}$), what contrasting cytological responses are observed and what mechanism explains the difference?`;
+    graphOptions = [
+      `Net osmotic water influx causes animal erythrocytes to swell and burst (lysis), whereas plant cells absorb water until turgor pressure ($\\Psi_p$) matches solute potential ($\\Psi_s$), creating a stable turgid state protected by the rigid cellulose cell wall.`,
+      `Both cell types undergo immediate crenation (shrinkage) due to rapid electrolyte efflux through aquaporin channels.`,
+      `Plant cells burst rapidly while animal erythrocytes maintain invariant volume due to high cholesterol membrane density.`,
+      `Water remains stationary while solute ions diffuse against their concentration gradient into the extracellular space.`
+    ];
+    graphExpl = `Water moves spontaneously down its chemical potential gradient from low solute concentration (hypotonic) into high solute concentration (hypertonic cytoplasm). Animal cells lack an external wall; osmotic swelling exceeds membrane tensile strength, causing cytolysis. In contrast, rigid plant cell walls exert mechanical counter-pressure ($\\Psi_p$), preventing further net water entry once water potentials equilibrate ($\\Psi = \\Psi_s + \\Psi_p = 0$).`;
+  } else if (subKey === "BIO" && m.id === 11 && l.id === 2) {
+    graphDiag = SCIENTIFIC_DIAGRAMS.bio_translation_ribosome_elongation;
+    graphQuestionText = `Refer to the molecular diagram of ribosomal translation elongation shown in **Figure 11.2T** illustrating the aminoacyl (A), peptidyl (P), and exit (E) sites. When a charged aminoacyl-tRNA successfully pairs with the mRNA codon in the A site, what catalytic event and mechanical translocation step follow?`;
+    graphOptions = [
+      `The 23S/28S rRNA peptidyl transferase ribozyme catalyzes peptide bond formation between the P-site nascent chain and the A-site amino acid; EF-G/eEF2 GTP hydrolysis then drives ribosomal translocation, shifting the deacylated tRNA to the E site for discharge and moving peptidyl-tRNA into the P site.`,
+      `The ribosome completely disassembles into separate subunits after each peptide bond, requiring de novo reassembly for the subsequent codon.`,
+      `DNA Polymerase III hydrolyzes ATP to synthesize complementary deoxynucleotides directly onto the carboxyl terminus of the growing protein.`,
+      `The ribosome cleaves the mRNA phosphodiester backbone at each codon to release the completed peptide into the cytoplasm.`
+    ];
+    graphExpl = `Translation elongation is catalyzed by the ribosome's peptidyl transferase center (a ribozyme composed of large subunit rRNA). The $\\alpha$-amino group of the A-site aminoacyl-tRNA attacks the ester linkage of the P-site peptidyl-tRNA, transferring the peptide to the A site. Elongation Factor G (EF-G in prokaryotes, eEF2 in eukaryotes) hydrolyzes GTP to translocate the ribosome exactly 3 nucleotides along the mRNA, shifting uncharged tRNA to the E site and peptidyl-tRNA to the P site.`;
   } else if (subKey === "PHYS" && m.id === 3 && l.id === 2) {
     graphDiag = SCIENTIFIC_DIAGRAMS.phys_velocity_time_graph;
     graphQuestionText = `Refer to the kinematics velocity-time graph in **Figure 3.2**. What physical quantity is represented by the slope of the curve, and what physical quantity equals the definite integral (area between the line and the time axis)?`;
@@ -583,15 +613,15 @@ export function generateQuestionsForLesson(curriculum, m, l) {
   let vecExpl;
 
   if (subKey === "PHYS" && m.id === 5 && l.id === 1) {
-    vecDiag = SCIENTIFIC_DIAGRAMS.phys_free_body_incline;
-    vecQuestionText = `Refer to the inclined plane free-body vector diagram illustrated in **Figure 5.1**. A crate of mass $m$ rests on an incline of angle $\\theta$. What are the resolved components of the gravitational force ($F_g = mg$) parallel and perpendicular to the incline surface, and what is the magnitude of the normal force ($F_N$) in static equilibrium?`;
+    vecDiag = SCIENTIFIC_DIAGRAMS.phys_projectile_trajectory;
+    vecQuestionText = `Refer to the two-dimensional projectile vector trajectory shown in **Figure 5.1P**. A projectile is launched with initial velocity $v_0 = 20.0\\text{ m/s}$ at an angle $\\theta = 30.0^\\circ$ above the horizontal in a vacuum ($g = 9.80\\text{ m/s}^2$). What are the instantaneous velocity vector components $(v_x, v_y)$ and acceleration vector at the trajectory apogee (maximum height)?`;
     vecOptions = [
-      `$F_{g,\\parallel} = mg \\sin\\theta$ (acting down the slope); $F_{g,\\perp} = mg \\cos\\theta$ (pressing into the incline); in static equilibrium, $F_N = mg \\cos\\theta$.`,
-      `$F_{g,\\parallel} = mg \\cos\\theta$ and $F_{g,\\perp} = mg \\sin\\theta$; $F_N = mg$ regardless of angle.`,
-      `$F_{g,\\parallel} = mg \\tan\\theta$; Normal force equals zero on an incline.`,
-      `Gravity acts solely perpendicular to the incline with zero component along the slope.`
+      `$v_x = v_0 \\cos 30.0^\\circ = 17.3\\text{ m/s}$, $v_y = 0.0\\text{ m/s}$; acceleration is strictly $a = -g = -9.80\\text{ m/s}^2$ downward.`,
+      `$v_x = 0.0\\text{ m/s}$, $v_y = 10.0\\text{ m/s}$; acceleration at apogee is $a = 0.0\\text{ m/s}^2$.`,
+      `$v_x = 0.0\\text{ m/s}$, $v_y = 0.0\\text{ m/s}$; acceleration reaches zero because the object momentarily stops.`,
+      `$v_x = 20.0\\text{ m/s}$, $v_y = 20.0\\text{ m/s}$; acceleration acts horizontally in the direction of launch.`
     ];
-    vecExpl = `Decomposing the vertical gravity vector along orthogonal axes rotated to the incline: the component parallel to the ramp is $F_{g,\\parallel} = mg \\sin\\theta$, and perpendicular to the ramp is $F_{g,\\perp} = mg \\cos\\theta$. Since there is no acceleration perpendicular to the ramp, $\\sum F_y = 0 \\implies F_N = mg \\cos\\theta$.`;
+    vecExpl = `In ballistic motion with negligible air resistance, horizontal and vertical kinematics are entirely uncoupled ($a_x = 0$, $a_y = -g$). Horizontal velocity remains constant throughout: $v_x = v_0 \\cos\\theta = 20.0 \\cos 30^\\circ = 17.32\\text{ m/s}$. At the apex (maximum height), vertical velocity momentarily drops to $v_y = 0\\text{ m/s}$ as vertical direction reverses. Throughout the flight, downward gravitational acceleration remains invariant at $a_y = -9.80\\text{ m/s}^2$.`;
   } else {
     vecDiag = getOrGenerateDiagram(subKey, m, l, p, "vector");
     vecQuestionText = `Refer to the directional vector field and boundary diagram illustrated in **${vecDiag.caption || 'Figure ' + m.id + '.' + l.id + 'V'}** for "${l.title}". Which statement correctly resolves the directional vector components or interface fluxes governing the system?`;
@@ -745,7 +775,39 @@ export function generateQuestionsForLesson(curriculum, m, l) {
     const targetSf = Math.min(sfA, sfB);
     const rawProduct = valA * valB;
     const roundedAnswer = Number(rawProduct.toPrecision(targetSf)).toString();
-    const unroundedAnswer = rawProduct.toFixed(1);
+
+    let cleanUnit = (p.calc1 && p.calc1.unit) ? p.calc1.unit : "";
+    cleanUnit = cleanUnit.replace(/\\text\{\s*\\text\{/g, "\\text{").replace(/\\text\{([^}]+)\}/g, "$1").trim();
+    const uStr = cleanUnit ? `\\text{ ${cleanUnit}}` : "";
+    const label = (p.calc1 && p.calc1.label) ? p.calc1.label : "Product";
+
+    // Distractor 1: raw / over-precise
+    let dist1 = rawProduct.toFixed(1);
+    if (dist1 === roundedAnswer || dist1 === `${roundedAnswer}.0`) {
+      dist1 = (rawProduct).toFixed(2);
+    }
+
+    // Distractor 2: alternative sig-fig / rounding error
+    let dist2 = Number(rawProduct.toPrecision(1)).toString();
+    if (dist2 === roundedAnswer || dist2 === dist1) {
+      dist2 = Number((rawProduct * 1.15).toPrecision(targetSf)).toString();
+    }
+    if (dist2 === roundedAnswer || dist2 === dist1) {
+      dist2 = Number((rawProduct * 0.85).toPrecision(targetSf)).toString();
+    }
+
+    // Distractor 3: power of 10 or arithmetic misstep
+    let dist3 = Number((rawProduct / 10).toPrecision(targetSf)).toString();
+    if (dist3 === roundedAnswer || dist3 === dist1 || dist3 === dist2) {
+      dist3 = Number((rawProduct * 10).toPrecision(targetSf)).toString();
+    }
+
+    const uniqueOpts = [
+      `${label} Product $Y = ${dist1}${uStr}$`,
+      `${label} Product $Y = ${roundedAnswer}${uStr}$`,
+      `${label} Product $Y = ${dist2}${uStr}$`,
+      `${label} Product $Y = ${dist3}${uStr}$`
+    ];
 
     questions.push(createNumerical({
       id: `${lKey}-Q21`,
@@ -756,18 +818,13 @@ export function generateQuestionsForLesson(curriculum, m, l) {
       lessonTitle: `Lesson ${m.id}.${l.id}: ${l.title}`,
       difficulty: "ap_olympiad",
       angle: "sigfig_multistep_calculation",
-      question: `In a multi-step analytical calculation for "${l.title}", a student measures initial parameters $P_1 = ${strA}\\text{ ${p.calc1.unit || ''}}$ (${sfA} significant figures) and multiplier factor $\\beta = ${strB}$ (${sfB} significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.`,
+      question: `In a multi-step analytical calculation for "${l.title}", a student measures initial parameters $P_1 = ${strA}${uStr}$ (${sfA} significant figures) and multiplier factor $\\beta = ${strB}$ (${sfB} significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.`,
       correctAnswer: roundedAnswer,
       tolerance: 0.5,
-      unit: p.calc1.unit || "",
-      options: [
-        `${p.calc1.label} Product $Y = ${unroundedAnswer}\\text{ ${p.calc1.unit}}$`,
-        `${p.calc1.label} Product $Y = ${roundedAnswer}\\text{ ${p.calc1.unit}}$`,
-        `${p.calc1.label} Product $Y = ${rawProduct}\\text{ ${p.calc1.unit}}$`,
-        `${p.calc1.label} Product $Y = ${Number(rawProduct.toPrecision(1)).toString()}\\text{ ${p.calc1.unit}}$`
-      ],
+      unit: cleanUnit,
+      options: uniqueOpts,
       correctIndex: 1,
-      explanation: `Step 1: Identify given parameters and their precision: $P_1 = ${strA}\\text{ ${p.calc1.unit || ''}}$ (${sfA} sig figs), $\\beta = ${strB}$ (${sfB} sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (${strA})(${strB}) = ${rawProduct}\\text{ ${p.calc1.unit || ''}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = ${strB}$, having ${targetSf} sig figs). Rounding ${rawProduct} to ${targetSf} significant figures yields $${roundedAnswer}\\text{ ${p.calc1.unit || ''}}$.`
+      explanation: `Step 1: Identify given parameters and their precision: $P_1 = ${strA}${uStr}$ (${sfA} sig figs), $\\beta = ${strB}$ (${sfB} sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (${strA})(${strB}) = ${rawProduct}${uStr}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = ${strB}$, having ${targetSf} sig figs). Rounding ${rawProduct} to ${targetSf} significant figures yields $${roundedAnswer}${uStr}$.`
     }));
   }
 
@@ -799,25 +856,25 @@ export function generateQuestionsForLesson(curriculum, m, l) {
   let cycleExpl;
 
   if (subKey === "PHYS" && m.id === 11 && l.id === 2) {
-    cycleDiag = SCIENTIFIC_DIAGRAMS.phys_carnot_cycle;
-    cycleQuestionText = `A heat engine executes the reversible ideal gas Carnot cycle shown on the $P-V$ diagram in **Figure 11.2**, operating between a hot reservoir at $T_H = 600\\text{ K}$ and a cold reservoir at $T_C = 300\\text{ K}$. If the engine absorbs $Q_H = 1200\\text{ J}$ of heat during isothermal expansion $1 \\to 2$, what is the maximum theoretical thermal efficiency ($\\eta_{\\text{Carnot}}$) and the net mechanical work ($W_{\\text{net}}$) delivered per cycle?`;
+    cycleDiag = SCIENTIFIC_DIAGRAMS.phys_mixing_calorimeter;
+    cycleQuestionText = `Examine the method of mixtures insulated calorimeter assembly in **Figure 11.2M**. A $0.200\\text{ kg}$ brass sample ($c_{\\text{brass}} = 380\\text{ J}/(\\text{kg}\\cdot\\text{K})$) heated to $95.0^\\circ\\text{C}$ is immersed in $0.400\\text{ kg}$ of water ($c_w = 4186\\text{ J}/(\\text{kg}\\cdot\\text{K})$) at $18.0^\\circ\\text{C}$ inside an isolated calorimeter. What is the final equilibrium temperature $T_f$ (assuming negligible calorimeter heat loss)?`;
     cycleOptions = [
-      `$\\eta_{\\text{Carnot}} = 1 - \\frac{T_C}{T_H} = 50.0\\%$; Net Work $W_{\\text{net}} = \\eta Q_H = 600\\text{ J}$ (represented by the enclosed area on the $P-V$ diagram).`,
-      `$\\eta_{\\text{Carnot}} = 100\\%$; Net Work $W_{\\text{net}} = 1200\\text{ J}$ because ideal gas cycles have zero dissipation.`,
-      `$\\eta_{\\text{Carnot}} = 25.0\\%$; Net Work $W_{\\text{net}} = 300\\text{ J}$.`,
-      `$\\eta_{\\text{Carnot}} = 66.7\\%$; Net Work $W_{\\text{net}} = 800\\text{ J}$.`
+      `$T_f = 21.3^\\circ\\text{C}$; derived from energy conservation: $m_{\\text{brass}} c_{\\text{brass}} (T_{\\text{hot}} - T_f) = m_w c_w (T_f - T_{\\text{cold}})$.`,
+      `$T_f = 56.5^\\circ\\text{C}$; the direct arithmetic average of the two starting temperatures.`,
+      `$T_f = 12.0^\\circ\\text{C}$; evaporation from the water surface drops the final temperature below the initial water temperature.`,
+      `$T_f = 95.0^\\circ\\text{C}$; brass has high thermal density and does not equilibrate with liquid water.`
     ];
-    cycleExpl = `Carnot's theorem defines the maximum theoretical efficiency between two thermal reservoirs: $\\eta = 1 - \\frac{T_C}{T_H} = 1 - \\frac{300\\text{ K}}{600\\text{ K}} = 0.500$ ($50.0\\%$). The net work done per cycle is the integral over the closed path $\\oint P\\,dV$, which equals $W_{\\text{net}} = \\eta Q_H = 0.50 \\times 1200\\text{ J} = 600\\text{ J}$, with remaining heat $Q_C = 600\\text{ J}$ exhausted to the cold reservoir.`;
+    cycleExpl = `By thermal energy conservation in an isolated system: $Q_{\\text{lost}} = Q_{\\text{gained}} \\implies m_b c_b (T_b - T_f) = m_w c_w (T_f - T_w)$. Substituting numerical values: $(0.200)(380)(95.0 - T_f) = (0.400)(4186)(T_f - 18.0) \\implies 76.0(95.0 - T_f) = 1674.4(T_f - 18.0) \\implies 7220 - 76.0 T_f = 1674.4 T_f - 30139.2 \\implies 1750.4 T_f = 37359.2 \\implies T_f = 21.34^\\circ\\text{C} \\approx 21.3^\\circ\\text{C}$.`;
   } else if (subKey === "BIO" && m.id === 8 && l.id === 2) {
-    cycleDiag = SCIENTIFIC_DIAGRAMS.bio_photosynthesis_z_scheme;
-    cycleQuestionText = `Refer to the light-dependent photosynthetic Z-scheme electron transport diagram in **Figure 8.2**. What is the initial electron donor that replenishes the oxidized reaction center $P_{680}^+$ in Photosystem II, and what electrochemical gradient drives ATP synthesis?`;
+    cycleDiag = SCIENTIFIC_DIAGRAMS.bio_carbon_biogeochemical_cycle;
+    cycleQuestionText = `Examine the global carbon exchange pathway and biospheric flux cycle shown in **Figure 8.2C**. How do photosynthetic carbon fixation and cellular respiration interact to sustain atmospheric $\\text{CO}_2$ equilibrium, and how does anthropogenic fossil fuel emission perturb this balance?`;
     cycleOptions = [
-      `The photolysis of water ($2\\text{H}_2\\text{O} \\to \\text{O}_2 + 4\\text{H}^+ + 4e^-$) provides replacement electrons at PS II; the resulting proton motive force across the thylakoid lumen into the stroma drives ATP Synthase.`,
-      `Glucose oxidation provides initial electrons; an active sodium gradient drives ATP synthesis.`,
-      `Atmospheric nitrogen provides electrons; ATP synthesis occurs spontaneously without a membrane gradient.`,
-      `Carbon dioxide photolysis donates electrons directly to Photosystem I.`
+      `Photosynthetic autotrophs assimilate atmospheric $\\text{CO}_2$ into organic carbohydrates via RuBisCO, balanced by autotrophic and heterotrophic respiratory release; fossil fuel combustion introduces an uncompensated flux of $\\approx 9\\text{--}10\\text{ Gt C/yr}$ that drives net atmospheric accumulation and ocean acidification.`,
+      `Photosynthesis permanently removes carbon from Earth into deep space, while respiration produces carbon atoms through nuclear fusion.`,
+      `Biospheric carbon exchange is an isolated closed thermodynamic system where atmospheric $\\text{CO}_2$ concentration remains strictly invariant regardless of combustion rate.`,
+      `Cellular respiration fixes inorganic carbon into biomass, while photosynthetic photolysis releases methane into the atmosphere.`
     ];
-    cycleExpl = `At PS II, photo-excited P680 transfers electrons down the plastoquinone-cytochrome b6f chain. The oxygen-evolving complex replenishes $P_{680}^+$ via water photolysis ($2\\text{H}_2\\text{O} \\to \\text{O}_2 + 4\\text{H}^+ + 4e^-$). Translocated protons create a transmembrane electrochemical gradient ($\\Delta\\text{pH}$) driving ATP synthase.`;
+    cycleExpl = `In the global carbon cycle, terrestrial and marine photosynthesis fixes $\\approx 120\\text{ Gt C/yr}$ into biological biomass, which is matched by approximately equal global respiration and decay flux ($\\approx 120\\text{ Gt C/yr}$). Fossil fuel extraction and combustion bypasses geological sequestration timescales, injecting $\\approx 9.5\\text{ Gt C/yr}$ into the fast carbon cycle, overwhelming biospheric sink capacity and causing sustained atmospheric $\\text{CO}_2$ rise.`;
   } else {
     cycleDiag = getOrGenerateDiagram(subKey, m, l, p, "cycle");
     cycleQuestionText = `Examine the thermodynamic cycle, metabolic feedback loop, or energy cascade illustrated in **${cycleDiag.caption || 'Figure ' + m.id + '.' + l.id + 'C'}** for "${l.title}". What thermodynamic or kinetic constraint ensures the directional continuity of the cyclic transformation?`;
@@ -854,45 +911,45 @@ export function generateQuestionsForLesson(curriculum, m, l) {
   let specExpl;
 
   if (subKey === "CHEM" && m.id === 3 && l.id === 3) {
-    specDiag = SCIENTIFIC_DIAGRAMS.chem_mass_spectrometry;
-    specQuestionText = `Examine the mass spectrum illustrated in **Figure 3.3** for naturally occurring elemental chlorine ($\\text{Cl}_2$). Based on the isotopic peaks observed at $m/z = 35$ ($75.8\\%$) and $m/z = 37$ ($24.2\\%$) for monoatomic ions, what peak intensity ratio is predicted for the molecular ion cluster $\\text{Cl}_2^+$ at $m/z = 70$, $72$, and $74$?`;
+    specDiag = SCIENTIFIC_DIAGRAMS.chem_beer_lambert_spectrophotometry;
+    specQuestionText = `Examine the spectrophotometer optical layout and calibration curve shown in **Figure 3.3S** based on the Beer-Lambert law ($A = \\epsilon b c$). If a $1.00\\text{ cm}$ pathlength cuvette containing an unknown sample of a transition metal complex with molar absorptivity $\\epsilon = 5.00 \\times 10^3\\text{ L}/(\\text{mol}\\cdot\\text{cm})$ transmits $T = 1.00\\%$ of incident light at $\\lambda_{\\text{max}}$, what is the analyte molar concentration?`;
     specOptions = [
-      `A $9 : 6 : 1$ binomial distribution ratio ($35\\text{-}35 : 35\\text{-}37 : 37\\text{-}37$), calculated from $(\\frac{3}{4} + \\frac{1}{4})^2 = \\frac{9}{16} : \\frac{6}{16} : \\frac{1}{16}$.`,
-      `An equal $1 : 1 : 1$ ratio because all isotopes form molecular ions with identical probabilities.`,
-      `Only a single peak at $m/z = 71$ corresponding to the average atomic mass.`,
-      `A $3 : 1$ ratio because diatomic molecules eliminate the heavier isotope during ionization.`
+      `Absorbance $A = -\\log_{10}(T) = -\\log_{10}(0.0100) = 2.00$; Concentration $c = \\frac{A}{\\epsilon b} = \\frac{2.00}{(5000)(1.00)} = 4.00 \\times 10^{-4}\\text{ M}$.`,
+      `Absorbance $A = 0.0100$; Concentration $c = \\frac{0.0100}{5000} = 2.00 \\times 10^{-6}\\text{ M}$.`,
+      `Absorbance $A = 1.00$; Concentration $c = \\frac{1.00}{5000} = 2.00 \\times 10^{-4}\\text{ M}$.`,
+      `Absorbance $A = 100$; Concentration $c = \\frac{100}{5000} = 2.00 \\times 10^{-2}\\text{ M}$.`
     ];
-    specExpl = `With Cl-35 ($p \\approx 0.75$) and Cl-37 ($q \\approx 0.25$), diatomic chlorine $\\text{Cl}_2^+$ forms via binomial expansion: $P(35,35) = p^2 = \\frac{9}{16}$; $P(35,37) = 2pq = \\frac{6}{16}$; $P(37,37) = q^2 = \\frac{1}{16}$. This produces three discrete peaks at $m/z = 70, 72, 74$ in an exact $9:6:1$ ratio.`;
+    specExpl = `Beer-Lambert Law relates light transmittance to absorbance and concentration: $A = -\\log_{10}(I/I_0) = -\\log_{10}(T)$. With $T = 1.00\\% = 0.0100$, $A = -\\log_{10}(0.0100) = 2.000$. Using $A = \\epsilon b c \\implies c = \\frac{A}{\\epsilon b} = \\frac{2.00}{(5.00 \\times 10^3\\text{ L}\\cdot\\text{mol}^{-1}\\cdot\\text{cm}^{-1})(1.00\\text{ cm})} = 4.00 \\times 10^{-4}\\text{ M}$.`;
   } else if (subKey === "BIO" && m.id === 12 && l.id === 1) {
-    specDiag = SCIENTIFIC_DIAGRAMS.bio_pcr_thermocycling;
-    specQuestionText = `Refer to the three-step polymerase chain reaction (PCR) thermal cycling profile and accompanying agarose gel electrophoresis result in **Figure 12.1**. Which of the following correctly describes the biochemical consequence if the annealing temperature during Step 2 is inadvertently raised to $75^\\circ\\text{C}$ instead of $55^\\circ\\text{C}$?`;
+    specDiag = SCIENTIFIC_DIAGRAMS.bio_gel_electrophoresis_ladder;
+    specQuestionText = `Examine the agarose gel electrophoresis run and molecular sizing ladder illustrated in **Figure 12.1G**. An unknown restriction digest of plasmid DNA generates two distinct bands matching the $1500\\text{ bp}$ and $500\\text{ bp}$ markers. What biophysical principle accounts for why the $500\\text{ bp}$ fragment migrates significantly farther toward the positive anode ($+$) through the agarose matrix?`;
     specOptions = [
-      `Oligonucleotide primers cannot hybridize to the single-stranded template DNA because thermal agitation exceeds the melting temperature ($T_m$) of the primer-template duplex, preventing amplification and resulting in no visible band on the gel.`,
-      `Taq DNA polymerase becomes irreversibly denatured and precipitates out of solution.`,
-      `Primer annealing occurs non-specifically across random genomic loci, producing a heavy smear of unintended bands.`,
-      `The double-stranded DNA template re-anneals completely, preventing any nucleotide incorporation.`
+      `Linear DNA fragments have an invariant negative charge-to-mass ratio along the sugar-phosphate backbone; the porous agarose gel acts as a molecular sieve, allowing shorter $500\\text{ bp}$ fragments to navigate mesh pores with less frictional resistance ($\\text{migration distance} \\propto 1/\\log(\\text{MW})$).`,
+      `The $500\\text{ bp}$ fragment possesses a much greater net positive charge, accelerating its electrostatic attraction toward the negative cathode.`,
+      `The $1500\\text{ bp}$ fragment contains higher GC content, causing it to covalently crosslink to the agarose well.`,
+      `Agarose gel pore walls possess negative surface charges that selectively attract high-molecular-weight DNA while repelling smaller fragments.`
     ];
-    specExpl = `Primer annealing requires a temperature ($50\\text{–}65^\\circ\\text{C}$) below the primer melting temperature ($T_m$). If the annealing step is elevated to $75^\\circ\\text{C}$, the kinetic energy of hydrogen bonding is overwhelmed, preventing primers from annealing to template strands. Consequently, Taq polymerase has no $3'$ hydroxyl initiation terminus, yielding zero amplicon yield (no band on gel).`;
+    specExpl = `DNA possesses a constant charge-to-mass ratio at neutral to alkaline pH because each phosphodiester nucleotide carries one negative charge. In an electric field, all DNA fragments experience equal acceleration per unit mass. Separation occurs exclusively by molecular sieving: longer DNA strands become entangled in the agarose polymer network and migrate more slowly, while shorter fragments move with higher electrophoretic mobility, yielding an inverse linear relationship between migration distance and $\\log_{10}(\\text{base pairs})$.`;
   } else if (subKey === "PHYS" && m.id === 17 && l.id === 1) {
-    specDiag = SCIENTIFIC_DIAGRAMS.phys_double_slit_interference;
-    specQuestionText = `In the Young's double-slit experiment illustrated in **Figure 17.1**, monochromatic light with wavelength $\\lambda = 632.8\\text{ nm}$ illuminates dual slits separated by $d = 0.200\\text{ mm}$, producing an interference fringe pattern on a screen at distance $L = 2.00\\text{ m}$. What is the linear spacing ($\\Delta y$) between adjacent bright fringes, and what occurs if the apparatus is submerged in water ($n = 1.33$)?`;
+    specDiag = SCIENTIFIC_DIAGRAMS.phys_michelson_interferometer;
+    specQuestionText = `Refer to the Michelson interferometer configuration shown in **Figure 17.1M**. Monochromatic laser light ($\\lambda = 600\\text{ nm}$) is divided into perpendicular arms by a beam splitter. If movable mirror $M_1$ is translated through a displacement $\\Delta d$, causing $N = 500$ bright fringe cycles to sweep across the photodetector, what is the exact physical displacement $\\Delta d$?`;
     specOptions = [
-      `$\\Delta y = \\frac{\\lambda L}{d} = 6.33\\text{ mm}$; when submerged in water, the wavelength decreases ($\\lambda' = \\lambda / 1.33$), causing the fringe spacing to decrease to $\\Delta y' = 4.76\\text{ mm}$.`,
-      `$\\Delta y = 1.58\\text{ mm}$; when submerged in water, fringe spacing increases due to optical magnification.`,
-      `$\\Delta y = 12.66\\text{ mm}$; when submerged in water, the interference pattern disappears completely.`,
-      `$\\Delta y = 6.33\\text{ mm}$; the medium index has zero effect on interference fringe spacing.`
+      `$\\Delta d = \\frac{N\\lambda}{2} = \\frac{500 \\times (600 \\times 10^{-9}\\text{ m})}{2} = 0.150\\text{ mm}$, because moving the mirror by $\\Delta d$ changes the round-trip optical path length by $\\Delta L = 2\\Delta d$.`,
+      `$\\Delta d = N\\lambda = 500 \\times (600\\text{ nm}) = 0.300\\text{ mm}$, assuming single-pass path change.`,
+      `$\\Delta d = \\frac{\\lambda}{2N} = 0.600\\text{ nm}$; fringe counts represent microscopic atomic lattice spacings.`,
+      `$\\Delta d = 3.00\\text{ mm}$; interferometer fringes occur only at millimeter intervals.`
     ];
-    specExpl = `For small angles $\\theta$, fringe separation is $\\Delta y = \\frac{\\lambda L}{d} = \\frac{(632.8 \\times 10^{-9}\\text{ m})(2.00\\text{ m})}{0.200 \\times 10^{-3}\\text{ m}} = 6.33\\text{ mm}$. When immersed in an optical medium with refractive index $n = 1.33$, light slows and its wavelength is shortened to $\\lambda_n = \\lambda / n = 475.8\\text{ nm}$. Thus, the fringes contract to $\\Delta y' = \\frac{\\Delta y}{n} = 4.76\\text{ mm}$.`;
+    specExpl = `In a Michelson interferometer, the beam reflected by mirror $M_1$ traverses the arm length twice. Displacing the mirror by distance $\\Delta d$ alters the round-trip optical path difference by $\\Delta L = 2\\Delta d$. Each complete fringe transition (light-to-dark-to-light) corresponds to a path difference change of exactly one wavelength ($\\Delta L = \\lambda$). Therefore, $2\\Delta d = N\\lambda \\implies \\Delta d = \\frac{N\\lambda}{2} = \\frac{500 \\times 600 \\times 10^{-9}\\text{ m}}{2} = 1.50 \\times 10^{-4}\\text{ m} = 0.150\\text{ mm}$.`;
   } else if (subKey === "PHYS" && m.id === 22 && l.id === 1) {
-    specDiag = SCIENTIFIC_DIAGRAMS.phys_photoelectric_effect;
-    specQuestionText = `Refer to the photoelectric effect apparatus and frequency vs. stopping potential graph in **Figure 22.1**. When ultraviolet light exceeds the threshold frequency ($f > f_0$), which observation provided decisive historical proof for Einstein's photon hypothesis over classical Maxwell wave theory?`;
+    specDiag = SCIENTIFIC_DIAGRAMS.phys_bohr_atom_levels;
+    specQuestionText = `Refer to the quantized hydrogen atomic energy level diagram shown in **Figure 22.1B**. When an atomic electron transitions from an initial excited state $n_i = 4$ ($E_4 = -0.850\\text{ eV}$) down to final state $n_f = 2$ ($E_2 = -3.40\\text{ eV}$), emitting a visible blue-green photon ($H_\\beta$), what is the exact photon energy $\\Delta E$ and corresponding wavelength $\\lambda$?`;
     specOptions = [
-      `Maximum photoelectron kinetic energy ($K_{\\text{max}} = e V_s = hf - \\Phi$) depends linearly on light frequency and is completely independent of light intensity, which only increases emission current.`,
-      `Photoelectron kinetic energy increases quadratically with beam intensity regardless of photon frequency.`,
-      `Electrons require hours of continuous illumination before accumulating sufficient energy to escape the metal surface.`,
-      `The stopping potential drops to zero at all frequencies above the threshold limit.`
+      `$\\Delta E = 2.55\\text{ eV}$; $\\lambda = \\frac{hc}{\\Delta E} = \\frac{1240\\text{ eV}\\cdot\\text{nm}}{2.55\\text{ eV}} = 486\\text{ nm}$ (the $H_\\beta$ emission line of the Balmer series).`,
+      `$\\Delta E = 4.25\\text{ eV}$; $\\lambda = 292\\text{ nm}$ in the ultraviolet spectrum.`,
+      `$\\Delta E = 0.850\\text{ eV}$; $\\lambda = 1459\\text{ nm}$ in the infrared spectrum.`,
+      `$\\Delta E = 13.6\\text{ eV}$; the ground state ionization threshold energy.`
     ];
-    specExpl = `Classical wave theory predicted kinetic energy would depend on wave amplitude (intensity). Einstein's 1905 photoelectric equation proved light is quantized into discrete packets $E = hf$: energy transferred to an electron depends strictly on frequency ($K_{\\text{max}} = hf - \\Phi$), while intensity determines photon flux (current).`;
+    specExpl = `The photon energy emitted during an electronic transition equals the difference between initial and final energy states: $\\Delta E = E_i - E_f = -0.850\\text{ eV} - (-3.40\\text{ eV}) = 2.55\\text{ eV}$. Using the Planck-Einstein relation with $hc \\approx 1240\\text{ eV}\\cdot\\text{nm}$: $\\lambda = \\frac{hc}{\\Delta E} = \\frac{1240}{2.55} \\approx 486.3\\text{ nm} \\approx 486\\text{ nm}$. This matches the characteristic cyan/blue-green $H_\\beta$ line of the hydrogen Balmer series.`;
   } else {
     specDiag = getOrGenerateDiagram(subKey, m, l, p, "spectrometry");
     specQuestionText = `Refer to the spectrometry, electrophoresis, or interference fringe distribution in **${specDiag.caption || 'Figure ' + m.id + '.' + l.id + 'M'}** for "${l.title}". What analytical property is deduced from the peak positions, dispersion angles, or band migration distances?`;

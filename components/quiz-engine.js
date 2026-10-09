@@ -440,11 +440,42 @@ export function getQuestionDiagramKey(q) {
 }
 
 /**
+ * Computes a structural stem fingerprint for a question by stripping lesson titles,
+ * numbers, units, LaTeX equations, and markdown formatting to prevent template repetitions
+ * or redundant concepts in the same quiz.
+ */
+export function getQuestionStemKey(q) {
+  if (!q) return "";
+  let text = q.question || q.prompt || q.text || q.stem || "";
+  // Strip LaTeX formulas
+  text = text.replace(/\$\$[\s\S]*?\$\$/g, " ");
+  text = text.replace(/\$[^\$]*?\$/g, " ");
+  // Strip quoted strings (e.g. lesson titles)
+  text = text.replace(/"[^"]*"/g, " ");
+  text = text.replace(/“[^”]*”/g, " ");
+  text = text.replace(/«[^»]*»/g, " ");
+  // Strip markdown bold / italics
+  text = text.replace(/\*\*([^*]+)\*\*/g, "$1");
+  text = text.replace(/\*([^*]+)\*/g, "$1");
+  // Strip figure markers e.g. Figure 1.1A
+  text = text.replace(/Figure\s+[0-9]+(\.[0-9]+)?[A-Z]?/gi, " ");
+  // Strip numbers and decimal quantities
+  text = text.replace(/[0-9]+(\.[0-9]+)?/g, " ");
+  // Strip punctuation and normalize whitespace
+  text = text.replace(/[^a-zA-Z\s]/g, " ").toLowerCase();
+  text = text.replace(/\s+/g, " ").trim();
+  // Return first 8 meaningful words as structural stem fingerprint
+  const words = text.split(" ").filter(w => w.length > 2);
+  return words.slice(0, 8).join(" ");
+}
+
+/**
  * Deduplicates an array of questions while preserving original order.
  * Strictly guarantees that no question appears twice in the same quiz or exam,
  * checking by ID, prompt text, and options set fingerprint.
  * If options.uniqueDiagrams is true, also guarantees that no scientific diagram
  * is repeated across multiple questions in the same assessment.
+ * If options.uniqueStems is true, also ensures no repeated template question stems.
  */
 export function deduplicateQuestions(questions, options = {}) {
   if (!Array.isArray(questions)) return [];
@@ -452,6 +483,7 @@ export function deduplicateQuestions(questions, options = {}) {
   const seenTexts = new Set();
   const seenOpts = new Set();
   const seenDiagrams = new Set();
+  const seenStems = new Set();
   const unique = [];
 
   for (const q of questions) {
@@ -465,6 +497,12 @@ export function deduplicateQuestions(questions, options = {}) {
       const diagKey = getQuestionDiagramKey(q);
       if (diagKey && seenDiagrams.has(diagKey)) continue;
       if (diagKey) seenDiagrams.add(diagKey);
+    }
+
+    if (options && options.uniqueStems) {
+      const stemKey = getQuestionStemKey(q);
+      if (stemKey && seenStems.has(stemKey)) continue;
+      if (stemKey) seenStems.add(stemKey);
     }
 
     if (id) seenIds.add(id);
@@ -2575,7 +2613,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
   // Strictly enforces unique diagrams across the selected preset test.
   function getBalancedPresetSelection(pool, targetCount) {
     if (!pool || pool.length === 0) return new Set();
-    const sanitizedPool = deduplicateQuestions(pool);
+    const sanitizedPool = deduplicateQuestions(pool, { uniqueDiagrams: true });
     if (targetCount >= sanitizedPool.length) return new Set(sanitizedPool.map(q => q.id));
 
     const easyPool = sanitizedPool.filter(q => q.difficultyTier === "easy" || q.difficulty === "foundational");
@@ -2640,14 +2678,17 @@ export function renderQuizEngine(containerId, initialConfig = null) {
       if (dKey) seenPresetDiagrams.add(dKey);
     }
 
-    // Graceful fallback: If pool has few non-duplicate diagrams, fill up to targetCount
+    // Fallback: If pool needs more items to fill up to targetCount, NEVER allow repeating diagrams
     if (selectedIds.size < targetCount) {
       for (const q of sanitizedPool) {
         if (selectedIds.size >= targetCount) break;
         const normTxt = normalizeQuestionText(q.question || q.prompt);
+        const dKey = getQuestionDiagramKey(q);
         if (selectedIds.has(q.id) || (normTxt && selectedTexts.has(normTxt))) continue;
+        if (dKey && seenPresetDiagrams.has(dKey)) continue;
         selectedIds.add(q.id);
         if (normTxt) selectedTexts.add(normTxt);
+        if (dKey) seenPresetDiagrams.add(dKey);
       }
     }
 
@@ -3262,7 +3303,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           showToast("Selection Required", "Please select at least one question before producing the printed exam.", "warning");
           return;
         }
-        activeQuestions = deduplicateQuestions(pickerPool.filter(q => pickerSelectedIds.has(q.id)));
+        activeQuestions = deduplicateQuestions(pickerPool.filter(q => pickerSelectedIds.has(q.id)), { uniqueDiagrams: true });
         userAnswers = {};
         examMode = "print";
         renderPrintView();
@@ -3274,7 +3315,7 @@ export function renderQuizEngine(containerId, initialConfig = null) {
           showToast("Selection Required", "Please select at least one question before starting the quiz.", "warning");
           return;
         }
-        activeQuestions = deduplicateQuestions(pickerPool.filter(q => pickerSelectedIds.has(q.id)));
+        activeQuestions = deduplicateQuestions(pickerPool.filter(q => pickerSelectedIds.has(q.id)), { uniqueDiagrams: true });
         if (activeQuestions.length === 0) {
           showToast("Selection Empty", "No valid questions matched your selection.", "warning");
           return;
@@ -3445,31 +3486,57 @@ export function renderQuizEngine(containerId, initialConfig = null) {
     const targetCount = countVal === "ALL" ? combinedPool.length : Math.min(parseInt(countVal, 10) || 10, combinedPool.length);
     const chosen = [];
     const seenExamDiagrams = new Set();
+    const seenExamAngles = new Set();
+    const seenExamStems = new Set();
 
-    // Pass 1: Select questions strictly avoiding duplicate questions and duplicate diagrams
+    // Pass 1: Select questions strictly avoiding duplicate questions, duplicate diagrams, duplicate angles, and duplicate stems
     for (const q of combinedPool) {
       if (chosen.length >= targetCount) break;
       if (chosen.some(c => isSameQuestion(c, q))) continue;
 
       const dKey = getQuestionDiagramKey(q);
-      if (dKey) {
-        if (seenExamDiagrams.has(dKey)) continue; // Disallow diagram repetition
-        seenExamDiagrams.add(dKey);
-      }
+      if (dKey && seenExamDiagrams.has(dKey)) continue; // STRICT: Disallow diagram repetition
+
+      const angle = q.angle || "";
+      if (angle && seenExamAngles.has(angle)) continue; // Diverse pedagogical angles
+
+      const stemKey = getQuestionStemKey(q);
+      if (stemKey && seenExamStems.has(stemKey)) continue; // Diverse phrasing / no repeated template stems
+
+      if (dKey) seenExamDiagrams.add(dKey);
+      if (angle) seenExamAngles.add(angle);
+      if (stemKey) seenExamStems.add(stemKey);
       chosen.push(q);
     }
 
-    // Pass 2: Graceful fallback only if pool lacks enough items to meet targetCount without diagram reuse
+    // Pass 2: If pool has more items needed to meet targetCount (e.g. large tests > 30 questions or single lesson),
+    // relax angle and stem constraint, BUT NEVER RELAX DIAGRAM UNIQUENESS OR QUESTION UNIQUENESS!
     if (chosen.length < targetCount) {
       for (const q of combinedPool) {
         if (chosen.length >= targetCount) break;
-        if (!chosen.some(c => isSameQuestion(c, q))) {
-          chosen.push(q);
+        if (chosen.some(c => isSameQuestion(c, q))) continue;
+
+        const dKey = getQuestionDiagramKey(q);
+        if (dKey && seenExamDiagrams.has(dKey)) continue; // STRICT: NEVER ALLOW SAME DIAGRAM IN SAME QUIZ
+
+        const stemKey = getQuestionStemKey(q);
+        // Prefer questions with fresh stems if alternative candidates exist
+        if (stemKey && seenExamStems.has(stemKey)) {
+          const hasAlternative = combinedPool.some(alt => 
+            !chosen.some(c => isSameQuestion(c, alt)) &&
+            !(getQuestionDiagramKey(alt) && seenExamDiagrams.has(getQuestionDiagramKey(alt))) &&
+            !seenExamStems.has(getQuestionStemKey(alt))
+          );
+          if (hasAlternative) continue;
         }
+
+        if (dKey) seenExamDiagrams.add(dKey);
+        if (stemKey) seenExamStems.add(stemKey);
+        chosen.push(q);
       }
     }
 
-    activeQuestions = deduplicateQuestions(chosen);
+    activeQuestions = deduplicateQuestions(chosen, { uniqueDiagrams: true });
     if (activeQuestions.length === 0 && combinedPool.length > 0) {
       activeQuestions = [combinedPool[0]];
     }

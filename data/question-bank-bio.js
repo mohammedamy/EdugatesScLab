@@ -1285,10 +1285,10 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "undefined Product $Y = 200\\text{ undefined}$",
-      "undefined Product $Y = 180\\text{ undefined}$",
-      "undefined Product $Y = 180\\text{ undefined}$",
-      "undefined Product $Y = 180.0\\text{ undefined}$"
+      "undefined Product $Y = 180.00$",
+      "undefined Product $Y = 180$",
+      "undefined Product $Y = 200$",
+      "undefined Product $Y = 18$"
     ],
     "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 30.0\\text{ }$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (30.0)(6.0) = 180\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 180 to 2 significant figures yields $180\\text{ }$.",
@@ -2805,12 +2805,12 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "undefined Product $Y = 204.0\\text{ undefined}$",
-      "undefined Product $Y = 200\\text{ undefined}$",
-      "undefined Product $Y = 200\\text{ undefined}$",
-      "undefined Product $Y = 204\\text{ undefined}$"
+      "undefined Product $Y = 204.0$",
+      "undefined Product $Y = 200$",
+      "undefined Product $Y = 230$",
+      "undefined Product $Y = 20$"
     ],
-    "correctIndex": 2,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 34.0\\text{ }$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (34.0)(6.0) = 204\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 204 to 2 significant figures yields $200\\text{ }$.",
     "rubricCER": null
   },
@@ -6299,13 +6299,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Population Dynamics\", what are the correct SI derived units and dimensional representation for **population growth rate** ($\\frac{dN}{dt} = rN\\left(1 - \\frac{N}{K}\\right)$)?",
     "options": [
-      "In \"Population Dynamics\", population growth rate is expressed in $\\text{\\text{ind/yr}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Population Dynamics\", population growth rate is expressed in $\\text{ind/yr}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Population Dynamics\", population growth rate is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{ind/yr})}^{-1}$, confusing rate with state duration.",
-      "In \"Population Dynamics\", population growth rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{ind/yr}}$.",
+      "In \"Population Dynamics\", population growth rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{ind/yr}$.",
       "In \"Population Dynamics\", population growth rate is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Population Dynamics, population growth rate is quantified in $\\text{\\text{ind/yr}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Population Dynamics, population growth rate is quantified in $\\text{ind/yr}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -6374,13 +6374,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{ind/yr}",
     "options": [
-      "population growth rate = $2.57\\text{ \\text{ind/yr}}$",
-      "population growth rate = $7.71\\text{ \\text{ind/yr}}$",
-      "population growth rate = $10.28\\text{ \\text{ind/yr}}$",
-      "population growth rate = $5.14\\text{ \\text{ind/yr}}$"
+      "population growth rate = $2.57\\text{ind/yr}$",
+      "population growth rate = $7.71\\text{ind/yr}$",
+      "population growth rate = $10.28\\text{ind/yr}$",
+      "population growth rate = $5.14\\text{ind/yr}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 18.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{18.0}{3.5} = 5.14\\text{ \\text{ind/yr}}$$.\nStep 3: Significant figures verify $5.14\\text{ \\text{ind/yr}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 18.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{18.0}{3.5} = 5.14\\text{ind/yr}$$.\nStep 3: Significant figures verify $5.14\\text{ind/yr}$.",
     "rubricCER": null
   },
   {
@@ -6600,18 +6600,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Population Dynamics\", a student measures initial parameters $P_1 = 39.0\\text{ \\text{ind/yr}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Population Dynamics\", a student measures initial parameters $P_1 = 39.0\\text{ind/yr}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "200",
     "tolerance": 0.5,
     "unit": "\\text{ind/yr}",
     "options": [
-      "population growth rate Product $Y = 200\\text{ \\text{ind/yr}}$",
-      "population growth rate Product $Y = 200\\text{ \\text{ind/yr}}$",
-      "population growth rate Product $Y = 195.0\\text{ \\text{ind/yr}}$",
-      "population growth rate Product $Y = 195\\text{ \\text{ind/yr}}$"
+      "population growth rate Product $Y = 195.0\\text{ ind/yr}$",
+      "population growth rate Product $Y = 200\\text{ ind/yr}$",
+      "population growth rate Product $Y = 220\\text{ ind/yr}$",
+      "population growth rate Product $Y = 20\\text{ ind/yr}$"
     ],
-    "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 39.0\\text{ \\text{ind/yr}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (39.0)(5.0) = 195\\text{ \\text{ind/yr}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 195 to 2 significant figures yields $200\\text{ \\text{ind/yr}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 39.0\\text{ind/yr}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (39.0)(5.0) = 195\\text{ind/yr}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 195 to 2 significant figures yields $200\\text{ind/yr}$.",
     "rubricCER": null
   },
   {
@@ -11165,12 +11165,12 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "\\mu\\text{M/s}",
     "options": [
-      "enzymatic velocity Product $Y = 300\\text{ \\mu\\text{M/s}}$",
-      "enzymatic velocity Product $Y = 300\\text{ \\mu\\text{M/s}}$",
-      "enzymatic velocity Product $Y = 300.0\\text{ \\mu\\text{M/s}}$",
-      "enzymatic velocity Product $Y = 300\\text{ \\mu\\text{M/s}}$"
+      "enzymatic velocity Product $Y = 300.00\\text{ \\muM/s}$",
+      "enzymatic velocity Product $Y = 300\\text{ \\muM/s}$",
+      "enzymatic velocity Product $Y = 350\\text{ \\muM/s}$",
+      "enzymatic velocity Product $Y = 30\\text{ \\muM/s}$"
     ],
-    "correctIndex": 3,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 50.0\\text{ \\mu\\text{M/s}}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (50.0)(6.0) = 300\\text{ \\mu\\text{M/s}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 300 to 2 significant figures yields $300\\text{ \\mu\\text{M/s}}$.",
     "rubricCER": null
   },
@@ -13139,13 +13139,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Cell Discovery and Theory\", what are the correct SI derived units and dimensional representation for **diffusion flux** ($J = -D \\frac{\\Delta C}{\\Delta x}$)?",
     "options": [
-      "In \"Cell Discovery and Theory\", diffusion flux is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+      "In \"Cell Discovery and Theory\", diffusion flux is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
       "In \"Cell Discovery and Theory\", diffusion flux is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Cell Discovery and Theory\", diffusion flux is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mol}/(\\text{m}^2\\cdot\\text{s}))}^{-1}$, confusing rate with state duration.",
-      "In \"Cell Discovery and Theory\", diffusion flux is expressed in $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
+      "In \"Cell Discovery and Theory\", diffusion flux is expressed in $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
     ],
     "correctIndex": 3,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Cell Discovery and Theory, diffusion flux is quantified in $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Cell Discovery and Theory, diffusion flux is quantified in $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -13214,13 +13214,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mol}/(\\text{m}^2\\cdot\\text{s})",
     "options": [
-      "diffusion flux = $9.64\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $3.21\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $12.86\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $6.43\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$"
+      "diffusion flux = $9.64\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $3.21\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $12.86\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $6.43\\text{mol}/(\\text{m^2\\cdot\\text{s})}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 22.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{22.5}{3.5} = 6.43\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$$.\nStep 3: Significant figures verify $6.43\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 22.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{22.5}{3.5} = 6.43\\text{mol}/(\\text{m^2\\cdot\\text{s})}$$.\nStep 3: Significant figures verify $6.43\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
     "rubricCER": null
   },
   {
@@ -13440,18 +13440,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Cell Discovery and Theory\", a student measures initial parameters $P_1 = 51.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Cell Discovery and Theory\", a student measures initial parameters $P_1 = 51.0\\text{mol}/(\\text{m^2\\cdot\\text{s})}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "260",
     "tolerance": 0.5,
     "unit": "\\text{mol}/(\\text{m}^2\\cdot\\text{s})",
     "options": [
-      "diffusion flux Product $Y = 255.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 260\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 255\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 300\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$"
+      "diffusion flux Product $Y = 255.0\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 260\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 300\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 26\\text{ mol/(m^2\\cdots)}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 51.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (51.0)(5.0) = 255\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 255 to 2 significant figures yields $260\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 51.0\\text{mol}/(\\text{m^2\\cdot\\text{s})}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (51.0)(5.0) = 255\\text{mol}/(\\text{m^2\\cdot\\text{s})}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 255 to 2 significant figures yields $260\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
     "rubricCER": null
   },
   {
@@ -13900,12 +13900,12 @@ export const questionBankBio = [
     "question": "In quantitative metrology for \"The Plasma Membrane\", what are the correct SI derived units and dimensional representation for **diffusion flux** ($J = -D \\frac{\\Delta C}{\\Delta x}$)?",
     "options": [
       "In \"The Plasma Membrane\", diffusion flux is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mol}/(\\text{m}^2\\cdot\\text{s}))}^{-1}$, confusing rate with state duration.",
-      "In \"The Plasma Membrane\", diffusion flux is expressed in $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"The Plasma Membrane\", diffusion flux is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+      "In \"The Plasma Membrane\", diffusion flux is expressed in $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"The Plasma Membrane\", diffusion flux is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
       "In \"The Plasma Membrane\", diffusion flux is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Plasma Membrane, diffusion flux is quantified in $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Plasma Membrane, diffusion flux is quantified in $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -13974,13 +13974,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mol}/(\\text{m}^2\\cdot\\text{s})",
     "options": [
-      "diffusion flux = $2.81\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $11.26\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $8.45\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $5.63\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$"
+      "diffusion flux = $2.81\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $11.26\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $8.45\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $5.63\\text{mol}/(\\text{m^2\\cdot\\text{s})}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 22.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{22.5}{4.0} = 5.63\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$$.\nStep 3: Significant figures verify $5.63\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 22.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{22.5}{4.0} = 5.63\\text{mol}/(\\text{m^2\\cdot\\text{s})}$$.\nStep 3: Significant figures verify $5.63\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
     "rubricCER": null
   },
   {
@@ -14200,18 +14200,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Plasma Membrane\", a student measures initial parameters $P_1 = 54.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Plasma Membrane\", a student measures initial parameters $P_1 = 54.0\\text{mol}/(\\text{m^2\\cdot\\text{s})}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "320",
     "tolerance": 0.5,
     "unit": "\\text{mol}/(\\text{m}^2\\cdot\\text{s})",
     "options": [
-      "diffusion flux Product $Y = 300\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 324.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 320\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 324\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$"
+      "diffusion flux Product $Y = 324.0\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 320\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 300\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 32\\text{ mol/(m^2\\cdots)}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 54.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (54.0)(6.0) = 324\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 324 to 2 significant figures yields $320\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 54.0\\text{mol}/(\\text{m^2\\cdot\\text{s})}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (54.0)(6.0) = 324\\text{mol}/(\\text{m^2\\cdot\\text{s})}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 324 to 2 significant figures yields $320\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
     "rubricCER": null
   },
   {
@@ -14659,13 +14659,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Cellular Transport\", what are the correct SI derived units and dimensional representation for **diffusion flux** ($J = -D \\frac{\\Delta C}{\\Delta x}$)?",
     "options": [
-      "In \"Cellular Transport\", diffusion flux is expressed in $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Cellular Transport\", diffusion flux is expressed in $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Cellular Transport\", diffusion flux is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Cellular Transport\", diffusion flux is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mol}/(\\text{m}^2\\cdot\\text{s}))}^{-1}$, confusing rate with state duration.",
-      "In \"Cellular Transport\", diffusion flux is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$."
+      "In \"Cellular Transport\", diffusion flux is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Cellular Transport, diffusion flux is quantified in $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Cellular Transport, diffusion flux is quantified in $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -14734,13 +14734,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mol}/(\\text{m}^2\\cdot\\text{s})",
     "options": [
-      "diffusion flux = $7.50\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $5.00\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $2.50\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $10.00\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$"
+      "diffusion flux = $7.50\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $5.00\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $2.50\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $10.00\\text{mol}/(\\text{m^2\\cdot\\text{s})}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters: $A = 22.5$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{22.5}{4.5} = 5.00\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$$.\nStep 3: Significant figures verify $5.00\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 22.5$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{22.5}{4.5} = 5.00\\text{mol}/(\\text{m^2\\cdot\\text{s})}$$.\nStep 3: Significant figures verify $5.00\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
     "rubricCER": null
   },
   {
@@ -14960,18 +14960,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Cellular Transport\", a student measures initial parameters $P_1 = 57.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$ (3 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Cellular Transport\", a student measures initial parameters $P_1 = 57.0\\text{mol}/(\\text{m^2\\cdot\\text{s})}$ (3 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "400",
     "tolerance": 0.5,
     "unit": "\\text{mol}/(\\text{m}^2\\cdot\\text{s})",
     "options": [
-      "diffusion flux Product $Y = 399.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 400\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 400\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 399\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$"
+      "diffusion flux Product $Y = 399.0\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 400\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 460\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 40\\text{ mol/(m^2\\cdots)}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 57.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$ (3 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (57.0)(7.0) = 399\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 399 to 2 significant figures yields $400\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 57.0\\text{mol}/(\\text{m^2\\cdot\\text{s})}$ (3 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (57.0)(7.0) = 399\\text{mol}/(\\text{m^2\\cdot\\text{s})}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 399 to 2 significant figures yields $400\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
     "rubricCER": null
   },
   {
@@ -15419,13 +15419,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Structures and Organelles\", what are the correct SI derived units and dimensional representation for **diffusion flux** ($J = -D \\frac{\\Delta C}{\\Delta x}$)?",
     "options": [
-      "In \"Structures and Organelles\", diffusion flux is expressed in $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Structures and Organelles\", diffusion flux is expressed in $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Structures and Organelles\", diffusion flux is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Structures and Organelles\", diffusion flux is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mol}/(\\text{m}^2\\cdot\\text{s}))}^{-1}$, confusing rate with state duration.",
-      "In \"Structures and Organelles\", diffusion flux is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$."
+      "In \"Structures and Organelles\", diffusion flux is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Structures and Organelles, diffusion flux is quantified in $\\text{\\text{mol}/(\\text{m}^2\\cdot\\text{s})}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Structures and Organelles, diffusion flux is quantified in $\\text{mol}/(\\text{m^2\\cdot\\text{s})}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -15494,13 +15494,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mol}/(\\text{m}^2\\cdot\\text{s})",
     "options": [
-      "diffusion flux = $4.50\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $2.25\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $6.75\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux = $9.00\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$"
+      "diffusion flux = $4.50\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $2.25\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $6.75\\text{mol}/(\\text{m^2\\cdot\\text{s})}$",
+      "diffusion flux = $9.00\\text{mol}/(\\text{m^2\\cdot\\text{s})}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 22.5$, $B = 5.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{22.5}{5.0} = 4.50\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$$.\nStep 3: Significant figures verify $4.50\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 22.5$, $B = 5.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{22.5}{5.0} = 4.50\\text{mol}/(\\text{m^2\\cdot\\text{s})}$$.\nStep 3: Significant figures verify $4.50\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
     "rubricCER": null
   },
   {
@@ -15514,24 +15514,24 @@ export const questionBankBio = [
     "difficulty": "honors",
     "difficultyTier": "medium",
     "angle": "empirical_graph_analysis",
-    "question": "Refer to the empirical coordinate graph illustrated in **Figure 6: Eukaryotic Phospholipid Bilayer with Transmembrane Transport Protein** for \"Structures and Organelles\". What physical relationship or state transition does the curve slope or plateau represent?",
+    "question": "Refer to the cellular tonicity diagrams and volume response profiles in **Figure 7.4T**. When animal erythrocytes (red blood cells) and walled plant cells are simultaneously immersed in a hypotonic medium ($0.05\\text{ M NaCl}$ vs. intracellular $0.15\\text{ M}$), what contrasting cytological responses are observed and what mechanism explains the difference?",
     "options": [
-      "The coordinate slope for \"Structures and Organelles\" represents a static friction coefficient that remains invariant regardless of reactant concentration or applied force.",
-      "The graph for \"Structures and Organelles\" exhibits Sigmoidal logistic population growth curve displaying carrying capacity K plateau for Cellular Structure and Function, where the coordinate slope ($\\Delta y / \\Delta x$) reflects the rate constant, sensitivity coefficient, or dynamic equilibrium state.",
-      "The coordinate plateau for \"Structures and Organelles\" signifies that all chemical and physical processes have terminated completely with zero dynamic exchange.",
-      "The curve for \"Structures and Organelles\" indicates that the dependent variable increases linearly without bound, failing to exhibit saturation or equilibrium limits."
+      "Net osmotic water influx causes animal erythrocytes to swell and burst (lysis), whereas plant cells absorb water until turgor pressure ($\\Psi_p$) matches solute potential ($\\Psi_s$), creating a stable turgid state protected by the rigid cellulose cell wall.",
+      "Both cell types undergo immediate crenation (shrinkage) due to rapid electrolyte efflux through aquaporin channels.",
+      "Plant cells burst rapidly while animal erythrocytes maintain invariant volume due to high cholesterol membrane density.",
+      "Water remains stationary while solute ions diffuse against their concentration gradient into the extracellular space."
     ],
-    "correctIndex": 1,
-    "explanation": "In scientific laboratory analysis of Structures and Organelles (Figure 6: Eukaryotic Phospholipid Bilayer with Transmembrane Transport Protein), coordinate profiles reveal Sigmoidal logistic population growth curve displaying carrying capacity K plateau for Cellular Structure and Function. Slopes represent rates or constants, while asymptotic plateaus identify saturation limits or equilibrium.",
+    "correctIndex": 0,
+    "explanation": "Water moves spontaneously down its chemical potential gradient from low solute concentration (hypotonic) into high solute concentration (hypertonic cytoplasm). Animal cells lack an external wall; osmotic swelling exceeds membrane tensile strength, causing cytolysis. In contrast, rigid plant cell walls exert mechanical counter-pressure ($\\Psi_p$), preventing further net water entry once water potentials equilibrate ($\\Psi = \\Psi_s + \\Psi_p = 0$).",
     "rubricCER": null,
     "hasDiagram": true,
     "diagram": {
-      "id": "bio_membrane_fluid_mosaic",
+      "id": "bio_osmosis_tonicity_cells",
       "subject": "BIO",
       "moduleId": 7,
-      "title": "Plasma Membrane Fluid Mosaic Cross-Section",
-      "caption": "Figure 6: Eukaryotic Phospholipid Bilayer with Transmembrane Transport Protein",
-      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      \n      <!-- Regions Labels -->\n      <rect x=\"20\" y=\"20\" width=\"190\" height=\"26\" fill=\"rgba(56, 189, 248, 0.15)\" rx=\"4\"/>\n      <text x=\"115\" y=\"37\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Extracellular Fluid (High Na+)</text>\n      <rect x=\"20\" y=\"255\" width=\"190\" height=\"26\" fill=\"rgba(16, 185, 129, 0.15)\" rx=\"4\"/>\n      <text x=\"115\" y=\"272\" fill=\"#10b981\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Cytoplasm (High K+)</text>\n      \n      <!-- Phospholipid Heads (Top Layer: Extracellular) -->\n      \n        <circle cx=\"40\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"37\" y1=\"109\" x2=\"35\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"43\" y1=\"109\" x2=\"45\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"70\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"67\" y1=\"109\" x2=\"65\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"73\" y1=\"109\" x2=\"75\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"100\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"97\" y1=\"109\" x2=\"95\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"103\" y1=\"109\" x2=\"105\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"130\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"127\" y1=\"109\" x2=\"125\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"133\" y1=\"109\" x2=\"135\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"160\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"157\" y1=\"109\" x2=\"155\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"163\" y1=\"109\" x2=\"165\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"190\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"187\" y1=\"109\" x2=\"185\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"193\" y1=\"109\" x2=\"195\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"340\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"337\" y1=\"109\" x2=\"335\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"343\" y1=\"109\" x2=\"345\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"370\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"367\" y1=\"109\" x2=\"365\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"373\" y1=\"109\" x2=\"375\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"400\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"397\" y1=\"109\" x2=\"395\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"403\" y1=\"109\" x2=\"405\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"430\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"427\" y1=\"109\" x2=\"425\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"433\" y1=\"109\" x2=\"435\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"460\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"457\" y1=\"109\" x2=\"455\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"463\" y1=\"109\" x2=\"465\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"490\" cy=\"100\" r=\"9\" fill=\"#38bdf8\"/>\n        <line x1=\"487\" y1=\"109\" x2=\"485\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"493\" y1=\"109\" x2=\"495\" y2=\"135\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n      \n      <!-- Phospholipid Heads (Bottom Layer: Cytoplasmic) -->\n      \n        <circle cx=\"40\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"37\" y1=\"191\" x2=\"35\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"43\" y1=\"191\" x2=\"45\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"70\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"67\" y1=\"191\" x2=\"65\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"73\" y1=\"191\" x2=\"75\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"100\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"97\" y1=\"191\" x2=\"95\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"103\" y1=\"191\" x2=\"105\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"130\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"127\" y1=\"191\" x2=\"125\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"133\" y1=\"191\" x2=\"135\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"160\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"157\" y1=\"191\" x2=\"155\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"163\" y1=\"191\" x2=\"165\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"190\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"187\" y1=\"191\" x2=\"185\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"193\" y1=\"191\" x2=\"195\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"340\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"337\" y1=\"191\" x2=\"335\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"343\" y1=\"191\" x2=\"345\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"370\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"367\" y1=\"191\" x2=\"365\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"373\" y1=\"191\" x2=\"375\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"400\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"397\" y1=\"191\" x2=\"395\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"403\" y1=\"191\" x2=\"405\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"430\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"427\" y1=\"191\" x2=\"425\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"433\" y1=\"191\" x2=\"435\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"460\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"457\" y1=\"191\" x2=\"455\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"463\" y1=\"191\" x2=\"465\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n        <circle cx=\"490\" cy=\"200\" r=\"9\" fill=\"#10b981\"/>\n        <line x1=\"487\" y1=\"191\" x2=\"485\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n        <line x1=\"493\" y1=\"191\" x2=\"495\" y2=\"165\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n      \n      <!-- Integral Transmembrane Channel Protein (Center) -->\n      <path d=\"M 220 85 Q 230 150 220 215 L 260 215 Q 250 150 260 85 Z\" fill=\"#6366f1\" stroke=\"#818cf8\" stroke-width=\"2\"/>\n      <path d=\"M 280 85 Q 270 150 280 215 L 320 215 Q 310 150 320 85 Z\" fill=\"#6366f1\" stroke=\"#818cf8\" stroke-width=\"2\"/>\n      \n      <!-- Transport Pore Channel -->\n      <line x1=\"270\" y1=\"65\" x2=\"270\" y2=\"235\" stroke=\"#facc15\" stroke-width=\"2\" stroke-dasharray=\"4\"/>\n      <polygon points=\"270,240 266,230 274,230\" fill=\"#facc15\"/>\n      <text x=\"270\" y=\"55\" fill=\"#facc15\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Ion Influx ↓</text>\n      \n      <!-- Protein Callout -->\n      <text x=\"270\" y=\"155\" fill=\"#f8fafc\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Channel X</text>\n      \n      <!-- Hydrophobic Core Indicator -->\n      <line x1=\"390\" y1=\"120\" x2=\"390\" y2=\"180\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>\n      <text x=\"400\" y=\"153\" fill=\"#f59e0b\" font-size=\"10\" font-weight=\"700\">Hydrophobic Fatty Acid Core</text>\n    </svg>"
+      "title": "Osmosis & Tonicity in Animal and Plant Cells",
+      "caption": "Figure: Cellular Morphological Responses in Hypotonic, Isotonic, and Hypertonic Solutions",
+      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      <text x=\"270\" y=\"24\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"700\" text-anchor=\"middle\">Tonicity &amp; Osmotic Effects on Living Cells</text>\n      <!-- Column 1: Hypotonic -->\n      <rect x=\"25\" y=\"45\" width=\"155\" height=\"210\" rx=\"6\" fill=\"#1e293b\" stroke=\"#334155\" stroke-width=\"1\"/>\n      <text x=\"102\" y=\"66\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">HYPOTONIC</text>\n      <text x=\"102\" y=\"80\" fill=\"#94a3b8\" font-size=\"8.5\" text-anchor=\"middle\">[Solute]_out &lt; [Solute]_in</text>\n      <!-- RBC Lysed -->\n      <circle cx=\"102\" cy=\"115\" r=\"22\" fill=\"#ef4444\" stroke=\"#f87171\" stroke-width=\"1.5\" stroke-dasharray=\"3\"/>\n      <text x=\"102\" y=\"119\" fill=\"#ffffff\" font-size=\"9\" font-weight=\"800\" text-anchor=\"middle\">Lysed (Burst)</text>\n      <!-- Plant Cell Turgid -->\n      <rect x=\"62\" y=\"155\" width=\"80\" height=\"50\" rx=\"4\" fill=\"#065f46\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <rect x=\"67\" y=\"160\" width=\"70\" height=\"40\" rx=\"3\" fill=\"#0284c7\" fill-opacity=\"0.5\"/>\n      <text x=\"102\" y=\"184\" fill=\"#ffffff\" font-size=\"9\" font-weight=\"800\" text-anchor=\"middle\">Turgid (Normal)</text>\n      <text x=\"102\" y=\"235\" fill=\"#38bdf8\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">Net H₂O Influx →</text>\n      <!-- Column 2: Isotonic -->\n      <rect x=\"192\" y=\"45\" width=\"155\" height=\"210\" rx=\"6\" fill=\"#1e293b\" stroke=\"#334155\" stroke-width=\"1\"/>\n      <text x=\"269\" y=\"66\" fill=\"#34d399\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">ISOTONIC</text>\n      <text x=\"269\" y=\"80\" fill=\"#94a3b8\" font-size=\"8.5\" text-anchor=\"middle\">[Solute]_out = [Solute]_in</text>\n      <!-- RBC Normal biconcave -->\n      <ellipse cx=\"269\" cy=\"115\" rx=\"20\" ry=\"14\" fill=\"#ef4444\" stroke=\"#ffffff\" stroke-width=\"1.5\"/>\n      <ellipse cx=\"269\" cy=\"115\" rx=\"8\" ry=\"5\" fill=\"#7f1d1d\"/>\n      <text x=\"269\" y=\"145\" fill=\"#f8fafc\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">Normal RBC</text>\n      <!-- Plant Cell Flaccid -->\n      <rect x=\"229\" y=\"155\" width=\"80\" height=\"50\" rx=\"4\" fill=\"#065f46\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <rect x=\"237\" y=\"163\" width=\"64\" height=\"34\" rx=\"3\" fill=\"#0284c7\" fill-opacity=\"0.3\"/>\n      <text x=\"269\" y=\"184\" fill=\"#ffffff\" font-size=\"9\" font-weight=\"800\" text-anchor=\"middle\">Flaccid</text>\n      <text x=\"269\" y=\"235\" fill=\"#34d399\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">← H₂O Equilibrium →</text>\n      <!-- Column 3: Hypertonic -->\n      <rect x=\"360\" y=\"45\" width=\"155\" height=\"210\" rx=\"6\" fill=\"#1e293b\" stroke=\"#334155\" stroke-width=\"1\"/>\n      <text x=\"437\" y=\"66\" fill=\"#ef4444\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">HYPERTONIC</text>\n      <text x=\"437\" y=\"80\" fill=\"#94a3b8\" font-size=\"8.5\" text-anchor=\"middle\">[Solute]_out &gt; [Solute]_in</text>\n      <!-- RBC Shriveled / Crenated -->\n      <polygon points=\"437,95 447,105 457,102 452,115 458,128 445,127 437,137 429,127 416,128 422,115 417,102 427,105\" fill=\"#ef4444\"/>\n      <text x=\"437\" y=\"145\" fill=\"#f8fafc\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">Shriveled (Crenated)</text>\n      <!-- Plant Cell Plasmolyzed -->\n      <rect x=\"397\" y=\"155\" width=\"80\" height=\"50\" rx=\"4\" fill=\"#065f46\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <ellipse cx=\"437\" cy=\"180\" rx=\"20\" ry=\"12\" fill=\"#0284c7\" fill-opacity=\"0.5\"/>\n      <text x=\"437\" y=\"184\" fill=\"#facc15\" font-size=\"8.5\" font-weight=\"800\" text-anchor=\"middle\">Plasmolyzed</text>\n      <text x=\"437\" y=\"235\" fill=\"#ef4444\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">← Net H₂O Efflux</text>\n      <text x=\"270\" y=\"278\" fill=\"#cbd5e1\" font-size=\"10\" font-weight=\"600\" text-anchor=\"middle\">Plant cell wall prevents lysis in hypotonic media, generating vital turgor pressure</text>\n    </svg>"
     }
   },
   {
@@ -15720,18 +15720,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Structures and Organelles\", a student measures initial parameters $P_1 = 60.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$ (3 significant figures) and multiplier factor $\\beta = 8.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Structures and Organelles\", a student measures initial parameters $P_1 = 60.0\\text{mol}/(\\text{m^2\\cdot\\text{s})}$ (3 significant figures) and multiplier factor $\\beta = 8.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "480",
     "tolerance": 0.5,
     "unit": "\\text{mol}/(\\text{m}^2\\cdot\\text{s})",
     "options": [
-      "diffusion flux Product $Y = 500\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 480\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 480.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$",
-      "diffusion flux Product $Y = 480\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$"
+      "diffusion flux Product $Y = 480.00\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 480\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 500\\text{ mol/(m^2\\cdots)}$",
+      "diffusion flux Product $Y = 48\\text{ mol/(m^2\\cdots)}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 60.0\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$ (3 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (60.0)(8.0) = 480\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 480 to 2 significant figures yields $480\\text{ \\text{mol}/(\\text{m}^2\\cdot\\text{s})}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 60.0\\text{mol}/(\\text{m^2\\cdot\\text{s})}$ (3 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (60.0)(8.0) = 480\\text{mol}/(\\text{m^2\\cdot\\text{s})}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 480 to 2 significant figures yields $480\\text{mol}/(\\text{m^2\\cdot\\text{s})}$.",
     "rubricCER": null
   },
   {
@@ -16179,13 +16179,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"How Organisms Obtain Energy\", what are the correct SI derived units and dimensional representation for **cellular aerobic oxidation** ($C_6H_{12}O_6 + 6O_2 \\to 6CO_2 + 6H_2O$)?",
     "options": [
-      "In \"How Organisms Obtain Energy\", cellular aerobic oxidation is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{kJ/mol}}$.",
+      "In \"How Organisms Obtain Energy\", cellular aerobic oxidation is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{kJ/mol}$.",
       "In \"How Organisms Obtain Energy\", cellular aerobic oxidation is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{kJ/mol})}^{-1}$, confusing rate with state duration.",
-      "In \"How Organisms Obtain Energy\", cellular aerobic oxidation is expressed in $\\text{\\text{kJ/mol}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"How Organisms Obtain Energy\", cellular aerobic oxidation is expressed in $\\text{kJ/mol}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"How Organisms Obtain Energy\", cellular aerobic oxidation is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 2,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In How Organisms Obtain Energy, cellular aerobic oxidation is quantified in $\\text{\\text{kJ/mol}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In How Organisms Obtain Energy, cellular aerobic oxidation is quantified in $\\text{kJ/mol}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -16254,13 +16254,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{kJ/mol}",
     "options": [
-      "cellular aerobic oxidation = $10.29\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation = $3.43\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation = $6.86\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation = $13.72\\text{ \\text{kJ/mol}}$"
+      "cellular aerobic oxidation = $10.29\\text{kJ/mol}$",
+      "cellular aerobic oxidation = $3.43\\text{kJ/mol}$",
+      "cellular aerobic oxidation = $6.86\\text{kJ/mol}$",
+      "cellular aerobic oxidation = $13.72\\text{kJ/mol}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{3.5} = 6.86\\text{ \\text{kJ/mol}}$$.\nStep 3: Significant figures verify $6.86\\text{ \\text{kJ/mol}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{3.5} = 6.86\\text{kJ/mol}$$.\nStep 3: Significant figures verify $6.86\\text{kJ/mol}$.",
     "rubricCER": null
   },
   {
@@ -16480,18 +16480,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"How Organisms Obtain Energy\", a student measures initial parameters $P_1 = 55.0\\text{ \\text{kJ/mol}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"How Organisms Obtain Energy\", a student measures initial parameters $P_1 = 55.0\\text{kJ/mol}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "280",
     "tolerance": 0.5,
     "unit": "\\text{kJ/mol}",
     "options": [
-      "cellular aerobic oxidation Product $Y = 280\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation Product $Y = 275.0\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation Product $Y = 300\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation Product $Y = 275\\text{ \\text{kJ/mol}}$"
+      "cellular aerobic oxidation Product $Y = 275.0\\text{ kJ/mol}$",
+      "cellular aerobic oxidation Product $Y = 280\\text{ kJ/mol}$",
+      "cellular aerobic oxidation Product $Y = 300\\text{ kJ/mol}$",
+      "cellular aerobic oxidation Product $Y = 28\\text{ kJ/mol}$"
     ],
-    "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 55.0\\text{ \\text{kJ/mol}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (55.0)(5.0) = 275\\text{ \\text{kJ/mol}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 275 to 2 significant figures yields $280\\text{ \\text{kJ/mol}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 55.0\\text{kJ/mol}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (55.0)(5.0) = 275\\text{kJ/mol}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 275 to 2 significant figures yields $280\\text{kJ/mol}$.",
     "rubricCER": null
   },
   {
@@ -16941,11 +16941,11 @@ export const questionBankBio = [
     "options": [
       "In \"Photosynthesis\", cellular aerobic oxidation is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{kJ/mol})}^{-1}$, confusing rate with state duration.",
       "In \"Photosynthesis\", cellular aerobic oxidation is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Photosynthesis\", cellular aerobic oxidation is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{kJ/mol}}$.",
-      "In \"Photosynthesis\", cellular aerobic oxidation is expressed in $\\text{\\text{kJ/mol}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
+      "In \"Photosynthesis\", cellular aerobic oxidation is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{kJ/mol}$.",
+      "In \"Photosynthesis\", cellular aerobic oxidation is expressed in $\\text{kJ/mol}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
     ],
     "correctIndex": 3,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Photosynthesis, cellular aerobic oxidation is quantified in $\\text{\\text{kJ/mol}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Photosynthesis, cellular aerobic oxidation is quantified in $\\text{kJ/mol}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -17014,13 +17014,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{kJ/mol}",
     "options": [
-      "cellular aerobic oxidation = $9.00\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation = $3.00\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation = $12.00\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation = $6.00\\text{ \\text{kJ/mol}}$"
+      "cellular aerobic oxidation = $9.00\\text{kJ/mol}$",
+      "cellular aerobic oxidation = $3.00\\text{kJ/mol}$",
+      "cellular aerobic oxidation = $12.00\\text{kJ/mol}$",
+      "cellular aerobic oxidation = $6.00\\text{kJ/mol}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{4.0} = 6.00\\text{ \\text{kJ/mol}}$$.\nStep 3: Significant figures verify $6.00\\text{ \\text{kJ/mol}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{4.0} = 6.00\\text{kJ/mol}$$.\nStep 3: Significant figures verify $6.00\\text{kJ/mol}$.",
     "rubricCER": null
   },
   {
@@ -17240,18 +17240,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Photosynthesis\", a student measures initial parameters $P_1 = 58.0\\text{ \\text{kJ/mol}}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Photosynthesis\", a student measures initial parameters $P_1 = 58.0\\text{kJ/mol}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "350",
     "tolerance": 0.5,
     "unit": "\\text{kJ/mol}",
     "options": [
-      "cellular aerobic oxidation Product $Y = 348.0\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation Product $Y = 350\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation Product $Y = 300\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation Product $Y = 348\\text{ \\text{kJ/mol}}$"
+      "cellular aerobic oxidation Product $Y = 348.0\\text{ kJ/mol}$",
+      "cellular aerobic oxidation Product $Y = 350\\text{ kJ/mol}$",
+      "cellular aerobic oxidation Product $Y = 300\\text{ kJ/mol}$",
+      "cellular aerobic oxidation Product $Y = 35\\text{ kJ/mol}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 58.0\\text{ \\text{kJ/mol}}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (58.0)(6.0) = 348\\text{ \\text{kJ/mol}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 348 to 2 significant figures yields $350\\text{ \\text{kJ/mol}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 58.0\\text{kJ/mol}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (58.0)(6.0) = 348\\text{kJ/mol}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 348 to 2 significant figures yields $350\\text{kJ/mol}$.",
     "rubricCER": null
   },
   {
@@ -17289,24 +17289,24 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "thermodynamic_cycle_pathway",
-    "question": "Refer to the light-dependent photosynthetic Z-scheme electron transport diagram in **Figure 8.2**. What is the initial electron donor that replenishes the oxidized reaction center $P_{680}^+$ in Photosystem II, and what electrochemical gradient drives ATP synthesis?",
+    "question": "Examine the global carbon exchange pathway and biospheric flux cycle shown in **Figure 8.2C**. How do photosynthetic carbon fixation and cellular respiration interact to sustain atmospheric $\\text{CO}_2$ equilibrium, and how does anthropogenic fossil fuel emission perturb this balance?",
     "options": [
-      "Carbon dioxide photolysis donates electrons directly to Photosystem I.",
-      "Glucose oxidation provides initial electrons; an active sodium gradient drives ATP synthesis.",
-      "The photolysis of water ($2\\text{H}_2\\text{O} \\to \\text{O}_2 + 4\\text{H}^+ + 4e^-$) provides replacement electrons at PS II; the resulting proton motive force across the thylakoid lumen into the stroma drives ATP Synthase.",
-      "Atmospheric nitrogen provides electrons; ATP synthesis occurs spontaneously without a membrane gradient."
+      "Photosynthetic autotrophs assimilate atmospheric $\\text{CO}_2$ into organic carbohydrates via RuBisCO, balanced by autotrophic and heterotrophic respiratory release; fossil fuel combustion introduces an uncompensated flux of $\\approx 9\\text{--}10\\text{ Gt C/yr}$ that drives net atmospheric accumulation and ocean acidification.",
+      "Photosynthesis permanently removes carbon from Earth into deep space, while respiration produces carbon atoms through nuclear fusion.",
+      "Biospheric carbon exchange is an isolated closed thermodynamic system where atmospheric $\\text{CO}_2$ concentration remains strictly invariant regardless of combustion rate.",
+      "Cellular respiration fixes inorganic carbon into biomass, while photosynthetic photolysis releases methane into the atmosphere."
     ],
-    "correctIndex": 2,
-    "explanation": "At PS II, photo-excited P680 transfers electrons down the plastoquinone-cytochrome b6f chain. The oxygen-evolving complex replenishes $P_{680}^+$ via water photolysis ($2\\text{H}_2\\text{O} \\to \\text{O}_2 + 4\\text{H}^+ + 4e^-$). Translocated protons create a transmembrane electrochemical gradient ($\\Delta\\text{pH}$) driving ATP synthase.",
+    "correctIndex": 0,
+    "explanation": "In the global carbon cycle, terrestrial and marine photosynthesis fixes $\\approx 120\\text{ Gt C/yr}$ into biological biomass, which is matched by approximately equal global respiration and decay flux ($\\approx 120\\text{ Gt C/yr}$). Fossil fuel extraction and combustion bypasses geological sequestration timescales, injecting $\\approx 9.5\\text{ Gt C/yr}$ into the fast carbon cycle, overwhelming biospheric sink capacity and causing sustained atmospheric $\\text{CO}_2$ rise.",
     "rubricCER": null,
     "hasDiagram": true,
     "diagram": {
-      "id": "bio_photosynthesis_z_scheme",
+      "id": "bio_carbon_biogeochemical_cycle",
       "subject": "BIO",
-      "moduleId": 8,
-      "title": "Thylakoid Membrane Light Reactions: Z-Scheme & Photophosphorylation",
-      "caption": "Figure 20: Photosystems II & I electron transport chain, water photolysis, and chemiosmotic ATP synthesis across the thylakoid membrane",
-      "svg": "<svg viewBox=\"0 0 540 330\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 530px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <defs>\n        <linearGradient id=\"ps2Grad\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n          <stop offset=\"0%\" stop-color=\"#10b981\"/>\n          <stop offset=\"100%\" stop-color=\"#047857\"/>\n        </linearGradient>\n        <linearGradient id=\"ps1Grad\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n          <stop offset=\"0%\" stop-color=\"#059669\"/>\n          <stop offset=\"100%\" stop-color=\"#064e3b\"/>\n        </linearGradient>\n        <linearGradient id=\"atpGrad\" x1=\"0%\" y1=\"0%\" x2=\"0%\" y2=\"100%\">\n          <stop offset=\"0%\" stop-color=\"#f59e0b\"/>\n          <stop offset=\"100%\" stop-color=\"#b45309\"/>\n        </linearGradient>\n      </defs>\n\n      <rect width=\"540\" height=\"330\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n\n      <!-- Header Title Banner -->\n      <text x=\"270\" y=\"22\" fill=\"#38bdf8\" font-size=\"11.5\" font-weight=\"800\" text-anchor=\"middle\" letter-spacing=\"0.5\">\n        LIGHT-DEPENDENT REACTIONS: THYLAKOID CHEMIOSMOSIS\n      </text>\n\n      <!-- Region Dividers & pH Labels -->\n      <!-- Stroma (Top) -->\n      <rect x=\"15\" y=\"32\" width=\"510\" height=\"98\" fill=\"#1e293b\" fill-opacity=\"0.3\"/>\n      <text x=\"25\" y=\"48\" fill=\"#38bdf8\" font-size=\"9\" font-weight=\"800\">STROMA (pH ≈ 8.0, Low [H⁺])</text>\n\n      <!-- Thylakoid Membrane Bilayer (Middle) -->\n      <rect x=\"15\" y=\"130\" width=\"510\" height=\"50\" fill=\"#334155\" fill-opacity=\"0.4\" stroke=\"#475569\" stroke-width=\"1\"/>\n      <line x1=\"15\" y1=\"130\" x2=\"525\" y2=\"130\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <line x1=\"15\" y1=\"180\" x2=\"525\" y2=\"180\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <text x=\"25\" y=\"158\" fill=\"#94a3b8\" font-size=\"8\" font-weight=\"700\">Thylakoid Bilayer</text>\n\n      <!-- Lumen (Bottom) -->\n      <rect x=\"15\" y=\"180\" width=\"510\" height=\"100\" fill=\"#0f172a\" fill-opacity=\"0.6\"/>\n      <text x=\"25\" y=\"196\" fill=\"#f59e0b\" font-size=\"9\" font-weight=\"800\">THYLAKOID LUMEN (pH ≈ 5.0, High [H⁺] Reservoir)</text>\n\n      <!-- ================= COMPLEX 1: PHOTOSYSTEM II (P680) ================= -->\n      <g transform=\"translate(100, 110)\">\n        <rect x=\"0\" y=\"0\" width=\"52\" height=\"70\" rx=\"8\" fill=\"url(#ps2Grad)\" stroke=\"#34d399\" stroke-width=\"1.5\"/>\n        <text x=\"26\" y=\"28\" fill=\"#ffffff\" font-size=\"9\" font-weight=\"900\" text-anchor=\"middle\">PS II</text>\n        <text x=\"26\" y=\"40\" fill=\"#a7f3d0\" font-size=\"8\" font-weight=\"700\" text-anchor=\"middle\">P680</text>\n\n        <!-- Sunlight Photon (hν) -->\n        <path d=\"M 10 -40 L 18 -25 L 14 -20 L 26 -2\" fill=\"none\" stroke=\"#fbbf24\" stroke-width=\"2\"/>\n        <polygon points=\"26,-2 20,-7 25,-10\" fill=\"#fbbf24\"/>\n        <text x=\"26\" y=\"-45\" fill=\"#fbbf24\" font-size=\"8\" font-weight=\"800\" text-anchor=\"middle\">Photon hν (680nm)</text>\n\n        <!-- Photolysis of H2O in Lumen -->\n        <rect x=\"-18\" y=\"74\" width=\"88\" height=\"24\" rx=\"4\" fill=\"#1e293b\" stroke=\"#38bdf8\" stroke-width=\"1\"/>\n        <text x=\"26\" y=\"86\" fill=\"#38bdf8\" font-size=\"7.5\" font-weight=\"800\" text-anchor=\"middle\">2 H₂O → O₂ + 4 H⁺ + 4 e⁻</text>\n        <text x=\"26\" y=\"95\" fill=\"#94a3b8\" font-size=\"6.5\" text-anchor=\"middle\">Oxygen Evolving Complex</text>\n      </g>\n\n      <!-- ================= ELECTRON FLOW 1: PQ -> Cyt b6f ================= -->\n      <!-- Plastoquinone (PQ) -->\n      <circle cx=\"180\" cy=\"145\" r=\"14\" fill=\"#0284c7\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <text x=\"180\" y=\"148\" fill=\"#ffffff\" font-size=\"8\" font-weight=\"800\" text-anchor=\"middle\">PQ</text>\n\n      <!-- Cytochrome b6f Complex -->\n      <g transform=\"translate(220, 115)\">\n        <rect x=\"0\" y=\"0\" width=\"46\" height=\"65\" rx=\"6\" fill=\"#475569\" stroke=\"#94a3b8\" stroke-width=\"1.5\"/>\n        <text x=\"23\" y=\"30\" fill=\"#ffffff\" font-size=\"8.5\" font-weight=\"800\" text-anchor=\"middle\">Cyt</text>\n        <text x=\"23\" y=\"42\" fill=\"#cbd5e1\" font-size=\"8\" font-weight=\"700\" text-anchor=\"middle\">b₆f</text>\n\n        <!-- Active H+ Pump Arrow (Stroma -> Lumen) -->\n        <path d=\"M 23 -15 L 23 85\" fill=\"none\" stroke=\"#f59e0b\" stroke-width=\"2.5\" stroke-dasharray=\"3,2\"/>\n        <polygon points=\"23,88 19,80 27,80\" fill=\"#f59e0b\"/>\n        <text x=\"23\" y=\"-20\" fill=\"#f59e0b\" font-size=\"8\" font-weight=\"800\" text-anchor=\"middle\">+4 H⁺ PUMP</text>\n      </g>\n\n      <!-- Plastocyanin (PC) -->\n      <circle cx=\"295\" cy=\"170\" r=\"13\" fill=\"#0d9488\" stroke=\"#2dd4bf\" stroke-width=\"1.5\"/>\n      <text x=\"295\" y=\"173\" fill=\"#ffffff\" font-size=\"8\" font-weight=\"800\" text-anchor=\"middle\">PC</text>\n\n      <!-- ================= COMPLEX 2: PHOTOSYSTEM I (P700) ================= -->\n      <g transform=\"translate(330, 110)\">\n        <rect x=\"0\" y=\"0\" width=\"52\" height=\"70\" rx=\"8\" fill=\"url(#ps1Grad)\" stroke=\"#34d399\" stroke-width=\"1.5\"/>\n        <text x=\"26\" y=\"28\" fill=\"#ffffff\" font-size=\"9\" font-weight=\"900\" text-anchor=\"middle\">PS I</text>\n        <text x=\"26\" y=\"40\" fill=\"#a7f3d0\" font-size=\"8\" font-weight=\"700\" text-anchor=\"middle\">P700</text>\n\n        <!-- Sunlight Photon (hν) -->\n        <path d=\"M 10 -40 L 18 -25 L 14 -20 L 26 -2\" fill=\"none\" stroke=\"#fbbf24\" stroke-width=\"2\"/>\n        <polygon points=\"26,-2 20,-7 25,-10\" fill=\"#fbbf24\"/>\n        <text x=\"26\" y=\"-45\" fill=\"#fbbf24\" font-size=\"8\" font-weight=\"800\" text-anchor=\"middle\">Photon hν (700nm)</text>\n      </g>\n\n      <!-- Ferredoxin (Fd) & FNR Reductase (Stroma) -->\n      <g transform=\"translate(385, 45)\">\n        <circle cx=\"15\" cy=\"15\" r=\"12\" fill=\"#7c3aed\" stroke=\"#c084fc\" stroke-width=\"1.5\"/>\n        <text x=\"15\" y=\"18\" fill=\"#ffffff\" font-size=\"7.5\" font-weight=\"800\" text-anchor=\"middle\">Fd</text>\n\n        <!-- FNR Arrow to NADPH -->\n        <path d=\"M 28 15 L 75 15\" fill=\"none\" stroke=\"#c084fc\" stroke-width=\"2\"/>\n        <polygon points=\"75,15 67,11 67,19\" fill=\"#c084fc\"/>\n        <rect x=\"42\" y=\"22\" width=\"85\" height=\"18\" rx=\"3\" fill=\"#1e293b\" stroke=\"#c084fc\" stroke-width=\"1\"/>\n        <text x=\"84\" y=\"34\" fill=\"#c084fc\" font-size=\"7.5\" font-weight=\"800\" text-anchor=\"middle\">NADP⁺ + H⁺ → NADPH</text>\n      </g>\n\n      <!-- ================= COMPLEX 3: ATP SYNTHASE (CHEMIOSMOSIS) ================= -->\n      <g transform=\"translate(460, 95)\">\n        <!-- CF0 Rotor in Membrane -->\n        <rect x=\"6\" y=\"35\" width=\"30\" height=\"50\" rx=\"4\" fill=\"#475569\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>\n        <text x=\"21\" y=\"62\" fill=\"#fef08a\" font-size=\"7.5\" font-weight=\"800\" text-anchor=\"middle\">CF₀</text>\n\n        <!-- CF1 Catalytic Head in Stroma -->\n        <circle cx=\"21\" cy=\"15\" r=\"20\" fill=\"url(#atpGrad)\" stroke=\"#fef08a\" stroke-width=\"1.5\"/>\n        <text x=\"21\" y=\"18\" fill=\"#ffffff\" font-size=\"8.5\" font-weight=\"900\" text-anchor=\"middle\">CF₁</text>\n\n        <!-- Proton Efflux Arrow (Lumen -> Stroma) -->\n        <path d=\"M 21 115 L 21 40\" fill=\"none\" stroke=\"#f59e0b\" stroke-width=\"2.5\"/>\n        <polygon points=\"21,37 17,45 25,45\" fill=\"#f59e0b\"/>\n        <text x=\"21\" y=\"125\" fill=\"#f59e0b\" font-size=\"8\" font-weight=\"800\" text-anchor=\"middle\">H⁺ Efflux</text>\n\n        <!-- ADP + Pi -> ATP Generation Badge -->\n        <rect x=\"-42\" y=\"-12\" width=\"70\" height=\"18\" rx=\"3\" fill=\"#1e293b\" stroke=\"#f59e0b\" stroke-width=\"1\"/>\n        <text x=\"-7\" y=\"0\" fill=\"#f59e0b\" font-size=\"7.5\" font-weight=\"800\" text-anchor=\"middle\">ADP + Pᵢ → ATP</text>\n      </g>\n\n      <!-- Footer Summary Equation -->\n      <rect x=\"15\" y=\"288\" width=\"510\" height=\"34\" rx=\"4\" fill=\"#1e293b\" stroke=\"#334155\" stroke-width=\"1\"/>\n      <text x=\"270\" y=\"302\" fill=\"#cbd5e1\" font-size=\"8.2\" font-weight=\"600\" text-anchor=\"middle\">\n        Net Light Reaction: 2 H₂O + 2 NADP⁺ + 3 ADP + 3 Pᵢ + Light → O₂ + 2 NADPH + 3 ATP\n      </text>\n      <text x=\"270\" y=\"315\" fill=\"#38bdf8\" font-size=\"7.5\" font-weight=\"700\" text-anchor=\"middle\">\n        Proton Motive Force (PMF) across thylakoid drives photophosphorylation via chemiosmotic rotary coupling\n      </text>\n    </svg>"
+      "moduleId": 3,
+      "title": "Global Biogeochemical Carbon Cycle Fluxes",
+      "caption": "Figure: Biospheric Carbon Reservoir Exchange: Photosynthesis, Respiration, Combustion, and Ocean Sink",
+      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      <text x=\"270\" y=\"24\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"700\" text-anchor=\"middle\">Biogeochemical Carbon Cycle Reservoirs &amp; Fluxes</text>\n      <!-- Atmospheric CO2 Reservoir Box -->\n      <rect x=\"180\" y=\"45\" width=\"180\" height=\"40\" rx=\"6\" fill=\"#1e293b\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n      <text x=\"270\" y=\"65\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\" text-anchor=\"middle\">Atmospheric CO₂ Pool</text>\n      <text x=\"270\" y=\"78\" fill=\"#cbd5e1\" font-size=\"9\" text-anchor=\"middle\">~850 Gt C (Expanding)</text>\n      <!-- Terrestrial Vegetation / Forest (Left) -->\n      <rect x=\"40\" y=\"150\" width=\"120\" height=\"60\" rx=\"6\" fill=\"#065f46\" stroke=\"#10b981\" stroke-width=\"1.5\"/>\n      <text x=\"100\" y=\"175\" fill=\"#ffffff\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Terrestrial Plants</text>\n      <text x=\"100\" y=\"195\" fill=\"#a7f3d0\" font-size=\"8.5\" text-anchor=\"middle\">Photosynthesis Sink</text>\n      <!-- Soil & Decomposers -->\n      <rect x=\"40\" y=\"225\" width=\"120\" height=\"45\" rx=\"4\" fill=\"#334155\" stroke=\"#64748b\" stroke-width=\"1.5\"/>\n      <text x=\"100\" y=\"245\" fill=\"#cbd5e1\" font-size=\"9\" font-weight=\"700\" text-anchor=\"middle\">Soil Microbial Organic</text>\n      <text x=\"100\" y=\"258\" fill=\"#94a3b8\" font-size=\"8\" text-anchor=\"middle\">Respiration</text>\n      <!-- Fossil Fuel Combustion (Center) -->\n      <rect x=\"210\" y=\"170\" width=\"120\" height=\"50\" rx=\"6\" fill=\"#78350f\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>\n      <text x=\"270\" y=\"192\" fill=\"#ffffff\" font-size=\"9.5\" font-weight=\"800\" text-anchor=\"middle\">Fossil Fuels</text>\n      <text x=\"270\" y=\"208\" fill=\"#fde68a\" font-size=\"8.5\" text-anchor=\"middle\">Combustion (+9 Gt/yr)</text>\n      <!-- Marine Ocean Reservoir (Right) -->\n      <rect x=\"380\" y=\"150\" width=\"120\" height=\"85\" rx=\"6\" fill=\"#0c4a6e\" stroke=\"#0284c7\" stroke-width=\"1.5\"/>\n      <text x=\"440\" y=\"175\" fill=\"#ffffff\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Ocean Surface</text>\n      <text x=\"440\" y=\"192\" fill=\"#bae6fd\" font-size=\"8.5\" text-anchor=\"middle\">Gas Exchange</text>\n      <text x=\"440\" y=\"215\" fill=\"#38bdf8\" font-size=\"8.5\" font-weight=\"700\" text-anchor=\"middle\">Deep Sediments</text>\n      <!-- Flow Arrows -->\n      <!-- Photosynthesis (Down) -->\n      <line x1=\"200\" y1=\"85\" x2=\"140\" y2=\"150\" stroke=\"#10b981\" stroke-width=\"2\"/>\n      <polygon points=\"140,150 144,142 149,148\" fill=\"#10b981\"/>\n      <text x=\"155\" y=\"112\" fill=\"#10b981\" font-size=\"8.5\" font-weight=\"800\">Photosynthesis</text>\n      <!-- Respiration (Up) -->\n      <line x1=\"120\" y1=\"150\" x2=\"220\" y2=\"85\" stroke=\"#ef4444\" stroke-width=\"2\"/>\n      <polygon points=\"220,85 212,89 216,95\" fill=\"#ef4444\"/>\n      <!-- Combustion (Up) -->\n      <line x1=\"270\" y1=\"170\" x2=\"270\" y2=\"90\" stroke=\"#f59e0b\" stroke-width=\"2.5\"/>\n      <polygon points=\"270,85 266,95 274,95\" fill=\"#f59e0b\"/>\n      <!-- Ocean dissolve -->\n      <line x1=\"330\" y1=\"85\" x2=\"400\" y2=\"150\" stroke=\"#0284c7\" stroke-width=\"2\"/>\n      <polygon points=\"400,150 395,142 390,147\" fill=\"#0284c7\"/>\n    </svg>"
     }
   },
   {
@@ -17700,12 +17700,12 @@ export const questionBankBio = [
     "question": "In quantitative metrology for \"Cellular Respiration\", what are the correct SI derived units and dimensional representation for **cellular aerobic oxidation** ($C_6H_{12}O_6 + 6O_2 \\to 6CO_2 + 6H_2O$)?",
     "options": [
       "In \"Cellular Respiration\", cellular aerobic oxidation is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{kJ/mol})}^{-1}$, confusing rate with state duration.",
-      "In \"Cellular Respiration\", cellular aerobic oxidation is expressed in $\\text{\\text{kJ/mol}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Cellular Respiration\", cellular aerobic oxidation is expressed in $\\text{kJ/mol}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Cellular Respiration\", cellular aerobic oxidation is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Cellular Respiration\", cellular aerobic oxidation is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{kJ/mol}}$."
+      "In \"Cellular Respiration\", cellular aerobic oxidation is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{kJ/mol}$."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Cellular Respiration, cellular aerobic oxidation is quantified in $\\text{\\text{kJ/mol}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Cellular Respiration, cellular aerobic oxidation is quantified in $\\text{kJ/mol}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -17774,13 +17774,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{kJ/mol}",
     "options": [
-      "cellular aerobic oxidation = $2.67\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation = $10.66\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation = $8.00\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation = $5.33\\text{ \\text{kJ/mol}}$"
+      "cellular aerobic oxidation = $2.67\\text{kJ/mol}$",
+      "cellular aerobic oxidation = $10.66\\text{kJ/mol}$",
+      "cellular aerobic oxidation = $8.00\\text{kJ/mol}$",
+      "cellular aerobic oxidation = $5.33\\text{kJ/mol}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{4.5} = 5.33\\text{ \\text{kJ/mol}}$$.\nStep 3: Significant figures verify $5.33\\text{ \\text{kJ/mol}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 24.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{24.0}{4.5} = 5.33\\text{kJ/mol}$$.\nStep 3: Significant figures verify $5.33\\text{kJ/mol}$.",
     "rubricCER": null
   },
   {
@@ -18000,18 +18000,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Cellular Respiration\", a student measures initial parameters $P_1 = 61.0\\text{ \\text{kJ/mol}}$ (3 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Cellular Respiration\", a student measures initial parameters $P_1 = 61.0\\text{kJ/mol}$ (3 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "430",
     "tolerance": 0.5,
     "unit": "\\text{kJ/mol}",
     "options": [
-      "cellular aerobic oxidation Product $Y = 430\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation Product $Y = 427\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation Product $Y = 400\\text{ \\text{kJ/mol}}$",
-      "cellular aerobic oxidation Product $Y = 427.0\\text{ \\text{kJ/mol}}$"
+      "cellular aerobic oxidation Product $Y = 427.0\\text{ kJ/mol}$",
+      "cellular aerobic oxidation Product $Y = 430\\text{ kJ/mol}$",
+      "cellular aerobic oxidation Product $Y = 400\\text{ kJ/mol}$",
+      "cellular aerobic oxidation Product $Y = 43\\text{ kJ/mol}$"
     ],
-    "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 61.0\\text{ \\text{kJ/mol}}$ (3 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (61.0)(7.0) = 427\\text{ \\text{kJ/mol}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 427 to 2 significant figures yields $430\\text{ \\text{kJ/mol}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 61.0\\text{kJ/mol}$ (3 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (61.0)(7.0) = 427\\text{kJ/mol}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 427 to 2 significant figures yields $430\\text{kJ/mol}$.",
     "rubricCER": null
   },
   {
@@ -18765,12 +18765,12 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "\\%",
     "options": [
-      "mitotic index Product $Y = 300\\text{ \\%}$",
-      "mitotic index Product $Y = 295\\text{ \\%}$",
       "mitotic index Product $Y = 295.0\\text{ \\%}$",
-      "mitotic index Product $Y = 300\\text{ \\%}$"
+      "mitotic index Product $Y = 300\\text{ \\%}$",
+      "mitotic index Product $Y = 340\\text{ \\%}$",
+      "mitotic index Product $Y = 30\\text{ \\%}$"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 59.0\\text{ \\%}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (59.0)(5.0) = 295\\text{ \\%}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 295 to 2 significant figures yields $300\\text{ \\%}$.",
     "rubricCER": null
   },
@@ -21045,12 +21045,12 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "joint probability Product $Y = 400\\text{ }$",
-      "joint probability Product $Y = 396.0\\text{ }$",
-      "joint probability Product $Y = 400\\text{ }$",
-      "joint probability Product $Y = 396\\text{ }$"
+      "joint probability Product $Y = 396.0$",
+      "joint probability Product $Y = 400$",
+      "joint probability Product $Y = 460$",
+      "joint probability Product $Y = 40$"
     ],
-    "correctIndex": 2,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 66.0\\text{ }$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (66.0)(6.0) = 396\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 396 to 2 significant figures yields $400\\text{ }$.",
     "rubricCER": null
   },
@@ -24634,24 +24634,24 @@ export const questionBankBio = [
     "difficulty": "honors",
     "difficultyTier": "medium",
     "angle": "empirical_graph_analysis",
-    "question": "Refer to the empirical coordinate graph illustrated in **Figure 16: Semiconservative 5' to 3' synthesis showing Helicase, DNA Polymerase III, Primase, Okazaki fragments, and Ligase** for \"Replication of DNA\". What physical relationship or state transition does the curve slope or plateau represent?",
+    "question": "Refer to the molecular diagram of ribosomal translation elongation shown in **Figure 11.2T** illustrating the aminoacyl (A), peptidyl (P), and exit (E) sites. When a charged aminoacyl-tRNA successfully pairs with the mRNA codon in the A site, what catalytic event and mechanical translocation step follow?",
     "options": [
-      "The graph for \"Replication of DNA\" exhibits Sigmoidal logistic population growth curve displaying carrying capacity K plateau for Molecular Genetics, where the coordinate slope ($\\Delta y / \\Delta x$) reflects the rate constant, sensitivity coefficient, or dynamic equilibrium state.",
-      "The curve for \"Replication of DNA\" indicates that the dependent variable increases linearly without bound, failing to exhibit saturation or equilibrium limits.",
-      "The coordinate plateau for \"Replication of DNA\" signifies that all chemical and physical processes have terminated completely with zero dynamic exchange.",
-      "The coordinate slope for \"Replication of DNA\" represents a static friction coefficient that remains invariant regardless of reactant concentration or applied force."
+      "The 23S/28S rRNA peptidyl transferase ribozyme catalyzes peptide bond formation between the P-site nascent chain and the A-site amino acid; EF-G/eEF2 GTP hydrolysis then drives ribosomal translocation, shifting the deacylated tRNA to the E site for discharge and moving peptidyl-tRNA into the P site.",
+      "The ribosome completely disassembles into separate subunits after each peptide bond, requiring de novo reassembly for the subsequent codon.",
+      "DNA Polymerase III hydrolyzes ATP to synthesize complementary deoxynucleotides directly onto the carboxyl terminus of the growing protein.",
+      "The ribosome cleaves the mRNA phosphodiester backbone at each codon to release the completed peptide into the cytoplasm."
     ],
     "correctIndex": 0,
-    "explanation": "In scientific laboratory analysis of Replication of DNA (Figure 16: Semiconservative 5' to 3' synthesis showing Helicase, DNA Polymerase III, Primase, Okazaki fragments, and Ligase), coordinate profiles reveal Sigmoidal logistic population growth curve displaying carrying capacity K plateau for Molecular Genetics. Slopes represent rates or constants, while asymptotic plateaus identify saturation limits or equilibrium.",
+    "explanation": "Translation elongation is catalyzed by the ribosome's peptidyl transferase center (a ribozyme composed of large subunit rRNA). The $\\alpha$-amino group of the A-site aminoacyl-tRNA attacks the ester linkage of the P-site peptidyl-tRNA, transferring the peptide to the A site. Elongation Factor G (EF-G in prokaryotes, eEF2 in eukaryotes) hydrolyzes GTP to translocate the ribosome exactly 3 nucleotides along the mRNA, shifting uncharged tRNA to the E site and peptidyl-tRNA to the P site.",
     "rubricCER": null,
     "hasDiagram": true,
     "diagram": {
-      "id": "bio_dna_replication_fork",
+      "id": "bio_translation_ribosome_elongation",
       "subject": "BIO",
-      "moduleId": 11,
-      "title": "DNA Replication Fork & Enzymatic Machinery",
-      "caption": "Figure 16: Semiconservative 5' to 3' synthesis showing Helicase, DNA Polymerase III, Primase, Okazaki fragments, and Ligase",
-      "svg": "<svg viewBox=\"0 0 540 320\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 530px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <defs>\n        <linearGradient id=\"helicase-grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n          <stop offset=\"0%\" stop-color=\"#34d399\"/>\n          <stop offset=\"100%\" stop-color=\"#059669\"/>\n        </linearGradient>\n        <linearGradient id=\"pol-grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n          <stop offset=\"0%\" stop-color=\"#38bdf8\"/>\n          <stop offset=\"100%\" stop-color=\"#0284c7\"/>\n        </linearGradient>\n        <linearGradient id=\"primase-grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n          <stop offset=\"0%\" stop-color=\"#fbbf24\"/>\n          <stop offset=\"100%\" stop-color=\"#d97706\"/>\n        </linearGradient>\n        <linearGradient id=\"ligase-grad\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\">\n          <stop offset=\"0%\" stop-color=\"#f472b6\"/>\n          <stop offset=\"100%\" stop-color=\"#db2777\"/>\n        </linearGradient>\n      </defs>\n      <rect width=\"540\" height=\"320\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n\n      <!-- Header Title Banner -->\n      <text x=\"270\" y=\"24\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"800\" text-anchor=\"middle\" letter-spacing=\"0.5\">DNA REPLICATION FORK ARCHITECTURE (SEMICONSERVATIVE)</text>\n      \n      <!-- Direction of Fork Movement Arrow -->\n      <g transform=\"translate(320, 160)\">\n        <line x1=\"0\" y1=\"0\" x2=\"65\" y2=\"0\" stroke=\"#facc15\" stroke-width=\"2.5\" stroke-dasharray=\"3,2\"/>\n        <polygon points=\"65,0 55,-5 55,5\" fill=\"#facc15\"/>\n        <text x=\"32\" y=\"-8\" fill=\"#facc15\" font-size=\"9\" font-weight=\"800\" text-anchor=\"middle\">Fork Motion →</text>\n      </g>\n\n      <!-- Parental Double Helix (Right of Helicase) -->\n      <!-- Top Parental Strand (3' -> 5' into fork) -->\n      <path d=\"M 400 148 Q 440 140 480 148 T 520 148\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"3\"/>\n      <!-- Bottom Parental Strand (5' -> 3' into fork) -->\n      <path d=\"M 400 172 Q 440 180 480 172 T 520 172\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"3\"/>\n      <!-- Hydrogen Bond Rungs (Parental) -->\n      <line x1=\"420\" y1=\"145\" x2=\"420\" y2=\"175\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n      <line x1=\"440\" y1=\"141\" x2=\"440\" y2=\"179\" stroke=\"#34d399\" stroke-width=\"2\"/>\n      <line x1=\"460\" y1=\"144\" x2=\"460\" y2=\"176\" stroke=\"#fbbf24\" stroke-width=\"2\"/>\n      <line x1=\"480\" y1=\"148\" x2=\"480\" y2=\"172\" stroke=\"#f472b6\" stroke-width=\"2\"/>\n      <line x1=\"500\" y1=\"144\" x2=\"500\" y2=\"176\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n      <text x=\"525\" y=\"145\" fill=\"#94a3b8\" font-size=\"10\" font-weight=\"800\">5'</text>\n      <text x=\"525\" y=\"178\" fill=\"#94a3b8\" font-size=\"10\" font-weight=\"800\">3'</text>\n\n      <!-- DNA Helicase (Enzyme Ring at the Junction) -->\n      <polygon points=\"340,130 395,160 340,190\" fill=\"url(#helicase-grad)\" stroke=\"#10b981\" stroke-width=\"1.5\"/>\n      <text x=\"355\" y=\"164\" fill=\"#ffffff\" font-size=\"9\" font-weight=\"900\" text-anchor=\"middle\">HELICASE</text>\n\n      <!-- Single-Stranded Binding Proteins (SSBs) -->\n      <circle cx=\"310\" cy=\"98\" r=\"5\" fill=\"#06b6d4\" stroke=\"#0891b2\" stroke-width=\"1\"/>\n      <circle cx=\"280\" cy=\"108\" r=\"5\" fill=\"#06b6d4\" stroke=\"#0891b2\" stroke-width=\"1\"/>\n      <circle cx=\"310\" cy=\"222\" r=\"5\" fill=\"#06b6d4\" stroke=\"#0891b2\" stroke-width=\"1\"/>\n      <circle cx=\"280\" cy=\"212\" r=\"5\" fill=\"#06b6d4\" stroke=\"#0891b2\" stroke-width=\"1\"/>\n      <text x=\"325\" y=\"92\" fill=\"#06b6d4\" font-size=\"8\" font-weight=\"700\">SSB</text>\n\n      <!-- ================= TOP: LEADING STRAND ================= -->\n      <!-- Parental Template Strand -->\n      <path d=\"M 345 133 C 300 115 180 85 40 85\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"3\"/>\n      <text x=\"25\" y=\"89\" fill=\"#94a3b8\" font-size=\"11\" font-weight=\"800\">3'</text>\n      <text x=\"27\" y=\"73\" fill=\"#cbd5e1\" font-size=\"8\">Parental Template</text>\n\n      <!-- Synthesized Leading Daughter Strand (Continuous 5' -> 3') -->\n      <path d=\"M 60 102 L 250 102\" fill=\"none\" stroke=\"#38bdf8\" stroke-width=\"3.5\"/>\n      <polygon points=\"255,102 245,97 245,107\" fill=\"#38bdf8\"/>\n      <text x=\"50\" y=\"106\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\">5'</text>\n      <text x=\"260\" y=\"106\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"800\">3'</text>\n\n      <!-- Base pairs between parental and daughter -->\n      <line x1=\"80\" y1=\"87\" x2=\"80\" y2=\"101\" stroke=\"#34d399\" stroke-width=\"1.8\"/>\n      <line x1=\"100\" y1=\"87\" x2=\"100\" y2=\"101\" stroke=\"#f472b6\" stroke-width=\"1.8\"/>\n      <line x1=\"120\" y1=\"87\" x2=\"120\" y2=\"101\" stroke=\"#fbbf24\" stroke-width=\"1.8\"/>\n      <line x1=\"140\" y1=\"88\" x2=\"140\" y2=\"101\" stroke=\"#38bdf8\" stroke-width=\"1.8\"/>\n      <line x1=\"160\" y1=\"89\" x2=\"160\" y2=\"101\" stroke=\"#34d399\" stroke-width=\"1.8\"/>\n      <line x1=\"180\" y1=\"91\" x2=\"180\" y2=\"101\" stroke=\"#f472b6\" stroke-width=\"1.8\"/>\n\n      <!-- DNA Polymerase III (Leading Strand) -->\n      <rect x=\"200\" y=\"76\" width=\"55\" height=\"32\" rx=\"6\" fill=\"url(#pol-grad)\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <text x=\"227\" y=\"96\" fill=\"#ffffff\" font-size=\"8.5\" font-weight=\"800\" text-anchor=\"middle\">DNA Pol III</text>\n      \n      <!-- Leading Strand Label Callout -->\n      <rect x=\"80\" y=\"42\" width=\"160\" height=\"22\" rx=\"4\" fill=\"#0284c7\" fill-opacity=\"0.25\" stroke=\"#38bdf8\" stroke-width=\"1\"/>\n      <text x=\"160\" y=\"57\" fill=\"#38bdf8\" font-size=\"9.5\" font-weight=\"800\" text-anchor=\"middle\">LEADING STRAND (Continuous 5'→3')</text>\n\n      <!-- ================= BOTTOM: LAGGING STRAND ================= -->\n      <!-- Parental Template Strand -->\n      <path d=\"M 345 187 C 300 205 180 235 40 235\" fill=\"none\" stroke=\"#94a3b8\" stroke-width=\"3\"/>\n      <text x=\"25\" y=\"239\" fill=\"#94a3b8\" font-size=\"11\" font-weight=\"800\">5'</text>\n      <text x=\"27\" y=\"253\" fill=\"#cbd5e1\" font-size=\"8\">Parental Template</text>\n\n      <!-- Okazaki Fragment 1 (Synthesized Away from Fork: Leftward) -->\n      <!-- RNA Primer 1 -->\n      <rect x=\"150\" y=\"217\" width=\"16\" height=\"5\" fill=\"#f97316\" rx=\"1\"/>\n      <text x=\"158\" y=\"212\" fill=\"#f97316\" font-size=\"7.5\" font-weight=\"800\" text-anchor=\"middle\">RNA</text>\n      <!-- DNA Fragment 1 -->\n      <line x1=\"134\" y1=\"219\" x2=\"70\" y2=\"219\" stroke=\"#38bdf8\" stroke-width=\"3.5\"/>\n      <polygon points=\"65,219 75,214 75,224\" fill=\"#38bdf8\"/>\n      <text x=\"100\" y=\"210\" fill=\"#38bdf8\" font-size=\"8\" font-weight=\"700\">Okazaki Fragment 1</text>\n\n      <!-- DNA Ligase at Nick -->\n      <circle cx=\"62\" cy=\"219\" r=\"11\" fill=\"url(#ligase-grad)\" stroke=\"#f472b6\" stroke-width=\"1.5\"/>\n      <text x=\"62\" y=\"222\" fill=\"#ffffff\" font-size=\"6.5\" font-weight=\"800\" text-anchor=\"middle\">LIGASE</text>\n\n      <!-- Okazaki Fragment 2 (Under Construction) -->\n      <!-- RNA Primase Enzyme -->\n      <rect x=\"245\" y=\"230\" width=\"46\" height=\"24\" rx=\"5\" fill=\"url(#primase-grad)\" stroke=\"#f59e0b\" stroke-width=\"1.5\"/>\n      <text x=\"268\" y=\"245\" fill=\"#ffffff\" font-size=\"8\" font-weight=\"800\" text-anchor=\"middle\">PRIMASE</text>\n      \n      <!-- RNA Primer 2 -->\n      <rect x=\"235\" y=\"217\" width=\"18\" height=\"5\" fill=\"#f97316\" rx=\"1\"/>\n      <text x=\"244\" y=\"212\" fill=\"#f97316\" font-size=\"7.5\" font-weight=\"800\" text-anchor=\"middle\">RNA</text>\n\n      <!-- DNA Polymerase III (Lagging Strand) -->\n      <rect x=\"165\" y=\"203\" width=\"55\" height=\"32\" rx=\"6\" fill=\"url(#pol-grad)\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <text x=\"192\" y=\"223\" fill=\"#ffffff\" font-size=\"8.5\" font-weight=\"800\" text-anchor=\"middle\">DNA Pol III</text>\n      <line x1=\"192\" y1=\"219\" x2=\"165\" y2=\"219\" stroke=\"#38bdf8\" stroke-width=\"3.5\"/>\n      <polygon points=\"160,219 168,215 168,223\" fill=\"#38bdf8\"/>\n\n      <!-- Lagging Strand Label Callout -->\n      <rect x=\"80\" y=\"278\" width=\"185\" height=\"22\" rx=\"4\" fill=\"#db2777\" fill-opacity=\"0.25\" stroke=\"#f472b6\" stroke-width=\"1\"/>\n      <text x=\"172\" y=\"293\" fill=\"#f472b6\" font-size=\"9.5\" font-weight=\"800\" text-anchor=\"middle\">LAGGING STRAND (Discontinuous / Okazaki)</text>\n\n      <!-- Legend Pill Box -->\n      <rect x=\"360\" y=\"260\" width=\"165\" height=\"46\" rx=\"6\" fill=\"#1e293b\" stroke=\"#334155\" stroke-width=\"1\"/>\n      <circle cx=\"372\" cy=\"275\" r=\"4\" fill=\"#f97316\"/>\n      <text x=\"382\" y=\"278\" fill=\"#cbd5e1\" font-size=\"8\">RNA Primer (Primase)</text>\n      <circle cx=\"372\" cy=\"293\" r=\"4\" fill=\"#38bdf8\"/>\n      <text x=\"382\" y=\"296\" fill=\"#cbd5e1\" font-size=\"8\">Newly Synthesized DNA</text>\n    </svg>"
+      "moduleId": 12,
+      "title": "Ribosomal Translation Elongation Cycle (A, P, E Sites)",
+      "caption": "Figure: Molecular Translation: mRNA Triplet Codons, tRNA Anticodons, and Growing Polypeptide",
+      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      <text x=\"270\" y=\"24\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"700\" text-anchor=\"middle\">Translation Elongation at the Ribosome (A, P, E Sites)</text>\n      <!-- mRNA Ribbon (5' to 3') -->\n      <rect x=\"40\" y=\"210\" width=\"460\" height=\"20\" rx=\"3\" fill=\"#1e293b\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <text x=\"50\" y=\"225\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"800\">5'</text>\n      <text x=\"490\" y=\"225\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"800\">3'</text>\n      <text x=\"180\" y=\"224\" fill=\"#facc15\" font-size=\"10\" font-family=\"monospace\" font-weight=\"800\">AUG</text>\n      <text x=\"250\" y=\"224\" fill=\"#facc15\" font-size=\"10\" font-family=\"monospace\" font-weight=\"800\">GAG</text>\n      <text x=\"320\" y=\"224\" fill=\"#facc15\" font-size=\"10\" font-family=\"monospace\" font-weight=\"800\">UUC</text>\n      <!-- Large Ribosomal Subunit (60S) -->\n      <path d=\"M 120 180 C 120 60 400 60 400 180 Z\" fill=\"#0c4a6e\" stroke=\"#0284c7\" stroke-width=\"2\"/>\n      <text x=\"260\" y=\"80\" fill=\"#ffffff\" font-size=\"10\" font-weight=\"800\">Large Ribosomal Subunit</text>\n      <!-- A, P, E Site Channels -->\n      <!-- E Site (Exit) -->\n      <rect x=\"160\" y=\"100\" width=\"40\" height=\"80\" rx=\"4\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"1\"/>\n      <text x=\"180\" y=\"115\" fill=\"#ef4444\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">E</text>\n      <!-- P Site (Peptidyl) -->\n      <rect x=\"235\" y=\"100\" width=\"45\" height=\"80\" rx=\"4\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"1\"/>\n      <text x=\"257\" y=\"115\" fill=\"#34d399\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">P</text>\n      <!-- A Site (Aminoacyl) -->\n      <rect x=\"310\" y=\"100\" width=\"45\" height=\"80\" rx=\"4\" fill=\"#1e293b\" stroke=\"#64748b\" stroke-width=\"1\"/>\n      <text x=\"332\" y=\"115\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">A</text>\n      <!-- tRNA in P Site carrying polypeptide chain -->\n      <polygon points=\"250,140 265,140 260,175 255,175\" fill=\"#10b981\"/>\n      <!-- Growing Polypeptide Pearl Chain -->\n      <circle cx=\"257\" cy=\"85\" r=\"7\" fill=\"#f59e0b\"/><circle cx=\"257\" cy=\"68\" r=\"7\" fill=\"#f59e0b\"/><circle cx=\"257\" cy=\"51\" r=\"7\" fill=\"#f59e0b\"/>\n      <text x=\"275\" y=\"60\" fill=\"#facc15\" font-size=\"8.5\" font-weight=\"800\">Nascent Protein</text>\n      <!-- Incoming Aminoacyl-tRNA entering A Site -->\n      <polygon points=\"325,130 340,130 335,165 330,165\" fill=\"#38bdf8\"/>\n      <circle cx=\"332\" cy=\"115\" r=\"7\" fill=\"#ec4899\"/>\n      <text x=\"332\" y=\"102\" fill=\"#f472b6\" font-size=\"8\" font-weight=\"800\" text-anchor=\"middle\">Phe</text>\n      <!-- Small Subunit at Base (40S) -->\n      <rect x=\"140\" y=\"235\" width=\"240\" height=\"25\" rx=\"6\" fill=\"#0284c7\" stroke=\"#38bdf8\" stroke-width=\"1.5\"/>\n      <text x=\"260\" y=\"252\" fill=\"#ffffff\" font-size=\"9.5\" font-weight=\"700\" text-anchor=\"middle\">Small Subunit (40S)</text>\n      <text x=\"270\" y=\"280\" fill=\"#cbd5e1\" font-size=\"10\" font-weight=\"600\" text-anchor=\"middle\">Peptidyl transferase catalyzes peptide bond; ribosome translocates 5' → 3' by 1 codon</text>\n    </svg>"
     }
   },
   {
@@ -24845,12 +24845,12 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "amino acid count Product $Y = 420\\text{ }$",
-      "amino acid count Product $Y = 400\\text{ }$",
-      "amino acid count Product $Y = 420.0\\text{ }$",
-      "amino acid count Product $Y = 420\\text{ }$"
+      "amino acid count Product $Y = 420.00$",
+      "amino acid count Product $Y = 420$",
+      "amino acid count Product $Y = 400$",
+      "amino acid count Product $Y = 42$"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 70.0\\text{ }$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (70.0)(6.0) = 420\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 420 to 2 significant figures yields $420\\text{ }$.",
     "rubricCER": null
   },
@@ -27200,24 +27200,24 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "spectrometry_electrophoresis",
-    "question": "Refer to the three-step polymerase chain reaction (PCR) thermal cycling profile and accompanying agarose gel electrophoresis result in **Figure 12.1**. Which of the following correctly describes the biochemical consequence if the annealing temperature during Step 2 is inadvertently raised to $75^\\circ\\text{C}$ instead of $55^\\circ\\text{C}$?",
+    "question": "Examine the agarose gel electrophoresis run and molecular sizing ladder illustrated in **Figure 12.1G**. An unknown restriction digest of plasmid DNA generates two distinct bands matching the $1500\\text{ bp}$ and $500\\text{ bp}$ markers. What biophysical principle accounts for why the $500\\text{ bp}$ fragment migrates significantly farther toward the positive anode ($+$) through the agarose matrix?",
     "options": [
-      "Primer annealing occurs non-specifically across random genomic loci, producing a heavy smear of unintended bands.",
-      "The double-stranded DNA template re-anneals completely, preventing any nucleotide incorporation.",
-      "Oligonucleotide primers cannot hybridize to the single-stranded template DNA because thermal agitation exceeds the melting temperature ($T_m$) of the primer-template duplex, preventing amplification and resulting in no visible band on the gel.",
-      "Taq DNA polymerase becomes irreversibly denatured and precipitates out of solution."
+      "Linear DNA fragments have an invariant negative charge-to-mass ratio along the sugar-phosphate backbone; the porous agarose gel acts as a molecular sieve, allowing shorter $500\\text{ bp}$ fragments to navigate mesh pores with less frictional resistance ($\\text{migration distance} \\propto 1/\\log(\\text{MW})$).",
+      "The $500\\text{ bp}$ fragment possesses a much greater net positive charge, accelerating its electrostatic attraction toward the negative cathode.",
+      "The $1500\\text{ bp}$ fragment contains higher GC content, causing it to covalently crosslink to the agarose well.",
+      "Agarose gel pore walls possess negative surface charges that selectively attract high-molecular-weight DNA while repelling smaller fragments."
     ],
-    "correctIndex": 2,
-    "explanation": "Primer annealing requires a temperature ($50\\text{–}65^\\circ\\text{C}$) below the primer melting temperature ($T_m$). If the annealing step is elevated to $75^\\circ\\text{C}$, the kinetic energy of hydrogen bonding is overwhelmed, preventing primers from annealing to template strands. Consequently, Taq polymerase has no $3'$ hydroxyl initiation terminus, yielding zero amplicon yield (no band on gel).",
+    "correctIndex": 0,
+    "explanation": "DNA possesses a constant charge-to-mass ratio at neutral to alkaline pH because each phosphodiester nucleotide carries one negative charge. In an electric field, all DNA fragments experience equal acceleration per unit mass. Separation occurs exclusively by molecular sieving: longer DNA strands become entangled in the agarose polymer network and migrate more slowly, while shorter fragments move with higher electrophoretic mobility, yielding an inverse linear relationship between migration distance and $\\log_{10}(\\text{base pairs})$.",
     "rubricCER": null,
     "hasDiagram": true,
     "diagram": {
-      "id": "bio_pcr_thermocycling",
+      "id": "bio_gel_electrophoresis_ladder",
       "subject": "BIO",
-      "moduleId": 13,
-      "title": "Polymerase Chain Reaction (PCR) Three-Step Thermal Profile",
-      "caption": "Figure 13: Temperature vs Time Profile per Amplification Cycle & Inset Electrophoresis Gel",
-      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      <!-- Grid Lines -->\n      <line x1=\"60\" y1=\"240\" x2=\"420\" y2=\"240\" stroke=\"#1e293b\" stroke-width=\"1\"/>\n      <line x1=\"60\" y1=\"175\" x2=\"420\" y2=\"175\" stroke=\"#1e293b\" stroke-width=\"1\" stroke-dasharray=\"4\"/>\n      <line x1=\"60\" y1=\"120\" x2=\"420\" y2=\"120\" stroke=\"#1e293b\" stroke-width=\"1\" stroke-dasharray=\"4\"/>\n      <line x1=\"60\" y1=\"60\" x2=\"420\" y2=\"60\" stroke=\"#1e293b\" stroke-width=\"1\" stroke-dasharray=\"4\"/>\n      \n      <!-- Coordinate Axes -->\n      <line x1=\"60\" y1=\"250\" x2=\"60\" y2=\"40\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      <line x1=\"50\" y1=\"240\" x2=\"425\" y2=\"240\" stroke=\"#94a3b8\" stroke-width=\"2\"/>\n      \n      <!-- Y-Axis Ticks & Labels -->\n      <text x=\"22\" y=\"145\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"700\" transform=\"rotate(-90 22 145)\" text-anchor=\"middle\">Temperature (°C)</text>\n      <text x=\"52\" y=\"244\" fill=\"#94a3b8\" font-size=\"10\" text-anchor=\"end\">25°</text>\n      <text x=\"52\" y=\"179\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"700\" text-anchor=\"end\">55°</text>\n      <text x=\"52\" y=\"124\" fill=\"#10b981\" font-size=\"10\" font-weight=\"700\" text-anchor=\"end\">72°</text>\n      <text x=\"52\" y=\"64\" fill=\"#ef4444\" font-size=\"10\" font-weight=\"700\" text-anchor=\"end\">95°</text>\n      \n      <text x=\"240\" y=\"275\" fill=\"#38bdf8\" font-size=\"11\" font-weight=\"700\" text-anchor=\"middle\">PCR Cycle Time Progress (s)</text>\n      \n      <!-- Thermal Profile Curve -->\n      <!-- Step 1: Denaturation at 95°C -->\n      <line x1=\"60\" y1=\"240\" x2=\"90\" y2=\"60\" stroke=\"#ef4444\" stroke-width=\"3\"/>\n      <line x1=\"90\" y1=\"60\" x2=\"170\" y2=\"60\" stroke=\"#ef4444\" stroke-width=\"4\"/>\n      <circle cx=\"130\" cy=\"60\" r=\"4\" fill=\"#ef4444\"/>\n      <text x=\"130\" y=\"48\" fill=\"#ef4444\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Step 1: Denaturation (95°C)</text>\n      <text x=\"130\" y=\"80\" fill=\"#94a3b8\" font-size=\"8\" text-anchor=\"middle\">H-bonds break (dsDNA → ssDNA)</text>\n      \n      <!-- Step 2: Annealing at 55°C -->\n      <line x1=\"170\" y1=\"60\" x2=\"210\" y2=\"175\" stroke=\"#38bdf8\" stroke-width=\"3\"/>\n      <line x1=\"210\" y1=\"175\" x2=\"280\" y2=\"175\" stroke=\"#38bdf8\" stroke-width=\"4\"/>\n      <circle cx=\"245\" cy=\"175\" r=\"4\" fill=\"#38bdf8\"/>\n      <text x=\"245\" y=\"163\" fill=\"#38bdf8\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Step 2: Annealing (55°C)</text>\n      <text x=\"245\" y=\"195\" fill=\"#94a3b8\" font-size=\"8\" text-anchor=\"middle\">Primers hybridize to 3' ends</text>\n      \n      <!-- Step 3: Extension at 72°C -->\n      <line x1=\"280\" y1=\"175\" x2=\"310\" y2=\"120\" stroke=\"#10b981\" stroke-width=\"3\"/>\n      <line x1=\"310\" y1=\"120\" x2=\"390\" y2=\"120\" stroke=\"#10b981\" stroke-width=\"4\"/>\n      <line x1=\"390\" y1=\"120\" x2=\"415\" y2=\"60\" stroke=\"#64748b\" stroke-width=\"2\" stroke-dasharray=\"3\"/>\n      <circle cx=\"350\" cy=\"120\" r=\"4\" fill=\"#10b981\"/>\n      <text x=\"350\" y=\"108\" fill=\"#10b981\" font-size=\"10\" font-weight=\"800\" text-anchor=\"middle\">Step 3: Extension (72°C)</text>\n      <text x=\"350\" y=\"140\" fill=\"#94a3b8\" font-size=\"8\" text-anchor=\"middle\">Taq Polymerase synthesizes 5'→3'</text>\n      \n      <!-- Gel Electrophoresis Inset Box -->\n      <g transform=\"translate(435, 45)\">\n        <rect width=\"90\" height=\"210\" fill=\"#020617\" rx=\"6\" stroke=\"#475569\" stroke-width=\"1.5\"/>\n        <text x=\"45\" y=\"18\" fill=\"#38bdf8\" font-size=\"9\" font-weight=\"800\" text-anchor=\"middle\">Agarose Gel</text>\n        <!-- Wells -->\n        <rect x=\"15\" y=\"28\" width=\"25\" height=\"6\" fill=\"#1e293b\"/>\n        <rect x=\"50\" y=\"28\" width=\"25\" height=\"6\" fill=\"#1e293b\"/>\n        <text x=\"27\" y=\"44\" fill=\"#94a3b8\" font-size=\"7\" text-anchor=\"middle\">Ladder</text>\n        <text x=\"62\" y=\"44\" fill=\"#94a3b8\" font-size=\"7\" text-anchor=\"middle\">PCR Prod</text>\n        \n        <!-- Ladder Bands -->\n        <rect x=\"16\" y=\"55\" width=\"23\" height=\"3\" fill=\"#64748b\"/>\n        <text x=\"42\" y=\"58\" fill=\"#64748b\" font-size=\"6\">1000bp</text>\n        <rect x=\"16\" y=\"85\" width=\"23\" height=\"3\" fill=\"#64748b\"/>\n        <text x=\"42\" y=\"88\" fill=\"#64748b\" font-size=\"6\">500bp</text>\n        <rect x=\"16\" y=\"125\" width=\"23\" height=\"3\" fill=\"#64748b\"/>\n        <text x=\"42\" y=\"128\" fill=\"#64748b\" font-size=\"6\">250bp</text>\n        \n        <!-- Single Target Amplicon Band in Lane 2 -->\n        <rect x=\"51\" y=\"85\" width=\"23\" height=\"4\" fill=\"#22c55e\" rx=\"1\"/>\n        <text x=\"62\" y=\"102\" fill=\"#22c55e\" font-size=\"7\" font-weight=\"800\" text-anchor=\"middle\">500 bp</text>\n      </g>\n    </svg>"
+      "moduleId": 15,
+      "title": "Agarose Gel Electrophoresis DNA Banding Ladder",
+      "caption": "Figure: Molecular Weight DNA Size Ladder and Sample Fragment Migration toward Positive Anode (+)",
+      "svg": "<svg viewBox=\"0 0 540 300\" width=\"100%\" height=\"100%\" xmlns=\"http://www.w3.org/2000/svg\" style=\"max-width: 520px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\">\n      <rect width=\"540\" height=\"300\" fill=\"#0f172a\" rx=\"10\" stroke=\"#334155\" stroke-width=\"1.5\"/>\n      <text x=\"270\" y=\"24\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"700\" text-anchor=\"middle\">Agarose Gel Electrophoresis: DNA Size Separation</text>\n      <!-- Gel Slab Frame -->\n      <rect x=\"100\" y=\"45\" width=\"340\" height=\"205\" rx=\"6\" fill=\"#030712\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n      <!-- Cathode (-) Top Terminal -->\n      <line x1=\"100\" y1=\"40\" x2=\"440\" y2=\"40\" stroke=\"#ef4444\" stroke-width=\"2\"/>\n      <text x=\"80\" y=\"44\" fill=\"#ef4444\" font-size=\"12\" font-weight=\"800\">Cathode (–)</text>\n      <!-- Anode (+) Bottom Terminal -->\n      <line x1=\"100\" y1=\"255\" x2=\"440\" y2=\"255\" stroke=\"#38bdf8\" stroke-width=\"2\"/>\n      <text x=\"80\" y=\"260\" fill=\"#38bdf8\" font-size=\"12\" font-weight=\"800\">Anode (+)</text>\n      <!-- Loading Wells at Top -->\n      <rect x=\"140\" y=\"55\" width=\"30\" height=\"12\" fill=\"#1e293b\" stroke=\"#64748b\"/>\n      <rect x=\"210\" y=\"55\" width=\"30\" height=\"12\" fill=\"#1e293b\" stroke=\"#64748b\"/>\n      <rect x=\"280\" y=\"55\" width=\"30\" height=\"12\" fill=\"#1e293b\" stroke=\"#64748b\"/>\n      <rect x=\"350\" y=\"55\" width=\"30\" height=\"12\" fill=\"#1e293b\" stroke=\"#64748b\"/>\n      <!-- Lane 1: Molecular Weight Ladder (Glowing Orange Bands) -->\n      <text x=\"155\" y=\"50\" fill=\"#f59e0b\" font-size=\"8.5\" font-weight=\"800\" text-anchor=\"middle\">Ladder</text>\n      <rect x=\"143\" y=\"75\" width=\"24\" height=\"3\" fill=\"#f59e0b\"/><text x=\"135\" y=\"78\" fill=\"#f59e0b\" font-size=\"7.5\" text-anchor=\"end\">1000 bp</text>\n      <rect x=\"143\" y=\"105\" width=\"24\" height=\"3\" fill=\"#f59e0b\"/><text x=\"135\" y=\"108\" fill=\"#f59e0b\" font-size=\"7.5\" text-anchor=\"end\">750 bp</text>\n      <rect x=\"143\" y=\"145\" width=\"24\" height=\"3\" fill=\"#f59e0b\"/><text x=\"135\" y=\"148\" fill=\"#f59e0b\" font-size=\"7.5\" text-anchor=\"end\">500 bp</text>\n      <rect x=\"143\" y=\"195\" width=\"24\" height=\"3\" fill=\"#f59e0b\"/><text x=\"135\" y=\"198\" fill=\"#f59e0b\" font-size=\"7.5\" text-anchor=\"end\">250 bp</text>\n      <rect x=\"143\" y=\"235\" width=\"24\" height=\"3\" fill=\"#f59e0b\"/><text x=\"135\" y=\"238\" fill=\"#f59e0b\" font-size=\"7.5\" text-anchor=\"end\">100 bp</text>\n      <!-- Lane 2: Patient A (Cyan Bands) -->\n      <text x=\"225\" y=\"50\" fill=\"#38bdf8\" font-size=\"8.5\" font-weight=\"800\" text-anchor=\"middle\">Sample 1</text>\n      <rect x=\"213\" y=\"105\" width=\"24\" height=\"3.5\" fill=\"#38bdf8\"/>\n      <rect x=\"213\" y=\"195\" width=\"24\" height=\"3.5\" fill=\"#38bdf8\"/>\n      <!-- Lane 3: Patient B -->\n      <text x=\"295\" y=\"50\" fill=\"#34d399\" font-size=\"8.5\" font-weight=\"800\" text-anchor=\"middle\">Sample 2</text>\n      <rect x=\"283\" y=\"75\" width=\"24\" height=\"3.5\" fill=\"#34d399\"/>\n      <rect x=\"283\" y=\"145\" width=\"24\" height=\"3.5\" fill=\"#34d399\"/>\n      <!-- Lane 4: PCR Digest -->\n      <text x=\"365\" y=\"50\" fill=\"#ec4899\" font-size=\"8.5\" font-weight=\"800\" text-anchor=\"middle\">Digest</text>\n      <rect x=\"353\" y=\"145\" width=\"24\" height=\"3.5\" fill=\"#ec4899\"/>\n      <rect x=\"353\" y=\"235\" width=\"24\" height=\"3.5\" fill=\"#ec4899\"/>\n      <!-- Migration Direction Arrow -->\n      <line x1=\"460\" y1=\"70\" x2=\"460\" y2=\"230\" stroke=\"#facc15\" stroke-width=\"2.5\"/>\n      <polygon points=\"460,235 456,225 464,225\" fill=\"#facc15\"/>\n      <text x=\"475\" y=\"155\" fill=\"#facc15\" font-size=\"9\" font-weight=\"800\" transform=\"rotate(90 475 155)\" text-anchor=\"middle\">Migration Speed ∝ 1/log(bp)</text>\n      <rect x=\"60\" y=\"265\" width=\"420\" height=\"24\" rx=\"4\" fill=\"#1e293b\" stroke=\"#38bdf8\" stroke-width=\"1\"/>\n      <text x=\"270\" y=\"281\" fill=\"#f8fafc\" font-size=\"9.5\" font-weight=\"700\" text-anchor=\"middle\">Negatively charged phosphate backbone drives migration; porous agarose sieves by size</text>\n    </svg>"
     }
   },
   {
@@ -28339,13 +28339,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Fossil Evidence of Change\", what are the correct SI derived units and dimensional representation for **radiocarbon age** ($N(t) = N_0 (0.5)^{t/5730}$)?",
     "options": [
-      "In \"Fossil Evidence of Change\", radiocarbon age is expressed in $\\text{\\text{yr}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Fossil Evidence of Change\", radiocarbon age is expressed in $\\text{yr}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Fossil Evidence of Change\", radiocarbon age is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Fossil Evidence of Change\", radiocarbon age is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{yr}}$.",
+      "In \"Fossil Evidence of Change\", radiocarbon age is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{yr}$.",
       "In \"Fossil Evidence of Change\", radiocarbon age is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{yr})}^{-1}$, confusing rate with state duration."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Fossil Evidence of Change, radiocarbon age is quantified in $\\text{\\text{yr}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Fossil Evidence of Change, radiocarbon age is quantified in $\\text{yr}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -28414,13 +28414,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{yr}",
     "options": [
-      "radiocarbon age = $18.00\\text{ \\text{yr}}$",
-      "radiocarbon age = $4.50\\text{ \\text{yr}}$",
-      "radiocarbon age = $13.50\\text{ \\text{yr}}$",
-      "radiocarbon age = $9.00\\text{ \\text{yr}}$"
+      "radiocarbon age = $18.00\\text{yr}$",
+      "radiocarbon age = $4.50\\text{yr}$",
+      "radiocarbon age = $13.50\\text{yr}$",
+      "radiocarbon age = $9.00\\text{yr}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 31.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{31.5}{3.5} = 9.00\\text{ \\text{yr}}$$.\nStep 3: Significant figures verify $9.00\\text{ \\text{yr}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 31.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{31.5}{3.5} = 9.00\\text{yr}$$.\nStep 3: Significant figures verify $9.00\\text{yr}$.",
     "rubricCER": null
   },
   {
@@ -28640,18 +28640,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Fossil Evidence of Change\", a student measures initial parameters $P_1 = 75.0\\text{ \\text{yr}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Fossil Evidence of Change\", a student measures initial parameters $P_1 = 75.0\\text{yr}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "380",
     "tolerance": 0.5,
     "unit": "\\text{yr}",
     "options": [
-      "radiocarbon age Product $Y = 375\\text{ \\text{yr}}$",
-      "radiocarbon age Product $Y = 380\\text{ \\text{yr}}$",
-      "radiocarbon age Product $Y = 375.0\\text{ \\text{yr}}$",
-      "radiocarbon age Product $Y = 400\\text{ \\text{yr}}$"
+      "radiocarbon age Product $Y = 375.0\\text{ yr}$",
+      "radiocarbon age Product $Y = 380\\text{ yr}$",
+      "radiocarbon age Product $Y = 400\\text{ yr}$",
+      "radiocarbon age Product $Y = 38\\text{ yr}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 75.0\\text{ \\text{yr}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (75.0)(5.0) = 375\\text{ \\text{yr}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 375 to 2 significant figures yields $380\\text{ \\text{yr}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 75.0\\text{yr}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (75.0)(5.0) = 375\\text{yr}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 375 to 2 significant figures yields $380\\text{yr}$.",
     "rubricCER": null
   },
   {
@@ -29101,11 +29101,11 @@ export const questionBankBio = [
     "options": [
       "In \"The Origin of Life\", radiocarbon age is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{yr})}^{-1}$, confusing rate with state duration.",
       "In \"The Origin of Life\", radiocarbon age is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"The Origin of Life\", radiocarbon age is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{yr}}$.",
-      "In \"The Origin of Life\", radiocarbon age is expressed in $\\text{\\text{yr}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
+      "In \"The Origin of Life\", radiocarbon age is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{yr}$.",
+      "In \"The Origin of Life\", radiocarbon age is expressed in $\\text{yr}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
     ],
     "correctIndex": 3,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Origin of Life, radiocarbon age is quantified in $\\text{\\text{yr}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Origin of Life, radiocarbon age is quantified in $\\text{yr}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -29174,13 +29174,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{yr}",
     "options": [
-      "radiocarbon age = $15.76\\text{ \\text{yr}}$",
-      "radiocarbon age = $11.82\\text{ \\text{yr}}$",
-      "radiocarbon age = $3.94\\text{ \\text{yr}}$",
-      "radiocarbon age = $7.88\\text{ \\text{yr}}$"
+      "radiocarbon age = $15.76\\text{yr}$",
+      "radiocarbon age = $11.82\\text{yr}$",
+      "radiocarbon age = $3.94\\text{yr}$",
+      "radiocarbon age = $7.88\\text{yr}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 31.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{31.5}{4.0} = 7.88\\text{ \\text{yr}}$$.\nStep 3: Significant figures verify $7.88\\text{ \\text{yr}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 31.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{31.5}{4.0} = 7.88\\text{yr}$$.\nStep 3: Significant figures verify $7.88\\text{yr}$.",
     "rubricCER": null
   },
   {
@@ -29400,18 +29400,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Origin of Life\", a student measures initial parameters $P_1 = 78.0\\text{ \\text{yr}}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Origin of Life\", a student measures initial parameters $P_1 = 78.0\\text{yr}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "470",
     "tolerance": 0.5,
     "unit": "\\text{yr}",
     "options": [
-      "radiocarbon age Product $Y = 500\\text{ \\text{yr}}$",
-      "radiocarbon age Product $Y = 468.0\\text{ \\text{yr}}$",
-      "radiocarbon age Product $Y = 470\\text{ \\text{yr}}$",
-      "radiocarbon age Product $Y = 468\\text{ \\text{yr}}$"
+      "radiocarbon age Product $Y = 468.0\\text{ yr}$",
+      "radiocarbon age Product $Y = 470\\text{ yr}$",
+      "radiocarbon age Product $Y = 500\\text{ yr}$",
+      "radiocarbon age Product $Y = 47\\text{ yr}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 78.0\\text{ \\text{yr}}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (78.0)(6.0) = 468\\text{ \\text{yr}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 468 to 2 significant figures yields $470\\text{ \\text{yr}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 78.0\\text{yr}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (78.0)(6.0) = 468\\text{yr}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 468 to 2 significant figures yields $470\\text{yr}$.",
     "rubricCER": null
   },
   {
@@ -30165,10 +30165,10 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "Hardy-Weinberg equilibrium Product $Y = 395\\text{ }$",
-      "Hardy-Weinberg equilibrium Product $Y = 400\\text{ }$",
-      "Hardy-Weinberg equilibrium Product $Y = 400\\text{ }$",
-      "Hardy-Weinberg equilibrium Product $Y = 395.0\\text{ }$"
+      "Hardy-Weinberg equilibrium Product $Y = 395.0$",
+      "Hardy-Weinberg equilibrium Product $Y = 400$",
+      "Hardy-Weinberg equilibrium Product $Y = 450$",
+      "Hardy-Weinberg equilibrium Product $Y = 40$"
     ],
     "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 79.0\\text{ }$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (79.0)(5.0) = 395\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 395 to 2 significant figures yields $400\\text{ }$.",
@@ -31685,12 +31685,12 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "Hardy-Weinberg equilibrium Product $Y = 600\\text{ }$",
-      "Hardy-Weinberg equilibrium Product $Y = 595\\text{ }$",
-      "Hardy-Weinberg equilibrium Product $Y = 595.0\\text{ }$",
-      "Hardy-Weinberg equilibrium Product $Y = 600\\text{ }$"
+      "Hardy-Weinberg equilibrium Product $Y = 595.0$",
+      "Hardy-Weinberg equilibrium Product $Y = 600$",
+      "Hardy-Weinberg equilibrium Product $Y = 680$",
+      "Hardy-Weinberg equilibrium Product $Y = 60$"
     ],
-    "correctIndex": 0,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 85.0\\text{ }$ (3 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (85.0)(7.0) = 595\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 595 to 2 significant figures yields $600\\text{ }$.",
     "rubricCER": null
   },
@@ -35485,12 +35485,12 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "cladistic similarity Product $Y = 500\\text{ }$",
-      "cladistic similarity Product $Y = 540\\text{ }$",
-      "cladistic similarity Product $Y = 540\\text{ }$",
-      "cladistic similarity Product $Y = 540.0\\text{ }$"
+      "cladistic similarity Product $Y = 540.00$",
+      "cladistic similarity Product $Y = 540$",
+      "cladistic similarity Product $Y = 500$",
+      "cladistic similarity Product $Y = 54$"
     ],
-    "correctIndex": 2,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 90.0\\text{ }$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (90.0)(6.0) = 540\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 540 to 2 significant figures yields $540\\text{ }$.",
     "rubricCER": null
   },
@@ -38219,13 +38219,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Introduction to Protists\", what are the correct SI derived units and dimensional representation for **hyphal extension rate** ($\\text{Growth Rate} = \\frac{\\Delta r}{\\Delta t}$)?",
     "options": [
-      "In \"Introduction to Protists\", hyphal extension rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mm/day}}$.",
+      "In \"Introduction to Protists\", hyphal extension rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mm/day}$.",
       "In \"Introduction to Protists\", hyphal extension rate is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Introduction to Protists\", hyphal extension rate is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mm/day})}^{-1}$, confusing rate with state duration.",
-      "In \"Introduction to Protists\", hyphal extension rate is expressed in $\\text{\\text{mm/day}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
+      "In \"Introduction to Protists\", hyphal extension rate is expressed in $\\text{mm/day}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
     ],
     "correctIndex": 3,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Introduction to Protists, hyphal extension rate is quantified in $\\text{\\text{mm/day}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Introduction to Protists, hyphal extension rate is quantified in $\\text{mm/day}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -38294,13 +38294,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mm/day}",
     "options": [
-      "hyphal extension rate = $11.14\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $22.28\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $5.57\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $16.71\\text{ \\text{mm/day}}$"
+      "hyphal extension rate = $11.14\\text{mm/day}$",
+      "hyphal extension rate = $22.28\\text{mm/day}$",
+      "hyphal extension rate = $5.57\\text{mm/day}$",
+      "hyphal extension rate = $16.71\\text{mm/day}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 39.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{39.0}{3.5} = 11.14\\text{ \\text{mm/day}}$$.\nStep 3: Significant figures verify $11.14\\text{ \\text{mm/day}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 39.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{39.0}{3.5} = 11.14\\text{mm/day}$$.\nStep 3: Significant figures verify $11.14\\text{mm/day}$.",
     "rubricCER": null
   },
   {
@@ -38520,18 +38520,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Introduction to Protists\", a student measures initial parameters $P_1 = 95.0\\text{ \\text{mm/day}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Introduction to Protists\", a student measures initial parameters $P_1 = 95.0\\text{mm/day}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "480",
     "tolerance": 0.5,
     "unit": "\\text{mm/day}",
     "options": [
-      "hyphal extension rate Product $Y = 475\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 475.0\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 500\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 480\\text{ \\text{mm/day}}$"
+      "hyphal extension rate Product $Y = 475.0\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 480\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 500\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 48\\text{ mm/day}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 95.0\\text{ \\text{mm/day}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (95.0)(5.0) = 475\\text{ \\text{mm/day}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 475 to 2 significant figures yields $480\\text{ \\text{mm/day}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 95.0\\text{mm/day}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (95.0)(5.0) = 475\\text{mm/day}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 475 to 2 significant figures yields $480\\text{mm/day}$.",
     "rubricCER": null
   },
   {
@@ -38979,13 +38979,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Protist Diversity\", what are the correct SI derived units and dimensional representation for **hyphal extension rate** ($\\text{Growth Rate} = \\frac{\\Delta r}{\\Delta t}$)?",
     "options": [
-      "In \"Protist Diversity\", hyphal extension rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mm/day}}$.",
+      "In \"Protist Diversity\", hyphal extension rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mm/day}$.",
       "In \"Protist Diversity\", hyphal extension rate is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Protist Diversity\", hyphal extension rate is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mm/day})}^{-1}$, confusing rate with state duration.",
-      "In \"Protist Diversity\", hyphal extension rate is expressed in $\\text{\\text{mm/day}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
+      "In \"Protist Diversity\", hyphal extension rate is expressed in $\\text{mm/day}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
     ],
     "correctIndex": 3,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Protist Diversity, hyphal extension rate is quantified in $\\text{\\text{mm/day}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Protist Diversity, hyphal extension rate is quantified in $\\text{mm/day}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -39054,13 +39054,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mm/day}",
     "options": [
-      "hyphal extension rate = $4.88\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $14.63\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $19.50\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $9.75\\text{ \\text{mm/day}}$"
+      "hyphal extension rate = $4.88\\text{mm/day}$",
+      "hyphal extension rate = $14.63\\text{mm/day}$",
+      "hyphal extension rate = $19.50\\text{mm/day}$",
+      "hyphal extension rate = $9.75\\text{mm/day}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 39.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{39.0}{4.0} = 9.75\\text{ \\text{mm/day}}$$.\nStep 3: Significant figures verify $9.75\\text{ \\text{mm/day}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 39.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{39.0}{4.0} = 9.75\\text{mm/day}$$.\nStep 3: Significant figures verify $9.75\\text{mm/day}$.",
     "rubricCER": null
   },
   {
@@ -39280,18 +39280,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Protist Diversity\", a student measures initial parameters $P_1 = 98.0\\text{ \\text{mm/day}}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Protist Diversity\", a student measures initial parameters $P_1 = 98.0\\text{mm/day}$ (3 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "590",
     "tolerance": 0.5,
     "unit": "\\text{mm/day}",
     "options": [
-      "hyphal extension rate Product $Y = 588.0\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 588\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 590\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 600\\text{ \\text{mm/day}}$"
+      "hyphal extension rate Product $Y = 588.0\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 590\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 600\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 59\\text{ mm/day}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 98.0\\text{ \\text{mm/day}}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (98.0)(6.0) = 588\\text{ \\text{mm/day}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 588 to 2 significant figures yields $590\\text{ \\text{mm/day}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 98.0\\text{mm/day}$ (3 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (98.0)(6.0) = 588\\text{mm/day}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 588 to 2 significant figures yields $590\\text{mm/day}$.",
     "rubricCER": null
   },
   {
@@ -39739,13 +39739,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Introduction to Fungi\", what are the correct SI derived units and dimensional representation for **hyphal extension rate** ($\\text{Growth Rate} = \\frac{\\Delta r}{\\Delta t}$)?",
     "options": [
-      "In \"Introduction to Fungi\", hyphal extension rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mm/day}}$.",
+      "In \"Introduction to Fungi\", hyphal extension rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mm/day}$.",
       "In \"Introduction to Fungi\", hyphal extension rate is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mm/day})}^{-1}$, confusing rate with state duration.",
-      "In \"Introduction to Fungi\", hyphal extension rate is expressed in $\\text{\\text{mm/day}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Introduction to Fungi\", hyphal extension rate is expressed in $\\text{mm/day}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Introduction to Fungi\", hyphal extension rate is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 2,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Introduction to Fungi, hyphal extension rate is quantified in $\\text{\\text{mm/day}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Introduction to Fungi, hyphal extension rate is quantified in $\\text{mm/day}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -39814,13 +39814,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mm/day}",
     "options": [
-      "hyphal extension rate = $8.67\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $4.33\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $17.34\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $13.00\\text{ \\text{mm/day}}$"
+      "hyphal extension rate = $8.67\\text{mm/day}$",
+      "hyphal extension rate = $4.33\\text{mm/day}$",
+      "hyphal extension rate = $17.34\\text{mm/day}$",
+      "hyphal extension rate = $13.00\\text{mm/day}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 39.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{39.0}{4.5} = 8.67\\text{ \\text{mm/day}}$$.\nStep 3: Significant figures verify $8.67\\text{ \\text{mm/day}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 39.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{39.0}{4.5} = 8.67\\text{mm/day}$$.\nStep 3: Significant figures verify $8.67\\text{mm/day}$.",
     "rubricCER": null
   },
   {
@@ -40040,18 +40040,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Introduction to Fungi\", a student measures initial parameters $P_1 = 101.0\\text{ \\text{mm/day}}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Introduction to Fungi\", a student measures initial parameters $P_1 = 101.0\\text{mm/day}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "710",
     "tolerance": 0.5,
     "unit": "\\text{mm/day}",
     "options": [
-      "hyphal extension rate Product $Y = 707\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 710\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 707.0\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 700\\text{ \\text{mm/day}}$"
+      "hyphal extension rate Product $Y = 707.0\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 710\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 700\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 71\\text{ mm/day}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 101.0\\text{ \\text{mm/day}}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (101.0)(7.0) = 707\\text{ \\text{mm/day}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 707 to 2 significant figures yields $710\\text{ \\text{mm/day}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 101.0\\text{mm/day}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (101.0)(7.0) = 707\\text{mm/day}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 707 to 2 significant figures yields $710\\text{mm/day}$.",
     "rubricCER": null
   },
   {
@@ -40499,13 +40499,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Fungus Diversity and Ecology\", what are the correct SI derived units and dimensional representation for **hyphal extension rate** ($\\text{Growth Rate} = \\frac{\\Delta r}{\\Delta t}$)?",
     "options": [
-      "In \"Fungus Diversity and Ecology\", hyphal extension rate is expressed in $\\text{\\text{mm/day}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Fungus Diversity and Ecology\", hyphal extension rate is expressed in $\\text{mm/day}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Fungus Diversity and Ecology\", hyphal extension rate is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Fungus Diversity and Ecology\", hyphal extension rate is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mm/day})}^{-1}$, confusing rate with state duration.",
-      "In \"Fungus Diversity and Ecology\", hyphal extension rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mm/day}}$."
+      "In \"Fungus Diversity and Ecology\", hyphal extension rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mm/day}$."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Fungus Diversity and Ecology, hyphal extension rate is quantified in $\\text{\\text{mm/day}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Fungus Diversity and Ecology, hyphal extension rate is quantified in $\\text{mm/day}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -40574,13 +40574,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mm/day}",
     "options": [
-      "hyphal extension rate = $3.90\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $15.60\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $7.80\\text{ \\text{mm/day}}$",
-      "hyphal extension rate = $11.70\\text{ \\text{mm/day}}$"
+      "hyphal extension rate = $3.90\\text{mm/day}$",
+      "hyphal extension rate = $15.60\\text{mm/day}$",
+      "hyphal extension rate = $7.80\\text{mm/day}$",
+      "hyphal extension rate = $11.70\\text{mm/day}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 39.0$, $B = 5.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{39.0}{5.0} = 7.80\\text{ \\text{mm/day}}$$.\nStep 3: Significant figures verify $7.80\\text{ \\text{mm/day}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 39.0$, $B = 5.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{39.0}{5.0} = 7.80\\text{mm/day}$$.\nStep 3: Significant figures verify $7.80\\text{mm/day}$.",
     "rubricCER": null
   },
   {
@@ -40800,18 +40800,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Fungus Diversity and Ecology\", a student measures initial parameters $P_1 = 104.0\\text{ \\text{mm/day}}$ (4 significant figures) and multiplier factor $\\beta = 8.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Fungus Diversity and Ecology\", a student measures initial parameters $P_1 = 104.0\\text{mm/day}$ (4 significant figures) and multiplier factor $\\beta = 8.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "830",
     "tolerance": 0.5,
     "unit": "\\text{mm/day}",
     "options": [
-      "hyphal extension rate Product $Y = 832.0\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 832\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 830\\text{ \\text{mm/day}}$",
-      "hyphal extension rate Product $Y = 800\\text{ \\text{mm/day}}$"
+      "hyphal extension rate Product $Y = 832.0\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 830\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 800\\text{ mm/day}$",
+      "hyphal extension rate Product $Y = 83\\text{ mm/day}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 104.0\\text{ \\text{mm/day}}$ (4 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (104.0)(8.0) = 832\\text{ \\text{mm/day}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 832 to 2 significant figures yields $830\\text{ \\text{mm/day}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 104.0\\text{mm/day}$ (4 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (104.0)(8.0) = 832\\text{mm/day}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 832 to 2 significant figures yields $830\\text{mm/day}$.",
     "rubricCER": null
   },
   {
@@ -41259,13 +41259,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Plant Evolution and Diversity\", what are the correct SI derived units and dimensional representation for **water potential** ($\\Psi = \\Psi_s + \\Psi_p$)?",
     "options": [
-      "In \"Plant Evolution and Diversity\", water potential is expressed in $\\text{\\text{MPa}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Plant Evolution and Diversity\", water potential is expressed in $\\text{MPa}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Plant Evolution and Diversity\", water potential is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Plant Evolution and Diversity\", water potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{MPa}}$.",
+      "In \"Plant Evolution and Diversity\", water potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{MPa}$.",
       "In \"Plant Evolution and Diversity\", water potential is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{MPa})}^{-1}$, confusing rate with state duration."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Plant Evolution and Diversity, water potential is quantified in $\\text{\\text{MPa}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Plant Evolution and Diversity, water potential is quantified in $\\text{MPa}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -41334,13 +41334,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{MPa}",
     "options": [
-      "water potential = $5.79\\text{ \\text{MPa}}$",
-      "water potential = $23.14\\text{ \\text{MPa}}$",
-      "water potential = $11.57\\text{ \\text{MPa}}$",
-      "water potential = $17.36\\text{ \\text{MPa}}$"
+      "water potential = $5.79\\text{MPa}$",
+      "water potential = $23.14\\text{MPa}$",
+      "water potential = $11.57\\text{MPa}$",
+      "water potential = $17.36\\text{MPa}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 40.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{40.5}{3.5} = 11.57\\text{ \\text{MPa}}$$.\nStep 3: Significant figures verify $11.57\\text{ \\text{MPa}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 40.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{40.5}{3.5} = 11.57\\text{MPa}$$.\nStep 3: Significant figures verify $11.57\\text{MPa}$.",
     "rubricCER": null
   },
   {
@@ -41560,18 +41560,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Plant Evolution and Diversity\", a student measures initial parameters $P_1 = 99.0\\text{ \\text{MPa}}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Plant Evolution and Diversity\", a student measures initial parameters $P_1 = 99.0\\text{MPa}$ (3 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "500",
     "tolerance": 0.5,
     "unit": "\\text{MPa}",
     "options": [
-      "water potential Product $Y = 495.0\\text{ \\text{MPa}}$",
-      "water potential Product $Y = 500\\text{ \\text{MPa}}$",
-      "water potential Product $Y = 495\\text{ \\text{MPa}}$",
-      "water potential Product $Y = 500\\text{ \\text{MPa}}$"
+      "water potential Product $Y = 495.0\\text{ MPa}$",
+      "water potential Product $Y = 500\\text{ MPa}$",
+      "water potential Product $Y = 570\\text{ MPa}$",
+      "water potential Product $Y = 50\\text{ MPa}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 99.0\\text{ \\text{MPa}}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (99.0)(5.0) = 495\\text{ \\text{MPa}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 495 to 2 significant figures yields $500\\text{ \\text{MPa}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 99.0\\text{MPa}$ (3 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (99.0)(5.0) = 495\\text{MPa}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 495 to 2 significant figures yields $500\\text{MPa}$.",
     "rubricCER": null
   },
   {
@@ -42019,13 +42019,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Plant Structure and Function\", what are the correct SI derived units and dimensional representation for **water potential** ($\\Psi = \\Psi_s + \\Psi_p$)?",
     "options": [
-      "In \"Plant Structure and Function\", water potential is expressed in $\\text{\\text{MPa}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Plant Structure and Function\", water potential is expressed in $\\text{MPa}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Plant Structure and Function\", water potential is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Plant Structure and Function\", water potential is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{MPa})}^{-1}$, confusing rate with state duration.",
-      "In \"Plant Structure and Function\", water potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{MPa}}$."
+      "In \"Plant Structure and Function\", water potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{MPa}$."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Plant Structure and Function, water potential is quantified in $\\text{\\text{MPa}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Plant Structure and Function, water potential is quantified in $\\text{MPa}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -42094,13 +42094,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{MPa}",
     "options": [
-      "water potential = $5.07\\text{ \\text{MPa}}$",
-      "water potential = $20.26\\text{ \\text{MPa}}$",
-      "water potential = $10.13\\text{ \\text{MPa}}$",
-      "water potential = $15.20\\text{ \\text{MPa}}$"
+      "water potential = $5.07\\text{MPa}$",
+      "water potential = $20.26\\text{MPa}$",
+      "water potential = $10.13\\text{MPa}$",
+      "water potential = $15.20\\text{MPa}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 40.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{40.5}{4.0} = 10.13\\text{ \\text{MPa}}$$.\nStep 3: Significant figures verify $10.13\\text{ \\text{MPa}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 40.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{40.5}{4.0} = 10.13\\text{MPa}$$.\nStep 3: Significant figures verify $10.13\\text{MPa}$.",
     "rubricCER": null
   },
   {
@@ -42320,18 +42320,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Plant Structure and Function\", a student measures initial parameters $P_1 = 102.0\\text{ \\text{MPa}}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Plant Structure and Function\", a student measures initial parameters $P_1 = 102.0\\text{MPa}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "610",
     "tolerance": 0.5,
     "unit": "\\text{MPa}",
     "options": [
-      "water potential Product $Y = 612\\text{ \\text{MPa}}$",
-      "water potential Product $Y = 610\\text{ \\text{MPa}}$",
-      "water potential Product $Y = 612.0\\text{ \\text{MPa}}$",
-      "water potential Product $Y = 600\\text{ \\text{MPa}}$"
+      "water potential Product $Y = 612.0\\text{ MPa}$",
+      "water potential Product $Y = 610\\text{ MPa}$",
+      "water potential Product $Y = 600\\text{ MPa}$",
+      "water potential Product $Y = 61\\text{ MPa}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 102.0\\text{ \\text{MPa}}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (102.0)(6.0) = 612\\text{ \\text{MPa}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 612 to 2 significant figures yields $610\\text{ \\text{MPa}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 102.0\\text{MPa}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (102.0)(6.0) = 612\\text{MPa}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 612 to 2 significant figures yields $610\\text{MPa}$.",
     "rubricCER": null
   },
   {
@@ -42779,13 +42779,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Plant Reproduction\", what are the correct SI derived units and dimensional representation for **water potential** ($\\Psi = \\Psi_s + \\Psi_p$)?",
     "options": [
-      "In \"Plant Reproduction\", water potential is expressed in $\\text{\\text{MPa}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Plant Reproduction\", water potential is expressed in $\\text{MPa}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Plant Reproduction\", water potential is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{MPa})}^{-1}$, confusing rate with state duration.",
-      "In \"Plant Reproduction\", water potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{MPa}}$.",
+      "In \"Plant Reproduction\", water potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{MPa}$.",
       "In \"Plant Reproduction\", water potential is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Plant Reproduction, water potential is quantified in $\\text{\\text{MPa}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Plant Reproduction, water potential is quantified in $\\text{MPa}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -42854,13 +42854,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{MPa}",
     "options": [
-      "water potential = $18.00\\text{ \\text{MPa}}$",
-      "water potential = $13.50\\text{ \\text{MPa}}$",
-      "water potential = $9.00\\text{ \\text{MPa}}$",
-      "water potential = $4.50\\text{ \\text{MPa}}$"
+      "water potential = $18.00\\text{MPa}$",
+      "water potential = $13.50\\text{MPa}$",
+      "water potential = $9.00\\text{MPa}$",
+      "water potential = $4.50\\text{MPa}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 40.5$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{40.5}{4.5} = 9.00\\text{ \\text{MPa}}$$.\nStep 3: Significant figures verify $9.00\\text{ \\text{MPa}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 40.5$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{40.5}{4.5} = 9.00\\text{MPa}$$.\nStep 3: Significant figures verify $9.00\\text{MPa}$.",
     "rubricCER": null
   },
   {
@@ -43080,18 +43080,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Plant Reproduction\", a student measures initial parameters $P_1 = 105.0\\text{ \\text{MPa}}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Plant Reproduction\", a student measures initial parameters $P_1 = 105.0\\text{MPa}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "740",
     "tolerance": 0.5,
     "unit": "\\text{MPa}",
     "options": [
-      "water potential Product $Y = 700\\text{ \\text{MPa}}$",
-      "water potential Product $Y = 735\\text{ \\text{MPa}}$",
-      "water potential Product $Y = 735.0\\text{ \\text{MPa}}$",
-      "water potential Product $Y = 740\\text{ \\text{MPa}}$"
+      "water potential Product $Y = 735.0\\text{ MPa}$",
+      "water potential Product $Y = 740\\text{ MPa}$",
+      "water potential Product $Y = 700\\text{ MPa}$",
+      "water potential Product $Y = 74\\text{ MPa}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 105.0\\text{ \\text{MPa}}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (105.0)(7.0) = 735\\text{ \\text{MPa}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 735 to 2 significant figures yields $740\\text{ \\text{MPa}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 105.0\\text{MPa}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (105.0)(7.0) = 735\\text{MPa}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 735 to 2 significant figures yields $740\\text{MPa}$.",
     "rubricCER": null
   },
   {
@@ -46125,12 +46125,12 @@ export const questionBankBio = [
     "tolerance": 0.5,
     "unit": "",
     "options": [
-      "Hamilton's rule altruism threshold Product $Y = 660.0\\text{ }$",
-      "Hamilton's rule altruism threshold Product $Y = 660\\text{ }$",
-      "Hamilton's rule altruism threshold Product $Y = 660\\text{ }$",
-      "Hamilton's rule altruism threshold Product $Y = 700\\text{ }$"
+      "Hamilton's rule altruism threshold Product $Y = 660.00$",
+      "Hamilton's rule altruism threshold Product $Y = 660$",
+      "Hamilton's rule altruism threshold Product $Y = 700$",
+      "Hamilton's rule altruism threshold Product $Y = 66$"
     ],
-    "correctIndex": 2,
+    "correctIndex": 1,
     "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 110.0\\text{ }$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (110.0)(6.0) = 660\\text{ }$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 660 to 2 significant figures yields $660\\text{ }$.",
     "rubricCER": null
   },
@@ -48101,11 +48101,11 @@ export const questionBankBio = [
     "options": [
       "In \"The Skeletal System\", bone mineral density is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{g/cm}^2)}^{-1}$, confusing rate with state duration.",
       "In \"The Skeletal System\", bone mineral density is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"The Skeletal System\", bone mineral density is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{g/cm}^2}$.",
-      "In \"The Skeletal System\", bone mineral density is expressed in $\\text{\\text{g/cm}^2}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
+      "In \"The Skeletal System\", bone mineral density is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{g/cm}^2$.",
+      "In \"The Skeletal System\", bone mineral density is expressed in $\\text{g/cm}^2$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
     ],
     "correctIndex": 3,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Skeletal System, bone mineral density is quantified in $\\text{\\text{g/cm}^2}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Skeletal System, bone mineral density is quantified in $\\text{g/cm}^2$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -48174,13 +48174,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{g/cm}^2",
     "options": [
-      "bone mineral density = $22.50\\text{ \\text{g/cm}^2}$",
-      "bone mineral density = $16.88\\text{ \\text{g/cm}^2}$",
-      "bone mineral density = $5.63\\text{ \\text{g/cm}^2}$",
-      "bone mineral density = $11.25\\text{ \\text{g/cm}^2}$"
+      "bone mineral density = $22.50\\text{g/cm}^2$",
+      "bone mineral density = $16.88\\text{g/cm}^2$",
+      "bone mineral density = $5.63\\text{g/cm}^2$",
+      "bone mineral density = $11.25\\text{g/cm}^2$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 45.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{45.0}{4.0} = 11.25\\text{ \\text{g/cm}^2}$$.\nStep 3: Significant figures verify $11.25\\text{ \\text{g/cm}^2}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 45.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{45.0}{4.0} = 11.25\\text{g/cm}^2$$.\nStep 3: Significant figures verify $11.25\\text{g/cm}^2$.",
     "rubricCER": null
   },
   {
@@ -48400,18 +48400,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Skeletal System\", a student measures initial parameters $P_1 = 114.0\\text{ \\text{g/cm}^2}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Skeletal System\", a student measures initial parameters $P_1 = 114.0\\text{g/cm}^2$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "680",
     "tolerance": 0.5,
     "unit": "\\text{g/cm}^2",
     "options": [
-      "bone mineral density Product $Y = 700\\text{ \\text{g/cm}^2}$",
-      "bone mineral density Product $Y = 684\\text{ \\text{g/cm}^2}$",
-      "bone mineral density Product $Y = 680\\text{ \\text{g/cm}^2}$",
-      "bone mineral density Product $Y = 684.0\\text{ \\text{g/cm}^2}$"
+      "bone mineral density Product $Y = 684.0\\text{ g/cm^2}$",
+      "bone mineral density Product $Y = 680\\text{ g/cm^2}$",
+      "bone mineral density Product $Y = 700\\text{ g/cm^2}$",
+      "bone mineral density Product $Y = 68\\text{ g/cm^2}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 114.0\\text{ \\text{g/cm}^2}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (114.0)(6.0) = 684\\text{ \\text{g/cm}^2}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 684 to 2 significant figures yields $680\\text{ \\text{g/cm}^2}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 114.0\\text{g/cm}^2$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (114.0)(6.0) = 684\\text{g/cm}^2$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 684 to 2 significant figures yields $680\\text{g/cm}^2$.",
     "rubricCER": null
   },
   {
@@ -48859,13 +48859,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"The Muscular System\", what are the correct SI derived units and dimensional representation for **contractile muscle force** ($F_{\\text{contractile}} = N_{\\text{bridges}} \\times f_{\\text{stroke}}$)?",
     "options": [
-      "In \"The Muscular System\", contractile muscle force is expressed in $\\text{\\text{N}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"The Muscular System\", contractile muscle force is expressed in $\\text{N}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"The Muscular System\", contractile muscle force is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"The Muscular System\", contractile muscle force is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{N}}$.",
+      "In \"The Muscular System\", contractile muscle force is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{N}$.",
       "In \"The Muscular System\", contractile muscle force is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{N})}^{-1}$, confusing rate with state duration."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Muscular System, contractile muscle force is quantified in $\\text{\\text{N}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Muscular System, contractile muscle force is quantified in $\\text{N}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -48934,13 +48934,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{N}",
     "options": [
-      "contractile muscle force = $15.00\\text{ \\text{N}}$",
-      "contractile muscle force = $20.00\\text{ \\text{N}}$",
-      "contractile muscle force = $5.00\\text{ \\text{N}}$",
-      "contractile muscle force = $10.00\\text{ \\text{N}}$"
+      "contractile muscle force = $15.00\\text{N}$",
+      "contractile muscle force = $20.00\\text{N}$",
+      "contractile muscle force = $5.00\\text{N}$",
+      "contractile muscle force = $10.00\\text{N}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 45.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{45.0}{4.5} = 10.00\\text{ \\text{N}}$$.\nStep 3: Significant figures verify $10.00\\text{ \\text{N}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 45.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{45.0}{4.5} = 10.00\\text{N}$$.\nStep 3: Significant figures verify $10.00\\text{N}$.",
     "rubricCER": null
   },
   {
@@ -49160,18 +49160,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Muscular System\", a student measures initial parameters $P_1 = 117.0\\text{ \\text{N}}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Muscular System\", a student measures initial parameters $P_1 = 117.0\\text{N}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "820",
     "tolerance": 0.5,
     "unit": "\\text{N}",
     "options": [
-      "contractile muscle force Product $Y = 820\\text{ \\text{N}}$",
-      "contractile muscle force Product $Y = 819.0\\text{ \\text{N}}$",
-      "contractile muscle force Product $Y = 800\\text{ \\text{N}}$",
-      "contractile muscle force Product $Y = 819\\text{ \\text{N}}$"
+      "contractile muscle force Product $Y = 819.0\\text{ N}$",
+      "contractile muscle force Product $Y = 820\\text{ N}$",
+      "contractile muscle force Product $Y = 800\\text{ N}$",
+      "contractile muscle force Product $Y = 82\\text{ N}$"
     ],
-    "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 117.0\\text{ \\text{N}}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (117.0)(7.0) = 819\\text{ \\text{N}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 819 to 2 significant figures yields $820\\text{ \\text{N}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 117.0\\text{N}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (117.0)(7.0) = 819\\text{N}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 819 to 2 significant figures yields $820\\text{N}$.",
     "rubricCER": null
   },
   {
@@ -49619,13 +49619,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Structure of the Nervous System\", what are the correct SI derived units and dimensional representation for **nerve conduction velocity** ($v = \\frac{d}{t}$)?",
     "options": [
-      "In \"Structure of the Nervous System\", nerve conduction velocity is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{m/s}}$.",
+      "In \"Structure of the Nervous System\", nerve conduction velocity is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{m/s}$.",
       "In \"Structure of the Nervous System\", nerve conduction velocity is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Structure of the Nervous System\", nerve conduction velocity is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{m/s})}^{-1}$, confusing rate with state duration.",
-      "In \"Structure of the Nervous System\", nerve conduction velocity is expressed in $\\text{\\text{m/s}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
+      "In \"Structure of the Nervous System\", nerve conduction velocity is expressed in $\\text{m/s}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
     ],
     "correctIndex": 3,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Structure of the Nervous System, nerve conduction velocity is quantified in $\\text{\\text{m/s}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Structure of the Nervous System, nerve conduction velocity is quantified in $\\text{m/s}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -49694,13 +49694,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{m/s}",
     "options": [
-      "nerve conduction velocity = $26.58\\text{ \\text{m/s}}$",
-      "nerve conduction velocity = $6.64\\text{ \\text{m/s}}$",
-      "nerve conduction velocity = $13.29\\text{ \\text{m/s}}$",
-      "nerve conduction velocity = $19.93\\text{ \\text{m/s}}$"
+      "nerve conduction velocity = $26.58\\text{m/s}$",
+      "nerve conduction velocity = $6.64\\text{m/s}$",
+      "nerve conduction velocity = $13.29\\text{m/s}$",
+      "nerve conduction velocity = $19.93\\text{m/s}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{3.5} = 13.29\\text{ \\text{m/s}}$$.\nStep 3: Significant figures verify $13.29\\text{ \\text{m/s}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{3.5} = 13.29\\text{m/s}$$.\nStep 3: Significant figures verify $13.29\\text{m/s}$.",
     "rubricCER": null
   },
   {
@@ -49920,18 +49920,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Structure of the Nervous System\", a student measures initial parameters $P_1 = 115.0\\text{ \\text{m/s}}$ (4 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Structure of the Nervous System\", a student measures initial parameters $P_1 = 115.0\\text{m/s}$ (4 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "580",
     "tolerance": 0.5,
     "unit": "\\text{m/s}",
     "options": [
-      "nerve conduction velocity Product $Y = 575\\text{ \\text{m/s}}$",
-      "nerve conduction velocity Product $Y = 580\\text{ \\text{m/s}}$",
-      "nerve conduction velocity Product $Y = 575.0\\text{ \\text{m/s}}$",
-      "nerve conduction velocity Product $Y = 600\\text{ \\text{m/s}}$"
+      "nerve conduction velocity Product $Y = 575.0\\text{ m/s}$",
+      "nerve conduction velocity Product $Y = 580\\text{ m/s}$",
+      "nerve conduction velocity Product $Y = 600\\text{ m/s}$",
+      "nerve conduction velocity Product $Y = 58\\text{ m/s}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 115.0\\text{ \\text{m/s}}$ (4 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (115.0)(5.0) = 575\\text{ \\text{m/s}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 575 to 2 significant figures yields $580\\text{ \\text{m/s}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 115.0\\text{m/s}$ (4 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (115.0)(5.0) = 575\\text{m/s}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 575 to 2 significant figures yields $580\\text{m/s}$.",
     "rubricCER": null
   },
   {
@@ -50381,11 +50381,11 @@ export const questionBankBio = [
     "options": [
       "In \"Organization of the Nervous System\", Nernst equilibrium potential is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mV})}^{-1}$, confusing rate with state duration.",
       "In \"Organization of the Nervous System\", Nernst equilibrium potential is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Organization of the Nervous System\", Nernst equilibrium potential is expressed in $\\text{\\text{mV}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Organization of the Nervous System\", Nernst equilibrium potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mV}}$."
+      "In \"Organization of the Nervous System\", Nernst equilibrium potential is expressed in $\\text{mV}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Organization of the Nervous System\", Nernst equilibrium potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mV}$."
     ],
     "correctIndex": 2,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Organization of the Nervous System, Nernst equilibrium potential is quantified in $\\text{\\text{mV}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Organization of the Nervous System, Nernst equilibrium potential is quantified in $\\text{mV}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -50454,13 +50454,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mV}",
     "options": [
-      "Nernst equilibrium potential = $11.63\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential = $23.26\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential = $5.82\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential = $17.45\\text{ \\text{mV}}$"
+      "Nernst equilibrium potential = $11.63\\text{mV}$",
+      "Nernst equilibrium potential = $23.26\\text{mV}$",
+      "Nernst equilibrium potential = $5.82\\text{mV}$",
+      "Nernst equilibrium potential = $17.45\\text{mV}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{4.0} = 11.63\\text{ \\text{mV}}$$.\nStep 3: Significant figures verify $11.63\\text{ \\text{mV}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{4.0} = 11.63\\text{mV}$$.\nStep 3: Significant figures verify $11.63\\text{mV}$.",
     "rubricCER": null
   },
   {
@@ -50680,18 +50680,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Organization of the Nervous System\", a student measures initial parameters $P_1 = 118.0\\text{ \\text{mV}}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Organization of the Nervous System\", a student measures initial parameters $P_1 = 118.0\\text{mV}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "710",
     "tolerance": 0.5,
     "unit": "\\text{mV}",
     "options": [
-      "Nernst equilibrium potential Product $Y = 708.0\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential Product $Y = 700\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential Product $Y = 708\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential Product $Y = 710\\text{ \\text{mV}}$"
+      "Nernst equilibrium potential Product $Y = 708.0\\text{ mV}$",
+      "Nernst equilibrium potential Product $Y = 710\\text{ mV}$",
+      "Nernst equilibrium potential Product $Y = 700\\text{ mV}$",
+      "Nernst equilibrium potential Product $Y = 71\\text{ mV}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 118.0\\text{ \\text{mV}}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (118.0)(6.0) = 708\\text{ \\text{mV}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 708 to 2 significant figures yields $710\\text{ \\text{mV}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 118.0\\text{mV}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (118.0)(6.0) = 708\\text{mV}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 708 to 2 significant figures yields $710\\text{mV}$.",
     "rubricCER": null
   },
   {
@@ -51140,12 +51140,12 @@ export const questionBankBio = [
     "question": "In quantitative metrology for \"The Senses\", what are the correct SI derived units and dimensional representation for **Nernst equilibrium potential** ($E = \\frac{RT}{zF} \\ln\\left(\\frac{[\\text{Ion}]_o}{[\\text{Ion}]_i}\\right)$)?",
     "options": [
       "In \"The Senses\", Nernst equilibrium potential is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mV})}^{-1}$, confusing rate with state duration.",
-      "In \"The Senses\", Nernst equilibrium potential is expressed in $\\text{\\text{mV}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"The Senses\", Nernst equilibrium potential is expressed in $\\text{mV}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"The Senses\", Nernst equilibrium potential is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"The Senses\", Nernst equilibrium potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mV}}$."
+      "In \"The Senses\", Nernst equilibrium potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mV}$."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Senses, Nernst equilibrium potential is quantified in $\\text{\\text{mV}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Senses, Nernst equilibrium potential is quantified in $\\text{mV}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -51214,13 +51214,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mV}",
     "options": [
-      "Nernst equilibrium potential = $10.33\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential = $5.17\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential = $20.66\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential = $15.50\\text{ \\text{mV}}$"
+      "Nernst equilibrium potential = $10.33\\text{mV}$",
+      "Nernst equilibrium potential = $5.17\\text{mV}$",
+      "Nernst equilibrium potential = $20.66\\text{mV}$",
+      "Nernst equilibrium potential = $15.50\\text{mV}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{4.5} = 10.33\\text{ \\text{mV}}$$.\nStep 3: Significant figures verify $10.33\\text{ \\text{mV}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{4.5} = 10.33\\text{mV}$$.\nStep 3: Significant figures verify $10.33\\text{mV}$.",
     "rubricCER": null
   },
   {
@@ -51440,18 +51440,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Senses\", a student measures initial parameters $P_1 = 121.0\\text{ \\text{mV}}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Senses\", a student measures initial parameters $P_1 = 121.0\\text{mV}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "850",
     "tolerance": 0.5,
     "unit": "\\text{mV}",
     "options": [
-      "Nernst equilibrium potential Product $Y = 800\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential Product $Y = 850\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential Product $Y = 847.0\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential Product $Y = 847\\text{ \\text{mV}}$"
+      "Nernst equilibrium potential Product $Y = 847.0\\text{ mV}$",
+      "Nernst equilibrium potential Product $Y = 850\\text{ mV}$",
+      "Nernst equilibrium potential Product $Y = 800\\text{ mV}$",
+      "Nernst equilibrium potential Product $Y = 85\\text{ mV}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 121.0\\text{ \\text{mV}}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (121.0)(7.0) = 847\\text{ \\text{mV}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 847 to 2 significant figures yields $850\\text{ \\text{mV}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 121.0\\text{mV}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (121.0)(7.0) = 847\\text{mV}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 847 to 2 significant figures yields $850\\text{mV}$.",
     "rubricCER": null
   },
   {
@@ -51900,12 +51900,12 @@ export const questionBankBio = [
     "question": "In quantitative metrology for \"Effects of Drugs\", what are the correct SI derived units and dimensional representation for **Nernst equilibrium potential** ($E = \\frac{RT}{zF} \\ln\\left(\\frac{[\\text{Ion}]_o}{[\\text{Ion}]_i}\\right)$)?",
     "options": [
       "In \"Effects of Drugs\", Nernst equilibrium potential is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mV})}^{-1}$, confusing rate with state duration.",
-      "In \"Effects of Drugs\", Nernst equilibrium potential is expressed in $\\text{\\text{mV}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Effects of Drugs\", Nernst equilibrium potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mV}}$.",
+      "In \"Effects of Drugs\", Nernst equilibrium potential is expressed in $\\text{mV}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Effects of Drugs\", Nernst equilibrium potential is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mV}$.",
       "In \"Effects of Drugs\", Nernst equilibrium potential is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Effects of Drugs, Nernst equilibrium potential is quantified in $\\text{\\text{mV}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Effects of Drugs, Nernst equilibrium potential is quantified in $\\text{mV}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -51974,13 +51974,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mV}",
     "options": [
-      "Nernst equilibrium potential = $4.65\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential = $9.30\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential = $13.95\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential = $18.60\\text{ \\text{mV}}$"
+      "Nernst equilibrium potential = $4.65\\text{mV}$",
+      "Nernst equilibrium potential = $9.30\\text{mV}$",
+      "Nernst equilibrium potential = $13.95\\text{mV}$",
+      "Nernst equilibrium potential = $18.60\\text{mV}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 5.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{5.0} = 9.30\\text{ \\text{mV}}$$.\nStep 3: Significant figures verify $9.30\\text{ \\text{mV}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 46.5$, $B = 5.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{46.5}{5.0} = 9.30\\text{mV}$$.\nStep 3: Significant figures verify $9.30\\text{mV}$.",
     "rubricCER": null
   },
   {
@@ -52200,18 +52200,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Effects of Drugs\", a student measures initial parameters $P_1 = 124.0\\text{ \\text{mV}}$ (4 significant figures) and multiplier factor $\\beta = 8.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Effects of Drugs\", a student measures initial parameters $P_1 = 124.0\\text{mV}$ (4 significant figures) and multiplier factor $\\beta = 8.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "990",
     "tolerance": 0.5,
     "unit": "\\text{mV}",
     "options": [
-      "Nernst equilibrium potential Product $Y = 992\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential Product $Y = 992.0\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential Product $Y = 1000\\text{ \\text{mV}}$",
-      "Nernst equilibrium potential Product $Y = 990\\text{ \\text{mV}}$"
+      "Nernst equilibrium potential Product $Y = 992.0\\text{ mV}$",
+      "Nernst equilibrium potential Product $Y = 990\\text{ mV}$",
+      "Nernst equilibrium potential Product $Y = 1000\\text{ mV}$",
+      "Nernst equilibrium potential Product $Y = 99\\text{ mV}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 124.0\\text{ \\text{mV}}$ (4 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (124.0)(8.0) = 992\\text{ \\text{mV}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 992 to 2 significant figures yields $990\\text{ \\text{mV}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 124.0\\text{mV}$ (4 sig figs), $\\beta = 8.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (124.0)(8.0) = 992\\text{mV}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 8.0$, having 2 sig figs). Rounding 992 to 2 significant figures yields $990\\text{mV}$.",
     "rubricCER": null
   },
   {
@@ -52659,13 +52659,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Circulatory System\", what are the correct SI derived units and dimensional representation for **cardiac output** ($CO = HR \\times SV$)?",
     "options": [
-      "In \"Circulatory System\", cardiac output is expressed in $\\text{\\text{L/min}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Circulatory System\", cardiac output is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{L/min}}$.",
+      "In \"Circulatory System\", cardiac output is expressed in $\\text{L/min}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Circulatory System\", cardiac output is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{L/min}$.",
       "In \"Circulatory System\", cardiac output is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Circulatory System\", cardiac output is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{L/min})}^{-1}$, confusing rate with state duration."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Circulatory System, cardiac output is quantified in $\\text{\\text{L/min}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Circulatory System, cardiac output is quantified in $\\text{L/min}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -52734,13 +52734,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{L/min}",
     "options": [
-      "cardiac output = $13.71\\text{ \\text{L/min}}$",
-      "cardiac output = $6.86\\text{ \\text{L/min}}$",
-      "cardiac output = $27.42\\text{ \\text{L/min}}$",
-      "cardiac output = $20.57\\text{ \\text{L/min}}$"
+      "cardiac output = $13.71\\text{L/min}$",
+      "cardiac output = $6.86\\text{L/min}$",
+      "cardiac output = $27.42\\text{L/min}$",
+      "cardiac output = $20.57\\text{L/min}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 48.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{48.0}{3.5} = 13.71\\text{ \\text{L/min}}$$.\nStep 3: Significant figures verify $13.71\\text{ \\text{L/min}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 48.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{48.0}{3.5} = 13.71\\text{L/min}$$.\nStep 3: Significant figures verify $13.71\\text{L/min}$.",
     "rubricCER": null
   },
   {
@@ -52960,18 +52960,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Circulatory System\", a student measures initial parameters $P_1 = 119.0\\text{ \\text{L/min}}$ (4 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Circulatory System\", a student measures initial parameters $P_1 = 119.0\\text{L/min}$ (4 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "600",
     "tolerance": 0.5,
     "unit": "\\text{L/min}",
     "options": [
-      "cardiac output Product $Y = 600\\text{ \\text{L/min}}$",
-      "cardiac output Product $Y = 595\\text{ \\text{L/min}}$",
-      "cardiac output Product $Y = 595.0\\text{ \\text{L/min}}$",
-      "cardiac output Product $Y = 600\\text{ \\text{L/min}}$"
+      "cardiac output Product $Y = 595.0\\text{ L/min}$",
+      "cardiac output Product $Y = 600\\text{ L/min}$",
+      "cardiac output Product $Y = 680\\text{ L/min}$",
+      "cardiac output Product $Y = 60\\text{ L/min}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 119.0\\text{ \\text{L/min}}$ (4 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (119.0)(5.0) = 595\\text{ \\text{L/min}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 595 to 2 significant figures yields $600\\text{ \\text{L/min}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 119.0\\text{L/min}$ (4 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (119.0)(5.0) = 595\\text{L/min}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 595 to 2 significant figures yields $600\\text{L/min}$.",
     "rubricCER": null
   },
   {
@@ -53421,11 +53421,11 @@ export const questionBankBio = [
     "options": [
       "In \"Respiratory System\", minute ventilation is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Respiratory System\", minute ventilation is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{L/min})}^{-1}$, confusing rate with state duration.",
-      "In \"Respiratory System\", minute ventilation is expressed in $\\text{\\text{L/min}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Respiratory System\", minute ventilation is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{L/min}}$."
+      "In \"Respiratory System\", minute ventilation is expressed in $\\text{L/min}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Respiratory System\", minute ventilation is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{L/min}$."
     ],
     "correctIndex": 2,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Respiratory System, minute ventilation is quantified in $\\text{\\text{L/min}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Respiratory System, minute ventilation is quantified in $\\text{L/min}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -53494,13 +53494,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{L/min}",
     "options": [
-      "minute ventilation = $24.00\\text{ \\text{L/min}}$",
-      "minute ventilation = $12.00\\text{ \\text{L/min}}$",
-      "minute ventilation = $6.00\\text{ \\text{L/min}}$",
-      "minute ventilation = $18.00\\text{ \\text{L/min}}$"
+      "minute ventilation = $24.00\\text{L/min}$",
+      "minute ventilation = $12.00\\text{L/min}$",
+      "minute ventilation = $6.00\\text{L/min}$",
+      "minute ventilation = $18.00\\text{L/min}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters: $A = 48.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{48.0}{4.0} = 12.00\\text{ \\text{L/min}}$$.\nStep 3: Significant figures verify $12.00\\text{ \\text{L/min}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 48.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{48.0}{4.0} = 12.00\\text{L/min}$$.\nStep 3: Significant figures verify $12.00\\text{L/min}$.",
     "rubricCER": null
   },
   {
@@ -53720,18 +53720,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Respiratory System\", a student measures initial parameters $P_1 = 122.0\\text{ \\text{L/min}}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Respiratory System\", a student measures initial parameters $P_1 = 122.0\\text{L/min}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "730",
     "tolerance": 0.5,
     "unit": "\\text{L/min}",
     "options": [
-      "minute ventilation Product $Y = 732.0\\text{ \\text{L/min}}$",
-      "minute ventilation Product $Y = 732\\text{ \\text{L/min}}$",
-      "minute ventilation Product $Y = 730\\text{ \\text{L/min}}$",
-      "minute ventilation Product $Y = 700\\text{ \\text{L/min}}$"
+      "minute ventilation Product $Y = 732.0\\text{ L/min}$",
+      "minute ventilation Product $Y = 730\\text{ L/min}$",
+      "minute ventilation Product $Y = 700\\text{ L/min}$",
+      "minute ventilation Product $Y = 73\\text{ L/min}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 122.0\\text{ \\text{L/min}}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (122.0)(6.0) = 732\\text{ \\text{L/min}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 732 to 2 significant figures yields $730\\text{ \\text{L/min}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 122.0\\text{L/min}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (122.0)(6.0) = 732\\text{L/min}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 732 to 2 significant figures yields $730\\text{L/min}$.",
     "rubricCER": null
   },
   {
@@ -54181,11 +54181,11 @@ export const questionBankBio = [
     "options": [
       "In \"The Excretory System\", glomerular filtration rate is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mL/min})}^{-1}$, confusing rate with state duration.",
       "In \"The Excretory System\", glomerular filtration rate is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"The Excretory System\", glomerular filtration rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mL/min}}$.",
-      "In \"The Excretory System\", glomerular filtration rate is expressed in $\\text{\\text{mL/min}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
+      "In \"The Excretory System\", glomerular filtration rate is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mL/min}$.",
+      "In \"The Excretory System\", glomerular filtration rate is expressed in $\\text{mL/min}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge)."
     ],
     "correctIndex": 3,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Excretory System, glomerular filtration rate is quantified in $\\text{\\text{mL/min}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Excretory System, glomerular filtration rate is quantified in $\\text{mL/min}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -54254,13 +54254,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mL/min}",
     "options": [
-      "glomerular filtration rate = $5.33\\text{ \\text{mL/min}}$",
-      "glomerular filtration rate = $10.67\\text{ \\text{mL/min}}$",
-      "glomerular filtration rate = $16.00\\text{ \\text{mL/min}}$",
-      "glomerular filtration rate = $21.34\\text{ \\text{mL/min}}$"
+      "glomerular filtration rate = $5.33\\text{mL/min}$",
+      "glomerular filtration rate = $10.67\\text{mL/min}$",
+      "glomerular filtration rate = $16.00\\text{mL/min}$",
+      "glomerular filtration rate = $21.34\\text{mL/min}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters: $A = 48.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{48.0}{4.5} = 10.67\\text{ \\text{mL/min}}$$.\nStep 3: Significant figures verify $10.67\\text{ \\text{mL/min}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 48.0$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{48.0}{4.5} = 10.67\\text{mL/min}$$.\nStep 3: Significant figures verify $10.67\\text{mL/min}$.",
     "rubricCER": null
   },
   {
@@ -54480,18 +54480,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Excretory System\", a student measures initial parameters $P_1 = 125.0\\text{ \\text{mL/min}}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Excretory System\", a student measures initial parameters $P_1 = 125.0\\text{mL/min}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "880",
     "tolerance": 0.5,
     "unit": "\\text{mL/min}",
     "options": [
-      "glomerular filtration rate Product $Y = 900\\text{ \\text{mL/min}}$",
-      "glomerular filtration rate Product $Y = 875\\text{ \\text{mL/min}}$",
-      "glomerular filtration rate Product $Y = 875.0\\text{ \\text{mL/min}}$",
-      "glomerular filtration rate Product $Y = 880\\text{ \\text{mL/min}}$"
+      "glomerular filtration rate Product $Y = 875.0\\text{ mL/min}$",
+      "glomerular filtration rate Product $Y = 880\\text{ mL/min}$",
+      "glomerular filtration rate Product $Y = 900\\text{ mL/min}$",
+      "glomerular filtration rate Product $Y = 88\\text{ mL/min}$"
     ],
-    "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 125.0\\text{ \\text{mL/min}}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (125.0)(7.0) = 875\\text{ \\text{mL/min}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 875 to 2 significant figures yields $880\\text{ \\text{mL/min}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 125.0\\text{mL/min}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (125.0)(7.0) = 875\\text{mL/min}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 875 to 2 significant figures yields $880\\text{mL/min}$.",
     "rubricCER": null
   },
   {
@@ -55700,12 +55700,12 @@ export const questionBankBio = [
     "question": "In quantitative metrology for \"Nutrition\", what are the correct SI derived units and dimensional representation for **caloric energy yield** ($E_{\\text{cal}} = 4C + 4P + 9L$)?",
     "options": [
       "In \"Nutrition\", caloric energy yield is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{kcal})}^{-1}$, confusing rate with state duration.",
-      "In \"Nutrition\", caloric energy yield is expressed in $\\text{\\text{kcal}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Nutrition\", caloric energy yield is expressed in $\\text{kcal}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Nutrition\", caloric energy yield is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Nutrition\", caloric energy yield is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{kcal}}$."
+      "In \"Nutrition\", caloric energy yield is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{kcal}$."
     ],
     "correctIndex": 1,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Nutrition, caloric energy yield is quantified in $\\text{\\text{kcal}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Nutrition, caloric energy yield is quantified in $\\text{kcal}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -55774,13 +55774,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{kcal}",
     "options": [
-      "caloric energy yield = $6.19\\text{ \\text{kcal}}$",
-      "caloric energy yield = $18.57\\text{ \\text{kcal}}$",
-      "caloric energy yield = $24.76\\text{ \\text{kcal}}$",
-      "caloric energy yield = $12.38\\text{ \\text{kcal}}$"
+      "caloric energy yield = $6.19\\text{kcal}$",
+      "caloric energy yield = $18.57\\text{kcal}$",
+      "caloric energy yield = $24.76\\text{kcal}$",
+      "caloric energy yield = $12.38\\text{kcal}$"
     ],
     "correctIndex": 3,
-    "explanation": "Step 1: Identify given parameters: $A = 49.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{49.5}{4.0} = 12.38\\text{ \\text{kcal}}$$.\nStep 3: Significant figures verify $12.38\\text{ \\text{kcal}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 49.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{49.5}{4.0} = 12.38\\text{kcal}$$.\nStep 3: Significant figures verify $12.38\\text{kcal}$.",
     "rubricCER": null
   },
   {
@@ -56000,18 +56000,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Nutrition\", a student measures initial parameters $P_1 = 126.0\\text{ \\text{kcal}}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Nutrition\", a student measures initial parameters $P_1 = 126.0\\text{kcal}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "760",
     "tolerance": 0.5,
     "unit": "\\text{kcal}",
     "options": [
-      "caloric energy yield Product $Y = 756\\text{ \\text{kcal}}$",
-      "caloric energy yield Product $Y = 800\\text{ \\text{kcal}}$",
-      "caloric energy yield Product $Y = 760\\text{ \\text{kcal}}$",
-      "caloric energy yield Product $Y = 756.0\\text{ \\text{kcal}}$"
+      "caloric energy yield Product $Y = 756.0\\text{ kcal}$",
+      "caloric energy yield Product $Y = 760\\text{ kcal}$",
+      "caloric energy yield Product $Y = 800\\text{ kcal}$",
+      "caloric energy yield Product $Y = 76\\text{ kcal}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 126.0\\text{ \\text{kcal}}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (126.0)(6.0) = 756\\text{ \\text{kcal}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 756 to 2 significant figures yields $760\\text{ \\text{kcal}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 126.0\\text{kcal}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (126.0)(6.0) = 756\\text{kcal}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 756 to 2 significant figures yields $760\\text{kcal}$.",
     "rubricCER": null
   },
   {
@@ -56459,13 +56459,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"The Endocrine System\", what are the correct SI derived units and dimensional representation for **homeostatic glucose correction** ($\\Delta [G] = -k([G] - 90)$)?",
     "options": [
-      "In \"The Endocrine System\", homeostatic glucose correction is expressed in $\\text{\\text{mg/dL}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"The Endocrine System\", homeostatic glucose correction is expressed in $\\text{mg/dL}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"The Endocrine System\", homeostatic glucose correction is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mg/dL})}^{-1}$, confusing rate with state duration.",
       "In \"The Endocrine System\", homeostatic glucose correction is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"The Endocrine System\", homeostatic glucose correction is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mg/dL}}$."
+      "In \"The Endocrine System\", homeostatic glucose correction is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mg/dL}$."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Endocrine System, homeostatic glucose correction is quantified in $\\text{\\text{mg/dL}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Endocrine System, homeostatic glucose correction is quantified in $\\text{mg/dL}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -56534,13 +56534,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mg/dL}",
     "options": [
-      "homeostatic glucose correction = $22.00\\text{ \\text{mg/dL}}$",
-      "homeostatic glucose correction = $16.50\\text{ \\text{mg/dL}}$",
-      "homeostatic glucose correction = $11.00\\text{ \\text{mg/dL}}$",
-      "homeostatic glucose correction = $5.50\\text{ \\text{mg/dL}}$"
+      "homeostatic glucose correction = $22.00\\text{mg/dL}$",
+      "homeostatic glucose correction = $16.50\\text{mg/dL}$",
+      "homeostatic glucose correction = $11.00\\text{mg/dL}$",
+      "homeostatic glucose correction = $5.50\\text{mg/dL}$"
     ],
     "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters: $A = 49.5$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{49.5}{4.5} = 11.00\\text{ \\text{mg/dL}}$$.\nStep 3: Significant figures verify $11.00\\text{ \\text{mg/dL}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 49.5$, $B = 4.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{49.5}{4.5} = 11.00\\text{mg/dL}$$.\nStep 3: Significant figures verify $11.00\\text{mg/dL}$.",
     "rubricCER": null
   },
   {
@@ -56760,18 +56760,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Endocrine System\", a student measures initial parameters $P_1 = 129.0\\text{ \\text{mg/dL}}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Endocrine System\", a student measures initial parameters $P_1 = 129.0\\text{mg/dL}$ (4 significant figures) and multiplier factor $\\beta = 7.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "900",
     "tolerance": 0.5,
     "unit": "\\text{mg/dL}",
     "options": [
-      "homeostatic glucose correction Product $Y = 900\\text{ \\text{mg/dL}}$",
-      "homeostatic glucose correction Product $Y = 903.0\\text{ \\text{mg/dL}}$",
-      "homeostatic glucose correction Product $Y = 900\\text{ \\text{mg/dL}}$",
-      "homeostatic glucose correction Product $Y = 903\\text{ \\text{mg/dL}}$"
+      "homeostatic glucose correction Product $Y = 903.0\\text{ mg/dL}$",
+      "homeostatic glucose correction Product $Y = 900\\text{ mg/dL}$",
+      "homeostatic glucose correction Product $Y = 1000\\text{ mg/dL}$",
+      "homeostatic glucose correction Product $Y = 90\\text{ mg/dL}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 129.0\\text{ \\text{mg/dL}}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (129.0)(7.0) = 903\\text{ \\text{mg/dL}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 903 to 2 significant figures yields $900\\text{ \\text{mg/dL}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 129.0\\text{mg/dL}$ (4 sig figs), $\\beta = 7.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (129.0)(7.0) = 903\\text{mg/dL}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 7.0$, having 2 sig figs). Rounding 903 to 2 significant figures yields $900\\text{mg/dL}$.",
     "rubricCER": null
   },
   {
@@ -57219,13 +57219,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Reproductive Systems\", what are the correct SI derived units and dimensional representation for **luteal phase duration** ($\\text{Cycle Day} = \\text{LH Peak} + 14$)?",
     "options": [
-      "In \"Reproductive Systems\", luteal phase duration is expressed in $\\text{\\text{days}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
-      "In \"Reproductive Systems\", luteal phase duration is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{days}}$.",
+      "In \"Reproductive Systems\", luteal phase duration is expressed in $\\text{days}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Reproductive Systems\", luteal phase duration is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{days}$.",
       "In \"Reproductive Systems\", luteal phase duration is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"Reproductive Systems\", luteal phase duration is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{days})}^{-1}$, confusing rate with state duration."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Reproductive Systems, luteal phase duration is quantified in $\\text{\\text{days}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Reproductive Systems, luteal phase duration is quantified in $\\text{days}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -57294,13 +57294,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{days}",
     "options": [
-      "luteal phase duration = $14.57\\text{ \\text{days}}$",
-      "luteal phase duration = $7.29\\text{ \\text{days}}$",
-      "luteal phase duration = $29.14\\text{ \\text{days}}$",
-      "luteal phase duration = $21.86\\text{ \\text{days}}$"
+      "luteal phase duration = $14.57\\text{days}$",
+      "luteal phase duration = $7.29\\text{days}$",
+      "luteal phase duration = $29.14\\text{days}$",
+      "luteal phase duration = $21.86\\text{days}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 51.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{51.0}{3.5} = 14.57\\text{ \\text{days}}$$.\nStep 3: Significant figures verify $14.57\\text{ \\text{days}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 51.0$, $B = 3.5$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{51.0}{3.5} = 14.57\\text{days}$$.\nStep 3: Significant figures verify $14.57\\text{days}$.",
     "rubricCER": null
   },
   {
@@ -57520,18 +57520,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Reproductive Systems\", a student measures initial parameters $P_1 = 127.0\\text{ \\text{days}}$ (4 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Reproductive Systems\", a student measures initial parameters $P_1 = 127.0\\text{days}$ (4 significant figures) and multiplier factor $\\beta = 5.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "640",
     "tolerance": 0.5,
     "unit": "\\text{days}",
     "options": [
-      "luteal phase duration Product $Y = 635.0\\text{ \\text{days}}$",
-      "luteal phase duration Product $Y = 640\\text{ \\text{days}}$",
-      "luteal phase duration Product $Y = 635\\text{ \\text{days}}$",
-      "luteal phase duration Product $Y = 600\\text{ \\text{days}}$"
+      "luteal phase duration Product $Y = 635.0\\text{ days}$",
+      "luteal phase duration Product $Y = 640\\text{ days}$",
+      "luteal phase duration Product $Y = 600\\text{ days}$",
+      "luteal phase duration Product $Y = 64\\text{ days}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 127.0\\text{ \\text{days}}$ (4 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (127.0)(5.0) = 635\\text{ \\text{days}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 635 to 2 significant figures yields $640\\text{ \\text{days}}$.",
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 127.0\\text{days}$ (4 sig figs), $\\beta = 5.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (127.0)(5.0) = 635\\text{days}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 5.0$, having 2 sig figs). Rounding 635 to 2 significant figures yields $640\\text{days}$.",
     "rubricCER": null
   },
   {
@@ -57979,13 +57979,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"Human Development Before Birth\", what are the correct SI derived units and dimensional representation for **crown-rump length** ($\\text{CRL} = 1.05 \\times t^{1.4}$)?",
     "options": [
-      "In \"Human Development Before Birth\", crown-rump length is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{mm}}$.",
+      "In \"Human Development Before Birth\", crown-rump length is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{mm}$.",
       "In \"Human Development Before Birth\", crown-rump length is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
-      "In \"Human Development Before Birth\", crown-rump length is expressed in $\\text{\\text{mm}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"Human Development Before Birth\", crown-rump length is expressed in $\\text{mm}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"Human Development Before Birth\", crown-rump length is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{mm})}^{-1}$, confusing rate with state duration."
     ],
     "correctIndex": 2,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In Human Development Before Birth, crown-rump length is quantified in $\\text{\\text{mm}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In Human Development Before Birth, crown-rump length is quantified in $\\text{mm}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -58054,13 +58054,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{mm}",
     "options": [
-      "crown-rump length = $19.13\\text{ \\text{mm}}$",
-      "crown-rump length = $12.75\\text{ \\text{mm}}$",
-      "crown-rump length = $25.50\\text{ \\text{mm}}$",
-      "crown-rump length = $6.38\\text{ \\text{mm}}$"
+      "crown-rump length = $19.13\\text{mm}$",
+      "crown-rump length = $12.75\\text{mm}$",
+      "crown-rump length = $25.50\\text{mm}$",
+      "crown-rump length = $6.38\\text{mm}$"
     ],
     "correctIndex": 1,
-    "explanation": "Step 1: Identify given parameters: $A = 51.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{51.0}{4.0} = 12.75\\text{ \\text{mm}}$$.\nStep 3: Significant figures verify $12.75\\text{ \\text{mm}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 51.0$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{51.0}{4.0} = 12.75\\text{mm}$$.\nStep 3: Significant figures verify $12.75\\text{mm}$.",
     "rubricCER": null
   },
   {
@@ -58280,18 +58280,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"Human Development Before Birth\", a student measures initial parameters $P_1 = 130.0\\text{ \\text{mm}}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"Human Development Before Birth\", a student measures initial parameters $P_1 = 130.0\\text{mm}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "780",
     "tolerance": 0.5,
     "unit": "\\text{mm}",
     "options": [
-      "crown-rump length Product $Y = 780\\text{ \\text{mm}}$",
-      "crown-rump length Product $Y = 780\\text{ \\text{mm}}$",
-      "crown-rump length Product $Y = 780.0\\text{ \\text{mm}}$",
-      "crown-rump length Product $Y = 800\\text{ \\text{mm}}$"
+      "crown-rump length Product $Y = 780.00\\text{ mm}$",
+      "crown-rump length Product $Y = 780\\text{ mm}$",
+      "crown-rump length Product $Y = 800\\text{ mm}$",
+      "crown-rump length Product $Y = 78\\text{ mm}$"
     ],
-    "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 130.0\\text{ \\text{mm}}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (130.0)(6.0) = 780\\text{ \\text{mm}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 780 to 2 significant figures yields $780\\text{ \\text{mm}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 130.0\\text{mm}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (130.0)(6.0) = 780\\text{mm}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 780 to 2 significant figures yields $780\\text{mm}$.",
     "rubricCER": null
   },
   {
@@ -60259,13 +60259,13 @@ export const questionBankBio = [
     "angle": "si_units_dimensions",
     "question": "In quantitative metrology for \"The Immune System\", what are the correct SI derived units and dimensional representation for **multivalent functional avidity** ($\\text{Avidity} = K_a \\times n$)?",
     "options": [
-      "In \"The Immune System\", multivalent functional avidity is expressed in $\\text{\\text{M}^{-1}}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
+      "In \"The Immune System\", multivalent functional avidity is expressed in $\\text{M}^{-1}$, which dimensionally satisfies fundamental base quantities (mass, length, time, or electric charge).",
       "In \"The Immune System\", multivalent functional avidity is a purely dimensionless logarithmic ratio (like pH or decibels) and therefore cannot be expressed in standard SI units.",
       "In \"The Immune System\", multivalent functional avidity is dimensionally inverted, expressed in the reciprocal units $\\text{(\\text{M}^{-1})}^{-1}$, confusing rate with state duration.",
-      "In \"The Immune System\", multivalent functional avidity is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{\\text{M}^{-1}}$."
+      "In \"The Immune System\", multivalent functional avidity is expressed in $\\text{J} \\cdot \\text{s}^2$, representing a second-order action integral rather than $\\text{M}^{-1}$."
     ],
     "correctIndex": 0,
-    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Immune System, multivalent functional avidity is quantified in $\\text{\\text{M}^{-1}}$, verifying algebraic derivations against SI base dimensions.",
+    "explanation": "Dimensional consistency is a foundational test of physical validity. In The Immune System, multivalent functional avidity is quantified in $\\text{M}^{-1}$, verifying algebraic derivations against SI base dimensions.",
     "rubricCER": null,
     "hasDiagram": false,
     "diagram": null
@@ -60334,13 +60334,13 @@ export const questionBankBio = [
     "tolerance": 0.05,
     "unit": "\\text{M}^{-1}",
     "options": [
-      "multivalent functional avidity = $13.13\\text{ \\text{M}^{-1}}$",
-      "multivalent functional avidity = $6.57\\text{ \\text{M}^{-1}}$",
-      "multivalent functional avidity = $26.26\\text{ \\text{M}^{-1}}$",
-      "multivalent functional avidity = $19.70\\text{ \\text{M}^{-1}}$"
+      "multivalent functional avidity = $13.13\\text{M}^{-1}$",
+      "multivalent functional avidity = $6.57\\text{M}^{-1}$",
+      "multivalent functional avidity = $26.26\\text{M}^{-1}$",
+      "multivalent functional avidity = $19.70\\text{M}^{-1}$"
     ],
     "correctIndex": 0,
-    "explanation": "Step 1: Identify given parameters: $A = 52.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{52.5}{4.0} = 13.13\\text{ \\text{M}^{-1}}$$.\nStep 3: Significant figures verify $13.13\\text{ \\text{M}^{-1}}$.",
+    "explanation": "Step 1: Identify given parameters: $A = 52.5$, $B = 4.0$.\nStep 2: Apply formula: $$X = \\frac{A}{B} = \\frac{52.5}{4.0} = 13.13\\text{M}^{-1}$$.\nStep 3: Significant figures verify $13.13\\text{M}^{-1}$.",
     "rubricCER": null
   },
   {
@@ -60560,18 +60560,18 @@ export const questionBankBio = [
     "difficulty": "ap_olympiad",
     "difficultyTier": "hard",
     "angle": "sigfig_multistep_calculation",
-    "question": "In a multi-step analytical calculation for \"The Immune System\", a student measures initial parameters $P_1 = 134.0\\text{ \\text{M}^{-1}}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
+    "question": "In a multi-step analytical calculation for \"The Immune System\", a student measures initial parameters $P_1 = 134.0\\text{M}^{-1}$ (4 significant figures) and multiplier factor $\\beta = 6.0$ (2 significant figures). Calculate the resulting product $Y = P_1 \\times \\beta$ adhering strictly to standard scientific significant figure rules.",
     "correctAnswer": "800",
     "tolerance": 0.5,
     "unit": "\\text{M}^{-1}",
     "options": [
-      "multivalent functional avidity Product $Y = 804.0\\text{ \\text{M}^{-1}}$",
-      "multivalent functional avidity Product $Y = 800\\text{ \\text{M}^{-1}}$",
-      "multivalent functional avidity Product $Y = 800\\text{ \\text{M}^{-1}}$",
-      "multivalent functional avidity Product $Y = 804\\text{ \\text{M}^{-1}}$"
+      "multivalent functional avidity Product $Y = 804.0\\text{ M^{-1}}$",
+      "multivalent functional avidity Product $Y = 800\\text{ M^{-1}}$",
+      "multivalent functional avidity Product $Y = 920\\text{ M^{-1}}$",
+      "multivalent functional avidity Product $Y = 80\\text{ M^{-1}}$"
     ],
-    "correctIndex": 2,
-    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 134.0\\text{ \\text{M}^{-1}}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (134.0)(6.0) = 804\\text{ \\text{M}^{-1}}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 804 to 2 significant figures yields $800\\text{ \\text{M}^{-1}}$.",
+    "correctIndex": 1,
+    "explanation": "Step 1: Identify given parameters and their precision: $P_1 = 134.0\\text{M}^{-1}$ (4 sig figs), $\\beta = 6.0$ (2 sig figs).\nStep 2: Calculate raw unrounded product: $$Y = P_1 \\times \\beta = (134.0)(6.0) = 804\\text{M}^{-1}$$.\nStep 3: Multiplication rule: The result retains the fewest significant figures ($\\beta = 6.0$, having 2 sig figs). Rounding 804 to 2 significant figures yields $800\\text{M}^{-1}$.",
     "rubricCER": null
   },
   {
