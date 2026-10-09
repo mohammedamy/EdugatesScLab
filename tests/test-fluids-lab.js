@@ -301,6 +301,106 @@ test("phys-fluids-buoyancy.js implements Torricelli and Mano-Probe UI and canvas
   assert(code.includes("Torricelli's Efflux Velocity"), "Lab report modal must include Torricelli equation");
 });
 
+test("Pascal's Principle isobaric pressure transmission P1 = P2 and Mechanical Advantage IMA = (D2/D1)²", () => {
+  const d1 = 0.04; // 4.0 cm
+  const d2 = 0.20; // 20.0 cm
+  const a1 = Math.PI * Math.pow(d1 / 2, 2); // 1.2566e-3 m²
+  const a2 = Math.PI * Math.pow(d2 / 2, 2); // 3.1416e-2 m²
+  const ima = a2 / a1; // 25.0
+  assert(Math.abs(ima - 25.0) < 1e-6, `Expected IMA = 25.0, got ${ima}`);
+
+  const f1 = 150.0; // N applied
+  const f2 = f1 * ima; // 3750 N output lift
+  assert(Math.abs(f2 - 3750.0) < 1e-6, `Expected F2 = 3750 N, got ${f2}`);
+
+  // Isobaric pressure equality
+  const p1 = f1 / a1; // Pa
+  const p2 = f2 / a2; // Pa
+  assert(Math.abs(p1 - p2) < 1e-6, `Pascal's principle violated: P1 (${p1}) != P2 (${p2})`);
+  assert(Math.abs(p1 / 1000 - 119.366) < 0.1, `Expected pressure ~119.37 kPa, got ${p1 / 1000}`);
+});
+
+test("Hydraulic stroke volume conservation A1·d1 = A2·d2 and stroke displacement d2 = d1 / IMA", () => {
+  const d1 = 0.04;
+  const d2 = 0.20;
+  const a1 = Math.PI * Math.pow(d1 / 2, 2);
+  const a2 = Math.PI * Math.pow(d2 / 2, 2);
+  const ima = a2 / a1;
+
+  const stroke1 = 0.12; // 12.0 cm input stroke
+  const stroke2 = stroke1 / ima; // 0.0048 m = 0.48 cm
+  assert(Math.abs(stroke2 * 100 - 0.48) < 1e-6, `Expected output stroke d2 = 0.48 cm, got ${stroke2 * 100}`);
+
+  // Displaced volume conservation
+  const vol1 = a1 * stroke1;
+  const vol2 = a2 * stroke2;
+  assert(Math.abs(vol1 - vol2) < 1e-9, `Volume conservation violated: V1 (${vol1}) != V2 (${vol2})`);
+});
+
+test("Conservation of Energy and Work equivalence W1 = F1·d1 = W2 = F2·d2", () => {
+  const f1 = 150.0;
+  const stroke1 = 0.12;
+  const w1 = f1 * stroke1; // 18.0 J
+
+  const d1 = 0.04;
+  const d2 = 0.20;
+  const ima = Math.pow(d2 / d1, 2); // 25.0
+  const f2 = f1 * ima; // 3750 N
+  const stroke2 = stroke1 / ima; // 0.0048 m
+  const w2 = f2 * stroke2; // 18.0 J
+
+  assert(Math.abs(w1 - 18.0) < 1e-6, `Input work should be 18.0 J, got ${w1}`);
+  assert(Math.abs(w2 - 18.0) < 1e-6, `Output work should be 18.0 J, got ${w2}`);
+  assert(Math.abs(w1 - w2) < 1e-9, `Energy conservation violated: W1 (${w1}) != W2 (${w2})`);
+});
+
+test("Hydraulic vehicle load lifting threshold F2 >= m_load · g", () => {
+  const g = 9.81;
+  const ima = 25.0;
+
+  // Calibration weights: 300 kg -> 2943 N
+  const wWeights = 300 * g;
+  const f1_150 = 150.0;
+  const f2_150 = f1_150 * ima; // 3750 N
+  assert(f2_150 >= wWeights, "150 N input force must successfully lift 300 kg calibration weights");
+
+  // Sedan car: 1500 kg -> 14,715 N
+  const wCar = 1500 * g;
+  assert(f2_150 < wCar, "150 N input force must be insufficient to lift 1500 kg car");
+  const f1MinCar = wCar / ima; // 588.6 N
+  assert(f1MinCar > 588.0 && f1MinCar < 589.0, `Min force to lift sedan should be ~588.6 N, got ${f1MinCar}`);
+  const f2CarLift = 600.0 * ima; // 15,000 N
+  assert(f2CarLift >= wCar, "600 N input force must successfully lift 1500 kg car");
+
+  // Forklift: 3800 kg -> 37,278 N
+  const wForklift = 3800 * g;
+  // With D1 = 3 cm, D2 = 30 cm -> IMA = 100x
+  const imaHigh = Math.pow(30 / 3, 2); // 100x
+  const f1MinForklift = wForklift / imaHigh; // 372.78 N
+  assert(f1MinForklift < 400.0, "Forklift liftable with 100x mechanical advantage under 400 N input");
+});
+
+test("phys-fluids-buoyancy.js implements Pascal Hydraulic Lift UI controls, Bourdon gauge, and load library", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
+  assert(code.includes("panel-hydraulic-controls"), "Must include hydraulic controls panel");
+  assert(code.includes("slider-input-force"), "Must include input force slider");
+  assert(code.includes("slider-d1"), "Must include D1 cylinder diameter slider");
+  assert(code.includes("slider-d2"), "Must include D2 cylinder diameter slider");
+  assert(code.includes("slider-input-stroke"), "Must include input stroke slider");
+  assert(code.includes("select-hydraulic-load"), "Must include lifted load selector");
+  assert(code.includes("HYDRAULIC_LOADS"), "Must include vehicle and load preset dictionary");
+  assert(code.includes("val-hydraulic-ima"), "Must include IMA mechanical advantage readout");
+  assert(code.includes("val-hydraulic-work"), "Must include work done energy conservation readout");
+  assert(code.includes("val-hydraulic-maxlift"), "Must include max lift capacity readout");
+  assert(code.includes("badge-hydraulic-status"), "Must include hydraulic status badge");
+  assert(code.includes("function drawHydraulicPress"), "Must include photorealistic hydraulic press renderer");
+  assert(code.includes("function drawHydraulicLoad"), "Must include vehicle and platform load renderer");
+  assert(code.includes("isDraggingPiston1"), "Must implement tactile dragging on input piston handle");
+  assert(code.includes("Pascal's Pressure Transmission"), "Lab dossier must include Pascal equation");
+  assert(code.includes("Ideal Mechanical Advantage"), "Lab dossier must include IMA equation");
+  assert(code.includes("Work / Energy Conservation"), "Lab dossier must include Work conservation equation");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Fluids Lab Tests: All ${passed} Passed!`);
 console.log("========================================================\n");

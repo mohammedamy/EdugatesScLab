@@ -49,8 +49,16 @@ export function initFluidsBuoyancyLab(containerId) {
     gold: { name: "Pure Gold (24 Karat)", density: 19320.0, color: "#eab308", borderColor: "#ca8a04" }
   };
 
+  // Pascal Hydraulic Lift Vehicle & Load Library
+  const HYDRAULIC_LOADS = {
+    car: { name: "Passenger Sedan Car", massKg: 1500, color: "#38bdf8", icon: "🚗" },
+    suv: { name: "Heavy SUV / Pickup Truck", massKg: 2400, color: "#f59e0b", icon: "🚙" },
+    forklift: { name: "Industrial Warehouse Forklift", massKg: 3800, color: "#eab308", icon: "🚜" },
+    weights: { name: "Precision Calibration Weights", massKg: 300, color: "#a855f7", icon: "⚖️" }
+  };
+
   // Simulation State
-  let apparatusMode = "buoyancy"; // "buoyancy", "venturi", or "torricelli"
+  let apparatusMode = "buoyancy"; // "buoyancy", "venturi", "torricelli", or "hydraulic"
   let fluidKey = "water";
   let materialKey = "aluminum";
   let blockVolumeLiters = 1.0; // Liters = 1e-3 m³
@@ -73,6 +81,16 @@ export function initFluidsBuoyancyLab(containerId) {
   let isDraggingProbe = false;
   let dragProbeStartY = 0;
   let dragProbeStartDepth = 10.0;
+
+  // Pascal's Principle Hydraulic Press State
+  let piston1DiameterCm = 4.0; // cm (input small cylinder D1)
+  let piston2DiameterCm = 20.0; // cm (output large cylinder D2)
+  let inputForceN = 150.0; // N (applied force F1)
+  let inputStrokeCm = 12.0; // cm (input piston stroke displacement d1)
+  let liftedLoadKey = "car";
+  let isDraggingPiston1 = false;
+  let dragPistonStartY = 0;
+  let dragPistonStartStroke = 12.0;
 
   let isRunning = true;
   let animId = null;
@@ -389,6 +407,74 @@ export function initFluidsBuoyancyLab(containerId) {
               </div>
             </div>
 
+            <!-- Pascal's Principle Hydraulic Press Controls -->
+            <div id="panel-hydraulic-controls" style="display: none; margin-bottom: 12px;">
+              <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                  <label for="slider-input-force" style="color: #94a3b8;">Input Applied Force F₁ (Small Piston)</label>
+                  <span id="lbl-input-force" style="font-weight: 700; color: #38bdf8; font-family: var(--font-mono);">150 N (15.3 kg equiv)</span>
+                </div>
+                <input type="range" id="slider-input-force" min="10" max="1000" step="10" value="150" role="slider" aria-label="Input Applied Force F1" aria-valuemin="10" aria-valuemax="1000" aria-valuenow="150" style="width: 100%; accent-color: #38bdf8;">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                    <label for="slider-d1" style="color: #94a3b8;">Input Dia. D₁</label>
+                    <span id="lbl-d1" style="font-weight: 700; color: #38bdf8; font-family: var(--font-mono);">4.0 cm</span>
+                  </div>
+                  <input type="range" id="slider-d1" min="2.0" max="8.0" step="0.5" value="4.0" role="slider" aria-label="Input Cylinder Diameter D1" aria-valuemin="2.0" aria-valuemax="8.0" aria-valuenow="4.0" style="width: 100%; accent-color: #38bdf8;">
+                </div>
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                    <label for="slider-d2" style="color: #94a3b8;">Output Dia. D₂</label>
+                    <span id="lbl-d2" style="font-weight: 700; color: #f59e0b; font-family: var(--font-mono);">20.0 cm</span>
+                  </div>
+                  <input type="range" id="slider-d2" min="10.0" max="40.0" step="1.0" value="20.0" role="slider" aria-label="Output Cylinder Diameter D2" aria-valuemin="10.0" aria-valuemax="40.0" aria-valuenow="20.0" style="width: 100%; accent-color: #f59e0b;">
+                </div>
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                  <label for="slider-input-stroke" style="color: #94a3b8;">Piston 1 Stroke d₁ (Displacement)</label>
+                  <span id="lbl-input-stroke" style="font-weight: 700; color: #10b981; font-family: var(--font-mono);">12.0 cm (d₂ = 0.48 cm)</span>
+                </div>
+                <input type="range" id="slider-input-stroke" min="1.0" max="25.0" step="0.5" value="12.0" role="slider" aria-label="Input Piston Stroke Displacement d1" aria-valuemin="1.0" aria-valuemax="25.0" aria-valuenow="12.0" style="width: 100%; accent-color: #10b981;">
+              </div>
+
+              <div style="margin-bottom: 12px;">
+                <label for="select-hydraulic-load" style="font-size: 0.78rem; color: #94a3b8; display: block; margin-bottom: 4px;">Lifted Vehicle &amp; Industrial Load Platform</label>
+                <select id="select-hydraulic-load" class="form-control" aria-label="Lifted Vehicle and Load" style="width: 100%; background: #0f172a; border: 1px solid #334155; color: #f8fafc; border-radius: 6px; padding: 6px 10px; font-size: 0.82rem;">
+                  <option value="car" selected>🚗 Passenger Sedan Car (1,500 kg / 14.7 kN)</option>
+                  <option value="suv">🚙 Heavy SUV / Pickup Truck (2,400 kg / 23.5 kN)</option>
+                  <option value="forklift">🚜 Industrial Warehouse Forklift (3,800 kg / 37.3 kN)</option>
+                  <option value="weights">⚖️ Precision Calibration Weights (300 kg / 2.94 kN)</option>
+                </select>
+              </div>
+
+              <!-- Pascal Hydraulic Telemetry Card -->
+              <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Pascal Mechanical Advantage</span>
+                  <span id="badge-hydraulic-status" style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">IMA = 25.0×</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.76rem;">
+                  <div>
+                    <span style="color: #64748b; display: block; font-size: 0.7rem;">Ideal Mechanical Adv.</span>
+                    <span id="val-hydraulic-ima" style="font-weight: 700; color: #38bdf8; font-family: var(--font-mono);">IMA = 25.0×</span>
+                  </div>
+                  <div>
+                    <span style="color: #64748b; display: block; font-size: 0.7rem;">Energy / Work Done W</span>
+                    <span id="val-hydraulic-work" style="font-weight: 700; color: #facc15; font-family: var(--font-mono);">W = 18.0 J (W₁=W₂)</span>
+                  </div>
+                </div>
+                <div style="margin-top: 6px; font-size: 0.7rem; color: #64748b; display: flex; justify-content: space-between;">
+                  <span>Max Lift Capacity: <strong id="val-hydraulic-maxlift" style="color: #cbd5e1; font-family: var(--font-mono);">382 kg</strong></span>
+                  <span style="color: #94a3b8; font-family: var(--font-mono);">F₂/F₁ = (D₂/D₁)²</span>
+                </div>
+              </div>
+            </div>
+
             <!-- Quick Specs -->
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 8px 10px; font-size: 0.75rem; text-align: center;">
               <div>
@@ -536,6 +622,30 @@ export function initFluidsBuoyancyLab(containerId) {
     const pAtmKPa = 101.325;
     const pAbsKPa = pAtmKPa + pGaugeKPa;
 
+    // Pascal's Principle Hydraulic Press Physics:
+    const d1_m = piston1DiameterCm / 100;
+    const d2_m = piston2DiameterCm / 100;
+    const a1_hyd = Math.PI * Math.pow(d1_m / 2, 2);
+    const a2_hyd = Math.PI * Math.pow(d2_m / 2, 2);
+    const a1Cm2 = a1_hyd * 1e4;
+    const a2Cm2 = a2_hyd * 1e4;
+    const ima = a2_hyd / a1_hyd; // (d2 / d1)^2
+    const outputForceN = inputForceN * ima;
+    const pressurePa = inputForceN / a1_hyd;
+    const pressureKPa = pressurePa / 1000;
+    const pressureBar = pressurePa / 100000;
+    const stroke1M = inputStrokeCm / 100;
+    const stroke2M = stroke1M / ima; // Volume conservation A1*d1 = A2*d2
+    const outputStrokeCm = stroke2M * 100;
+    const dispVolHydM3 = a1_hyd * stroke1M;
+    const dispVolHydLiters = dispVolHydM3 * 1000;
+    const workJ = inputForceN * stroke1M; // W1 = F1*d1 = W2 = F2*d2
+    const load = HYDRAULIC_LOADS[liftedLoadKey] || HYDRAULIC_LOADS.car;
+    const loadWeightN = load.massKg * g;
+    const maxLiftKg = outputForceN / g;
+    const canLiftLoad = outputForceN >= loadWeightN;
+    const minForceToLiftN = loadWeightN / ima;
+
     return {
       f, m, volM3, dispVolM3, massRealKg, weightRealN,
       fbN, weightAppN, massDispKg, normalForceN,
@@ -545,7 +655,11 @@ export function initFluidsBuoyancyLab(containerId) {
       H_total, y_h, headM, vIdeal, vActual, tFlight,
       rangeM, idealRangeM, maxRangeM, nozzleDiaM, nozzleAreaM2,
       qM3s_torr, qLps_torr, isAtMaxRange,
-      probeDepthM, pGaugePa, pGaugeKPa, pAtmKPa, pAbsKPa
+      probeDepthM, pGaugePa, pGaugeKPa, pAtmKPa, pAbsKPa,
+      d1_m, d2_m, a1_hyd, a2_hyd, a1Cm2, a2Cm2, ima,
+      outputForceN, pressurePa, pressureKPa, pressureBar,
+      stroke1M, stroke2M, outputStrokeCm, dispVolHydM3, dispVolHydLiters,
+      workJ, load, loadWeightN, maxLiftKg, canLiftLoad, minForceToLiftN
     };
   }
 
@@ -677,7 +791,7 @@ export function initFluidsBuoyancyLab(containerId) {
           badgeRegime.style.borderColor = "rgba(239, 68, 68, 0.4)";
         }
       }
-    } else {
+    } else if (apparatusMode === "torricelli") {
       // Torricelli Efflux Tank HUD
       if (hudTitleLeft) hudTitleLeft.innerText = "TORRICELLI EFFLUX v";
       if (hudFb) hudFb.innerText = `${calc.vActual.toFixed(2)} m/s`;
@@ -724,6 +838,68 @@ export function initFluidsBuoyancyLab(containerId) {
         badgeMaxRange.style.color = calc.isAtMaxRange ? "#facc15" : "#38bdf8";
         badgeMaxRange.style.background = calc.isAtMaxRange ? "rgba(245, 158, 11, 0.25)" : "rgba(56, 189, 248, 0.15)";
       }
+    } else if (apparatusMode === "hydraulic") {
+      // Pascal's Principle Hydraulic Press HUD
+      if (hudTitleLeft) hudTitleLeft.innerText = "FORCE AMPLIFICATION F₂";
+      if (hudFb) {
+        if (calc.outputForceN >= 1000) {
+          hudFb.innerText = `${(calc.outputForceN / 1000).toFixed(2)} kN`;
+        } else {
+          hudFb.innerText = `${calc.outputForceN.toFixed(1)} N`;
+        }
+      }
+      if (hudSubLeft) hudSubLeft.innerText = `IMA = ${calc.ima.toFixed(1)}× • F₂ = ${(calc.outputForceN).toFixed(0)} N`;
+
+      if (hudTitleRight) hudTitleRight.innerText = "HYDRAULIC PRESSURE P";
+      if (hudWapp) {
+        hudWapp.innerText = `${calc.pressureKPa.toFixed(1)} kPa`;
+        hudWapp.style.color = "#38bdf8";
+      }
+      if (hudSubRight) hudSubRight.innerText = `${calc.pressureBar.toFixed(2)} bar (Pascal Transmitted)`;
+
+      if (labelStat1) labelStat1.innerText = "Input Force F₁";
+      if (infoRhof) infoRhof.innerText = `${inputForceN.toFixed(0)} N`;
+      if (labelStat2) labelStat2.innerText = "Output Stroke d₂";
+      if (infoWreal) infoWreal.innerText = `${(calc.outputStrokeCm).toFixed(2)} cm`;
+      if (labelStat3) labelStat3.innerText = "Work Conserved W";
+      if (infoMdisp) {
+        infoMdisp.innerText = `${calc.workJ.toFixed(1)} J (W₁=W₂)`;
+        infoMdisp.style.color = "#10b981";
+      }
+
+      if (badgeFloat) {
+        if (calc.canLiftLoad) {
+          badgeFloat.innerText = `✓ Lifting ${calc.load.name} (${calc.load.massKg} kg)`;
+          badgeFloat.style.color = "#34d399";
+          badgeFloat.style.background = "rgba(16, 185, 129, 0.15)";
+        } else {
+          badgeFloat.innerText = `✗ Insufficient Force (${(calc.outputForceN / 1000).toFixed(1)} kN < ${(calc.loadWeightN / 1000).toFixed(1)} kN)`;
+          badgeFloat.style.color = "#f59e0b";
+          badgeFloat.style.background = "rgba(245, 158, 11, 0.15)";
+        }
+      }
+
+      const lblInputForce = container.querySelector("#lbl-input-force");
+      const lblD1 = container.querySelector("#lbl-d1");
+      const lblD2 = container.querySelector("#lbl-d2");
+      const lblStroke = container.querySelector("#lbl-input-stroke");
+      const valIma = container.querySelector("#val-hydraulic-ima");
+      const valWork = container.querySelector("#val-hydraulic-work");
+      const valMaxLift = container.querySelector("#val-hydraulic-maxlift");
+      const badgeHyd = container.querySelector("#badge-hydraulic-status");
+
+      if (lblInputForce) lblInputForce.innerText = `${inputForceN.toFixed(0)} N (${(inputForceN / g).toFixed(1)} kg equiv)`;
+      if (lblD1) lblD1.innerText = `${piston1DiameterCm.toFixed(1)} cm (A₁ = ${calc.a1Cm2.toFixed(1)} cm²)`;
+      if (lblD2) lblD2.innerText = `${piston2DiameterCm.toFixed(1)} cm (A₂ = ${calc.a2Cm2.toFixed(1)} cm²)`;
+      if (lblStroke) lblStroke.innerText = `${inputStrokeCm.toFixed(1)} cm (d₂ = ${calc.outputStrokeCm.toFixed(2)} cm)`;
+      if (valIma) valIma.innerText = `IMA = ${calc.ima.toFixed(1)}×`;
+      if (valWork) valWork.innerText = `W = ${calc.workJ.toFixed(2)} J (W₁=W₂)`;
+      if (valMaxLift) valMaxLift.innerText = `${calc.maxLiftKg.toFixed(0)} kg (${(calc.outputForceN / 1000).toFixed(2)} kN)`;
+      if (badgeHyd) {
+        badgeHyd.innerText = `IMA = ${calc.ima.toFixed(1)}× (D₂/D₁)²`;
+        badgeHyd.style.color = calc.canLiftLoad ? "#34d399" : "#38bdf8";
+        badgeHyd.style.background = calc.canLiftLoad ? "rgba(16, 185, 129, 0.2)" : "rgba(56, 189, 248, 0.2)";
+      }
     }
   }
 
@@ -764,6 +940,27 @@ export function initFluidsBuoyancyLab(containerId) {
     c.textAlign = "left";
     c.textBaseline = "middle";
     c.fillText(text, pillX + 15, y);
+    c.restore();
+  }
+
+  function drawVectorArrow(c, fromX, fromY, toX, toY, color, lineWidth = 2) {
+    c.save();
+    c.strokeStyle = color;
+    c.fillStyle = color;
+    c.lineWidth = lineWidth;
+    c.beginPath();
+    c.moveTo(fromX, fromY);
+    c.lineTo(toX, toY);
+    c.stroke();
+
+    const angle = Math.atan2(toY - fromY, toX - fromX);
+    const headLen = Math.max(7, lineWidth * 2.8);
+    c.beginPath();
+    c.moveTo(toX, toY);
+    c.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+    c.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+    c.closePath();
+    c.fill();
     c.restore();
   }
 
@@ -1808,6 +2005,9 @@ export function initFluidsBuoyancyLab(containerId) {
     } else if (apparatusMode === "torricelli") {
       // Torricelli Efflux Tank Mode
       drawTorricelliTank(canvasWidth);
+    } else if (apparatusMode === "hydraulic") {
+      // Pascal's Principle Hydraulic Press Mode
+      drawHydraulicPress(canvasWidth);
     }
   }
 
@@ -2472,23 +2672,39 @@ export function initFluidsBuoyancyLab(containerId) {
     ctx.textBaseline = "middle";
     ctx.fillText("⇅", tankRightX + 8, nozzleY);
 
-    // Orifice Elevation & Head Dimension Indicators
-    drawVectorPill(ctx, tankRightX - 32, nozzleY, `y_h = ${(calc.y_h * 100).toFixed(0)} cm`, isDraggingOrifice ? "#facc15" : "#38bdf8", "center");
+    // 6b. Dual Dimension Brackets: Liquid Head (h) and Orifice Elevation (y_h)
+    // Both brackets partition total column H = h + y_h without visual collision
+    const dimBracketX = tankRightX - 48;
 
-    // Liquid Head h dimension line inside tank
-    ctx.strokeStyle = "rgba(250, 204, 21, 0.75)";
-    ctx.lineWidth = 1.2;
+    // Upper Liquid Head (h) Dimension Line
+    ctx.strokeStyle = "rgba(250, 204, 21, 0.85)";
+    ctx.lineWidth = 1.3;
     ctx.beginPath();
-    ctx.moveTo(tankRightX - 70, liquidSurfaceY);
-    ctx.lineTo(tankRightX - 70, nozzleY);
+    ctx.moveTo(dimBracketX, liquidSurfaceY);
+    ctx.lineTo(dimBracketX, nozzleY);
     ctx.stroke();
+    // Head end tick marks
     ctx.beginPath();
-    ctx.moveTo(tankRightX - 74, liquidSurfaceY);
-    ctx.lineTo(tankRightX - 66, liquidSurfaceY);
-    ctx.moveTo(tankRightX - 74, nozzleY);
-    ctx.lineTo(tankRightX - 66, nozzleY);
+    ctx.moveTo(dimBracketX - 5, liquidSurfaceY);
+    ctx.lineTo(dimBracketX + 5, liquidSurfaceY);
+    ctx.moveTo(dimBracketX - 5, nozzleY);
+    ctx.lineTo(dimBracketX + 5, nozzleY);
     ctx.stroke();
-    drawVectorPill(ctx, tankRightX - 72, (liquidSurfaceY + nozzleY) / 2, `h = ${(calc.headM * 100).toFixed(1)} cm`, "#facc15", "center");
+    drawVectorPill(ctx, dimBracketX, (liquidSurfaceY + nozzleY) / 2, `h = ${(calc.headM * 100).toFixed(1)} cm`, "#facc15", "center");
+
+    // Lower Orifice Elevation (y_h) Dimension Line
+    ctx.strokeStyle = isDraggingOrifice ? "rgba(250, 204, 21, 0.85)" : "rgba(56, 189, 248, 0.85)";
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(dimBracketX, nozzleY);
+    ctx.lineTo(dimBracketX, tankFloorY);
+    ctx.stroke();
+    // Elevation end tick marks
+    ctx.beginPath();
+    ctx.moveTo(dimBracketX - 5, tankFloorY);
+    ctx.lineTo(dimBracketX + 5, tankFloorY);
+    ctx.stroke();
+    drawVectorPill(ctx, dimBracketX, (nozzleY + tankFloorY) / 2, `y_h = ${(calc.y_h * 100).toFixed(0)} cm`, isDraggingOrifice ? "#facc15" : "#38bdf8", "center");
 
     // 7. Catch Basin & Graduated Metric Trough
     const troughX = 215;
@@ -2721,6 +2937,636 @@ export function initFluidsBuoyancyLab(containerId) {
     ctx.fillText(calc.isAtMaxRange ? `★ PEAK RANGE: ${calc.maxRangeM.toFixed(2)} m` : `R_max = ${(calc.maxRangeM).toFixed(2)} m (y=0.40m)`, cardX + colW * 2.5, cardY + 32);
   }
 
+  function drawHydraulicPress(canvasWidth) {
+    const canvasHeight = 530;
+    const calc = getCalculations();
+    const benchY = 475;
+
+    // 1. Tabletop Workshop Bench
+    const benchGrad = ctx.createLinearGradient(0, benchY, 0, canvasHeight);
+    benchGrad.addColorStop(0, "#0f172a");
+    benchGrad.addColorStop(0.12, "#1e293b");
+    benchGrad.addColorStop(1, "#090d16");
+    ctx.fillStyle = benchGrad;
+    ctx.fillRect(0, benchY, canvasWidth, canvasHeight - benchY);
+
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY);
+    ctx.lineTo(canvasWidth, benchY);
+    ctx.stroke();
+
+    // Steel base plate mounting brackets
+    ctx.fillStyle = "#334155";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(40, benchY - 10, canvasWidth - 80, 10, 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // 2. Geometry layout
+    const cyl1CenterX = Math.max(90, Math.round(canvasWidth * 0.22));
+    const cyl2CenterX = Math.min(canvasWidth - 140, Math.round(canvasWidth * 0.70));
+    
+    // Scale cylinder diameters in px
+    const cyl1Width = Math.max(30, Math.min(65, (piston1DiameterCm / 8.0) * 55));
+    const cyl2Width = Math.max(80, Math.min(170, (piston2DiameterCm / 40.0) * 150));
+    
+    const manifoldTopY = benchY - 50;
+    const manifoldBotY = benchY - 14;
+
+    const cylTopY = 220; // Top of cylinder bores
+    const cyl1LeftX = cyl1CenterX - cyl1Width / 2;
+    const cyl1RightX = cyl1CenterX + cyl1Width / 2;
+    const cyl2LeftX = cyl2CenterX - cyl2Width / 2;
+    const cyl2RightX = cyl2CenterX + cyl2Width / 2;
+
+    // 3. Fluid Body (Connected U-Tube System)
+    const p1TravelPx = 110;
+    const p1NormStroke = Math.min(1.0, inputStrokeCm / 25.0);
+    const p1Y = cylTopY + 30 + p1NormStroke * p1TravelPx; // Piston 1 face Y
+    
+    // Large piston stroke d2 raises fluid up (A1*d1 = A2*d2)
+    const p2TravelPx = (p1TravelPx / calc.ima);
+    const liftFraction = calc.canLiftLoad ? 1.0 : Math.min(0.9, calc.outputForceN / calc.loadWeightN);
+    const p2LiftPx = p2TravelPx * liftFraction;
+    const p2RestY = manifoldTopY - 20;
+    const p2Y = p2RestY - p2LiftPx; // Piston 2 face Y
+
+    // Fill Hydraulic Fluid
+    const fluidGrad = ctx.createLinearGradient(0, Math.min(p1Y, p2Y), 0, manifoldBotY);
+    if (fluidKey === "oil") {
+      fluidGrad.addColorStop(0, "rgba(234, 179, 8, 0.75)");
+      fluidGrad.addColorStop(0.5, "rgba(202, 138, 4, 0.85)");
+      fluidGrad.addColorStop(1, "rgba(161, 98, 7, 0.95)");
+    } else if (fluidKey === "mercury") {
+      fluidGrad.addColorStop(0, "rgba(148, 163, 184, 0.85)");
+      fluidGrad.addColorStop(0.5, "rgba(100, 116, 139, 0.95)");
+      fluidGrad.addColorStop(1, "rgba(71, 85, 105, 1.0)");
+    } else if (fluidKey === "glycerin") {
+      fluidGrad.addColorStop(0, "rgba(168, 85, 247, 0.75)");
+      fluidGrad.addColorStop(0.5, "rgba(147, 51, 234, 0.85)");
+      fluidGrad.addColorStop(1, "rgba(126, 34, 206, 0.95)");
+    } else {
+      // Default Hydraulic Blue Oil
+      fluidGrad.addColorStop(0, "rgba(14, 165, 233, 0.75)");
+      fluidGrad.addColorStop(0.5, "rgba(2, 132, 199, 0.85)");
+      fluidGrad.addColorStop(1, "rgba(3, 105, 161, 0.95)");
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(cyl1LeftX, p1Y);
+    ctx.lineTo(cyl1RightX, p1Y);
+    ctx.lineTo(cyl1RightX, manifoldTopY);
+    ctx.lineTo(cyl2LeftX, manifoldTopY);
+    ctx.lineTo(cyl2LeftX, p2Y);
+    ctx.lineTo(cyl2RightX, p2Y);
+    ctx.lineTo(cyl2RightX, manifoldBotY);
+    ctx.lineTo(cyl1LeftX, manifoldBotY);
+    ctx.closePath();
+    ctx.fillStyle = fluidGrad;
+    ctx.fill();
+
+    // Internal isobaric pressure flow streamlines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([6, 6]);
+    ctx.lineDashOffset = -simTime * 25;
+    ctx.beginPath();
+    const flowMidY = (manifoldTopY + manifoldBotY) / 2;
+    ctx.moveTo(cyl1CenterX, (p1Y + manifoldTopY) / 2);
+    ctx.lineTo(cyl1CenterX, flowMidY);
+    ctx.lineTo(cyl2CenterX, flowMidY);
+    ctx.lineTo(cyl2CenterX, (p2Y + manifoldTopY) / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // 4. Heavy Steel Cylinder Walls
+    function drawCylinderBore(leftX, rightX, topY, botY, width) {
+      const wallThick = 9;
+      // Left wall
+      const wallGrad1 = ctx.createLinearGradient(leftX - wallThick, 0, leftX, 0);
+      wallGrad1.addColorStop(0, "#1e293b");
+      wallGrad1.addColorStop(0.4, "#475569");
+      wallGrad1.addColorStop(1, "#334155");
+      ctx.fillStyle = wallGrad1;
+      ctx.fillRect(leftX - wallThick, topY, wallThick, botY - topY);
+      ctx.strokeStyle = "#64748b";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(leftX - wallThick, topY, wallThick, botY - topY);
+
+      // Right wall
+      const wallGrad2 = ctx.createLinearGradient(rightX, 0, rightX + wallThick, 0);
+      wallGrad2.addColorStop(0, "#334155");
+      wallGrad2.addColorStop(0.6, "#475569");
+      wallGrad2.addColorStop(1, "#1e293b");
+      ctx.fillStyle = wallGrad2;
+      ctx.fillRect(rightX, topY, wallThick, botY - topY);
+      ctx.strokeStyle = "#64748b";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(rightX, topY, wallThick, botY - topY);
+
+      // Top cylinder flange collar
+      ctx.fillStyle = "#334155";
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.roundRect(leftX - wallThick - 4, topY - 5, width + wallThick * 2 + 8, 8, 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    drawCylinderBore(cyl1LeftX, cyl1RightX, cylTopY, manifoldTopY, cyl1Width);
+    drawCylinderBore(cyl2LeftX, cyl2RightX, cylTopY + 20, manifoldTopY, cyl2Width);
+
+    // Manifold Bottom Pipe Shell
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cyl1RightX, manifoldTopY);
+    ctx.lineTo(cyl2LeftX, manifoldTopY);
+    ctx.moveTo(cyl1LeftX - 9, manifoldBotY);
+    ctx.lineTo(cyl2RightX + 9, manifoldBotY);
+    ctx.stroke();
+
+    // 5. Small Piston Plunger (Piston 1)
+    const p1Thick = 14;
+    const pHeadGrad = ctx.createLinearGradient(cyl1LeftX, 0, cyl1RightX, 0);
+    pHeadGrad.addColorStop(0, "#475569");
+    pHeadGrad.addColorStop(0.4, "#cbd5e1");
+    pHeadGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = pHeadGrad;
+    ctx.fillRect(cyl1LeftX + 1, p1Y - p1Thick, cyl1Width - 2, p1Thick);
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(cyl1LeftX + 1, p1Y - p1Thick / 2 - 2, cyl1Width - 2, 4);
+
+    // Piston Rod
+    const rod1W = Math.max(8, cyl1Width * 0.35);
+    const rod1TopY = p1Y - 70;
+    const rodGrad = ctx.createLinearGradient(cyl1CenterX - rod1W / 2, 0, cyl1CenterX + rod1W / 2, 0);
+    rodGrad.addColorStop(0, "#94a3b8");
+    rodGrad.addColorStop(0.5, "#f8fafc");
+    rodGrad.addColorStop(1, "#475569");
+    ctx.fillStyle = rodGrad;
+    ctx.fillRect(cyl1CenterX - rod1W / 2, rod1TopY, rod1W, p1Y - p1Thick - rod1TopY);
+
+    // Plunger Ergonomic Handle / Push Pad
+    const handleW = Math.max(50, cyl1Width + 24);
+    const handleH = 16;
+    const handleY = rod1TopY - handleH;
+    ctx.save();
+    ctx.fillStyle = isDraggingPiston1 ? "#38bdf8" : "#0284c7";
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 2;
+    ctx.shadowColor = "#38bdf8";
+    ctx.shadowBlur = isDraggingPiston1 ? 14 : 6;
+    ctx.beginPath();
+    ctx.roundRect(cyl1CenterX - handleW / 2, handleY, handleW, handleH, 5);
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Handle grip ridges
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.lineWidth = 1.2;
+    for (let gx = -16; gx <= 16; gx += 8) {
+      ctx.beginPath();
+      ctx.moveTo(cyl1CenterX + gx, handleY + 4);
+      ctx.lineTo(cyl1CenterX + gx, handleY + handleH - 4);
+      ctx.stroke();
+    }
+
+    // Drag Hint & Label on Handle
+    ctx.font = "bold 9px var(--font-mono, monospace)";
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.fillText("INPUT F₁ ↕", cyl1CenterX, handleY - 6);
+    ctx.restore();
+
+    // Applied Force Vector F1 (Pointing Down onto handle)
+    const f1VecLen = Math.min(55, Math.max(22, (inputForceN / 1000) * 55));
+    drawVectorArrow(ctx, cyl1CenterX, handleY - 14 - f1VecLen, cyl1CenterX, handleY - 14, "#38bdf8", 3);
+    ctx.font = "bold 10px var(--font-mono, monospace)";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "center";
+    ctx.fillText(`F₁ = ${inputForceN.toFixed(0)} N`, cyl1CenterX, handleY - 18 - f1VecLen);
+
+    // Stroke d1 dimension bracket
+    const p1RestY = cylTopY + 30;
+    if (p1Y > p1RestY + 4) {
+      const dimX = cyl1LeftX - 16;
+      ctx.strokeStyle = "#34d399";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(dimX - 4, p1RestY);
+      ctx.lineTo(dimX, p1RestY);
+      ctx.lineTo(dimX, p1Y);
+      ctx.lineTo(dimX - 4, p1Y);
+      ctx.stroke();
+      ctx.font = "9px var(--font-mono, monospace)";
+      ctx.fillStyle = "#34d399";
+      ctx.textAlign = "right";
+      ctx.fillText(`d₁ = ${inputStrokeCm.toFixed(1)} cm`, dimX - 6, (p1RestY + p1Y) / 2 + 3);
+    }
+
+    // 6. Large Hydraulic Ram & Lift Platform (Piston 2)
+    const p2Thick = 20;
+    const p2HeadGrad = ctx.createLinearGradient(cyl2LeftX, 0, cyl2RightX, 0);
+    p2HeadGrad.addColorStop(0, "#334155");
+    p2HeadGrad.addColorStop(0.3, "#cbd5e1");
+    p2HeadGrad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = p2HeadGrad;
+    ctx.fillRect(cyl2LeftX + 1, p2Y - p2Thick, cyl2Width - 2, p2Thick);
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(cyl2LeftX + 1, p2Y - p2Thick / 2 - 2, cyl2Width - 2, 5);
+
+    // Heavy Ram Column Rod
+    const rod2W = Math.max(22, cyl2Width * 0.45);
+    const platformH = 18;
+    const platformY = p2Y - p2Thick - 45;
+    const ramGrad = ctx.createLinearGradient(cyl2CenterX - rod2W / 2, 0, cyl2CenterX + rod2W / 2, 0);
+    ramGrad.addColorStop(0, "#475569");
+    ramGrad.addColorStop(0.3, "#f8fafc");
+    ramGrad.addColorStop(0.7, "#94a3b8");
+    ramGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = ramGrad;
+    ctx.fillRect(cyl2CenterX - rod2W / 2, platformY + platformH, rod2W, (p2Y - p2Thick) - (platformY + platformH));
+
+    // Lift Platform (Heavy Steel Table with Safety Hazard Stripes)
+    const platW = Math.max(cyl2Width + 50, 150);
+    const platLeftX = cyl2CenterX - platW / 2;
+    const platRightX = cyl2CenterX + platW / 2;
+
+    const platGrad = ctx.createLinearGradient(0, platformY, 0, platformY + platformH);
+    platGrad.addColorStop(0, "#64748b");
+    platGrad.addColorStop(0.3, "#94a3b8");
+    platGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = platGrad;
+    ctx.fillRect(platLeftX, platformY, platW, platformH);
+    ctx.strokeStyle = "#cbd5e1";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(platLeftX, platformY, platW, platformH);
+
+    // Safety hazard chevron stripes on front lip
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(platLeftX + 1, platformY + 1, platW - 2, platformH - 2);
+    ctx.clip();
+    for (let sx = platLeftX - 10; sx < platRightX + 20; sx += 14) {
+      ctx.fillStyle = "#eab308";
+      ctx.beginPath();
+      ctx.moveTo(sx, platformY + platformH);
+      ctx.lineTo(sx + 7, platformY);
+      ctx.lineTo(sx + 13, platformY);
+      ctx.lineTo(sx + 6, platformY + platformH);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // Lift displacement d2 bracket
+    if (p2LiftPx > 2) {
+      const dim2X = cyl2RightX + 16;
+      ctx.strokeStyle = "#facc15";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(dim2X, p2RestY);
+      ctx.lineTo(dim2X + 4, p2RestY);
+      ctx.lineTo(dim2X + 4, p2Y);
+      ctx.lineTo(dim2X, p2Y);
+      ctx.stroke();
+      ctx.font = "9px var(--font-mono, monospace)";
+      ctx.fillStyle = "#facc15";
+      ctx.textAlign = "left";
+      ctx.fillText(`d₂ = ${calc.outputStrokeCm.toFixed(2)} cm`, dim2X + 7, (p2RestY + p2Y) / 2 + 3);
+    }
+
+    // 7. Render Lifted Vehicle / Load on Platform
+    drawHydraulicLoad(ctx, cyl2CenterX, platformY, calc);
+
+    // Upward Lift Force Vector F2 (Pointing Up from platform)
+    const f2VecLen = Math.min(65, Math.max(25, (calc.outputForceN / (calc.loadWeightN * 1.5)) * 65));
+    drawVectorArrow(ctx, cyl2CenterX, platformY, cyl2CenterX, platformY - f2VecLen, "#10b981", 3.5);
+    ctx.font = "bold 10.5px var(--font-mono, monospace)";
+    ctx.fillStyle = "#10b981";
+    ctx.textAlign = "center";
+    ctx.fillText(`F₂ = ${(calc.outputForceN / 1000).toFixed(2)} kN (${(calc.outputForceN).toFixed(0)} N)`, cyl2CenterX, platformY - f2VecLen - 6);
+
+    // 8. Bourdon Tube Pressure Dial Gauge (Center Manifold)
+    const gaugeX = Math.round((cyl1CenterX + cyl2CenterX) / 2);
+    const gaugeY = manifoldTopY - 32;
+    const gaugeR = 26;
+
+    // Gauge mounting vertical brass stem
+    ctx.fillStyle = "#ca8a04";
+    ctx.fillRect(gaugeX - 4, gaugeY + gaugeR - 2, 8, manifoldTopY - (gaugeY + gaugeR) + 4);
+
+    // Outer Chrome Rim
+    const rimGrad = ctx.createLinearGradient(gaugeX - gaugeR, gaugeY - gaugeR, gaugeX + gaugeR, gaugeY + gaugeR);
+    rimGrad.addColorStop(0, "#f8fafc");
+    rimGrad.addColorStop(0.5, "#64748b");
+    rimGrad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = rimGrad;
+    ctx.beginPath();
+    ctx.arc(gaugeX, gaugeY, gaugeR + 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // White Gauge Face Dial
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(gaugeX, gaugeY, gaugeR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Gauge tick marks
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 1;
+    for (let a = -Math.PI * 0.75; a <= Math.PI * 0.75; a += Math.PI * 0.25) {
+      ctx.beginPath();
+      ctx.moveTo(gaugeX + Math.cos(a) * (gaugeR - 5), gaugeY + Math.sin(a) * (gaugeR - 5));
+      ctx.lineTo(gaugeX + Math.cos(a) * (gaugeR - 1), gaugeY + Math.sin(a) * (gaugeR - 1));
+      ctx.stroke();
+    }
+
+    // Gauge Needle
+    const normP = Math.min(1.0, calc.pressureKPa / 600);
+    const needleAngle = -Math.PI * 0.75 + normP * (Math.PI * 1.5);
+    ctx.save();
+    ctx.strokeStyle = "#dc2626";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(gaugeX, gaugeY);
+    ctx.lineTo(gaugeX + Math.cos(needleAngle) * (gaugeR - 6), gaugeY + Math.sin(needleAngle) * (gaugeR - 6));
+    ctx.stroke();
+    // Center cap
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath();
+    ctx.arc(gaugeX, gaugeY, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Gauge Digital Readout Tag
+    ctx.font = "bold 9px var(--font-mono, monospace)";
+    ctx.fillStyle = "#38bdf8";
+    ctx.textAlign = "center";
+    ctx.fillText(`${calc.pressureKPa.toFixed(0)} kPa`, gaugeX, gaugeY - gaugeR - 6);
+    ctx.font = "7.5px var(--font-mono, monospace)";
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillText(`P = ${calc.pressureBar.toFixed(2)} bar`, gaugeX, gaugeY + gaugeR + 13);
+
+    // 9. Analytical Telemetry Card on Canvas Bottom
+    const cardY = 485;
+    const cardH = 40;
+    const cardX = 35;
+    const cardW = canvasWidth - 70;
+    const colW = cardW / 4;
+
+    ctx.fillStyle = "rgba(15, 23, 42, 0.94)";
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, cardW, cardH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Col 1: Pascal Pressure Transmission
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "8px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("PASCAL'S LAW (ISOBARIC P)", cardX + colW * 0.5, cardY + 13);
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 10px var(--font-mono, monospace)";
+    ctx.fillText(`P₁ = P₂ = ${calc.pressureKPa.toFixed(1)} kPa`, cardX + colW * 0.5, cardY + 30);
+
+    // Divider 1
+    ctx.strokeStyle = "rgba(51, 65, 85, 0.6)";
+    ctx.beginPath();
+    ctx.moveTo(cardX + colW, cardY + 6);
+    ctx.lineTo(cardX + colW, cardY + cardH - 6);
+    ctx.stroke();
+
+    // Col 2: Mechanical Advantage IMA
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "8px system-ui, sans-serif";
+    ctx.fillText("MECHANICAL ADVANTAGE", cardX + colW * 1.5, cardY + 13);
+    ctx.fillStyle = "#34d399";
+    ctx.font = "bold 10px var(--font-mono, monospace)";
+    ctx.fillText(`IMA = (D₂/D₁)² = ${calc.ima.toFixed(1)}×`, cardX + colW * 1.5, cardY + 30);
+
+    // Divider 2
+    ctx.beginPath();
+    ctx.moveTo(cardX + colW * 2, cardY + 6);
+    ctx.lineTo(cardX + colW * 2, cardY + cardH - 6);
+    ctx.stroke();
+
+    // Col 3: Work Conservation
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "8px system-ui, sans-serif";
+    ctx.fillText("ENERGY CONSERVATION (WORK)", cardX + colW * 2.5, cardY + 13);
+    ctx.fillStyle = "#facc15";
+    ctx.font = "bold 10px var(--font-mono, monospace)";
+    ctx.fillText(`W₁ = W₂ = ${calc.workJ.toFixed(2)} J`, cardX + colW * 2.5, cardY + 30);
+
+    // Divider 3
+    ctx.beginPath();
+    ctx.moveTo(cardX + colW * 3, cardY + 6);
+    ctx.lineTo(cardX + colW * 3, cardY + cardH - 6);
+    ctx.stroke();
+
+    // Col 4: Lift Status & Vehicle Load
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "8px system-ui, sans-serif";
+    ctx.fillText("LOAD LIFT STATUS", cardX + colW * 3.5, cardY + 13);
+    ctx.fillStyle = calc.canLiftLoad ? "#34d399" : "#f87171";
+    ctx.font = "bold 10px var(--font-mono, monospace)";
+    ctx.fillText(calc.canLiftLoad ? `✓ LIFTED (${calc.load.massKg} kg)` : `✗ HEAVY (Needs ${(calc.minForceToLiftN).toFixed(0)} N)`, cardX + colW * 3.5, cardY + 30);
+  }
+
+  function drawHydraulicLoad(c, x, platformY, calc) {
+    c.save();
+    const loadKey = liftedLoadKey;
+
+    if (loadKey === "weights") {
+      // Precision Slotted Weights Stack
+      const spindleH = 50;
+      c.fillStyle = "#94a3b8";
+      c.fillRect(x - 3, platformY - spindleH, 6, spindleH);
+      
+      const numWeights = 5;
+      const weightH = 8;
+      for (let i = 0; i < numWeights; i++) {
+        const wY = platformY - (i + 1) * weightH;
+        const wW = 75 - i * 6;
+        const discGrad = c.createLinearGradient(x - wW / 2, 0, x + wW / 2, 0);
+        discGrad.addColorStop(0, "#a855f7");
+        discGrad.addColorStop(0.3, "#e9d5ff");
+        discGrad.addColorStop(1, "#7e22ce");
+        c.fillStyle = discGrad;
+        c.beginPath();
+        c.roundRect(x - wW / 2, wY, wW, weightH - 1, 2);
+        c.fill();
+        c.strokeStyle = "#c084fc";
+        c.lineWidth = 1;
+        c.stroke();
+      }
+      c.font = "bold 9px var(--font-mono, monospace)";
+      c.fillStyle = "#f8fafc";
+      c.textAlign = "center";
+      c.fillText("CALIBRATION DISCS (300 kg)", x, platformY - spindleH - 8);
+    } else if (loadKey === "forklift") {
+      // Industrial Forklift
+      const bY = platformY - 14;
+      // Body chassis
+      c.fillStyle = "#eab308";
+      c.beginPath();
+      c.roundRect(x - 45, bY - 25, 65, 25, [6, 4, 0, 0]);
+      c.fill();
+      // Counterweight rear
+      c.fillStyle = "#334155";
+      c.fillRect(x - 45, bY - 20, 16, 20);
+      // Roll cage cabin
+      c.strokeStyle = "#0f172a";
+      c.lineWidth = 3;
+      c.beginPath();
+      c.moveTo(x - 20, bY - 25);
+      c.lineTo(x - 20, bY - 50);
+      c.lineTo(x + 10, bY - 50);
+      c.lineTo(x + 10, bY - 25);
+      c.stroke();
+      // Front vertical mast
+      c.strokeStyle = "#475569";
+      c.lineWidth = 4;
+      c.beginPath();
+      c.moveTo(x + 22, bY);
+      c.lineTo(x + 22, bY - 55);
+      c.stroke();
+      // Wheels
+      c.fillStyle = "#0f172a";
+      c.beginPath();
+      c.arc(x - 30, platformY - 7, 7, 0, Math.PI * 2);
+      c.arc(x + 15, platformY - 7, 7, 0, Math.PI * 2);
+      c.fill();
+      c.font = "bold 9px var(--font-mono, monospace)";
+      c.fillStyle = "#facc15";
+      c.textAlign = "center";
+      c.fillText("FORKLIFT (3,800 kg)", x - 5, bY - 56);
+    } else if (loadKey === "suv") {
+      // Heavy SUV / Pickup Truck
+      const carW = 120;
+      const wheelR = 8;
+      const carBotY = platformY - wheelR;
+      // Main SUV Body
+      const bodyGrad = c.createLinearGradient(0, carBotY - 38, 0, carBotY);
+      bodyGrad.addColorStop(0, "#f59e0b");
+      bodyGrad.addColorStop(1, "#b45309");
+      c.fillStyle = bodyGrad;
+      c.beginPath();
+      c.roundRect(x - carW / 2, carBotY - 22, carW, 22, [4, 6, 0, 0]);
+      c.fill();
+      // Cabin roof
+      c.beginPath();
+      c.moveTo(x - 35, carBotY - 22);
+      c.lineTo(x - 20, carBotY - 40);
+      c.lineTo(x + 35, carBotY - 40);
+      c.lineTo(x + 50, carBotY - 22);
+      c.closePath();
+      c.fill();
+      // Windows
+      c.fillStyle = "#0284c7";
+      c.beginPath();
+      c.moveTo(x - 16, carBotY - 24);
+      c.lineTo(x - 14, carBotY - 37);
+      c.lineTo(x + 8, carBotY - 37);
+      c.lineTo(x + 8, carBotY - 24);
+      c.closePath();
+      c.moveTo(x + 12, carBotY - 24);
+      c.lineTo(x + 12, carBotY - 37);
+      c.lineTo(x + 30, carBotY - 37);
+      c.lineTo(x + 42, carBotY - 24);
+      c.closePath();
+      c.fill();
+      // Heavy all-terrain wheels
+      c.fillStyle = "#1e293b";
+      c.beginPath();
+      c.arc(x - 38, platformY - wheelR, wheelR, 0, Math.PI * 2);
+      c.arc(x + 38, platformY - wheelR, wheelR, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = "#94a3b8";
+      c.beginPath();
+      c.arc(x - 38, platformY - wheelR, 3.5, 0, Math.PI * 2);
+      c.arc(x + 38, platformY - wheelR, 3.5, 0, Math.PI * 2);
+      c.fill();
+      c.font = "bold 9px var(--font-mono, monospace)";
+      c.fillStyle = "#f59e0b";
+      c.textAlign = "center";
+      c.fillText("SUV / TRUCK (2,400 kg)", x, carBotY - 45);
+    } else {
+      // Default: Sedan Passenger Car
+      const carW = 115;
+      const wheelR = 7;
+      const carBotY = platformY - wheelR;
+      // Streamlined car body
+      const bodyGrad = c.createLinearGradient(0, carBotY - 32, 0, carBotY);
+      bodyGrad.addColorStop(0, "#38bdf8");
+      bodyGrad.addColorStop(1, "#0369a1");
+      c.fillStyle = bodyGrad;
+      c.beginPath();
+      c.roundRect(x - carW / 2, carBotY - 16, carW, 16, [4, 8, 0, 0]);
+      c.fill();
+      // Sleek cabin roof
+      c.beginPath();
+      c.moveTo(x - 30, carBotY - 16);
+      c.lineTo(x - 15, carBotY - 32);
+      c.lineTo(x + 25, carBotY - 32);
+      c.lineTo(x + 42, carBotY - 16);
+      c.closePath();
+      c.fill();
+      // Windshield & windows
+      c.fillStyle = "rgba(15, 23, 42, 0.85)";
+      c.beginPath();
+      c.moveTo(x - 12, carBotY - 18);
+      c.lineTo(x - 11, carBotY - 30);
+      c.lineTo(x + 6, carBotY - 30);
+      c.lineTo(x + 6, carBotY - 18);
+      c.closePath();
+      c.moveTo(x + 10, carBotY - 18);
+      c.lineTo(x + 10, carBotY - 30);
+      c.lineTo(x + 22, carBotY - 30);
+      c.lineTo(x + 35, carBotY - 18);
+      c.closePath();
+      c.fill();
+      // Headlights
+      c.fillStyle = "#facc15";
+      c.fillRect(x + carW / 2 - 4, carBotY - 13, 4, 6);
+      // Wheels
+      c.fillStyle = "#0f172a";
+      c.beginPath();
+      c.arc(x - 34, platformY - wheelR, wheelR, 0, Math.PI * 2);
+      c.arc(x + 34, platformY - wheelR, wheelR, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = "#cbd5e1";
+      c.beginPath();
+      c.arc(x - 34, platformY - wheelR, 3, 0, Math.PI * 2);
+      c.arc(x + 34, platformY - wheelR, 3, 0, Math.PI * 2);
+      c.fill();
+      c.font = "bold 9px var(--font-mono, monospace)";
+      c.fillStyle = "#38bdf8";
+      c.textAlign = "center";
+      c.fillText("SEDAN CAR (1,500 kg)", x, carBotY - 37);
+    }
+
+    // Gravity Load Force Vector W_load = m*g (pointing down)
+    drawVectorArrow(c, x - 55, platformY - 35, x - 55, platformY, "#ef4444", 2);
+    c.font = "8px var(--font-mono, monospace)";
+    c.fillStyle = "#ef4444";
+    c.textAlign = "right";
+    c.fillText(`W = ${(calc.loadWeightN / 1000).toFixed(1)} kN`, x - 58, platformY - 18);
+    c.restore();
+  }
+
   function drawAnalyticalChart() {
     const chartW = chartCanvas.getBoundingClientRect().width || 460;
     const chartH = 180;
@@ -2835,7 +3681,7 @@ export function initFluidsBuoyancyLab(containerId) {
       chartCtx.shadowBlur = 8;
       chartCtx.fill();
       chartCtx.shadowBlur = 0;
-    } else {
+    } else if (apparatusMode === "torricelli") {
       // Torricelli Curve: Horizontal Range R vs Orifice Elevation y_h
       chartCtx.fillStyle = "#94a3b8";
       chartCtx.font = "10px var(--font-mono, monospace)";
@@ -2909,6 +3755,68 @@ export function initFluidsBuoyancyLab(containerId) {
       chartCtx.fillStyle = "#f8fafc";
       chartCtx.textAlign = curX > chartW - 90 ? "right" : "left";
       chartCtx.fillText(`(${calc.y_h.toFixed(2)}m, ${calc.rangeM.toFixed(2)}m)`, curX + (curX > chartW - 90 ? -10 : 10), curY - 6);
+    } else if (apparatusMode === "hydraulic") {
+      // Hydraulic Curve: Output Lift Force F2 vs Input Applied Force F1
+      chartCtx.fillStyle = "#94a3b8";
+      chartCtx.font = "10px var(--font-mono, monospace)";
+      chartCtx.textAlign = "center";
+      chartCtx.fillText("Input Applied Force F₁ (N)", chartW / 2, chartH - 6);
+
+      chartCtx.save();
+      chartCtx.translate(16, chartH / 2);
+      chartCtx.rotate(-Math.PI / 2);
+      chartCtx.fillText("Output Lift Force F₂ (kN)", 0, 0);
+      chartCtx.restore();
+
+      const maxF1 = 500; // N
+      const maxF2kN = Math.max(25, (maxF1 * calc.ima) / 1000); // kN
+
+      // Target Load Required Lift Force Line
+      const loadF2kN = calc.loadWeightN / 1000;
+      if (loadF2kN <= maxF2kN) {
+        const loadY = (chartH - 25) - (loadF2kN / maxF2kN) * (chartH - 45);
+        chartCtx.strokeStyle = "rgba(239, 68, 68, 0.5)";
+        chartCtx.lineWidth = 1.2;
+        chartCtx.setLineDash([4, 4]);
+        chartCtx.beginPath();
+        chartCtx.moveTo(45, loadY);
+        chartCtx.lineTo(chartW - 20, loadY);
+        chartCtx.stroke();
+        chartCtx.setLineDash([]);
+        chartCtx.font = "8px var(--font-mono, monospace)";
+        chartCtx.fillStyle = "#f87171";
+        chartCtx.textAlign = "right";
+        chartCtx.fillText(`Load: ${loadF2kN.toFixed(1)} kN`, chartW - 25, loadY - 4);
+      }
+
+      // Linear Mechanical Advantage Line F2 = IMA * F1
+      chartCtx.strokeStyle = "#10b981";
+      chartCtx.lineWidth = 2.5;
+      chartCtx.beginPath();
+      chartCtx.moveTo(45, chartH - 25);
+      const topX = 45 + (maxF1 / maxF1) * (chartW - 70);
+      const topY = (chartH - 25) - ((maxF1 * calc.ima / 1000) / maxF2kN) * (chartH - 45);
+      chartCtx.lineTo(topX, topY);
+      chartCtx.stroke();
+
+      // Current Operating Point
+      const curX = 45 + (Math.min(maxF1, inputForceN) / maxF1) * (chartW - 70);
+      const curF2kN = calc.outputForceN / 1000;
+      const curY = (chartH - 25) - (Math.min(maxF2kN, curF2kN) / maxF2kN) * (chartH - 45);
+
+      chartCtx.beginPath();
+      chartCtx.arc(curX, curY, 6, 0, Math.PI * 2);
+      chartCtx.fillStyle = calc.canLiftLoad ? "#10b981" : "#f59e0b";
+      chartCtx.shadowColor = calc.canLiftLoad ? "#10b981" : "#f59e0b";
+      chartCtx.shadowBlur = 8;
+      chartCtx.fill();
+      chartCtx.shadowBlur = 0;
+
+      // Operating coordinate label
+      chartCtx.font = "8.5px var(--font-mono, monospace)";
+      chartCtx.fillStyle = "#f8fafc";
+      chartCtx.textAlign = curX > chartW - 110 ? "right" : "left";
+      chartCtx.fillText(`(${inputForceN.toFixed(0)}N, ${curF2kN.toFixed(2)}kN)`, curX + (curX > chartW - 110 ? -10 : 10), curY - 6);
     }
   }
 
@@ -2928,6 +3836,29 @@ export function initFluidsBuoyancyLab(containerId) {
   function handlePointerDown(e) {
     const coords = getCanvasCoords(e);
     const canvasWidth = coords.width;
+
+    if (apparatusMode === "hydraulic") {
+      const cyl1CenterX = Math.max(90, Math.round(canvasWidth * 0.22));
+      const p1TravelPx = 110;
+      const p1NormStroke = Math.min(1.0, inputStrokeCm / 25.0);
+      const cylTopY = 220;
+      const p1Y = cylTopY + 30 + p1NormStroke * p1TravelPx;
+      const rod1TopY = p1Y - 70;
+      const handleY = rod1TopY - 16;
+      const handleW = 60;
+      if (
+        Math.abs(coords.x - cyl1CenterX) <= handleW &&
+        coords.y >= handleY - 25 &&
+        coords.y <= p1Y + 15
+      ) {
+        isDraggingPiston1 = true;
+        dragPistonStartY = coords.y;
+        dragPistonStartStroke = inputStrokeCm;
+        canvas.style.cursor = "ns-resize";
+        SoundFX.playClick();
+      }
+      return;
+    }
 
     if (apparatusMode === "torricelli") {
       // Hit test on orifice nozzle collar
@@ -3002,6 +3933,20 @@ export function initFluidsBuoyancyLab(containerId) {
     const coords = getCanvasCoords(e);
     const canvasWidth = coords.width;
 
+    if (isDraggingPiston1) {
+      const deltaY = coords.y - dragPistonStartY;
+      const deltaStroke = (deltaY / 110) * 25.0;
+      inputStrokeCm = Math.max(1.0, Math.min(25.0, parseFloat((dragPistonStartStroke + deltaStroke).toFixed(1))));
+
+      const sliderStroke = container.querySelector("#slider-input-stroke");
+      const lblStroke = container.querySelector("#lbl-input-stroke");
+      if (sliderStroke) sliderStroke.value = inputStrokeCm;
+      const calc = getCalculations();
+      if (lblStroke) lblStroke.innerText = `${inputStrokeCm.toFixed(1)} cm (d₂ = ${calc.outputStrokeCm.toFixed(2)} cm)`;
+      needsRedraw = true;
+      return;
+    }
+
     if (isDraggingOrifice) {
       const deltaY = coords.y - dragOrificeStartY;
       const deltaH = -(deltaY / 260) * 0.80;
@@ -3045,7 +3990,22 @@ export function initFluidsBuoyancyLab(containerId) {
     }
 
     // Hover feedback
-    if (apparatusMode === "torricelli") {
+    if (apparatusMode === "hydraulic") {
+      const cyl1CenterX = Math.max(90, Math.round(canvasWidth * 0.22));
+      const p1TravelPx = 110;
+      const p1NormStroke = Math.min(1.0, inputStrokeCm / 25.0);
+      const cylTopY = 220;
+      const p1Y = cylTopY + 30 + p1NormStroke * p1TravelPx;
+      const rod1TopY = p1Y - 70;
+      const handleY = rod1TopY - 16;
+      const handleW = 60;
+      const isHoverHandle = (
+        Math.abs(coords.x - cyl1CenterX) <= handleW &&
+        coords.y >= handleY - 25 &&
+        coords.y <= p1Y + 15
+      );
+      canvas.style.cursor = isHoverHandle ? "ns-resize" : "default";
+    } else if (apparatusMode === "torricelli") {
       const tankFloorY = 470;
       const nozzleY = tankFloorY - (orificeHeightM / 0.80) * 260;
       const nozzleX = 205;
@@ -3095,10 +4055,11 @@ export function initFluidsBuoyancyLab(containerId) {
   }
 
   function handlePointerUp() {
-    if (isDragging || isDraggingOrifice || isDraggingProbe) {
+    if (isDragging || isDraggingOrifice || isDraggingProbe || isDraggingPiston1) {
       isDragging = false;
       isDraggingOrifice = false;
       isDraggingProbe = false;
+      isDraggingPiston1 = false;
       canvas.style.cursor = "default";
       SoundFX.playPop();
     }
@@ -3168,7 +4129,7 @@ export function initFluidsBuoyancyLab(containerId) {
     const isPhotoOverlay = fluidsPhotoOverlay && fluidsPhotoOverlay.style.display === "block";
 
     if (!isPhotoOverlay) {
-      if (apparatusMode === "venturi" || apparatusMode === "torricelli" || apparatusMode === "buoyancy" || isFreeFloating || isDragging || isDraggingOrifice || isDraggingProbe || surfaceRippleAmp > 0.05) {
+      if (apparatusMode === "venturi" || apparatusMode === "torricelli" || apparatusMode === "hydraulic" || apparatusMode === "buoyancy" || isFreeFloating || isDragging || isDraggingOrifice || isDraggingProbe || isDraggingPiston1 || surfaceRippleAmp > 0.05) {
         if (!now || now - lastFrameTime >= interval) {
           lastFrameTime = now || performance.now();
           simTime += (interval / 1000);
@@ -3187,10 +4148,11 @@ export function initFluidsBuoyancyLab(containerId) {
     animId = requestAnimationFrame(loop);
   }
 
-  // 3-Mode Cyclic Switcher: Archimedes Overflow Tank ➔ Venturi Tube ➔ Torricelli Efflux Tank
+  // 4-Mode Cyclic Switcher: Archimedes Overflow Tank ➔ Venturi Tube ➔ Torricelli Efflux Tank ➔ Pascal Hydraulic Lift
   container.querySelector("#btn-fluid-mode")?.addEventListener("click", () => {
     if (apparatusMode === "buoyancy") apparatusMode = "venturi";
     else if (apparatusMode === "venturi") apparatusMode = "torricelli";
+    else if (apparatusMode === "torricelli") apparatusMode = "hydraulic";
     else apparatusMode = "buoyancy";
 
     const calc = getCalculations();
@@ -3198,6 +4160,7 @@ export function initFluidsBuoyancyLab(containerId) {
     const pBuoy = container.querySelector("#panel-buoyancy-controls");
     const pVent = container.querySelector("#panel-venturi-controls");
     const pTorr = container.querySelector("#panel-torricelli-controls");
+    const pHyd = container.querySelector("#panel-hydraulic-controls");
     const chartTitle = container.querySelector("#lbl-chart-title");
     const chartSlope = container.querySelector("#lbl-chart-slope");
     const dragHint = container.querySelector("#fluids-drag-hint");
@@ -3209,6 +4172,7 @@ export function initFluidsBuoyancyLab(containerId) {
       if (pBuoy) pBuoy.style.display = "none";
       if (pVent) pVent.style.display = "block";
       if (pTorr) pTorr.style.display = "none";
+      if (pHyd) pHyd.style.display = "none";
       if (chartTitle) chartTitle.innerText = "Venturi Pressure Differential (ΔP vs Q)";
       if (chartSlope) chartSlope.innerText = "ΔP = ½ρ(v₂² - v₁²)";
       if (dragHint) dragHint.innerText = "💨 High-speed Venturi Tube • Flow acceleration in constricted throat";
@@ -3221,10 +4185,11 @@ export function initFluidsBuoyancyLab(containerId) {
         badgeFloat.style.background = calc.isLaminar ? "rgba(16, 185, 129, 0.15)" : (calc.isTransitional ? "rgba(234, 179, 8, 0.15)" : "rgba(239, 68, 68, 0.15)");
       }
     } else if (apparatusMode === "torricelli") {
-      btn.innerText = "🔀 Switch to Archimedes Tank";
+      btn.innerText = "🔀 Switch to Hydraulic Press";
       if (pBuoy) pBuoy.style.display = "none";
       if (pVent) pVent.style.display = "none";
       if (pTorr) pTorr.style.display = "block";
+      if (pHyd) pHyd.style.display = "none";
       if (chartTitle) chartTitle.innerText = "Torricelli Efflux Trajectory Range (R vs y_h)";
       if (chartSlope) chartSlope.innerText = "R_max at y_h = H/2";
       if (dragHint) dragHint.innerText = "👆 Drag orifice spout vertically to vary efflux velocity & horizontal range";
@@ -3236,11 +4201,29 @@ export function initFluidsBuoyancyLab(containerId) {
         badgeFloat.style.color = calc.isAtMaxRange ? "#facc15" : "#38bdf8";
         badgeFloat.style.background = calc.isAtMaxRange ? "rgba(245, 158, 11, 0.2)" : "rgba(56, 189, 248, 0.15)";
       }
+    } else if (apparatusMode === "hydraulic") {
+      btn.innerText = "🔀 Switch to Archimedes Tank";
+      if (pBuoy) pBuoy.style.display = "none";
+      if (pVent) pVent.style.display = "none";
+      if (pTorr) pTorr.style.display = "none";
+      if (pHyd) pHyd.style.display = "block";
+      if (chartTitle) chartTitle.innerText = "Pascal Force Amplification (F₂ vs F₁)";
+      if (chartSlope) chartSlope.innerText = "IMA = (D₂/D₁)²";
+      if (dragHint) dragHint.innerText = "👆 Drag input piston plunger ↕ to pump hydraulic press & lift heavy vehicle";
+      if (btnFloat) btnFloat.style.display = "none";
+      if (btnProbe) btnProbe.style.display = "none";
+      const badgeFloat = container.querySelector("#badge-float-status");
+      if (badgeFloat) {
+        badgeFloat.innerText = calc.canLiftLoad ? `✓ Lifting ${calc.load.name} (${calc.load.massKg} kg)` : `✗ Insufficient Force (${(calc.outputForceN / 1000).toFixed(1)} kN < ${(calc.loadWeightN / 1000).toFixed(1)} kN)`;
+        badgeFloat.style.color = calc.canLiftLoad ? "#34d399" : "#f59e0b";
+        badgeFloat.style.background = calc.canLiftLoad ? "rgba(16, 185, 129, 0.15)" : "rgba(245, 158, 11, 0.15)";
+      }
     } else {
       btn.innerText = "🔀 Switch to Venturi Tube";
       if (pBuoy) pBuoy.style.display = "block";
       if (pVent) pVent.style.display = "none";
       if (pTorr) pTorr.style.display = "none";
+      if (pHyd) pHyd.style.display = "none";
       if (chartTitle) chartTitle.innerText = "Archimedes Linear Verification (F_b vs V_disp)";
       if (chartSlope) chartSlope.innerText = "Slope = ρ_f · g";
       if (dragHint) dragHint.innerText = "👆 Drag block vertically inside tank • Touch/Wheel friendly";
@@ -3303,6 +4286,44 @@ export function initFluidsBuoyancyLab(containerId) {
   // Torricelli Nozzle Profile Selector
   container.querySelector("#select-nozzle-type")?.addEventListener("change", (e) => {
     dischargeCoeff = parseFloat(e.target.value);
+    needsRedraw = true;
+    SoundFX.playClick();
+  });
+
+  // Pascal Hydraulic Lift Controls Listeners
+  container.querySelector("#slider-input-force")?.addEventListener("input", (e) => {
+    inputForceN = parseFloat(e.target.value);
+    const lbl = container.querySelector("#lbl-input-force");
+    if (lbl) lbl.innerText = `${inputForceN.toFixed(0)} N (${(inputForceN / g).toFixed(1)} kg equiv)`;
+    needsRedraw = true;
+  });
+
+  container.querySelector("#slider-d1")?.addEventListener("input", (e) => {
+    piston1DiameterCm = parseFloat(e.target.value);
+    const calc = getCalculations();
+    const lbl = container.querySelector("#lbl-d1");
+    if (lbl) lbl.innerText = `${piston1DiameterCm.toFixed(1)} cm (A₁ = ${calc.a1Cm2.toFixed(1)} cm²)`;
+    needsRedraw = true;
+  });
+
+  container.querySelector("#slider-d2")?.addEventListener("input", (e) => {
+    piston2DiameterCm = parseFloat(e.target.value);
+    const calc = getCalculations();
+    const lbl = container.querySelector("#lbl-d2");
+    if (lbl) lbl.innerText = `${piston2DiameterCm.toFixed(1)} cm (A₂ = ${calc.a2Cm2.toFixed(1)} cm²)`;
+    needsRedraw = true;
+  });
+
+  container.querySelector("#slider-input-stroke")?.addEventListener("input", (e) => {
+    inputStrokeCm = parseFloat(e.target.value);
+    const calc = getCalculations();
+    const lbl = container.querySelector("#lbl-input-stroke");
+    if (lbl) lbl.innerText = `${inputStrokeCm.toFixed(1)} cm (d₂ = ${calc.outputStrokeCm.toFixed(2)} cm)`;
+    needsRedraw = true;
+  });
+
+  container.querySelector("#select-hydraulic-load")?.addEventListener("change", (e) => {
+    liftedLoadKey = e.target.value;
     needsRedraw = true;
     SoundFX.playClick();
   });
@@ -3474,7 +4495,7 @@ export function initFluidsBuoyancyLab(containerId) {
         "Throat Reynolds Re₂": `${Math.round(calc.re2).toLocaleString()}`,
         "Flow Regime": calc.isLaminar ? "Laminar (Re < 2300)" : (calc.isTransitional ? "Transitional" : "Turbulent (Re > 4000)")
       };
-    } else {
+    } else if (apparatusMode === "torricelli") {
       // Torricelli Efflux Mode
       trialSummary = `Torricelli Efflux at y_h = ${orificeHeightM.toFixed(2)} m (C_d = ${dischargeCoeff.toFixed(2)}) in ${calc.f.name}`;
       metrics = {
@@ -3491,6 +4512,29 @@ export function initFluidsBuoyancyLab(containerId) {
         "Horizontal Range R (m)": `${calc.rangeM.toFixed(2)}`,
         "Max Theoretical Range (m)": `${calc.maxRangeM.toFixed(2)}`,
         "Discharge Flow Q (L/s)": `${calc.qLps_torr.toFixed(2)}`
+      };
+    } else {
+      // Pascal Hydraulic Press Mode
+      trialSummary = `Pascal Hydraulic Lift: F₁ = ${inputForceN.toFixed(0)} N ➔ F₂ = ${(calc.outputForceN / 1000).toFixed(2)} kN (IMA = ${calc.ima.toFixed(1)}×)`;
+      metrics = {
+        "Apparatus Mode": "Pascal Hydraulic Lift Press",
+        "Liquid Medium": calc.f.name,
+        "Input Cylinder D₁ (cm)": `${piston1DiameterCm.toFixed(1)}`,
+        "Output Cylinder D₂ (cm)": `${piston2DiameterCm.toFixed(1)}`,
+        "Input Area A₁ (cm²)": `${calc.a1Cm2.toFixed(1)}`,
+        "Output Area A₂ (cm²)": `${calc.a2Cm2.toFixed(1)}`,
+        "Mechanical Advantage (IMA)": `${calc.ima.toFixed(1)}×`,
+        "Input Applied Force F₁ (N)": `${inputForceN.toFixed(0)}`,
+        "Output Lift Force F₂ (kN)": `${(calc.outputForceN / 1000).toFixed(2)}`,
+        "Hydraulic Pressure (kPa)": `${calc.pressureKPa.toFixed(1)}`,
+        "Hydraulic Pressure (bar)": `${calc.pressureBar.toFixed(2)}`,
+        "Input Stroke d₁ (cm)": `${inputStrokeCm.toFixed(1)}`,
+        "Output Stroke d₂ (cm)": `${calc.outputStrokeCm.toFixed(2)}`,
+        "Work Done W (J)": `${calc.workJ.toFixed(2)}`,
+        "Lifted Vehicle / Load": `${calc.load.name}`,
+        "Load Mass (kg)": `${calc.load.massKg}`,
+        "Load Weight (kN)": `${(calc.loadWeightN / 1000).toFixed(2)}`,
+        "Lift Capability": calc.canLiftLoad ? "LIFTED" : "INSUFFICIENT FORCE"
       };
     }
 
@@ -3512,9 +4556,9 @@ export function initFluidsBuoyancyLab(containerId) {
       title: "Fluid Dynamics, Archimedes Buoyancy & Bernoulli Suite",
       labId: "fluids",
       subject: "Physics",
-      inquiryQuestion: "How do fluid density and displaced volume govern buoyant force, how does pipe cross-sectional geometry govern Bernoulli pressure differentials, and how does orifice elevation govern Torricelli efflux velocity and horizontal trajectory range?",
+      inquiryQuestion: "How do fluid density and displaced volume govern buoyant force, how does pipe cross-sectional geometry govern Bernoulli pressure differentials, how does orifice elevation govern Torricelli efflux velocity, and how does cylinder geometry govern Pascal force amplification?",
       apparatusConfig: {
-        "Apparatus Mode": apparatusMode === "buoyancy" ? "Archimedes Overflow Tank" : (apparatusMode === "venturi" ? "Venturi Constriction Pipe" : "Torricelli Efflux Tank"),
+        "Apparatus Mode": apparatusMode === "buoyancy" ? "Archimedes Overflow Tank" : (apparatusMode === "venturi" ? "Venturi Constriction Pipe" : (apparatusMode === "torricelli" ? "Torricelli Efflux Tank" : "Pascal Hydraulic Lift Press")),
         "Fluid Medium": `${calc.f.name} (ρ = ${calc.f.density} kg/m³)`,
         "Solid Material": `${calc.m.name} (ρ = ${calc.m.density} kg/m³)`,
         "Solid Volume": `${blockVolumeLiters.toFixed(2)} L`,
@@ -3523,6 +4567,9 @@ export function initFluidsBuoyancyLab(containerId) {
         "Flow Rate (Venturi)": `${flowRateLps.toFixed(2)} L/s`,
         "Orifice Elevation (Torricelli)": `${orificeHeightM.toFixed(2)} m (Head h = ${(calc.headM).toFixed(2)} m)`,
         "Discharge Coeff C_d": `${dischargeCoeff.toFixed(2)}`,
+        "Hydraulic Mechanical Advantage": `${calc.ima.toFixed(1)}× ((D₂/D₁)² = (${piston2DiameterCm.toFixed(0)}/${piston1DiameterCm.toFixed(0)})²)`,
+        "Applied Input Force F₁": `${inputForceN.toFixed(0)} N ➔ Output F₂ = ${(calc.outputForceN / 1000).toFixed(2)} kN`,
+        "Hydraulic Gauge Pressure": `${calc.pressureKPa.toFixed(1)} kPa (${calc.pressureBar.toFixed(2)} bar)`,
         "Mano-Probe Depth": showPressureProbe ? `${probeDepthCm.toFixed(1)} cm` : "Inactive"
       },
       trials,
@@ -3536,7 +4583,11 @@ export function initFluidsBuoyancyLab(containerId) {
         "v = C_d \\sqrt{2gh} \\quad (\\text{Torricelli's Efflux Velocity})",
         "R = v \\cdot t = 2 C_d \\sqrt{h \\cdot y_h} \\quad (\\text{Parabolic Jet Range})",
         "R_{\\max} = C_d H \\quad (\\text{Maximum Range Theorem at } y_h = H / 2)",
-        "P = \\rho g h \\quad (\\text{Hydrostatic Gauge Pressure})"
+        "P = \\rho g h \\quad (\\text{Hydrostatic Gauge Pressure})",
+        "\\frac{F_1}{A_1} = \\frac{F_2}{A_2} = P \\quad (\\text{Pascal's Pressure Transmission})",
+        "\\text{IMA} = \\frac{A_2}{A_1} = \\left(\\frac{D_2}{D_1}\\right)^2 \\quad (\\text{Ideal Mechanical Advantage})",
+        "\\Delta V = A_1 d_1 = A_2 d_2 \\implies d_2 = \\frac{d_1}{\\text{IMA}} \\quad (\\text{Fluid Incompressibility})",
+        "W_1 = F_1 d_1 = F_2 d_2 = W_2 \\quad (\\text{Work / Energy Conservation})"
       ]
     });
     SoundFX.playClick();
