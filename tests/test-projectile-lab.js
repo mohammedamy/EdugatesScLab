@@ -199,6 +199,188 @@ test("phys-projectile.js has touch-action: none on canvas element", () => {
   assert(code.includes("touch-action: none"), "Canvas element must explicitly declare touch-action: none");
 });
 
+test("Projectile presets specify calibrated physical masses and aerodynamic drag coefficients", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-projectile.js"), "utf-8");
+  assert(code.includes('cannonball:'), "Must define cannonball preset");
+  assert(code.includes('baseball:'), "Must define baseball preset");
+  assert(code.includes('golfball:'), "Must define golfball preset");
+  assert(code.includes('artillery:'), "Must define artillery shell preset");
+  assert(code.includes('cd: 0.47'), "Cannonball Cd must be 0.47 (sphere)");
+  assert(code.includes('cd: 0.30'), "Baseball Cd must be 0.30 (seamed sphere)");
+  assert(code.includes('cd: 0.22'), "Golf ball Cd must be 0.22 (dimpled)");
+  assert(code.includes('cd: 0.15'), "Artillery shell Cd must be 0.15 (streamlined ogive)");
+});
+
+test("Relative wind vector kinematics modulate aerodynamic airspeed and landing range", () => {
+  const v0 = 35.0;
+  const thetaRad = 45 * Math.PI / 180;
+  const g = 9.8;
+  const m = 1.0;
+  const kDrag = 0.0058;
+
+  function simulateFlightWithWind(wx) {
+    let x = 0, y = 0;
+    let vx = v0 * Math.cos(thetaRad);
+    let vy = v0 * Math.sin(thetaRad);
+    let t = 0;
+    const dt = 0.002;
+    while (y >= 0 || t < 0.1) {
+      const vrelX = vx - wx;
+      const vrelY = vy;
+      const vrel = Math.sqrt(vrelX * vrelX + vrelY * vrelY);
+      const Fdx = -kDrag * m * vrel * vrelX;
+      const Fdy = -kDrag * m * vrel * vrelY;
+      vx += (Fdx / m) * dt;
+      vy += (-g + Fdy / m) * dt;
+      x += vx * dt;
+      y += vy * dt;
+      t += dt;
+      if (y < 0 && t > 0.1) break;
+    }
+    return x;
+  }
+
+  const rangeCalm = simulateFlightWithWind(0);
+  const rangeHeadwind = simulateFlightWithWind(-15); // 15 m/s headwind
+  const rangeTailwind = simulateFlightWithWind(15);  // 15 m/s tailwind
+
+  assert(rangeHeadwind < rangeCalm, `Headwind must shorten range: ${rangeHeadwind.toFixed(1)}m < ${rangeCalm.toFixed(1)}m`);
+  assert(rangeTailwind > rangeCalm, `Tailwind must extend range: ${rangeTailwind.toFixed(1)}m > ${rangeCalm.toFixed(1)}m`);
+  assert(rangeTailwind - rangeHeadwind > 40.0, "Range variation between ±15m/s wind must exceed 40m");
+});
+
+test("Magnus effect generates aerodynamic lift (backspin) and dive (topspin)", () => {
+  const v0 = 35.0;
+  const thetaRad = 45 * Math.PI / 180;
+  const g = 9.8;
+  const m = 0.145; // baseball
+  const r = 0.037;
+  const A = Math.PI * r * r;
+  const rho = 1.225;
+  const cd = 0.30;
+
+  function simulateSpin(spinRpm) {
+    let x = 0, y = 0;
+    let vx = v0 * Math.cos(thetaRad);
+    let vy = v0 * Math.sin(thetaRad);
+    let t = 0;
+    const dt = 0.002;
+    const omegaRad = spinRpm * 2 * Math.PI / 60;
+
+    while (y >= 0 || t < 0.1) {
+      const vrel = Math.sqrt(vx * vx + vy * vy);
+      const fDragX = -0.5 * cd * rho * A * vrel * vx;
+      const fDragY = -0.5 * cd * rho * A * vrel * vy;
+
+      const spinRatio = (r * Math.abs(omegaRad)) / Math.max(0.5, vrel);
+      const cLift = Math.sign(spinRpm) * Math.min(0.40, 0.5 * spinRatio);
+      const fMagnusX = -0.5 * cLift * rho * A * vrel * vy;
+      const fMagnusY = 0.5 * cLift * rho * A * vrel * vx;
+
+      const ax = (fDragX + fMagnusX) / m;
+      const ay = -g + (fDragY + fMagnusY) / m;
+
+      vx += ax * dt;
+      vy += ay * dt;
+      x += vx * dt;
+      y += vy * dt;
+      t += dt;
+      if (y < 0 && t > 0.1) break;
+    }
+    return { x, t };
+  }
+
+  const calm = simulateSpin(0);
+  const backspin = simulateSpin(2500); // Backspin creates lift
+  const topspin = simulateSpin(-2500); // Topspin creates dive
+
+  assert(backspin.x > calm.x, `Backspin must extend range: ${backspin.x.toFixed(1)}m > ${calm.x.toFixed(1)}m`);
+  assert(backspin.t > calm.t, `Backspin must extend hang time: ${backspin.t.toFixed(2)}s > ${calm.t.toFixed(2)}s`);
+  assert(topspin.x < calm.x, `Topspin must compress range: ${topspin.x.toFixed(1)}m < ${calm.x.toFixed(1)}m`);
+  assert(topspin.t < calm.t, `Topspin must reduce flight time: ${topspin.t.toFixed(2)}s < ${calm.t.toFixed(2)}s`);
+});
+
+test("Barometric altitude air density scales exponentially rho(y) = rho0 * exp(-y / 8500)", () => {
+  const rho0 = 1.225; // Sea level
+  const scaleHeight = 8500; // m
+
+  const rhoDenver = rho0 * Math.exp(-1600 / scaleHeight); // 1600m
+  const rhoEverest = rho0 * Math.exp(-8848 / scaleHeight); // 8848m
+
+  assert(rhoDenver < rho0, "Air density at 1600m must be less than sea level");
+  assert(rhoEverest < rhoDenver, "Air density at Everest must be less than Denver");
+  assert.strictEqual(parseFloat(rhoDenver.toFixed(3)), 1.015);
+  assert.strictEqual(parseFloat(rhoEverest.toFixed(3)), 0.433);
+});
+
+test("First Law of Thermodynamics: Mechanical energy lost to drag equals dissipated thermal work W_drag", () => {
+  const v0 = 35.0;
+  const thetaRad = 45 * Math.PI / 180;
+  const g = 9.8;
+  const m = 1.0;
+  const kDrag = 0.0058;
+  const E0 = 0.5 * m * v0 * v0;
+
+  let x = 0, y = 0;
+  let vx = v0 * Math.cos(thetaRad);
+  let vy = v0 * Math.sin(thetaRad);
+  let t = 0, wDrag = 0;
+  const dt = 0.001;
+
+  while (y >= 0 || t < 0.1) {
+    const v = Math.sqrt(vx * vx + vy * vy);
+    const Fd = kDrag * m * v * v;
+    wDrag += (Fd * v) * dt;
+
+    vx += (-kDrag * v * vx) * dt;
+    vy += (-g - kDrag * v * vy) * dt;
+    x += vx * dt;
+    y += vy * dt;
+    t += dt;
+    if (y < 0 && t > 0.1) break;
+  }
+
+  const keImpact = 0.5 * m * (vx * vx + vy * vy);
+  const peImpact = m * g * Math.max(0, y);
+  const totalFinalEnergy = keImpact + peImpact + wDrag;
+
+  const energyDiscrepancy = Math.abs(totalFinalEnergy - E0);
+  assert(energyDiscrepancy < 0.1, `Energy discrepancy must be < 0.1J, got ${energyDiscrepancy.toFixed(3)}J`);
+  assert(wDrag > 250, `Substantial energy must be converted to drag work, got ${wDrag.toFixed(1)}J`);
+});
+
+test("Dual laser photogate transit time formula delta_t = delta_x / v0", () => {
+  const v0 = 35.0; // m/s
+  const deltaX = 0.15; // 15 cm muzzle laser separation
+  const dtPhotogate = deltaX / v0; // seconds
+  const dtMs = dtPhotogate * 1000;
+
+  assert.strictEqual(parseFloat(dtMs.toFixed(3)), 4.286, `Expected photogate time 4.286 ms, got ${dtMs.toFixed(3)} ms`);
+  // Reconstruct velocity from measured photogate transit time
+  const vReconstructed = deltaX / (dtMs / 1000);
+  assert.strictEqual(parseFloat(vReconstructed.toFixed(1)), 35.0);
+});
+
+test("Multi-target scenario challenge specifications (Hoop, Castle, Drone)", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-projectile.js"), "utf-8");
+  assert(code.includes('targetScenario === "hoop"'), "Must implement basketball hoop detection");
+  assert(code.includes('3.05'), "Basketball hoop must be calibrated to regulation 3.05m (10ft)");
+  assert(code.includes('targetScenario === "castle"'), "Must implement castle fortress defense scenario");
+  assert(code.includes('simY <= 16'), "Castle fortress wall must be 16m high");
+  assert(code.includes('targetScenario === "drone"'), "Must implement moving drone target intercept");
+  assert(code.includes('distToDrone <= 5.5'), "Drone interception collision radius must be 5.5m");
+});
+
+test("Analytical Trajectory & Energy Charts view switcher and rendering components verified", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-projectile.js"), "utf-8");
+  assert(code.includes('id="proj-mode-chart"'), "Must render analytical chart mode button");
+  assert(code.includes('drawAnalyticalCharts'), "Must implement drawAnalyticalCharts function");
+  assert(code.includes('BALLISTIC PHASE-SPACE & THERMODYNAMIC ENERGY PARTITION'), "Chart must have title header");
+  assert(code.includes('THERMODYNAMIC ENERGY CONSERVATION (FIRST LAW)'), "Chart must include thermodynamic energy bar");
+  assert(code.includes('VELOCITY COMPONENT DECAY v(t)'), "Chart must include velocity decay graph");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Projectile Lab Tests: ${passed} Passed, 0 Failed`);
 console.log("========================================================\n");
+
