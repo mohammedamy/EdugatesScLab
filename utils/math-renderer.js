@@ -185,6 +185,20 @@ export function sanitizeLatex(latex) {
   s = s.replace(/μ/g, " \\mu ");
   s = s.replace(/π/g, " \\pi ");
   s = s.replace(/Ω/g, " \\Omega ");
+  s = s.replace(/ρ/g, " \\rho ");
+  s = s.replace(/θ/g, " \\theta ");
+  s = s.replace(/ε/g, " \\varepsilon ");
+  s = s.replace(/ω/g, " \\omega ");
+  s = s.replace(/σ/g, " \\sigma ");
+  s = s.replace(/γ/g, " \\gamma ");
+  s = s.replace(/α/g, " \\alpha ");
+  s = s.replace(/β/g, " \\beta ");
+  s = s.replace(/Φ/g, " \\Phi ");
+  s = s.replace(/Ψ/g, " \\Psi ");
+  s = s.replace(/Π/g, " \\Pi ");
+  s = s.replace(/½/g, " \\frac{1}{2} ");
+  s = s.replace(/⅓/g, " \\frac{1}{3} ");
+  s = s.replace(/¼/g, " \\frac{1}{4} ");
   s = s.replace(/→/g, " \\to ");
   s = s.replace(/⟶/g, " \\longrightarrow ");
   s = s.replace(/⇌/g, " \\rightleftharpoons ");
@@ -197,12 +211,28 @@ export function sanitizeLatex(latex) {
   s = s.replace(/≥/g, " \\geq ");
   s = s.replace(/∇/g, " \\nabla ");
   s = s.replace(/°/g, "^\\circ");
+  s = s.replace(/⁰/g, "^0");
+  s = s.replace(/¹/g, "^1");
   s = s.replace(/²/g, "^2");
   s = s.replace(/³/g, "^3");
+  s = s.replace(/⁴/g, "^4");
+  s = s.replace(/₀/g, "_0");
   s = s.replace(/₁/g, "_1");
   s = s.replace(/₂/g, "_2");
   s = s.replace(/₃/g, "_3");
   s = s.replace(/₄/g, "_4");
+  s = s.replace(/₅/g, "_5");
+  s = s.replace(/₆/g, "_6");
+  s = s.replace(/₇/g, "_7");
+  s = s.replace(/₈/g, "_8");
+  s = s.replace(/₉/g, "_9");
+  s = s.replace(/ᵧ/g, "_y");
+  s = s.replace(/ₓ/g, "_x");
+  s = s.replace(/√\s*\(([^)]+)\)/g, "\\sqrt{$1}");
+  s = s.replace(/√\s*([a-zA-Z0-9]+)/g, "\\sqrt{$1}");
+
+  // Auto-brace multi-letter subscripts like _fluid -> _{\text{fluid}}, _disp -> _{\text{disp}}
+  s = s.replace(/_([a-zA-Z]{2,})\b/g, "_{\\text{$1}}");
 
   // Pre-fix unescaped underscores inside \text{...}, \mathrm{...}, \textbf{...}, \mathbf{...}
   // Because in TeX/KaTeX, an unescaped _ in text mode is an invalid token and throws ParseError.
@@ -529,7 +559,7 @@ export function renderLatex(latex, displayMode = false) {
     }
   }
 
-  rendered = standaloneLatexToHtml(cleaned, displayMode);
+  rendered = standaloneLatexToHtml(sanitized, displayMode);
   mathCache.set(cacheKey, rendered);
   return rendered;
 }
@@ -634,6 +664,27 @@ export function formatMathText(text) {
     return renderLatex(eq, false);
   });
 
+  // Smart heuristic pass: render parenthesized formulas or equations like (F_b = ρ_fluid · V_disp · g)
+  // or (A₁v₁ = A₂v₂) or (P + ½ρv² = const) that were authored without explicit $ delimiters
+  result = result.replace(/\(([A-Za-z_ΔλμπΩρθεωσγαβΦΨΠ][^(),\n]*?(?:=|[<>≤≥]|⇌|→)[^(),\n]*?)(,\s*[^()]+)?\)/g, (match, formula, tail) => {
+    const trimmed = formula.trim();
+    if (isFormulaLike(trimmed)) {
+      return `(${renderLatex(trimmed, false)}${tail || ""})`;
+    }
+    return match;
+  });
+
+  // Heuristic pass for parenthesized subscript variables like (F_b), (vᵧ), (aₓ), (W_app)
+  result = result.replace(/\(([A-Za-z_ΔλμπΩρθεωσγαβΦΨΠ]_[a-zA-Z0-9]+|[A-Za-z][₀-₉ᵧₓ])\)/g, (match, inner) => {
+    return `(${renderLatex(inner, false)})`;
+  });
+
+  // Standalone whole-string formula detection (e.g. quiz options with bare equations)
+  const trimmed = result.trim();
+  if (isFormulaLike(trimmed) && !trimmed.includes("$") && !trimmed.includes("<span")) {
+    return renderLatex(trimmed, false);
+  }
+
   return result;
 }
 
@@ -722,19 +773,31 @@ export function upgradeAllMath(root = (typeof document !== "undefined" ? documen
 export function isFormulaLike(text) {
   if (!text || typeof text !== "string") return false;
   const s = text.trim();
-  if (s.length < 3) return false;
+  if (s.length < 2) return false;
   // If already contains LaTeX backslash command
   if (/\\[a-zA-Z]+/.test(s)) return true;
   // If contains explicit $ delimiters
   if (s.includes("$")) return true;
-  // If contains equation with math operators/scripts/superscripts
-  if (s.includes("=") && (/[_\^•·ΔλμπΩ→⇌∝±√]/.test(s) || /[a-zA-Z]\[[a-zA-Z]\]/.test(s) || /\be\^/.test(s) || /\b(?:mc|hf|kx|GM|2f|k_e|V_stop|V_{stop})\b/.test(s))) {
+
+  // Avoid classifying full natural prose sentences as formulas
+  if (/[?:;]/.test(s)) return false;
+  const longWords = s.match(/\b[A-Za-z]{4,}\b/g) || [];
+  const mathKw = new Set(["rate", "const", "constant", "disp", "fluid", "soln", "true", "then", "from", "when", "with", "where", "sine", "cosine", "tangent", "half"]);
+  const nonMathWords = longWords.filter(w => !mathKw.has(w.toLowerCase()));
+  if (nonMathWords.length >= 3) return false;
+
+  // Single variable with subscript like F_b, W_app, v_y, a_x, v₁, v₂
+  if (/^[A-Za-z]_[a-zA-Z0-9]+$/.test(s) || /^[A-Za-z][₀-₉ᵧₓ]$/.test(s)) {
+    return true;
+  }
+  // If contains equation or inequality with math operators/scripts/superscripts
+  if (/[=<>≤≥⇌→∝]/.test(s) && (/[_\^•·ΔλμπΩρθεωσγαβΦΨΠ±√½⅓¼₀-₉²³⁴⁰¹ᵧₓ]/.test(s) || /[a-zA-Z]\[[a-zA-Z]\]/.test(s) || /\be\^/.test(s) || /\b(?:mc|hf|kx|GM|2f|k_e|V_stop|V_{stop}|A₁|A₂|v₁|v₂|F_b|W_app|V_disp)\b/.test(s) || /^[A-Za-zΔλμ]\s*[=<>≤≥]\s*[-+]?\d+/.test(s))) {
     return true;
   }
   // Common thermodynamic, chemical or physical equations
-  if (/\b(?:K_c|K_{sp}|K_a|K_b|K_{eq}|Q\s+vs\s+K)\b/.test(s)) return true;
-  // Standalone simple equations like "PV = nRT"
-  if (/^[A-Za-z_Δλ]+\s*=\s*[^.!?]+$/.test(s) && (s.includes("^") || s.includes("_") || s.includes("·") || s.includes("•") || s.includes("/") || s.includes("Δ") || s.includes("λ") || s.length < 25)) {
+  if (/\b(?:K_c|K_{sp}|K_a|K_b|K_{eq}|Q\s+vs\s+K|F_b|W_app|V_disp|v₁|v₂|A₁v₁|OD₄₅₀)\b/.test(s)) return true;
+  // Standalone simple equations or relations like "PV = nRT" or "I = V/R" or "ΔH > 0"
+  if (/^[A-Za-z_ΔλμπΩρθε]+\s*[=<>≤≥]\s*[^.!?]+$/.test(s) && (s.includes("^") || s.includes("_") || s.includes("·") || s.includes("•") || s.includes("/") || s.includes("Δ") || s.includes("λ") || s.length < 35)) {
     return true;
   }
   return false;
@@ -746,7 +809,7 @@ export function isFormulaLike(text) {
 export function renderMathInElement(container) {
   if (!container || typeof document === "undefined") return;
 
-  // 1. Text node scanning for $...$ and $$...$$
+  // 1. Text node scanning for $...$ and un-delimited mathematical expressions
   if (document.createTreeWalker) {
     const showText = typeof NodeFilter !== "undefined" && NodeFilter.SHOW_TEXT !== undefined ? NodeFilter.SHOW_TEXT : 4;
     const walker = document.createTreeWalker(container, showText, null, false);
@@ -754,7 +817,7 @@ export function renderMathInElement(container) {
 
     let node;
     while ((node = walker.nextNode())) {
-      if (node.nodeValue && node.nodeValue.includes("$")) {
+      if (node.nodeValue && (node.nodeValue.includes("$") || (node.nodeValue.includes("(") && /[=_\^•·ΔλμπΩρθε]/.test(node.nodeValue)))) {
         const parentTag = node.parentElement ? node.parentElement.tagName.toLowerCase() : "";
         if (parentTag !== "script" && parentTag !== "style" && parentTag !== "textarea") {
           nodesToReplace.push(node);
@@ -776,7 +839,7 @@ export function renderMathInElement(container) {
 
   // 2. Scan elements that are badges or formulas containing unrendered math
   try {
-    const mathTargets = container.querySelectorAll(".badge, .lab-badge, [data-math], .formula, .lab-formula, .math-target");
+    const mathTargets = container.querySelectorAll(".badge, .lab-badge, [data-math], .formula, .lab-formula, .math-target, .lab-question-text, .lab-option-text, .lab-explanation-box");
     for (const el of mathTargets) {
       if (el.querySelector(".math-rendered, .math-katex-wrapper, .katex") || el.getAttribute("data-latex")) continue;
       const text = el.textContent ? el.textContent.trim() : "";

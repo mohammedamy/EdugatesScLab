@@ -2,7 +2,7 @@
 // Generates professional RFC-4180 CSV datasets, printable A4 Lab Dossiers with CER framework,
 // multi-trial overlay tracking, and post-lab competency checkpoints.
 
-import { renderLatex, upgradeAllMath, renderMathInElement } from "../utils/math-renderer.js";
+import { renderLatex, upgradeAllMath, renderMathInElement, formatMathText } from "../utils/math-renderer.js";
 import { showToast } from "../utils/toast.js";
 import { ProgressStore } from "../components/progress-tracker.js";
 import { exportToDocx } from "../utils/docx-export.js";
@@ -389,31 +389,31 @@ export const LAB_CHECKPOINTS = {
         "90° (straight up provides highest potential energy)"
       ],
       correctIndex: 1,
-      explanation: "From R = (v₀² sin 2θ) / g, sin(2θ) reaches its maximum theoretical value of 1.0 when 2θ = 90°, meaning θ = 45°."
+      explanation: "From $R = \\frac{v_0^2 \\sin 2\\theta}{g}$, $\\sin(2\\theta)$ reaches its maximum theoretical value of 1.0 when $2\\theta = 90^\\circ$, meaning $\\theta = 45^\\circ$."
     },
     {
       id: "q2",
-      question: "Two complementary angles (e.g. 30° and 60°) launched with equal initial speed v₀ will achieve:",
+      question: "Two complementary angles (e.g. $30^\\circ$ and $60^\\circ$) launched with equal initial speed $v_0$ will achieve:",
       options: [
-        "The exact same maximum height H",
-        "The exact same horizontal range R",
-        "The exact same total flight time t",
+        "The exact same maximum height $H$",
+        "The exact same horizontal range $R$",
+        "The exact same total flight time $t$",
         "Different ranges and heights in all scenarios"
       ],
       correctIndex: 1,
-      explanation: "Because sin(2 × 30°) = sin(60°) = √3/2, and sin(2 × 60°) = sin(120°) = √3/2, complementary angles share identical horizontal range."
+      explanation: "Because $\\sin(2 \\times 30^\\circ) = \\sin(60^\\circ) = \\frac{\\sqrt{3}}{2}$, and $\\sin(2 \\times 60^\\circ) = \\sin(120^\\circ) = \\frac{\\sqrt{3}}{2}$, complementary angles share identical horizontal range."
     },
     {
       id: "q3",
-      question: "At the peak of its trajectory, what is the projectile's vertical velocity component (vᵧ) and horizontal acceleration (aₓ)?",
+      question: "At the peak of its trajectory, what is the projectile's vertical velocity component ($v_y$) and horizontal acceleration ($a_x$)?",
       options: [
-        "vᵧ = 0 m/s and aₓ = 0 m/s²",
-        "vᵧ = 9.8 m/s and aₓ = -9.8 m/s²",
-        "vᵧ = 0 m/s and aₓ = 9.8 m/s²",
-        "vᵧ = v₀ and aₓ = 0 m/s²"
+        "$v_y = 0\\text{ m/s}$ and $a_x = 0\\text{ m/s}^2$",
+        "$v_y = 9.8\\text{ m/s}$ and $a_x = -9.8\\text{ m/s}^2$",
+        "$v_y = 0\\text{ m/s}$ and $a_x = 9.8\\text{ m/s}^2$",
+        "$v_y = v_0$ and $a_x = 0\\text{ m/s}^2$"
       ],
       correctIndex: 0,
-      explanation: "At the apex, vertical velocity instantaneously halts (vᵧ = 0) before reversing downwards. Neglecting drag, no horizontal force acts on the mass, so aₓ = 0."
+      explanation: "At the apex, vertical velocity instantaneously halts ($v_y = 0$) before reversing downwards. Neglecting drag, no horizontal force acts on the mass, so $a_x = 0$."
     }
   ],
 
@@ -432,7 +432,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q2",
-      question: "What does the maximum peak in the first derivative curve (dpH / dV) signify?",
+      question: "What does the maximum peak in the first derivative curve $\\left(\\frac{d\\text{pH}}{dV}\\right)$ signify?",
       options: [
         "The point of maximum buffer capacity",
         "The inflection point representing true stoichiometric equivalence",
@@ -440,7 +440,7 @@ export const LAB_CHECKPOINTS = {
         "The solubility limit of the salt"
       ],
       correctIndex: 1,
-      explanation: "The equivalence point corresponds to the steepest rate of pH change with respect to titrant volume, producing a sharp mathematical peak in dpH/dV."
+      explanation: "The equivalence point corresponds to the steepest rate of pH change with respect to titrant volume, producing a sharp mathematical peak in $\\frac{d\\text{pH}}{dV}$."
     },
     {
       id: "q3",
@@ -459,7 +459,7 @@ export const LAB_CHECKPOINTS = {
   circuits: [
     {
       id: "q1",
-      question: "According to Ohm's Law (I = V/R), if circuit resistance is doubled while voltage remains constant:",
+      question: "According to Ohm's Law ($I = \\frac{V}{R}$), if circuit resistance is doubled while voltage remains constant:",
       options: [
         "Current doubles",
         "Current is halved",
@@ -471,7 +471,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q2",
-      question: "In a series circuit containing two resistors (R₁ and R₂), what is true of the electric current?",
+      question: "In a series circuit containing two resistors ($R_1$ and $R_2$), what is true of the electric current?",
       options: [
         "Current divides inversely according to resistance",
         "Current is identical through every series component",
@@ -479,7 +479,7 @@ export const LAB_CHECKPOINTS = {
         "Current depends exclusively on the wire gauge"
       ],
       correctIndex: 1,
-      explanation: "Charge conservation dictates that in a single-loop series branch, current cannot accumulate, so I = I₁ = I₂ everywhere."
+      explanation: "Charge conservation dictates that in a single-loop series branch, current cannot accumulate, so $I = I_1 = I_2$ everywhere."
     },
     {
       id: "q3",
@@ -491,7 +491,7 @@ export const LAB_CHECKPOINTS = {
         "Depends on battery temperature only"
       ],
       correctIndex: 1,
-      explanation: "Each parallel branch provides an additional conductive pathway for current: 1/R_eq = 1/R₁ + 1/R₂, reducing overall equivalent resistance."
+      explanation: "Each parallel branch provides an additional conductive pathway for current: $\\frac{1}{R_{\\text{eq}}} = \\frac{1}{R_1} + \\frac{1}{R_2}$, reducing overall equivalent resistance."
     }
   ],
 
@@ -500,17 +500,17 @@ export const LAB_CHECKPOINTS = {
       id: "q1",
       question: "Boyle's Law states that at constant temperature and moles, the pressure and volume of an ideal gas are:",
       options: [
-        "Directly proportional (P/V = constant)",
-        "Inversely proportional (P · V = constant)",
+        "Directly proportional ($P/V = \\text{constant}$)",
+        "Inversely proportional ($P \\cdot V = \\text{constant}$)",
         "Exponentially related",
         "Independent of each other"
       ],
       correctIndex: 1,
-      explanation: "Halving the volume doubles the molecular collision frequency with container walls, thus doubling pressure (P₁V₁ = P₂V₂)."
+      explanation: "Halving the volume doubles the molecular collision frequency with container walls, thus doubling pressure ($P_1 V_1 = P_2 V_2$)."
     },
     {
       id: "q2",
-      question: "Why must temperature always be converted to the absolute Kelvin scale (T = °C + 273.15) in gas calculations?",
+      question: "Why must temperature always be converted to the absolute Kelvin scale ($T = T(^\\circ\\text{C}) + 273.15$) in gas calculations?",
       options: [
         "To avoid division by zero or negative volumes at sub-zero Celsius temperatures",
         "Because Kelvin matches imperial PSI units",
@@ -530,7 +530,7 @@ export const LAB_CHECKPOINTS = {
         "44.8 L"
       ],
       correctIndex: 2,
-      explanation: "From V = nRT/P = (1 mol × 0.08206 L·atm/(mol·K) × 273.15 K) / 1 atm ≈ 22.414 L."
+      explanation: "From $V = \\frac{nRT}{P} = \\frac{1\\text{ mol} \\times 0.08206\\text{ L}\\cdot\\text{atm}/(\\text{mol}\\cdot\\text{K}) \\times 273.15\\text{ K}}{1\\text{ atm}} \\approx 22.414\\text{ L}$."
     }
   ],
 
@@ -576,7 +576,7 @@ export const LAB_CHECKPOINTS = {
   optics: [
     {
       id: "q1",
-      question: "When light travels from air (n = 1.00) into crown glass (n = 1.52) at an oblique angle, the refracted ray:",
+      question: "When light travels from air ($n = 1.00$) into crown glass ($n = 1.52$) at an oblique angle, the refracted ray:",
       options: [
         "Bends away from the surface normal",
         "Bends towards the surface normal and slows down",
@@ -600,7 +600,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q3",
-      question: "For a thin converging (convex) lens, an object placed beyond twice the focal length (d_o > 2f) produces an image that is:",
+      question: "For a thin converging (convex) lens, an object placed beyond twice the focal length ($d_o > 2f$) produces an image that is:",
       options: [
         "Virtual, upright, and magnified",
         "Real, inverted, and reduced in size",
@@ -771,11 +771,11 @@ export const LAB_CHECKPOINTS = {
   waves: [
     {
       id: "q1",
-      question: "In Young's double-slit experiment, bright constructive interference fringes on a distant observation screen occur when the optical path difference Δr satisfies:",
+      question: "In Young's double-slit experiment, bright constructive interference fringes on a distant observation screen occur when the optical path difference $\\Delta r$ satisfies:",
       options: [
         "Δr = (m + 0.5)λ",
-        "Δr = mλ (where m = 0, ±1, ±2...)",
-        "Δr = λ / 4",
+        "$\\Delta r = m\\lambda$ (where $m = 0, \\pm 1, \\pm 2, \\dots$)",
+        "$\\Delta r = \\frac{\\lambda}{4}$",
         "Δr = 0 only"
       ],
       correctIndex: 1,
@@ -783,7 +783,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q2",
-      question: "If the separation distance between the two slits (d) is decreased while light wavelength λ and screen distance L remain constant, the fringe separation Δy:",
+      question: "If the separation distance between the two slits ($d$) is decreased while light wavelength $\\lambda$ and screen distance $L$ remain constant, the fringe separation $\\Delta y$:",
       options: [
         "Decreases proportionally",
         "Increases (fringe spacing widens: Δy = λL / d)",
@@ -849,7 +849,7 @@ export const LAB_CHECKPOINTS = {
   calorimetry: [
     {
       id: "q1",
-      question: "In constant-pressure calorimetry, heat released by an exothermic chemical reaction (q_rxn) is related to solution temperature change by:",
+      question: "In constant-pressure calorimetry, heat released by an exothermic chemical reaction ($q_{\\text{rxn}}$) is related to solution temperature change by:",
       options: [
         "q_rxn = -(m_sol × c_sol × ΔT + C_cal × ΔT)",
         "q_rxn = m × g × h",
@@ -881,7 +881,7 @@ export const LAB_CHECKPOINTS = {
         "Heat required to vaporize 1 mole of liquid into gas"
       ],
       correctIndex: 1,
-      explanation: "Specific heat capacity is the intensive property c = q / (m·ΔT), measured in J/(g·°C) or J/(g·K)."
+      explanation: "Specific heat capacity is the intensive property $c = \\frac{q}{m \\cdot \\Delta T}$, measured in $\\text{J}/(\\text{g}\\cdot^\\circ\\text{C})$ or $\\text{J}/(\\text{g}\\cdot\\text{K})$."
     }
   ],
 
@@ -900,7 +900,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q2",
-      question: "For the endothermic gas equilibrium N₂O₄ (colorless) + heat ⇌ 2 NO₂ (dark brown), increasing the temperature will cause:",
+      question: "For the endothermic gas equilibrium $\\text{N}_2\\text{O}_4\\text{ (colorless)} + \\text{heat} \\rightleftharpoons 2\\text{NO}_2\\text{ (dark brown)}$, increasing the temperature will cause:",
       options: [
         "The mixture to become darker brown as equilibrium shifts forward toward NO₂",
         "The mixture to become colorless as equilibrium shifts toward N₂O₄",
@@ -951,7 +951,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q3",
-      question: "According to the Nernst equation (E = E° - (RT/nF)·ln Q), when the reaction quotient Q < 1 (reactants in excess):",
+      question: "According to the Nernst equation ($E = E^\\circ - \\frac{RT}{nF}\\ln Q$), when the reaction quotient $Q < 1$ (reactants in excess):",
       options: [
         "Cell potential E is greater than standard potential E° (E > E°)",
         "Cell potential E drops to zero (cell is dead)",
@@ -966,19 +966,19 @@ export const LAB_CHECKPOINTS = {
   harmonic: [
     {
       id: "q1",
-      question: "For an ideal mass-spring system undergoing Simple Harmonic Motion (SHM), the period of oscillation T is given by:",
+      question: "For an ideal mass-spring system undergoing Simple Harmonic Motion (SHM), the period of oscillation $T$ is given by:",
       options: [
-        "T = 2π √(m / k)",
-        "T = 2π √(k / m)",
-        "T = 2π √(L / g)",
-        "T = ½ k A²"
+        "$T = 2\\pi \\sqrt{\\frac{m}{k}}$",
+        "$T = 2\\pi \\sqrt{\\frac{k}{m}}$",
+        "$T = 2\\pi \\sqrt{\\frac{L}{g}}$",
+        "$T = \\frac{1}{2} k A^2$"
       ],
       correctIndex: 0,
       explanation: "The angular frequency is ω = √(k/m). Since T = 2π/ω, the period is T = 2π√(m/k). Period increases with mass m and decreases with spring stiffness k."
     },
     {
       id: "q2",
-      question: "At the points of maximum displacement (x = +A or x = -A) in simple harmonic motion:",
+      question: "At the points of maximum displacement ($x = +A$ or $x = -A$) in simple harmonic motion:",
       options: [
         "Kinetic energy is maximized and potential energy is zero",
         "Velocity is zero, while acceleration and restoring force reach maximum magnitude",
@@ -990,7 +990,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q3",
-      question: "If the suspended mass on a Hooke's spring oscillator is increased by a factor of 4, the oscillation frequency f will:",
+      question: "If the suspended mass on a Hooke's spring oscillator is increased by a factor of 4, the oscillation frequency $f$ will:",
       options: [
         "Double (2×)",
         "Quadruple (4×)",
@@ -998,17 +998,17 @@ export const LAB_CHECKPOINTS = {
         "Remain strictly unchanged"
       ],
       correctIndex: 2,
-      explanation: "Frequency f = (1 / 2π) √(k / m). Multiplying mass m by 4 results in √(1/4) = 1/2, so the frequency is halved."
+      explanation: "Frequency $f = \\frac{1}{2\\pi} \\sqrt{\\frac{k}{m}}$. Multiplying mass $m$ by 4 results in $\\sqrt{1/4} = 1/2$, so the frequency is halved."
     }
   ],
 
   photoelectric: [
     {
       id: "q1",
-      question: "In Einstein's explanation of the photoelectric effect, the maximum kinetic energy (KE_max) of ejected photoelectrons is expressed as:",
+      question: "In Einstein's explanation of the photoelectric effect, the maximum kinetic energy ($\\text{KE}_{\\max}$) of ejected photoelectrons is expressed as:",
       options: [
         "KE_max = hf - Φ (where hf is photon energy and Φ is the metal work function)",
-        "KE_max = ½ m c²",
+        "$\\text{KE}_{\\max} = \\frac{1}{2} m c^2$",
         "KE_max = h / λ",
         "KE_max = q · V_stopping + hf"
       ],
@@ -1017,7 +1017,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q2",
-      question: "If incident light has a frequency lower than the metal's threshold frequency (f < f₀):",
+      question: "If incident light has a frequency lower than the metal's threshold frequency ($f < f_0$):",
       options: [
         "Electrons are emitted with very low kinetic energy",
         "Electrons are emitted only if the light is extremely bright (high intensity)",
@@ -1064,7 +1064,7 @@ export const LAB_CHECKPOINTS = {
         "Electrostatic repulsion from the glass walls pushes it inward"
       ],
       correctIndex: 1,
-      explanation: "Because F is always perpendicular to v, F · v = 0. The magnetic field does zero work on the particle; it changes only direction, producing uniform circular motion with radius r = mv / (qB)."
+      explanation: "Because F is always perpendicular to v, F · v = 0. The magnetic field does zero work on the particle; it changes only direction, producing uniform circular motion with radius $r = \\frac{mv}{qB}$."
     },
     {
       id: "q3",
@@ -1083,7 +1083,7 @@ export const LAB_CHECKPOINTS = {
   enzymes: [
     {
       id: "q1",
-      question: "In Michaelis-Menten enzyme kinetics, the Michaelis constant (Km) represents:",
+      question: "In Michaelis-Menten enzyme kinetics, the Michaelis constant ($K_m$) represents:",
       options: [
         "The maximum catalytic velocity at infinite substrate",
         "The substrate concentration [S] at which the initial reaction velocity reaches half of Vmax (V₀ = ½ Vmax)",
@@ -1161,7 +1161,7 @@ export const LAB_CHECKPOINTS = {
   beerlambert: [
     {
       id: "q1",
-      question: "According to the Beer-Lambert Law (A = ε·b·c), what is the mathematical relationship between optical absorbance A and molar concentration c?",
+      question: "According to the Beer-Lambert Law ($A = \\varepsilon \\cdot b \\cdot c$), what is the mathematical relationship between optical absorbance $A$ and molar concentration $c$?",
       options: [
         "Inversely proportional (hyperbolic)",
         "Directly proportional (linear relationship with zero intercept)",
@@ -1169,7 +1169,7 @@ export const LAB_CHECKPOINTS = {
         "Logarithmic saturation"
       ],
       correctIndex: 1,
-      explanation: "The Beer-Lambert Law states A = ε·b·c. Absorbance is directly proportional to both path length (b) and molar concentration (c), yielding a linear calibration plot with slope = ε·b."
+      explanation: "The Beer-Lambert Law states $A = \\varepsilon \\cdot b \\cdot c$. Absorbance is directly proportional to both path length ($b$) and molar concentration ($c$), yielding a linear calibration plot with $\\text{slope} = \\varepsilon \\cdot b$."
     },
     {
       id: "q2",
@@ -1181,7 +1181,7 @@ export const LAB_CHECKPOINTS = {
         "A = 0.000"
       ],
       correctIndex: 1,
-      explanation: "Absorbance is defined as A = -log₁₀(T). For T = 0.10 (10% transmittance), A = -log₁₀(0.10) = 1.000."
+      explanation: "Absorbance is defined as $A = -\\log_{10}(T)$. For $T = 0.10$ (10% transmittance), $A = -\\log_{10}(0.10) = 1.000$."
     },
     {
       id: "q3",
@@ -1263,7 +1263,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q3",
-      question: "Colligative properties of a solution (ΔT_f, ΔT_b, osmotic pressure Π) depend strictly upon:",
+      question: "Colligative properties of a solution ($\\Delta T_f$, $\\Delta T_b$, osmotic pressure $\\Pi$) depend strictly upon:",
       options: [
         "The chemical reactivity and color of the solute",
         "The ratio of the number of solute particles to the number of solvent molecules, independent of chemical identity",
@@ -1298,11 +1298,11 @@ export const LAB_CHECKPOINTS = {
         "Primary carbocations are more stable than tertiary carbocations"
       ],
       correctIndex: 0,
-      explanation: "Bulky alkyl groups sterically shield the α-carbon from S_N2 backside attack. Concurrently, hyperconjugation and alkyl electron-donation stabilize the 3° carbocation intermediate formed in the rate-determining S_N1 step."
+      explanation: "Bulky alkyl groups sterically shield the $\\alpha$-carbon from $\\text{S}_\\text{N}2$ backside attack. Concurrently, hyperconjugation and alkyl electron-donation stabilize the $3^\\circ$ carbocation intermediate formed in the rate-determining $\\text{S}_\\text{N}1$ step."
     },
     {
       id: "q3",
-      question: "In a reaction coordinate diagram (Gibbs free energy vs. reaction progress), what physical state corresponds to the maximum peak of the energy curve (ΔG‡)?",
+      question: "In a reaction coordinate diagram (Gibbs free energy vs. reaction progress), what physical state corresponds to the maximum peak of the energy curve ($\\Delta G^\\ddagger$)?",
       options: [
         "A long-lived reaction intermediate",
         "The activated transition state, featuring partially formed and partially broken bonds",
@@ -1332,7 +1332,7 @@ export const LAB_CHECKPOINTS = {
       question: "In a standard agarose sieving matrix, how does DNA fragment length (in base pairs) correlate with migration distance from the wells?",
       options: [
         "Longer fragments migrate further because they have more charge",
-        "Migration distance is inversely proportional to the logarithm of base-pair length (D ∝ 1/log₁₀(bp))",
+        "Migration distance is inversely proportional to the logarithm of base-pair length ($D \\propto \\frac{1}{\\log_{10}(\\text{bp})}$)",
         "All fragments migrate at identical speeds regardless of size",
         "Migration distance is directly proportional to DNA mass"
       ],
@@ -1434,7 +1434,7 @@ export const LAB_CHECKPOINTS = {
   rotational: [
     {
       id: "q1",
-      question: "A solid sphere (I = 2/5 MR²) and a hollow hoop (I = MR²) of identical mass M and radius R race down an inclined plane from rest without slipping. Which reaches the bottom first?",
+      question: "A solid sphere ($I = \\frac{2}{5}MR^2$) and a hollow hoop ($I = MR^2$) of identical mass $M$ and radius $R$ race down an inclined plane from rest without slipping. Which reaches the bottom first?",
       options: [
         "The hollow hoop, because its mass is concentrated at the rim",
         "The solid sphere, because a lower fraction of its potential energy is allocated to rotational kinetic energy, leaving more for translational velocity",
@@ -1442,7 +1442,7 @@ export const LAB_CHECKPOINTS = {
         "The object with greater diameter"
       ],
       correctIndex: 1,
-      explanation: "Linear acceleration down an incline is a = (g·sinθ) / (1 + I/(MR²)). For the sphere, I/(MR²) = 0.40, giving a = 0.714 g·sinθ. For the hoop, I/(MR²) = 1.00, giving a = 0.500 g·sinθ. The sphere accelerates faster and wins the race."
+      explanation: "Linear acceleration down an incline is $a = \\frac{g \\sin\\theta}{1 + I/(MR^2)}$. For the sphere, $I/(MR^2) = 0.40$, giving $a = 0.714 g \\sin\\theta$. For the hoop, $I/(MR^2) = 1.00$, giving $a = 0.500 g \\sin\\theta$. The sphere accelerates faster and wins the race."
     },
     {
       id: "q2",
@@ -1466,7 +1466,7 @@ export const LAB_CHECKPOINTS = {
         "Moment of inertia increases"
       ],
       correctIndex: 1,
-      explanation: "With zero external torque, L = I·ω is conserved. Pulling mass inward reduces I, increasing ω. Because KE_rot = L² / (2I), reducing I increases kinetic energy; the extra energy comes from mechanical work done by skater muscles."
+      explanation: "With zero external torque, angular momentum $L = I \\omega$ is conserved. Pulling mass inward reduces $I$, increasing $\\omega$. Because $\\text{KE}_{\\text{rot}} = \\frac{L^2}{2I}$, reducing $I$ increases kinetic energy; the extra energy comes from mechanical work done by skater muscles."
     }
   ],
 
@@ -1481,7 +1481,7 @@ export const LAB_CHECKPOINTS = {
         "Quadruple the thermal conductivity k"
       ],
       correctIndex: 1,
-      explanation: "Heat conduction rate dQ/dt is inversely proportional to rod/wall thickness L. Doubling L doubles thermal resistance R_th = L / (k·A), reducing conductive heat flux by 50%."
+      explanation: "Heat conduction rate $\\frac{dQ}{dt}$ is inversely proportional to rod/wall thickness $L$. Doubling $L$ doubles thermal resistance $R_{\\text{th}} = \\frac{L}{k A}$, reducing conductive heat flux by 50%."
     },
     {
       id: "q2",
@@ -1505,38 +1505,38 @@ export const LAB_CHECKPOINTS = {
         "Fluctuating sinusoidally"
       ],
       correctIndex: 1,
-      explanation: "Under steady-state conditions without internal heat generation and with insulated walls, heat flux dQ/dt must be uniform across every cross section: dQ/dt = -k·A·(dT/dx) = const. Therefore, dT/dx is constant, yielding a linear profile."
+      explanation: "Under steady-state conditions without internal heat generation and with insulated walls, heat flux $\\frac{dQ}{dt}$ must be uniform across every cross section: $\\frac{dQ}{dt} = -k A \\frac{dT}{dx} = \\text{const}$. Therefore, $\\frac{dT}{dx}$ is constant, yielding a linear profile."
     }
   ],
 
   fluids: [
     {
       id: "q1",
-      question: "According to Archimedes' Principle, the magnitude of the buoyant force (F_b) exerted on a completely or partially submerged object equals:",
+      question: "According to Archimedes' Principle, the magnitude of the buoyant force ($F_b$) exerted on a completely or partially submerged object equals:",
       options: [
         "The total weight of the submerged solid object",
-        "The weight of the fluid volume displaced by the submerged portion of the object (F_b = ρ_fluid · V_disp · g)",
+        "The weight of the fluid volume displaced by the submerged portion of the object ($F_b = \\rho_{\\text{fluid}} \\cdot V_{\\text{disp}} \\cdot g$)",
         "The atmospheric pressure on the fluid surface",
         "The surface tension of the fluid"
       ],
       correctIndex: 1,
-      explanation: "Archimedes' Principle states that any body immersed in fluid experiences an upward buoyant force equal to the weight of fluid it displaces: F_b = m_disp · g = ρ_fluid · V_disp · g."
+      explanation: "Archimedes' Principle states that any body immersed in fluid experiences an upward buoyant force equal to the weight of fluid it displaces: $F_b = m_{\\text{disp}} \\cdot g = \\rho_{\\text{fluid}} \\cdot V_{\\text{disp}} \\cdot g$."
     },
     {
       id: "q2",
-      question: "In a horizontal Venturi flow tube, as an incompressible fluid flows from a wide section into a narrow throat constriction, what happens to flow velocity v and static pressure P?",
+      question: "In a horizontal Venturi flow tube, as an incompressible fluid flows from a wide section into a narrow throat constriction, what happens to flow velocity $v$ and static pressure $P$?",
       options: [
         "Velocity decreases and pressure increases",
-        "Velocity increases by continuity (A₁v₁ = A₂v₂), causing static pressure P to decrease according to Bernoulli's principle",
+        "Velocity increases by continuity ($A_1 v_1 = A_2 v_2$), causing static pressure $P$ to decrease according to Bernoulli's principle",
         "Both velocity and pressure remain constant",
         "Both velocity and pressure increase"
       ],
       correctIndex: 1,
-      explanation: "By mass continuity, fluid must accelerate in the constricted area (v₂ > v₁). By Bernoulli's equation (P + ½ρv² = const), an increase in kinetic energy density requires a corresponding drop in static pressure (P₂ < P₁)."
+      explanation: "By mass continuity, fluid must accelerate in the constricted area ($v_2 > v_1$). By Bernoulli's equation ($P + \\frac{1}{2}\\rho v^2 = \\text{const}$), an increase in kinetic energy density requires a corresponding drop in static pressure ($P_2 < P_1$)."
     },
     {
       id: "q3",
-      question: "A solid metal block of volume 2.0 L (0.002 m³) and mass 5.0 kg is completely submerged in pure water (ρ = 1000 kg/m³). What is its apparent weight measured by a submerged spring scale?",
+      question: "A solid metal block of volume 2.0 L ($0.002\\text{ m}^3$) and mass 5.0 kg is completely submerged in pure water ($\\rho = 1000\\text{ kg/m}^3$). What is its apparent weight measured by a submerged spring scale?",
       options: [
         "49.05 N",
         "19.62 N",
@@ -1544,7 +1544,7 @@ export const LAB_CHECKPOINTS = {
         "0.00 N (it floats)"
       ],
       correctIndex: 2,
-      explanation: "True weight W = m·g = 5.0 kg × 9.81 m/s² = 49.05 N. Buoyant force F_b = ρ·V·g = 1000 kg/m³ × 0.002 m³ × 9.81 m/s² = 19.62 N. Apparent weight W_app = W - F_b = 49.05 N - 19.62 N = 29.43 N."
+      explanation: "True weight $W = m \\cdot g = 5.0\\text{ kg} \\times 9.81\\text{ m/s}^2 = 49.05\\text{ N}$. Buoyant force $F_b = \\rho \\cdot V \\cdot g = 1000\\text{ kg/m}^3 \\times 0.002\\text{ m}^3 \\times 9.81\\text{ m/s}^2 = 19.62\\text{ N}$. Apparent weight $W_{\\text{app}} = W - F_b = 49.05\\text{ N} - 19.62\\text{ N} = 29.43\\text{ N}$."
     }
   ],
 
@@ -1602,19 +1602,19 @@ export const LAB_CHECKPOINTS = {
   kinetics: [
     {
       id: "q1",
-      question: "According to collision theory and the Arrhenius equation (k = A·e^(-Ea/RT)), adding a positive catalyst like MnO₂ accelerates a chemical reaction primarily by:",
+      question: "According to collision theory and the Arrhenius equation ($k = A e^{-E_a/(RT)}$), adding a positive catalyst like $\\text{MnO}_2$ accelerates a chemical reaction primarily by:",
       options: [
         "Increasing the average kinetic energy of the reactant molecules",
         "Providing an alternative reaction pathway with a lower activation energy (Ea)",
         "Increasing the stoichiometric equilibrium constant K_eq",
-        "Shifting the overall reaction enthalpy ΔH to a more exothermic value"
+        "Shifting the overall reaction enthalpy $\\Delta H$ to a more exothermic value"
       ],
       correctIndex: 1,
-      explanation: "A catalyst provides an alternative mechanism or transition state with lower activation energy (Ea), allowing a significantly higher fraction of molecular collisions to possess sufficient energy to react, without altering ΔH or K_eq."
+      explanation: "A catalyst provides an alternative mechanism or transition state with lower activation energy ($E_a$), allowing a significantly higher fraction of molecular collisions to possess sufficient energy to react, without altering $\\Delta H$ or $K_{\\text{eq}}$."
     },
     {
       id: "q2",
-      question: "For a reaction with rate law Rate = k·[A]²·[B]⁰, if the concentration of [A] is tripled while [B] is doubled, the instantaneous reaction rate will:",
+      question: "For a reaction with rate law $\\text{Rate} = k[\\text{A}]^2[\\text{B}]^0$, if the concentration of $[\\text{A}]$ is tripled while $[\\text{B}]$ is doubled, the instantaneous reaction rate will:",
       options: [
         "Increase by a factor of 3",
         "Increase by a factor of 6",
@@ -1622,29 +1622,29 @@ export const LAB_CHECKPOINTS = {
         "Remain unchanged"
       ],
       correctIndex: 2,
-      explanation: "The reaction is 2nd order in A and 0th order in B. Tripling [A] increases rate by 3² = 9. Changing [B] has no effect because [B]⁰ = 1. Overall rate increases by 9×."
+      explanation: "The reaction is 2nd order in A and 0th order in B. Tripling $[\\text{A}]$ increases rate by $3^2 = 9$. Changing $[\\text{B}]$ has no effect because $[\\text{B}]^0 = 1$. Overall rate increases by $9\\times$."
     },
     {
       id: "q3",
       question: "In an Arrhenius plot of ln(k) versus (1/T), the slope of the resulting straight line equals:",
       options: [
-        "-Ea / R",
-        "+Ea / R",
-        "-ΔH / R",
+        "$-\\frac{E_a}{R}$",
+        "$+\\frac{E_a}{R}$",
+        "$-\\frac{\\Delta H}{R}$",
         "ln(A)"
       ],
       correctIndex: 0,
-      explanation: "Taking the natural logarithm of the Arrhenius equation yields ln(k) = - (Ea / R) · (1/T) + ln(A). Plotting ln(k) vs (1/T) gives a linear slope m = -Ea / R."
+      explanation: "Taking the natural logarithm of the Arrhenius equation yields $\\ln(k) = -\\left(\\frac{E_a}{R}\\right)\\left(\\frac{1}{T}\\right) + \\ln(A)$. Plotting $\\ln(k)$ vs $(1/T)$ gives a linear slope $m = -\\frac{E_a}{R}$."
     }
   ],
 
   collisions: [
     {
       id: "q1",
-      question: "In any isolated physical system with zero net external forces (ΣF_ext = 0), what quantity is strictly conserved during all collisions, whether elastic or inelastic?",
+      question: "In any isolated physical system with zero net external forces ($\\Sigma \\vec{F}_{\\text{ext}} = 0$), what quantity is strictly conserved during all collisions, whether elastic or inelastic?",
       options: [
         "Total mechanical kinetic energy only",
-        "Total linear vector momentum (Σp = m₁v₁ + m₂v₂ = const)",
+        "Total linear vector momentum ($\\Sigma \\vec{p} = m_1 \\vec{v}_1 + m_2 \\vec{v}_2 = \\text{const}$)",
         "The relative speed of separation",
         "Total potential energy only"
       ],
@@ -1653,7 +1653,7 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q2",
-      question: "In a perfectly inelastic collision (coefficient of restitution e = 0.0) between two gliders on a frictionless air track:",
+      question: "In a perfectly inelastic collision (coefficient of restitution $e = 0.0$) between two gliders on a frictionless air track:",
       options: [
         "Kinetic energy is completely conserved with zero loss",
         "The gliders stick together and move with a common final velocity",
@@ -1661,13 +1661,13 @@ export const LAB_CHECKPOINTS = {
         "The momentum of each individual glider is conserved"
       ],
       correctIndex: 1,
-      explanation: "In a perfectly inelastic collision (e = 0), maximum kinetic energy is dissipated into internal heat/deformation, and the colliding bodies couple or stick together, traveling with an identical final velocity v_f = (m₁u₁ + m₂u₂) / (m₁ + m₂)."
+      explanation: "In a perfectly inelastic collision (e = 0), maximum kinetic energy is dissipated into internal heat/deformation, and the colliding bodies couple or stick together, traveling with an identical final velocity $v_f = \\frac{m_1 u_1 + m_2 u_2}{m_1 + m_2}$."
     },
     {
       id: "q3",
       question: "A 0.50 kg glider moving at +2.0 m/s undergoes a perfectly elastic collision (e = 1.0) with an identical stationary 0.50 kg glider (m₁ = m₂, u₂ = 0). What are the final velocities?",
       options: [
-        "v₁ = 0.0 m/s and v₂ = +2.0 m/s (complete velocity transfer)",
+        "$v_1 = 0.0\\text{ m/s}$ and $v_2 = +2.0\\text{ m/s}$ (complete velocity transfer)",
         "v₁ = +1.0 m/s and v₂ = +1.0 m/s",
         "v₁ = -1.0 m/s and v₂ = +1.0 m/s",
         "v₁ = -2.0 m/s and v₂ = 0.0 m/s"
@@ -1682,13 +1682,13 @@ export const LAB_CHECKPOINTS = {
       id: "q1",
       question: "According to Faraday's Law of Induction, the magnitude of the induced electromotive force (EMF) in a coil of N turns is directly proportional to:",
       options: [
-        "The static magnetic flux Φ_B passing through the coil",
-        "The time rate of change of magnetic flux through the coil (dΦ_B / dt)",
+        "The static magnetic flux $\\Phi_B$ passing through the coil",
+        "The time rate of change of magnetic flux through the coil ($\\frac{d\\Phi_B}{dt}$)",
         "The total electrical resistance of the wire only",
         "The mass of the bar magnet"
       ],
       correctIndex: 1,
-      explanation: "Faraday's Law states E = -N · (dΦ_B / dt). An EMF is induced ONLY when magnetic flux through the coil is changing with respect to time; a stationary magnet inside a coil induces zero voltage."
+      explanation: "Faraday's Law states $\\mathcal{E} = -N \\frac{d\\Phi_B}{dt}$. An EMF is induced ONLY when magnetic flux through the coil is changing with respect to time; a stationary magnet inside a coil induces zero voltage."
     },
     {
       id: "q2",
@@ -1700,7 +1700,7 @@ export const LAB_CHECKPOINTS = {
         "Create zero magnetic field"
       ],
       correctIndex: 1,
-      explanation: "Lenz's Law (represented by the negative sign in E = -N dΦ/dt) is a consequence of conservation of energy: the induced current creates an opposing magnetic field that resists the flux change."
+      explanation: "Lenz's Law (represented by the negative sign in $\\mathcal{E} = -N \\frac{d\\Phi_B}{dt}$) is a consequence of conservation of energy: the induced current creates an opposing magnetic field that resists the flux change."
     },
     {
       id: "q3",
@@ -1766,7 +1766,7 @@ export const LAB_CHECKPOINTS = {
         "8.0%"
       ],
       correctIndex: 1,
-      explanation: "Mitotic Index (MI) = (Total cells in mitosis / Total cells counted) × 100%. Here, mitotic cells = 15 + 8 + 4 + 3 = 30. Total = 100. MI = (30 / 100) × 100% = 30.0%."
+      explanation: "$\\text{Mitotic Index (MI)} = \\left(\\frac{\\text{Total mitotic cells}}{\\text{Total cells}}\\right) \\times 100\%$. Here, mitotic cells = $15 + 8 + 4 + 3 = 30$. Total = 100. $\\text{MI} = \\left(\\frac{30}{100}\\right) \\times 100\% = 30.0\%$."
     },
     {
       id: "q2",
@@ -1800,12 +1800,12 @@ export const LAB_CHECKPOINTS = {
       question: "During a flame test, why does sodium chloride produce an intense, persistent golden-yellow flame whereas copper(II) chloride yields an emerald blue-green flame?",
       options: [
         "Sodium chloride undergoes combustion while copper chloride absorbs atmospheric oxygen",
-        "Thermal energy excites outer valence electrons; when electrons drop back to lower energy orbitals, they emit photons of specific quantized wavelengths ΔE = hc/λ characteristic of each element",
+        "Thermal energy excites outer valence electrons; when electrons drop back to lower energy orbitals, they emit photons of specific quantized wavelengths $\\Delta E = \\frac{hc}{\\lambda}$ characteristic of each element",
         "The chlorine anions emit the visible light, while metal cations merely act as inert thermal catalysts",
         "Copper chloride burns hotter than sodium chloride, shifting blackbody radiation into shorter ultraviolet wavelengths"
       ],
       correctIndex: 1,
-      explanation: "Thermal excitation promotes valence electrons to higher quantized Bohr energy levels. Relaxation back to lower eigenstates emits discrete photons whose wavelength λ corresponds precisely to the transition energy difference ΔE = hc/λ."
+      explanation: "Thermal excitation promotes valence electrons to higher quantized Bohr energy levels. Relaxation back to lower eigenstates emits discrete photons whose wavelength $\\lambda$ corresponds precisely to the transition energy difference $\\Delta E = \\frac{hc}{\\lambda}$."
     },
     {
       id: "q2",
@@ -1821,22 +1821,22 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q3",
-      question: "A flame emission spectrometer records a sharp line at λ = 670.8 nm for lithium. Using h = 6.626 × 10⁻³⁴ J·s and c = 3.00 × 10⁸ m/s, what is the quantum energy difference (ΔE) of this electron transition?",
+      question: "A flame emission spectrometer records a sharp line at $\\lambda = 670.8\\text{ nm}$ for lithium. Using $h = 6.626 \\times 10^{-34}\\text{ J}\\cdot\\text{s}$ and $c = 3.00 \\times 10^8\\text{ m/s}$, what is the quantum energy difference ($\\Delta E$) of this electron transition?",
       options: [
-        "ΔE ≈ 1.85 eV (2.96 × 10⁻¹⁹ J)",
-        "ΔE ≈ 3.10 eV (4.96 × 10⁻¹⁹ J)",
-        "ΔE ≈ 0.50 eV (8.01 × 10⁻²⁰ J)",
-        "ΔE ≈ 13.6 eV (2.18 × 10⁻¹⁸ J)"
+        "$\\Delta E \\approx 1.85\\text{ eV}$ ($2.96 \\times 10^{-19}\\text{ J}$)",
+        "$\\Delta E \\approx 3.10\\text{ eV}$ ($4.96 \\times 10^{-19}\\text{ J}$)",
+        "$\\Delta E \\approx 0.50\\text{ eV}$ ($8.01 \\times 10^{-20}\\text{ J}$)",
+        "$\\Delta E \\approx 13.6\\text{ eV}$ ($2.18 \\times 10^{-18}\\text{ J}$)"
       ],
       correctIndex: 0,
-      explanation: "ΔE = hc / λ = (6.626 × 10⁻³⁴ × 3.00 × 10⁸) / (670.8 × 10⁻⁹) ≈ 2.964 × 10⁻¹⁹ J. Converting to electron-volts: 2.964 × 10⁻¹⁹ / (1.602 × 10⁻¹⁹) ≈ 1.85 eV."
+      explanation: "$\\Delta E = \\frac{hc}{\\lambda} = \\frac{6.626 \\times 10^{-34} \\times 3.00 \\times 10^8}{670.8 \\times 10^{-9}} \\approx 2.964 \\times 10^{-19}\\text{ J}$. Converting to electron-volts: $\\frac{2.964 \\times 10^{-19}}{1.602 \\times 10^{-19}} \\approx 1.85\\text{ eV}$."
     }
   ],
 
   precipitation: [
     {
       id: "q1",
-      question: "If equal volumes of 0.020 M Pb(NO₃)₂ and 0.020 M KI are mixed at 25°C, will a precipitate of PbI₂ form given Ksp(PbI₂) = 9.8 × 10⁻⁹?",
+      question: "If equal volumes of 0.020 M $\\text{Pb(NO}_3)_2$ and 0.020 M $\\text{KI}$ are mixed at $25^\\circ\\text{C}$, will a precipitate of $\\text{PbI}_2$ form given $K_{\\text{sp}}(\\text{PbI}_2) = 9.8 \\times 10^{-9}$?",
       options: [
         "No, because the reaction quotient Q = 1.0 × 10⁻⁶ < Ksp",
         "Yes, because after dilution [Pb²⁺] = 0.010 M and [I⁻] = 0.010 M, giving Q = [Pb²⁺][I⁻]² = 1.0 × 10⁻⁶ > Ksp",
@@ -1844,7 +1844,7 @@ export const LAB_CHECKPOINTS = {
         "Yes, because Ksp is greater than the total molar mass of the mixture"
       ],
       correctIndex: 1,
-      explanation: "Upon mixing equal volumes, concentrations are halved: [Pb²⁺] = 0.010 M, [I⁻] = 0.010 M. The ion product Q = [Pb²⁺][I⁻]² = (0.010)(0.010)² = 1.0 × 10⁻⁶. Since Q (1.0 × 10⁻⁶) > Ksp (9.8 × 10⁻⁹), supersaturation occurs and golden PbI₂ precipitates."
+      explanation: "Upon mixing equal volumes, concentrations are halved: $[\\text{Pb}^{2+}] = 0.010\\text{ M}$, $[\\text{I}^-] = 0.010\\text{ M}$. The ion product $Q = [\\text{Pb}^{2+}][\\text{I}^-]^2 = (0.010)(0.010)^2 = 1.0 \\times 10^{-6}$. Since $Q (1.0 \\times 10^{-6}) > K_{\\text{sp}} (9.8 \\times 10^{-9})$, supersaturation occurs and golden $\\text{PbI}_2$ precipitates."
     },
     {
       id: "q2",
@@ -1875,15 +1875,15 @@ export const LAB_CHECKPOINTS = {
   activityseries: [
     {
       id: "q1",
-      question: "A strip of polished zinc metal is submerged into a 0.50 M copper(II) sulfate (CuSO₄) solution. Given E°(Zn²⁺/Zn) = -0.76 V and E°(Cu²⁺/Cu) = +0.34 V, what is observed?",
+      question: "A strip of polished zinc metal is submerged into a 0.50 M copper(II) sulfate ($\\text{CuSO}_4$) solution. Given $E^\\circ(\\text{Zn}^{2+}/\\text{Zn}) = -0.76\\text{ V}$ and $E^\\circ(\\text{Cu}^{2+}/\\text{Cu}) = +0.34\\text{ V}$, what is observed?",
       options: [
         "No reaction occurs because copper is more reactive than zinc",
-        "A spontaneous redox reaction occurs: zinc dissolves as Zn²⁺ and reddish-brown copper plates onto the strip with ΔE°cell = +1.10 V",
+        "A spontaneous redox reaction occurs: zinc dissolves as $\\text{Zn}^{2+}$ and reddish-brown copper plates onto the strip with $\\Delta E^\\circ_{\\text{cell}} = +1.10\\text{ V}$",
         "Vigorous evolution of oxygen gas bubbles without any change to the strip",
         "The solution turns deep purple and the zinc strip catches fire"
       ],
       correctIndex: 1,
-      explanation: "Since Zn is higher in the activity series (more negative E° = -0.76 V), it oxidizes: Zn(s) ⟶ Zn²⁺ + 2e⁻. Cu²⁺ reduces: Cu²⁺ + 2e⁻ ⟶ Cu(s) (E° = +0.34 V). The cell potential ΔE°cell = 0.34 - (-0.76) = +1.10 V > 0, indicating spontaneous single displacement."
+      explanation: "Since Zn is higher in the activity series (more negative $E^\\circ = -0.76\\text{ V}$), it oxidizes: $\\text{Zn(s)} \\longrightarrow \\text{Zn}^{2+} + 2e^-$. $\\text{Cu}^{2+}$ reduces: $\\text{Cu}^{2+} + 2e^- \\longrightarrow \\text{Cu(s)}$ ($E^\\circ = +0.34\\text{ V}$). The cell potential $\\Delta E^\\circ_{\\text{cell}} = 0.34 - (-0.76) = +1.10\\text{ V} > 0$, indicating spontaneous single displacement."
     },
     {
       id: "q2",
@@ -1895,7 +1895,7 @@ export const LAB_CHECKPOINTS = {
         "Copper (Cu)"
       ],
       correctIndex: 3,
-      explanation: "Hydrogen has a standard reduction potential of E° = 0.00 V. Copper has a positive reduction potential (E° = +0.34 V) and lies below hydrogen in the activity series, meaning Cu cannot spontaneously reduce H⁺ ions to H₂(g)."
+      explanation: "Hydrogen has a standard reduction potential of $E^\\circ = 0.00\\text{ V}$. Copper has a positive reduction potential ($E^\\circ = +0.34\\text{ V}$) and lies below hydrogen in the activity series, meaning Cu cannot spontaneously reduce $\\text{H}^+$ ions to $\\text{H}_2\\text{(g)}$."
     },
     {
       id: "q3",
@@ -1934,7 +1934,7 @@ export const LAB_CHECKPOINTS = {
         "Synergistic"
       ],
       correctIndex: 2,
-      explanation: "A zone diameter of 6.0 mm indicates zero clearance beyond the disk boundary. Because 6 mm ≤ 13 mm (CLSI Resistant breakpoint), the organism is classified as fully Resistant (R), caused by the mecA gene encoding PBP2a."
+      explanation: "A zone diameter of $6.0\\text{ mm}$ indicates zero clearance beyond the disk boundary. Because $6\\text{ mm} \\leq 13\\text{ mm}$ (CLSI Resistant breakpoint), the organism is classified as fully Resistant (R), caused by the mecA gene encoding PBP2a."
     },
     {
       id: "q3",
@@ -1977,15 +1977,15 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q3",
-      question: "In clinical serology, if three negative control wells yield OD₄₅₀ values of 0.050, 0.055, and 0.060 (mean = 0.055, SD = 0.005), what is the diagnostic Cutoff threshold calculated as Mean(Neg) + 3·SD?",
+      question: "In clinical serology, if three negative control wells yield $\\text{OD}_{450}$ values of 0.050, 0.055, and 0.060 (mean = 0.055, $\\text{SD} = 0.005$), what is the diagnostic Cutoff threshold calculated as $\\text{Mean}(\\text{Neg}) + 3 \\cdot \\text{SD}$?",
       options: [
-        "Cutoff OD = 0.070",
-        "Cutoff OD = 0.165",
-        "Cutoff OD = 0.055",
-        "Cutoff OD = 1.000"
+        "$\\text{Cutoff OD} = 0.070$",
+        "$\\text{Cutoff OD} = 0.165$",
+        "$\\text{Cutoff OD} = 0.055$",
+        "$\\text{Cutoff OD} = 1.000$"
       ],
       correctIndex: 0,
-      explanation: "Cutoff = Mean(Neg) + 3 × SD = 0.055 + 3 × (0.005) = 0.055 + 0.015 = 0.070. Any patient sample with an optical density greater than 0.070 is classified as seropositive."
+      explanation: "$\\text{Cutoff} = \\text{Mean}(\\text{Neg}) + 3 \\times \\text{SD} = 0.055 + 3(0.005) = 0.055 + 0.015 = 0.070$. Any patient sample with an optical density greater than 0.070 is classified as seropositive."
     }
   ],
 
@@ -2039,31 +2039,31 @@ export const LAB_CHECKPOINTS = {
         "The primary body sits at the geometric center of the ellipse, and speed maximizes at apoapsis"
       ],
       correctIndex: 1,
-      explanation: "Kepler's 1st Law states orbits are ellipses with the attractor at one focus. Kepler's 2nd Law (dA/dt = L/2m = constant) requires equal areas swept in equal time, meaning angular momentum conservation causes velocity to peak at periapsis (closest) and reach a minimum at apoapsis (farthest)."
+      explanation: "Kepler's 1st Law states orbits are ellipses with the attractor at one focus. Kepler's 2nd Law ($\\frac{dA}{dt} = \\frac{L}{2m} = \\text{constant}$) requires equal areas swept in equal time, meaning angular momentum conservation causes velocity to peak at periapsis (closest) and reach a minimum at apoapsis (farthest)."
     },
     {
       id: "q2",
-      question: "Using the Vis-Viva equation v² = GM(2/r - 1/a), how does the velocity of a spacecraft at periapsis (rp) compare to the local circular orbit speed at that same radius?",
+      question: "Using the Vis-Viva equation $v^2 = GM\\left(\\frac{2}{r} - \\frac{1}{a}\\right)$, how does the velocity of a spacecraft at periapsis ($r_p$) compare to the local circular orbit speed at that same radius?",
       options: [
         "Periapsis speed is always lower than circular orbit speed",
-        "Periapsis speed is always greater than circular orbit speed because the semi-major axis a > rp",
-        "Periapsis speed is exactly equal to the escape velocity vesc = √(2GM/r)",
+        "Periapsis speed is always greater than circular orbit speed because the semi-major axis $a > r_p$",
+        "Periapsis speed is exactly equal to the escape velocity $v_{\\text{esc}} = \\sqrt{\\frac{2GM}{r}}$",
         "Periapsis speed is zero because the spacecraft stops instantaneously to turn around"
       ],
       correctIndex: 1,
-      explanation: "For an ellipse, a > rp, so (2/rp - 1/a) > (2/rp - 1/rp) = 1/rp. Therefore, v² = GM(2/rp - 1/a) > GM/rp = v_circ², meaning periapsis speed is always greater than circular orbital speed."
+      explanation: "For an ellipse, $a > r_p$, so $(2/r_p - 1/a) > (2/r_p - 1/r_p) = 1/r_p$. Therefore, $v^2 = GM(2/r_p - 1/a) > \\frac{GM}{r_p} = v_{\\text{circ}}^2$, meaning periapsis speed is always greater than circular orbital speed."
     },
     {
       id: "q3",
-      question: "Kepler's Third Law states that T²/a³ = 4π²/(GM). If a satellite's semi-major axis (a) is quadrupled (a₂ = 4a₁), by what factor does its orbital period (T) increase?",
+      question: "Kepler's Third Law states that $\\frac{T^2}{a^3} = \\frac{4\\pi^2}{GM}$. If a satellite's semi-major axis ($a$) is quadrupled ($a_2 = 4a_1$), by what factor does its orbital period ($T$) increase?",
       options: [
         "2 times",
         "4 times",
-        "8 times (2³ = 8, since T ∝ a^(3/2))",
+        "8 times ($2^3 = 8$, since $T \\propto a^{3/2}$)",
         "16 times"
       ],
       correctIndex: 2,
-      explanation: "From T ∝ a^(3/2), if a is increased by a factor of 4, the new period T₂ = (4)^(3/2) · T₁ = (√4)³ · T₁ = 2³ · T₁ = 8 · T₁."
+      explanation: "From $T \\propto a^{3/2}$, if $a$ is increased by a factor of 4, the new period $T_2 = (4)^{3/2} \\cdot T_1 = (\\sqrt{4})^3 \\cdot T_1 = 2^3 \\cdot T_1 = 8 \\cdot T_1$."
     }
   ],
 
@@ -2082,19 +2082,19 @@ export const LAB_CHECKPOINTS = {
     },
     {
       id: "q2",
-      question: "In a resonance tube experiment with a 512 Hz tuning fork, the first two resonant air column lengths are measured at L₁ = 15.5 cm and L₂ = 48.5 cm. What is the experimental speed of sound (v)?",
+      question: "In a resonance tube experiment with a 512 Hz tuning fork, the first two resonant air column lengths are measured at $L_1 = 15.5\\text{ cm}$ and $L_2 = 48.5\\text{ cm}$. What is the experimental speed of sound ($v$)?",
       options: [
-        "v = 338.0 m/s [using v = 2f·(L₂ - L₁)]",
-        "v = 170.0 m/s",
-        "v = 512.0 m/s",
-        "v = 300.0 m/s"
+        "$v = 338.0\\text{ m/s}$ [using $v = 2f(L_2 - L_1)$]",
+        "$v = 170.0\\text{ m/s}$",
+        "$v = 512.0\\text{ m/s}$",
+        "$v = 300.0\\text{ m/s}$"
       ],
       correctIndex: 0,
-      explanation: "The difference between consecutive harmonics is half a wavelength: L₂ - L₁ = λ/2 = 48.5 - 15.5 = 33.0 cm = 0.33 m, giving λ = 0.66 m. Then v = f · λ = 512 Hz × 0.66 m = 337.92 m/s ≈ 338.0 m/s. This formula also eliminates the end correction c!"
+      explanation: "The difference between consecutive harmonics is half a wavelength: $L_2 - L_1 = \\lambda/2 = 48.5 - 15.5 = 33.0\\text{ cm} = 0.33\\text{ m}$, giving $\\lambda = 0.66\\text{ m}$. Then $v = f \\cdot \\lambda = 512\\text{ Hz} \\times 0.66\\text{ m} = 337.92\\text{ m/s} \\approx 338.0\\text{ m/s}$. This formula also eliminates the end correction $c$!"
     },
     {
       id: "q3",
-      question: "How does an increase in air temperature from 0°C to 25°C affect the speed of sound in air, according to v(T) = 331.3·√(1 + T/273.15)?",
+      question: "How does an increase in air temperature from $0^\\circ\\text{C}$ to $25^\\circ\\text{C}$ affect the speed of sound in air, according to $v(T) = 331.3\\sqrt{1 + \\frac{T}{273.15}}$?",
       options: [
         "The speed of sound decreases because warmer air has higher relative humidity",
         "The speed of sound increases from 331.3 m/s to approximately 346.2 m/s because warmer air molecules have higher root-mean-square thermal velocities",
@@ -2102,14 +2102,14 @@ export const LAB_CHECKPOINTS = {
         "The speed of sound doubles every 10°C increase in temperature"
       ],
       correctIndex: 1,
-      explanation: "Speed of sound in an ideal gas depends on temperature: v = √(γRT/M). At 25°C (298.15 K), v = 331.3 × √(298.15 / 273.15) ≈ 331.3 × 1.0447 ≈ 346.1 m/s, demonstrating an increase of approximately 0.6 m/s per °C."
+      explanation: "Speed of sound in an ideal gas depends on temperature: $v = \\sqrt{\\frac{\\gamma RT}{M}}$. At $25^\\circ\\text{C}$ (298.15 K), $v = 331.3 \\times \\sqrt{\\frac{298.15}{273.15}} \\approx 331.3 \\times 1.0447 \\approx 346.1\\text{ m/s}$, demonstrating an increase of approximately $0.6\\text{ m/s}$ per $^\\circ\\text{C}$."
     }
   ],
 
   electrostatics: [
     {
       id: "q1",
-      question: "According to Coulomb's Law F = ke·|q₁q₂|/r², if the separation distance r between two point charges is tripled (r₂ = 3r₁), what happens to the electrostatic force between them?",
+      question: "According to Coulomb's Law $F = k_e \\frac{|q_1 q_2|}{r^2}$, if the separation distance $r$ between two point charges is tripled ($r_2 = 3r_1$), what happens to the electrostatic force between them?",
       options: [
         "The force increases by a factor of 3",
         "The force decreases to 1/9 of its original magnitude (inverse-square law)",
@@ -2117,31 +2117,31 @@ export const LAB_CHECKPOINTS = {
         "The force remains unchanged because charge magnitudes are conserved"
       ],
       correctIndex: 1,
-      explanation: "Coulomb's Law follows an inverse-square dependence on distance: F ∝ 1/r². Tripling the distance (3r) results in a force of 1/(3)² = 1/9 of the initial value."
+      explanation: "Coulomb's Law follows an inverse-square dependence on distance: $F \\propto \\frac{1}{r^2}$. Tripling the distance ($3r$) results in a force of $\\frac{1}{3^2} = \\frac{1}{9}$ of the initial value."
     },
     {
       id: "q2",
-      question: "What is the geometric and physical relationship between electric field vector lines (E) and equipotential lines (V = constant)?",
+      question: "What is the geometric and physical relationship between electric field vector lines ($\\vec{E}$) and equipotential lines ($V = \\text{constant}$)?",
       options: [
         "Electric field lines are always parallel to equipotential lines",
-        "Electric field lines are always mutually perpendicular (orthogonal) to equipotential lines, pointing in the direction of steepest decreasing electric potential (E = -∇V)",
+        "Electric field lines are always mutually perpendicular (orthogonal) to equipotential lines, pointing in the direction of steepest decreasing electric potential ($\\vec{E} = -\\nabla V$)",
         "Electric field lines only exist where electric potential V is zero",
         "Equipotential lines spiral inward along the direction of magnetic flux"
       ],
       correctIndex: 1,
-      explanation: "Because moving a charge along an equipotential line requires zero work (dW = -q E · dr = 0), the component of E tangent to the surface must be zero. Hence, E is always perpendicular to equipotentials and points from high potential to low potential (E = -∇V)."
+      explanation: "Because moving a charge along an equipotential line requires zero work ($dW = -q \\vec{E} \\cdot d\\vec{r} = 0$), the component of $\\vec{E}$ tangent to the surface must be zero. Hence, $\\vec{E}$ is always perpendicular to equipotentials and points from high potential to low potential ($\\vec{E} = -\\nabla V$)."
     },
     {
       id: "q3",
-      question: "For an electric dipole consisting of +q at (x = -d/2) and -q at (x = +d/2), what is the electric potential (V) along the entire perpendicular bisector line (x = 0)?",
+      question: "For an electric dipole consisting of $+q$ at ($x = -d/2$) and $-q$ at ($x = +d/2$), what is the electric potential ($V$) along the entire perpendicular bisector line ($x = 0$)?",
       options: [
         "V = +∞",
-        "V = 0 Volts everywhere along the plane, because any point on the bisector is equidistant from +q and -q (V = ke·q/r + ke·(-q)/r = 0)",
+        "$V = 0\\text{ Volts}$ everywhere along the plane, because any point on the bisector is equidistant from $+q$ and $-q$ ($V = \\frac{k_e q}{r} + \\frac{k_e (-q)}{r} = 0$)",
         "V fluctuates sinusoidally between +ke·q/d and -ke·q/d",
         "V depends strictly on the test charge mass"
       ],
       correctIndex: 1,
-      explanation: "Every point on the perpendicular bisecting axis is equidistant (r₊ = r₋ = r) from both charges. The net potential is V = ke·(+q)/r + ke·(-q)/r = 0 V. The perpendicular bisector is thus the planar V = 0 equipotential surface."
+      explanation: "Every point on the perpendicular bisecting axis is equidistant ($r_+ = r_- = r$) from both charges. The net potential is $V = \\frac{k_e (+q)}{r} + \\frac{k_e (-q)}{r} = 0\\text{ V}$. The perpendicular bisector is thus the planar $V = 0$ equipotential surface."
     }
   ]
 };
@@ -2248,7 +2248,7 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
                 <div class="lab-question-meta">
                   Question ${qIdx + 1} of ${questions.length}
                 </div>
-                <div class="lab-question-text">${q.question}</div>
+                <div class="lab-question-text">${formatMathText(q.question)}</div>
 
                 <div class="lab-options-list">
                   ${q.options.map((opt, optIdx) => {
@@ -2260,7 +2260,7 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
                     return `
                       <button class="lab-option-btn ${optClass}" data-qidx="${qIdx}" data-optidx="${optIdx}" ${isAnswered ? "disabled" : ""} aria-label="Option ${["A", "B", "C", "D"][optIdx]}: ${opt}">
                         <span class="lab-option-letter">${["A", "B", "C", "D"][optIdx]}.</span>
-                        <span class="lab-option-text">${opt}</span>
+                        <span class="lab-option-text">${formatMathText(opt)}</span>
                       </button>
                     `;
                   }).join("")}
@@ -2268,7 +2268,7 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
 
                 ${isAnswered ? `
                   <div class="lab-explanation-box ${isCorrect ? 'correct' : 'incorrect'}">
-                    <strong>${isCorrect ? '✓ Correct Explanation:' : '✗ Insight:'}</strong> ${q.explanation}
+                    <strong>${isCorrect ? '✓ Correct Explanation:' : '✗ Insight:'}</strong> ${formatMathText(q.explanation)}
                   </div>
                 ` : ""}
               </div>

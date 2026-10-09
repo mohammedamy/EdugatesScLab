@@ -14,6 +14,7 @@ import {
   renderMathInElement,
   upgradeAllMath
 } from "../utils/math-renderer.js";
+import { LAB_CHECKPOINTS } from "../labs/lab-telemetry-exporter.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -179,6 +180,80 @@ test("index.css enforces color inheritance for math inside badges", () => {
   assert(
     css.includes(".badge .math-rendered,") && css.includes("color: inherit !important;"),
     "index.css must ensure math inside badges inherits the badge theme color"
+  );
+});
+
+// ----------------------------------------------------
+// 7. Checkpoint Assessment Math Typesetting & Integrity
+// ----------------------------------------------------
+test("labs/lab-telemetry-exporter.js LAB_CHECKPOINTS has zero corrupting control characters", () => {
+  const labs = LAB_CHECKPOINTS;
+  assert(labs && typeof labs === "object", "LAB_CHECKPOINTS must exist");
+
+  const controlCharIssues = [];
+  for (const [key, questions] of Object.entries(labs)) {
+    questions.forEach((q, idx) => {
+      const texts = [
+        { field: "question", text: q.question },
+        ...q.options.map((opt, oIdx) => ({ field: `option[${oIdx}]`, text: opt })),
+        { field: "explanation", text: q.explanation }
+      ];
+      texts.forEach(({ field, text }) => {
+        if (/[\r\t\f\x08\x0b]/.test(text)) {
+          controlCharIssues.push({ key, q: idx + 1, field, text });
+        }
+      });
+    });
+  }
+
+  assert.strictEqual(
+    controlCharIssues.length,
+    0,
+    `Found ${controlCharIssues.length} strings with corrupting ASCII control characters in LAB_CHECKPOINTS: ${JSON.stringify(controlCharIssues, null, 2)}`
+  );
+});
+
+test("Archimedes fluids checkpoint renders typeset buoyant force math ($F_b$) and formula ($F_b = \\rho_{\\text{fluid}} \\cdot V_{\\text{disp}} \\cdot g$)", () => {
+  const q1 = LAB_CHECKPOINTS.fluids[0];
+  assert(q1, "Fluids Q1 must exist");
+
+  const qRendered = formatMathText(q1.question);
+  assert(
+    qRendered.includes('data-latex="F_b"') && qRendered.includes('math-rendered'),
+    "Fluids Q1 prompt must render buoyant force ($F_b$) as a math-rendered container"
+  );
+
+  const opt1Rendered = formatMathText(q1.options[1]);
+  assert(
+    opt1Rendered.includes('data-latex="F_b = \\rho_{\\text{fluid}} \\cdot V_{\\text{disp}} \\cdot g"') &&
+    opt1Rendered.includes('math-rendered'),
+    "Fluids Q1 Option B must render full Archimedes formula as a math-rendered container with valid LaTeX"
+  );
+  assert(
+    !opt1Rendered.includes("\r") && !opt1Rendered.includes("\t") && !opt1Rendered.includes("\f"),
+    "Fluids Q1 Option B must not contain unescaped control characters"
+  );
+
+  const expRendered = formatMathText(q1.explanation);
+  assert(
+    expRendered.includes('data-latex="F_b = m_{\\text{disp}} \\cdot g = \\rho_{\\text{fluid}} \\cdot V_{\\text{disp}} \\cdot g"'),
+    "Fluids Q1 explanation must render complete derivation formula"
+  );
+});
+
+test("mountLabCheckpoint wraps questions, options, and explanations with formatMathText", () => {
+  const exporterSrc = fs.readFileSync(path.join(rootDir, "labs", "lab-telemetry-exporter.js"), "utf8");
+  assert(
+    exporterSrc.includes("${formatMathText(q.question)}"),
+    "mountLabCheckpoint must wrap q.question with formatMathText"
+  );
+  assert(
+    exporterSrc.includes("${formatMathText(opt)}"),
+    "mountLabCheckpoint must wrap option text with formatMathText"
+  );
+  assert(
+    exporterSrc.includes("${formatMathText(q.explanation)}"),
+    "mountLabCheckpoint must wrap q.explanation with formatMathText"
   );
 });
 
