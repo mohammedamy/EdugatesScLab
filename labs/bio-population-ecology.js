@@ -34,6 +34,52 @@ export function initPopulationEcologyLab(containerId) {
   let isWinterSeason = false;
 
   // Natural Boreal Forest / Taiga Environment
+  const ARENA_W = 580;
+  const ARENA_H = 530;
+
+  // Mathematical Parametric River Spline Model
+  // Evaluates exact position (x, y), tangent vector (tx, ty), normal vector (nx, ny),
+  // and channel width along the dual-segment cubic Bézier stream bed
+  function getRiverPoint(u, isWinter = false) {
+    let t, p0x, p0y, p1x, p1y, p2x, p2y, p3x, p3y;
+    const splitU = 390 / ARENA_H;
+    if (u <= splitU) {
+      t = Math.max(0, Math.min(1, u / splitU));
+      p0x = 280; p0y = 0;
+      p1x = 325; p1y = 120;
+      p2x = 220; p2y = 260;
+      p3x = 290; p3y = 390;
+    } else {
+      t = Math.max(0, Math.min(1, (u - splitU) / (1 - splitU)));
+      p0x = 290; p0y = 390;
+      p1x = 320; p1y = 440;
+      p2x = 250; p2y = 490;
+      p3x = 235; p3y = ARENA_H;
+    }
+    const mt = 1 - t;
+    const mt2 = mt * mt;
+    const mt3 = mt2 * mt;
+    const t2 = t * t;
+    const t3 = t2 * t;
+
+    const x = mt3 * p0x + 3 * mt2 * t * p1x + 3 * mt * t2 * p2x + t3 * p3x;
+    const y = mt3 * p0y + 3 * mt2 * t * p1y + 3 * mt * t2 * p2y + t3 * p3y;
+
+    const dx = 3 * mt2 * (p1x - p0x) + 6 * mt * t * (p2x - p1x) + 3 * t2 * (p3x - p2x);
+    const dy = 3 * mt2 * (p1y - p0y) + 6 * mt * t * (p2y - p1y) + 3 * t2 * (p3y - p2y);
+    const len = Math.hypot(dx, dy) || 1;
+    const tx = dx / len;
+    const ty = dy / len;
+    const nx = -ty;
+    const ny = tx;
+
+    const baseW = isWinter ? 22 : 30;
+    const width = baseW + Math.sin(u * Math.PI * 2.8) * 3.5;
+    const angle = Math.atan2(ty, tx);
+
+    return { x, y, tx, ty, nx, ny, width, angle, u };
+  }
+
   const TREES = [
     { x: 55, y: 85, r: 26, layers: 4, type: "spruce" },
     { x: 520, y: 90, r: 28, layers: 4, type: "fir" },
@@ -57,19 +103,19 @@ export function initPopulationEcologyLab(containerId) {
     { x1: 390, y1: 235, x2: 460, y2: 218, r: 5.0, moss: true }
   ];
 
-  // Riverbed Submerged Stones (visible through clear meltwater)
-  const RIVER_PEBBLES = [
-    { x: 285, y: 40, rx: 4, ry: 2.5, rot: 0.4, color: "#64748b" },
-    { x: 310, y: 95, rx: 5, ry: 3.2, rot: -0.3, color: "#475569" },
-    { x: 318, y: 145, rx: 4.5, ry: 2.8, rot: 0.2, color: "#78716c" },
-    { x: 280, y: 190, rx: 5.5, ry: 3.5, rot: 0.6, color: "#57534e" },
-    { x: 235, y: 235, rx: 4, ry: 2.6, rot: -0.5, color: "#64748b" },
-    { x: 228, y: 280, rx: 5, ry: 3.0, rot: 0.1, color: "#475569" },
-    { x: 245, y: 330, rx: 4.5, ry: 2.7, rot: -0.2, color: "#78716c" },
-    { x: 282, y: 375, rx: 6, ry: 3.8, rot: 0.4, color: "#57534e" },
-    { x: 295, y: 420, rx: 4.5, ry: 2.8, rot: -0.4, color: "#64748b" },
-    { x: 260, y: 465, rx: 5, ry: 3.2, rot: 0.3, color: "#475569" },
-    { x: 240, y: 505, rx: 4.5, ry: 2.6, rot: -0.2, color: "#78716c" }
+  // Riverbed Submerged Stones (Anchored with mathematical precision to true riverbed)
+  const PEBBLE_SPECS = [
+    { u: 0.08, offset: -0.22, rx: 4.0, ry: 2.5, rot: 0.4, color: "#64748b" },
+    { u: 0.16, offset:  0.26, rx: 5.0, ry: 3.2, rot: -0.3, color: "#475569" },
+    { u: 0.25, offset: -0.32, rx: 4.5, ry: 2.8, rot: 0.2, color: "#78716c" },
+    { u: 0.35, offset:  0.18, rx: 5.5, ry: 3.5, rot: 0.6, color: "#57534e" },
+    { u: 0.44, offset: -0.20, rx: 4.0, ry: 2.6, rot: -0.5, color: "#64748b" },
+    { u: 0.53, offset:  0.28, rx: 5.0, ry: 3.0, rot: 0.1, color: "#475569" },
+    { u: 0.62, offset: -0.16, rx: 4.5, ry: 2.7, rot: -0.2, color: "#78716c" },
+    { u: 0.71, offset:  0.22, rx: 6.0, ry: 3.8, rot: 0.4, color: "#57534e" },
+    { u: 0.80, offset: -0.28, rx: 4.5, ry: 2.8, rot: -0.4, color: "#64748b" },
+    { u: 0.88, offset:  0.19, rx: 5.0, ry: 3.2, rot: 0.3, color: "#475569" },
+    { u: 0.95, offset: -0.12, rx: 4.5, ry: 2.6, rot: -0.2, color: "#78716c" }
   ];
 
   // Naturally Scattered Fallen Pine Straw / Needles (Organic Jitter, Zero Grid)
@@ -325,8 +371,6 @@ export function initPopulationEcologyLab(containerId) {
   const chartCanvas = container.querySelector("#eco-chart-canvas");
   const chartCtx = chartCanvas.getContext("2d");
 
-  const ARENA_W = 580;
-  const ARENA_H = 530;
   const CHART_W = 460;
   const CHART_H = 180;
 
@@ -523,84 +567,198 @@ export function initPopulationEcologyLab(containerId) {
       });
     }
 
-    // 2. Meandering Boreal Meltwater Creek / Stream
+    // 2. Meandering Boreal Meltwater Creek / Stream (Photorealistic Multi-Tier River Physics)
     ctx.save();
-    // Riverbanks / Wet Silt Gravel Bed
+
+    // A. Wet Silt Gravel Riverbed / Shoreline
     ctx.beginPath();
     ctx.moveTo(280, 0);
     ctx.bezierCurveTo(325, 120, 220, 260, 290, 390);
     ctx.bezierCurveTo(320, 440, 250, 490, 235, ARENA_H);
-    ctx.lineWidth = isWinterSeason ? 26 : 34;
-    ctx.strokeStyle = isWinterSeason ? "rgba(100, 116, 139, 0.40)" : "rgba(30, 41, 59, 0.45)";
+    ctx.lineWidth = isWinterSeason ? 28 : 38;
+    ctx.strokeStyle = isWinterSeason ? "rgba(71, 85, 105, 0.45)" : "rgba(30, 41, 59, 0.48)";
     ctx.stroke();
 
-    // Clear Meltwater River Bed
+    // B. Clear Mountain Meltwater River Bed Channel
     ctx.beginPath();
     ctx.moveTo(280, 0);
     ctx.bezierCurveTo(325, 120, 220, 260, 290, 390);
     ctx.bezierCurveTo(320, 440, 250, 490, 235, ARENA_H);
-    ctx.lineWidth = isWinterSeason ? 18 : 25;
-    ctx.strokeStyle = isWinterSeason ? "rgba(14, 165, 233, 0.48)" : "rgba(2, 132, 199, 0.58)";
+    ctx.lineWidth = isWinterSeason ? 20 : 28;
+    ctx.strokeStyle = isWinterSeason ? "rgba(14, 165, 233, 0.46)" : "rgba(2, 132, 199, 0.60)";
     ctx.stroke();
 
-    // Submerged Riverbed Pebbles (visible under crystal clear water)
-    RIVER_PEBBLES.forEach(peb => {
+    // C. Deep River Thalweg Center Stream (Fast-flowing central channel)
+    ctx.beginPath();
+    ctx.moveTo(280, 0);
+    ctx.bezierCurveTo(325, 120, 220, 260, 290, 390);
+    ctx.bezierCurveTo(320, 440, 250, 490, 235, ARENA_H);
+    ctx.lineWidth = isWinterSeason ? 11 : 16;
+    ctx.strokeStyle = isWinterSeason ? "rgba(3, 105, 161, 0.42)" : "rgba(3, 105, 161, 0.52)";
+    ctx.stroke();
+
+    // D. Submerged Riverbed Pebbles (Anchored directly on the stream bed)
+    PEBBLE_SPECS.forEach(p => {
+      const pt = getRiverPoint(p.u, isWinterSeason);
+      const px = pt.x + pt.nx * (p.offset * pt.width * 0.45);
+      const py = pt.y + pt.ny * (p.offset * pt.width * 0.45);
+
       ctx.save();
-      ctx.translate(peb.x, peb.y);
-      ctx.rotate(peb.rot);
+      ctx.translate(px, py);
+      ctx.rotate(p.rot);
       ctx.beginPath();
-      ctx.ellipse(0, 0, peb.rx, peb.ry, 0, 0, Math.PI * 2);
-      ctx.fillStyle = peb.color;
-      ctx.globalAlpha = 0.55;
+      ctx.ellipse(0, 0, p.rx, p.ry, 0, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = 0.58;
       ctx.fill();
+
+      // Subtle water wake behind submerged stone
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.arc(-pt.tx * 2, -pt.ty * 2, Math.max(p.rx, p.ry) + 1.5, pt.angle + Math.PI * 0.65, pt.angle + Math.PI * 1.35);
+      ctx.stroke();
       ctx.restore();
     });
 
-    // Animated water shimmer caustics & current flow ripples
-    ctx.lineWidth = 2.0;
-    ctx.strokeStyle = isWinterSeason ? "rgba(255, 255, 255, 0.65)" : "rgba(186, 230, 253, 0.72)";
-    const streamFlowOffset = (simTime * 28) % 45;
-    for (let s = 15; s < ARENA_H - 10; s += 42) {
-      const sy = s + streamFlowOffset;
-      if (sy < ARENA_H - 10) {
-        const t = sy / ARENA_H;
-        const sx = 280 + Math.sin(t * Math.PI * 2.3) * 38;
-        ctx.beginPath();
-        ctx.moveTo(sx - 6, sy);
-        ctx.bezierCurveTo(sx - 2, sy + 2, sx + 2, sy - 1, sx + 6, sy + 2);
-        ctx.stroke();
+    // E. Flowing Laminar Streamlines (Animated Current Ribbons)
+    const streamOffsets = [-0.38, -0.12, 0.12, 0.38];
+    streamOffsets.forEach(offset => {
+      ctx.save();
+      ctx.beginPath();
+      const speedMult = 1.0 - Math.abs(offset) * 0.35;
+      const dashOffset = -(simTime * 36 * speedMult) % 36;
+      ctx.setLineDash([12, 24]);
+      ctx.lineDashOffset = dashOffset;
+      ctx.lineWidth = 1.4;
+      ctx.strokeStyle = isWinterSeason ? "rgba(224, 242, 254, 0.40)" : "rgba(186, 230, 253, 0.48)";
+
+      const steps = 30;
+      for (let s = 0; s <= steps; s++) {
+        const u = s / steps;
+        const pt = getRiverPoint(u, isWinterSeason);
+        const sx = pt.x + pt.nx * (offset * pt.width * 0.45);
+        const sy = pt.y + pt.ny * (offset * pt.width * 0.45);
+        if (s === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
       }
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // F. Realistic Curved Wave Crests & Ripples (Mathematically Locked Inside River Water)
+    const rippleCount = 14;
+    const flowProgress = (simTime * 0.08) % 1.0;
+    for (let i = 0; i < rippleCount; i++) {
+      const station = (i / rippleCount + flowProgress) % 1.0;
+      const pt = getRiverPoint(station, isWinterSeason);
+
+      // Smooth fade at entrance and exit so waves flow seamlessly without popping
+      const fade = Math.sin(station * Math.PI);
+      if (fade < 0.05) continue;
+
+      const waveHalfW = pt.width * 0.38;
+      const bulge = 4.2 * fade;
+
+      // Downstream curved ripple arc along river tangent and normal
+      const x1 = pt.x - pt.nx * waveHalfW;
+      const y1 = pt.y - pt.ny * waveHalfW;
+      const x2 = pt.x + pt.nx * waveHalfW;
+      const y2 = pt.y + pt.ny * waveHalfW;
+      const cx = pt.x + pt.tx * bulge;
+      const cy = pt.y + pt.ty * bulge;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.quadraticCurveTo(cx, cy, x2, y2);
+      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = isWinterSeason 
+        ? `rgba(255, 255, 255, ${(0.72 * fade).toFixed(3)})` 
+        : `rgba(224, 242, 254, ${(0.80 * fade).toFixed(3)})`;
+      ctx.stroke();
+
+      // Echo micro-ripple
+      ctx.beginPath();
+      ctx.moveTo(x1 - pt.tx * 2.5, y1 - pt.ty * 2.5);
+      ctx.quadraticCurveTo(cx - pt.tx * 1.8, cy - pt.ty * 1.8, x2 - pt.tx * 2.5, y2 - pt.ty * 2.5);
+      ctx.lineWidth = 1.0;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${(0.42 * fade).toFixed(3)})`;
+      ctx.stroke();
+      ctx.restore();
     }
 
-    // Winter semi-frozen ice shelf edges along creek
+    // G. Shimmering Surface Caustics Flecks (Sunlight sparkling on moving water)
+    for (let c = 1; c <= 8; c++) {
+      const u = (c * 0.115 + simTime * 0.04) % 1.0;
+      const pt = getRiverPoint(u, isWinterSeason);
+      const lateralJitter = Math.sin(c * 3.7 + simTime * 2.2) * 0.30;
+      const cx = pt.x + pt.nx * (lateralJitter * pt.width * 0.45);
+      const cy = pt.y + pt.ny * (lateralJitter * pt.width * 0.45);
+      const sparkle = (Math.sin(simTime * 4.5 + c * 2.1) + 1) * 0.5;
+
+      ctx.save();
+      ctx.fillStyle = `rgba(255, 255, 255, ${(0.65 * sparkle * Math.sin(u * Math.PI)).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 1.3 + sparkle * 0.8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // H. Winter semi-frozen ice shelf edges along creek
     if (isWinterSeason) {
+      ctx.save();
+      ctx.lineWidth = 3.5;
       ctx.strokeStyle = "rgba(241, 245, 249, 0.92)";
-      ctx.lineWidth = 4.0;
+
+      // Left Ice Rim
       ctx.beginPath();
-      ctx.moveTo(268, 0);
-      ctx.bezierCurveTo(313, 120, 208, 260, 278, 390);
-      ctx.bezierCurveTo(308, 440, 238, 490, 223, ARENA_H);
+      for (let s = 0; s <= 35; s++) {
+        const u = s / 35;
+        const pt = getRiverPoint(u, true);
+        const ix = pt.x - pt.nx * (pt.width * 0.52);
+        const iy = pt.y - pt.ny * (pt.width * 0.52);
+        if (s === 0) ctx.moveTo(ix, iy);
+        else ctx.lineTo(ix, iy);
+      }
       ctx.stroke();
 
+      // Right Ice Rim
       ctx.beginPath();
-      ctx.moveTo(292, 0);
-      ctx.bezierCurveTo(337, 120, 232, 260, 302, 390);
-      ctx.bezierCurveTo(332, 440, 262, 490, 247, ARENA_H);
+      for (let s = 0; s <= 35; s++) {
+        const u = s / 35;
+        const pt = getRiverPoint(u, true);
+        const ix = pt.x + pt.nx * (pt.width * 0.52);
+        const iy = pt.y + pt.ny * (pt.width * 0.52);
+        if (s === 0) ctx.moveTo(ix, iy);
+        else ctx.lineTo(ix, iy);
+      }
       ctx.stroke();
 
-      // Delicate crystalline ice fracture lines
+      // Delicate crystalline ice needle fracture lines branching from the banks
       ctx.strokeStyle = "rgba(186, 230, 253, 0.85)";
       ctx.lineWidth = 1.2;
-      for (let s = 30; s < ARENA_H; s += 70) {
-        const t = s / ARENA_H;
-        const sx = 280 + Math.sin(t * Math.PI * 2.3) * 38;
+      for (let s = 25; s < ARENA_H - 20; s += 55) {
+        const u = s / ARENA_H;
+        const pt = getRiverPoint(u, true);
+        const leftX = pt.x - pt.nx * (pt.width * 0.52);
+        const leftY = pt.y - pt.ny * (pt.width * 0.52);
+        const rightX = pt.x + pt.nx * (pt.width * 0.52);
+        const rightY = pt.y + pt.ny * (pt.width * 0.52);
+
+        // Branching needles on left ice shelf
         ctx.beginPath();
-        ctx.moveTo(sx - 10, s);
-        ctx.lineTo(sx - 5, s + 4);
-        ctx.moveTo(sx + 10, s + 15);
-        ctx.lineTo(sx + 5, s + 19);
+        ctx.moveTo(leftX, leftY);
+        ctx.lineTo(leftX + pt.nx * 6 + pt.tx * 4, leftY + pt.ny * 6 + pt.ty * 4);
+        ctx.lineTo(leftX + pt.nx * 10 - pt.tx * 2, leftY + pt.ny * 10 - pt.ty * 2);
+
+        // Branching needles on right ice shelf
+        ctx.moveTo(rightX, rightY);
+        ctx.lineTo(rightX - pt.nx * 6 + pt.tx * 4, rightY - pt.ny * 6 + pt.ty * 4);
+        ctx.lineTo(rightX - pt.nx * 10 - pt.tx * 2, rightY - pt.ny * 10 - pt.ty * 2);
         ctx.stroke();
       }
+      ctx.restore();
     }
     ctx.restore();
 

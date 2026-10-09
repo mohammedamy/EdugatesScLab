@@ -69,6 +69,17 @@ test("bio-population-ecology.js implements Boreal Taiga terrain & meandering str
   assert.ok(code.includes("bezierCurveTo"), "Meandering meltwater creek rendered via curves");
 });
 
+test("bio-population-ecology.js implements realistic river spline with waves flowing inside river water", () => {
+  const filePath = path.resolve("./labs/bio-population-ecology.js");
+  const code = fs.readFileSync(filePath, "utf-8");
+
+  assert.ok(code.includes("getRiverPoint"), "getRiverPoint parametric spline model must be defined");
+  assert.ok(code.includes("PEBBLE_SPECS"), "PEBBLE_SPECS array must anchor submerged stones to riverbed");
+  assert.ok(code.includes("streamOffsets"), "Laminar streamlines must flow along river offsets");
+  assert.ok(!code.includes("280 + Math.sin(t * Math.PI * 2.3) * 38"), "Crude off-target sine approximation must be removed");
+  assert.ok(code.includes("pt.nx") && code.includes("pt.tx"), "Waves and ripples must use exact normal and tangent vectors of the river");
+});
+
 test("bio-population-ecology.js implements evasive zig-zag flee AI & pounce capture AI", () => {
   const filePath = path.resolve("./labs/bio-population-ecology.js");
   const code = fs.readFileSync(filePath, "utf-8");
