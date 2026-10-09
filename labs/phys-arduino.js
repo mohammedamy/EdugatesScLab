@@ -1836,10 +1836,10 @@ export const ARDUINO_PINS = {
 };
 
 export const BREADBOARD_PINS = {
-  "BB_TOP_5V":  { x: 450, y: 73, label: "Breadboard Top +5V Bus" },
-  "BB_TOP_GND": { x: 450, y: 85, label: "Breadboard Top GND Bus" },
-  "BB_BOT_GND": { x: 450, y: 375, label: "Breadboard Bottom GND Bus" },
-  "BB_BOT_5V":  { x: 450, y: 387, label: "Breadboard Bottom +5V Bus" }
+  "BB_TOP_5V":  { x: 442, y: 73, label: "Breadboard Top +5V Bus" },
+  "BB_TOP_GND": { x: 462, y: 85, label: "Breadboard Top GND Bus" },
+  "BB_BOT_GND": { x: 462, y: 375, label: "Breadboard Bottom GND Bus" },
+  "BB_BOT_5V":  { x: 442, y: 387, label: "Breadboard Bottom +5V Bus" }
 };
 
 export function getDefaultWiresForExperiment(expId) {
@@ -1857,11 +1857,11 @@ export function getDefaultWiresForExperiment(expId) {
     case "traffic_light":
       return [
         ...powerBus,
-        { id: "w_btn", from: "D2", to: "PUSHBUTTON", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 676, ey: 146, color: "#facc15", label: "D2 ➔ Pedestrian Button" },
-        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 748, ey: 148, color: "#a855f7", label: "D8 ➔ Warning Buzzer" },
-        { id: "w_led_r", from: "D13", to: "LED_RED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 490, ey: 135, color: "#ef4444", label: "D13 ➔ Red LED" },
-        { id: "w_led_y", from: "D12", to: "LED_YELLOW", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 540, ey: 135, color: "#f59e0b", label: "D12 ➔ Yellow LED" },
-        { id: "w_led_g", from: "D11", to: "LED_GREEN", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 590, ey: 135, color: "#10b981", label: "D11 ➔ Green LED" }
+        { id: "w_btn", from: "D2", to: "PUSHBUTTON", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 667, ey: 112, color: "#38bdf8", label: "D2 ➔ Pedestrian Button" },
+        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 742, ey: 112, color: "#a855f7", label: "D8 ➔ Warning Buzzer" },
+        { id: "w_led_r", from: "D13", to: "LED_RED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 485, ey: 112, color: "#ef4444", label: "D13 ➔ Red LED Anode" },
+        { id: "w_led_y", from: "D12", to: "LED_YELLOW", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 545, ey: 112, color: "#f59e0b", label: "D12 ➔ Yellow LED Anode" },
+        { id: "w_led_g", from: "D11", to: "LED_GREEN", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 605, ey: 112, color: "#10b981", label: "D11 ➔ Green LED Anode" }
       ];
     case "ultrasonic_radar":
       return [
@@ -4376,6 +4376,56 @@ export function initArduinoLab(containerId) {
     };
   }
 
+  // Calculate realistic Bezier control points and midpoint for curved jumper wires
+  function getWireBezier(w, idx = 0) {
+    const dx = w.ex - w.sx;
+    const dy = w.ey - w.sy;
+    const dist = Math.hypot(dx, dy);
+
+    let cp1x, cp1y, cp2x, cp2y;
+
+    if (w.sy > 300 && w.ey < 180) {
+      // Bottom Arduino header (5V / GND) to Top Breadboard rail
+      // Neatly route through the corridor between Arduino (x <= 370) and Breadboard (x >= 420)
+      const channelX = 390 + (idx === 0 || w.from === "5V" ? -7 : 7);
+      cp1x = w.sx + (channelX - w.sx) * 0.72;
+      cp1y = w.sy - 35;
+      cp2x = channelX;
+      cp2y = w.ey + 45;
+    } else if (w.sy < 150 && w.ey < 200) {
+      // Top digital header to breadboard components
+      // Must arch gently, but strictly clamped so peakY >= 48 (never intersects HUD badges at y=10..35)
+      const baseMinY = Math.min(w.sy, w.ey);
+      const archH = Math.max(12, Math.min(baseMinY - 48, 14 + (idx % 5) * 2.5));
+      const archY = baseMinY - archH;
+      cp1x = w.sx + dx * 0.28;
+      cp1y = archY;
+      cp2x = w.sx + dx * 0.72;
+      cp2y = archY;
+    } else {
+      const sag = Math.max(20, Math.min(65, dist * 0.22));
+      const midY = (w.sy + w.ey) / 2;
+      if (midY < 220) {
+        const archY = Math.max(48, Math.min(w.sy, w.ey) - sag);
+        cp1x = w.sx + dx * 0.28;
+        cp1y = archY;
+        cp2x = w.sx + dx * 0.72;
+        cp2y = archY;
+      } else {
+        const sagY = Math.min(415, Math.max(w.sy, w.ey) + sag * 0.6);
+        cp1x = w.sx + dx * 0.28;
+        cp1y = sagY;
+        cp2x = w.sx + dx * 0.72;
+        cp2y = sagY;
+      }
+    }
+
+    const midX = 0.125 * w.sx + 0.375 * cp1x + 0.375 * cp2x + 0.125 * w.ex;
+    const midY = 0.125 * w.sy + 0.375 * cp1y + 0.375 * cp2y + 0.125 * w.ey;
+
+    return { cp1x, cp1y, cp2x, cp2y, midX, midY };
+  }
+
   function getInteractiveTarget(cx, cy) {
     state.hoveredPin = null;
     state.hoveredWireIndex = -1;
@@ -4384,10 +4434,8 @@ export function initArduinoLab(containerId) {
     if (state.isWireMode && state.wires && state.wires.length > 0) {
       for (let i = state.wires.length - 1; i >= 0; i--) {
         const w = state.wires[i];
-        const mx = (w.sx + w.ex) / 2;
-        const sag = Math.max(30, Math.min(90, Math.hypot(w.ex - w.sx, w.ey - w.sy) * 0.28));
-        const my = ((w.sy + w.ey) / 2) < 220 ? (Math.min(w.sy, w.ey) - sag) : (Math.max(w.sy, w.ey) + sag * 0.7);
-        if (Math.hypot(cx - mx, cy - my) <= 18 || Math.hypot(cx - w.sx, cy - w.sy) <= 10 || Math.hypot(cx - w.ex, cy - w.ey) <= 10) {
+        const b = getWireBezier(w, i);
+        if (Math.hypot(cx - b.midX, cy - b.midY) <= 18 || Math.hypot(cx - w.sx, cy - w.sy) <= 10 || Math.hypot(cx - w.ex, cy - w.ey) <= 10) {
           state.hoveredWireIndex = i;
           return {
             id: "wire",
@@ -4411,6 +4459,7 @@ export function initArduinoLab(containerId) {
             name: p.label,
             x: p.x,
             y: p.y,
+            center: { x: p.x, y: p.y },
             label: `Pin ${p.label}`,
             cursor: state.isWireMode ? "crosshair" : "pointer"
           };
@@ -4427,6 +4476,7 @@ export function initArduinoLab(containerId) {
             name: p.label,
             x: p.x,
             y: p.y,
+            center: { x: p.x, y: p.y },
             label: p.label,
             cursor: state.isWireMode ? "crosshair" : "pointer"
           };
@@ -4488,32 +4538,32 @@ export function initArduinoLab(containerId) {
     const expId = ARDUINO_EXPERIMENTS[state.selectedExpIndex]?.id;
 
     if (expId === "traffic_light") {
-      if (cx >= 656 && cx <= 696 && cy >= 126 && cy <= 166) {
+      if (cx >= 660 && cx <= 705 && cy >= 125 && cy <= 168) {
         return {
           id: "button",
           label: "Crosswalk Request Pushbutton (Pin D2)",
           cursor: "pointer",
-          box: { x: 660, y: 130, w: 32, h: 32 },
-          center: { x: 676, y: 146 }
+          box: { x: 665, y: 130, w: 32, h: 32 },
+          center: { x: 681, y: 146 }
         };
       }
-      if (Math.hypot(cx - 748, cy - 148) <= 24) {
+      if (Math.hypot(cx - 758, cy - 148) <= 24) {
         return {
           id: "buzzer",
           label: "Piezo Acoustic Transducer (Pin D8)",
           cursor: "pointer",
-          circle: { x: 748, y: 148, r: 22 },
-          center: { x: 748, y: 148 }
+          circle: { x: 758, y: 148, r: 22 },
+          center: { x: 758, y: 148 }
         };
       }
-      if (Math.hypot(cx - 490, cy - 135) <= 14) {
-        return { id: "led_red", label: "Stop LED - Red (Pin D13)", cursor: "pointer", circle: { x: 490, y: 135, r: 14 }, center: { x: 490, y: 135 } };
+      if (Math.hypot(cx - 485, cy - 137) <= 14) {
+        return { id: "led_red", label: "Stop LED - Red (Pin D13)", cursor: "pointer", circle: { x: 485, y: 137, r: 14 }, center: { x: 485, y: 137 } };
       }
-      if (Math.hypot(cx - 540, cy - 135) <= 14) {
-        return { id: "led_yellow", label: "Caution LED - Yellow (Pin D12)", cursor: "pointer", circle: { x: 540, y: 135, r: 14 }, center: { x: 540, y: 135 } };
+      if (Math.hypot(cx - 545, cy - 137) <= 14) {
+        return { id: "led_yellow", label: "Caution LED - Yellow (Pin D12)", cursor: "pointer", circle: { x: 545, y: 137, r: 14 }, center: { x: 545, y: 137 } };
       }
-      if (Math.hypot(cx - 590, cy - 135) <= 14) {
-        return { id: "led_green", label: "Go LED - Green (Pin D11)", cursor: "pointer", circle: { x: 590, y: 135, r: 14 }, center: { x: 590, y: 135 } };
+      if (Math.hypot(cx - 605, cy - 137) <= 14) {
+        return { id: "led_green", label: "Go LED - Green (Pin D11)", cursor: "pointer", circle: { x: 605, y: 137, r: 14 }, center: { x: 605, y: 137 } };
       }
     } else if (expId === "ultrasonic_radar") {
       if (cx >= 500 && cx <= 620 && cy >= 125 && cy <= 173) {
@@ -5432,21 +5482,6 @@ export function initArduinoLab(containerId) {
   function drawCanvasInteractions(c) {
     if (!c) return;
 
-    // Persistent interactive hint pill on workbench mat
-    c.save();
-    c.fillStyle = "rgba(15, 23, 42, 0.75)";
-    c.strokeStyle = "rgba(56, 189, 248, 0.25)";
-    c.lineWidth = 1;
-    c.beginPath();
-    c.roundRect(14, 12, 280, 22, [4, 4, 4, 4]);
-    c.fill();
-    c.stroke();
-
-    c.fillStyle = "#94a3b8";
-    c.font = "10px system-ui, -apple-system, sans-serif";
-    c.fillText("⚡ Interactive Workbench: Click & touch hardware components directly", 22, 27);
-    c.restore();
-
     // Visual reticle & snapping badge while actively dragging a breadboard component
     if (state.isDraggingComp && state.draggedCompIndex >= 0) {
       const comp = state.components.customPlacedComponents ? state.components.customPlacedComponents[state.draggedCompIndex] : null;
@@ -5722,25 +5757,144 @@ export function initArduinoLab(containerId) {
     }
   }
 
+  // 1. Draw Vertical 1/4W Through-Hole Resistor bridging two Y coordinates with EIA 4-Band Color Code
+  function drawVerticalResistor(c, rx, yTop, yBot, ohms = 220, label = "220Ω") {
+    c.save();
+    // Metal Leads extending out of ends into breadboard holes
+    c.strokeStyle = "#94a3b8";
+    c.lineWidth = 1.6;
+    c.beginPath();
+    c.moveTo(rx, yTop);
+    c.lineTo(rx, yBot);
+    c.stroke();
+
+    // Pin insertion points
+    c.fillStyle = "#334155";
+    c.fillRect(rx - 1.5, yTop - 1.5, 3, 3);
+    c.fillRect(rx - 1.5, yBot - 1.5, 3, 3);
+
+    // Resistor Ceramic Body
+    const bodyH = Math.min(16, Math.abs(yBot - yTop) * 0.65);
+    const bodyW = 6.5;
+    const cy = (yTop + yBot) / 2;
+
+    c.shadowColor = "rgba(0,0,0,0.3)";
+    c.shadowBlur = 4;
+    c.shadowOffsetX = 1;
+    c.shadowOffsetY = 1;
+
+    const grad = c.createLinearGradient(rx - bodyW / 2, cy, rx + bodyW / 2, cy);
+    grad.addColorStop(0, "#e8d7be");
+    grad.addColorStop(0.5, "#d4b896");
+    grad.addColorStop(1, "#9e7f5e");
+    c.fillStyle = grad;
+
+    c.beginPath();
+    c.roundRect(rx - bodyW / 2, cy - bodyH / 2, bodyW, bodyH, [2, 2, 2, 2]);
+    c.fill();
+    c.shadowColor = "transparent";
+
+    // EIA 4-Band Colors for 220Ω (Red, Red, Brown, Gold)
+    let bands = ["#dc2626", "#dc2626", "#78350f", "#d97706"];
+    if (ohms >= 10000) bands = ["#78350f", "#0f172a", "#f97316", "#d97706"];
+    else if (ohms >= 1000) bands = ["#78350f", "#0f172a", "#dc2626", "#d97706"];
+
+    const bandSpacing = bodyH / 5;
+    bands.forEach((bColor, idx) => {
+      c.fillStyle = bColor;
+      const by = cy - bodyH / 2 + (idx + 1) * bandSpacing - 1;
+      c.fillRect(rx - bodyW / 2, by, bodyW, 1.5);
+    });
+
+    // Specular shine
+    c.fillStyle = "rgba(255, 255, 255, 0.4)";
+    c.fillRect(rx - bodyW / 2 + 1, cy - bodyH / 2, 1.5, bodyH);
+
+    if (label) {
+      c.fillStyle = "#475569";
+      c.font = "bold 7px monospace";
+      c.textAlign = "left";
+      c.textBaseline = "middle";
+      c.fillText(label, rx + bodyW / 2 + 2, cy);
+    }
+    c.restore();
+  }
+
+  // 2. Draw Solid-Core Insulated Wire Link on Breadboard
+  function drawBreadboardWireLink(c, x1, y1, x2, y2, color = "#0f172a", label = "") {
+    c.save();
+    // Metal pin insertion terminals
+    c.fillStyle = "#64748b";
+    c.fillRect(x1 - 1.5, y1 - 2, 3, 4);
+    c.fillRect(x2 - 1.5, y2 - 2, 3, 4);
+
+    // Wire shadow
+    c.strokeStyle = "rgba(0,0,0,0.3)";
+    c.lineWidth = 3;
+    c.lineCap = "round";
+    c.beginPath();
+    c.moveTo(x1, y1);
+    c.lineTo(x2, y2);
+    c.stroke();
+
+    // Insulated jacket
+    c.strokeStyle = color;
+    c.lineWidth = 2.2;
+    c.lineCap = "round";
+    c.beginPath();
+    c.moveTo(x1, y1);
+    c.lineTo(x2, y2);
+    c.stroke();
+
+    // Specular highlight
+    c.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    c.lineWidth = 0.8;
+    c.beginPath();
+    c.moveTo(x1 + 0.4, y1);
+    c.lineTo(x2 + 0.4, y2);
+    c.stroke();
+
+    if (label) {
+      c.fillStyle = "#64748b";
+      c.font = "bold 7px monospace";
+      c.textAlign = "left";
+      c.textBaseline = "middle";
+      c.fillText(label, Math.max(x1, x2) + 3, (y1 + y2) / 2);
+    }
+    c.restore();
+  }
+
   // Render Solderless Half-Size Breadboard with Interactive Components
   function drawBreadboard(c, bx, by, bw, bh) {
     // Breadboard body
     c.save();
     c.fillStyle = "#f8fafc";
-    c.shadowColor = "rgba(0,0,0,0.6)";
+    c.shadowColor = "rgba(0,0,0,0.55)";
     c.shadowBlur = 14;
+    c.shadowOffsetX = 3;
+    c.shadowOffsetY = 4;
     c.beginPath();
     c.roundRect(bx, by, bw, bh, [10, 10, 10, 10]);
     c.fill();
     c.restore();
 
-    // Central trough divider
-    c.fillStyle = "#e2e8f0";
+    // Subtle border
+    c.strokeStyle = "#cbd5e1";
+    c.lineWidth = 1;
+    c.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+
+    // Central trough divider with internal shadow
+    const troughGrad = c.createLinearGradient(bx, by + bh / 2 - 6, bx, by + bh / 2 + 6);
+    troughGrad.addColorStop(0, "#cbd5e1");
+    troughGrad.addColorStop(0.5, "#e2e8f0");
+    troughGrad.addColorStop(1, "#cbd5e1");
+    c.fillStyle = troughGrad;
     c.fillRect(bx + 15, by + bh / 2 - 6, bw - 30, 12);
 
     // Power Rails: Red (+) and Blue (-) lines
+    c.save();
     c.strokeStyle = "#ef4444";
-    c.lineWidth = 1.5;
+    c.lineWidth = 1.8;
     c.beginPath();
     c.moveTo(bx + 20, by + 18);
     c.lineTo(bx + bw - 20, by + 18);
@@ -5756,34 +5910,128 @@ export function initArduinoLab(containerId) {
     c.lineTo(bx + bw - 20, by + bh - 30);
     c.stroke();
 
-    // Tie-point row holes (grid matrix)
-    c.fillStyle = "#94a3b8";
+    // Rail Polarity Markings (+) and (−)
+    c.font = "bold 9px monospace";
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillStyle = "#ef4444";
+    c.fillText("+", bx + 12, by + 18);
+    c.fillText("+", bx + bw - 11, by + 18);
+    c.fillText("+", bx + 12, by + bh - 18);
+    c.fillText("+", bx + bw - 11, by + bh - 18);
+
+    c.fillStyle = "#3b82f6";
+    c.fillText("−", bx + 12, by + 30);
+    c.fillText("−", bx + bw - 11, by + 30);
+    c.fillText("−", bx + 12, by + bh - 30);
+    c.fillText("−", bx + bw - 11, by + bh - 30);
+    c.restore();
+
+    // Active power bus illumination
+    const isTop5VActive = state.wires?.some(w => w.to === "BB_TOP_5V");
+    const isTopGndActive = state.wires?.some(w => w.to === "BB_TOP_GND");
+    if (isTop5VActive) {
+      c.save();
+      c.strokeStyle = "rgba(239, 68, 68, 0.35)";
+      c.lineWidth = 4;
+      c.beginPath();
+      c.moveTo(bx + 20, by + 18);
+      c.lineTo(bx + bw - 20, by + 18);
+      c.stroke();
+      c.restore();
+    }
+    if (isTopGndActive) {
+      c.save();
+      c.strokeStyle = "rgba(59, 130, 246, 0.3)";
+      c.lineWidth = 4;
+      c.beginPath();
+      c.moveTo(bx + 20, by + 30);
+      c.lineTo(bx + bw - 20, by + 30);
+      c.stroke();
+      c.restore();
+    }
+
+    // Tie-point row holes (grid matrix with spring contact clip appearance)
     for (let col = 0; col < 26; col++) {
       const hx = bx + 35 + col * 12.5;
+
+      // Column numbers (1, 5, 10, 15, 20, 25)
+      if (col === 0 || col === 4 || col === 9 || col === 14 || col === 19 || col === 24) {
+        c.save();
+        c.font = "bold 7px monospace";
+        c.fillStyle = "#94a3b8";
+        c.textAlign = "center";
+        c.textBaseline = "middle";
+        c.fillText(`${col + 1}`, hx + 1.5, by + 40);
+        c.fillText(`${col + 1}`, hx + 1.5, by + bh - 39);
+        c.restore();
+      }
+
+      // Power rail holes
+      c.fillStyle = "#1e293b";
+      c.fillRect(hx, by + 17, 3, 3);
+      c.fillRect(hx, by + 29, 3, 3);
+      c.fillRect(hx, by + bh - 31, 3, 3);
+      c.fillRect(hx, by + bh - 19, 3, 3);
+
       // Top section: rows A - E
       for (let r = 0; r < 5; r++) {
-        c.fillRect(hx, by + 45 + r * 14, 3, 3);
+        const hy = by + 46 + r * 14;
+        c.fillStyle = "#1e293b";
+        c.fillRect(hx, hy, 3, 3);
+        c.fillStyle = "#64748b";
+        c.fillRect(hx + 0.5, hy + 0.5, 1.5, 2);
       }
       // Bottom section: rows F - J
       for (let r = 0; r < 5; r++) {
-        c.fillRect(hx, by + bh / 2 + 15 + r * 14, 3, 3);
+        const hy = by + bh / 2 + 15 + r * 14;
+        c.fillStyle = "#1e293b";
+        c.fillRect(hx, hy, 3, 3);
+        c.fillStyle = "#64748b";
+        c.fillRect(hx + 0.5, hy + 0.5, 1.5, 2);
       }
     }
+
+    // Row letters a..e and f..j
+    c.save();
+    c.font = "bold 7px monospace";
+    c.fillStyle = "#94a3b8";
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    ["a", "b", "c", "d", "e"].forEach((l, r) => {
+      c.fillText(l, bx + 22, by + 47 + r * 14);
+      c.fillText(l, bx + bw - 21, by + 47 + r * 14);
+    });
+    ["f", "g", "h", "i", "j"].forEach((l, r) => {
+      c.fillText(l, bx + 22, by + bh / 2 + 16 + r * 14);
+      c.fillText(l, bx + bw - 21, by + bh / 2 + 16 + r * 14);
+    });
+    c.restore();
 
     // DRAW APPARATUS ON BREADBOARD BASED ON EXPERIMENT
     const expId = ARDUINO_EXPERIMENTS[state.selectedExpIndex].id;
 
     if (expId === "traffic_light") {
-      // 1. Red, Yellow, Green 5mm LEDs on breadboard
-      drawLargeLed(c, bx + 70, by + 80, "#ef4444", state.components.pin13Led, "RED (D13)");
-      drawLargeLed(c, bx + 120, by + 80, "#f59e0b", state.components.pin12Led, "YELLOW (D12)");
-      drawLargeLed(c, bx + 170, by + 80, "#10b981", state.components.pin11Led, "GREEN (D11)");
+      // 1. Current-Limiting 220Ω Resistors (Red, Red, Brown, Gold)
+      // Connecting each LED's cathode tie-point (row B, y=112) directly to Top Blue GND Rail (y=85)
+      drawVerticalResistor(c, bx + 71, by + 30, by + 57, 220, "220Ω");
+      drawVerticalResistor(c, bx + 131, by + 30, by + 57, 220, "220Ω");
+      drawVerticalResistor(c, bx + 191, by + 30, by + 57, 220, "220Ω");
 
-      // 2. Tactile Pushbutton on breadboard
-      drawTactileSwitch(c, bx + 240, by + 75, state.components.buttonPressed, "CROSSWALK");
+      // 2. Ground Return Jumpers for Pushbutton and Piezo Buzzer to Top Blue GND Rail
+      drawBreadboardWireLink(c, bx + 279, by + 57, bx + 279, by + 30, "#0f172a", "GND");
+      drawBreadboardWireLink(c, bx + 342, by + 57, bx + 342, by + 30, "#0f172a", "GND");
 
-      // 3. Piezo Buzzer on breadboard
-      drawPiezoBuzzer(c, bx + 310, by + 75, state.components.pin13Led);
+      // 3. Red, Yellow, Green 5mm LEDs on breadboard with centered multi-line labels
+      drawLargeLed(c, bx + 65, by + 82, "#ef4444", state.components.pin13Led, "RED (D13)\n220Ω to GND");
+      drawLargeLed(c, bx + 125, by + 82, "#f59e0b", state.components.pin12Led, "YELLOW (D12)\n220Ω to GND");
+      drawLargeLed(c, bx + 185, by + 82, "#10b981", state.components.pin11Led, "GREEN (D11)\n220Ω to GND");
+
+      // 4. Tactile Pushbutton on breadboard
+      drawTactileSwitch(c, bx + 247, by + 75, state.components.buttonPressed, "CROSSWALK\nD2 · PULLUP");
+
+      // 5. Piezo Buzzer on breadboard
+      drawPiezoBuzzer(c, bx + 322, by + 75, state.components.pin13Led, false, "BUZZER (D8)\nto GND");
 
     } else if (expId === "ultrasonic_radar") {
       // HC-SR04 Ultrasonic Distance Sensor Module
@@ -6106,9 +6354,21 @@ export function initArduinoLab(containerId) {
     c.restore();
 
     if (text) {
+      c.save();
+      c.textAlign = "center";
+      c.textBaseline = "top";
       c.fillStyle = "#0f172a";
-      c.font = "bold 8px sans-serif";
-      c.fillText(text, lx - 20, ly + 42);
+      c.font = "bold 9px system-ui, -apple-system, sans-serif";
+      if (text.includes("\n")) {
+        const lines = text.split("\n");
+        c.fillText(lines[0], lx, ly + 36);
+        c.font = "bold 8px system-ui, -apple-system, sans-serif";
+        c.fillStyle = "#64748b";
+        c.fillText(lines[1], lx, ly + 47);
+      } else {
+        c.fillText(text, lx, ly + 38);
+      }
+      c.restore();
     }
   }
 
@@ -6173,9 +6433,21 @@ export function initArduinoLab(containerId) {
     c.restore();
 
     if (label) {
+      c.save();
+      c.textAlign = "center";
+      c.textBaseline = "top";
       c.fillStyle = "#0f172a";
-      c.font = "bold 8px sans-serif";
-      c.fillText(label, sx - 4, sy + 46);
+      c.font = "bold 9px system-ui, -apple-system, sans-serif";
+      if (label.includes("\n")) {
+        const lines = label.split("\n");
+        c.fillText(lines[0], sx + 16, sy + 38);
+        c.font = "bold 8px system-ui, -apple-system, sans-serif";
+        c.fillStyle = "#64748b";
+        c.fillText(lines[1], sx + 16, sy + 49);
+      } else {
+        c.fillText(label, sx + 16, sy + 38);
+      }
+      c.restore();
     }
   }
 
@@ -6212,9 +6484,23 @@ export function initArduinoLab(containerId) {
     }
     c.restore();
 
-    c.fillStyle = "#0f172a";
-    c.font = "bold 8px sans-serif";
-    c.fillText(label, px - 6, py + 50);
+    if (label) {
+      c.save();
+      c.textAlign = "center";
+      c.textBaseline = "top";
+      c.fillStyle = "#0f172a";
+      c.font = "bold 9px system-ui, -apple-system, sans-serif";
+      if (label.includes("\n")) {
+        const lines = label.split("\n");
+        c.fillText(lines[0], px + 18, py + 42);
+        c.font = "bold 8px system-ui, -apple-system, sans-serif";
+        c.fillStyle = "#64748b";
+        c.fillText(lines[1], px + 18, py + 53);
+      } else {
+        c.fillText(label, px + 18, py + 42);
+      }
+      c.restore();
+    }
   }
 
   // Draw HC-SR04 Ultrasonic Distance Sensor
@@ -7196,6 +7482,38 @@ export function initArduinoLab(containerId) {
     c.textAlign = "left";
   }
 
+  // Draw realistic DuPont 2.54mm connector housing sleeve
+  function drawDuPontHousing(c, x, y, isTop = true, color = "#ef4444") {
+    c.save();
+    // Silver pin entering socket
+    c.fillStyle = "#cbd5e1";
+    c.fillRect(x - 1.2, isTop ? y - 3 : y + 1, 2.4, 3);
+
+    // DuPont black plastic sleeve body
+    c.shadowColor = "rgba(0, 0, 0, 0.45)";
+    c.shadowBlur = 4;
+    c.shadowOffsetY = 1;
+    c.fillStyle = "#0f172a";
+    c.beginPath();
+    c.roundRect(x - 3, y - 4, 6, 8, [1.5, 1.5, 1.5, 1.5]);
+    c.fill();
+    c.shadowColor = "transparent";
+
+    // Housing outer crimp border
+    c.strokeStyle = "#334155";
+    c.lineWidth = 0.8;
+    c.stroke();
+
+    // Central retention notch
+    c.fillStyle = "#1e293b";
+    c.fillRect(x - 1.2, y - 1, 2.4, 2);
+
+    // Colored strain-relief collar
+    c.fillStyle = color;
+    c.fillRect(x - 2, isTop ? y + 2 : y - 4, 4, 2);
+    c.restore();
+  }
+
   // Draw Realistic Curved Jumper Wires connecting Arduino to Breadboard
   function drawJumperWires(c) {
     if (!c) return;
@@ -7204,35 +7522,20 @@ export function initArduinoLab(containerId) {
     // 1. Draw existing connected wires
     const wires = state.wires || [];
     wires.forEach((w, idx) => {
-      const dx = w.ex - w.sx;
-      const dy = w.ey - w.sy;
-      const dist = Math.hypot(dx, dy);
-
-      // Calculate realistic sag / arch
-      const sag = Math.max(30, Math.min(90, dist * 0.28));
-      const midY = (w.sy + w.ey) / 2;
-      const isTopArc = midY < 220;
-      const cp1x = w.sx + dx * 0.28;
-      const cp1y = isTopArc ? (Math.min(w.sy, w.ey) - sag) : (Math.max(w.sy, w.ey) + sag * 0.7);
-      const cp2x = w.sx + dx * 0.72;
-      const cp2y = isTopArc ? (Math.min(w.sy, w.ey) - sag) : (Math.max(w.sy, w.ey) + sag * 0.7);
+      const b = getWireBezier(w, idx);
 
       // (a) Soft ambient contact shadow on PCB / bench mat
-      c.strokeStyle = "rgba(0, 0, 0, 0.4)";
-      c.lineWidth = 4.5;
+      c.strokeStyle = "rgba(0, 0, 0, 0.38)";
+      c.lineWidth = 4.2;
       c.lineCap = "round";
       c.beginPath();
       c.moveTo(w.sx, w.sy + 3);
-      c.bezierCurveTo(cp1x, cp1y + 6, cp2x, cp2y + 6, w.ex, w.ey + 3);
+      c.bezierCurveTo(b.cp1x, b.cp1y + 6, b.cp2x, b.cp2y + 6, w.ex, w.ey + 3);
       c.stroke();
 
-      // (b) Metallic crimp ferrule / pin terminal sleeves at both ends
-      c.fillStyle = "#64748b";
-      c.fillRect(w.sx - 2.5, w.sy - 4, 5, 8);
-      c.fillRect(w.ex - 2.5, w.ey - 4, 5, 8);
-      c.fillStyle = "#e2e8f0";
-      c.fillRect(w.sx - 1.5, w.sy - 3, 3, 6);
-      c.fillRect(w.ex - 1.5, w.ey - 3, 3, 6);
+      // (b) DuPont rectangular sleeve housings at both ends
+      drawDuPontHousing(c, w.sx, w.sy, w.sy < 200, w.color);
+      drawDuPontHousing(c, w.ex, w.ey, w.ey < 200, w.color);
 
       // (c) Colored insulated jacket
       c.strokeStyle = w.color || "#ef4444";
@@ -7240,36 +7543,39 @@ export function initArduinoLab(containerId) {
       c.lineCap = "round";
       c.beginPath();
       c.moveTo(w.sx, w.sy);
-      c.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, w.ex, w.ey);
+      c.bezierCurveTo(b.cp1x, b.cp1y, b.cp2x, b.cp2y, w.ex, w.ey);
       c.stroke();
 
       // (d) Specular glossy highlight along upper crest
-      c.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      c.strokeStyle = "rgba(255, 255, 255, 0.4)";
       c.lineWidth = 1.2;
       c.beginPath();
       c.moveTo(w.sx, w.sy - 0.8);
-      c.bezierCurveTo(cp1x, cp1y - 0.8, cp2x, cp2y - 0.8, w.ex, w.ey - 0.8);
+      c.bezierCurveTo(b.cp1x, b.cp1y - 0.8, b.cp2x, b.cp2y - 0.8, w.ex, w.ey - 0.8);
       c.stroke();
 
       // (e) Highlight if hovered in wire mode
       if (state.isWireMode && state.hoveredWireIndex === idx) {
         c.strokeStyle = "#f43f5e";
-        c.lineWidth = 1.5;
+        c.lineWidth = 1.6;
         c.beginPath();
         c.moveTo(w.sx, w.sy);
-        c.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, w.ex, w.ey);
+        c.bezierCurveTo(b.cp1x, b.cp1y, b.cp2x, b.cp2y, w.ex, w.ey);
         c.stroke();
 
         // Draw small unplug badge near midpoint
-        const mx = (w.sx + w.ex) / 2;
-        const my = (cp1y + cp2y) / 2;
-        c.fillStyle = "rgba(239, 68, 68, 0.9)";
-        c.fillRect(mx - 18, my - 9, 36, 18);
+        c.fillStyle = "rgba(239, 68, 68, 0.95)";
+        c.shadowColor = "rgba(0,0,0,0.6)";
+        c.shadowBlur = 6;
+        c.beginPath();
+        c.roundRect(b.midX - 22, b.midY - 10, 44, 20, [4, 4, 4, 4]);
+        c.fill();
+        c.shadowColor = "transparent";
         c.fillStyle = "#ffffff";
-        c.font = "bold 9px sans-serif";
+        c.font = "bold 9px system-ui, -apple-system, sans-serif";
         c.textAlign = "center";
         c.textBaseline = "middle";
-        c.fillText("✂ Cut", mx, my);
+        c.fillText("✂ Cut", b.midX, b.midY);
       }
     });
 
@@ -7279,11 +7585,13 @@ export function initArduinoLab(containerId) {
       const dx = wd.curX - wd.sx;
       const dy = wd.curY - wd.sy;
       const dist = Math.hypot(dx, dy);
-      const sag = Math.max(20, Math.min(70, dist * 0.25));
+      const baseMinY = Math.min(wd.sy, wd.curY);
+      const archH = Math.max(10, Math.min(baseMinY - 48, dist * 0.18));
+      const archY = Math.max(48, baseMinY - archH);
       const cp1x = wd.sx + dx * 0.3;
-      const cp1y = Math.min(wd.sy, wd.curY) - sag;
+      const cp1y = archY;
       const cp2x = wd.sx + dx * 0.7;
-      const cp2y = Math.min(wd.sy, wd.curY) - sag;
+      const cp2y = archY;
 
       // Pulsing animated dashed wire preview
       c.setLineDash([6, 4]);
@@ -7317,25 +7625,10 @@ export function initArduinoLab(containerId) {
       c.strokeStyle = "#22d3ee";
       c.lineWidth = 2;
       c.shadowColor = "#38bdf8";
-      c.shadowBlur = 10;
+      c.shadowBlur = 8;
       c.beginPath();
-      c.arc(hp.x, hp.y, 8, 0, Math.PI * 2);
+      c.arc(hp.x, hp.y, 7, 0, Math.PI * 2);
       c.stroke();
-
-      // Label tooltip
-      c.shadowBlur = 0;
-      c.fillStyle = "rgba(15, 23, 42, 0.9)";
-      c.strokeStyle = "rgba(56, 189, 248, 0.5)";
-      c.lineWidth = 1;
-      const txt = hp.name || hp.pinKey;
-      c.font = "bold 9px monospace";
-      const tw = c.measureText(txt).width + 10;
-      c.fillRect(hp.x - tw / 2, hp.y - 20, tw, 15);
-      c.strokeRect(hp.x - tw / 2, hp.y - 20, tw, 15);
-      c.fillStyle = "#38bdf8";
-      c.textAlign = "center";
-      c.textBaseline = "middle";
-      c.fillText(txt, hp.x, hp.y - 13);
       c.restore();
     }
 
