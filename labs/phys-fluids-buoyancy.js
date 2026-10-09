@@ -2181,6 +2181,7 @@ export function initFluidsBuoyancyLab(containerId) {
   // Event Listeners for UI Controls
   container.querySelector("#btn-fluid-mode")?.addEventListener("click", () => {
     apparatusMode = apparatusMode === "buoyancy" ? "venturi" : "buoyancy";
+    const calc = getCalculations();
     const btn = container.querySelector("#btn-fluid-mode");
     const pBuoy = container.querySelector("#panel-buoyancy-controls");
     const pVent = container.querySelector("#panel-venturi-controls");
@@ -2199,9 +2200,9 @@ export function initFluidsBuoyancyLab(containerId) {
       if (btnFloat) btnFloat.style.display = "none";
       const badgeFloat = container.querySelector("#badge-float-status");
       if (badgeFloat) {
-        badgeFloat.innerText = "Venturi Flow Active";
-        badgeFloat.style.color = "#38bdf8";
-        badgeFloat.style.background = "rgba(56, 189, 248, 0.15)";
+        badgeFloat.innerText = calc.isLaminar ? "Laminar Flow (Re < 2300)" : (calc.isTransitional ? "Transitional Flow (2300–4000)" : "Turbulent Flow (Re > 4000)");
+        badgeFloat.style.color = calc.isLaminar ? "#34d399" : (calc.isTransitional ? "#facc15" : "#f87171");
+        badgeFloat.style.background = calc.isLaminar ? "rgba(16, 185, 129, 0.15)" : (calc.isTransitional ? "rgba(234, 179, 8, 0.15)" : "rgba(239, 68, 68, 0.15)");
       }
     } else {
       btn.innerText = "🔀 Switch to Venturi Tube";

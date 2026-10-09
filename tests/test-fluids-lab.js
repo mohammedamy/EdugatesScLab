@@ -201,6 +201,12 @@ test("phys-fluids-buoyancy.js includes Reynolds number telemetry and regime indi
   assert(code.includes("gasoline:"), "Must include Gasoline in FLUIDS");
 });
 
+test("phys-fluids-buoyancy.js btn-fluid-mode switches between Archimedes and Venturi modes cleanly", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
+  assert(code.includes('container.querySelector("#btn-fluid-mode")?.addEventListener("click"'), "Must bind click listener to mode button");
+  assert(code.includes('const calc = getCalculations();'), "Must safely obtain calculations object in mode switch");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Fluids Lab Tests: All ${passed} Passed!`);
 console.log("========================================================\n");
