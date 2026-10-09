@@ -485,30 +485,729 @@ BIO_RAW.forEach(b => {
 
 // Rich profiles for Biology Modules 4 to 27
 const BIO_DATA_MAP = {
-  4: { sys: "Population Demographics & Carrying Capacity", mech: "Density-dependent feedback limiting exponential r-growth as N approaches environmental carrying capacity K", f: "\\frac{dN}{dt} = rN\\left(1 - \\frac{N}{K}\\right)", l: "growth rate", u: "\\text{ind/yr}", term: "Carrying Capacity", def: "The maximum population size of a species that an environment can sustain indefinitely", evday: "Bacteria multiplying in broth", evdesc: "Nutrient abundance sparks rapid doubling until waste accumulation plateaus cell count" },
-  5: { sys: "Biodiversity & Conservation Biology", mech: "Genetic variability and species richness buffering ecosystems against catastrophic environmental collapse", f: "H' = -\\sum p_i \\ln(p_i)", l: "Shannon diversity index", u: "", term: "Biodiversity", def: "The variety of living organisms in an ecosystem, including genetic, species, and habitat diversity", evday: "Monoculture crop vulnerability", evdesc: "Uniform crop fields lack genetic diversity, leaving them susceptible to total wipeout by a single pest" },
-  6: { sys: "Biochemical Macromolecules & Enzyme Catalysis", mech: "Lowering transition-state Gibbs activation energy Ea via precise enzyme active-site spatial alignment", f: "V = \\frac{V_{\\max}[S]}{K_m + [S]}", l: "enzymatic rate", u: "\\mu\\text{M/s}", term: "Active Site", def: "The specific catalytic pocket of an enzyme where substrate molecules bind and undergo reaction", evday: "Meat tenderizer enzymes", evdesc: "Papain proteases in tenderizers hydrolyze tough collagen muscle fibers into tender peptides" },
-  7: { sys: "Cellular Ultrastructure & Membrane Transport", mech: "Phospholipid bilayer selective permeability driven by electrochemical gradients and ATP-coupled pumps", f: "J = -D \\frac{\\Delta C}{\\Delta x}", l: "diffusion flux", u: "\\text{mol}/(\\text{m}^2\\cdot\\text{s})", term: "Osmosis", def: "The passive diffusion of free water molecules across a selectively permeable membrane down water potential", evday: "Wrinkly fingers in bathtub", evdesc: "Epidermal keratin absorbing water expands outer layers, wrinkling skin over anchored deeper tissue" },
-  8: { sys: "Photosynthesis & Cellular Respiration Bioenergetics", mech: "Chemiosmotic proton motive force driving ATP synthase molecular turbines during thylakoid and cristae electron transport", f: "C_6H_{12}O_6 + 6O_2 \\to 6CO_2 + 6H_2O", l: "combustion enthalpy", u: "kJ/mol", term: "Chemiosmosis", def: "The generation of ATP by the movement of hydrogen ions across a membrane down their electrochemical gradient", evday: "Yeast bread baking", evdesc: "Yeast metabolizes flour sugars via anaerobic fermentation, releasing CO2 bubbles that make bread rise" },
-  9: { sys: "Cell Cycle, Mitosis & Checkpoint Cytogenetics", mech: "Cyclin-dependent kinase (CDK) phosphorylation cascades governing orderly chromatid replication and segregation", f: "\\text{Mitotic Index} = \\frac{N_{\\text{mitotic}}}{N_{\\text{total}}} \\times 100\\%", l: "mitotic index", u: "\\%", term: "Mitosis", def: "The process of eukaryotic nuclear division resulting in two genetically identical daughter nuclei", evday: "Healing of a skin scratch", evdesc: "Basal skin epithelial cells undergo rapid mitotic division to replace damaged cells and seal the wound" },
-  10: { sys: "Mendelian Genetics & Chromosomal Meiosis", mech: "Homologous chromosome crossing over and independent assortment generating massive haploid genetic diversity", f: "P(A \\cap B) = P(A) \\times P(B)", l: "joint probability", u: "", term: "Allele", def: "Alternative variant forms of a gene located at the same specific genetic locus on a chromosome", evday: "Eye color differences in siblings", evdesc: "Meiotic crossing over and random parental allele segregation produce distinct combinations in each child" },
-  11: { sys: "Molecular Genetics: Central Dogma & Protein Synthesis", mech: "Semi-conservative DNA replication followed by RNA polymerase transcription and tRNA ribosomal translation", f: "N_{\\text{codons}} = \\frac{\\text{mRNA bases}}{3}", l: "amino acid count", u: "", term: "Transcription", def: "The synthesis of an RNA transcript from a complementary template DNA strand catalyzed by RNA polymerase", evday: "Antibiotic targeting ribosomes", evdesc: "Tetracycline halts bacterial translation by binding bacterial 70S ribosomes without harming human 80S ribosomes" },
-  12: { sys: "Biotechnology, PCR & Recombinant Genetic Engineering", mech: "Targeted restriction endonuclease cleavage, thermal primer annealing, and Taq polymerase DNA amplification", f: "N = N_0 \\times 2^n", l: "PCR amplicon count", u: "", term: "Gel Electrophoresis", def: "The analytical separation of DNA, RNA, or protein fragments based on size and charge using an electric field", evday: "Crime scene DNA fingerprinting", evdesc: "STR genetic repeats amplified by PCR produce unique band patterns on an electrophoresis gel matching suspects" },
-  13: { sys: "Geological History of Life & Paleontology", mech: "Radioactive isotope exponential decay and fossil preservation in sedimentary strata recording evolutionary lineages", f: "N(t) = N_0 (0.5)^{t/5730}", l: "radiocarbon age", u: "\\text{yr}", term: "Fossil", def: "The preserved physical remains or trace evidence of an ancient organism embedded in geological rock strata", evday: "Petrified wood in national parks", evdesc: "Silica dissolved in groundwater slowly replaces organic wood cells with quartz mineral stone over millions of years" },
-  14: { sys: "Evolutionary Mechanisms & Natural Selection", mech: "Differential reproductive success acting on phenotypic traits, altering population allele frequencies over time", f: "p^2 + 2pq + q^2 = 1", l: "Hardy-Weinberg equilibrium", u: "", term: "Natural Selection", def: "The differential survival and reproduction of individuals due to differences in heritable phenotype", evday: "Antibiotic resistance in bacteria", evdesc: "Exposing bacteria to penicillin kills sensitive cells, allowing rare resistant mutants to survive and multiply" },
-  15: { sys: "Primate Evolutionary Radiations & Hominin Lineages", mech: "Bipedal pelvic adaptation, cranial encephalization, and tool culture driving hominin morphological divergence", f: "\\text{Cranial Index} = \\frac{\\text{Volume}}{m_{\\text{body}}}", l: "encephalization quotient", u: "", term: "Bipedalism", def: "The anatomical adaptation for upright walking on two rear legs, freeing forelimbs for tool use", evday: "Human upright posture", evdesc: "Our S-curved vertebral column and arched foot bones distribute body weight evenly for efficient walking" },
-  16: { sys: "Systematics, Cladistics & Domain Taxonomy", mech: "Phylogenetic character state analysis determining synapomorphies to reconstruct evolutionary trees of life", f: "\\text{Homology Index} = \\frac{S_{\\text{shared}}}{S_{\\text{total}}}", l: "cladistic similarity", u: "", term: "Cladogram", def: "A branching phylogenetic diagram showing ancestral relationships based on shared derived characteristics", evday: "Birds classified as dinosaurs", evdesc: "Fossil feathers and wishbone anatomy in velociraptors prove birds are living avian theropod dinosaurs" },
-  17: { sys: "Microbiology: Bacteria & Viral Pathogenesis", mech: "Bacterial peptidoglycan binary fission versus viral lytic capsid injection and host hijacking", f: "N(t) = N_0 \\times 2^{t/g}", l: "bacterial colony growth", u: "", term: "Bacteriophage", def: "A specialized virus that infects and replicates exclusively within bacterial cells", evday: "Yogurt fermentation", evdesc: "Lactobacillus bacteria ferment lactose sugar into lactic acid, curdling milk into thick, tangy yogurt" },
-  18: { sys: "Protist Diversity & Endosymbiotic Evolution", mech: "Primary and secondary endosymbiosis incorporating chloroplasts and mitochondria into eukaryotic cells", f: "v = \\frac{d}{t}", l: "amoeboid velocity", u: "\\mu\\text{m/s}", term: "Endosymbiosis", def: "An evolutionary theory that eukaryotic organelles originated as engulfed free-living prokaryotic cells", evday: "Red tide bioluminescence", evdesc: "Marine dinoflagellate algae bloom and glow blue-green when mechanical waves disturb their cell membranes" },
-  19: { sys: "Mycology: Fungal Networks & Decomposition", mech: "Extracellular enzymatic digestion through invasive hyphal mycelium networks absorbing decomposed nutrients", f: "\\text{Growth Rate} = \\frac{\\Delta r}{\\Delta t}", l: "hyphal extension rate", u: "\\text{mm/day}", term: "Mycelium", def: "The densely branched vegetative network of microscopic hyphal filaments in a fungus", evday: "Moldy bread in a pantry", evdesc: "Microscopic Rhizopus fungal spores germinate on moist bread, spreading hyphae that digest starches" },
-  20: { sys: "Plant Evolutionary Adaptations & Bryophytes", mech: "Cuticle desiccation resistance, stomatal gas exchange, and vascular tissue evolution onto dry land", f: "\\text{Spore Yield} = N_{\\text{capsule}} \\times n", l: "bryophyte spore output", u: "", term: "Alternation of Generations", def: "The reproductive life cycle alternating between multicellular haploid gametophytes and diploid sporophytes", evday: "Velvety green moss on forest rocks", evdesc: "Moss cushions are haploid gametophytes that require rain dew for swimming sperm to fertilize eggs" },
-  21: { sys: "Vascular Plant Anatomy & Transpirational Mechanics", mech: "Cohesion-tension transpirational pull moving water up xylem coupled to phloem pressure-flow transport", f: "\\Psi = \\Psi_s + \\Psi_p", l: "water potential", u: "\\text{MPa}", term: "Transpiration", def: "The evaporative loss of water vapor from plant leaves through open stomata driving upward xylem flow", evday: "Giant redwood trees lifting water", evdesc: "Solar evaporation from needle leaves pulls water columns 100 meters upward through cohesive hydrogen bonding" },
-  22: { sys: "Angiosperm Flower Reproduction & Double Fertilization", mech: "Pollen tube guidance into ovule executing double fertilization: one sperm forms zygote, second forms endosperm", f: "\\text{Germination \\%} = \\frac{N_{\\text{germ}}}{N_{\\text{sown}}} \\times 100\\%", l: "seed viability", u: "\\%", term: "Double Fertilization", def: "A unique angiosperm process where one sperm fertilizes the egg and another forms nutritive 3n endosperm", evday: "Bees pollinating apple blossoms", evdesc: "Bees gathering nectar inadvertently brush pollen from anthers onto stigmas, fertilizing commercial crops" },
-  23: { sys: "Invertebrate Diversity & Organ System Evolution", mech: "Evolution of true tissues, bilateral symmetry, cephalization, and coelomic hydrostatic cavities", f: "\\text{Metabolic Rate} \\propto M^{0.75}", l: "Kleiber metabolic scaling", u: "", term: "Cephalization", def: "The evolutionary trend concentrating sensory organs and nervous control centers at the anterior head end", evday: "Earthworms tunneling through gardens", evdesc: "Hydrostatic coelom pressure and peristaltic longitudinal muscles let worms burrow and aerate soil" },
-  24: { sys: "Animal Behavior, Ethology & Neuro-Endocrine Control", mech: "Innate sign stimuli triggering fixed action patterns versus synaptic plastic associative learning", f: "\\text{Cost/Benefit} = \\frac{E_{\\text{intake}}}{E_{\\text{foraging}}}", l: "optimal foraging ratio", u: "", term: "Circadian Rhythm", def: "An internal physiological biological clock repeating roughly every 24 hours synchronized by light", evday: "Dogs drooling at treat containers", evdesc: "Classical Pavlovian conditioning associates the visual sight of the jar with food, triggering reflex salivation" },
-  25: { sys: "Musculoskeletal Biomechanics & Sliding Filaments", mech: "Action potential releasing calcium from sarcoplasmic reticulum, triggering myosin cross-bridge power strokes along actin", f: "F = m \\times a", l: "contractile muscle force", u: "N", term: "Sarcomere", def: "The fundamental microscopic repeating contractile unit of a muscle fiber bounded by Z-discs", evday: "Muscle soreness after weightlifting", evdesc: "Strenuous mechanical strain produces micro-tears in sarcomeres, triggering protein synthesis and muscle growth" },
-  26: { sys: "Neurobiology, Action Potentials & Endocrine Cascades", mech: "Voltage-gated sodium and potassium channels firing all-or-nothing axonal action potentials coupled to pituitary hormonal feedback", f: "V_m = \\frac{RT}{F} \\ln\\frac{P_{\\text{K}}[\\text{K}^+]_{o} + P_{\\text{Na}}[\\text{Na}^+]_{o}}{P_{\\text{K}}[\\text{K}^+]_{i} + P_{\\text{Na}}[\\text{Na}^+]_{i}}", l: "Goldman membrane potential", u: "\\text{mV}", term: "Action Potential", def: "A rapid, all-or-nothing electrical membrane depolarization that propagates along the membrane of an axon", evday: "Jerking hand away from a hot stove", evdesc: "Sensory thermoreceptors fire action potentials through spinal reflex arcs, contracting biceps before pain is perceived" },
-  27: { sys: "Circulatory Hemodynamics & Adaptive Immunology", mech: "Four-chambered cardiac pressure gradients driving oxygenated blood coupled to somatic hypermutation of B-cell antibodies", f: "Q = \\Delta P / R", l: "cardiac vascular flow", u: "\\text{L/min}", term: "Antibody", def: "A Y-shaped defensive blood protein produced by plasma B cells that specifically neutralizes foreign antigens", evday: "Vaccine immunization protection", evdesc: "Injected harmless antigens stimulate memory B cells, conferring rapid lifelong immunity upon pathogen exposure" }
+  4: {
+    sys: "Population Demographics & Carrying Capacity",
+    mech: "Density-dependent feedback limiting exponential r-growth as population size N approaches environmental carrying capacity K",
+    f: "\\frac{dN}{dt} = rN\\left(1 - \\frac{N}{K}\\right)",
+    l: "logistic growth rate",
+    u: "\\text{ind/yr}",
+    term: "Carrying Capacity",
+    def: "The maximum sustainable population size that a particular environment can support indefinitely given available resources",
+    evday: "Bacterial colony saturation in nutrient broth",
+    evdesc: "Rapid exponential doubling continues until nutrient depletion and metabolic waste accumulation plateau cell density at carrying capacity K",
+    lessons: {
+      1: {
+        system: "Population Demographics, Dispersion & Density Regulation",
+        mechanism: "Density-dependent factors (competition, predation, disease) and density-independent factors (weather, floods) regulating population size",
+        terminology: { term: "Carrying Capacity", def: "The maximum population size of a species that an environment can sustain indefinitely" },
+        calc1: { formula: "\\frac{dN}{dt} = rN\\left(1 - \\frac{N}{K}\\right)", label: "population growth rate", unit: "\\text{ind/yr}", solve: (r, n, k) => (r * n * (1 - n / k)).toFixed(1) },
+        everyday: { phenomenon: "Boom-and-bust cycles in snowshoe hares and lynx", explanation: "Predator-prey oscillations lag behind each other as prey availability dictates predator birth rates" },
+        misconception: "Populations continue growing exponentially forever without limits, ignoring resource exhaustion"
+      },
+      2: {
+        system: "Human Demographics, Demographic Transition & Age Structure",
+        mechanism: "Technological and healthcare advances reducing infant mortality and shifting birth and death rates through demographic stages",
+        terminology: { term: "Demographic Transition", def: "The historical shift from high birth and death rates to low birth and death rates as a society industrializes" },
+        calc1: { formula: "\\text{Growth Rate} = \\text{Birth Rate} - \\text{Death Rate}", label: "rate of natural increase", unit: "\\%", solve: (b, d) => (b - d).toFixed(2) },
+        everyday: { phenomenon: "Rapidly expanding youth population pyramids in developing nations", explanation: "High birth rates produce broad pyramid bases where over 40% of the population is below reproductive age" },
+        misconception: "Zero population growth means nobody is born, rather than birth rates exactly equaling death rates"
+      }
+    }
+  },
+  5: {
+    sys: "Biodiversity & Conservation Biology",
+    mech: "Genetic variability, species richness, and habitat heterogeneity buffering ecological communities against catastrophic collapse",
+    f: "H' = -\\sum p_i \\ln(p_i)",
+    l: "Shannon diversity index",
+    u: "",
+    term: "Biodiversity",
+    def: "The total biological variation across genes, species, and ecosystems in a defined geographic biome",
+    evday: "Monoculture crop vulnerability to blight",
+    evdesc: "Genetically uniform crop fields lack resistant alleles, leaving entire yields vulnerable to devastation by a single pest",
+    lessons: {
+      1: {
+        system: "Ecosystem Species Richness & Genetic Diversity",
+        mechanism: "Genetic variation within populations providing raw material for natural selection and ecosystem stability",
+        terminology: { term: "Species Richness", def: "The total number of different species represented in an ecological community" }
+      },
+      2: {
+        system: "Anthropogenic Threats, Habitat Fragmentation & Overexploitation",
+        mechanism: "Deforestation and urban development creating isolated habitat islands with increased edge effects and reduced gene flow",
+        terminology: { term: "Habitat Fragmentation", def: "The breaking up of contiguous native habitat into small, isolated patches surrounded by human-altered landscapes" }
+      },
+      3: {
+        system: "Conservation Strategies, Bioremediation & Protected Reserves",
+        mechanism: "Restoring migration corridors, protecting biodiversity hotspots, and employing hyperaccumulating plants to decontaminate soils",
+        terminology: { term: "Bioremediation", def: "The use of living organisms (bacteria or plants) to detoxify polluted environmental sites" }
+      }
+    }
+  },
+  6: {
+    sys: "Biochemical Macromolecules & Enzyme Catalysis",
+    mech: "Lowering transition-state Gibbs activation energy Ea via precise enzyme active-site spatial alignment and induced fit",
+    f: "V = \\frac{V_{\\max}[S]}{K_m + [S]}",
+    l: "enzymatic velocity",
+    u: "\\mu\\text{M/s}",
+    term: "Active Site",
+    def: "The specific catalytic pocket of an enzyme where substrate molecules bind and undergo chemical transformation",
+    evday: "Meat tenderizer enzymes breaking down muscle tissue",
+    evdesc: "Papain proteases hydrolyze peptide bonds in tough collagen muscle fibers into tender short peptides",
+    lessons: {
+      1: {
+        system: "Atomic Structure, Chemical Bonding & Ionic Dissociation",
+        mechanism: "Electronegativity differences driving covalent sharing or ionic electron transfers between biological elements",
+        terminology: { term: "Covalent Bond", def: "A chemical bond formed by the sharing of one or more pairs of valence electrons between atoms" }
+      },
+      2: {
+        system: "Chemical Reactions, Activation Energy & Thermodynamics",
+        mechanism: "Exergonic and endergonic biological reactions coupling ATP hydrolysis to drive energetically unfavorable synthesis",
+        terminology: { term: "Activation Energy", def: "The minimum kinetic energy colliding reactant molecules must possess to overcome the transition-state barrier" }
+      },
+      3: {
+        system: "Water Properties, Hydrogen Bonding & Acid-Base Buffering",
+        mechanism: "High polarity and cohesive hydrogen bonds giving water high specific heat capacity, surface tension, and solvent capability",
+        terminology: { term: "Hydrogen Bonding", def: "An electrostatic dipole attraction between partially positive hydrogen and an electronegative oxygen or nitrogen atom" }
+      },
+      4: {
+        system: "Macromolecular Polymers: Carbohydrates, Lipids, Proteins & Nucleic Acids",
+        mechanism: "Dehydration condensation synthesis linking monomers via covalent bonds (glycosidic, ester, peptide, phosphodiester)",
+        terminology: { term: "Peptide Bond", def: "A covalent amide bond formed by dehydration condensation between the carboxyl group of one amino acid and amino group of another" }
+      }
+    }
+  },
+  7: {
+    sys: "Cellular Ultrastructure & Membrane Transport",
+    mech: "Phospholipid bilayer selective permeability maintained by passive osmosis, facilitated channels, and ATP-driven ion pumps",
+    f: "J = -D \\frac{\\Delta C}{\\Delta x}",
+    l: "diffusion flux",
+    u: "\\text{mol}/(\\text{m}^2\\cdot\\text{s})",
+    term: "Osmosis",
+    def: "The net passive diffusion of free water molecules across a selectively permeable membrane toward higher solute concentration",
+    evday: "Skin wrinkles after a prolonged hot bath",
+    evdesc: "Epidermal keratin absorbing water expands outer layers, wrinkling skin over firmly anchored deeper tissues",
+    lessons: {
+      1: {
+        system: "Cell Theory, Prokaryotic Simplicity vs Eukaryotic Compartmentalization",
+        mechanism: "Membrane-bound organelles segregating incompatible biochemical metabolic pathways in eukaryotic cells",
+        terminology: { term: "Cell Theory", def: "The foundational biological principle that all living organisms are composed of cells, the cell is the basic unit of life, and all cells arise from pre-existing cells" }
+      },
+      2: {
+        system: "Plasma Membrane Fluid Mosaic Model & Amphipathic Lipids",
+        mechanism: "Hydrophobic lipid tails sequestered away from water with hydrophilic phosphate heads contacting aqueous cytoplasm and ECM",
+        terminology: { term: "Fluid Mosaic Model", def: "A membrane model depicting a fluid phospholipid bilayer with freely lateral-diffusing proteins and glycoproteins" }
+      },
+      3: {
+        system: "Cellular Membrane Transport: Passive Diffusion, Facilitated Channels & Active Pumps",
+        mechanism: "ATP-hydrolyzing Na+/K+ ATPase pumping 3 Na+ out and 2 K+ in against their electrochemical gradients",
+        terminology: { term: "Active Transport", def: "The energy-requiring transport of molecules or ions across a membrane against their concentration gradient" }
+      },
+      4: {
+        system: "Eukaryotic Organelles: Nucleus, ER, Golgi, Lysosomes & Cytoskeleton",
+        mechanism: "Vesicular protein trafficking along microtubule tracks powered by kinesin and dynein motor ATPases",
+        terminology: { term: "Endomembrane System", def: "The coordinated functional continuum of membrane-bound organelles that synthesize, package, and transport proteins" }
+      }
+    }
+  },
+  8: {
+    sys: "Bioenergetics: Photosynthesis & Cellular Respiration",
+    mech: "Electron transport chains creating transmembrane proton motive forces driving rotational catalytic synthesis of ATP by ATP Synthase",
+    f: "C_6H_{12}O_6 + 6O_2 \\to 6CO_2 + 6H_2O",
+    l: "cellular aerobic oxidation",
+    u: "\\text{kJ/mol}",
+    term: "Chemiosmosis",
+    def: "The generation of ATP by the movement of hydrogen ions down an electrochemical gradient across a biological membrane",
+    evday: "Yeast bread dough rising in baking",
+    evdesc: "Anaerobic glycolysis by yeast cells produces CO2 gas bubbles that expand the bread dough matrix during fermentation",
+    lessons: {
+      1: {
+        system: "Thermodynamics of Cellular Metabolism: Anabolism, Catabolism & ATP Coupling",
+        mechanism: "Coupling exergonic ATP hydrolysis (-30.5 kJ/mol) to drive endergonic biosynthesis and mechanical motor transport",
+        terminology: { term: "ATP", def: "Adenosine triphosphate, the primary high-energy chemical currency of all living cells" }
+      },
+      2: {
+        system: "Photosynthesis: Light Reactions, Z-Scheme & Calvin Cycle Carbon Fixation",
+        mechanism: "Thylakoid photosystems splitting water to generate NADPH and ATP, driving RuBisCO carbon dioxide fixation in stroma",
+        terminology: { term: "Photolysis", def: "The enzymatic splitting of water molecules by Photosystem II yielding electrons, protons, and O2 gas" }
+      },
+      3: {
+        system: "Cellular Respiration: Glycolysis, Krebs Cycle & Oxidative Phosphorylation",
+        mechanism: "NADH and FADH2 oxidation transferring electrons through cristae complexes to terminal O2, generating 30-32 ATP per glucose",
+        terminology: { term: "Electron Transport Chain", def: "A series of multiprotein electron carriers embedded in the inner mitochondrial membrane that pump protons into the intermembrane space" }
+      }
+    }
+  },
+  9: {
+    sys: "Cell Cycle, Mitosis & Checkpoint Cytogenetics",
+    mech: "Cyclin-dependent kinase (CDK) phosphorylation cascades governing orderly chromatid replication, followed by homologous crossing-over generating haploid gametes",
+    f: "\\text{Mitotic Index} = \\frac{N_{\\text{mitotic}}}{N_{\\text{total}}} \\times 100\\%",
+    l: "mitotic index",
+    u: "\\%",
+    term: "Mitosis",
+    def: "The process of eukaryotic nuclear karyokinesis producing two genetically identical daughter nuclei with conserved diploid chromosome number",
+    evday: "Healing of a skin scratch",
+    evdesc: "Basal skin epithelial cells undergo rapid mitotic division and cytokinesis to replace damaged cells and seal the wound",
+    lessons: {
+      1: {
+        system: "The Eukaryotic Cell Cycle: Interphase, Mitosis Stages & Checkpoint Regulation",
+        mechanism: "G1, G2, and M checkpoints monitoring DNA integrity and spindle fiber attachment before allowing anaphase separation",
+        terminology: { term: "Cytokinesis", def: "The physical division of the cytoplasm and partitioning of organelles into two separate daughter cells" }
+      },
+      2: {
+        system: "Meiosis: Homologous Synapsis, Crossing-Over & Gamete Haploidization",
+        mechanism: "Synaptonemal complex alignment and chiasmata crossing-over in prophase I producing recombinant haploid gametes",
+        terminology: { term: "Crossing-Over", def: "The reciprocal exchange of genetic material between non-sister chromatids of homologous chromosomes during prophase I of meiosis" }
+      }
+    }
+  },
+  10: {
+    sys: "Mendelian Genetics & Chromosomal Meiosis",
+    mech: "Homologous chromosome crossing-over and independent assortment generating massive haploid genetic diversity",
+    f: "P(A \\cap B) = P(A) \\times P(B)",
+    l: "joint probability",
+    u: "",
+    term: "Allele",
+    def: "Alternative variant forms of a gene located at the same specific genetic locus on a chromosome",
+    evday: "Eye color differences in siblings",
+    evdesc: "Meiotic crossing-over and random parental allele segregation produce distinct combinations in each child",
+    lessons: {
+      1: {
+        system: "Mendelian Principles: Dominance, Segregation & Independent Assortment",
+        mechanism: "Independent segregation of maternal and paternal homologous chromosome pairs during anaphase I",
+        terminology: { term: "Law of Segregation", def: "Mendel's law stating that two alleles for a heritable trait segregate during gamete formation and end up in different gametes" }
+      },
+      2: {
+        system: "Gene Linkage, Recombination Mapping & Chromosome Crossing-Over Frequencies",
+        mechanism: "Distance between loci on the same chromosome dictating crossover frequency, where 1% recombination equals 1 centimorgan",
+        terminology: { term: "Linkage", def: "The tendency of DNA sequences that are close together on a chromosome to be inherited together during meiosis" }
+      },
+      3: {
+        system: "Applied Genetics: Selective Breeding, Hybridization & Inbreeding Risks",
+        mechanism: "Artificial selection increasing desired allele frequencies while inbreeding increases homozygosity of deleterious recessive alleles",
+        terminology: { term: "Hybrid Vigor", def: "The increased fitness, growth, or fertility often exhibited by crossbred heterozygous offspring compared to inbred parents" }
+      },
+      4: {
+        system: "Basic Patterns of Human Inheritance: Autosomal Dominant & Recessive Pedigrees",
+        mechanism: "Inheritance of single-gene traits through family generations tracked via standardized pedigree charts",
+        terminology: { term: "Carrier", def: "A clinically unaffected heterozygous individual who carries a recessive allele for a genetic disorder" }
+      },
+      5: {
+        system: "Complex Inheritance: Incomplete Dominance, Codominance, Multiple Alleles & Sex-Linkage",
+        mechanism: "Non-Mendelian gene interactions including intermediate phenotypes, multiple alleles (ABO blood), and X-linked traits",
+        terminology: { term: "Codominance", def: "An inheritance pattern in which the phenotypic effects of both distinct alleles are fully and simultaneously expressed in a heterozygote" }
+      }
+    }
+  },
+  11: {
+    sys: "Molecular Genetics: Central Dogma & Protein Synthesis",
+    mech: "Semi-conservative DNA replication followed by RNA polymerase transcription and tRNA ribosomal translation",
+    f: "N_{\\text{codons}} = \\frac{\\text{mRNA bases}}{3}",
+    l: "amino acid count",
+    u: "",
+    term: "Transcription",
+    def: "The synthesis of an RNA transcript from a complementary template DNA strand catalyzed by RNA polymerase",
+    evday: "Antibiotic targeting bacterial ribosomes",
+    evdesc: "Tetracycline halts bacterial translation by binding bacterial 70S ribosomes without harming human 80S ribosomes",
+    lessons: {
+      1: {
+        system: "DNA Structure: Antiparallel Double Helix & Complementary Base Pairing",
+        mechanism: "Deoxyribose-phosphate backbone with purine-pyrimidine base pairs (A=T with 2 H-bonds, G≡C with 3 H-bonds)",
+        terminology: { term: "Complementary Base Pairing", def: "The specific hydrogen bonding between nitrogenous bases in DNA: adenine with thymine and cytosine with guanine" }
+      },
+      2: {
+        system: "Semi-Conservative DNA Replication: Helicase, Primase, Polymerase & Okazaki Fragments",
+        mechanism: "Replication forks unwinding DNA and synthesizing leading strand continuously while lagging strand forms Okazaki fragments",
+        terminology: { term: "Okazaki Fragment", def: "Short, newly synthesized DNA segments formed on the lagging template strand during replication, joined by DNA ligase" }
+      },
+      3: {
+        system: "The Central Dogma: mRNA Transcription, Intron Splicing & tRNA Translation",
+        mechanism: "Ribosomal decoding of triplet mRNA codons by complementary tRNA anticodons into nascent polypeptide chains",
+        terminology: { term: "Codon", def: "A triplet sequence of adjacent nucleotides in mRNA that specifies a particular amino acid or translation stop signal" }
+      },
+      4: {
+        system: "Gene Regulation: Operons, Epigenetic Transcription Factors & Point Mutations",
+        mechanism: "Repressor proteins binding operators to regulate bacterial transcription, and eukaryotic histone acetylation opening chromatin",
+        terminology: { term: "Operon", def: "A functioning unit of genomic DNA containing a cluster of genes under the control of a single promoter and operator" }
+      }
+    }
+  },
+  12: {
+    sys: "Biotechnology, PCR & Recombinant Genetic Engineering",
+    mech: "Targeted restriction endonuclease cleavage, thermal primer annealing, and Taq polymerase DNA amplification",
+    f: "N = N_0 \\times 2^n",
+    l: "PCR amplicon count",
+    u: "",
+    term: "Gel Electrophoresis",
+    def: "The analytical separation of DNA, RNA, or protein fragments based on size and charge using an electric field",
+    evday: "Crime scene DNA fingerprinting",
+    evdesc: "STR genetic repeats amplified by PCR produce unique band patterns on an electrophoresis gel matching suspects",
+    lessons: {
+      1: {
+        system: "Recombinant DNA Tools: Restriction Enzymes, Plasmids, PCR & Gel Electrophoresis",
+        mechanism: "Bacterial plasmids cleaved by restriction enzymes ligating foreign genes to clone and express recombinant proteins",
+        terminology: { term: "Restriction Enzyme", def: "A bacterial endonuclease that cleaves double-stranded DNA at specific palindromic recognition sequences" }
+      },
+      2: {
+        system: "The Human Genome Project, DNA Sequencing, Bioinformatics & Gene Therapy",
+        mechanism: "Next-generation sequencing and bioinformatic sequence alignment identifying pathogenic mutations and enabling targeted CRISPR editing",
+        terminology: { term: "Bioinformatics", def: "The application of computational algorithms and statistical models to analyze and interpret massive biological genomic datasets" }
+      }
+    }
+  },
+  13: {
+    sys: "Geological History of Life & Paleontology",
+    mech: "Radioactive isotope exponential decay and fossil preservation in sedimentary strata recording evolutionary lineages",
+    f: "N(t) = N_0 (0.5)^{t/5730}",
+    l: "radiocarbon age",
+    u: "\\text{yr}",
+    term: "Fossil",
+    def: "The preserved physical remains or trace evidence of an ancient organism embedded in geological rock strata",
+    evday: "Petrified wood in national parks",
+    evdesc: "Silica dissolved in groundwater slowly replaces organic wood cells with quartz mineral stone over millions of years",
+    lessons: {
+      1: {
+        system: "Fossil Evidence of Change: Mineralization, Stratigraphic Law of Superposition & Radiometric Decay",
+        mechanism: "Deeper sedimentary strata containing older fossils dated quantitatively by parent-to-daughter radioisotope ratios",
+        terminology: { term: "Half-Life", def: "The time required for exactly one-half of the radioactive parent nuclei in a sample to decay into stable daughter isotopes" }
+      },
+      2: {
+        system: "The Origin of Life: Prebiotic Synthesis, Miller-Urey Spark Assay & RNA World Hypothesis",
+        mechanism: "Inorganic gases reacting under electrical spark discharge to synthesize amino acids and self-replicating ribozymes",
+        terminology: { term: "RNA World", def: "The evolutionary hypothesis that primitive life utilized self-replicating catalytic RNA molecules prior to the evolution of DNA and proteins" }
+      }
+    }
+  },
+  14: {
+    sys: "Evolutionary Mechanisms & Natural Selection",
+    mech: "Differential reproductive success acting on phenotypic traits, altering population allele frequencies over time",
+    f: "p^2 + 2pq + q^2 = 1",
+    l: "Hardy-Weinberg equilibrium",
+    u: "",
+    term: "Natural Selection",
+    def: "The differential survival and reproduction of individuals due to differences in heritable phenotype",
+    evday: "Antibiotic resistance in bacteria",
+    evdesc: "Exposing bacteria to penicillin kills sensitive cells, allowing rare resistant mutants to survive and multiply",
+    lessons: {
+      1: {
+        system: "Darwin's Theory of Evolution: Overproduction, Variation, Adaptation & Differential Fitness",
+        mechanism: "Environmental selection pressures favoring organisms with traits that confer higher reproductive output",
+        terminology: { term: "Fitness", def: "A quantitative measure of an organism's reproductive success and contribution of offspring to the gene pool of the next generation" }
+      },
+      2: {
+        system: "Evidence of Evolution: Homologous Structures, Embryology & Molecular Cytochrome C Homology",
+        mechanism: "Conserved anatomical bone arrangements and shared nucleotide sequences demonstrating descent from a common ancestor",
+        terminology: { term: "Homologous Structures", def: "Anatomical features in different species that share common evolutionary ancestry despite differences in current functional adaptation" }
+      },
+      3: {
+        system: "Shaping Evolutionary Theory: Genetic Drift, Gene Flow, Founder Effect & Speciation Modes",
+        mechanism: "Geographic reproductive isolation driving allopatric speciation as genetic mutations and drift diverge populations",
+        terminology: { term: "Genetic Drift", def: "Random fluctuations in allele frequencies from generation to generation occurring predominantly in small populations" }
+      }
+    }
+  },
+  15: {
+    sys: "Primate Evolutionary Radiations & Hominin Lineages",
+    mech: "Bipedal pelvic adaptation, cranial encephalization, and tool culture driving hominin morphological divergence",
+    f: "\\text{Cranial Index} = \\frac{\\text{Volume}}{m_{\\text{body}}}",
+    l: "encephalization quotient",
+    u: "",
+    term: "Bipedalism",
+    def: "The anatomical adaptation for upright walking on two rear legs, freeing forelimbs for tool use",
+    evday: "Human upright posture",
+    evdesc: "Our S-curved vertebral column and arched foot bones distribute body weight evenly for efficient walking",
+    lessons: {
+      1: {
+        system: "Primate Characteristics: Opposable Thumbs, Binocular Stereoscopic Vision & Complex Social Structure",
+        mechanism: "Arboreal adaptations favoring depth perception, mobile shoulder joints, and manual grasping agility",
+        terminology: { term: "Opposable Thumb", def: "A digit that can touch the tips of all other fingers on the same hand, enabling fine-motor precision grasping" }
+      },
+      2: {
+        system: "Hominoids to Hominins: Australopithecus, Bipedal Pelvis & Foramen Magnum Placement",
+        mechanism: "Shift from tropical forest canopies to open savannas favoring energy-efficient upright walking and central foramen magnum",
+        terminology: { term: "Foramen Magnum", def: "The large aperture in the base of the skull through which the spinal cord passes, positioned centrally beneath the skull in bipedal hominins" }
+      },
+      3: {
+        system: "Human Ancestry: Homo habilis, Homo erectus, Neanderthals & Homo sapiens Speciation",
+        mechanism: "Progressive cranial vault expansion, Acheulean tool mastery, controlled fire use, and modern Homo sapiens global dispersal",
+        terminology: { term: "Out of Africa Model", def: "The prevailing paleoanthropological model asserting modern humans evolved in Africa ~300,000 years ago and subsequently migrated globally" }
+      }
+    }
+  },
+  16: {
+    sys: "Systematics, Cladistics & Domain Taxonomy",
+    mech: "Phylogenetic character state analysis determining synapomorphies to reconstruct evolutionary trees of life",
+    f: "\\text{Homology Index} = \\frac{S_{\\text{shared}}}{S_{\\text{total}}}",
+    l: "cladistic similarity",
+    u: "",
+    term: "Cladogram",
+    def: "A branching phylogenetic diagram showing ancestral relationships based on shared derived characteristics",
+    evday: "Birds classified as dinosaurs",
+    evdesc: "Fossil feathers and wishbone anatomy in velociraptors prove birds are living avian theropod dinosaurs",
+    lessons: {
+      1: {
+        system: "The History of Classification: Aristotle's Scala Naturae & Linnaeus's Hierarchical Taxa",
+        mechanism: "Grouping organisms into domain, kingdom, phylum, class, order, family, genus, and species",
+        terminology: { term: "Binomial Nomenclature", def: "The standardized formal naming system using two Latinized terms: genus name capitalized and species epithet in lowercase" }
+      },
+      2: {
+        system: "Modern Classification: Cladistics, Ancestral vs Derived Synapomorphies & Parsimony",
+        mechanism: "Constructing phylogenetic trees that minimize the number of evolutionary transitions required to explain character distributions",
+        terminology: { term: "Synapomorphy", def: "A shared derived character state that is an evolutionary novelty unique to a particular clade and its most recent common ancestor" }
+      },
+      3: {
+        system: "Domains and Kingdoms: Archaea, Bacteria, Eukarya & Six Kingdom Physiological Taxonomy",
+        mechanism: "Ribosomal RNA sequence divergence separating life into three primary domains based on cellular membrane lipids and transcription machinery",
+        terminology: { term: "Domain Archaea", def: "A kingdom of single-celled prokaryotes possessing unique ether-linked membrane lipids and histones that often thrive in extreme environments" }
+      }
+    }
+  },
+  17: {
+    sys: "Microbiology: Bacteria & Viral Pathogenesis",
+    mech: "Bacterial peptidoglycan binary fission versus viral lytic capsid injection and host hijacking",
+    f: "N(t) = N_0 \\times 2^{t/g}",
+    l: "bacterial colony growth",
+    u: "",
+    term: "Bacteriophage",
+    def: "A specialized virus that infects and replicates exclusively within bacterial cells",
+    evday: "Yogurt fermentation",
+    evdesc: "Lactobacillus bacteria ferment lactose sugar into lactic acid, curdling milk into thick, tangy yogurt",
+    lessons: {
+      1: {
+        system: "Bacteria: Cell Walls, Gram Staining, Binary Fission & Endospore Survival",
+        mechanism: "Peptidoglycan cross-linking by transpeptidases providing osmotic rigidity against hypotonic lysis",
+        terminology: { term: "Binary Fission", def: "The asexual reproduction of a single-celled prokaryote by dividing into two genetically identical daughter cells" }
+      },
+      2: {
+        system: "Viruses and Prions: Capsids, Envelopes, Lytic vs Lysogenic Infection & Misfolded Prion Cascades",
+        mechanism: "Viral attachment to specific host receptors followed by viral genome injection and subversion of host ribosomes",
+        terminology: { term: "Lytic Cycle", def: "A viral replication pathway culminating in the destruction of the host cell membrane and release of infectious viral progeny" }
+      }
+    }
+  },
+  18: {
+    sys: "Protist Diversity, Endosymbiosis & Fungal Decomposition",
+    mech: "Endosymbiotic organelle acquisition in eukaryotic protists and extracellular hydrolytic enzyme absorption by chitinous fungal hyphae",
+    f: "\\text{Growth Rate} = \\frac{\\Delta r}{\\Delta t}",
+    l: "hyphal extension rate",
+    u: "\\text{mm/day}",
+    term: "Hyphae",
+    def: "Branching filamentous structures of fungi that secrete hydrolytic enzymes and absorb digested nutrients",
+    evday: "Mold spreading across fresh bread",
+    evdesc: "Rhizopus fungal spores germinate, sending branching hyphae into porous bread matrix to digest starch into absorbable sugars",
+    lessons: {
+      1: {
+        system: "Introduction to Protists: Primary/Secondary Endosymbiosis & Eukaryotic Organelle Evolution",
+        mechanism: "Ancestral archaeal host cell engulfing aerobic proteobacterium (mitochondria) and cyanobacterium (chloroplast)",
+        terminology: { term: "Endosymbiosis", def: "An evolutionary theory that eukaryotic organelles originated as engulfed free-living prokaryotic cells" }
+      },
+      2: {
+        system: "Protist Diversity: Protozoans, Diatoms, Dinoflagellates, Kelp & Plasmodium Pathogenesis",
+        mechanism: "Unicellular photosynthetic primary producers and protozoan parasite life cycles alternating between human liver and erythrocytes",
+        terminology: { term: "Diatom", def: "Unicellular photosynthetic aquatic algae encased in rigid, ornate siliceous double shells (frustules)" }
+      },
+      3: {
+        system: "Introduction to Fungi: Chitin Cell Walls, Hyphae, Mycelium & Extracellular Digestion",
+        mechanism: "Apical hyphal extension secreting exoenzymes (cellulases, proteases) into substrate followed by active proton-coupled nutrient transport",
+        terminology: { term: "Mycelium", def: "The densely branched vegetative network of feeding hyphae that constitutes the body of a multicellular fungus" }
+      },
+      4: {
+        system: "Fungus Diversity and Ecology: Zygomycetes, Ascomycetes, Basidiomycetes & Mycorrhizal Symbiosis",
+        mechanism: "Spore dispersal from fruiting bodies and mutualistic mycorrhizal root exchanges trading soil phosphorus for plant photosynthetic sugars",
+        terminology: { term: "Mycorrhizae", def: "Mutualistic symbiotic associations between plant roots and soil fungi that enhance mineral nutrient uptake" }
+      }
+    }
+  },
+  19: {
+    sys: "Plant Evolution, Vascular Anatomy & Transpiration Mechanics",
+    mech: "Solar-driven leaf transpiration creating negative hydrostatic pressure tension that pulls continuous water columns up xylem tracheids and vessels",
+    f: "\\Psi = \\Psi_s + \\Psi_p",
+    l: "water potential",
+    u: "\\text{MPa}",
+    term: "Transpiration",
+    def: "The evaporative loss of water vapor from aerial plant surfaces through stomata driving upward cohesive xylem flow",
+    evday: "Giant redwood trees lifting water 100 meters",
+    evdesc: "Solar evaporation at canopy stomata generates high negative tension, lifting continuous cohesive water columns against gravity",
+    lessons: {
+      1: {
+        system: "Plant Evolution and Diversity: Bryophytes, Ferns, Gymnosperms & Angiosperm Lineages",
+        mechanism: "Cuticle evolution, stomata, vascular lignified xylem, and protective seed coats allowing colonization of dry land",
+        terminology: { term: "Alternation of Generations", def: "A reproductive life cycle that alternates between a multicellular haploid gametophyte phase and a diploid sporophyte phase" }
+      },
+      2: {
+        system: "Plant Structure and Function: Dermal, Ground & Vascular (Xylem/Phloem) Tissues & Leaf Gas Exchange",
+        mechanism: "Cohesion-Tension theory pulling water up xylem columns coupled to phloem source-to-sink sucrose pressure-flow transport",
+        terminology: { term: "Cohesion-Tension Theory", def: "The physical mechanism explaining water ascent in plants by evaporative transpirational pull transmitted down continuous cohesive water columns" }
+      },
+      3: {
+        system: "Plant Reproduction: Flower Anatomy, Pollen Tubes & Angiosperm Double Fertilization",
+        mechanism: "Pollen tube guidance into ovule executing double fertilization: one sperm fertilizes egg (2n zygote), second forms endosperm (3n)",
+        terminology: { term: "Double Fertilization", def: "A unique angiosperm process where one sperm fertilizes the egg (2n zygote) and a second sperm fertilizes two polar nuclei (3n endosperm)" }
+      }
+    }
+  },
+  20: {
+    sys: "Animal Tissue Differentiation, Body Symmetry & Germ Layers",
+    mech: "Embryonic blastula cleavage followed by gastrulation invagination establishing ectoderm, mesoderm, and endoderm tissue fates",
+    f: "\\text{Cephalization Index} = \\frac{m_{\\text{brain}}}{m_{\\text{body}}}",
+    l: "cephalization index",
+    u: "",
+    term: "Gastrulation",
+    def: "The fundamental embryonic developmental phase where a hollow blastula invaginates to form distinct germ layers and primitive gut",
+    evday: "Jellyfish radial symmetry vs bilateral fish",
+    evdesc: "Cnidarian radial symmetry captures drifting prey from any direction, while bilateral symmetry coordinates forward predatory locomotion",
+    lessons: {
+      1: {
+        system: "Animal Characteristics: Multicellularity, Heterotrophy, Collagen & Embryonic Cleavage",
+        mechanism: "Zygote undergoing rapid mitotic cleavage without growth into a hollow blastula that undergoes gastrulation",
+        terminology: { term: "Germ Layer", def: "One of the primary layers of cells (ectoderm, mesoderm, endoderm) formed during gastrulation that give rise to all organ systems" }
+      },
+      2: {
+        system: "Animal Body Plans: Asymmetry, Radial vs Bilateral Symmetry, Cephalization & Coelom Cavities",
+        mechanism: "Anterior concentration of sensory organs (cephalization) and mesoderm cavitation forming coelomic hydrostatic cavities",
+        terminology: { term: "Coelom", def: "A fluid-filled body cavity completely lined and enclosed by tissue derived from mesoderm" }
+      }
+    }
+  },
+  21: {
+    sys: "Animal Invertebrate/Vertebrate Radiations & Behavioral Neuroethology",
+    mech: "Evolution of specialized organ systems (jointed exoskeletons, endoskeletons) coupled to innate sign stimuli and learned neural plasticity",
+    f: "rB > C",
+    l: "Hamilton's rule altruism threshold",
+    u: "",
+    term: "Fixed Action Pattern",
+    def: "An instinctive, genetically hardwired behavioral sequence triggered by an environmental sign stimulus that runs to completion once initiated",
+    evday: "Honeybee waggle dance communication",
+    evdesc: "Forager bees perform oriented figure-eight runs inside dark hives to communicate vector distance and sun-angle direction of nectar",
+    lessons: {
+      1: {
+        system: "Invertebrates: Porifera, Cnidaria, Platyhelminthes, Mollusca, Annelida, Arthropoda & Echinodermata",
+        mechanism: "Jointed chitinous exoskeletons with striated muscles enabling terrestrial arthropod locomotion and flight",
+        terminology: { term: "Exoskeleton", def: "A rigid, protective external jointed shell composed of chitin and proteins found in arthropods" }
+      },
+      2: {
+        system: "Vertebrates: Chordate Hallmarks, Fishes, Amphibians, Amniote Eggs & Mammalian Endothermy",
+        mechanism: "Notochord, dorsal nerve cord, pharyngeal slits, and cleidoic amniotic eggs freeing reproduction from open water",
+        terminology: { term: "Amniotic Egg", def: "An egg containing specialized extraembryonic membranes (amnion, chorion, allantois, yolk sac) that allows vertebrate reproduction on dry land" }
+      },
+      3: {
+        system: "Animal Behavior: Fixed Action Patterns, Imprinting, Classical Conditioning & Kin Selection",
+        mechanism: "Innate neurosensory releasing mechanisms triggering fixed motor patterns versus synaptic plasticity in operant learning",
+        terminology: { term: "Imprinting", def: "A form of rapid, irreversible learning occurring during a critical early developmental window that establishes behavioral preferences" }
+      }
+    }
+  },
+  22: {
+    sys: "Integumentary Shielding, Bone Remodeling & Sarcomere Sliding Filaments",
+    mech: "Sarcoplasmic reticulum Ca2+ release binding troponin C, shifting tropomyosin and enabling myosin cross-bridge power strokes along actin thin filaments",
+    f: "F_{\\text{contractile}} = N_{\\text{bridges}} \\times f_{\\text{stroke}}",
+    l: "contractile muscle tension",
+    u: "\\text{N}",
+    term: "Sarcomere",
+    def: "The fundamental microscopic repeating contractile unit of striated muscle fibers bounded by transverse Z-discs",
+    evday: "Muscle contraction and delayed onset soreness",
+    evdesc: "Myosin heads consume ATP to pull actin filaments inward, narrowing the H-zone and I-band while maintaining invariant A-band width",
+    lessons: {
+      1: {
+        system: "The Integumentary System: Epidermis, Keratinocytes, Melanocytes, Dermis & Thermoregulation",
+        mechanism: "Stratified squamous keratinization shielding deeper tissues coupled to dermal capillary vasodilation and sweat gland evaporative cooling",
+        terminology: { term: "Keratin", def: "A tough, fibrous insoluble structural protein that hardens outer epidermal skin cells, hair, and nails against abrasion and dehydration" },
+        calc1: { formula: "\\text{Burn \\%} = 9 \\times N_{\\text{regions}}", label: "Rule of Nines body surface area", unit: "\\%", solve: (n) => String(n * 9) },
+        everyday: { phenomenon: "Flushed red skin and heavy sweating during intense exercise", explanation: "Dermal capillaries dilate to radiate heat while eccrine sweat glands release water for evaporative cooling to maintain 37°C core temperature" },
+        misconception: "Skin is an inert protective wrapper, rather than a dynamic sensory, immunologic, and thermoregulatory organ"
+      },
+      2: {
+        system: "The Skeletal System: Axial/Appendicular Skeleton, Osteons, Haversian Canals & Remodeling",
+        mechanism: "Dynamic balance between osteoblast bone deposition and osteoclast resorption in cylindrical osteon Haversian systems regulated by PTH and calcitonin",
+        terminology: { term: "Osteon", def: "The fundamental cylindrical microscopic structural unit of compact cortical bone, consisting of concentric lamellae surrounding a central neurovascular Haversian canal" },
+        calc1: { formula: "\\text{BMD} = \\frac{m_{\\text{mineral}}}{\\text{Area}}", label: "bone mineral density", unit: "\\text{g/cm}^2", solve: (m, a) => (m / a).toFixed(2) },
+        everyday: { phenomenon: "Bone remodeling and density gain from resistance weightlifting", explanation: "Mechanical compressive strain stimulates osteoblasts to deposit hydroxyapatite mineral matrix along lines of physical stress according to Wolff's Law" },
+        misconception: "Bones are dry, dead mineral sticks, rather than vascularized, highly dynamic living tissues undergoing continuous cellular turnover"
+      },
+      3: {
+        system: "The Muscular System: Sarcomere Architecture, Sliding Filament Theory & Cross-Bridge Cycling",
+        mechanism: "Sarcoplasmic reticulum Ca2+ release binding troponin C, shifting tropomyosin and enabling myosin cross-bridge power strokes along actin thin filaments",
+        terminology: { term: "Sarcomere", def: "The fundamental microscopic repeating contractile unit of a muscle myofibril bounded by adjacent transverse Z-discs" },
+        calc1: { formula: "F_{\\text{contractile}} = N_{\\text{bridges}} \\times f_{\\text{stroke}}", label: "contractile muscle force", unit: "\\text{N}", solve: (n, f) => (n * f).toFixed(1) },
+        everyday: { phenomenon: "Rigor mortis stiffening in skeletal muscles after death", explanation: "ATP exhaustion halts cross-bridge detachment, locking myosin heads tightly onto actin filaments in a rigid, persistent contracted state" },
+        misconception: "During muscle contraction actin and myosin protein filaments shrink in length, rather than sliding past one another while retaining constant individual filament lengths"
+      }
+    }
+  },
+  23: {
+    sys: "Neurobiology, Axonal Action Potentials & Synaptic Transmission",
+    mech: "Depolarization opening voltage-gated Na+ channels producing rapid all-or-nothing action potentials followed by K+ repolarization and vesicle neurotransmitter release",
+    f: "E = \\frac{RT}{zF} \\ln\\left(\\frac{[\\text{Ion}]_o}{[\\text{Ion}]_i}\\right)",
+    l: "Nernst equilibrium potential",
+    u: "\\text{mV}",
+    term: "Action Potential",
+    def: "A rapid, transient, all-or-nothing reversal of membrane electrical potential propagating regeneratively along an axon",
+    evday: "Pulling hand reflexively away from a hot stove",
+    evdesc: "Thermal nociceptors fire high-frequency action potentials across spinal interneurons, triggering motor reflex contraction before brain perceives pain",
+    lessons: {
+      1: {
+        system: "Structure of the Nervous System: Neurons, Glia, Resting Potential & Action Potential Gating",
+        mechanism: "Na+/K+ ATPase maintaining -70 mV resting potential; threshold depolarization opening voltage-gated Na+ channels for rapid depolarization followed by voltage-gated K+ repolarization",
+        terminology: { term: "Action Potential", def: "A rapid, all-or-nothing electrical membrane depolarization that propagates regeneratively along an axon" },
+        calc1: { formula: "v = \\frac{d}{t}", label: "nerve conduction velocity", unit: "\\text{m/s}", solve: (d, t) => (d / t).toFixed(1) },
+        everyday: { phenomenon: "Local dental anesthetic numbing teeth and gums", explanation: "Lidocaine blocks voltage-gated Na+ channels in sensory axons, preventing action potential generation and blocking pain transmission" },
+        misconception: "Stronger stimuli produce larger, taller action potential voltage spikes, violating the fundamental all-or-nothing law (which modulates frequency, not amplitude)"
+      },
+      2: {
+        system: "Organization of the Nervous System: Central vs Peripheral, Autonomic Sympathetic/Parasympathetic & Reflexes",
+        mechanism: "Cerebral and brainstem integration coupled to antagonistic sympathetic (fight-or-flight) and parasympathetic (rest-and-digest) autonomic pathways",
+        terminology: { term: "Reflex Arc", def: "An involuntary, rapid neural circuit connecting sensory receptors directly through spinal interneurons to motor effectors" }
+      },
+      3: {
+        system: "The Senses: Mechanoreceptors, Retinal Photoreceptors (Rods/Cones) & Olfactory Transduction",
+        mechanism: "Sensory receptor cells transducing physical stimuli (photons in rhodopsin, sound vibration hair cell deflection) into graded receptor potentials",
+        terminology: { term: "Transduction", def: "The physiological conversion of an external physical or chemical stimulus into an electrical membrane potential by a sensory receptor" }
+      },
+      4: {
+        system: "Effects of Drugs: Synaptic Neurotransmitters, Receptors, Agonists, Antagonists & Addiction",
+        mechanism: "Neurotransmitter vesicle exocytosis across synaptic clefts modulated by agonist receptor activation, antagonist blockade, or reuptake transporter inhibition",
+        terminology: { term: "Neurotransmitter", def: "A chemical signaling messenger synthesized and released by presynaptic neurons that diffuses across synaptic clefts to bind postsynaptic receptors" }
+      }
+    }
+  },
+  24: {
+    sys: "Four-Chambered Hemodynamics, Alveolar Gas Exchange & Nephron Osmoregulation",
+    mech: "Sinoatrial node pacemaker depolarization driving synchronized ventricular systole, capillary Fick diffusion, and nephron countercurrent multiplier filtration",
+    f: "CO = HR \\times SV",
+    l: "cardiac output",
+    u: "\\text{L/min}",
+    term: "Cardiac Output",
+    def: "The volume of blood pumped by the left ventricle into the systemic aorta per unit time, calculated as heart rate times stroke volume",
+    evday: "Shortness of breath and elevated heart rate at high altitudes",
+    evdesc: "Low ambient PO2 reduces alveolar-capillary oxygen diffusion, stimulating sympathetic tachycardia to maintain peripheral oxygen delivery",
+    lessons: {
+      1: {
+        system: "Circulatory System: 4-Chamber Heart Anatomy, Cardiac Cycle, ECG Conduction & Blood Pressure",
+        mechanism: "Sinoatrial node electrical depolarization spreading through AV node and bundle branches, driving coordinated ventricular systole and systemic arterial flow",
+        terminology: { term: "Cardiac Output", def: "The total volume of blood ejected by the left ventricle into the systemic circulation per minute, calculated as heart rate times stroke volume" },
+        calc1: { formula: "CO = HR \\times SV", label: "cardiac output", unit: "\\text{L/min}", solve: (hr, sv) => ((hr * sv) / 1000).toFixed(2) },
+        everyday: { phenomenon: "Pulse rate surge during sudden fright or aerobic sprint", explanation: "Sympathetic epinephrine release accelerates SA node firing and increases ventricular stroke volume to boost cardiac output" },
+        misconception: "Arteries always carry oxygenated blood and veins always carry deoxygenated blood, overlooking pulmonary arteries carrying deoxygenated blood to lungs and pulmonary veins carrying oxygenated blood to heart"
+      },
+      2: {
+        system: "Respiratory System: Airway Anatomy, Diaphragm Mechanics, Alveoli & Partial Pressure Gradients",
+        mechanism: "Diaphragm contraction expanding thoracic cavity volume to generate sub-atmospheric negative intrapleural pressure, pulling ambient air into alveoli for Fick diffusion",
+        terminology: { term: "Alveoli", def: "Microscopic thin-walled air sacs in the lungs surrounded by dense capillary networks where passive O2 and CO2 gas exchange occurs" },
+        calc1: { formula: "V_E = V_T \\times RR", label: "minute ventilation", unit: "\\text{L/min}", solve: (vt, rr) => ((vt * rr) / 1000).toFixed(2) },
+        everyday: { phenomenon: "Hyperventilation causing lightheadedness and blood alkalosis", explanation: "Rapid excessive breathing blows off alveolar CO2, shifting carbonic acid equilibrium and raising blood pH above physiological set points" },
+        misconception: "Inhalation occurs because air rushes into lungs and pushes the chest outward, rather than active muscular chest expansion lowering pressure to pull air inward"
+      },
+      3: {
+        system: "The Excretory System: Kidney Microanatomy, Nephron Filtration, Loop of Henle & ADH",
+        mechanism: "Glomerular ultrafiltration driven by blood pressure, followed by tubular reabsorption and Loop of Henle countercurrent multiplication concentrated by ADH aquaporin insertion",
+        terminology: { term: "Nephron", def: "The microscopic functional filtration and osmoregulatory unit of the kidney, consisting of a renal corpuscle and specialized tubular segments" },
+        calc1: { formula: "GFR = \\frac{U \\times V}{P}", label: "glomerular filtration rate", unit: "\\text{mL/min}", solve: (u, v, p) => ((u * v) / p).toFixed(1) },
+        everyday: { phenomenon: "Dark concentrated urine production during dehydration", explanation: "Posterior pituitary ADH secretion prompts collecting duct aquaporin insertion, maximally reabsorbing water back into hypertonic renal medullary capillaries" },
+        misconception: "The kidneys filter blood to make waste, rather than filtering entire plasma volume non-selectively and then reabsorbing 99% of essential water, glucose, and ions"
+      }
+    }
+  },
+  25: {
+    sys: "Gastrointestinal Enzymatic Hydrolysis & Hormonal Feedback Homeostasis",
+    mech: "Luminal macromolecule enzymatic cleavage (amylases, proteases, lipases) coordinated with pancreatic insulin and glucagon negative feedback maintaining blood glucose",
+    f: "\\Delta G = -k ([G] - G_{\\text{set}})",
+    l: "glucose homeostatic correction",
+    u: "\\text{mg/dL}",
+    term: "Negative Feedback",
+    def: "A regulatory homeostatic mechanism where the output or response of a system counteracts and attenuates the initial perturbation",
+    evday: "Post-prandial blood sugar stabilization",
+    evdesc: "Elevated blood glucose following a meal triggers pancreatic beta-cell insulin secretion, prompting liver and muscle glycogen storage",
+    lessons: {
+      1: {
+        system: "The Digestive System: Mechanical Churning, Gastric Acid, Pancreatic Enzymes & Villus Absorption",
+        mechanism: "Peristaltic propulsion through stomach (acid, pepsin) and small intestine (pancreatic proteases, amylases, lipases, bile emulsification) maximizing villus nutrient absorption",
+        terminology: { term: "Peristalsis", def: "Involuntary rhythmic wave-like contractions of longitudinal and circular smooth muscles that propel food along the gastrointestinal tract" },
+        calc1: { formula: "\\text{Absorption} = \\frac{M_{\\text{in}} - M_{\\text{out}}}{M_{\\text{in}}} \\times 100\\%", label: "digestive absorption efficiency", unit: "\\%", solve: (i, o) => (((i - o) / i) * 100).toFixed(1) },
+        everyday: { phenomenon: "Heartburn / acid reflux after heavy meals", explanation: "Relaxation of the lower esophageal sphincter allows hydrochloric acid and pepsin to back up into the unprotected non-keratinized esophagus" },
+        misconception: "Most nutrient absorption occurs in the stomach, rather than in the specialized duodenum, jejunum, and ileum of the small intestine"
+      },
+      2: {
+        system: "Nutrition: Macronutrient Energy Density, Vitamins, Minerals & Basal Metabolic Rate",
+        mechanism: "Dietary carbohydrates (4 kcal/g), proteins (4 kcal/g), and lipids (9 kcal/g) metabolized via glycolysis, Krebs cycle, and oxidative phosphorylation for cellular ATP generation",
+        terminology: { term: "Basal Metabolic Rate", def: "The baseline rate of energy expenditure by an endothermic animal at complete physical and digestive rest in a thermoneutral environment" },
+        calc1: { formula: "E_{\\text{cal}} = 4C + 4P + 9L", label: "caloric energy yield", unit: "\\text{kcal}", solve: (c, p, l) => (4 * c + 4 * p + 9 * l).toFixed(0) },
+        everyday: { phenomenon: "Athletes carb-loading before endurance marathons", explanation: "Consuming complex carbohydrates maximizes liver and skeletal muscle glycogen stores, providing a sustained glucose reservoir for prolonged aerobic respiration" }
+      },
+      3: {
+        system: "The Endocrine System: Pituitary Master Gland, Thyroid, Adrenal & Glucose Homeostasis",
+        mechanism: "Hypothalamic-pituitary hormonal axis coupled to peripheral gland secretion; pancreatic islet beta-cells releasing insulin and alpha-cells releasing glucagon in negative feedback loops",
+        terminology: { term: "Hormone", def: "A chemical signaling molecule synthesized by ductless endocrine glands and secreted directly into blood circulation to act on distant target cells" },
+        calc1: { formula: "\\Delta [G] = -k([G] - 90)", label: "homeostatic glucose correction", unit: "\\text{mg/dL}", solve: (k, g) => (-k * (g - 90)).toFixed(1) },
+        everyday: { phenomenon: "Frequent urination and excessive thirst in untreated diabetes", explanation: "Hyperglycemia exceeds renal tubular reabsorption thresholds, causing osmotic diuresis (glucose pulling water into urine) and dehydration" }
+      }
+    }
+  },
+  26: {
+    sys: "Gametogenesis, Endocrine Gonadal Cycles & Embryonic Trimester Morphogenesis",
+    mech: "Hypothalamic-pituitary-gonadal (GnRH-LH-FSH) pulsatile feedback driving oocyte maturation, fertilization, blastocyst implantation, and placental nutrient exchange",
+    f: "\\text{Gestational Milestone} = \\text{Weeks} \\times 7",
+    l: "developmental milestone",
+    u: "\\text{days}",
+    term: "Blastocyst",
+    def: "A mammalian embryonic structure consisting of an inner cell mass destined to form the embryo and an outer trophoblast that forms the placenta",
+    evday: "Oxytocin positive feedback during labor contractions",
+    evdesc: "Cervical stretch signals hypothalamic oxytocin release, intensifying myometrial uterine contractions in a self-reinforcing delivery loop",
+    lessons: {
+      1: {
+        system: "Reproductive Systems: Testicular Spermatogenesis, Ovarian Folliculogenesis & Menstrual Cycle Surges",
+        mechanism: "Spermatogenesis in seminiferous tubules driven by testosterone; oogenesis in ovaries coordinated by pituitary FSH/LH pulses driving follicular maturation and ovulation surges",
+        terminology: { term: "Gametogenesis", def: "The meiotic biological process by which diploid germ cells undergo division and differentiation into mature haploid spermatozoa or ova" },
+        calc1: { formula: "\\text{Cycle Day} = \\text{LH Peak} + 14", label: "luteal phase duration", unit: "\\text{days}", solve: (lh) => String(lh + 14) },
+        everyday: { phenomenon: "Ovulation predictor kits detecting LH surge", explanation: "Monoclonal antibody test strips detect the sharp spike in urinary luteinizing hormone that triggers mature ovarian follicle rupture 24-36 hours later" }
+      },
+      2: {
+        system: "Human Development Before Birth: Fertilization, Blastocyst Cleavage, Placenta & Trimesters",
+        mechanism: "Acrosome reaction permitting sperm penetration into zona pellucida, cleavage into morula and blastocyst, chorionic villi invasion forming placental maternal-fetal exchange",
+        terminology: { term: "Placenta", def: "A temporary fetomaternal vascular organ that mediates nutrient, gas, and metabolic waste exchange between maternal and fetal circulations" },
+        calc1: { formula: "\\text{CRL} = 1.05 \\times t^{1.4}", label: "crown-rump length", unit: "\\text{mm}", solve: (t) => (1.05 * Math.pow(t, 1.4)).toFixed(1) },
+        everyday: { phenomenon: "Critical avoidance of alcohol and teratogens in the first trimester", explanation: "Major embryonic organogenesis occurs during weeks 3 through 8; chemical disruptions during this window produce severe irreversible congenital anomalies" }
+      },
+      3: {
+        system: "Birth, Growth, and Aging: Stages of Labor, Oxytocin Positive Feedback, Postnatal Growth & Senescence",
+        mechanism: "Fetal head cervical engagement triggering hypothalamic oxytocin release, intensifying myometrial contractions; postnatal growth hormone cascades and telomere shortening in aging",
+        terminology: { term: "Oxytocin", def: "A peptide neurohormone synthesized in the hypothalamus that stimulates vigorous uterine myometrial contractions during labor and milk ejection" },
+        calc1: { formula: "\\text{Apgar Score} = \\sum_{i=1}^5 S_i", label: "neonatal Apgar score", unit: "", solve: (s) => String(Math.min(10, s)) },
+        everyday: { phenomenon: "Self-amplifying labor contractions during child delivery", explanation: "Cervical dilation stimulates sensory nerves that drive pituitary oxytocin release, which triggers even stronger contractions until delivery is accomplished" }
+      }
+    }
+  },
+  27: {
+    sys: "Innate Barrier Defenses, Adaptive Clonal Selection & Immunological Memory",
+    mech: "Antigen presenting cells displaying peptide-MHC complexes to CD4+ T helper and CD8+ cytotoxic T cells, stimulating B-cell somatic hypermutation and antibody synthesis",
+    f: "\\text{Titer} = \\frac{1}{\\text{Highest Dilution Factor}}",
+    l: "serum antibody titer",
+    u: "",
+    term: "Clonal Selection",
+    def: "The process whereby an antigenic epitope specifically binds and activates a complementary lymphocyte receptor, triggering rapid mitotic proliferation",
+    evday: "Lifelong immunity conferred by measles vaccination",
+    evdesc: "Inoculation with an attenuated viral antigen generates durable memory B and T cells that neutralize wild virus upon secondary exposure",
+    lessons: {
+      1: {
+        system: "Infectious Diseases: Pathogen Virulence, Transmission Vectors & Koch's Postulates",
+        mechanism: "Microbial invasion (viral lytic hijacking, bacterial exotoxins/endotoxins) spreading through aerosol droplets, vectors, or fomites fulfilling Koch's causality criteria",
+        terminology: { term: "Pathogen", def: "A biological agent capable of causing disease or systemic pathology in a host organism, including viruses, bacteria, fungi, and parasites" },
+        calc1: { formula: "R_0 = \\beta \\times c \\times D", label: "basic reproduction number", unit: "", solve: (b, c, d) => (b * c * d).toFixed(1) },
+        everyday: { phenomenon: "Quarantine isolation and hand washing during viral epidemics", explanation: "Disrupting contact rates (c) and destroying lipid viral envelopes with soap drops the effective reproduction number below 1.0, extinguishing outbreaks" }
+      },
+      2: {
+        system: "The Immune System: Innate Barrier Defenses & Adaptive Lymphocyte Clonal Selection",
+        mechanism: "Phagocytic macrophage engulfment, complement activation, and MHC-antigen presentation triggering CD4+ helper T cell cytokine release and B-cell antibody secretion",
+        terminology: { term: "Antibody", def: "A Y-shaped defensive immunoglobulin glycoprotein secreted by plasma B cells that specifically binds and neutralizes foreign antigen epitopes" },
+        calc1: { formula: "\\text{Avidity} = K_a \\times n", label: "multivalent functional avidity", unit: "\\text{M}^{-1}", solve: (ka, n) => (ka * n).toExponential(2) },
+        everyday: { phenomenon: "Fever and localized swelling following an infected splinter", explanation: "Mast cells release histamine and prostaglandins, increasing capillary permeability to recruit neutrophils and macrophages to destroy invading microbes" }
+      },
+      3: {
+        system: "Noninfectious Disorders: Autoimmune Diseases, Anaphylactic Allergies & Immunodeficiency (HIV)",
+        mechanism: "Breakdown of immune self-tolerance causing autoantibody attack (lupus, Type 1 diabetes), IgE-mediated mast cell degranulation (anaphylaxis), or viral CD4+ destruction (HIV)",
+        terminology: { term: "Autoimmune Disease", def: "A pathological condition in which the adaptive immune system loses self-tolerance and mistakenly attacks healthy host cells and tissues" },
+        calc1: { formula: "\\text{CD4 Ratio} = \\frac{[\\text{CD4}^+]}{[\\text{CD8}^+]}", label: "helper-to-cytotoxic T cell ratio", unit: "", solve: (cd4, cd8) => (cd4 / cd8).toFixed(2) },
+        everyday: { phenomenon: "Carrying an epinephrine auto-injector (EpiPen) for severe allergies", explanation: "Epinephrine stimulates alpha-1 vasoconstriction to restore crashing blood pressure and beta-2 bronchodilation to open constricted airways during anaphylactic shock" }
+      }
+    }
+  }
 };
 
 for (let i = 4; i <= 27; i++) {
@@ -533,7 +1232,8 @@ for (let i = 4; i <= 27; i++) {
     historical: `Pioneering biological experiments that validated core principles of ${mTitle}`,
     cer2: { prompt: `Analyze the clinical or environmental implications of perturbing the homeostatic loop in ${mTitle}.`, claim: "Disrupting negative feedback cascades produces severe systemic failure or population collapse.", ev: "Biomarker assays show runaway hormonal or metabolic deviation beyond physiological tolerance limits.", reas: "Living systems require dynamic feedback loops to maintain stable internal conditions despite external fluctuations." },
     terminology: { term: d.term, def: d.def },
-    everyday: { phenomenon: d.evday, explanation: d.evdesc }
+    everyday: { phenomenon: d.evday, explanation: d.evdesc },
+    lessons: d.lessons || {}
   };
 }
 
@@ -543,30 +1243,529 @@ for (let i = 4; i <= 27; i++) {
 export const PHYS_MODULE_PROFILES = {};
 
 const PHYS_DATA_MAP = {
-  1: { sys: "SI Metrology, Dimensional Analysis & Vector Math", mech: "Orthogonal Cartesian vector decomposition maintaining geometric invariant norms across coordinate frames", f: "R = \\sqrt{A^2 + B^2}", l: "resultant vector", u: "m", term: "Vector", def: "A physical quantity possessing both numerical magnitude and spatial direction", evday: "Airplane navigating crosswinds", evdesc: "Pilots angle the plane's heading vector to cancel perpendicular crosswind vectors, maintaining a straight course" },
-  2: { sys: "One-Dimensional Kinematics & Position Coordinates", mech: "Continuous differential rates of displacement yielding instantaneous velocity v = dx/dt", f: "\\bar{v} = \\frac{\\Delta x}{\\Delta t}", l: "average velocity", u: "m/s", term: "Displacement", def: "The straight-line vector distance and direction from an initial position to a final position", evday: "Running laps around a 400m track", evdesc: "Finishing a complete lap returns you to the start line, so total distance is 400 m but net displacement is exactly 0 m" },
-  3: { sys: "Accelerated Motion & Uniform Gravitational Free Fall", mech: "Constant downward gravitational acceleration g = 9.80 m/s² producing parabolic displacement-time trajectories", f: "v^2 = v_0^2 + 2a\\Delta x", l: "kinematic velocity", u: "m/s", term: "Free Fall", def: "The motion of an object when gravity is the only significant force acting upon it", evday: "Dropping a phone from a table", evdesc: "The phone accelerates toward the floor at 9.80 m/s², reaching high speed within a fraction of a second" },
-  4: { sys: "Newton's Laws of Motion & Force Vectors", mech: "Net unbalanced force accelerating mass via F_net = ma with equal and opposite reactionary contact forces", f: "F_{\\text{net}} = ma", l: "net force", u: "N", term: "Inertia", def: "The resistance of any physical object to any change in its velocity or state of rest", evday: "Wearing a seatbelt in a braking car", evdesc: "When brakes lock, your body's inertia carries you forward until the seatbelt exerts an external stopping force" },
-  5: { sys: "Two-Dimensional Forces, Friction & Inclined Planes", mech: "Resolution of gravitational vectors into normal (mg cos θ) and parallel (mg sin θ) components opposed by friction", f: "F_f = \\mu F_N", l: "frictional force", u: "N", term: "Coefficient of Friction", def: "A dimensionless scalar ratio representing the resistive frictional force between two contacting surfaces", evday: "Sledding down a snowy hill", evdesc: "Steeper slopes increase the downhill parallel gravity vector (mg sin θ) while low ice friction allows fast acceleration" },
-  6: { sys: "Two-Dimensional Kinematics & Uniform Circular Motion", mech: "Orthogonal centripetal acceleration a_c = v²/r constantly redirecting velocity vectors perpendicular to trajectory", f: "a_c = \\frac{v^2}{r}", l: "centripetal acceleration", u: "m/s^2", term: "Centripetal Force", def: "The net inward force directed toward the center of curvature required to keep an object moving in a circular path", evday: "Spin cycle of a washing machine", evdesc: "The perforated drum applies inward centripetal force to clothes, while water droplets fly straight out through holes" },
-  7: { sys: "Newtonian Gravitation & Orbital Planetary Mechanics", mech: "Universal inverse-square gravitational force F = G(m1 m2)/r² providing centripetal orbital acceleration", f: "F_g = G \\frac{m_1 m_2}{r^2}", l: "gravitational force", u: "N", term: "Orbital Velocity", def: "The exact tangential velocity needed for a satellite to continuously free-fall around a celestial body without crashing", evday: "Ocean tides caused by the Moon", evdesc: "The Moon's gravitational pull exerts differential tidal forces on Earth's oceans, creating two high-tide bulges daily" },
-  8: { sys: "Rotational Dynamics, Torque & Angular Momentum", mech: "Rotational inertia resisting angular acceleration τ = Iα, with angular momentum conserved in isolated systems", f: "\\tau = r F \\sin\\theta", l: "torque", u: "\\text{N}\\cdot\\text{m}", term: "Torque", def: "The quantitative rotational equivalent of linear force that causes an object to rotate about an axis", evday: "Opening a heavy door with a handle", evdesc: "Door handles are placed at the far edge from the hinges to maximize lever arm distance r and rotational torque" },
-  9: { sys: "Linear Momentum, Impulse & Collision Dynamics", mech: "Integral of contact force over collision duration J = F Δt yielding change in linear momentum Δp", f: "J = F \\Delta t = \\Delta p", l: "impulse", u: "\\text{N}\\cdot\\text{s}", term: "Impulse", def: "The product of the average force exerted on an object and the time interval over which it acts", evday: "Airbags cushioning car crash impacts", evdesc: "Airbags increase the collision impact duration Δt, drastically reducing the peak stopping force exerted on passengers" },
-  10: { sys: "Work, Energy & Simple Machine Mechanical Advantage", mech: "Scalar dot product of force and displacement vectors W = F · d transferring energy into mechanical systems", f: "W = F d \\cos\\theta", l: "work performed", u: "J", term: "Work", def: "The scalar energy transferred to an object when a force acts upon it through a parallel displacement", evday: "Using a ramp to load a truck", evdesc: "Ramps increase displacement distance d, allowing you to exert a much smaller force F to lift heavy cargo" },
-  11: { sys: "Conservation of Mechanical Energy & Potential Wells", mech: "Continuous frictionless exchange between kinetic energy (1/2 mv²) and potential energy (mgh, 1/2 kx²)", f: "E = \\frac{1}{2}mv^2 + mgh", l: "total mechanical energy", u: "J", term: "Mechanical Energy", def: "The sum of macroscopic kinetic energy and potential energy in a physical system", evday: "Roller coaster loops", evdesc: "At the peak, the coaster possesses maximum potential energy which converts into maximum kinetic speed at the bottom" },
-  12: { sys: "Thermal Thermodynamics & Heat Engine Efficiency", mech: "Microscopic molecular kinetic energy transfer governed by Carnot limits and entropy maximization", f: "\\eta = 1 - \\frac{T_C}{T_H}", l: "Carnot efficiency", u: "", term: "Specific Heat", def: "The quantity of thermal heat required to raise the temperature of one gram of a substance by one degree Celsius", evday: "Hot sand and cool ocean water", evdesc: "Water's high specific heat requires far more energy to warm up than dry sand under identical daytime sunlight" },
-  13: { sys: "Hydrostatic Fluid Mechanics & Aerodynamic Lift", mech: "Pascal isotropic pressure, Archimedes upward buoyant force, and Bernoulli velocity-pressure coupling", f: "F_b = \\rho_{\\text{fluid}} V g", l: "buoyant force", u: "N", term: "Buoyant Force", def: "The net upward vertical force exerted by a fluid on an object placed in it, equal to the weight of displaced fluid", evday: "Massive steel cargo ships floating", evdesc: "Hollow hull geometry displaces thousands of tons of water, generating an upward buoyant force equal to the ship's weight" },
-  14: { sys: "Simple Harmonic Oscillation & Wave Propagation", mech: "Linear Hooke's law restoring forces F = -kx driving sinusoidal harmonic motion with invariant period T", f: "T = 2\\pi \\sqrt{\\frac{m}{k}}", l: "oscillation period", u: "s", term: "Resonance", def: "The dramatic amplification of oscillation amplitude occurring when driving frequency matches system natural frequency", evday: "Pushing a child on a playground swing", evdesc: "Pushing in rhythm with the swing's natural frequency adds constructive energy each cycle, soaring higher" },
-  15: { sys: "Acoustic Wave Mechanics & Doppler Frequency Shifts", mech: "Compressional pressure waves in elastic media exhibiting Doppler shifts when source and observer move", f: "f' = f \\left(\\frac{v \\pm v_d}{v \\mp v_s}\\right)", l: "Doppler frequency", u: "\\text{Hz}", term: "Doppler Effect", def: "The apparent shift in wave frequency observed when a wave source and observer move relative to each other", evday: "Ambulance siren pitch change", evdesc: "As an ambulance speeds toward you, sound waves bunch up into a higher pitch, dropping to a lower pitch as it drives away" },
-  16: { sys: "Geometric Ray Optics & Wavefront Refraction", mech: "Fermat's principle of least time causing wave fronts to pivot toward the normal in optically denser media", f: "n_1 \\sin\\theta_1 = n_2 \\sin\\theta_2", l: "Snell's law refraction", u: "", term: "Refraction", def: "The bending of a wave's propagation direction as it passes across a boundary between media of different speeds", evday: "Straw appearing broken in a glass of water", evdesc: "Light waves slow down in water compared to air, pivoting at the interface and making the submerged straw look offset" },
-  17: { sys: "Physical Wave Optics, Interference & Diffraction", mech: "Huygens wavelets undergoing constructive and destructive interference based on path length differences", f: "d \\sin\\theta = m\\lambda", l: "double-slit bright fringe", u: "", term: "Interference", def: "The physical superposition of two or more coherent waves resulting in regions of reinforced or cancelled intensity", evday: "Iridescent colors on soap bubbles", evdesc: "Light waves reflecting from the top and bottom surfaces of a thin soap film interfere constructively at specific colors" },
-  18: { sys: "Electrostatic Charges, Fields & Coulombic Forces", mech: "Quantized electrostatic Coulombic force F = k(q1 q2)/r² mediating microscopic atomic interactions", f: "F_e = k \\frac{|q_1 q_2|}{r^2}", l: "Coulomb force", u: "N", term: "Electric Field", def: "A vector field surrounding an electric charge that exerts electrostatic force on other charged particles", evday: "Static cling on laundry", evdesc: "Friction in the dryer transfers electrons between fabrics; opposing electrostatic charges attract clothing items together" },
-  19: { sys: "Electric Potential, Capacitance & Energy Storage", mech: "Work required to move charge against electric fields stored as electrostatic potential energy in capacitors", f: "C = \\frac{Q}{V}", l: "capacitance", u: "\\text{F}", term: "Capacitor", def: "An electrical component composed of two conducting plates separated by an insulator that stores electrostatic energy", evday: "Camera flash strobe recharge", evdesc: "A battery slowly pumps charge into a high-capacity capacitor, which discharges instantaneously to ignite the Xenon strobe" },
-  20: { sys: "Electric Current, Resistance & Ohm's Law", mech: "Drift velocity of free electrons through metallic crystal lattice driven by potential difference V = IR", f: "V = IR", l: "Ohm's law potential", u: "V", term: "Electric Current", def: "The rate of net charge flow through an electrical conductor, measured in coulombs per second (amperes)", evday: "Electric stove coil glowing red", evdesc: "High electrical resistance in Nichrome coils forces electrons to collide with lattice ions, converting electrical power into heat" },
-  21: { sys: "Complex Circuit Networks & Kirchhoff's Laws", mech: "Conservation of charge at circuit junctions and conservation of electrostatic potential energy around closed loops", f: "R_{\\text{eq}} = R_1 + R_2", l: "series resistance", u: "\\Omega", term: "Kirchhoff's Laws", def: "Two fundamental circuit rules stating charge conservation at nodes (ΣI=0) and energy conservation around loops (ΣV=0)", evday: "Holiday string lights", evdesc: "Modern parallel lights stay lit even if one bulb burns out, because each parallel branch connects directly to the voltage" },
-  22: { sys: "Magnetism, Lorentz Forces & Magnetic Dipoles", mech: "Moving electrical charges generating magnetic fields B that exert perpendicular Lorentz forces F = qv × B", f: "F = q v B \\sin\\theta", l: "Lorentz magnetic force", u: "N", term: "Magnetic Field", def: "A vector field created by moving electric charges or magnetic dipoles that exerts force on other moving charges", evday: "Compass needle pointing North", evdesc: "Earth's molten iron outer core generates a planetary magnetic dipole field that aligns ferromagnetic compass needles" },
-  23: { sys: "Electromagnetic Induction & Faraday-Lenz Dynamos", mech: "Changing magnetic flux inducing electromotive force E = -dΦ/dt with polarity opposing flux change", f: "\\mathcal{E} = -N \\frac{\\Delta\\Phi_B}{\\Delta t}", l: "induced EMF", u: "V", term: "Faraday's Law", def: "A fundamental law stating that any change in magnetic flux through a conducting loop induces an electromotive force", evday: "Hydroelectric dam turbine generators", evdesc: "Falling water spins massive magnet rotors inside copper wire coils, continuously inducing electrical grid power" },
-  24: { sys: "Quantum Mechanics, Photoelectric Effect & Atomic Nuclei", mech: "Electromagnetic radiation quantized as photons E = hf; instantaneous electron emission above metal work function", f: "KE_{\\max} = h\\nu - \\Phi", l: "photoelectron kinetic energy", u: "\\text{eV}", term: "Photoelectric Effect", def: "The instantaneous emission of electrons from a metallic surface when illuminated by light above a threshold frequency", evday: "Rooftop solar photovoltaic panels", evdesc: "Incoming solar photons knock electrons free from silicon p-n junctions, creating direct current electrical power" }
+  1: {
+    sys: "SI Metrology, Dimensional Analysis & Vector Math",
+    mech: "Orthogonal Cartesian vector decomposition maintaining geometric invariant norms across coordinate frames",
+    f: "R = \\sqrt{A^2 + B^2}",
+    l: "resultant vector",
+    u: "m",
+    term: "Vector",
+    def: "A physical quantity possessing both numerical magnitude and spatial direction",
+    evday: "Airplane navigating crosswinds",
+    evdesc: "Pilots angle the plane's heading vector to cancel perpendicular crosswind vectors, maintaining a straight course"
+  },
+  2: {
+    sys: "One-Dimensional Kinematics & Position Coordinates",
+    mech: "Continuous differential rates of displacement yielding instantaneous velocity v = dx/dt",
+    f: "\\bar{v} = \\frac{\\Delta x}{\\Delta t}",
+    l: "average velocity",
+    u: "m/s",
+    term: "Displacement",
+    def: "The straight-line vector distance and direction from an initial position to a final position",
+    evday: "Running laps around a 400m track",
+    evdesc: "Finishing a complete lap returns you to the start line, so total distance is 400 m but net displacement is exactly 0 m"
+  },
+  3: {
+    sys: "Accelerated Motion & Uniform Gravitational Free Fall",
+    mech: "Constant downward gravitational acceleration g = 9.80 m/s² producing parabolic displacement-time trajectories",
+    f: "v^2 = v_0^2 + 2a\\Delta x",
+    l: "kinematic velocity",
+    u: "m/s",
+    term: "Free Fall",
+    def: "The motion of an object when gravity is the only significant force acting upon it",
+    evday: "Dropping a phone from a table",
+    evdesc: "The phone accelerates toward the floor at 9.80 m/s², reaching high speed within a fraction of a second"
+  },
+  4: {
+    sys: "Newton's Laws of Motion & Force Vectors",
+    mech: "Net unbalanced force accelerating mass via F_net = ma with equal and opposite reactionary contact forces",
+    f: "F_{\\text{net}} = ma",
+    l: "net force",
+    u: "N",
+    term: "Inertia",
+    def: "The resistance of any physical object to any change in its velocity or state of rest",
+    evday: "Wearing a seatbelt in a braking car",
+    evdesc: "When brakes lock, your body's inertia carries you forward until the seatbelt exerts an external stopping force"
+  },
+  5: {
+    sys: "Two-Dimensional Forces, Friction & Inclined Planes",
+    mech: "Resolution of gravitational vectors into normal (mg cos θ) and parallel (mg sin θ) components opposed by friction",
+    f: "F_f = \\mu F_N",
+    l: "frictional force",
+    u: "N",
+    term: "Coefficient of Friction",
+    def: "A dimensionless scalar ratio representing the resistive frictional force between two contacting surfaces",
+    evday: "Sledding down a snowy hill",
+    evdesc: "Steeper slopes increase the downhill parallel gravity vector (mg sin θ) while low ice friction allows fast acceleration"
+  },
+  6: {
+    sys: "Two-Dimensional Kinematics & Uniform Circular Motion",
+    mech: "Orthogonal centripetal acceleration a_c = v²/r constantly redirecting velocity vectors perpendicular to trajectory",
+    f: "a_c = \\frac{v^2}{r}",
+    l: "centripetal acceleration",
+    u: "m/s^2",
+    term: "Centripetal Force",
+    def: "The net inward force directed toward the center of curvature required to keep an object moving in a circular path",
+    evday: "Spin cycle of a washing machine",
+    evdesc: "The perforated drum applies inward centripetal force to clothes, while water droplets fly straight out through holes"
+  },
+  7: {
+    sys: "Newtonian Gravitation & Orbital Planetary Mechanics",
+    mech: "Universal inverse-square gravitational force F = G(m1 m2)/r² providing centripetal orbital acceleration",
+    f: "F_g = G \\frac{m_1 m_2}{r^2}",
+    l: "gravitational force",
+    u: "N",
+    term: "Orbital Velocity",
+    def: "The exact tangential velocity needed for a satellite to continuously free-fall around a celestial body without crashing",
+    evday: "Ocean tides caused by the Moon",
+    evdesc: "The Moon's gravitational pull exerts differential tidal forces on Earth's oceans, creating two high-tide bulges daily"
+  },
+  8: {
+    sys: "Rotational Dynamics, Torque & Angular Momentum",
+    mech: "Rotational inertia resisting angular acceleration τ = Iα, with angular momentum conserved in isolated systems",
+    f: "\\tau = r F \\sin\\theta",
+    l: "torque",
+    u: "\\text{N}\\cdot\\text{m}",
+    term: "Torque",
+    def: "The quantitative rotational equivalent of linear force that causes an object to rotate about an axis",
+    evday: "Opening a heavy door with a handle",
+    evdesc: "Door handles are placed at the far edge from the hinges to maximize lever arm distance r and rotational torque"
+  },
+  9: {
+    sys: "Linear Momentum, Impulse & Collision Dynamics",
+    mech: "Integral of contact force over collision duration J = F Δt yielding change in linear momentum Δp",
+    f: "J = F \\Delta t = \\Delta p",
+    l: "impulse",
+    u: "\\text{N}\\cdot\\text{s}",
+    term: "Impulse",
+    def: "The product of the average force exerted on an object and the time interval over which it acts",
+    evday: "Airbags cushioning car crash impacts",
+    evdesc: "Airbags increase the collision impact duration Δt, drastically reducing the peak stopping force exerted on passengers"
+  },
+  10: {
+    sys: "Work, Energy & Simple Machine Mechanical Advantage",
+    mech: "Scalar dot product of force and displacement vectors W = F · d transferring energy into mechanical systems",
+    f: "W = F d \\cos\\theta",
+    l: "work performed",
+    u: "J",
+    term: "Work",
+    def: "The scalar energy transferred to an object when a force acts upon it through a parallel displacement",
+    evday: "Using a ramp to load a truck",
+    evdesc: "Ramps increase displacement distance d, allowing you to exert a much smaller force F to lift heavy cargo",
+    lessons: {
+      1: {
+        system: "Work and Energy: W = Fd cos θ, Kinetic Energy KE = 1/2 mv² & Work-Energy Theorem",
+        mechanism: "Net work done on an object by external forces equaling the change in its translational kinetic energy",
+        terminology: { term: "Work-Energy Theorem", def: "The theorem stating that the net work done on an object equals its change in kinetic energy: W_net = ΔKE" }
+      },
+      2: {
+        system: "The Many Forms of Energy: Gravitational Potential PE = mgh & Elastic Hooke's PE = 1/2 kx²",
+        mechanism: "Conservative work stored in gravitational and spring force fields reversible upon release",
+        terminology: { term: "Potential Energy", def: "Energy stored in an object due to its position or mechanical state in a conservative force field" }
+      },
+      3: {
+        system: "Conservation of Energy: Mechanical Energy Conservation & Dissipative Friction Losses",
+        mechanism: "In isolated frictionless systems, total mechanical energy (KE + PE) remains strictly constant",
+        terminology: { term: "Conservation of Mechanical Energy", def: "The physical law stating that total mechanical energy remains constant in systems where only conservative forces act" }
+      },
+      4: {
+        system: "Machines: Mechanical Advantage (MA), Ideal Mechanical Advantage (IMA) & Work Efficiency",
+        mechanism: "Trading applied force for displacement distance in levers, pulleys, and inclined planes while conserving energy",
+        terminology: { term: "Mechanical Advantage", def: "The ratio of the output force exerted by a machine to the input force applied to it" }
+      }
+    }
+  },
+  11: {
+    sys: "Thermal Thermodynamics, Specific Heat Calorimetry & Heat Engine Efficiency",
+    mech: "Microscopic molecular kinetic energy transfer driven by thermal gradients governed by specific heat capacity Q = mcΔT and Carnot entropy limits",
+    f: "Q = mc\\Delta T",
+    l: "sensible heat transfer",
+    u: "J",
+    term: "Specific Heat Capacity",
+    def: "The quantity of thermal heat energy required to raise the temperature of one kilogram of a substance by one Kelvin",
+    evday: "Hot sand and cool ocean water on a sunny beach",
+    evdesc: "Water's high specific heat capacity allows it to absorb enormous solar energy with minimal temperature rise compared to dry sand",
+    lessons: {
+      1: {
+        system: "Temperature, Heat, and Thermal Energy: Calorimetry, Zeroth Law & Specific Heat Capacity",
+        mechanism: "Thermal equilibrium establishing uniform temperature as heat flows from high to low kinetic energy until Q_lost + Q_gained = 0",
+        terminology: { term: "Specific Heat Capacity", def: "The quantity of heat required to raise the temperature of one kilogram of a substance by one Kelvin" },
+        calc1: { formula: "Q = mc\\Delta T", label: "sensible heat", unit: "J", solve: (m, c, dt) => (m * c * dt).toFixed(1) },
+        everyday: { phenomenon: "Cool sea breeze at daytime beaches", explanation: "Sunlight warms dry beach sand much faster than ocean water, creating rising warm air that draws cool marine breezes onshore" }
+      },
+      2: {
+        system: "Changes of State and Thermodynamics: Latent Heat, First Law (ΔU = Q - W), Entropy & Carnot Heat Engines",
+        mechanism: "Latent heat overcoming intermolecular bonds at constant temperature, while Carnot limits mandate maximum thermal engine efficiency",
+        terminology: { term: "Carnot Efficiency", def: "The maximum theoretical thermodynamic efficiency of an ideal heat engine operating between two temperatures: η = 1 - TC/TH" },
+        calc1: { formula: "\\eta = 1 - \\frac{T_C}{T_H}", label: "Carnot engine efficiency", unit: "", solve: (tc, th) => (1 - tc / th).toFixed(3) },
+        everyday: { phenomenon: "Ice cubes chilling a warm drink without rising above 0°C", explanation: "Melting ice absorbs substantial latent heat of fusion (334 J/g) at constant 0°C until the solid phase is fully liquefied" }
+      }
+    }
+  },
+  12: {
+    sys: "Hydrostatic Fluid Mechanics, Archimedes Buoyancy & Bernoulli Dynamics",
+    mech: "Isotropic fluid pressure depth gradients P = ρgh creating net upward buoyant forces F_b = ρ_f V g and streamline velocity-pressure coupling",
+    f: "P = \\rho g h",
+    l: "hydrostatic fluid pressure",
+    u: "\\text{Pa}",
+    term: "Buoyant Force",
+    def: "The net vertical upward force exerted by a pressurized fluid on a submerged body, equal in magnitude to the weight of displaced fluid",
+    evday: "Massive 200,000-ton steel container ships floating effortlessly",
+    evdesc: "Hollow hull geometry displaces thousands of cubic meters of ocean water, generating a buoyant force exactly balancing total ship weight",
+    lessons: {
+      1: {
+        system: "Properties of Fluids: Pressure P = F/A, Hydrostatic Depth P = ρgh & Atmospheric Barometers",
+        mechanism: "Gravity acting on fluid layers generating increasing compressive hydrostatic pressure with depth",
+        terminology: { term: "Hydrostatic Pressure", def: "The pressure exerted by a fluid at equilibrium at a given depth due to the force of gravity" }
+      },
+      2: {
+        system: "Forces within Liquids: Cohesion, Adhesion, Capillary Rise & Pascal's Principle Hydraulic Multiplication",
+        mechanism: "Incompressible liquid transmitting applied pressure equally in all directions, multiplying output force by piston area ratio",
+        terminology: { term: "Pascal's Principle", def: "A principle stating that pressure applied to an enclosed fluid is transmitted undiminished to every portion of the fluid" }
+      },
+      3: {
+        system: "Fluids at Rest and in Motion: Archimedes Buoyant Force, Continuity Equation & Bernoulli Streamlines",
+        mechanism: "Pressure differential between top and bottom surfaces of submerged objects generating upward buoyancy, and faster flow lowering pressure",
+        terminology: { term: "Bernoulli's Principle", def: "The fluid dynamics principle stating that an increase in the speed of a fluid occurs simultaneously with a decrease in static pressure" }
+      },
+      4: {
+        system: "Solids: Thermal Linear Expansion (ΔL = α L1 ΔT), Stress, Strain & Young's Modulus Elasticity",
+        mechanism: "Thermal lattice vibrations expanding interatomic separation distances, and tensile stress producing proportional elastic strain",
+        terminology: { term: "Young's Modulus", def: "A mechanical property measuring the tensile stiffness of a solid material, defined as tensile stress divided by tensile strain" }
+      }
+    }
+  },
+  13: {
+    sys: "Simple Harmonic Oscillation, Mechanical Waves & Superposition Interference",
+    mech: "Linear Hooke's restoring forces F = -kx driving sinusoidal oscillations that propagate through elastic media as transverse and longitudinal waves obeying v = fλ",
+    f: "v = f\\lambda",
+    l: "wave speed",
+    u: "m/s",
+    term: "Resonance",
+    def: "The dramatic amplification of oscillation amplitude that occurs when an external periodic driving force matches the system's natural frequency",
+    evday: "Pushing a child on a playground swing",
+    evdesc: "Pushing in rhythm with the swing's natural frequency adds constructive energy each cycle, soaring higher",
+    lessons: {
+      1: {
+        system: "Periodic Motion: Hooke's Law Spring Oscillators, Simple Pendulums & Resonance",
+        mechanism: "Restoring forces proportional to displacement driving continuous sinusoidal exchange between potential and kinetic energy",
+        terminology: { term: "Simple Harmonic Motion", def: "Periodic motion where the restoring force is directly proportional to displacement from equilibrium and acts in the opposite direction" }
+      },
+      2: {
+        system: "Wave Properties: Transverse vs Longitudinal Waves, Wavelength λ, Frequency f & Wave Speed v = fλ",
+        mechanism: "Energy and momentum propagation through deformable media without bulk transport of matter",
+        terminology: { term: "Wavelength", def: "The spatial distance between two successive points in phase on adjacent cycles of a periodic wave" }
+      },
+      3: {
+        system: "Wave Behavior: Fixed vs Free Boundary Reflection, Principle of Superposition, Standing Waves & Nodes",
+        mechanism: "Superposition of identical counter-propagating waves forming stationary nodes (zero motion) and antinodes (maximum motion)",
+        terminology: { term: "Standing Wave", def: "A wave pattern that remains in a constant position formed by the interference of two traveling waves of equal frequency moving in opposite directions" }
+      }
+    }
+  },
+  14: {
+    sys: "Acoustic Wave Mechanics, Resonant Standing Waves & Doppler Frequency Shifts",
+    mech: "Longitudinal molecular compression and rarefaction wavefronts propagating through elastic media, experiencing Doppler frequency shifts upon relative motion",
+    f: "f_d = f_s \\left(\\frac{v \\pm v_d}{v \\mp v_s}\\right)",
+    l: "Doppler shifted frequency",
+    u: "\\text{Hz}",
+    term: "Doppler Effect",
+    def: "The observed change in wave frequency resulting from relative motion between the emitting sound source and the observer",
+    evday: "Pitch drop of a passing police siren",
+    evdesc: "Approaching siren compressions bunch closer together to produce a higher frequency, spreading apart into a lower frequency as it moves away",
+    lessons: {
+      1: {
+        system: "Properties and Detection of Sound: Speed of Sound in Media, Decibels & Doppler Shifts",
+        mechanism: "Longitudinal density oscillations through elastic media with Doppler frequency shifts caused by source or detector velocity",
+        terminology: { term: "Doppler Effect", def: "The apparent shift in frequency observed when a sound source and listener move relative to one another" }
+      },
+      2: {
+        system: "The Physics of Music: Open & Closed Tube Resonance, Harmonics & Acoustic Beats",
+        mechanism: "Boundary reflections creating standing acoustic pressure waves in columns, and frequency interference generating rhythmic beats",
+        terminology: { term: "Beat Frequency", def: "The periodic pulsating amplitude modulation resulting from the superposition of two sound waves of slightly differing frequencies" }
+      }
+    }
+  },
+  15: {
+    sys: "Photometric Illumination, Wave Nature of Light & Malus's Law Polarization",
+    mech: "Spherical propagation of electromagnetic photons obeying inverse-square illuminance E = P/(4πr²) and transverse wave polarization by linear filters",
+    f: "E = \\frac{P}{4\\pi r^2}",
+    l: "illuminance",
+    u: "\\text{lx}",
+    term: "Polarization",
+    def: "The physical orientation of the oscillating electric field vector in a transverse electromagnetic light wave",
+    evday: "Polarized sunglasses eliminating road and water glare",
+    evdesc: "Sunlight reflecting off horizontal surfaces becomes horizontally polarized; vertical transmission filters absorb this glare completely",
+    lessons: {
+      1: {
+        system: "Illumination: Speed of Light c, Luminous Flux (Lumens) & Inverse-Square Illuminance",
+        mechanism: "Photons radiating uniformly in all directions over expanding spherical wavefronts of area 4πr²",
+        terminology: { term: "Illuminance", def: "The total luminous flux incident per unit surface area, measured in lux (lumens per square meter)" }
+      },
+      2: {
+        system: "The Wave Nature of Light: Electromagnetic Visible Spectrum, Additive Color & Malus's Law",
+        mechanism: "Oscillating transverse electric field vectors transmitted through anisotropic crystal polymer grids following I = I0 cos² θ",
+        terminology: { term: "Malus's Law", def: "A physical law stating that transmitted polarized light intensity varies as the square of the cosine of angle between polarizer and analyzer axes" }
+      }
+    }
+  },
+  16: {
+    sys: "Geometric Ray Optics, Snell's Law & Thin Lens Imaging",
+    mech: "Boundary phase velocity changes causing wavefront refraction according to Snell's law n1 sin θ1 = n2 sin θ2 and optical mirror focal convergence",
+    f: "n_1 \\sin\\theta_1 = n_2 \\sin\\theta_2",
+    l: "Snell's law refraction index",
+    u: "",
+    term: "Total Internal Reflection",
+    def: "The complete reflection of a light ray within an optically denser medium when incident at an angle exceeding the critical angle",
+    evday: "Fiber-optic internet cables transmitting data across oceans",
+    evdesc: "Laser pulses enter thin glass cores above the critical angle, undergoing total internal reflection without optical power leaking into cladding",
+    lessons: {
+      1: {
+        system: "Reflection of Light: Law of Reflection (θr = θi), Specular vs Diffuse & Plane Mirrors",
+        mechanism: "Wavefronts bouncing off boundary surfaces where angle of incidence equals angle of reflection",
+        terminology: { term: "Law of Reflection", def: "The optical rule stating that the angle of incidence equals the angle of reflection relative to the surface normal" }
+      },
+      2: {
+        system: "Curved Mirrors: Concave Convergence, Convex Divergence & The Mirror Equation",
+        mechanism: "Spherical mirror curvature focusing parallel rays to a focal point at f = R/2",
+        terminology: { term: "Focal Length", def: "The distance from the center of a mirror or lens to its focal point, equal to half the radius of curvature for spherical mirrors" }
+      },
+      3: {
+        system: "Refraction of Light: Index of Refraction n = c/v, Snell's Law & Total Internal Reflection Critical Angle",
+        mechanism: "Phase speed reduction in denser media pivoting wavefronts toward the normal according to Fermat's principle of least time",
+        terminology: { term: "Critical Angle", def: "The minimum angle of incidence in a denser medium above which total internal reflection occurs" }
+      },
+      4: {
+        system: "Convex and Concave Lenses: Thin Lens Equation, Ray Tracing Diagrams & Optical Magnification",
+        mechanism: "Dual curved refractive surfaces converging or diverging light wavefronts to form real inverted or virtual upright images",
+        terminology: { term: "Thin Lens Equation", def: "The formula relating object distance, image distance, and focal length for thin converging and diverging lenses" }
+      }
+    }
+  },
+  17: {
+    sys: "Physical Wave Optics, Young's Double-Slit & Single-Slit Diffraction",
+    mech: "Spatial phase differences between coherent wavelets producing constructive bright fringes d sin θ = mλ and destructive dark cancellation minima",
+    f: "d \\sin\\theta = m\\lambda",
+    l: "double-slit fringe path difference",
+    u: "m",
+    term: "Diffraction",
+    def: "The bending, spreading, and interference of waves around the sharp edges of obstacles or through narrow apertures",
+    evday: "Iridescent rainbow patterns on the surface of a DVD or compact disc",
+    evdesc: "Closely spaced microscopic digital track pits act as a reflection diffraction grating, separating white light into spectral constituent colors",
+    lessons: {
+      1: {
+        system: "Interference: Young's Double-Slit Experiment, Coherent Sources & Constructive/Destructive Fringe Geometry",
+        mechanism: "Two coherent slit sources generating overlapping spherical wavefronts that reinforce where path length difference equals mλ",
+        terminology: { term: "Coherent Waves", def: "Waves possessing identical frequencies and a constant phase difference that can produce stable interference patterns" }
+      },
+      2: {
+        system: "Diffraction: Single-Slit Diffraction Minima, Diffraction Gratings & Rayleigh Resolution Criterion",
+        mechanism: "Huygens wavelets within a single aperture interfering across the slit width w, creating broad central maxima and dark minima at w sin θ = mλ",
+        terminology: { term: "Diffraction Grating", def: "An optical device with thousands of closely spaced parallel slits that disperses light into highly resolved spectral wavelengths" }
+      }
+    }
+  },
+  18: {
+    sys: "Electrostatic Charges, Coulombic Forces & Electric Field Potential",
+    mech: "Point charge distributions generating vector electric fields E = kQ/r² that exert Coulombic attractive and repulsive forces on other charges",
+    f: "F_e = k \\frac{|q_1 q_2|}{r^2}",
+    l: "Coulomb electrostatic force",
+    u: "N",
+    term: "Electric Field",
+    def: "A vector force field established by electric charges where any test charge experiences an electrostatic force per unit charge",
+    evday: "Static cling on clothing fresh from a clothes dryer",
+    evdesc: "Frictional contact transfers electrons between differing synthetic fabrics, leaving opposing net charges that attract clothing together",
+    lessons: {
+      1: {
+        system: "Electric Charge: Quantization (q = ne), Conservation of Charge & Conductors vs Insulators",
+        mechanism: "Electron mobility in metallic conduction bands allowing charge redistribution via friction, conduction, or induction",
+        terminology: { term: "Quantization of Charge", def: "The physical principle that electric charge exists only in discrete integer multiples of the elementary charge e = 1.602 × 10^-19 C" }
+      },
+      2: {
+        system: "Electrostatic Force: Coulomb's Inverse-Square Law & Vector Superposition of Multiple Charges",
+        mechanism: "Inverse-square electrostatic vector forces acting along the line connecting point charges",
+        terminology: { term: "Coulomb's Law", def: "The fundamental law quantifying the electrostatic force between two point charges proportional to the product of charges and inversely proportional to r²" }
+      },
+      3: {
+        system: "Measuring Electric Fields: Electric Field Intensity E = F/q & Equipotential Field Mapping",
+        mechanism: "Vector electric field lines radiating outward from positive charges and terminating on negative charges perpendicular to equipotential surfaces",
+        terminology: { term: "Electric Field Strength", def: "The vector electrostatic force exerted per unit positive test charge placed at a specific point in space" }
+      },
+      4: {
+        system: "Applications of Electric Fields: Electric Potential Difference (Volts), Uniform Fields & Capacitance",
+        mechanism: "Electrostatic potential energy stored per unit charge in electric fields, with parallel plates accumulating charge as C = q/ΔV",
+        terminology: { term: "Capacitance", def: "The ratio of the magnitude of electric charge on either conductor plate of a capacitor to the electric potential difference between them" }
+      }
+    }
+  },
+  19: {
+    sys: "Electric Current, Resistance, Ohm's Law & Kirchhoff Network Circuits",
+    mech: "Electromotive potential differences driving electron drift velocity through resistive conductors governed by V = IR and Kirchhoff conservation laws",
+    f: "V = IR",
+    l: "Ohm's law potential",
+    u: "V",
+    term: "Electric Resistance",
+    def: "The measure of opposition to the flow of electric charge through a material, defined as the ratio of voltage to current",
+    evday: "Toaster heating coils glowing bright red",
+    evdesc: "Current forced through high-resistance Nichrome alloy coils causes intense electron-lattice collisions, dissipating electrical power as heat",
+    lessons: {
+      1: {
+        system: "Current and Circuits: Charge Flow Rate (I = q/t), Drift Velocity & Complete Conductive Loops",
+        mechanism: "Continuous closed circuit paths driven by chemical battery EMF maintaining electric fields that propel mobile electrons",
+        terminology: { term: "Electric Current", def: "The continuous rate of flow of net electric charge through a cross-sectional area of a conductor, measured in Amperes (C/s)" }
+      },
+      2: {
+        system: "Using Electrical Energy: Ohm's Law (V = IR), Resistivity (R = ρL/A) & Electric Power Dissipation",
+        mechanism: "Atomic lattice collisions converting electrical potential energy into thermal Joule heating at rate P = I²R",
+        terminology: { term: "Joule Heating", def: "The process by which the passage of an electric current through a resistive conductor releases thermal energy, governed by P = I²R" }
+      },
+      3: {
+        system: "Simple Circuits: Series Resistance Summation, Parallel Current Division & Voltage Dividers",
+        mechanism: "Series resistors sharing identical current with additive resistances, while parallel resistors share identical voltage with inverse reciprocal conductance",
+        terminology: { term: "Equivalent Resistance", def: "The single theoretical resistance value that could replace an entire network of connected resistors without changing terminal current" }
+      },
+      4: {
+        system: "Applications of Circuits: Kirchhoff's Junction & Loop Rules, Fuses & GFCI Shock Safety",
+        mechanism: "Conservation of electric charge at circuit junctions (ΣI = 0) and conservation of energy around closed loops (ΣV = 0)",
+        terminology: { term: "Kirchhoff's Loop Rule", def: "A statement of energy conservation asserting that the directed sum of potential differences around any closed circuit loop is zero" }
+      }
+    }
+  },
+  20: {
+    sys: "Magnetic Dipoles, Lorentz Force on Charges & Current-Carrying Wires",
+    mech: "Moving electrical charges and spin alignments generating magnetic fields that exert perpendicular Lorentz forces F = qvB sin θ on charges and F = ILB sin θ on wires",
+    f: "F = q v B \\sin\\theta",
+    l: "Lorentz magnetic force",
+    u: "N",
+    term: "Lorentz Force",
+    def: "The perpendicular magnetic deflection force exerted on a charged particle moving through a magnetic vector field",
+    evday: "Electric motor spinning an axle",
+    evdesc: "Current directed through loop wires immersed in a magnetic field experiences opposing Lorentz forces on opposite sides, producing continuous rotational torque",
+    lessons: {
+      1: {
+        system: "Understanding Magnetism: Dipole Poles, Magnetic Field Lines, Ferromagnetic Domains & Earth's Core",
+        mechanism: "Paired electron spins in iron/nickel aligning into macroscopic ferromagnetic domains, and planetary liquid core dynamos creating geomagnetic shields",
+        terminology: { term: "Magnetic Domain", def: "A microscopic region within a ferromagnetic material where individual atomic electron magnetic moments are aligned parallel" }
+      },
+      2: {
+        system: "Applying Magnetic Forces: Right-Hand Rules, Lorentz Deflection on Charges & Forces on Current Wires",
+        mechanism: "Magnetic vector fields exerting perpendicular deflections that bend charged particles into circular cyclotron orbits without doing work",
+        terminology: { term: "Lorentz Force", def: "The magnetic force exerted perpendicularly to both velocity and magnetic field vectors on a moving charge: F = qvB sin θ" }
+      }
+    }
+  },
+  21: {
+    sys: "Electromagnetic Induction, Faraday-Lenz Dynamos & Maxwell Wave Propagation",
+    mech: "Time-varying magnetic flux through conducting loops inducing electromotive force EMF = -N(dΦ/dt), powering dynamos and sustaining self-propagating EM waves",
+    f: "\\mathcal{E} = -N \\frac{\\Delta\\Phi_B}{\\Delta t}",
+    l: "Faraday induced EMF",
+    u: "V",
+    term: "Electromagnetic Induction",
+    def: "The generation of an electromotive force (voltage) across an electrical conductor caused by a dynamic change in magnetic flux linkage",
+    evday: "Induction cooking stovetops heating iron skillets",
+    evdesc: "High-frequency alternating magnetic coils beneath ceramic cooktops induce swirling circular eddy currents inside iron pans, generating heat via Joule resistance",
+    lessons: {
+      1: {
+        system: "Inducing Currents: Faraday's Law, Magnetic Flux (Φ = BA cos θ) & Lenz's Law Opposition",
+        mechanism: "Dynamically changing magnetic flux inducing circular electric fields that drive currents opposing the flux change",
+        terminology: { term: "Lenz's Law", def: "A law stating that the direction of an induced current is always such that its magnetic field opposes the change in flux that produced it" }
+      },
+      2: {
+        system: "Applications of Induced Currents: AC Generators, Sinusoidal EMF, Eddy Current Braking & Self-Inductance",
+        mechanism: "Mechanical turbines rotating wire loops in magnetic fields to produce alternating AC electromotive voltages",
+        terminology: { term: "Eddy Current", def: "Loops of electrical current induced within bulk conductors by a changing magnetic field, causing resistive electromagnetic braking" }
+      },
+      3: {
+        system: "Electric and Magnetic Fields in Space: Step-Up/Step-Down Transformers & Maxwell's EM Wave Speed",
+        mechanism: "Mutual magnetic flux linkage in iron transformer cores and Maxwell's displacement currents sustaining self-propagating transverse EM waves at speed c",
+        terminology: { term: "Transformer Equation", def: "The relation showing that the ratio of secondary to primary voltages in a transformer equals the turns ratio: Vs/Vp = Ns/Np" }
+      }
+    }
+  },
+  22: {
+    sys: "Quantum Mechanics, Photoelectric Effect, De Broglie Waves & Bohr Atomic Transitions",
+    mech: "Quantization of electromagnetic radiation into discrete photons E = hf and matter-wave duality λ = h/p governing stationary atomic electronic orbits",
+    f: "E = h f",
+    l: "photon energy",
+    u: "J",
+    term: "Photoelectric Effect",
+    def: "The instantaneous ejection of electrons from a metallic surface when irradiated by light with frequency exceeding a characteristic threshold",
+    evday: "Rooftop photovoltaic solar panels",
+    evdesc: "Incident sunlight photons with energy above silicon's band gap excite valence electrons into conduction bands, producing continuous direct electric current",
+    lessons: {
+      1: {
+        system: "A Particle Model of Waves: Blackbody Catastrophe, Photon Quantization (E = hf) & Photoelectric Effect",
+        mechanism: "Light behaving as localized packets of energy (photons); individual photon-electron collisions liberating photoelectrons above metal work function",
+        terminology: { term: "Work Function", def: "The minimum threshold energy required to liberate an electron from the surface of a specific metal in the photoelectric effect" }
+      },
+      2: {
+        system: "Matter Waves: De Broglie Wavelength (λ = h/p), Electron Diffraction & Heisenberg Uncertainty Principle",
+        mechanism: "Massive particles exhibiting matter-wave interference fringes with quantum indeterminacy constraining simultaneous position-momentum precision",
+        terminology: { term: "De Broglie Wavelength", def: "The wavelength associated with a massive particle determined by Planck's constant divided by linear momentum: λ = h/p" }
+      },
+      3: {
+        system: "Bohr's Model of the Atom: Quantized Angular Momentum & Discrete Hydrogen Emission Line Transitions",
+        mechanism: "Electrons occupying non-radiating discrete energy levels (En = -13.6/n² eV), emitting or absorbing photons when transitioning between orbits",
+        terminology: { term: "Quantized Energy Levels", def: "Discontinuous, discrete energy states accessible to bound electrons within an atom where radiation is emitted only during state transitions" }
+      },
+      4: {
+        system: "The Quantum Model of the Atom: Schrödinger Wave Function, Probability Orbitals & Quantum Numbers",
+        mechanism: "Three-dimensional standing probability wave solutions (ψ) describing electron clouds characterized by quantum numbers (n, l, ml, ms)",
+        terminology: { term: "Wave Function", def: "A mathematical function (ψ) in quantum mechanics whose squared magnitude gives the probability density of finding a particle in space" }
+      }
+    }
+  },
+  23: {
+    sys: "Semiconductor Energy Band Gaps, P-N Junction Diodes & Transistor Switching",
+    mech: "Thermal and dopant valence-conduction band excitation in silicon lattices creating electron-hole charge carriers controlled across p-n depletion regions",
+    f: "I = I_0 \\left(e^{qV/k_B T} - 1\\right)",
+    l: "Shockley diode current",
+    u: "\\text{A}",
+    term: "Semiconductor",
+    def: "A crystalline material whose electrical conductivity lies between conductors and insulators, modulatable by impurity doping and gate electric fields",
+    evday: "Computer microprocessor CPUs containing billions of transistors",
+    evdesc: "Sub-nanometer MOSFET transistors utilize voltage gate signals to switch source-to-drain conductance on and off billions of times per second",
+    lessons: {
+      1: {
+        system: "Conduction in Solids: Valence Bands, Forbidden Band Gap Eg, Conduction Bands & Doping (n-type vs p-type)",
+        mechanism: "Trivalent acceptor (p-type holes) and pentavalent donor (n-type electrons) dopants creating conduction pathways across the forbidden energy gap",
+        terminology: { term: "Band Gap", def: "The energy range in a solid where no electron states can exist, separating the filled valence band from empty conduction band" }
+      },
+      2: {
+        system: "Electronic Components: P-N Junction Diodes, Forward/Reverse Bias, LEDs & Transistor Switches",
+        mechanism: "Depletion layer diffusion potential allowing forward conduction while blocking reverse current, and gate voltages modulating channel carrier density in transistors",
+        terminology: { term: "P-N Junction", def: "The metallurgical boundary between p-type and n-type semiconductor regions that exhibits rectifying one-way electrical conduction" }
+      }
+    }
+  },
+  24: {
+    sys: "Nuclear Strong Force Binding Energy, Radioactive Decay & Standard Model Quark-Lepton Taxonomy",
+    mech: "Residual strong color force binding nucleons against Coulomb repulsion, with nuclear mass defects converting to binding energy ΔE = Δm c² during decay and fission",
+    f: "\\Delta E = (\\Delta m) c^2",
+    l: "nuclear binding energy",
+    u: "J",
+    term: "Mass Defect",
+    def: "The difference between the total mass of an intact atomic nucleus and the sum of the individual rest masses of its constituent protons and neutrons",
+    evday: "Nuclear medicine PET scans and cancer radiation oncology",
+    evdesc: "Positron-emitting isotopes like Fluorine-18 annihilate with biological electrons to produce back-to-back 511 keV gamma rays, pinpointing tumors with millimeter precision",
+    lessons: {
+      1: {
+        system: "The Nucleus: Nucleons (Protons/Neutrons), Strong Nuclear Force, Mass Defect & Binding Energy",
+        mechanism: "Short-range strong nuclear force binding nucleons, with mass defect converted directly to immense binding energy per nucleon (ΔE = Δm c²)",
+        terminology: { term: "Binding Energy", def: "The energy required to disassemble a whole nucleus into its separate constituent free protons and neutrons" }
+      },
+      2: {
+        system: "Nuclear Decay and Reactions: Alpha Decay, Beta Decay (Neutrinos), Gamma Emission, Fission & Fusion",
+        mechanism: "Spontaneous quantum tunneling emitting helium-4 alpha particles, weak-force quark flavor changes emitting beta electrons and neutrinos, and heavy nucleus fission",
+        terminology: { term: "Alpha Decay", def: "A nuclear radioactive decay process in which an unstable heavy nucleus emits a helium-4 nucleus (alpha particle)" }
+      },
+      3: {
+        system: "The Building Blocks of Matter: Standard Model Quarks, Leptons, Fundamental Gauge Bosons & Antiparticles",
+        mechanism: "Six flavors of quarks (up, down, charm, strange, top, bottom) forming hadrons (protons uud, neutrons udd) interacting via gluons, photons, W/Z bosons, and Higgs field",
+        terminology: { term: "Quark", def: "A fundamental elementary fermion carrying fractional electric charge that serves as the constituent building block of hadrons (protons and neutrons)" }
+      }
+    }
+  }
 };
 
 for (let i = 1; i <= 24; i++) {
@@ -591,6 +1790,7 @@ for (let i = 1; i <= 24; i++) {
     historical: `Galileo and Newton's seminal experimental discoveries establishing foundational laws of ${mTitle}`,
     cer2: { prompt: `Predict the mechanical behavior of a novel aerospace prototype operating under extreme constraints in ${mTitle}.`, claim: "The aerodynamic hull maintains stability by balancing lift, drag, thrust, and gravitational vectors.", ev: "Wind tunnel telemetry demonstrates laminar boundary attachment across Mach 2 flight transitions.", reas: "Vector equilibrium demands zero net force and zero net torque for steady non-accelerating flight." },
     terminology: { term: d.term, def: d.def },
-    everyday: { phenomenon: d.evday, explanation: d.evdesc }
+    everyday: { phenomenon: d.evday, explanation: d.evdesc },
+    lessons: d.lessons || {}
   };
 }

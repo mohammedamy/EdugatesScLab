@@ -40,7 +40,7 @@ export function getOrGenerateDiagram(subKey, module, lesson, profile, diagramTyp
       if (m.id === 11 && l.id === 2) return SCIENTIFIC_DIAGRAMS.phys_carnot_cycle;
       if (m.id === 16) return SCIENTIFIC_DIAGRAMS.phys_ray_refraction;
       if (m.id === 17 && l.id === 1) return SCIENTIFIC_DIAGRAMS.phys_double_slit_interference;
-      if (m.id === 20) return SCIENTIFIC_DIAGRAMS.phys_circuit_resistors;
+      if (m.id === 19) return SCIENTIFIC_DIAGRAMS.phys_circuit_resistors;
       if (m.id === 22 && l.id === 1) return SCIENTIFIC_DIAGRAMS.phys_photoelectric_effect;
     }
   }

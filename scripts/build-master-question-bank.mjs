@@ -44,11 +44,15 @@ export function generateQuestionsForLesson(curriculum, m, l) {
   const subKey = curriculum.code;
   const lKey = `${subKey}-M${m.id}-L${l.id}`;
   const subject = subKey === "CHEM" ? "Chemistry" : (subKey === "BIO" ? "Biology" : "Physics");
-  const p = getProfileForModule(subKey, m.id);
+  const baseProfile = getProfileForModule(subKey, m.id);
 
-  if (!p) {
+  if (!baseProfile) {
     throw new Error(`Missing module domain profile for ${subKey}-M${m.id}`);
   }
+
+  const p = (baseProfile.lessons && baseProfile.lessons[l.id])
+    ? { ...baseProfile, ...baseProfile.lessons[l.id] }
+    : baseProfile;
 
   const obj1 = (l.objectives && l.objectives[0]) 
     ? l.objectives[0] 
@@ -134,7 +138,7 @@ export function generateQuestionsForLesson(curriculum, m, l) {
   let appDiag;
   if (subKey === "CHEM" && m.id === 19 && l.id === 1) {
     appDiag = SCIENTIFIC_DIAGRAMS.chem_galvanic_cell;
-  } else if (subKey === "PHYS" && m.id === 20 && l.id === 2) {
+  } else if (subKey === "PHYS" && m.id === 19 && l.id === 3) {
     appDiag = SCIENTIFIC_DIAGRAMS.phys_circuit_resistors;
   } else {
     appDiag = getOrGenerateDiagram(subKey, m, l, p, "apparatus");
