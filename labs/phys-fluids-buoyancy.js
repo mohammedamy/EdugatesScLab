@@ -66,13 +66,15 @@ export function initFluidsBuoyancyLab(containerId) {
   let dragStartSubmersion = 100.0;
   let surfaceRippleAmp = 0.0;
 
-  // Venturi Tracer Streamline Particles
+  // Venturi Tracer Streamline Particles (LDV Fluid Tracers)
   const venturiParticles = [];
-  for (let i = 0; i < 35; i++) {
+  for (let i = 0; i < 48; i++) {
     venturiParticles.push({
-      x: 40 + Math.random() * 500,
-      yOff: (Math.random() - 0.5) * 44, // offset from pipe centerline
-      speedFactor: 0.85 + Math.random() * 0.3
+      x: 35 + Math.random() * 530,
+      yFrac: -0.78 + Math.random() * 1.56,
+      speedFactor: 0.88 + Math.random() * 0.24,
+      size: 1.6 + Math.random() * 1.4,
+      brightness: 0.7 + Math.random() * 0.3
     });
   }
 
@@ -460,6 +462,12 @@ export function initFluidsBuoyancyLab(containerId) {
       if (infoWreal) infoWreal.innerText = "4.0× (A₁/A₂)";
       if (labelStat3) labelStat3.innerText = "Reynolds Reg.";
       if (infoMdisp) infoMdisp.innerText = "Laminar/Trans.";
+
+      if (badgeFloat) {
+        badgeFloat.innerText = "Venturi Flow Active";
+        badgeFloat.style.color = "#38bdf8";
+        badgeFloat.style.background = "rgba(56, 189, 248, 0.15)";
+      }
     }
   }
 
@@ -1359,150 +1367,435 @@ export function initFluidsBuoyancyLab(containerId) {
   }
 
   function drawVenturiTube(canvasWidth) {
-    const py = 250;
+    const canvasHeight = 530;
     const calc = getCalculations();
+    const py = 290; // Pipe horizontal centerline
+    const x0 = 35;
+    const x5 = canvasWidth - 35;
 
-    // Pipe with constriction: Section 1 wide, Section 2 narrow throat, Section 3 wide
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.lineWidth = 3;
+    // ASME Venturi Hydrodynamic Stations
+    const x1 = 180; // End of inlet section
+    const x2 = 255; // End of convergent contraction (start of throat)
+    const x3 = 330; // End of parallel throat (start of diffuser)
+    const x4 = 460; // End of divergent diffuser expansion
 
-    // Top pipe profile
-    ctx.beginPath();
-    ctx.moveTo(40, py - 60);
-    ctx.lineTo(190, py - 60);
-    ctx.lineTo(260, py - 25); // constricted
-    ctx.lineTo(330, py - 25);
-    ctx.lineTo(400, py - 60);
-    ctx.lineTo(canvasWidth - 40, py - 60);
-    ctx.stroke();
+    const R1 = 48; // Wide section radius (D1 = 60 mm)
+    const R2 = 22; // Constricted throat radius (D2 = 30 mm)
 
-    // Bottom pipe profile
-    ctx.beginPath();
-    ctx.moveTo(40, py + 60);
-    ctx.lineTo(190, py + 60);
-    ctx.lineTo(260, py + 25);
-    ctx.lineTo(330, py + 25);
-    ctx.lineTo(400, py + 60);
-    ctx.lineTo(canvasWidth - 40, py + 60);
-    ctx.stroke();
-
-    // Fluid background in pipe
-    ctx.fillStyle = calc.f.color;
-    ctx.beginPath();
-    ctx.moveTo(40, py - 58);
-    ctx.lineTo(190, py - 58);
-    ctx.lineTo(260, py - 23);
-    ctx.lineTo(330, py - 23);
-    ctx.lineTo(400, py - 58);
-    ctx.lineTo(canvasWidth - 40, py - 58);
-    ctx.lineTo(canvasWidth - 40, py + 58);
-    ctx.lineTo(400, py + 58);
-    ctx.lineTo(330, py + 23);
-    ctx.lineTo(260, py + 23);
-    ctx.lineTo(190, py + 58);
-    ctx.lineTo(40, py + 58);
-    ctx.closePath();
-    ctx.fill();
-
-    // Fluid flowing stream lines
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
-    ctx.lineWidth = 1.5;
-    for (let i = 0; i < 5; i++) {
-      const lineOff = (i - 2) * 18;
-      ctx.beginPath();
-      ctx.moveTo(40, py + lineOff);
-      ctx.lineTo(190, py + lineOff);
-      ctx.lineTo(260, py + lineOff * 0.42);
-      ctx.lineTo(330, py + lineOff * 0.42);
-      ctx.lineTo(400, py + lineOff);
-      ctx.lineTo(canvasWidth - 40, py + lineOff);
-      ctx.stroke();
+    function getLocalRadius(x) {
+      if (x <= x1) return R1;
+      if (x >= x1 && x <= x2) {
+        const t = (x - x1) / (x2 - x1);
+        const ease = (1 - Math.cos(t * Math.PI)) / 2;
+        return R1 * (1 - ease) + R2 * ease;
+      }
+      if (x > x2 && x < x3) return R2;
+      if (x >= x3 && x <= x4) {
+        const t = (x - x3) / (x4 - x3);
+        const ease = (1 - Math.cos(t * Math.PI)) / 2;
+        return R2 * (1 - ease) + R1 * ease;
+      }
+      return R1;
     }
 
-    // Dynamic Tracer Flow Particles
-    ctx.fillStyle = "#ffffff";
-    venturiParticles.forEach(p => {
-      // Calculate velocity based on horizontal position x
-      let localSpeed = calc.v1 * 22 * p.speedFactor;
-      let localHeightScale = 1.0;
+    // 1. Laboratory Tabletop Bench Surface at Bottom
+    const benchY = 485;
+    const benchGrad = ctx.createLinearGradient(0, benchY, 0, canvasHeight);
+    benchGrad.addColorStop(0, "#0f172a");
+    benchGrad.addColorStop(0.12, "#1e293b");
+    benchGrad.addColorStop(1, "#090d16");
+    ctx.fillStyle = benchGrad;
+    ctx.fillRect(0, benchY, canvasWidth, canvasHeight - benchY);
 
-      if (p.x >= 190 && p.x <= 260) {
-        const t = (p.x - 190) / 70;
-        localSpeed = (calc.v1 * (1 - t) + calc.v2 * t) * 22 * p.speedFactor;
-        localHeightScale = 1.0 * (1 - t) + 0.42 * t;
-      } else if (p.x > 260 && p.x < 330) {
-        localSpeed = calc.v2 * 22 * p.speedFactor;
-        localHeightScale = 0.42;
-      } else if (p.x >= 330 && p.x <= 400) {
-        const t = (p.x - 330) / 70;
-        localSpeed = (calc.v2 * (1 - t) + calc.v1 * t) * 22 * p.speedFactor;
-        localHeightScale = 0.42 * (1 - t) + 1.0 * t;
-      }
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY);
+    ctx.lineTo(canvasWidth, benchY);
+    ctx.stroke();
 
-      p.x += localSpeed * 0.016;
-      if (p.x > canvasWidth - 40) {
-        p.x = 40;
-      }
-
-      const curY = py + p.yOff * localHeightScale;
+    // 2. Anodized Aluminum Pipe Mounting Support Saddles
+    const saddlePositions = [x0 + 75, x5 - 75];
+    saddlePositions.forEach(sx => {
+      // Base clamp
+      ctx.fillStyle = "#1e293b";
+      ctx.strokeStyle = "#475569";
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(p.x, curY, 2.5, 0, Math.PI * 2);
+      ctx.roundRect(sx - 16, benchY - 14, 32, 16, 2);
       ctx.fill();
+      ctx.stroke();
+
+      // Vertical support pillar
+      const pilGrad = ctx.createLinearGradient(sx - 5, 0, sx + 5, 0);
+      pilGrad.addColorStop(0, "#334155");
+      pilGrad.addColorStop(0.35, "#f1f5f9");
+      pilGrad.addColorStop(0.7, "#94a3b8");
+      pilGrad.addColorStop(1, "#1e293b");
+      ctx.fillStyle = pilGrad;
+      ctx.fillRect(sx - 4, py + R1 + 4, 8, (benchY - 14) - (py + R1 + 4));
+
+      // Saddle bracket ring around pipe
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(sx, py, R1 + 3, Math.PI * 0.15, Math.PI * 0.85);
+      ctx.stroke();
     });
 
-    // Vertical Manometers: Column 1 at Wide Section, Column 2 at Narrow Section
-    // Manometer 1 (High pressure -> High column)
-    const m1X = 135;
-    const m2X = 295;
-    const col1H = 90;
-    const col2H = Math.max(25, col1H - calc.deltaH * 160);
+    // 3. Piezometer Manometer Board & Glass Tubes
+    const m1X = 145; // Inlet static tap (safely centered in inlet section)
+    const m2X = Math.round((x2 + x3) / 2); // 292: Throat tap (exact center of constricted throat)
+    const pipeTop1 = py - R1; // 242
+    const pipeTop2 = py - R2; // 268
 
-    // Glass tubes
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(m1X - 10, 75, 20, 115);
-    ctx.strokeRect(m2X - 10, 75, 20, 150);
+    const boardTopY = 70;
+    const boardH = 175;
 
-    // Liquid in Manometer 1
-    ctx.fillStyle = calc.f.surfaceColor;
-    ctx.fillRect(m1X - 8, 190 - col1H, 16, col1H);
-    // Liquid in Manometer 2
-    ctx.fillRect(m2X - 8, 225 - col2H, 16, col2H);
+    // Aluminum scale backboard
+    const boardX = m1X - 28;
+    const boardW = (m2X - m1X) + 95;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(boardX, boardTopY, boardW, boardH, 6);
+    ctx.fill();
+    ctx.stroke();
 
-    // Annotations & Callouts
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 12px system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText(`Wide Section: v₁ = ${calc.v1.toFixed(2)} m/s`, m1X, 55);
-    ctx.fillStyle = "#f59e0b";
-    ctx.fillText(`Constricted Throat: v₂ = ${calc.v2.toFixed(2)} m/s`, m2X, 55);
+    // Millimeter graduations on backboard
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.font = "7.5px var(--font-mono, monospace)";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    for (let mm = 0; mm <= 300; mm += 25) {
+      const ty = (boardTopY + boardH - 10) - (mm / 300) * (boardH - 25);
+      ctx.beginPath();
+      ctx.moveTo(boardX + 6, ty);
+      ctx.lineTo(boardX + (mm % 50 === 0 ? 16 : 10), ty);
+      ctx.stroke();
+      if (mm % 50 === 0) {
+        ctx.fillText(`${mm}`, boardX + 18, ty);
+      }
+    }
 
-    // Height differential indicator Δh
+    // Reference Datum & Water Levels in Tubes
+    // Tube 1 (Inlet): High static head
+    const col1H = 135;
+    const y1 = (boardTopY + boardH - 10) - col1H;
+
+    // Tube 2 (Throat): Low static head (Bernoulli depression Δh)
+    // Scale visual differential smoothly with flow rate
+    const headScale = Math.min(105, (calc.deltaH / 0.45) * 88);
+    const col2H = Math.max(18, col1H - headScale);
+    const y2 = (boardTopY + boardH - 10) - col2H;
+
+    // Brass/Chrome Pressure Tap Fittings at pipe wall
+    [ { x: m1X, topY: pipeTop1 }, { x: m2X, topY: pipeTop2 } ].forEach(tap => {
+      ctx.fillStyle = "#f59e0b";
+      ctx.strokeStyle = "#b45309";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(tap.x - 9, tap.topY - 6, 18, 7, 1);
+      ctx.fill();
+      ctx.stroke();
+    });
+
+    // Manometer Glass Tubes
+    const tubeW = 16;
+    [ { x: m1X, topY: pipeTop1, yLvl: y1 }, { x: m2X, topY: pipeTop2, yLvl: y2 } ].forEach(tube => {
+      const tx = tube.x - tubeW / 2;
+      const tH = tube.topY - boardTopY;
+
+      // Tube Glass Background
+      ctx.fillStyle = "rgba(15, 23, 42, 0.65)";
+      ctx.fillRect(tx, boardTopY, tubeW, tH);
+
+      // Liquid in Tube
+      const fluidH = tube.topY - tube.yLvl;
+      if (fluidH > 0) {
+        const tubeFluidGrad = ctx.createLinearGradient(0, tube.yLvl, 0, tube.topY);
+        tubeFluidGrad.addColorStop(0, calc.f.surfaceColor);
+        tubeFluidGrad.addColorStop(1, calc.f.color);
+        ctx.fillStyle = tubeFluidGrad;
+        ctx.fillRect(tx + 2, tube.yLvl, tubeW - 4, fluidH);
+
+        // Meniscus curve
+        ctx.strokeStyle = calc.f.surfaceColor;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.ellipse(tube.x, tube.yLvl, (tubeW - 4) / 2, 2.5, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Glass Tube Outer Borders & Rounded Top
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(tx, tube.topY);
+      ctx.lineTo(tx, boardTopY + 4);
+      ctx.arc(tube.x, boardTopY + 4, tubeW / 2, Math.PI, 0);
+      ctx.lineTo(tx + tubeW, tube.topY);
+      ctx.stroke();
+    });
+
+    // Differential Head Δh Indicator & Pill Badge
     ctx.strokeStyle = "#facc15";
     ctx.lineWidth = 1.5;
     ctx.setLineDash([3, 3]);
+    // Horizontal projection line from Tube 1 to Tube 2
     ctx.beginPath();
-    ctx.moveTo(m1X + 10, 190 - col1H);
-    ctx.lineTo(m2X + 35, 190 - col1H);
-    ctx.moveTo(m2X + 10, 225 - col2H);
-    ctx.lineTo(m2X + 35, 225 - col2H);
+    ctx.moveTo(m1X + tubeW / 2, y1);
+    ctx.lineTo(m2X + 28, y1);
+    ctx.moveTo(m2X + tubeW / 2, y2);
+    ctx.lineTo(m2X + 28, y2);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Double-headed arrow for Δh
+    // Double-headed vertical dimension arrow
+    const dimX = m2X + 24;
     ctx.beginPath();
-    ctx.moveTo(m2X + 28, 190 - col1H);
-    ctx.lineTo(m2X + 28, 225 - col2H);
+    ctx.moveTo(dimX, y1);
+    ctx.lineTo(dimX, y2);
     ctx.stroke();
+    // Arrowheads
+    ctx.fillStyle = "#facc15";
+    ctx.beginPath();
+    ctx.moveTo(dimX - 4, y1 + 6);
+    ctx.lineTo(dimX + 4, y1 + 6);
+    ctx.lineTo(dimX, y1);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(dimX - 4, y2 - 6);
+    ctx.lineTo(dimX + 4, y2 - 6);
+    ctx.lineTo(dimX, y2);
+    ctx.fill();
+
+    // Callout Pill Badge for Δh
+    const badgeDeltaH_X = m2X + 34;
+    const badgeDeltaH_Y = (y1 + y2) / 2;
+    drawVectorPill(ctx, badgeDeltaH_X + 44, badgeDeltaH_Y, `Δh = ${(calc.deltaH * 100).toFixed(1)} cm`, "#facc15", "center");
+
+    // Energy Grade Line (EGL) & Hydraulic Grade Line (HGL)
+    const yEGL = y1 - 12; // Total energy datum
+    ctx.strokeStyle = "rgba(245, 158, 11, 0.75)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(m1X - 20, yEGL);
+    ctx.lineTo(x4 + 40, yEGL);
+    ctx.stroke();
+    ctx.fillStyle = "#f59e0b";
+    ctx.font = "bold 8px var(--font-mono, monospace)";
+    ctx.fillText("EGL (Total Energy)", x4 + 44, yEGL + 3);
+
+    // HGL (Hydraulic Grade Line - traces piezometric pressure head)
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    ctx.moveTo(m1X - 20, y1);
+    ctx.lineTo(x1, y1);
+    ctx.bezierCurveTo(x1 + 35, y1, x2 - 25, y2, x2, y2);
+    ctx.lineTo(x3, y2);
+    ctx.bezierCurveTo(x3 + 45, y2, x4 - 35, y1 + 6, x4, y1 + 6);
+    ctx.lineTo(x4 + 40, y1 + 6);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText("HGL (Piezometric Head)", x4 + 44, y1 + 9);
+
+    // 4. Hydrodynamic Venturi Tube Body
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x0, py - R1);
+    for (let x = x0; x <= x5; x += 3) {
+      ctx.lineTo(x, py - getLocalRadius(x));
+    }
+    ctx.lineTo(x5, py + R1);
+    for (let x = x5; x >= x0; x -= 3) {
+      ctx.lineTo(x, py + getLocalRadius(x));
+    }
+    ctx.closePath();
+
+    // Fluid Body Fill
+    ctx.fillStyle = calc.f.color;
+    ctx.fill();
+
+    // Dynamic Bernoulli Pressure Isobar Gradient
+    const pressGrad = ctx.createLinearGradient(x0, 0, x5, 0);
+    pressGrad.addColorStop(0, "rgba(56, 189, 248, 0.22)");
+    pressGrad.addColorStop(0.3, "rgba(56, 189, 248, 0.15)");
+    pressGrad.addColorStop(0.48, "rgba(2, 132, 199, 0.02)"); // Low pressure in throat
+    pressGrad.addColorStop(0.72, "rgba(56, 189, 248, 0.14)");
+    pressGrad.addColorStop(1, "rgba(56, 189, 248, 0.20)");
+    ctx.fillStyle = pressGrad;
+    ctx.fill();
+
+    // 3D Cylindrical Specular Glare across glass tube
+    const specGrad = ctx.createLinearGradient(0, py - R1, 0, py + R1);
+    specGrad.addColorStop(0, "rgba(255, 255, 255, 0.22)");
+    specGrad.addColorStop(0.18, "rgba(255, 255, 255, 0.42)");
+    specGrad.addColorStop(0.38, "rgba(255, 255, 255, 0.04)");
+    specGrad.addColorStop(0.78, "rgba(0, 0, 0, 0.14)");
+    specGrad.addColorStop(1, "rgba(0, 0, 0, 0.32)");
+    ctx.fillStyle = specGrad;
+    ctx.fill();
+
+    // Fluid Flow Streamlines
+    [-0.7, -0.35, 0, 0.35, 0.7].forEach(f => {
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+      ctx.lineWidth = f === 0 ? 1.5 : 1.0;
+      ctx.beginPath();
+      for (let x = x0; x <= x5; x += 5) {
+        const r = getLocalRadius(x);
+        const sy = py + f * (r - 4);
+        if (x === x0) ctx.moveTo(x, sy);
+        else ctx.lineTo(x, sy);
+      }
+      ctx.stroke();
+    });
+
+    // Dynamic Tracer Flow Particles with LDV Velocity Streaks
+    venturiParticles.forEach(p => {
+      const localR = getLocalRadius(p.x);
+      const speedRatio = Math.pow(R1 / localR, 2);
+      const localSpeed = calc.v1 * 26 * speedRatio * p.speedFactor;
+
+      p.x += localSpeed * 0.016;
+      if (p.x > x5) {
+        p.x = x0;
+        p.yFrac = -0.78 + Math.random() * 1.56;
+      }
+
+      const curY = py + p.yFrac * (localR - 6);
+      const streakLen = Math.max(3, Math.min(26, localSpeed * 0.42));
+
+      // Luminous velocity streak tail
+      const streakGrad = ctx.createLinearGradient(p.x - streakLen, curY, p.x, curY);
+      streakGrad.addColorStop(0, "rgba(255, 255, 255, 0)");
+      streakGrad.addColorStop(1, `rgba(255, 255, 255, ${p.brightness})`);
+      ctx.strokeStyle = streakGrad;
+      ctx.lineWidth = p.size;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(p.x - streakLen, curY);
+      ctx.lineTo(p.x, curY);
+      ctx.stroke();
+
+      // Bright tracer bead head
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(p.x, curY, p.size * 0.75, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    // Outer Glass Profile Stroke
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+    ctx.lineWidth = 2.8;
+    ctx.stroke();
+
+    // Inner Glass Refraction Line
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.22)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    ctx.restore();
+
+    // 5. Metallic Machined Pipe Flanges at Inlet & Outlet
+    const flangeW = 8;
+    const flangeH = (R1 + 10) * 2;
+    const flangeGrad = ctx.createLinearGradient(x0 - flangeW, 0, x0, 0);
+    flangeGrad.addColorStop(0, "#334155");
+    flangeGrad.addColorStop(0.5, "#cbd5e1");
+    flangeGrad.addColorStop(1, "#475569");
+
+    [ { x: x0 - flangeW, txt: "INLET FLOW ➔", txtAlign: "left", offX: 10 },
+      { x: x5, txt: "➔ DISCHARGE", txtAlign: "right", offX: -10 } ].forEach(flange => {
+      ctx.fillStyle = flangeGrad;
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(flange.x, py - flangeH / 2, flangeW, flangeH, 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#f8fafc";
+      for (let by = py - flangeH / 2 + 8; by <= py + flangeH / 2 - 8; by += 22) {
+        ctx.beginPath();
+        ctx.arc(flange.x + flangeW / 2, by, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    // Flow Direction Badges
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 9px var(--font-mono, monospace)";
+    ctx.textAlign = "left";
+    ctx.fillText("INLET FLOW ➔", x0 + 12, py + R1 + 18);
+    ctx.textAlign = "right";
+    ctx.fillText("➔ DISCHARGE", x5 - 12, py + R1 + 18);
+
+    // 6. Station Telemetry Callouts (Cleanly positioned, NO collisions!)
+    // Station 1: Wide Section (Inlet) - placed directly above inlet pipe at y = 215, below HUD!
+    drawVectorPill(ctx, m1X, py - R1 - 22, `STATION 1 (INLET): v₁ = ${calc.v1.toFixed(2)} m/s • D₁ = 60 mm`, "#38bdf8", "center");
+
+    // Station 2: Constricted Throat - placed directly below throat at y = 329!
+    drawVectorPill(ctx, m2X, py + R2 + 22, `STATION 2 (THROAT): v₂ = ${calc.v2.toFixed(2)} m/s • D₂ = 30 mm (4.0×)`, "#f59e0b", "center");
+
+    // 7. Glassmorphic Laboratory Theory Card at Bottom
+    const cardX = 40;
+    const cardY = 432;
+    const cardW = canvasWidth - 80;
+    const cardH = 46;
+
+    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, cardW, cardH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    const colW = cardW / 3;
+    // Col 1: Bernoulli Conservation of Energy
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "8px system-ui, sans-serif";
+    ctx.fillText("CONSERVATION OF MECHANICAL ENERGY", cardX + colW * 0.5, cardY + 14);
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 10px var(--font-mono, monospace)";
+    ctx.fillText("P₁ + ½ρv₁² = P₂ + ½ρv₂²", cardX + colW * 0.5, cardY + 30);
+
+    // Divider 1
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cardX + colW, cardY + 6);
+    ctx.lineTo(cardX + colW, cardY + cardH - 6);
+    ctx.stroke();
+
+    // Col 2: Measured Head & Pressure Drop
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "8px system-ui, sans-serif";
+    ctx.fillText("BERNOULLI PRESSURE DIFFERENTIAL", cardX + colW * 1.5, cardY + 14);
     ctx.fillStyle = "#facc15";
     ctx.font = "bold 10px var(--font-mono, monospace)";
-    ctx.textAlign = "left";
-    ctx.fillText(`Δh = ${(calc.deltaH * 100).toFixed(1)} cm`, m2X + 32, (190 - col1H + 225 - col2H) / 2 + 4);
+    ctx.fillText(`ΔP = ½ρ(v₂² - v₁²) = ${(calc.deltaP / 1000).toFixed(2)} kPa`, cardX + colW * 1.5, cardY + 30);
 
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "11px system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("Bernoulli Principle: P₁ + ½ρv₁² = P₂ + ½ρv₂²  ⟹  ΔP = ½ρ(v₂² - v₁²)", canvasWidth / 2, 380);
+    // Divider 2
+    ctx.beginPath();
+    ctx.moveTo(cardX + colW * 2, cardY + 6);
+    ctx.lineTo(cardX + colW * 2, cardY + cardH - 6);
+    ctx.stroke();
+
+    // Col 3: Continuity Equation
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "8px system-ui, sans-serif";
+    ctx.fillText("MASS CONTINUITY (FLOW RATE)", cardX + colW * 2.5, cardY + 14);
+    ctx.fillStyle = "#10b981";
+    ctx.font = "bold 10px var(--font-mono, monospace)";
+    ctx.fillText(`A₁·v₁ = A₂·v₂ = Q (${flowRateLps.toFixed(2)} L/s)`, cardX + colW * 2.5, cardY + 30);
   }
 
   function drawAnalyticalChart() {
@@ -1817,6 +2110,12 @@ export function initFluidsBuoyancyLab(containerId) {
       if (chartSlope) chartSlope.innerText = "ΔP = ½ρ(v₂² - v₁²)";
       if (dragHint) dragHint.innerText = "💨 High-speed Venturi Tube • Flow acceleration in constricted throat";
       if (btnFloat) btnFloat.style.display = "none";
+      const badgeFloat = container.querySelector("#badge-float-status");
+      if (badgeFloat) {
+        badgeFloat.innerText = "Venturi Flow Active";
+        badgeFloat.style.color = "#38bdf8";
+        badgeFloat.style.background = "rgba(56, 189, 248, 0.15)";
+      }
     } else {
       btn.innerText = "🔀 Switch to Venturi Tube";
       if (pBuoy) pBuoy.style.display = "block";
@@ -1825,6 +2124,12 @@ export function initFluidsBuoyancyLab(containerId) {
       if (chartSlope) chartSlope.innerText = "Slope = ρ_f · g";
       if (dragHint) dragHint.innerText = "👆 Drag block vertically inside tank • Touch/Wheel friendly";
       if (btnFloat) btnFloat.style.display = "inline-flex";
+      const badgeFloat = container.querySelector("#badge-float-status");
+      if (badgeFloat) {
+        badgeFloat.innerText = isFreeFloating ? (calc.canFloat ? "Free Floating at Equilibrium" : "Sunk to Floor (ρ_s > ρ_f)") : "Suspended from Scale";
+        badgeFloat.style.color = "#38bdf8";
+        badgeFloat.style.background = "rgba(56, 189, 248, 0.15)";
+      }
     }
     needsRedraw = true;
     SoundFX.playClick();
