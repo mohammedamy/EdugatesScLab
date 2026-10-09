@@ -26,22 +26,27 @@ export function initFluidsBuoyancyLab(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // Fluid Library (Density ρ in kg/m³)
+  // Fluid Library (Density ρ in kg/m³, Dynamic Viscosity μ in Pa·s)
   const FLUIDS = {
-    water: { name: "Fresh Water (H₂O)", density: 1000.0, color: "rgba(56, 189, 248, 0.4)", surfaceColor: "#0284c7" },
-    seawater: { name: "Seawater (3.5% Salinity)", density: 1025.0, color: "rgba(14, 165, 233, 0.45)", surfaceColor: "#0369a1" },
-    oil: { name: "Mineral Oil", density: 870.0, color: "rgba(234, 179, 8, 0.35)", surfaceColor: "#ca8a04" },
-    ethanol: { name: "Ethanol (C₂H₅OH)", density: 789.0, color: "rgba(16, 185, 129, 0.35)", surfaceColor: "#059669" },
-    mercury: { name: "Liquid Mercury (Hg)", density: 13600.0, color: "rgba(148, 163, 184, 0.85)", surfaceColor: "#475569" }
+    water: { name: "Fresh Water (H₂O)", density: 1000.0, viscosity: 0.001002, color: "rgba(56, 189, 248, 0.4)", surfaceColor: "#0284c7" },
+    seawater: { name: "Seawater (3.5% Salinity)", density: 1025.0, viscosity: 0.00107, color: "rgba(14, 165, 233, 0.45)", surfaceColor: "#0369a1" },
+    oil: { name: "Mineral Oil", density: 870.0, viscosity: 0.030, color: "rgba(234, 179, 8, 0.35)", surfaceColor: "#ca8a04" },
+    ethanol: { name: "Ethanol (C₂H₅OH)", density: 789.0, viscosity: 0.0012, color: "rgba(16, 185, 129, 0.35)", surfaceColor: "#059669" },
+    glycerin: { name: "Pure Glycerin (C₃H₈O₃)", density: 1261.0, viscosity: 0.950, color: "rgba(245, 158, 11, 0.45)", surfaceColor: "#d97706" },
+    gasoline: { name: "Refined Gasoline", density: 720.0, viscosity: 0.0006, color: "rgba(244, 114, 182, 0.35)", surfaceColor: "#db2777" },
+    mercury: { name: "Liquid Mercury (Hg)", density: 13600.0, viscosity: 0.00153, color: "rgba(148, 163, 184, 0.85)", surfaceColor: "#475569" }
   };
 
   // Block Material Library (Density ρ in kg/m³)
   const MATERIALS = {
+    cork: { name: "Cork Bark (Super Buoyant)", density: 240.0, color: "#d97706", borderColor: "#b45309" },
     wood: { name: "Pine Wood (Floats)", density: 550.0, color: "#a16207", borderColor: "#d97706" },
     ice: { name: "Glacial Ice", density: 917.0, color: "#7dd3fc", borderColor: "#bae6fd" },
+    acrylic: { name: "Cast Acrylic / PMMA", density: 1180.0, color: "#38bdf8", borderColor: "#0284c7" },
     aluminum: { name: "Solid Aluminum", density: 2700.0, color: "#94a3b8", borderColor: "#cbd5e1" },
     iron: { name: "Cast Iron", density: 7870.0, color: "#475569", borderColor: "#64748b" },
-    lead: { name: "Pure Lead", density: 11340.0, color: "#334155", borderColor: "#475569" }
+    lead: { name: "Pure Lead", density: 11340.0, color: "#334155", borderColor: "#475569" },
+    gold: { name: "Pure Gold (24 Karat)", density: 19320.0, color: "#eab308", borderColor: "#ca8a04" }
   };
 
   // Simulation State
@@ -264,6 +269,28 @@ export function initFluidsBuoyancyLab(containerId) {
                   <div style="color: #f59e0b; font-weight: 700; font-family: var(--font-mono);">30.0 mm (A₂ = 7.1 cm²)</div>
                 </div>
               </div>
+
+              <!-- Reynolds Number & Hydrodynamic Flow Regime Telemetry -->
+              <div id="venturi-reynolds-box" style="margin-top: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 8px; padding: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span style="font-size: 0.72rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Hydrodynamic Flow Regime</span>
+                  <span id="badge-flow-regime" style="font-size: 0.72rem; font-weight: 800; padding: 2px 8px; border-radius: 9999px; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">Laminar (Re < 2300)</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.76rem;">
+                  <div>
+                    <span style="color: #64748b; display: block; font-size: 0.7rem;">Inlet Reynolds (Re₁)</span>
+                    <span id="val-reynolds-1" style="font-weight: 700; color: #38bdf8; font-family: var(--font-mono);">Re₁ = 42,440</span>
+                  </div>
+                  <div>
+                    <span style="color: #64748b; display: block; font-size: 0.7rem;">Throat Reynolds (Re₂)</span>
+                    <span id="val-reynolds-2" style="font-weight: 700; color: #f59e0b; font-family: var(--font-mono);">Re₂ = 84,880</span>
+                  </div>
+                </div>
+                <div style="margin-top: 6px; font-size: 0.7rem; color: #64748b; display: flex; justify-content: space-between;">
+                  <span>Dynamic Viscosity μ: <strong id="val-fluid-viscosity" style="color: #cbd5e1; font-family: var(--font-mono);">1.00 mPa·s</strong></span>
+                  <span style="color: #94a3b8; font-family: var(--font-mono);">Re = ρ·v·D / μ</span>
+                </div>
+              </div>
             </div>
 
             <!-- Quick Specs -->
@@ -382,11 +409,20 @@ export function initFluidsBuoyancyLab(containerId) {
     const deltaP = 0.5 * f.density * (v2 * v2 - v1 * v1);
     const deltaH = deltaP / (f.density * g);
 
+    // Hydrodynamic Viscosity & Reynolds Number (Re = ρ · v · D / μ)
+    const visc = f.viscosity || 0.001002;
+    const re1 = (f.density * v1 * d1) / visc;
+    const re2 = (f.density * v2 * d2) / visc;
+    const isTurbulent = re1 >= 4000;
+    const isTransitional = re1 >= 2300 && re1 < 4000;
+    const isLaminar = re1 < 2300;
+
     return {
       f, m, volM3, dispVolM3, massRealKg, weightRealN,
       fbN, weightAppN, massDispKg, normalForceN,
       effectiveSubmersion, canFloat, densityRatio, equilibriumSubmersion,
-      v1, v2, deltaP, deltaH, a1, a2
+      v1, v2, deltaP, deltaH, a1, a2,
+      visc, re1, re2, isTurbulent, isTransitional, isLaminar
     };
   }
 
@@ -464,12 +500,52 @@ export function initFluidsBuoyancyLab(containerId) {
       if (labelStat2) labelStat2.innerText = "Velocity Ratio (v₂/v₁)";
       if (infoWreal) infoWreal.innerText = "4.0× (A₁/A₂)";
       if (labelStat3) labelStat3.innerText = "Reynolds Reg.";
-      if (infoMdisp) infoMdisp.innerText = "Laminar/Trans.";
+      if (infoMdisp) {
+        infoMdisp.innerText = calc.isLaminar ? "Laminar" : (calc.isTransitional ? "Transitional" : "Turbulent");
+        infoMdisp.style.color = calc.isLaminar ? "#34d399" : (calc.isTransitional ? "#facc15" : "#f87171");
+      }
 
       if (badgeFloat) {
-        badgeFloat.innerText = "Venturi Flow Active";
-        badgeFloat.style.color = "#38bdf8";
-        badgeFloat.style.background = "rgba(56, 189, 248, 0.15)";
+        if (calc.isLaminar) {
+          badgeFloat.innerText = "Laminar Flow (Re < 2300)";
+          badgeFloat.style.color = "#34d399";
+          badgeFloat.style.background = "rgba(16, 185, 129, 0.15)";
+        } else if (calc.isTransitional) {
+          badgeFloat.innerText = "Transitional Flow (2300–4000)";
+          badgeFloat.style.color = "#facc15";
+          badgeFloat.style.background = "rgba(234, 179, 8, 0.15)";
+        } else {
+          badgeFloat.innerText = "Turbulent Flow (Re > 4000)";
+          badgeFloat.style.color = "#f87171";
+          badgeFloat.style.background = "rgba(239, 68, 68, 0.15)";
+        }
+      }
+
+      const valRe1 = container.querySelector("#val-reynolds-1");
+      const valRe2 = container.querySelector("#val-reynolds-2");
+      const badgeRegime = container.querySelector("#badge-flow-regime");
+      const valVisc = container.querySelector("#val-fluid-viscosity");
+
+      if (valRe1) valRe1.innerText = `Re₁ = ${Math.round(calc.re1).toLocaleString()}`;
+      if (valRe2) valRe2.innerText = `Re₂ = ${Math.round(calc.re2).toLocaleString()}`;
+      if (valVisc) valVisc.innerText = `${(calc.visc * 1000).toFixed(2)} mPa·s`;
+      if (badgeRegime) {
+        if (calc.isLaminar) {
+          badgeRegime.innerText = "Laminar (Re < 2300)";
+          badgeRegime.style.color = "#34d399";
+          badgeRegime.style.background = "rgba(16, 185, 129, 0.2)";
+          badgeRegime.style.borderColor = "rgba(16, 185, 129, 0.4)";
+        } else if (calc.isTransitional) {
+          badgeRegime.innerText = "Transitional (2300–4000)";
+          badgeRegime.style.color = "#facc15";
+          badgeRegime.style.background = "rgba(234, 179, 8, 0.2)";
+          badgeRegime.style.borderColor = "rgba(234, 179, 8, 0.4)";
+        } else {
+          badgeRegime.innerText = "Turbulent (Re > 4000)";
+          badgeRegime.style.color = "#f87171";
+          badgeRegime.style.background = "rgba(239, 68, 68, 0.2)";
+          badgeRegime.style.borderColor = "rgba(239, 68, 68, 0.4)";
+        }
       }
     }
   }
@@ -1671,7 +1747,15 @@ export function initFluidsBuoyancyLab(containerId) {
         p.yFrac = -0.78 + Math.random() * 1.56;
       }
 
-      const curY = py + p.yFrac * (localR - 6);
+      // Hydrodynamic Turbulence Flutter (Transverse Eddie Perturbations)
+      let turbOffset = 0;
+      if (calc.isTurbulent) {
+        turbOffset = Math.sin(simTime * 14 + p.x * 0.08) * 3.5 * (localR / R1);
+      } else if (calc.isTransitional) {
+        turbOffset = Math.sin(simTime * 8 + p.x * 0.04) * 1.5 * (localR / R1);
+      }
+
+      const curY = py + p.yFrac * (localR - 6) + turbOffset;
       const streakLen = Math.max(3, Math.min(26, localSpeed * 0.42));
 
       // Luminous velocity streak tail
@@ -1686,8 +1770,8 @@ export function initFluidsBuoyancyLab(containerId) {
       ctx.lineTo(p.x, curY);
       ctx.stroke();
 
-      // Bright tracer bead head
-      ctx.fillStyle = "#ffffff";
+      // Tracer bead head with flow regime coloring (crisp white for laminar, warm amber for transitional, rose for turbulent)
+      ctx.fillStyle = calc.isTurbulent ? "#fca5a5" : (calc.isTransitional ? "#fef08a" : "#ffffff");
       ctx.beginPath();
       ctx.arc(p.x, curY, p.size * 0.75, 0, Math.PI * 2);
       ctx.fill();
@@ -2252,7 +2336,11 @@ export function initFluidsBuoyancyLab(containerId) {
       "Wide Pipe v₁ (m/s)": `${calc.v1.toFixed(2)}`,
       "Constriction v₂ (m/s)": `${calc.v2.toFixed(2)}`,
       "Pressure Drop ΔP (kPa)": `${(calc.deltaP / 1000).toFixed(2)}`,
-      "Manometer Head Δh (cm)": `${(calc.deltaH * 100).toFixed(1)}`
+      "Manometer Head Δh (cm)": `${(calc.deltaH * 100).toFixed(1)}`,
+      "Dynamic Viscosity μ (mPa·s)": `${(calc.visc * 1000).toFixed(2)}`,
+      "Inlet Reynolds Re₁": `${Math.round(calc.re1).toLocaleString()}`,
+      "Throat Reynolds Re₂": `${Math.round(calc.re2).toLocaleString()}`,
+      "Flow Regime": calc.isLaminar ? "Laminar (Re < 2300)" : (calc.isTransitional ? "Transitional" : "Turbulent (Re > 4000)")
     };
 
     LabTrialStore.addTrial("fluids", {

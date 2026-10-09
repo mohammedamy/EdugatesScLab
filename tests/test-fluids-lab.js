@@ -147,6 +147,60 @@ test("index.css includes .fluids-layout in responsive single-column layout at 98
   assert(css.includes(".fluids-layout"), "index.css must include .fluids-layout rule");
 });
 
+test("Extended Materials: Cork, Acrylic, and Gold density & equilibrium behavior", () => {
+  const rhoWater = 1000.0;
+  const rhoCork = 240.0;
+  const rhoAcrylic = 1180.0;
+  const rhoGold = 19320.0;
+  const rhoGlycerin = 1261.0;
+  const rhoMercury = 13600.0;
+
+  // Cork floats at 24% submersion
+  assert.strictEqual(rhoCork / rhoWater, 0.24, "Cork floats with only 24% submersion in water");
+
+  // Acrylic sinks in water but floats in Glycerin
+  assert(rhoAcrylic > rhoWater, "Acrylic (1180 kg/m³) sinks in fresh water");
+  assert(rhoAcrylic < rhoGlycerin, "Acrylic (1180 kg/m³) floats in glycerin (1261 kg/m³)");
+
+  // Lead vs Gold in Mercury
+  const rhoLead = 11340.0;
+  assert(rhoLead < rhoMercury, "Lead (11340 kg/m³) floats in liquid mercury (13600 kg/m³)");
+  assert(rhoGold > rhoMercury, "Gold (19320 kg/m³) sinks in liquid mercury (13600 kg/m³)");
+});
+
+test("Hydrodynamic Viscosity and Reynolds Number calculation (Re = ρ·v·D / μ)", () => {
+  const d1 = 0.06; // 60 mm diameter
+  const a1 = Math.PI * Math.pow(d1 / 2, 2);
+  const flowRateQ = 0.002; // 2.0 L/s in m³/s
+  const v1 = flowRateQ / a1; // ~0.707 m/s
+
+  // Water at Q = 2.0 L/s
+  const rhoWater = 1000.0;
+  const muWater = 0.001002; // Pa·s
+  const reWater = (rhoWater * v1 * d1) / muWater;
+  assert(reWater > 4000, `Water flow at 2.0 L/s is turbulent: Re = ${Math.round(reWater)} > 4000`);
+
+  // High-viscosity Glycerin at Q = 0.5 L/s (low flow rate)
+  const qLow = 0.0005; // 0.5 L/s
+  const v1Low = qLow / a1;
+  const rhoGlycerin = 1261.0;
+  const muGlycerin = 0.950; // Pa·s
+  const reGlycerin = (rhoGlycerin * v1Low * d1) / muGlycerin;
+  assert(reGlycerin < 2300, `Glycerin flow is laminar: Re = ${reGlycerin.toFixed(1)} < 2300`);
+});
+
+test("phys-fluids-buoyancy.js includes Reynolds number telemetry and regime indicators", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
+  assert(code.includes("val-reynolds-1"), "Must render inlet Reynolds Re₁ telemetry element");
+  assert(code.includes("val-reynolds-2"), "Must render throat Reynolds Re₂ telemetry element");
+  assert(code.includes("badge-flow-regime"), "Must render hydrodynamic flow regime badge");
+  assert(code.includes("cork:"), "Must include Cork in MATERIALS");
+  assert(code.includes("acrylic:"), "Must include Acrylic in MATERIALS");
+  assert(code.includes("gold:"), "Must include Gold in MATERIALS");
+  assert(code.includes("glycerin:"), "Must include Glycerin in FLUIDS");
+  assert(code.includes("gasoline:"), "Must include Gasoline in FLUIDS");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Fluids Lab Tests: All ${passed} Passed!`);
 console.log("========================================================\n");
