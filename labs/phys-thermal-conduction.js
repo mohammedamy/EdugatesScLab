@@ -87,34 +87,34 @@ export function initThermalConductionLab(containerId) {
             <img src="assets/labs/conduction_bench.jpg" alt="4K Thermodynamics & Linear Heat Conduction Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
             
             <!-- Live Analytical Telemetry Callout on Photo -->
-            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(249, 115, 22, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(14px); border: 1.5px solid rgba(249, 115, 22, 0.45); border-radius: 12px; padding: 14px 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
               <div>
-                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Insulated Linear Test Bar</div>
-                <div style="color: #fb923c; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Hot Heater (95°C) &amp; Cold Sink</div>
+                <div style="font-size: 0.76rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.04em;">Insulated Linear Test Bar</div>
+                <div style="color: #fb923c; font-weight: 700; font-family: var(--font-mono); font-size: 0.96rem; margin-top: 2px;">Hot Heater (95°C) &amp; Cold Sink</div>
               </div>
               <div>
-                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">5-Point Thermocouple Array</div>
-                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">PicoLog Multi-Channel Logger</div>
+                <div style="font-size: 0.76rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.04em;">5-Point Thermocouple Array</div>
+                <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.96rem; margin-top: 2px;">PicoLog Multi-Channel Logger</div>
               </div>
               <div>
-                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">FLIR Thermal Imaging Camera</div>
-                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Infrared Gradient Verification</div>
+                <div style="font-size: 0.76rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.04em;">FLIR Thermal Imaging Camera</div>
+                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.96rem; margin-top: 2px;">Infrared Gradient Verification</div>
               </div>
             </div>
           </div>
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
-            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(244, 63, 94, 0.4); border-radius: 10px; padding: 8px 14px; pointer-events: auto;">
-              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase;">HEAT TRANSFER RATE (POWER)</div>
-              <div id="hud-cond-power" style="font-size: 1.25rem; font-weight: 800; color: #f43f5e; font-family: var(--font-mono);">
+            <div style="background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(12px); border: 1.5px solid rgba(244, 63, 94, 0.45); border-radius: 10px; padding: 9px 16px; pointer-events: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+              <div style="font-size: 0.78rem; font-weight: 700; color: #cbd5e1; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;">HEAT TRANSFER RATE (POWER)</div>
+              <div id="hud-cond-power" style="font-size: 1.35rem; font-weight: 800; color: #f43f5e; font-family: var(--font-mono); margin-top: 2px;">
                 573.1 W (J/s)
               </div>
             </div>
 
-            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 10px; padding: 8px 14px; text-align: right; pointer-events: auto;">
-              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase;">THERMAL RESISTANCE R_th</div>
-              <div id="hud-cond-rth" style="font-size: 1.15rem; font-weight: 800; color: #38bdf8; font-family: var(--font-mono);">
+            <div style="background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(12px); border: 1.5px solid rgba(56, 189, 248, 0.45); border-radius: 10px; padding: 9px 16px; text-align: right; pointer-events: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+              <div style="font-size: 0.78rem; font-weight: 700; color: #cbd5e1; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em;">THERMAL RESISTANCE R_th</div>
+              <div id="hud-cond-rth" style="font-size: 1.25rem; font-weight: 800; color: #38bdf8; font-family: var(--font-mono); margin-top: 2px;">
                 0.157 K/W
               </div>
             </div>
@@ -218,120 +218,390 @@ export function initThermalConductionLab(containerId) {
 
   function drawApparatus() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const { mat, deltaT } = getCalculations();
+    const { mat, deltaT, heatFluxWatts } = getCalculations();
 
-    // Hot Thermal Reservoir on Left (Red boiling bath)
-    const hotX = 50;
-    const resW = 80;
-    const resH = 260;
-    const resY = 170;
+    // Hot Thermal Reservoir on Left (Red immersion bath)
+    const hotX = 32;
+    const resW = 84;
+    const resH = 268;
+    const resY = 150;
 
-    const hotGrad = ctx.createLinearGradient(hotX, resY, hotX + resW, resY);
-    hotGrad.addColorStop(0, "#b91c1c");
-    hotGrad.addColorStop(1, "#ef4444");
-    ctx.fillStyle = hotGrad;
-    ctx.beginPath();
-    ctx.roundRect(hotX, resY, resW, resH, 8);
-    ctx.fill();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 13px system-ui";
-    ctx.textAlign = "center";
-    ctx.fillText("HOT BATH", hotX + resW / 2, resY + 40);
-    ctx.font = "bold 16px var(--font-mono, monospace)";
-    ctx.fillText(`${tHot.toFixed(1)}°C`, hotX + resW / 2, resY + 70);
-
-    // Cold Thermal Reservoir on Right (Blue ice bath)
-    const coldX = canvas.width - 50 - resW;
-    const coldGrad = ctx.createLinearGradient(coldX, resY, coldX + resW, resY);
-    coldGrad.addColorStop(0, "#0284c7");
-    coldGrad.addColorStop(1, "#0369a1");
-    ctx.fillStyle = coldGrad;
-    ctx.beginPath();
-    ctx.roundRect(coldX, resY, resW, resH, 8);
-    ctx.fill();
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 13px system-ui";
-    ctx.textAlign = "center";
-    ctx.fillText("COLD BATH", coldX + resW / 2, resY + 40);
-    ctx.font = "bold 16px var(--font-mono, monospace)";
-    ctx.fillText(`${tCold.toFixed(1)}°C`, coldX + resW / 2, resY + 70);
+    // Cold Thermal Reservoir on Right (Blue chiller bath)
+    const coldX = canvas.width - 32 - resW; // 464
 
     // Conduction Rod connecting Left and Right
-    const rodStartX = hotX + resW;
-    const rodEndX = coldX;
-    const rodWidthPx = rodEndX - rodStartX;
-    const rodHeightPx = Math.max(30, Math.min(90, rodAreaCm2 * 9));
-    const rodY = resY + (resH - rodHeightPx) / 2;
+    const rodStartX = hotX + resW; // 116
+    const rodEndX = coldX; // 464
+    const rodWidthPx = rodEndX - rodStartX; // 348
+    const rodHeightPx = Math.max(38, Math.min(68, 30 + rodAreaCm2 * 4.5));
+    const rodY = 295 - rodHeightPx / 2;
 
-    // Thermal colormap along the rod!
+    // 1. Material Specification Top Banner
+    ctx.save();
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.strokeStyle = "rgba(251, 146, 60, 0.35)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(canvas.width / 2 - 195, 96, 390, 28, 14);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(`${mat.name} • k = ${mat.k} W/(m·K) • A = ${rodAreaCm2.toFixed(1)} cm² • L = ${rodLengthM.toFixed(2)} m`, canvas.width / 2, 110);
+    ctx.restore();
+
+    // 2. Hot Thermal Reservoir (Left)
+    ctx.save();
+    // Outer Insulated Brushed Metal Enclosure
+    const hotBodyGrad = ctx.createLinearGradient(hotX, resY, hotX + resW, resY);
+    hotBodyGrad.addColorStop(0, "#1e293b");
+    hotBodyGrad.addColorStop(0.3, "#334155");
+    hotBodyGrad.addColorStop(0.7, "#1e293b");
+    hotBodyGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = hotBodyGrad;
+    ctx.beginPath();
+    ctx.roundRect(hotX, resY, resW, resH, 10);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.6)";
+    ctx.lineWidth = 2.0;
+    ctx.stroke();
+
+    // Top Mounted Digital Temperature Controller Module
+    ctx.beginPath();
+    ctx.roundRect(hotX + 5, resY + 6, resW - 10, 52, 6);
+    ctx.fillStyle = "#090d16";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(244, 63, 94, 0.65)";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    ctx.fillStyle = "#fca5a5";
+    ctx.font = "bold 10px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("HOT BATH", hotX + resW / 2, resY + 23);
+
+    ctx.fillStyle = "#f43f5e";
+    ctx.font = "bold 16px var(--font-mono, monospace)";
+    ctx.fillText(`${tHot.toFixed(1)}°C`, hotX + resW / 2, resY + 45);
+
+    // Pulsing Heater Status Indicator
+    const heatPulse = 0.6 + Math.sin(simClock * 4) * 0.4;
+    ctx.fillStyle = `rgba(239, 68, 68, ${heatPulse.toFixed(2)})`;
+    ctx.beginPath();
+    ctx.arc(hotX + 16, resY + 20, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Lower Thermal Fluid Chamber (Sight Glass)
+    const hotChamberX = hotX + 7;
+    const hotChamberY = resY + 66;
+    const hotChamberW = resW - 14;
+    const hotChamberH = resH - 74;
+
+    ctx.beginPath();
+    ctx.roundRect(hotChamberX, hotChamberY, hotChamberW, hotChamberH, 6);
+    const hotFluidGrad = ctx.createLinearGradient(hotChamberX, hotChamberY, hotChamberX + hotChamberW, hotChamberY);
+    hotFluidGrad.addColorStop(0, "#7f1d1d");
+    hotFluidGrad.addColorStop(0.5, "#991b1b");
+    hotFluidGrad.addColorStop(1, "#b91c1c");
+    ctx.fillStyle = hotFluidGrad;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(248, 113, 113, 0.4)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Immersed Electric Heating Coils
+    ctx.strokeStyle = "rgba(253, 186, 116, 0.75)";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let cy = hotChamberY + 16; cy < hotChamberY + hotChamberH - 14; cy += 18) {
+      ctx.moveTo(hotChamberX + 12, cy);
+      ctx.bezierCurveTo(hotChamberX + 28, cy - 8, hotChamberX + 38, cy + 8, hotChamberX + hotChamberW - 12, cy);
+    }
+    ctx.stroke();
+
+    // Rising Thermal Convection Bubbles in Hot Oil
+    ctx.fillStyle = "rgba(254, 215, 170, 0.6)";
+    for (let b = 0; b < 6; b++) {
+      const bubbleProgress = (simClock * 28 + b * 26) % (hotChamberH - 16);
+      const bx = hotChamberX + 14 + (b * 8) % (hotChamberW - 24);
+      const by = hotChamberY + hotChamberH - 10 - bubbleProgress;
+      ctx.beginPath();
+      ctx.arc(bx, by, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 3. Cold Thermal Reservoir (Right)
+    ctx.save();
+    // Outer Insulated Brushed Metal Enclosure
+    const coldBodyGrad = ctx.createLinearGradient(coldX, resY, coldX + resW, resY);
+    coldBodyGrad.addColorStop(0, "#0f172a");
+    coldBodyGrad.addColorStop(0.3, "#334155");
+    coldBodyGrad.addColorStop(0.7, "#1e293b");
+    coldBodyGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = coldBodyGrad;
+    ctx.beginPath();
+    ctx.roundRect(coldX, resY, resW, resH, 10);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
+    ctx.lineWidth = 2.0;
+    ctx.stroke();
+
+    // Top Mounted Digital Chiller Controller Module
+    ctx.beginPath();
+    ctx.roundRect(coldX + 5, resY + 6, resW - 10, 52, 6);
+    ctx.fillStyle = "#090d16";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.65)";
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+
+    ctx.fillStyle = "#93c5fd";
+    ctx.font = "bold 10px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText("COLD BATH", coldX + resW / 2, resY + 23);
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 16px var(--font-mono, monospace)";
+    ctx.fillText(`${tCold.toFixed(1)}°C`, coldX + resW / 2, resY + 45);
+
+    // Chiller Status Indicator
+    const chillPulse = 0.6 + Math.sin(simClock * 3.5 + 1) * 0.4;
+    ctx.fillStyle = `rgba(56, 189, 248, ${chillPulse.toFixed(2)})`;
+    ctx.beginPath();
+    ctx.arc(coldX + 16, resY + 20, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Lower Chilled Fluid Chamber (Sight Glass)
+    const coldChamberX = coldX + 7;
+    const coldChamberY = resY + 66;
+    const coldChamberW = resW - 14;
+    const coldChamberH = resH - 74;
+
+    ctx.beginPath();
+    ctx.roundRect(coldChamberX, coldChamberY, coldChamberW, coldChamberH, 6);
+    const coldFluidGrad = ctx.createLinearGradient(coldChamberX, coldChamberY, coldChamberX + coldChamberW, coldChamberY);
+    coldFluidGrad.addColorStop(0, "#082f49");
+    coldFluidGrad.addColorStop(0.5, "#0369a1");
+    coldFluidGrad.addColorStop(1, "#0284c7");
+    ctx.fillStyle = coldFluidGrad;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Submerged Chiller Evaporator Cooling Coils
+    ctx.strokeStyle = "rgba(186, 230, 253, 0.7)";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let cy = coldChamberY + 16; cy < coldChamberY + coldChamberH - 14; cy += 18) {
+      ctx.moveTo(coldChamberX + 12, cy);
+      ctx.bezierCurveTo(coldChamberX + 28, cy - 6, coldChamberX + 38, cy + 6, coldChamberX + coldChamberW - 12, cy);
+    }
+    ctx.stroke();
+
+    // Falling Chilled Density Micro-Trails / Frost Crystals
+    ctx.fillStyle = "rgba(224, 242, 254, 0.65)";
+    for (let c = 0; c < 6; c++) {
+      const chillProgress = (simClock * 22 + c * 24) % (coldChamberH - 16);
+      const cx = coldChamberX + 14 + (c * 8) % (coldChamberW - 24);
+      const cy = coldChamberY + 8 + chillProgress;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 4. Conduction Rod (3D Cylindrical Shader with Temperature Gradient)
+    ctx.save();
+    // Base Continuous Fourier Thermal Gradient
     const rodGrad = ctx.createLinearGradient(rodStartX, rodY, rodEndX, rodY);
-    rodGrad.addColorStop(0.0, "#ef4444"); // Crimson Hot
-    rodGrad.addColorStop(0.3, "#f97316"); // Orange
-    rodGrad.addColorStop(0.6, "#eab308"); // Yellow
-    rodGrad.addColorStop(0.85, "#06b6d4"); // Cyan
-    rodGrad.addColorStop(1.0, "#38bdf8"); // Frosty Cold
+    rodGrad.addColorStop(0.00, "#ef4444"); // Hot Crimson
+    rodGrad.addColorStop(0.22, "#f97316"); // Warm Orange
+    rodGrad.addColorStop(0.48, "#eab308"); // Golden Amber
+    rodGrad.addColorStop(0.75, "#06b6d4"); // Cyan
+    rodGrad.addColorStop(1.00, "#38bdf8"); // Chilled Sky Blue
 
     ctx.fillStyle = rodGrad;
     ctx.fillRect(rodStartX, rodY, rodWidthPx, rodHeightPx);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.lineWidth = 2;
+
+    // Cylindrical Metallic Top Specular Highlight
+    const topSheen = ctx.createLinearGradient(0, rodY, 0, rodY + rodHeightPx * 0.45);
+    topSheen.addColorStop(0, "rgba(255, 255, 255, 0.40)");
+    topSheen.addColorStop(1, "rgba(255, 255, 255, 0.0)");
+    ctx.fillStyle = topSheen;
+    ctx.fillRect(rodStartX, rodY, rodWidthPx, rodHeightPx * 0.45);
+
+    // Cylindrical Bottom Ambient Shadow
+    const bottomShadow = ctx.createLinearGradient(0, rodY + rodHeightPx * 0.65, 0, rodY + rodHeightPx);
+    bottomShadow.addColorStop(0, "rgba(0, 0, 0, 0.0)");
+    bottomShadow.addColorStop(1, "rgba(0, 0, 0, 0.42)");
+    ctx.fillStyle = bottomShadow;
+    ctx.fillRect(rodStartX, rodY + rodHeightPx * 0.65, rodWidthPx, rodHeightPx * 0.35);
+
+    // Rod Outer Precision Contour
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.lineWidth = 1.8;
     ctx.strokeRect(rodStartX, rodY, rodWidthPx, rodHeightPx);
 
-    // Dynamic Heat Energy Flux Arrows flowing through rod
-    const numArrows = 6;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    // Insulated Teflon Thermal Flanges / Clamping Collars with Hex Bolts
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(rodStartX - 4, rodY - 3, 7, rodHeightPx + 6);
+    ctx.fillRect(rodEndX - 3, rodY - 3, 7, rodHeightPx + 6);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.lineWidth = 1.0;
+    ctx.strokeRect(rodStartX - 4, rodY - 3, 7, rodHeightPx + 6);
+    ctx.strokeRect(rodEndX - 3, rodY - 3, 7, rodHeightPx + 6);
+    ctx.restore();
+
+    // 5. Dynamic Heat Energy Flux Vectors (Scaled to Fourier Heat Power)
+    const fluxSpeed = Math.min(110, Math.max(20, 24 + Math.sqrt(heatFluxWatts) * 3.2));
+    const numArrows = 7;
+    ctx.save();
     for (let i = 0; i < numArrows; i++) {
-      const arrowX = rodStartX + ((i * 55 + simClock * 60) % rodWidthPx);
+      const arrowX = rodStartX + 14 + ((i * 48 + simClock * fluxSpeed) % (rodWidthPx - 28));
       const arrowY = rodY + rodHeightPx / 2;
+
+      // Glow tail
+      const tailGrad = ctx.createLinearGradient(arrowX - 18, arrowY, arrowX + 4, arrowY);
+      tailGrad.addColorStop(0, "rgba(255, 255, 255, 0.0)");
+      tailGrad.addColorStop(1, "rgba(255, 255, 255, 0.85)");
+      ctx.strokeStyle = tailGrad;
+      ctx.lineWidth = 2.4;
       ctx.beginPath();
-      ctx.moveTo(arrowX - 8, arrowY - 6);
+      ctx.moveTo(arrowX - 18, arrowY);
+      ctx.lineTo(arrowX + 2, arrowY);
+      ctx.stroke();
+
+      // Aerodynamic Double-Chevron Head
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.moveTo(arrowX - 6, arrowY - 6);
       ctx.lineTo(arrowX + 4, arrowY);
-      ctx.lineTo(arrowX - 8, arrowY + 6);
+      ctx.lineTo(arrowX - 6, arrowY + 6);
+      ctx.lineTo(arrowX - 2, arrowY);
       ctx.closePath();
       ctx.fill();
     }
+    ctx.restore();
 
-    // 5 Digital Thermocouple Temperature Probes
+    // 6. 5 Precision Thermocouple Probes (T1 to T5)
+    const badgeW = 52;
+    const badgeH = 26;
+    const badgeY = rodY - 56;
+
+    const probeColors = ["#f43f5e", "#fb923c", "#eab308", "#06b6d4", "#38bdf8"];
+
     for (let i = 0; i < 5; i++) {
       const frac = i / 4;
       const px = rodStartX + frac * rodWidthPx;
       const probeTemp = tHot - frac * (tHot - tCold);
+      const color = probeColors[i];
 
-      // Probe needle into rod
-      ctx.strokeStyle = "#94a3b8";
-      ctx.lineWidth = 2;
+      // Smart horizontal badge anchoring (zero overlap with reservoirs)
+      let badgeX;
+      if (i === 0) badgeX = rodStartX + 4;
+      else if (i === 4) badgeX = rodEndX - badgeW - 4;
+      else badgeX = px - badgeW / 2;
+
+      // Stainless Steel Immersion Probe Needle Sheath
+      ctx.save();
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 2.0;
       ctx.beginPath();
-      ctx.moveTo(px, rodY - 35);
-      ctx.lineTo(px, rodY + 5);
+      ctx.moveTo(badgeX + badgeW / 2, badgeY + badgeH);
+      ctx.lineTo(px, rodY + 4);
       ctx.stroke();
 
-      // Probe Sensor Head
-      ctx.fillStyle = "#0f172a";
-      ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 1.5;
+      // Probe Thermowell Collar on Bar
+      ctx.fillStyle = "#1e293b";
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.roundRect(px - 26, rodY - 65, 52, 26, 4);
+      ctx.ellipse(px, rodY, 4.5, 2.5, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = "#38bdf8";
-      ctx.font = "bold 10px var(--font-mono, monospace)";
-      ctx.textAlign = "center";
-      ctx.fillText(`${probeTemp.toFixed(1)}°C`, px, rodY - 48);
+      // Probe Sensor Head Pill
+      ctx.beginPath();
+      ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 6);
+      ctx.fillStyle = "rgba(15, 23, 42, 0.94)";
+      ctx.fill();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
 
-      // Distance tag
-      ctx.fillStyle = "#64748b";
-      ctx.font = "9px system-ui";
-      ctx.fillText(`x = ${(frac * rodLengthM).toFixed(2)}m`, px, rodY + rodHeightPx + 20);
+      // Temperature Readout Text
+      ctx.fillStyle = color;
+      ctx.font = "bold 11.5px var(--font-mono, monospace)";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`${probeTemp.toFixed(1)}°C`, badgeX + badgeW / 2, badgeY + badgeH / 2);
+      ctx.restore();
     }
 
-    // Material Tag
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 12px system-ui";
-    ctx.textAlign = "center";
-    ctx.fillText(`${mat.name} • k = ${mat.k} W/(m·K)`, canvas.width / 2, rodY - 78);
+    // 7. Datum Position Rail beneath rod
+    const railY = rodY + rodHeightPx + 14;
+    const railH = 32;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(15, 23, 42, 0.88)";
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.35)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(rodStartX, railY, rodWidthPx, railH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // Millimeter and Centimeter graduation ticks
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+    ctx.lineWidth = 1.0;
+    for (let tx = rodStartX; tx <= rodEndX; tx += 10) {
+      ctx.beginPath();
+      ctx.moveTo(tx, railY);
+      ctx.lineTo(tx, railY + 4);
+      ctx.stroke();
+    }
+
+    // Prominent Station Ticks
+    for (let i = 0; i < 5; i++) {
+      const frac = i / 4;
+      const px = rodStartX + frac * rodWidthPx;
+      ctx.strokeStyle = probeColors[i];
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(px, railY);
+      ctx.lineTo(px, railY + 7);
+      ctx.stroke();
+    }
+
+    // High-Contrast Station Distance Labels (Increased text size, zero overlap)
+    ctx.font = "bold 11px var(--font-mono, monospace)";
+    ctx.fillStyle = "#cbd5e1";
+    ctx.textBaseline = "middle";
+
+    for (let i = 0; i < 5; i++) {
+      const frac = i / 4;
+      const px = rodStartX + frac * rodWidthPx;
+      const distText = `x = ${(frac * rodLengthM).toFixed(2)}m`;
+
+      if (i === 0) {
+        ctx.textAlign = "left";
+        ctx.fillText(distText, rodStartX + 6, railY + railH / 2 + 1);
+      } else if (i === 4) {
+        ctx.textAlign = "right";
+        ctx.fillText(distText, rodEndX - 6, railY + railH / 2 + 1);
+      } else {
+        ctx.textAlign = "center";
+        ctx.fillText(distText, px, railY + railH / 2 + 1);
+      }
+    }
+    ctx.restore();
   }
 
   function drawProfileChart() {
