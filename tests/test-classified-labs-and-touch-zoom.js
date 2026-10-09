@@ -21,7 +21,11 @@ import {
   zoomOut, 
   resetZoom, 
   panBy,
-  initTouchZoom 
+  initTouchZoom,
+  hideZoomHud,
+  showZoomHud,
+  toggleZoomHud,
+  isZoomHudDismissed
 } from "../utils/touch-zoom.js";
 
 let passed = 0;
@@ -227,6 +231,29 @@ setScale(10.0);
 check(getTouchZoomState().scale === 3.50, `Scale cannot exceed MAX_SCALE (Clamped at 3.50, Found: ${getTouchZoomState().scale})`);
 
 resetZoom(false);
+
+// Test Hide / Dismiss and Restore HUD Capabilities
+console.log("\n--- Testing Hide / Dismiss and Mini-Trigger Restore Capabilities ---");
+hideZoomHud();
+check(isZoomHudDismissed() === true, "hideZoomHud() sets isZoomHudDismissed() to true");
+
+showZoomHud();
+check(isZoomHudDismissed() === false, "showZoomHud() sets isZoomHudDismissed() to false");
+
+toggleZoomHud();
+check(isZoomHudDismissed() === true, "toggleZoomHud() toggles dismissed to true");
+toggleZoomHud();
+check(isZoomHudDismissed() === false, "toggleZoomHud() toggles dismissed back to false");
+
+check(typeof globalThis.window.TouchZoom.hide === "function", "window.TouchZoom.hide() is exposed");
+check(typeof globalThis.window.TouchZoom.show === "function", "window.TouchZoom.show() is exposed");
+check(typeof globalThis.window.TouchZoom.toggle === "function", "window.TouchZoom.toggle() is exposed");
+check(typeof globalThis.window.TouchZoom.isDismissed === "function", "window.TouchZoom.isDismissed() is exposed");
+
+globalThis.window.TouchZoom.hide();
+check(globalThis.window.TouchZoom.isDismissed() === true, "window.TouchZoom.hide() updates isDismissed() state");
+globalThis.window.TouchZoom.show();
+check(globalThis.window.TouchZoom.isDismissed() === false, "window.TouchZoom.show() updates isDismissed() state");
 
 // ----------------------------------------------------
 // Summary

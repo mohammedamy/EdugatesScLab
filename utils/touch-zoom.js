@@ -237,6 +237,47 @@ function onWheel(e) {
 // ----------------------------------------------------
 // Floating Glassmorphic Touch Zoom Controller HUD
 // ----------------------------------------------------
+let isHudDismissed = false;
+try {
+  if (typeof localStorage !== "undefined") {
+    isHudDismissed = localStorage.getItem("touch_zoom_hud_dismissed") === "true";
+  }
+} catch {
+  isHudDismissed = false;
+}
+
+export function hideZoomHud() {
+  isHudDismissed = true;
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("touch_zoom_hud_dismissed", "true");
+    }
+  } catch {}
+  updateHudUI();
+}
+
+export function showZoomHud() {
+  isHudDismissed = false;
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("touch_zoom_hud_dismissed", "false");
+    }
+  } catch {}
+  updateHudUI();
+}
+
+export function toggleZoomHud() {
+  if (isHudDismissed) {
+    showZoomHud();
+  } else {
+    hideZoomHud();
+  }
+}
+
+export function isZoomHudDismissed() {
+  return isHudDismissed;
+}
+
 function createHudElement() {
   if (typeof document === "undefined") return null;
   const existing = document.getElementById("touch-screen-zoom-controller");
@@ -249,6 +290,7 @@ function createHudElement() {
   hud.setAttribute("aria-label", "Screen Touch Zoom Controls");
 
   hud.innerHTML = `
+    <!-- Main Zoom Controls Pill -->
     <div class="touch-zoom-pill" id="touch-zoom-main-pill">
       <!-- Zoom Out Button (Supports making whole screen smaller down to 40%) -->
       <button class="touch-zoom-btn touch-zoom-btn-step" id="btn-touch-zoom-out" title="Zoom Out / Shrink Screen (Pinch Out)" aria-label="Zoom out screen">
@@ -275,7 +317,18 @@ function createHudElement() {
         </svg>
         <span class="touch-zoom-reset-txt">100% Center</span>
       </button>
+
+      <!-- Hide / Dismiss Button -->
+      <button class="touch-zoom-btn touch-zoom-btn-hide" id="btn-touch-zoom-hide" title="Hide Zoom Controls" aria-label="Hide zoom controls">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
+
+    <!-- Collapsed Floating Mini-Trigger Button -->
+    <button class="touch-zoom-restore-pill" id="btn-touch-zoom-restore" title="Show Zoom Controls (Click to expand)" aria-label="Show screen zoom controls" style="display: none;">
+      <span class="touch-zoom-icon">🔍</span>
+      <span class="touch-zoom-restore-txt" id="touch-zoom-restore-label">100%</span>
+    </button>
 
     <!-- Quick Zoom Presets Popover Menu -->
     <div class="touch-zoom-popover" id="touch-zoom-popover" style="display: none;" role="menu">
@@ -298,6 +351,10 @@ function createHudElement() {
         </svg>
         <span>Reset to 100% & Center View</span>
       </button>
+      <button class="touch-zoom-preset-hide-btn" id="btn-popover-hide" title="Hide Zoom Controls">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        <span>Hide Zoom Controls</span>
+      </button>
       <div class="touch-zoom-hint">💡 Pinch with two fingers anywhere on screen to zoom smoothly</div>
     </div>
   `;
@@ -309,7 +366,10 @@ function createHudElement() {
   const btnIn = hud.querySelector("#btn-touch-zoom-in");
   const btnReset = hud.querySelector("#btn-touch-zoom-reset");
   const btnPresets = hud.querySelector("#btn-touch-zoom-presets");
+  const btnHide = hud.querySelector("#btn-touch-zoom-hide");
+  const btnRestore = hud.querySelector("#btn-touch-zoom-restore");
   const btnPopoverReset = hud.querySelector("#btn-popover-reset-center");
+  const btnPopoverHide = hud.querySelector("#btn-popover-hide");
   const popover = hud.querySelector("#touch-zoom-popover");
 
   btnOut?.addEventListener("click", () => zoomOut(0.12));
@@ -321,6 +381,21 @@ function createHudElement() {
   btnPopoverReset?.addEventListener("click", () => {
     resetZoom(true);
     if (popover) popover.style.display = "none";
+  });
+
+  btnHide?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    hideZoomHud();
+  });
+
+  btnPopoverHide?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    hideZoomHud();
+  });
+
+  btnRestore?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    showZoomHud();
   });
 
   btnPresets?.addEventListener("click", (e) => {
@@ -349,6 +424,12 @@ function createHudElement() {
     }
   });
 
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && popover && popover.style.display !== "none") {
+      popover.style.display = "none";
+    }
+  });
+
   return hud;
 }
 
@@ -369,12 +450,43 @@ function updateHudUI() {
   const isDeviated = Math.abs(currentScale - 1.0) >= 0.02 || Math.abs(currentPanX) > 2 || Math.abs(currentPanY) > 2;
   const isFullscreen = typeof document !== "undefined" && !!(
     document.fullscreenElement || 
-    document.webkitFullscreenElement || 
-    (document.body && document.body.classList && typeof document.body.classList.contains === "function" && document.body.classList.contains("modal-open"))
+    document.webkitFullscreenElement
   );
   const shouldShow = hudAllowed || isDeviated || isFullscreen;
 
-  hudElement.style.display = shouldShow ? "flex" : "none";
+  if (!shouldShow) {
+    hudElement.style.display = "none";
+    return;
+  }
+
+  hudElement.style.display = "flex";
+
+  const hasQuerySelector = typeof hudElement.querySelector === "function";
+  const mainPill = hasQuerySelector ? hudElement.querySelector("#touch-zoom-main-pill") : null;
+  const restorePill = hasQuerySelector ? hudElement.querySelector("#btn-touch-zoom-restore") : null;
+  const popover = hasQuerySelector ? hudElement.querySelector("#touch-zoom-popover") : null;
+
+  if (isHudDismissed) {
+    if (mainPill) mainPill.style.display = "none";
+    if (popover) popover.style.display = "none";
+    if (restorePill) {
+      restorePill.style.display = "inline-flex";
+      const restoreLabel = typeof restorePill.querySelector === "function" ? restorePill.querySelector("#touch-zoom-restore-label") : null;
+      if (restoreLabel) restoreLabel.textContent = `${pct}%`;
+      if (restorePill.classList && typeof restorePill.classList.toggle === "function") {
+        restorePill.classList.toggle("is-deviated", isDeviated);
+      }
+    }
+    if (hudElement.classList && typeof hudElement.classList.add === "function") {
+      hudElement.classList.add("is-dismissed");
+    }
+  } else {
+    if (mainPill) mainPill.style.display = "inline-flex";
+    if (restorePill) restorePill.style.display = "none";
+    if (hudElement.classList && typeof hudElement.classList.remove === "function") {
+      hudElement.classList.remove("is-dismissed");
+    }
+  }
 
   if (typeof hudElement.querySelector === "function") {
     const label = hudElement.querySelector("#touch-zoom-pct-label");
@@ -434,6 +546,10 @@ export function initTouchZoom(options = {}) {
     zoomOut,
     resetZoom,
     panBy,
-    setAllowed: setZoomHudAllowed
+    setAllowed: setZoomHudAllowed,
+    hide: hideZoomHud,
+    show: showZoomHud,
+    toggle: toggleZoomHud,
+    isDismissed: isZoomHudDismissed
   };
 }
