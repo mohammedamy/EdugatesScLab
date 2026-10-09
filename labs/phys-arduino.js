@@ -53,6 +53,7 @@ class ArduinoAudioEngine {
     if (this._muted) {
       this.stopBuzzer();
       this.stopServo();
+      this.stopMotor();
     }
   }
 
@@ -305,9 +306,90 @@ class ArduinoAudioEngine {
     } catch (e) {}
   }
 
+  // Realistic Electromagnetic Relay Snap Click
+  playRelayClick(isClosed = true) {
+    if (this.isMuted()) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(isClosed ? 1600 : 1100, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.035);
+      gain.gain.setValueAtTime(0.22, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.04);
+    } catch (e) {}
+  }
+
+  // DC Motor Whining Acoustic Tone based on PWM Speed
+  setMotorWhine(speedRatio = 0) {
+    if (this.isMuted() || speedRatio <= 0.02) {
+      this.stopMotor();
+      return;
+    }
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const baseFreq = 90 + speedRatio * 320; // 90 Hz to 410 Hz rotation whine
+      if (!this._motorOsc) {
+        this._motorOsc = ctx.createOscillator();
+        this._motorGain = ctx.createGain();
+        this._motorOsc.type = "sawtooth";
+        this._motorOsc.frequency.setValueAtTime(baseFreq, now);
+        this._motorGain.gain.setValueAtTime(0.04 * speedRatio, now);
+        this._motorOsc.connect(this._motorGain);
+        this._motorGain.connect(ctx.destination);
+        this._motorOsc.start(now);
+      } else {
+        this._motorOsc.frequency.linearRampToValueAtTime(baseFreq, now + 0.05);
+        this._motorGain.gain.linearRampToValueAtTime(0.04 * speedRatio, now + 0.05);
+      }
+    } catch (e) {}
+  }
+
+  stopMotor() {
+    if (this._motorOsc) {
+      try {
+        this._motorOsc.stop();
+        this._motorOsc.disconnect();
+      } catch (e) {}
+      this._motorOsc = null;
+      this._motorGain = null;
+    }
+  }
+
+  // PIR Motion Sensor detection alert chime
+  playPirChime() {
+    if (this.isMuted()) return;
+    const ctx = this.getContext();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(1760, now + 0.08);
+      gain.gain.setValueAtTime(0.14, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    } catch (e) {}
+  }
+
   destroy() {
     this.stopBuzzer();
     this.stopServo();
+    this.stopMotor();
   }
 }
 
@@ -657,7 +739,362 @@ void loop() {
     delay(800);
   }
 }`
+  },
+  {
+    id: "rgb_mood_lamp",
+    title: "7. Interactive RGB Color Mixer & Mood Lamp",
+    category: "Color Science & Multi-Channel PWM",
+    description: "4-pin common cathode RGB LED with triple PWM channel color mixing (Red, Green, Blue) modulated by ambient light.",
+    circuitWiring: [
+      { from: "~D9", to: "RGB Red Anode (via 220Ω)", color: "#ef4444" },
+      { from: "~D10", to: "RGB Green Anode (via 220Ω)", color: "#10b981" },
+      { from: "~D11", to: "RGB Blue Anode (via 220Ω)", color: "#3b82f6" },
+      { from: "GND", to: "RGB Common Cathode", color: "#0f172a" },
+      { from: "A0", to: "Hue Potentiometer Wiper", color: "#f59e0b" },
+      { from: "A1", to: "LDR Ambient Sensor", color: "#34d399" }
+    ],
+    code: `// Edugates STEM - Experiment 7: Interactive RGB Color Mixer
+const int redPin = 9;    // PWM ~9
+const int greenPin = 10; // PWM ~10
+const int bluePin = 11;  // PWM ~11
+const int potPin = A0;   // Hue selector
+const int ldrPin = A1;   // Ambient brightness
+
+void setup() {
+  pinMode(redPin, OUTPUT);
+  pinMode(greenPin, OUTPUT);
+  pinMode(bluePin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("RGB Mood Lamp Initialized");
+}
+
+void loop() {
+  int hueVal = analogRead(potPin); // 0 - 1023
+  int ambient = analogRead(ldrPin); // 0 - 1000 lux
+
+  // Map 10-bit hue across RGB rainbow spectrum
+  int r = 0, g = 0, b = 0;
+  if (hueVal < 341) {
+    r = map(hueVal, 0, 341, 255, 0);
+    g = map(hueVal, 0, 341, 0, 255);
+    b = 0;
+  } else if (hueVal < 682) {
+    r = 0;
+    g = map(hueVal, 341, 682, 255, 0);
+    b = map(hueVal, 341, 682, 0, 255);
+  } else {
+    r = map(hueVal, 682, 1023, 0, 255);
+    g = 0;
+    b = map(hueVal, 682, 1023, 255, 0);
   }
+
+  // Scale total brightness by ambient light
+  float scale = map(ambient, 0, 1023, 255, 50) / 255.0;
+  analogWrite(redPin, (int)(r * scale));
+  analogWrite(greenPin, (int)(g * scale));
+  analogWrite(bluePin, (int)(b * scale));
+
+  Serial.print("RGB Color -> R:");
+  Serial.print((int)(r * scale));
+  Serial.print(" G:");
+  Serial.print((int)(g * scale));
+  Serial.print(" B:");
+  Serial.println((int)(b * scale));
+
+  delay(60);
+}`
+  },
+  {
+    id: "dc_motor_speed",
+    title: "8. PWM DC Motor Fan & Thermal Cooling Rig",
+    category: "Electromechanics & Transistor Drivers",
+    description: "High-current DC motor with aerodynamic propeller fan regulated by PWM speed and thermal thresholds.",
+    circuitWiring: [
+      { from: "~D5", to: "NPN Transistor Base / PWM", color: "#38bdf8" },
+      { from: "D7", to: "Songle Relay Control Pin", color: "#3b82f6" },
+      { from: "A0", to: "Speed Potentiometer", color: "#f59e0b" },
+      { from: "A2", to: "TMP36 Temperature Sensor", color: "#ec4899" },
+      { from: "5V", to: "Relay & Motor VCC", color: "#ef4444" },
+      { from: "GND", to: "Common Ground", color: "#0f172a" }
+    ],
+    code: `// Edugates STEM - Experiment 8: DC Motor Fan Cooling System
+const int motorPin = 5;  // PWM ~5 for speed regulation
+const int relayPin = 7;  // Digital 7 for safety cutoff relay
+const int potPin = A0;   // Manual speed trim
+const int tempPin = A2;  // TMP36 temperature sensor
+
+void setup() {
+  pinMode(motorPin, OUTPUT);
+  pinMode(relayPin, OUTPUT);
+  digitalWrite(relayPin, HIGH); // Engage safety relay
+  Serial.begin(9600);
+  Serial.println("DC Motor Fan Driver Active");
+}
+
+void loop() {
+  int manualSpeed = analogRead(potPin); // 0 - 1023
+  int rawTemp = analogRead(tempPin);
+  float tempC = ((rawTemp * 5.0 / 1023.0) - 0.5) * 100.0;
+
+  int pwmOutput = map(manualSpeed, 0, 1023, 0, 255);
+
+  // Thermal boost if ambient temperature exceeds 30 C
+  if (tempC > 30.0) {
+    pwmOutput = max(pwmOutput, 220); // Force high cooling speed
+    Serial.println("Warning: Thermal threshold exceeded! High fan speed engaged.");
+  }
+
+  analogWrite(motorPin, pwmOutput);
+
+  Serial.print("Temp: ");
+  Serial.print(tempC, 1);
+  Serial.print(" C | Fan Duty: ");
+  Serial.print((pwmOutput * 100) / 255);
+  Serial.println("%");
+
+  delay(100);
+}`
+  },
+  {
+    id: "pir_alarm",
+    title: "9. PIR Motion Intruder Security Alarm",
+    category: "Security Systems & Digital Sensors",
+    description: "Pyroelectric infrared (PIR) motion sensor detecting thermal movement with piezoelectric siren and relay switching.",
+    circuitWiring: [
+      { from: "D2", to: "PIR Motion Sensor Out", color: "#10b981" },
+      { from: "D8", to: "Piezo Siren Buzzer (+)", color: "#c084fc" },
+      { from: "D7", to: "Relay Module Trigger", color: "#38bdf8" },
+      { from: "D13", to: "Strobe Warning LED", color: "#ef4444" },
+      { from: "5V", to: "PIR & Relay VCC", color: "#dc2626" },
+      { from: "GND", to: "Common Ground Rail", color: "#0f172a" }
+    ],
+    code: `// Edugates STEM - Experiment 9: PIR Motion Intruder Alarm
+const int pirPin = 2;    // PIR Motion Sensor Input
+const int buzzerPin = 8; // Alarm Siren
+const int relayPin = 7;  // Security floodlight relay
+const int strobePin = 13;// Red strobe LED
+
+void setup() {
+  pinMode(pirPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(relayPin, OUTPUT);
+  pinMode(strobePin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("PIR Security Perimeter Armed. Calibrating...");
+  delay(1000);
+  Serial.println("System Ready: Monitoring motion events.");
+}
+
+void loop() {
+  int motionDetected = digitalRead(pirPin);
+
+  if (motionDetected == HIGH) {
+    Serial.println("ALERT! Motion detected in security zone!");
+    digitalWrite(relayPin, HIGH); // Trip floodlight relay
+    
+    // Multi-tone siren frequency sweep
+    for (int freq = 700; freq <= 1400; freq += 70) {
+      digitalWrite(strobePin, HIGH);
+      tone(buzzerPin, freq, 30);
+      delay(30);
+      digitalWrite(strobePin, LOW);
+    }
+  } else {
+    digitalWrite(relayPin, LOW);
+    digitalWrite(strobePin, LOW);
+    noTone(buzzerPin);
+    delay(100);
+  }
+}`
+  },
+  {
+    id: "seven_seg_counter",
+    title: "10. Digital 7-Segment Decimal Decade Counter",
+    category: "Digital Logic & Numerical Multiplexing",
+    description: "Direct segment mapping (A-G + DP) counting 0 through 9 with tactile step button and auto-increment clock.",
+    circuitWiring: [
+      { from: "D2", to: "Pushbutton Step Clock", color: "#38bdf8" },
+      { from: "D3-D9", to: "7-Seg Pins (A, B, C, D, E, F, G)", color: "#f59e0b" },
+      { from: "D10", to: "Decimal Point (DP)", color: "#ef4444" },
+      { from: "GND", to: "Common Cathode (via 220Ω)", color: "#0f172a" }
+    ],
+    code: `// Edugates STEM - Experiment 10: 7-Segment Decade Counter
+// Segment pin mapping: A=3, B=4, C=5, D=6, E=7, F=8, G=9
+const int segPins[] = { 3, 4, 5, 6, 7, 8, 9 };
+const int buttonPin = 2;
+
+// 7-segment digit bitmasks (A, B, C, D, E, F, G) for 0 - 9
+const byte digitPatterns[10] = {
+  0b00111111, // 0
+  0b00000110, // 1
+  0b01011011, // 2
+  0b01001111, // 3
+  0b01100110, // 4
+  0b01101101, // 5
+  0b01111101, // 6
+  0b00000111, // 7
+  0b01111111, // 8
+  0b01101111  // 9
+};
+
+int currentCount = 0;
+
+void setup() {
+  for (int i = 0; i < 7; i++) {
+    pinMode(segPins[i], OUTPUT);
+  }
+  pinMode(buttonPin, INPUT_PULLUP);
+  Serial.begin(9600);
+  Serial.println("7-Segment Decimal Display Ready");
+  displayDigit(currentCount);
+}
+
+void loop() {
+  if (digitalRead(buttonPin) == LOW) {
+    currentCount = (currentCount + 1) % 10;
+    displayDigit(currentCount);
+    Serial.print("Counter Advanced -> ");
+    Serial.println(currentCount);
+    delay(250); // Debounce delay
+  }
+  delay(50);
+}
+
+void displayDigit(int num) {
+  byte mask = digitPatterns[num];
+  for (int i = 0; i < 7; i++) {
+    digitalWrite(segPins[i], (mask & (1 << i)) ? HIGH : LOW);
+  }
+}`
+  },
+  {
+    id: "joystick_pan_tilt",
+    title: "11. 2-Axis Thumbstick & Servo Pan-Tilt Rig",
+    category: "Human Interface Devices (HID) & Robotics",
+    description: "Dual-axis analog potentiometer thumbstick controlling SG90 servo position and center-click laser/buzzer trigger.",
+    circuitWiring: [
+      { from: "A0", to: "Joystick X-Axis (VRx)", color: "#38bdf8" },
+      { from: "A1", to: "Joystick Y-Axis (VRy)", color: "#10b981" },
+      { from: "D2", to: "Joystick Pushbutton (SW)", color: "#facc15" },
+      { from: "~D6", to: "SG90 Servo PWM Signal", color: "#fb923c" },
+      { from: "D8", to: "Laser/Trigger Buzzer", color: "#c084fc" },
+      { from: "5V", to: "Joystick & Servo VCC", color: "#ef4444" },
+      { from: "GND", to: "Common Ground", color: "#0f172a" }
+    ],
+    code: `// Edugates STEM - Experiment 11: 2-Axis Thumbstick Servo Director
+#include <Servo.h>
+
+Servo panServo;
+const int joyXPin = A0;
+const int joyYPin = A1;
+const int joyBtnPin = 2;
+const int servoPin = 6;
+const int buzzerPin = 8;
+
+void setup() {
+  panServo.attach(servoPin);
+  pinMode(joyBtnPin, INPUT_PULLUP);
+  pinMode(buzzerPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("2-Axis Joystick Controller Initialized");
+}
+
+void loop() {
+  int xVal = analogRead(joyXPin); // 0 - 1023
+  int yVal = analogRead(joyYPin);
+  bool btnClicked = digitalRead(joyBtnPin) == LOW;
+
+  // Map Joystick X-axis to servo angle (0 - 180 degrees)
+  int servoAngle = map(xVal, 0, 1023, 0, 180);
+  panServo.write(servoAngle);
+
+  if (btnClicked) {
+    tone(buzzerPin, 1000, 40);
+    Serial.println("Thumbstick Button Pressed: Target Fired!");
+  }
+
+  Serial.print("Joy X: ");
+  Serial.print(xVal);
+  Serial.print(" | Y: ");
+  Serial.print(yVal);
+  Serial.print(" -> Servo: ");
+  Serial.print(servoAngle);
+  Serial.println(" deg");
+
+  delay(60);
+}`
+  },
+  {
+    id: "custom_sandbox",
+    title: "12. 🛠️ Custom Project Builder & Breadboard Sandbox",
+    category: "Freeform Engineering & Breadboard Prototyping",
+    description: "Interactive open sandbox: place any components from the Parts Bin onto the breadboard, customize wiring, and write your own C++ sketch!",
+    circuitWiring: [
+      { from: "Any Pin", to: "Any Placed Component", color: "#38bdf8" },
+      { from: "5V", to: "Power Bus Rail", color: "#ef4444" },
+      { from: "GND", to: "Ground Bus Rail", color: "#0f172a" }
+    ],
+    code: `// Edugates STEM - Custom Breadboard Sandbox Project
+// Add components using the Parts Bin toolbar and wire them to pins!
+
+const int ledPin = 13;      // Status LED
+const int buttonPin = 2;    // Tactile Input Switch
+const int potPin = A0;      // Analog Potentiometer
+const int buzzerPin = 8;    // Piezo Buzzer
+
+void setup() {
+  pinMode(ledPin, OUTPUT);
+  pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(buzzerPin, OUTPUT);
+  Serial.begin(9600);
+  Serial.println("--- CUSTOM PROJECT BENCH INITIALIZED ---");
+  Serial.println("Select parts from the Toolbox to build any circuit!");
+}
+
+void loop() {
+  int sensorVal = analogRead(potPin);
+  bool btnState = digitalRead(buttonPin) == LOW;
+
+  if (btnState) {
+    digitalWrite(ledPin, HIGH);
+    tone(buzzerPin, 440 + sensorVal, 50);
+    Serial.print("Active Input! ADC: ");
+    Serial.println(sensorVal);
+  } else {
+    digitalWrite(ledPin, LOW);
+  }
+
+  delay(50);
+}`
+  }
+];
+
+// ---------------------------------------------------------------------------
+// Comprehensive Component Catalog & Parts Bin Metadata
+// ---------------------------------------------------------------------------
+export const AVAILABLE_PARTS = [
+  { type: "led_red", name: "Red 5mm LED", category: "Actuators", defaultPin: 13, icon: "💡", color: "#ef4444", desc: "Standard 5mm diffused Red LED (Forward Voltage 2.0V, 20mA max)" },
+  { type: "led_green", name: "Green 5mm LED", category: "Actuators", defaultPin: 11, icon: "💡", color: "#10b981", desc: "Standard 5mm diffused Green LED (Forward Voltage 2.2V)" },
+  { type: "led_yellow", name: "Yellow 5mm LED", category: "Actuators", defaultPin: 12, icon: "💡", color: "#f59e0b", desc: "Standard 5mm diffused Yellow LED (Forward Voltage 2.1V)" },
+  { type: "led_blue", name: "Blue 5mm LED", category: "Actuators", defaultPin: 10, icon: "💡", color: "#3b82f6", desc: "Standard 5mm diffused Blue LED (Forward Voltage 3.2V)" },
+  { type: "rgb_led", name: "RGB 4-Pin LED", category: "Actuators", defaultPin: "9,10,11", icon: "🌈", color: "#ec4899", desc: "Common-Cathode RGB LED with 3 internal emitting dies" },
+  { type: "resistor", name: "220Ω Resistor", category: "Passive & Display", defaultPin: "—", icon: "〰️", color: "#fde68a", desc: "Current-limiting resistor (Color code: Red-Red-Brown-Gold, 1/4W)" },
+  { type: "resistor_10k", name: "10kΩ Resistor", category: "Passive & Display", defaultPin: "—", icon: "〰️", color: "#fde68a", desc: "Pull-up / voltage divider resistor (Color code: Brown-Black-Orange-Gold)" },
+  { type: "capacitor", name: "100nF Capacitor", category: "Passive & Display", defaultPin: "—", icon: "⚡", color: "#f59e0b", desc: "Decoupling multilayer ceramic disc capacitor for power filtering" },
+  { type: "pushbutton", name: "Tactile Pushbutton", category: "Sensors & Inputs", defaultPin: 2, icon: "🔘", color: "#0ea5e9", desc: "Momentary 6x6mm micro-switch with internal pull-up logic" },
+  { type: "toggle_switch", name: "SPDT Slide Switch", category: "Sensors & Inputs", defaultPin: 4, icon: "🎚️", color: "#64748b", desc: "3-pin miniature slide switch for persistent HIGH/LOW toggling" },
+  { type: "potentiometer", name: "10kΩ Potentiometer", category: "Sensors & Inputs", defaultPin: "A0", icon: "🎛️", color: "#06b6d4", desc: "Rotary trimmer dial outputting continuous 0-5V analog voltage" },
+  { type: "buzzer", name: "Piezo Buzzer", category: "Actuators", defaultPin: 8, icon: "🔊", color: "#8b5cf6", desc: "Acoustic transducer resonant for tone() frequency generation" },
+  { type: "ultrasonic", name: "HC-SR04 Sonar", category: "Sensors & Inputs", defaultPin: "9,10", icon: "📏", color: "#0284c7", desc: "Dual transducer time-of-flight ultrasonic sensor (2-400 cm)" },
+  { type: "ldr", name: "LDR Photoresistor", category: "Sensors & Inputs", defaultPin: "A1", icon: "☀️", color: "#d97706", desc: "Cadmium-Sulfide (CdS) light sensor variable resistance" },
+  { type: "tmp36", name: "TMP36 Temp Sensor", category: "Sensors & Inputs", defaultPin: "A2", icon: "🌡️", color: "#f43f5e", desc: "Analog temperature sensor calibrated to 10mV/°C with 500mV offset" },
+  { type: "servo", name: "SG90 Micro Servo", category: "Actuators", defaultPin: 6, icon: "🦾", color: "#0ea5e9", desc: "9g micro-servo motor with 0-180 degree PWM positional sweep" },
+  { type: "dc_motor", name: "DC Motor & Propeller", category: "Actuators", defaultPin: 5, icon: "⚙️", color: "#94a3b8", desc: "High-RPM DC electric motor with 3-blade cooling propeller fan" },
+  { type: "relay", name: "5V Songle Relay", category: "Actuators", defaultPin: 7, icon: "🔌", color: "#2563eb", desc: "10A 250VAC electromagnetic mechanical relay with NO/COM/NC contacts" },
+  { type: "seven_seg", name: "7-Segment Display", category: "Actuators", defaultPin: "3-9", icon: "📟", color: "#ef4444", desc: "Common-cathode LED display for numerical digits 0-9" },
+  { type: "pir", name: "PIR Motion Sensor", category: "Sensors & Inputs", defaultPin: 2, icon: "🚶", color: "#10b981", desc: "Pyroelectric infrared detector with faceted Fresnel dome lens" },
+  { type: "joystick", name: "2-Axis Thumbstick", category: "Sensors & Inputs", defaultPin: "A0,A1,D2", icon: "🕹️", color: "#64748b", desc: "Dual 10k potentiometers (X, Y) + integrated tactile pushbutton" },
+  { type: "lcd_1602", name: "16x2 Character LCD", category: "Passive & Display", defaultPin: "A4,A5", icon: "📺", color: "#047857", desc: "HD44780 controller alphanumeric display with backlit cyan matrix" }
 ];
 
 // ---------------------------------------------------------------------------
@@ -694,7 +1131,24 @@ export function initArduinoLab(containerId) {
       servoAngle: 90,     // 0 - 180 deg
       currentServoAngle: 90,
       temperatureC: 24.5, // -40 to 125 C
-      lcdLines: ["Edugates STEM Lab", "Arduino Uno R3"]
+      lcdLines: ["Edugates STEM Lab", "Arduino Uno R3"],
+      // Extended hardware components & custom sandbox states
+      toggleSwitchOn: false,
+      rgbColor: { r: 255, g: 0, b: 128 },
+      motorSpeed: 0,       // 0 - 255 PWM
+      currentMotorAngle: 0,
+      relayActive: false,
+      sevenSegDigit: 0,
+      sevenSegSegments: { a: true, b: true, c: true, d: true, e: true, f: true, g: false, dp: false },
+      pirMotionDetected: false,
+      joystick: { x: 512, y: 512, btn: false },
+      customPlacedComponents: [
+        { id: "comp_1", type: "led_red", label: "Status LED", pin: 13, x: 220, y: 80, state: { on: true, brightness: 1 } },
+        { id: "comp_2", type: "resistor", label: "220Ω Limiter", pin: 13, x: 160, y: 80, state: { value: 220 } },
+        { id: "comp_3", type: "pushbutton", label: "Trigger Button", pin: 2, x: 120, y: 160, state: { pressed: false } },
+        { id: "comp_4", type: "potentiometer", label: "10kΩ Pot", pin: "A0", x: 280, y: 170, state: { val: 512 } },
+        { id: "comp_5", type: "piezo_buzzer", label: "Tone Alarm", pin: 8, x: 360, y: 80, state: { playing: false } }
+      ]
     },
     serialLogs: [
       "[00:00.000] Arduino Uno R3 Bootloader v4.4 OK",
@@ -802,6 +1256,44 @@ export function initArduinoLab(containerId) {
             </div>
           </div>
 
+          <!-- Custom Project Builder & Component Toolbox Toolbar -->
+          <div id="arduino-custom-toolbar" style="background: rgba(15, 23, 42, 0.9); border: 1.5px solid rgba(6, 182, 212, 0.4); border-radius: 12px; padding: 12px 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.05rem;">🧰</span>
+                <span style="font-size: 0.84rem; font-weight: 700; color: #38bdf8;">Custom Project Builder & Component Library</span>
+              </div>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button id="btn-custom-gencpu" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #34d399; border-color: rgba(52, 211, 153, 0.4);" title="Generate Arduino sketch for placed components">
+                  ⚡ Auto-Gen C++
+                </button>
+                <button id="btn-custom-save" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" title="Save current project to browser storage">
+                  💾 Save
+                </button>
+                <button id="btn-custom-load" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" title="Load saved custom project">
+                  📂 Load
+                </button>
+                <button id="btn-custom-clear" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 600; border-radius: 6px; color: #f87171; border-color: rgba(239, 68, 68, 0.4);" title="Clear custom breadboard components">
+                  🗑️ Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Component Addition Dropdown & Pin Selector -->
+            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+              <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 600;">Add Component:</span>
+              <select id="sel-add-component" class="form-select" style="flex: 1; min-width: 170px; background: #0b1120; color: #f1f5f9; border: 1px solid rgba(56, 189, 248, 0.35); padding: 5px 8px; border-radius: 6px; font-size: 0.78rem;">
+                ${AVAILABLE_PARTS.map(part => `<option value="${part.type}">${part.icon} ${part.name} (${part.category})</option>`).join("")}
+              </select>
+              <button id="btn-add-component-part" class="btn btn-primary" style="padding: 5px 12px; font-size: 0.75rem; font-weight: 700; border-radius: 6px; background: #0891b2;" aria-label="Add component to breadboard">
+                ➕ Add to Breadboard
+              </button>
+            </div>
+
+            <!-- Placed components list chips -->
+            <div id="custom-placed-chips" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; max-height: 80px; overflow-y: auto; padding: 2px;"></div>
+          </div>
+
           <!-- Interactive Circuit Board Viewport (Canvas Simulation) -->
           <div class="lab-canvas-area" style="position: relative; background: #050811; border: 1.5px solid rgba(6, 182, 212, 0.35); border-radius: 12px; overflow: hidden; height: 460px; box-shadow: inset 0 0 40px rgba(0,0,0,0.8);">
             <canvas id="arduino-canvas" width="850" height="460" style="width: 100%; height: 100%; display: block;"></canvas>
@@ -834,7 +1326,7 @@ export function initArduinoLab(containerId) {
           </div>
 
           <!-- Interactive Component Slider Adjusters -->
-          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+          <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
             
             <!-- 1. Potentiometer (A0) Dial -->
             <div>
@@ -848,7 +1340,7 @@ export function initArduinoLab(containerId) {
             <!-- 2. Ultrasonic Obstacle Distance (HC-SR04) -->
             <div>
               <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
-                <span style="font-weight: 700; color: #f59e0b;">📏 Sonar Obstacle (HC-SR04)</span>
+                <span style="font-weight: 700; color: #f59e0b;">📏 Sonar Obstacle</span>
                 <span id="val-dist" style="font-family: monospace; font-weight: 700; color: #fde047;">25.0 cm</span>
               </div>
               <input type="range" id="slider-dist" min="2" max="150" value="25" style="width: 100%; accent-color: #f59e0b;" aria-label="Ultrasonic sensor obstacle distance">
@@ -870,6 +1362,50 @@ export function initArduinoLab(containerId) {
                 <span id="val-temp" style="font-family: monospace; font-weight: 700; color: #f472b6;">24.5 °C</span>
               </div>
               <input type="range" id="slider-temp" min="0" max="60" value="24.5" step="0.5" style="width: 100%; accent-color: #ec4899;" aria-label="Temperature in Celsius">
+            </div>
+
+            <!-- 5. DC Motor Speed (PWM D5) -->
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                <span style="font-weight: 700; color: #38bdf8;">🌀 DC Motor (PWM D5)</span>
+                <span id="val-motor" style="font-family: monospace; font-weight: 700; color: #7dd3fc;">0 PWM (0 RPM)</span>
+              </div>
+              <input type="range" id="slider-motor" min="0" max="255" value="0" style="width: 100%; accent-color: #38bdf8;" aria-label="DC Motor PWM Speed">
+            </div>
+
+            <!-- 6. RGB Mood Lamp Color Picker -->
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                <span style="font-weight: 700; color: #a855f7;">🌈 RGB Color (D9/10/11)</span>
+                <span id="val-rgb-hex" style="font-family: monospace; font-weight: 700; color: #c084fc;">#FF0080</span>
+              </div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <input type="color" id="picker-rgb" value="#ff0080" style="width: 42px; height: 26px; border: none; border-radius: 4px; background: transparent; cursor: pointer;" aria-label="RGB Color Picker">
+                <span style="font-size: 0.72rem; color: #94a3b8;">Click palette to mix</span>
+              </div>
+            </div>
+
+            <!-- 7. Hardware Switch & Actuators Triggers Row -->
+            <div style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.06);">
+              <!-- Songle Relay Manual Flip -->
+              <button id="btn-relay-toggle" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: 6px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" aria-label="Toggle Relay State">
+                ⚡ Relay: OFF (NC)
+              </button>
+
+              <!-- PIR Motion Intruder Pulse -->
+              <button id="btn-pir-trigger" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: 6px; color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" aria-label="Trigger PIR Sensor">
+                🏃 Trigger Motion (PIR)
+              </button>
+
+              <!-- Slide Switch Toggle -->
+              <button id="btn-slide-switch" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: 6px; color: #34d399; border-color: rgba(52, 211, 153, 0.4);" aria-label="Toggle Slide Switch">
+                🔀 Slide Switch: OFF
+              </button>
+
+              <!-- 7-Segment Decimal Step -->
+              <button id="btn-sevenseg-step" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; font-weight: 700; border-radius: 6px; color: #f43f5e; border-color: rgba(244, 63, 94, 0.4);" aria-label="Step 7-Segment Counter">
+                🔢 Step 7-Seg: 0
+              </button>
             </div>
           </div>
         </div>
@@ -1090,6 +1626,24 @@ export function initArduinoLab(containerId) {
   const valLdr = document.getElementById("val-ldr");
   const valTemp = document.getElementById("val-temp");
 
+  // Extended Hardware Adjusters & Toolbox References
+  const customChipsContainer = document.getElementById("custom-placed-chips");
+  const selAddComponent = document.getElementById("sel-add-component");
+  const btnAddComponent = document.getElementById("btn-add-component-part");
+  const btnCustomGen = document.getElementById("btn-custom-gencpu");
+  const btnCustomSave = document.getElementById("btn-custom-save");
+  const btnCustomLoad = document.getElementById("btn-custom-load");
+  const btnCustomClear = document.getElementById("btn-custom-clear");
+
+  const sliderMotor = document.getElementById("slider-motor");
+  const valMotor = document.getElementById("val-motor");
+  const pickerRgb = document.getElementById("picker-rgb");
+  const valRgbHex = document.getElementById("val-rgb-hex");
+  const btnRelayToggle = document.getElementById("btn-relay-toggle");
+  const btnPirTrigger = document.getElementById("btn-pir-trigger");
+  const btnSlideSwitch = document.getElementById("btn-slide-switch");
+  const btnSevensegStep = document.getElementById("btn-sevenseg-step");
+
   const tabSerialMon = document.getElementById("tab-serial-mon");
   const tabSerialPlot = document.getElementById("tab-serial-plot");
   const viewSerialMon = document.getElementById("view-serial-monitor");
@@ -1211,6 +1765,222 @@ export function initArduinoLab(containerId) {
   sliderTemp?.addEventListener("input", (e) => {
     state.components.temperatureC = parseFloat(e.target.value);
     valTemp.textContent = `${state.components.temperatureC.toFixed(1)} °C`;
+  });
+
+  // 4b. Extended Hardware Adjusters Listeners
+  sliderMotor?.addEventListener("input", (e) => {
+    const pwm = parseInt(e.target.value, 10);
+    state.components.motorSpeed = pwm;
+    const rpm = Math.round((pwm / 255) * 4800);
+    if (valMotor) valMotor.textContent = `${pwm} PWM (${rpm} RPM)`;
+    audio.setMotorWhine(pwm / 255);
+  });
+
+  pickerRgb?.addEventListener("input", (e) => {
+    const hex = e.target.value;
+    if (valRgbHex) valRgbHex.textContent = hex.toUpperCase();
+    const r = parseInt(hex.slice(1, 3), 16) || 0;
+    const g = parseInt(hex.slice(3, 5), 16) || 0;
+    const b = parseInt(hex.slice(5, 7), 16) || 0;
+    state.components.rgbColor = { r, g, b };
+  });
+
+  btnRelayToggle?.addEventListener("click", () => {
+    state.components.relayActive = !state.components.relayActive;
+    audio.playRelayClick(state.components.relayActive);
+    if (btnRelayToggle) {
+      btnRelayToggle.textContent = state.components.relayActive ? "⚡ Relay: ON (NO closed)" : "⚡ Relay: OFF (NC closed)";
+      btnRelayToggle.style.color = state.components.relayActive ? "#f59e0b" : "#38bdf8";
+    }
+    addSerialLog(`Relay switched ${state.components.relayActive ? "ON (NO Active)" : "OFF (NC Active)"}`);
+  });
+
+  btnPirTrigger?.addEventListener("click", () => {
+    state.components.pirMotionDetected = true;
+    audio.playPirChime();
+    addSerialLog("🚨 PIR Motion Sensor: INTRUDER DETECTED! (Pin D7 -> HIGH)");
+    setTimeout(() => {
+      state.components.pirMotionDetected = false;
+      addSerialLog("PIR Sensor: Idle (Pin D7 -> LOW)");
+    }, 1800);
+  });
+
+  btnSlideSwitch?.addEventListener("click", () => {
+    state.components.toggleSwitchOn = !state.components.toggleSwitchOn;
+    audio.playTactileClick(state.components.toggleSwitchOn);
+    if (btnSlideSwitch) {
+      btnSlideSwitch.textContent = state.components.toggleSwitchOn ? "🔀 Slide Switch: ON" : "🔀 Slide Switch: OFF";
+      btnSlideSwitch.style.color = state.components.toggleSwitchOn ? "#10b981" : "#34d399";
+    }
+    addSerialLog(`Slide switch flipped: ${state.components.toggleSwitchOn ? "HIGH" : "LOW"}`);
+  });
+
+  btnSevensegStep?.addEventListener("click", () => {
+    state.components.sevenSegDigit = (state.components.sevenSegDigit + 1) % 10;
+    audio.playTactileClick(true);
+    if (btnSevensegStep) btnSevensegStep.textContent = `🔢 Step 7-Seg: ${state.components.sevenSegDigit}`;
+    addSerialLog(`7-Segment display stepped to: ${state.components.sevenSegDigit}`);
+  });
+
+  // 4c. Custom Project Builder & Component Library Handlers
+  function renderCustomChips() {
+    if (!customChipsContainer) return;
+    customChipsContainer.innerHTML = "";
+    if (!state.components.customPlacedComponents || state.components.customPlacedComponents.length === 0) {
+      customChipsContainer.innerHTML = `<span style="font-size: 0.72rem; color: #64748b; font-style: italic;">No custom components yet. Select an item and click 'Add to Breadboard' to build your circuit!</span>`;
+      return;
+    }
+    state.components.customPlacedComponents.forEach((comp, idx) => {
+      const partDef = AVAILABLE_PARTS.find(p => p.type === comp.type) || { icon: "📦", name: comp.label };
+      const chip = document.createElement("div");
+      chip.style.cssText = "display: inline-flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 2px 8px; font-size: 0.72rem;";
+      chip.innerHTML = `
+        <span>${partDef.icon}</span>
+        <strong style="color: #f1f5f9;">${comp.label}</strong>
+        <select class="custom-pin-sel" data-index="${idx}" style="background: #0f172a; color: #38bdf8; border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; font-size: 0.68rem; padding: 1px 4px;">
+          ${[2,3,4,5,6,7,8,9,10,11,12,13,"A0","A1","A2","A3","A4","A5"].map(p => `<option value="${p}" ${String(comp.pin) === String(p) ? "selected" : ""}>Pin ${p}</option>`).join("")}
+        </select>
+        <button class="btn-remove-part" data-index="${idx}" style="background: transparent; border: none; color: #f87171; cursor: pointer; font-size: 0.8rem; padding: 0 2px;" title="Remove component">✕</button>
+      `;
+      customChipsContainer.appendChild(chip);
+    });
+
+    customChipsContainer.querySelectorAll(".custom-pin-sel").forEach(sel => {
+      sel.addEventListener("change", (e) => {
+        const i = parseInt(e.target.dataset.index, 10);
+        if (state.components.customPlacedComponents[i]) {
+          const val = e.target.value;
+          state.components.customPlacedComponents[i].pin = isNaN(val) ? val : parseInt(val, 10);
+          addSerialLog(`Assigned ${state.components.customPlacedComponents[i].label} to Pin ${val}`);
+        }
+      });
+    });
+
+    customChipsContainer.querySelectorAll(".btn-remove-part").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        const i = parseInt(e.target.dataset.index, 10);
+        const removed = state.components.customPlacedComponents.splice(i, 1)[0];
+        if (removed) addSerialLog(`Removed ${removed.label} from breadboard`);
+        audio.playTactileClick(false);
+        renderCustomChips();
+      });
+    });
+  }
+
+  // Initial render of placed component chips
+  renderCustomChips();
+
+  btnAddComponent?.addEventListener("click", () => {
+    const selectedType = selAddComponent ? selAddComponent.value : "led_red";
+    const partDef = AVAILABLE_PARTS.find(p => p.type === selectedType) || AVAILABLE_PARTS[0];
+    const count = (state.components.customPlacedComponents || []).filter(c => c.type === selectedType).length + 1;
+    const offset = (state.components.customPlacedComponents.length * 55) % 280;
+    const newComp = {
+      id: `comp_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      type: partDef.type,
+      label: `${partDef.name} ${count}`,
+      pin: partDef.defaultPin,
+      x: 70 + offset,
+      y: 75 + ((state.components.customPlacedComponents.length * 35) % 150),
+      state: { on: false, val: 0 }
+    };
+    state.components.customPlacedComponents.push(newComp);
+    renderCustomChips();
+    addSerialLog(`Added ${newComp.label} to breadboard at Pin ${newComp.pin}`);
+    audio.playTactileClick(true);
+  });
+
+  btnCustomGen?.addEventListener("click", () => {
+    audio.playTactileClick(true);
+    const comps = state.components.customPlacedComponents;
+    if (!comps || comps.length === 0) {
+      addSerialLog("No custom components placed. Add components first!");
+      return;
+    }
+    const sandboxIdx = ARDUINO_EXPERIMENTS.findIndex(e => e.id === "custom_sandbox");
+    if (sandboxIdx !== -1 && state.selectedExpIndex !== sandboxIdx) {
+      if (selExp) selExp.value = sandboxIdx;
+      state.selectedExpIndex = sandboxIdx;
+      if (expCategoryBadge) expCategoryBadge.textContent = ARDUINO_EXPERIMENTS[sandboxIdx].category;
+      if (expDescBox) expDescBox.textContent = ARDUINO_EXPERIMENTS[sandboxIdx].description;
+    }
+
+    let code = `// ==================================================\n// Custom Auto-Generated Arduino Uno Project Sketch\n// Components: ${comps.map(c => c.label).join(", ")}\n// ==================================================\n\n`;
+    comps.forEach(c => {
+      const varName = c.label.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+      code += `#define PIN_${varName} ${c.pin}\n`;
+    });
+    code += `\nvoid setup() {\n  Serial.begin(9600);\n  Serial.println("Custom Interactive Project Online!");\n`;
+    comps.forEach(c => {
+      const varName = c.label.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+      if (c.type.includes("led") || c.type.includes("buzzer") || c.type.includes("motor") || c.type.includes("relay") || c.type.includes("seven_seg")) {
+        code += `  pinMode(PIN_${varName}, OUTPUT);\n`;
+      } else if (c.type.includes("button") || c.type.includes("switch") || c.type.includes("pir")) {
+        code += `  pinMode(PIN_${varName}, INPUT_PULLUP);\n`;
+      }
+    });
+    code += `}\n\nvoid loop() {\n`;
+    comps.forEach(c => {
+      const varName = c.label.toUpperCase().replace(/[^A-Z0-9]/g, "_");
+      if (String(c.pin).startsWith("A")) {
+        code += `  int val_${varName.toLowerCase()} = analogRead(PIN_${varName});\n  Serial.print("${c.label}: "); Serial.println(val_${varName.toLowerCase()});\n`;
+      } else if (c.type.includes("button") || c.type.includes("switch") || c.type.includes("pir")) {
+        code += `  int state_${varName.toLowerCase()} = digitalRead(PIN_${varName});\n`;
+      } else if (c.type.includes("led") || c.type.includes("relay")) {
+        code += `  digitalWrite(PIN_${varName}, HIGH);\n  delay(200);\n  digitalWrite(PIN_${varName}, LOW);\n`;
+      }
+    });
+    code += `  delay(100);\n}\n`;
+
+    if (codeEditor) codeEditor.value = code;
+    if (compilerLog) compilerLog.innerHTML = `<span style="color: #34d399;">✓ Sketch auto-generated for ${comps.length} custom components!</span>`;
+    addSerialLog(`Auto-generated C++ sketch for ${comps.length} components.`);
+    SoundFX.playSuccess();
+  });
+
+  btnCustomSave?.addEventListener("click", () => {
+    audio.playTactileClick(true);
+    try {
+      const projectData = {
+        name: "Custom Arduino Project",
+        savedAt: new Date().toISOString(),
+        components: state.components.customPlacedComponents,
+        code: codeEditor ? codeEditor.value : ""
+      };
+      localStorage.setItem("edugates_arduino_custom_project", JSON.stringify(projectData));
+      addSerialLog("Project saved to browser localStorage!");
+      SoundFX.playSuccess();
+    } catch (err) {
+      addSerialLog(`Save error: ${err.message}`);
+    }
+  });
+
+  btnCustomLoad?.addEventListener("click", () => {
+    audio.playTactileClick(true);
+    try {
+      const raw = localStorage.getItem("edugates_arduino_custom_project");
+      if (!raw) {
+        addSerialLog("No saved project found in localStorage.");
+        return;
+      }
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.components)) {
+        state.components.customPlacedComponents = data.components;
+        if (data.code && codeEditor) codeEditor.value = data.code;
+        renderCustomChips();
+        addSerialLog(`Loaded custom project (${data.components.length} components).`);
+        SoundFX.playSuccess();
+      }
+    } catch (err) {
+      addSerialLog(`Load error: ${err.message}`);
+    }
+  });
+
+  btnCustomClear?.addEventListener("click", () => {
+    audio.playTactileClick(false);
+    state.components.customPlacedComponents = [];
+    renderCustomChips();
+    addSerialLog("Cleared custom breadboard components.");
   });
 
   // 5. IDE Controls: Verify & Upload
@@ -1561,6 +2331,65 @@ export function initArduinoLab(containerId) {
           center: { x: 740, y: 135 }
         };
       }
+    } else if (expId === "rgb_mood_lamp") {
+      if (Math.hypot(cx - 570, cy - 140) <= 24) {
+        return { id: "rgb_led", label: "Diffused 4-Pin RGB LED (Pins D9/10/11)", cursor: "pointer", circle: { x: 570, y: 140, r: 22 }, center: { x: 570, y: 140 } };
+      }
+      if (Math.hypot(cx - 720, cy - 147) <= 22) {
+        return { id: "pot", label: "10kΩ RGB Hue Selector Potentiometer (ADC A0)", cursor: "grab", box: { x: 701, y: 128, w: 38, h: 38 }, center: { x: 720, y: 147 } };
+      }
+    } else if (expId === "dc_motor_speed") {
+      if (Math.hypot(cx - 560, cy - 145) <= 35) {
+        return { id: "motor", label: "High-RPM DC Motor with Propeller Fan (PWM ~5)", cursor: "pointer", circle: { x: 560, y: 145, r: 35 }, center: { x: 560, y: 145 } };
+      }
+      if (Math.hypot(cx - 750, cy - 147) <= 22) {
+        return { id: "pot", label: "10kΩ Motor Speed Throttle (ADC A0)", cursor: "grab", box: { x: 731, y: 128, w: 38, h: 38 }, center: { x: 750, y: 147 } };
+      }
+    } else if (expId === "pir_alarm") {
+      if (Math.hypot(cx - 520, cy - 135) <= 25) {
+        return { id: "pir", label: "HC-SR501 PIR Motion Detector (Pin D7)", cursor: "pointer", circle: { x: 520, y: 135, r: 25 }, center: { x: 520, y: 135 } };
+      }
+      if (cx >= 620 && cx <= 685 && cy >= 120 && cy <= 185) {
+        return { id: "relay", label: "Songle 5V Sugar-Cube Relay Module (Pin D4)", cursor: "pointer", box: { x: 620, y: 120, w: 65, h: 65 }, center: { x: 652, y: 152 } };
+      }
+      if (Math.hypot(cx - 785, cy - 145) <= 24) {
+        return { id: "buzzer", label: "Security Siren Piezo (Pin D8)", cursor: "pointer", circle: { x: 785, y: 145, r: 22 }, center: { x: 785, y: 145 } };
+      }
+      if (Math.hypot(cx - 730, cy - 145) <= 14) {
+        return { id: "led_red", label: "Intruder Alert Strobe (Pin D13)", cursor: "pointer", circle: { x: 730, y: 145, r: 14 }, center: { x: 730, y: 145 } };
+      }
+    } else if (expId === "seven_seg_counter") {
+      if (cx >= 560 && cx <= 630 && cy >= 110 && cy <= 200) {
+        return { id: "sevenseg", label: "Decimal 7-Segment LED Display (Pins D6-D12)", cursor: "pointer", box: { x: 560, y: 110, w: 70, h: 90 }, center: { x: 595, y: 155 } };
+      }
+      if (cx >= 690 && cx <= 730 && cy >= 130 && cy <= 170) {
+        return { id: "button", label: "Decade Counter Reset Switch (Pin D2)", cursor: "pointer", box: { x: 690, y: 130, w: 40, h: 40 }, center: { x: 710, y: 150 } };
+      }
+    } else if (expId === "joystick_pan_tilt") {
+      if (Math.hypot(cx - 530, cy - 135) <= 30) {
+        return { id: "joystick", label: "2-Axis Analog Thumbstick Joystick (A0/A1, D2)", cursor: "pointer", circle: { x: 530, y: 135, r: 30 }, center: { x: 530, y: 135 } };
+      }
+      if (cx >= 660 && cx <= 735 && cy >= 150 && cy <= 245) {
+        return { id: "servo", label: "Pan-Tilt Micro Servo Motor (PWM ~9)", cursor: "pointer", box: { x: 660, y: 150, w: 75, h: 95 }, center: { x: 697, y: 197 } };
+      }
+    } else if (expId === "custom_sandbox") {
+      if (state.components.customPlacedComponents && state.components.customPlacedComponents.length > 0) {
+        for (let i = state.components.customPlacedComponents.length - 1; i >= 0; i--) {
+          const comp = state.components.customPlacedComponents[i];
+          const px = 450 + comp.x;
+          const py = 60 + comp.y;
+          if (Math.hypot(cx - px, cy - py) <= 25) {
+            return {
+              id: comp.id,
+              customComp: comp,
+              label: `${comp.label} (Pin ${comp.pin})`,
+              cursor: "pointer",
+              circle: { x: px, y: py, r: 24 },
+              center: { x: px, y: py }
+            };
+          }
+        }
+      }
     }
 
     return null;
@@ -1651,6 +2480,60 @@ export function initArduinoLab(containerId) {
     } else if (target.id === "lcd") {
       audio.playTactileClick(false);
       addSerialLog("HD44780 LCD: 16x2 controller buffer refreshed");
+    } else if (target.id === "rgb_led") {
+      const colors = [{r:255,g:0,b:0},{r:0,g:255,b:0},{r:0,g:128,b:255},{r:255,g:0,b:255},{r:255,g:255,b:0},{r:255,g:255,b:255}];
+      const nextCol = colors[Math.floor(Math.random() * colors.length)];
+      state.components.rgbColor = nextCol;
+      audio.playTactileClick(true);
+      addSerialLog(`RGB LED tapped: Color set to rgb(${nextCol.r}, ${nextCol.g}, ${nextCol.b})`);
+    } else if (target.id === "motor") {
+      state.components.motorSpeed = state.components.motorSpeed > 0 ? 0 : 220;
+      if (sliderMotor) sliderMotor.value = state.components.motorSpeed;
+      audio.setMotorWhine(state.components.motorSpeed / 255);
+      addSerialLog(`DC Motor toggled: ${state.components.motorSpeed > 0 ? "220 PWM (4150 RPM)" : "STOPPED"}`);
+    } else if (target.id === "relay") {
+      state.components.relayActive = !state.components.relayActive;
+      audio.playRelayClick(state.components.relayActive);
+      if (btnRelayToggle) {
+        btnRelayToggle.textContent = state.components.relayActive ? "⚡ Relay: ON (NO closed)" : "⚡ Relay: OFF (NC closed)";
+        btnRelayToggle.style.color = state.components.relayActive ? "#f59e0b" : "#38bdf8";
+      }
+      addSerialLog(`Relay contact flipped: ${state.components.relayActive ? "NO Closed" : "NC Closed"}`);
+    } else if (target.id === "pir") {
+      state.components.pirMotionDetected = true;
+      audio.playPirChime();
+      addSerialLog("🚨 Direct touch on PIR: Motion trigger pulse fired!");
+      setTimeout(() => { state.components.pirMotionDetected = false; }, 1800);
+    } else if (target.id === "sevenseg") {
+      state.components.sevenSegDigit = (state.components.sevenSegDigit + 1) % 10;
+      audio.playTactileClick(true);
+      addSerialLog(`7-Segment display tapped: Value ${state.components.sevenSegDigit}`);
+    } else if (target.id === "joystick") {
+      audio.playTactileClick(true);
+      state.components.buttonPressed = !state.components.buttonPressed;
+      addSerialLog(`Joystick Thumbstick clicked! (SW -> ${state.components.buttonPressed ? "LOW" : "HIGH"})`);
+    } else if (target.customComp) {
+      const comp = target.customComp;
+      if (comp.type.includes("button") || comp.type.includes("switch")) {
+        comp.state = comp.state || {};
+        comp.state.pressed = !comp.state.pressed;
+        audio.playTactileClick(comp.state.pressed);
+        addSerialLog(`${comp.label}: State toggled`);
+      } else if (comp.type.includes("relay")) {
+        state.components.relayActive = !state.components.relayActive;
+        audio.playRelayClick(state.components.relayActive);
+        addSerialLog(`${comp.label}: Relay armature clicked`);
+      } else if (comp.type.includes("buzzer")) {
+        audio.playTone(920, 150);
+        addSerialLog(`${comp.label}: Tone triggered`);
+      } else if (comp.type.includes("motor")) {
+        state.components.motorSpeed = state.components.motorSpeed > 0 ? 0 : 200;
+        audio.setMotorWhine(state.components.motorSpeed / 255);
+        addSerialLog(`${comp.label}: Motor speed toggled`);
+      } else {
+        audio.playTactileClick(false);
+        addSerialLog(`${comp.label}: Pin ${comp.pin} tested`);
+      }
     } else if (target.id.startsWith("led_")) {
       audio.playTactileClick(false);
       addSerialLog(`${target.label} probed: Continuity verified`);
@@ -1814,6 +2697,77 @@ export function initArduinoLab(containerId) {
       } else {
         state.components.lcdLines[1] = "STATUS: NORMAL";
         state.components.pin13Led = false;
+      }
+    } else if (expId === "rgb_mood_lamp") {
+      // 7. Interactive RGB Mood Lamp: Pot cycles through Hue wheel 0-360
+      const hue = (state.components.potValue / 1023) * 360;
+      const c = 1.0;
+      const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+      let r1 = 0, g1 = 0, b1 = 0;
+      if (hue < 60) { r1 = c; g1 = x; b1 = 0; }
+      else if (hue < 120) { r1 = x; g1 = c; b1 = 0; }
+      else if (hue < 180) { r1 = 0; g1 = c; b1 = x; }
+      else if (hue < 240) { r1 = 0; g1 = x; b1 = c; }
+      else if (hue < 300) { r1 = x; g1 = 0; b1 = c; }
+      else { r1 = c; g1 = 0; b1 = x; }
+      const r = Math.round(r1 * 255);
+      const g = Math.round(g1 * 255);
+      const b = Math.round(b1 * 255);
+      state.components.rgbColor = { r, g, b };
+      state.components.pin9Pwm = r;
+      state.components.pin11Led = g > 120;
+      state.components.pin12Led = b > 120;
+      if (valRgbHex) {
+        const hex = `#${r.toString(16).padStart(2,"0")}${g.toString(16).padStart(2,"0")}${b.toString(16).padStart(2,"0")}`;
+        valRgbHex.textContent = hex.toUpperCase();
+      }
+    } else if (expId === "dc_motor_speed") {
+      // 8. PWM DC Motor Fan: mapped from Potentiometer
+      const targetSpeed = Math.floor((state.components.potValue / 1023) * 255);
+      state.components.motorSpeed = targetSpeed;
+      if (sliderMotor) sliderMotor.value = targetSpeed;
+      const rpm = Math.round((targetSpeed / 255) * 4800);
+      if (valMotor) valMotor.textContent = `${targetSpeed} PWM (${rpm} RPM)`;
+      // Spin propeller
+      state.components.currentMotorAngle += (targetSpeed / 255) * (stepMs / 1000) * 35;
+      audio.setMotorWhine(targetSpeed / 255);
+    } else if (expId === "pir_alarm") {
+      // 9. PIR Motion Intruder Security Alarm
+      if (state.components.pirMotionDetected) {
+        state.components.pin13Led = (Math.floor(t / 120) % 2 === 0);
+        state.components.relayActive = true;
+        if (Math.floor(t / 220) % 2 === 0) {
+          audio.playTone(1350, 90);
+        }
+      } else {
+        state.components.pin13Led = false;
+        state.components.relayActive = false;
+      }
+    } else if (expId === "seven_seg_counter") {
+      // 10. Digital 7-Segment Decade Counter
+      if (state.components.buttonPressed) {
+        state.components.sevenSegDigit = 0;
+      } else {
+        const digit = Math.floor(t / 1000) % 10;
+        state.components.sevenSegDigit = digit;
+      }
+      if (btnSevensegStep) btnSevensegStep.textContent = `🔢 Step 7-Seg: ${state.components.sevenSegDigit}`;
+    } else if (expId === "joystick_pan_tilt") {
+      // 11. 2-Axis Thumbstick & Servo Pan-Tilt
+      const joyX = state.components.potValue; // 0 - 1023
+      const targetAngle = Math.round((joyX / 1023) * 180);
+      state.components.servoAngle = targetAngle;
+      const diff = targetAngle - state.components.currentServoAngle;
+      if (Math.abs(diff) > 0.5) {
+        state.components.currentServoAngle += diff * 0.18;
+        audio.playServoWhine(targetAngle, state.components.currentServoAngle);
+      }
+      state.components.pin13Led = state.components.buttonPressed;
+    } else if (expId === "custom_sandbox") {
+      // 12. Freeform Custom Breadboard Sandbox
+      state.components.pin13Led = (Math.floor(t / 1000) % 2 === 0);
+      if (state.components.motorSpeed > 0) {
+        state.components.currentMotorAngle += (state.components.motorSpeed / 255) * (stepMs / 1000) * 30;
       }
     }
 
@@ -2228,71 +3182,270 @@ export function initArduinoLab(containerId) {
       drawLcdModule(c, bx + 60, by + 50, state.components.lcdLines);
       // TMP36 Temp Sensor IC
       drawTmp36Sensor(c, bx + 320, by + 80, state.components.temperatureC);
+
+    } else if (expId === "rgb_mood_lamp") {
+      // 4-pin RGB LED
+      drawRgbLed(c, bx + 120, by + 80, state.components.rgbColor, "RGB (D9/10/11)");
+      // 220Ω Limiting Resistors
+      drawResistor(c, bx + 40, by + 120, 220, "220Ω");
+      drawResistor(c, bx + 70, by + 120, 220, "220Ω");
+      drawResistor(c, bx + 100, by + 120, 220, "220Ω");
+      // Potentiometer
+      drawPotTrim(c, bx + 270, by + 75, state.components.potValue, "HUE (A0)");
+
+    } else if (expId === "dc_motor_speed") {
+      // DC Motor with Propeller Fan
+      drawDcMotorFan(c, bx + 110, by + 85, state.components.motorSpeed, state.components.currentMotorAngle);
+      // Flyback Diode & Transistor Driver
+      drawTransistorPackage(c, bx + 220, by + 80);
+      // Speed Potentiometer
+      drawPotTrim(c, bx + 300, by + 75, state.components.potValue, "THROTTLE");
+
+    } else if (expId === "pir_alarm") {
+      // HC-SR501 PIR Sensor
+      drawPirSensor(c, bx + 70, by + 70, state.components.pirMotionDetected);
+      // Songle 5V Relay
+      drawRelayModule(c, bx + 180, by + 65, state.components.relayActive);
+      // Strobe LED & Piezo Siren
+      drawLargeLed(c, bx + 280, by + 80, "#ef4444", state.components.pin13Led, "ALARM (D13)");
+      drawPiezoBuzzer(c, bx + 335, by + 80, state.components.pirMotionDetected);
+
+    } else if (expId === "seven_seg_counter") {
+      // 7-Segment Decimal Display
+      drawSevenSegment(c, bx + 120, by + 55, state.components.sevenSegDigit);
+      // Reset Button
+      drawTactileSwitch(c, bx + 250, by + 75, state.components.buttonPressed, "RESET (D2)");
+      drawResistor(c, bx + 45, by + 80, 220, "220Ω Array");
+
+    } else if (expId === "joystick_pan_tilt") {
+      // 2-Axis Thumbstick Joystick
+      drawJoystickModule(c, bx + 80, by + 70, state.components.potValue, 512, state.components.buttonPressed);
+      // Pan Servo
+      drawServoMotor(c, bx + 240, by + 95, state.components.currentServoAngle);
+
+    } else if (expId === "custom_sandbox") {
+      // Custom Project Sandbox: Render custom placed components
+      if (state.components.customPlacedComponents && state.components.customPlacedComponents.length > 0) {
+        state.components.customPlacedComponents.forEach(comp => {
+          const cx = bx + comp.x;
+          const cy = by + comp.y;
+          switch (comp.type) {
+            case "led_red":
+              drawLargeLed(c, cx, cy, "#ef4444", state.components.pin13Led || comp.state?.on, comp.label);
+              break;
+            case "led_green":
+              drawLargeLed(c, cx, cy, "#10b981", state.components.pin11Led || comp.state?.on, comp.label);
+              break;
+            case "led_yellow":
+              drawLargeLed(c, cx, cy, "#f59e0b", state.components.pin12Led || comp.state?.on, comp.label);
+              break;
+            case "led_blue":
+              drawLargeLed(c, cx, cy, "#38bdf8", state.components.pin9Pwm > 0 || comp.state?.on, comp.label);
+              break;
+            case "rgb_led":
+              drawRgbLed(c, cx, cy, state.components.rgbColor, comp.label);
+              break;
+            case "resistor":
+              drawResistor(c, cx, cy, comp.state?.value || 220, comp.label);
+              break;
+            case "pushbutton":
+              drawTactileSwitch(c, cx, cy, state.components.buttonPressed || comp.state?.pressed, comp.label);
+              break;
+            case "slide_switch":
+              drawSlideSwitch(c, cx, cy, state.components.toggleSwitchOn, comp.label);
+              break;
+            case "potentiometer":
+              drawPotTrim(c, cx, cy, state.components.potValue, comp.label);
+              break;
+            case "piezo_buzzer":
+              drawPiezoBuzzer(c, cx, cy, state.components.pin13Led, false, comp.label);
+              break;
+            case "ultrasonic_sonar":
+              drawUltrasonicModule(c, cx, cy, state.components.obstacleDistCm);
+              break;
+            case "ldr_sensor":
+              drawLdrComponent(c, cx, cy, state.components.ldrLux);
+              break;
+            case "tmp36_temp":
+              drawTmp36Sensor(c, cx, cy, state.components.temperatureC);
+              break;
+            case "servo_motor":
+              drawServoMotor(c, cx, cy, state.components.currentServoAngle);
+              break;
+            case "dc_motor_fan":
+              drawDcMotorFan(c, cx, cy, state.components.motorSpeed, state.components.currentMotorAngle);
+              break;
+            case "relay_module":
+              drawRelayModule(c, cx, cy, state.components.relayActive);
+              break;
+            case "seven_segment":
+              drawSevenSegment(c, cx, cy, state.components.sevenSegDigit);
+              break;
+            case "pir_motion":
+              drawPirSensor(c, cx, cy, state.components.pirMotionDetected);
+              break;
+            case "joystick_thumb":
+              drawJoystickModule(c, cx, cy, state.components.potValue, 512, state.components.buttonPressed);
+              break;
+            case "lcd_16x2":
+              drawLcdModule(c, cx, cy, state.components.lcdLines);
+              break;
+            default:
+              drawLargeLed(c, cx, cy, "#38bdf8", true, comp.label);
+          }
+        });
+      } else {
+        c.fillStyle = "#64748b";
+        c.font = "bold 11px sans-serif";
+        c.textAlign = "center";
+        c.fillText("Breadboard Ready: Pick components from toolbox above!", bx + bw / 2, by + bh / 2 + 4);
+        c.textAlign = "left";
+      }
     }
   }
 
-  // Draw 5mm Diffused LED with optical bloom
+  // Draw Photorealistic 5mm Diffused LED with optical bloom & internal leadframe
   function drawLargeLed(c, lx, ly, color, isOn, text = "", brightness = 1.0) {
     c.save();
-    // Metal pins
+    // Metal pins (anode and cathode leads dropping down)
     c.strokeStyle = "#94a3b8";
-    c.lineWidth = 2;
+    c.lineWidth = 1.8;
     c.beginPath();
-    c.moveTo(lx - 4, ly + 14);
+    c.moveTo(lx - 4, ly + 12);
     c.lineTo(lx - 4, ly + 28);
-    c.moveTo(lx + 4, ly + 14);
+    c.moveTo(lx + 4, ly + 12);
     c.lineTo(lx + 4, ly + 28);
     c.stroke();
 
-    // 5mm Epoxy Dome
+    // Drop shadow
+    c.shadowColor = "rgba(0,0,0,0.45)";
+    c.shadowBlur = 6;
+    c.shadowOffsetY = 3;
+
+    // 5mm Epoxy Dome + Base Flange Rim
     c.beginPath();
     c.arc(lx, ly, 10, Math.PI, 0, false);
     c.rect(lx - 10, ly, 20, 8);
+    // Base rim flange
+    c.rect(lx - 11.5, ly + 8, 23, 3.5);
     c.closePath();
 
     if (isOn) {
       c.fillStyle = color;
       c.shadowColor = color;
-      c.shadowBlur = 22 * brightness;
+      c.shadowBlur = 24 * brightness;
       c.fill();
-      // Internal die hot spot
-      c.fillStyle = "#ffffff";
+
+      // Leadframe anvil & post internal silhouettes
+      c.shadowBlur = 0;
+      c.fillStyle = "rgba(0, 0, 0, 0.25)";
+      c.fillRect(lx - 4, ly + 2, 3, 7);
+      c.fillRect(lx + 1, ly + 2, 3, 7);
+
+      // Core semiconductor chip die intense hotspot
+      const coreGrad = c.createRadialGradient(lx, ly + 1, 1, lx, ly + 1, 7);
+      coreGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+      coreGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.5)");
+      coreGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+      c.fillStyle = coreGrad;
       c.beginPath();
-      c.arc(lx, ly + 2, 4, 0, Math.PI * 2);
+      c.arc(lx, ly + 1, 7, 0, Math.PI * 2);
       c.fill();
     } else {
-      c.fillStyle = "rgba(148, 163, 184, 0.4)";
+      // Unlit tinted resin
+      c.fillStyle = "rgba(100, 116, 139, 0.35)";
       c.fill();
+
+      // Visible internal metal leadframe
+      c.fillStyle = "#64748b";
+      c.fillRect(lx - 3.5, ly + 2, 2.5, 6);
+      c.fillRect(lx + 1, ly + 2, 2.5, 6);
     }
+
+    // Specular Fresnel lens reflection highlight arc
+    c.strokeStyle = "rgba(255, 255, 255, 0.65)";
+    c.lineWidth = 1.4;
+    c.beginPath();
+    c.arc(lx - 3, ly - 3, 5, -0.6 * Math.PI, -0.1 * Math.PI);
+    c.stroke();
     c.restore();
 
     if (text) {
       c.fillStyle = "#0f172a";
       c.font = "bold 8px sans-serif";
-      c.fillText(text, lx - 20, ly + 40);
+      c.fillText(text, lx - 20, ly + 42);
     }
   }
 
-  // Draw Square Tactile Pushbutton
+  // Draw Photorealistic Square Tactile Pushbutton with Metal Rim & Plunger
   function drawTactileSwitch(c, sx, sy, isPressed, label = "") {
-    c.fillStyle = "#1e293b";
+    c.save();
+    // 4 Solder tabs (2 left, 2 right)
+    c.fillStyle = "#94a3b8";
+    c.fillRect(sx - 4, sy + 4, 4, 5);
+    c.fillRect(sx - 4, sy + 23, 4, 5);
+    c.fillRect(sx + 32, sy + 4, 4, 5);
+    c.fillRect(sx + 32, sy + 23, 4, 5);
+
+    // Textured casing
+    c.fillStyle = "#0f172a";
+    c.shadowColor = "rgba(0,0,0,0.5)";
+    c.shadowBlur = 8;
+    c.shadowOffsetY = 3;
     c.beginPath();
     c.roundRect(sx, sy, 32, 32, [4, 4, 4, 4]);
     c.fill();
+    c.shadowColor = "transparent";
 
-    // Button center actuator
-    c.fillStyle = isPressed ? "#0284c7" : "#0ea5e9";
+    // Metal top plate cover with 4 corner rivets
+    const plateGrad = c.createLinearGradient(sx + 2, sy + 2, sx + 30, sy + 30);
+    plateGrad.addColorStop(0, "#cbd5e1");
+    plateGrad.addColorStop(0.5, "#94a3b8");
+    plateGrad.addColorStop(1, "#64748b");
+    c.fillStyle = plateGrad;
     c.beginPath();
-    c.arc(sx + 16, sy + 16, isPressed ? 8 : 10, 0, Math.PI * 2);
+    c.roundRect(sx + 2, sy + 2, 28, 28, [3, 3, 3, 3]);
     c.fill();
 
-    c.fillStyle = "#0f172a";
-    c.font = "bold 8px sans-serif";
-    c.fillText(label, sx - 4, sy + 46);
+    // 4 Corner Rivets
+    const rivets = [[sx + 5, sy + 5], [sx + 27, sy + 5], [sx + 5, sy + 27], [sx + 27, sy + 27]];
+    c.fillStyle = "#334155";
+    rivets.forEach(([rx, ry]) => {
+      c.beginPath();
+      c.arc(rx, ry, 1.2, 0, Math.PI * 2);
+      c.fill();
+    });
+
+    // Circular plunger button in center
+    const plungerRadius = isPressed ? 8 : 9.5;
+    const plungerGrad = c.createRadialGradient(sx + 16, sy + 16, 2, sx + 16, sy + 16, plungerRadius);
+    plungerGrad.addColorStop(0, isPressed ? "#0284c7" : "#0284c7");
+    plungerGrad.addColorStop(0.8, isPressed ? "#0369a1" : "#075985");
+    plungerGrad.addColorStop(1, "#0c4a6e");
+    c.fillStyle = plungerGrad;
+    c.beginPath();
+    c.arc(sx + 16, sy + 16, plungerRadius, 0, Math.PI * 2);
+    c.fill();
+
+    // Specular shine on plunger
+    if (!isPressed) {
+      c.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      c.lineWidth = 1;
+      c.beginPath();
+      c.arc(sx + 16, sy + 16, plungerRadius - 1.5, -0.6 * Math.PI, -0.1 * Math.PI);
+      c.stroke();
+    }
+    c.restore();
+
+    if (label) {
+      c.fillStyle = "#0f172a";
+      c.font = "bold 8px sans-serif";
+      c.fillText(label, sx - 4, sy + 46);
+    }
   }
 
   // Draw Piezoelectric Acoustic Transducer (Buzzer)
-  function drawPiezoBuzzer(c, px, py, isBeeping, isMusical = false) {
+  function drawPiezoBuzzer(c, px, py, isBeeping, isMusical = false, label = "BUZZER (D8)") {
     c.save();
     // Black cylinder casing
     c.fillStyle = "#0f172a";
@@ -2326,7 +3479,7 @@ export function initArduinoLab(containerId) {
 
     c.fillStyle = "#0f172a";
     c.font = "bold 8px sans-serif";
-    c.fillText("BUZZER (D8)", px - 6, py + 50);
+    c.fillText(label, px - 6, py + 50);
   }
 
   // Draw HC-SR04 Ultrasonic Distance Sensor
@@ -2504,6 +3657,534 @@ export function initArduinoLab(containerId) {
     c.fillStyle = "#0f172a";
     c.font = "bold 8px sans-serif";
     c.fillText(`${tempC.toFixed(1)}°C`, tx - 8, ty + 28);
+  }
+
+  // -------------------------------------------------------------------------
+  // Photorealistic Electronics Components Rendering
+  // -------------------------------------------------------------------------
+
+  // 1. Photorealistic 4-Pin Diffused RGB LED
+  function drawRgbLed(c, lx, ly, rgb = { r: 255, g: 0, b: 128 }, label = "") {
+    c.save();
+    // 4 Solder Lead Pins (Red, Cathode/Anode, Green, Blue)
+    c.strokeStyle = "#94a3b8";
+    c.lineWidth = 1.5;
+    for (let i = 0; i < 4; i++) {
+      const px = lx - 6 + i * 4;
+      c.beginPath();
+      c.moveTo(px, ly + 14);
+      c.lineTo(px, ly + 28);
+      c.stroke();
+    }
+
+    // Drop shadow
+    c.shadowColor = "rgba(0,0,0,0.45)";
+    c.shadowBlur = 8;
+    c.shadowOffsetY = 4;
+
+    // 5mm Frosted Epoxy Dome with rim flange
+    c.beginPath();
+    c.arc(lx, ly, 12, Math.PI, 0, false);
+    c.rect(lx - 12, ly, 24, 10);
+    c.closePath();
+
+    const hexColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+    const intensity = Math.max(rgb.r, rgb.g, rgb.b) / 255;
+
+    c.fillStyle = hexColor;
+    c.shadowColor = hexColor;
+    c.shadowBlur = 24 * intensity;
+    c.fill();
+
+    // Internal 3 micro-dies (Red, Green, Blue semiconductor chips)
+    c.shadowBlur = 0;
+    c.fillStyle = "#ef4444";
+    c.fillRect(lx - 5, ly + 3, 2.5, 2.5);
+    c.fillStyle = "#10b981";
+    c.fillRect(lx - 1, ly + 3, 2.5, 2.5);
+    c.fillStyle = "#3b82f6";
+    c.fillRect(lx + 3, ly + 3, 2.5, 2.5);
+
+    // Core central optical hotspot
+    const coreGrad = c.createRadialGradient(lx, ly + 2, 1, lx, ly + 2, 9);
+    coreGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+    coreGrad.addColorStop(0.4, "rgba(255, 255, 255, 0.5)");
+    coreGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
+    c.fillStyle = coreGrad;
+    c.beginPath();
+    c.arc(lx, ly + 2, 9, 0, Math.PI * 2);
+    c.fill();
+
+    // Specular Fresnel lens reflection curve
+    c.strokeStyle = "rgba(255, 255, 255, 0.7)";
+    c.lineWidth = 1.5;
+    c.beginPath();
+    c.arc(lx - 3, ly - 3, 6, -0.6 * Math.PI, -0.1 * Math.PI);
+    c.stroke();
+    c.restore();
+
+    if (label) {
+      c.fillStyle = "#0f172a";
+      c.font = "bold 8px sans-serif";
+      c.fillText(label, lx - 20, ly + 42);
+    }
+  }
+
+  // 2. Photorealistic 1/4W Through-Hole Resistor (with EIA 4-Band Color Codes)
+  function drawResistor(c, rx, ry, ohms = 220, label = "") {
+    c.save();
+    // Metal Leads extending out of ends into breadboard
+    c.strokeStyle = "#94a3b8";
+    c.lineWidth = 1.8;
+    c.beginPath();
+    c.moveTo(rx - 22, ry + 12);
+    c.lineTo(rx - 22, ry);
+    c.lineTo(rx - 12, ry);
+    c.moveTo(rx + 12, ry);
+    c.lineTo(rx + 22, ry);
+    c.lineTo(rx + 22, ry + 12);
+    c.stroke();
+
+    // Resistor Body (Dumbbell ceramic beige with drop shadow)
+    c.shadowColor = "rgba(0,0,0,0.35)";
+    c.shadowBlur = 6;
+    c.shadowOffsetY = 2;
+
+    const bodyGrad = c.createLinearGradient(rx - 12, ry - 5, rx - 12, ry + 5);
+    bodyGrad.addColorStop(0, "#e8d7be");
+    bodyGrad.addColorStop(0.5, "#d4b896");
+    bodyGrad.addColorStop(1, "#9e7f5e");
+    c.fillStyle = bodyGrad;
+
+    // Body shape with bulbous ends
+    c.beginPath();
+    c.roundRect(rx - 12, ry - 5, 24, 10, [4, 4, 4, 4]);
+    c.fill();
+    c.shadowColor = "transparent";
+
+    // EIA 4-Band Colors Map
+    let bands = ["#ef4444", "#ef4444", "#92400e", "#d97706"]; // default 220 ohm (Red, Red, Brown, Gold)
+    if (ohms >= 10000) {
+      bands = ["#92400e", "#0f172a", "#f97316", "#d97706"]; // 10k: Brown, Black, Orange, Gold
+    } else if (ohms >= 1000) {
+      bands = ["#92400e", "#0f172a", "#ef4444", "#d97706"]; // 1k: Brown, Black, Red, Gold
+    } else if (ohms >= 330) {
+      bands = ["#f97316", "#f97316", "#92400e", "#d97706"]; // 330: Orange, Orange, Brown, Gold
+    }
+
+    // Draw the 4 bands
+    const bandPositions = [-7, -3, 1, 6];
+    bands.forEach((bColor, idx) => {
+      c.fillStyle = bColor;
+      c.fillRect(rx + bandPositions[idx], ry - 5, 2.2, 10);
+    });
+
+    // Top subtle specular reflection streak
+    c.fillStyle = "rgba(255, 255, 255, 0.4)";
+    c.fillRect(rx - 10, ry - 4, 20, 1.5);
+    c.restore();
+
+    if (label) {
+      c.fillStyle = "#0f172a";
+      c.font = "bold 8px sans-serif";
+      c.fillText(label, rx - 14, ry + 20);
+    }
+  }
+
+  // 3. Photorealistic SPDT Slide Switch
+  function drawSlideSwitch(c, sx, sy, isOn, label = "") {
+    c.save();
+    // Metal bracket chassis
+    const metalGrad = c.createLinearGradient(sx, sy, sx + 28, sy + 16);
+    metalGrad.addColorStop(0, "#f1f5f9");
+    metalGrad.addColorStop(0.5, "#cbd5e1");
+    metalGrad.addColorStop(1, "#94a3b8");
+    c.fillStyle = metalGrad;
+    c.shadowColor = "rgba(0,0,0,0.4)";
+    c.shadowBlur = 6;
+    c.beginPath();
+    c.roundRect(sx, sy, 32, 16, [2, 2, 2, 2]);
+    c.fill();
+    c.shadowColor = "transparent";
+
+    // Mounting tabs with screw holes
+    c.fillStyle = "#64748b";
+    c.fillRect(sx - 4, sy + 4, 4, 8);
+    c.fillRect(sx + 32, sy + 4, 4, 8);
+    c.fillStyle = "#0f172a";
+    c.beginPath();
+    c.arc(sx - 2, sy + 8, 1.5, 0, Math.PI * 2);
+    c.arc(sx + 34, sy + 8, 1.5, 0, Math.PI * 2);
+    c.fill();
+
+    // Slot cavity
+    c.fillStyle = "#1e293b";
+    c.fillRect(sx + 4, sy + 4, 24, 8);
+
+    // Sliding knob actuator with ridges
+    const knobX = isOn ? sx + 18 : sx + 6;
+    c.fillStyle = "#0f172a";
+    c.beginPath();
+    c.roundRect(knobX, sy + 1, 8, 14, [2, 2, 2, 2]);
+    c.fill();
+    // Grip ridges on knob
+    c.strokeStyle = "#475569";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(knobX + 2, sy + 4); c.lineTo(knobX + 6, sy + 4);
+    c.moveTo(knobX + 2, sy + 8); c.lineTo(knobX + 6, sy + 8);
+    c.moveTo(knobX + 2, sy + 12); c.lineTo(knobX + 6, sy + 12);
+    c.stroke();
+    c.restore();
+
+    if (label) {
+      c.fillStyle = "#0f172a";
+      c.font = "bold 8px sans-serif";
+      c.fillText(`${label}: ${isOn ? "ON" : "OFF"}`, sx - 6, sy + 30);
+    }
+  }
+
+  // 4. Photorealistic DC Motor with Aerodynamic Propeller Fan
+  function drawDcMotorFan(c, mx, my, speed = 0, angle = 0) {
+    c.save();
+    // Drop shadow
+    c.shadowColor = "rgba(0,0,0,0.5)";
+    c.shadowBlur = 10;
+    c.shadowOffsetY = 4;
+
+    // Motor Brushed Metal Cylindrical Housing
+    const motorGrad = c.createLinearGradient(mx - 22, my - 22, mx + 22, my + 22);
+    motorGrad.addColorStop(0, "#f8fafc");
+    motorGrad.addColorStop(0.3, "#cbd5e1");
+    motorGrad.addColorStop(0.7, "#64748b");
+    motorGrad.addColorStop(1, "#334155");
+    c.fillStyle = motorGrad;
+    c.beginPath();
+    c.arc(mx, my, 22, 0, Math.PI * 2);
+    c.fill();
+    c.shadowColor = "transparent";
+
+    // Stamped Ventilation Slots & Rivets
+    c.fillStyle = "#1e293b";
+    c.fillRect(mx - 14, my - 12, 6, 2.5);
+    c.fillRect(mx + 8, my - 12, 6, 2.5);
+    c.fillRect(mx - 14, my + 10, 6, 2.5);
+    c.fillRect(mx + 8, my + 10, 6, 2.5);
+
+    // Center Brass Bushing
+    c.fillStyle = "#d97706";
+    c.beginPath();
+    c.arc(mx, my, 7, 0, Math.PI * 2);
+    c.fill();
+
+    // Spinning 3-Blade Propeller Fan
+    c.save();
+    c.translate(mx, my);
+    c.rotate(angle);
+
+    // Propeller Blades (aerodynamic blue/cyan blades)
+    for (let b = 0; b < 3; b++) {
+      c.save();
+      c.rotate((b * 2 * Math.PI) / 3);
+      c.fillStyle = "rgba(6, 182, 212, 0.85)";
+      c.beginPath();
+      c.moveTo(0, 0);
+      c.quadraticCurveTo(12, -20, 6, -34);
+      c.quadraticCurveTo(0, -38, -6, -34);
+      c.quadraticCurveTo(-10, -20, 0, 0);
+      c.fill();
+      c.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      c.lineWidth = 1;
+      c.stroke();
+      c.restore();
+    }
+
+    // Motion Blur Fan Halo when spinning
+    if (speed > 10) {
+      c.strokeStyle = `rgba(56, 189, 248, ${Math.min(0.45, speed / 400)})`;
+      c.lineWidth = 6;
+      c.beginPath();
+      c.arc(0, 0, 32, 0, Math.PI * 2);
+      c.stroke();
+    }
+
+    // Rotor Cap
+    c.fillStyle = "#0f172a";
+    c.beginPath();
+    c.arc(0, 0, 4.5, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+
+    c.restore();
+
+    const rpm = Math.round((speed / 255) * 4800);
+    c.fillStyle = "#0f172a";
+    c.font = "bold 8px sans-serif";
+    c.fillText(`DC MOTOR: ${rpm} RPM`, mx - 28, my + 44);
+  }
+
+  // 5. Photorealistic Songle 5V Relay Module
+  function drawRelayModule(c, rx, ry, isActive) {
+    c.save();
+    // Blue rectangular relay sugar-cube
+    c.shadowColor = "rgba(0,0,0,0.5)";
+    c.shadowBlur = 8;
+    c.shadowOffsetY = 3;
+
+    c.fillStyle = "#0284c7"; // Classic Songle Blue
+    c.beginPath();
+    c.roundRect(rx, ry, 56, 42, [4, 4, 4, 4]);
+    c.fill();
+    c.shadowColor = "transparent";
+
+    // Bevel edge
+    c.strokeStyle = "#38bdf8";
+    c.lineWidth = 1;
+    c.stroke();
+
+    // Silkscreen Text
+    c.fillStyle = "#ffffff";
+    c.font = "bold 7px sans-serif";
+    c.fillText("SONGLE", rx + 6, ry + 12);
+    c.font = "6px sans-serif";
+    c.fillText("10A 250VAC", rx + 6, ry + 22);
+    c.fillText("SRD-05VDC", rx + 6, ry + 32);
+
+    // 3-Pin Screw Terminal Block at right side
+    c.fillStyle = "#1e40af";
+    c.fillRect(rx + 56, ry + 4, 18, 34);
+    for (let s = 0; s < 3; s++) {
+      const sy = ry + 9 + s * 11;
+      c.fillStyle = "#d97706"; // Brass screw
+      c.beginPath();
+      c.arc(rx + 65, sy, 3.5, 0, Math.PI * 2);
+      c.fill();
+      c.strokeStyle = "#451a03";
+      c.lineWidth = 1;
+      c.beginPath();
+      c.moveTo(rx + 63, sy); c.lineTo(rx + 67, sy);
+      c.stroke();
+    }
+
+    // Status SMD LEDs: Power (Red) & Active (Green)
+    c.fillStyle = "#ef4444"; // Power on
+    c.fillRect(rx + 44, ry + 8, 4, 3);
+
+    if (isActive) {
+      c.fillStyle = "#10b981";
+      c.shadowColor = "#10b981";
+      c.shadowBlur = 10;
+      c.fillRect(rx + 44, ry + 16, 4, 3);
+    } else {
+      c.fillStyle = "rgba(16, 185, 129, 0.25)";
+      c.fillRect(rx + 44, ry + 16, 4, 3);
+    }
+    c.restore();
+
+    c.fillStyle = "#0f172a";
+    c.font = "bold 8px sans-serif";
+    c.fillText(`RELAY: ${isActive ? "ACTIVE (NO)" : "IDLE (NC)"}`, rx - 2, ry + 56);
+  }
+
+  // 6. Photorealistic Decimal 7-Segment LED Display (0-9)
+  function drawSevenSegment(c, sx, sy, digit = 0) {
+    c.save();
+    // Charcoal package casing
+    c.fillStyle = "#18181b";
+    c.shadowColor = "rgba(0,0,0,0.6)";
+    c.shadowBlur = 8;
+    c.shadowOffsetY = 3;
+    c.beginPath();
+    c.roundRect(sx, sy, 48, 68, [4, 4, 4, 4]);
+    c.fill();
+    c.shadowColor = "transparent";
+
+    // Silver pins top & bottom
+    c.fillStyle = "#94a3b8";
+    for (let p = 0; p < 5; p++) {
+      c.fillRect(sx + 6 + p * 8, sy - 4, 3, 4);
+      c.fillRect(sx + 6 + p * 8, sy + 68, 3, 4);
+    }
+
+    // 7 Segment Table for digits 0-9 [a, b, c, d, e, f, g]
+    const segmentMap = [
+      [1, 1, 1, 1, 1, 1, 0], // 0
+      [0, 1, 1, 0, 0, 0, 0], // 1
+      [1, 1, 0, 1, 1, 0, 1], // 2
+      [1, 1, 1, 1, 0, 0, 1], // 3
+      [0, 1, 1, 0, 0, 1, 1], // 4
+      [1, 0, 1, 1, 0, 1, 1], // 5
+      [1, 0, 1, 1, 1, 1, 1], // 6
+      [1, 1, 1, 0, 0, 0, 0], // 7
+      [1, 1, 1, 1, 1, 1, 1], // 8
+      [1, 1, 1, 1, 0, 1, 1]  // 9
+    ];
+
+    const seg = segmentMap[digit % 10] || segmentMap[0];
+    const drawSeg = (active, x, y, w, h) => {
+      c.fillStyle = active ? "#ef4444" : "#27272a";
+      if (active) {
+        c.shadowColor = "#ef4444";
+        c.shadowBlur = 10;
+      } else {
+        c.shadowBlur = 0;
+      }
+      c.beginPath();
+      c.roundRect(x, y, w, h, [2, 2, 2, 2]);
+      c.fill();
+    };
+
+    const ox = sx + 13;
+    const oy = sy + 10;
+    // a: top
+    drawSeg(seg[0], ox + 3, oy, 16, 4);
+    // b: top-right
+    drawSeg(seg[1], ox + 19, oy + 4, 4, 18);
+    // c: bottom-right
+    drawSeg(seg[2], ox + 19, oy + 24, 4, 18);
+    // d: bottom
+    drawSeg(seg[3], ox + 3, oy + 42, 16, 4);
+    // e: bottom-left
+    drawSeg(seg[4], ox - 1, oy + 24, 4, 18);
+    // f: top-left
+    drawSeg(seg[5], ox - 1, oy + 4, 4, 18);
+    // g: middle
+    drawSeg(seg[6], ox + 3, oy + 21, 16, 4);
+
+    // Decimal point (dp)
+    drawSeg(true, sx + 39, sy + 52, 4, 4);
+    c.restore();
+
+    c.fillStyle = "#0f172a";
+    c.font = "bold 8px sans-serif";
+    c.fillText(`7-SEG: [${digit}]`, sx + 4, sy + 82);
+  }
+
+  // 7. Photorealistic HC-SR501 PIR Motion Sensor
+  function drawPirSensor(c, px, py, isTriggered) {
+    c.save();
+    // Green PCB
+    c.fillStyle = "#15803d";
+    c.shadowColor = "rgba(0,0,0,0.4)";
+    c.shadowBlur = 8;
+    c.beginPath();
+    c.roundRect(px, py, 58, 48, [4, 4, 4, 4]);
+    c.fill();
+    c.shadowColor = "transparent";
+
+    // White Hemispherical Fresnel Dome Lens
+    const domeGrad = c.createRadialGradient(px + 29, py + 24, 3, px + 29, py + 24, 19);
+    domeGrad.addColorStop(0, "#ffffff");
+    domeGrad.addColorStop(0.7, "#f1f5f9");
+    domeGrad.addColorStop(1, "#cbd5e1");
+    c.fillStyle = domeGrad;
+    c.beginPath();
+    c.arc(px + 29, py + 24, 18, 0, Math.PI * 2);
+    c.fill();
+
+    // Faceted Honeycomb grid lines on dome
+    c.strokeStyle = "rgba(148, 163, 184, 0.45)";
+    c.lineWidth = 1;
+    for (let r = 5; r <= 15; r += 5) {
+      c.beginPath();
+      c.arc(px + 29, py + 24, r, 0, Math.PI * 2);
+      c.stroke();
+    }
+
+    // Motion Alert SMD LED
+    if (isTriggered) {
+      c.fillStyle = "#ef4444";
+      c.shadowColor = "#ef4444";
+      c.shadowBlur = 12;
+      c.beginPath();
+      c.arc(px + 50, py + 8, 3, 0, Math.PI * 2);
+      c.fill();
+    } else {
+      c.fillStyle = "rgba(100, 116, 139, 0.4)";
+      c.beginPath();
+      c.arc(px + 50, py + 8, 2.5, 0, Math.PI * 2);
+      c.fill();
+    }
+    c.restore();
+
+    c.fillStyle = "#0f172a";
+    c.font = "bold 8px sans-serif";
+    c.fillText(isTriggered ? "PIR: MOTION!" : "PIR: IDLE", px + 4, py + 60);
+  }
+
+  // 8. Photorealistic 2-Axis Thumbstick Joystick Module
+  function drawJoystickModule(c, jx, jy, joyX = 512, joyY = 512, isPressed = false) {
+    c.save();
+    // Blue/Black PCB
+    c.fillStyle = "#090d16";
+    c.shadowColor = "rgba(0,0,0,0.5)";
+    c.shadowBlur = 8;
+    c.beginPath();
+    c.roundRect(jx, jy, 64, 64, [6, 6, 6, 6]);
+    c.fill();
+    c.shadowColor = "transparent";
+
+    // Dual Potentiometer metal side housings
+    c.fillStyle = "#64748b";
+    c.fillRect(jx + 2, jy + 22, 6, 20);
+    c.fillRect(jx + 22, jy + 2, 20, 6);
+
+    // Rubberized Concave Thumbstick Hat
+    const dx = ((joyX - 512) / 512) * 8;
+    const dy = ((joyY - 512) / 512) * 8;
+    const hatX = jx + 32 + dx;
+    const hatY = jy + 32 + dy;
+
+    // Outer thumb rim
+    const hatGrad = c.createRadialGradient(hatX, hatY, 4, hatX, hatY, 20);
+    hatGrad.addColorStop(0, "#1e293b");
+    hatGrad.addColorStop(0.8, "#0f172a");
+    hatGrad.addColorStop(1, "#020617");
+    c.fillStyle = hatGrad;
+    c.beginPath();
+    c.arc(hatX, hatY, 20, 0, Math.PI * 2);
+    c.fill();
+
+    // Center concave dip with grip bumps
+    c.fillStyle = isPressed ? "#0284c7" : "#334155";
+    c.beginPath();
+    c.arc(hatX, hatY, 11, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+
+    c.fillStyle = "#0f172a";
+    c.font = "bold 8px sans-serif";
+    c.fillText("JOYSTICK (A0/A1)", jx - 2, jy + 76);
+  }
+
+  // 9. Photorealistic TO-220 Transistor & Flyback Diode
+  function drawTransistorPackage(c, tx, ty) {
+    c.save();
+    // Silver metal heatsink tab with hole
+    c.fillStyle = "#cbd5e1";
+    c.fillRect(tx, ty - 6, 18, 8);
+    c.fillStyle = "#0f172a";
+    c.beginPath();
+    c.arc(tx + 9, ty - 2, 2, 0, Math.PI * 2);
+    c.fill();
+
+    // Black epoxy TO-220 body
+    c.fillStyle = "#1e293b";
+    c.fillRect(tx, ty + 2, 18, 16);
+    c.fillStyle = "#94a3b8";
+    c.font = "6px monospace";
+    c.fillText("TIP120", tx + 1, ty + 12);
+
+    // 1N4007 Diode
+    c.fillStyle = "#0f172a";
+    c.fillRect(tx + 24, ty + 4, 16, 7);
+    c.fillStyle = "#cbd5e1"; // Silver cathode stripe
+    c.fillRect(tx + 26, ty + 4, 3, 7);
+    c.restore();
+
+    c.fillStyle = "#0f172a";
+    c.font = "bold 7px sans-serif";
+    c.fillText("DRIVER", tx + 4, ty + 28);
   }
 
   // Draw Realistic Curved Jumper Wires connecting Arduino to Breadboard

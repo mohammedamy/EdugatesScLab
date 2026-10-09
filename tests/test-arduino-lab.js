@@ -156,8 +156,8 @@ const mod = await import("../labs/phys-arduino.js");
 
 check(typeof mod.initArduinoLab === "function", "phys-arduino.js exports initArduinoLab()");
 check(typeof mod.cleanupArduinoLab === "function", "phys-arduino.js exports cleanupArduinoLab()");
-check(Array.isArray(mod.ARDUINO_EXPERIMENTS), "phys-arduino.js exports ARDUINO_EXPERIMENTS array");
-check(mod.ARDUINO_EXPERIMENTS.length === 6, `ARDUINO_EXPERIMENTS contains all 6 guided experiments (Found: ${mod.ARDUINO_EXPERIMENTS.length})`);
+check(mod.ARDUINO_EXPERIMENTS.length >= 6, `ARDUINO_EXPERIMENTS contains all guided experiments (Found: ${mod.ARDUINO_EXPERIMENTS.length})`);
+check(Array.isArray(mod.AVAILABLE_PARTS) && mod.AVAILABLE_PARTS.length >= 15, `phys-arduino.js exports comprehensive AVAILABLE_PARTS catalog (Found: ${mod.AVAILABLE_PARTS?.length})`);
 
 // ----------------------------------------------------
 // Test 2: Experiment Specifications & C++ Sketches
@@ -183,6 +183,32 @@ check(expChiptune && expChiptune.code.includes("tone(buzzerPin, melody[thisNote]
 
 const expWeather = mod.ARDUINO_EXPERIMENTS.find(e => e.id === "weather_station");
 check(expWeather && expWeather.code.includes("temperatureC = (voltage - 0.5) * 100.0"), "Experiment 6: TMP36 includes Celsius thermal conversion formula");
+
+const expRgb = mod.ARDUINO_EXPERIMENTS.find(e => e.id === "rgb_mood_lamp");
+check(expRgb && expRgb.code.includes("analogWrite(redPin"), "Experiment 7: RGB Mood Lamp includes 3-channel analogWrite PWM color mixing");
+
+const expMotor = mod.ARDUINO_EXPERIMENTS.find(e => e.id === "dc_motor_speed");
+check(expMotor && expMotor.code.includes("analogWrite(motorPin"), "Experiment 8: DC Motor Fan includes PWM speed regulation & flyback diode safety");
+
+const expPir = mod.ARDUINO_EXPERIMENTS.find(e => e.id === "pir_alarm");
+check(expPir && expPir.code.includes("digitalRead(pirPin)"), "Experiment 9: PIR Motion Security includes digitalRead intruder detection and relay trigger");
+
+const expSevenSeg = mod.ARDUINO_EXPERIMENTS.find(e => e.id === "seven_seg_counter");
+check(expSevenSeg && expSevenSeg.code.includes("digitPatterns"), "Experiment 10: 7-Segment Decade Counter includes 7-bit binary segment lookup truth table");
+
+const expJoystick = mod.ARDUINO_EXPERIMENTS.find(e => e.id === "joystick_pan_tilt");
+check(expJoystick && expJoystick.code.includes("analogRead(joyXPin)"), "Experiment 11: Joystick Pan-Tilt includes dual-axis ADC steering");
+
+const expSandbox = mod.ARDUINO_EXPERIMENTS.find(e => e.id === "custom_sandbox");
+check(expSandbox && expSandbox.code.includes("Custom Breadboard Sandbox"), "Experiment 12: Custom Project Builder & Sandbox includes starter scaffold");
+
+// Check part catalog diversity
+const actuatorParts = mod.AVAILABLE_PARTS.filter(p => p.category === "Actuators");
+const sensorParts = mod.AVAILABLE_PARTS.filter(p => p.category === "Sensors & Inputs");
+const passiveParts = mod.AVAILABLE_PARTS.filter(p => p.category === "Passive & Display");
+check(actuatorParts.length >= 6, `Component Library includes rich actuators (${actuatorParts.length} parts)`);
+check(sensorParts.length >= 5, `Component Library includes diverse sensors & inputs (${sensorParts.length} parts)`);
+check(passiveParts.length >= 3, `Component Library includes passives and displays (${passiveParts.length} parts)`);
 
 // ----------------------------------------------------
 // Test 3: Lifecycle Mount & Clean Teardown
