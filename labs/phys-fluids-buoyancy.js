@@ -178,8 +178,8 @@ export function initFluidsBuoyancyLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-fluid-report" aria-label="Open Fluid Dynamics Lab Dossier Report" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Open Lab Dossier Report (Hotkey: R)">
             📋 Lab Dossier
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-fluid-export" aria-label="Export Fluid Dynamics Trials to CSV" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(148, 163, 184, 0.4); color: #94a3b8;" title="Export CSV Data">
-            📥 CSV
+          <button class="btn btn-secondary btn-sm" id="btn-fluid-export" aria-label="Export Fluid Dynamics Trials to CSV" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(148, 163, 184, 0.4); color: #94a3b8;" title="Export CSV Data (Hotkey: E)">
+            📥 Export CSV (E)
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-fluid-reset" aria-label="Reset Fluid Dynamics Simulation Parameters" style="padding: 5px 12px; font-size: 0.78rem;">
             ⟲ Reset

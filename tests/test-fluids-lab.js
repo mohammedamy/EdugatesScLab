@@ -416,6 +416,7 @@ test("phys-fluids-buoyancy.js exports mode-specific CSV telemetry for Archimedes
   assert(code.includes('"Flow Rate Q (L/s)"'), "Venturi CSV must include volumetric flow column");
   assert(code.includes('"Horizontal Range R (m)"'), "Torricelli CSV must include horizontal range column");
   assert(code.includes('"Output Lift Force F₂ (kN)"'), "Hydraulic CSV must include output force column");
+  assert(code.includes("Export CSV (E)"), "Export button must include (E) hotkey hint");
 });
 
 test("LAB_CHECKPOINTS.fluids contains comprehensive 5-question inquiry suite across Archimedes, Venturi, Torricelli, and Pascal", () => {
