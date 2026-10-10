@@ -401,6 +401,17 @@ test("phys-fluids-buoyancy.js implements Pascal Hydraulic Lift UI controls, Bour
   assert(code.includes("Work / Energy Conservation"), "Lab dossier must include Work conservation equation");
 });
 
+test("phys-fluids-buoyancy.js exports mode-specific CSV telemetry for Archimedes, Venturi, Torricelli, and Pascal", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
+  assert(code.includes('labId: "fluids_buoyancy"'), "Must export Archimedes buoyancy dataset");
+  assert(code.includes('labId: "fluids_venturi"'), "Must export Venturi continuity & Bernoulli dataset");
+  assert(code.includes('labId: "fluids_torricelli"'), "Must export Torricelli efflux dataset");
+  assert(code.includes('labId: "fluids_hydraulic"'), "Must export Pascal hydraulic press dataset");
+  assert(code.includes('"Flow Rate Q (L/s)"'), "Venturi CSV must include volumetric flow column");
+  assert(code.includes('"Horizontal Range R (m)"'), "Torricelli CSV must include horizontal range column");
+  assert(code.includes('"Output Lift Force F₂ (kN)"'), "Hydraulic CSV must include output force column");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Fluids Lab Tests: All ${passed} Passed!`);
 console.log("========================================================\n");

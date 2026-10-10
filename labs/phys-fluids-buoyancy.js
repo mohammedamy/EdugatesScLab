@@ -4593,35 +4593,151 @@ export function initFluidsBuoyancyLab(containerId) {
     SoundFX.playClick();
   });
 
-  // Export CSV
+  // Export CSV (Mode-Aware: Archimedes, Venturi, Torricelli, and Pascal Hydraulic Press)
   container.querySelector("#btn-fluid-export")?.addEventListener("click", () => {
     const calc = getCalculations();
-    exportLabDataCsv({
-      title: "Archimedes Buoyancy & Fluid Dynamics Telemetry",
-      labId: "fluids",
-      parameters: {
-        "Apparatus Mode": apparatusMode.toUpperCase(),
-        "Liquid Medium": calc.f.name,
-        "Fluid Density (kg/m³)": calc.f.density,
-        "Object Material": calc.m.name,
-        "Solid Density (kg/m³)": calc.m.density,
-        "Object Volume (L)": blockVolumeLiters
-      },
-      headers: ["Submersion (%)", "Displaced Vol (L)", "Displaced Mass (kg)", "Buoyant Force Fb (N)", "Apparent Weight (N)"],
-      dataRows: [0, 25, 50, 75, 100].map(sub => {
-        const dVol = (blockVolumeLiters * 1e-3) * (sub / 100);
-        const mDisp = calc.f.density * dVol;
-        const fb = mDisp * g;
-        const wApp = Math.max(0, calc.weightRealN - fb);
-        return [
-          `${sub}%`,
-          (dVol * 1000).toFixed(2),
-          mDisp.toFixed(3),
-          fb.toFixed(2),
-          wApp.toFixed(2)
-        ];
-      })
-    });
+
+    if (apparatusMode === "buoyancy") {
+      exportLabDataCsv({
+        title: "Archimedes Buoyancy & Displaced Fluid Telemetry",
+        labId: "fluids_buoyancy",
+        parameters: {
+          "Apparatus Mode": "Archimedes Overflow Tank",
+          "Liquid Medium": calc.f.name,
+          "Fluid Density (kg/m³)": calc.f.density,
+          "Object Material": calc.m.name,
+          "Solid Density (kg/m³)": calc.m.density,
+          "Object Volume (L)": blockVolumeLiters.toFixed(2),
+          "Object Real Weight (N)": calc.weightRealN.toFixed(2),
+          "Free Floating State": isFreeFloating ? (calc.canFloat ? "Equilibrium Floating" : "Sunk to Floor") : "Suspended from Scale",
+          "Pressure Probe Status": showPressureProbe ? `Active (Depth = ${probeDepthCm.toFixed(1)} cm, P_gauge = ${calc.pGaugeKPa.toFixed(2)} kPa)` : "Inactive"
+        },
+        headers: ["Submersion (%)", "Displaced Vol (L)", "Displaced Mass (kg)", "Buoyant Force Fb (N)", "Apparent Weight (N)", "Net Normal / Bottom Force (N)"],
+        dataRows: [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map(sub => {
+          const dVol = (blockVolumeLiters * 1e-3) * (sub / 100);
+          const mDisp = calc.f.density * dVol;
+          const fb = mDisp * g;
+          const wApp = Math.max(0, calc.weightRealN - fb);
+          const fNorm = calc.m.density > calc.f.density && sub === 100 ? (calc.weightRealN - fb).toFixed(2) : "0.00";
+          return [
+            `${sub}%`,
+            (dVol * 1000).toFixed(2),
+            mDisp.toFixed(3),
+            fb.toFixed(2),
+            wApp.toFixed(2),
+            fNorm
+          ];
+        })
+      });
+    } else if (apparatusMode === "venturi") {
+      exportLabDataCsv({
+        title: "Venturi Tube Continuity & Bernoulli Telemetry",
+        labId: "fluids_venturi",
+        parameters: {
+          "Apparatus Mode": "Venturi Constriction Pipe",
+          "Liquid Medium": calc.f.name,
+          "Fluid Density (kg/m³)": calc.f.density,
+          "Dynamic Viscosity μ (Pa·s)": calc.visc.toFixed(6),
+          "Inlet Pipe Diameter D₁ (mm)": "60.0",
+          "Throat Diameter D₂ (mm)": "30.0",
+          "Area Ratio (A₁ / A₂)": "4.0×",
+          "Current Volumetric Flow Q (L/s)": flowRateLps.toFixed(2)
+        },
+        headers: ["Flow Rate Q (L/s)", "Inlet Velocity v₁ (m/s)", "Throat Velocity v₂ (m/s)", "Pressure Drop ΔP (kPa)", "Manometer Head Δh (cm)", "Inlet Reynolds Re₁", "Throat Reynolds Re₂", "Flow Regime"],
+        dataRows: [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0].map(qLps => {
+          const qM3s = qLps * 1e-3;
+          const v1Val = qM3s / calc.a1;
+          const v2Val = qM3s / calc.a2;
+          const dP = 0.5 * calc.f.density * (v2Val * v2Val - v1Val * v1Val);
+          const dH = dP / (calc.f.density * g);
+          const r1 = (calc.f.density * v1Val * 0.06) / calc.visc;
+          const r2 = (calc.f.density * v2Val * 0.03) / calc.visc;
+          const regime = r1 < 2300 ? "Laminar" : (r1 < 4000 ? "Transitional" : "Turbulent");
+          return [
+            qLps.toFixed(2),
+            v1Val.toFixed(2),
+            v2Val.toFixed(2),
+            (dP / 1000).toFixed(2),
+            (dH * 100).toFixed(1),
+            Math.round(r1).toString(),
+            Math.round(r2).toString(),
+            regime
+          ];
+        })
+      });
+    } else if (apparatusMode === "torricelli") {
+      exportLabDataCsv({
+        title: "Torricelli Efflux Velocity & Jet Range Telemetry",
+        labId: "fluids_torricelli",
+        parameters: {
+          "Apparatus Mode": "Torricelli Efflux Tank",
+          "Liquid Medium": calc.f.name,
+          "Fluid Density (kg/m³)": calc.f.density,
+          "Total Liquid Level H (m)": calc.H_total.toFixed(2),
+          "Discharge Coeff C_d": dischargeCoeff.toFixed(2),
+          "Nozzle Diameter (mm)": "12.0",
+          "Current Orifice Elevation y_h (m)": calc.y_h.toFixed(2),
+          "Theoretical Max Range": `${calc.maxRangeM.toFixed(2)} m (at midpoint y_h = ${(calc.H_total / 2).toFixed(2)} m)`
+        },
+        headers: ["Orifice Elevation y_h (m)", "Liquid Head h (m)", "Ideal Efflux Vel v_ideal (m/s)", "Actual Efflux Vel v (m/s)", "Flight Time t (s)", "Horizontal Range R (m)", "Max Range R_max (m)", "Discharge Q (L/s)"],
+        dataRows: [0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75].map(yh => {
+          const hHead = Math.max(0.01, calc.H_total - yh);
+          const vId = Math.sqrt(2 * g * hHead);
+          const vAct = dischargeCoeff * vId;
+          const tFl = Math.sqrt((2 * yh) / g);
+          const r = vAct * tFl;
+          const qVal = dischargeCoeff * calc.nozzleAreaM2 * vId * 1000;
+          return [
+            yh.toFixed(2),
+            hHead.toFixed(2),
+            vId.toFixed(2),
+            vAct.toFixed(2),
+            tFl.toFixed(3),
+            r.toFixed(2),
+            calc.maxRangeM.toFixed(2),
+            qVal.toFixed(2)
+          ];
+        })
+      });
+    } else {
+      // Pascal Hydraulic Press Mode
+      exportLabDataCsv({
+        title: "Pascal Hydraulic Press & Mechanical Advantage Telemetry",
+        labId: "fluids_hydraulic",
+        parameters: {
+          "Apparatus Mode": "Pascal Hydraulic Lift Press",
+          "Liquid Medium": calc.f.name,
+          "Fluid Density (kg/m³)": calc.f.density,
+          "Input Cylinder D₁ (cm)": piston1DiameterCm.toFixed(1),
+          "Output Cylinder D₂ (cm)": piston2DiameterCm.toFixed(1),
+          "Ideal Mechanical Advantage (IMA)": `${calc.ima.toFixed(1)}×`,
+          "Input Stroke d₁ (cm)": inputStrokeCm.toFixed(1),
+          "Output Stroke d₂ (cm)": calc.outputStrokeCm.toFixed(2),
+          "Lifted Load": `${calc.load.name} (${calc.load.massKg} kg, ${(calc.loadWeightN / 1000).toFixed(2)} kN)`,
+          "Minimum Force to Lift Load": `${calc.minForceToLiftN.toFixed(1)} N`
+        },
+        headers: ["Input Force F₁ (N)", "Input Mass Equiv (kg)", "Output Lift Force F₂ (kN)", "Hydraulic Pressure (kPa)", "Pressure (bar)", "Work Done W (J)", "Output Stroke d₂ (cm)", "Lift Capability"],
+        dataRows: [25, 50, 75, 100, 150, 200, 250, 300, 400, 500, 600, 700, 800, 1000].map(f1 => {
+          const f2 = f1 * calc.ima;
+          const pPa = f1 / calc.a1_hyd;
+          const pKPa = pPa / 1000;
+          const pBar = pPa / 100000;
+          const wJ = f1 * (inputStrokeCm / 100);
+          const canLift = f2 >= calc.loadWeightN ? "LIFTED" : "INSUFFICIENT";
+          return [
+            f1.toFixed(0),
+            (f1 / g).toFixed(1),
+            (f2 / 1000).toFixed(2),
+            pKPa.toFixed(1),
+            pBar.toFixed(2),
+            wJ.toFixed(2),
+            calc.outputStrokeCm.toFixed(2),
+            canLift
+          ];
+        })
+      });
+    }
+
     SoundFX.playClick();
   });
 
