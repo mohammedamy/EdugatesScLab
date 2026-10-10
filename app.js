@@ -1855,7 +1855,8 @@ export const VIRTUAL_LABS_REGISTRY = [
   { id: "precipitation", subject: "chem", title: "Precipitation & Solubility", icon: icons.precipitation, ariaLabel: "Precipitation and Solubility Rules Lab", href: "#labs/precipitation" },
   { id: "vsepr", subject: "chem", title: "VSEPR 3D Modeler", icon: icons.vsepr, ariaLabel: "VSEPR 3D Modeler Lab", href: "#labs/vsepr" },
 
-  // Physics Laboratories (15)
+  // Physics Laboratories (16)
+  { id: "arduino", subject: "phys", title: "Arduino & Microcontrollers", icon: icons.circuit, ariaLabel: "Arduino Uno and Microcontroller Circuits Lab", href: "#labs/arduino" },
   { id: "electrostatics", subject: "phys", title: "Coulomb & Electric Fields", icon: icons.electrostatics, ariaLabel: "Coulomb's Law and Electrostatic Field Mapping Lab", href: "#labs/electrostatics" },
   { id: "circuits", subject: "phys", title: "DC Circuits & Ohm's Law", icon: icons.circuit, ariaLabel: "DC Circuits and Ohm's Law Lab", href: "#labs/circuits" },
   { id: "induction", subject: "phys", title: "Electromagnetic Induction & Faraday", icon: icons.induction, ariaLabel: "Electromagnetic Induction and Faraday Lab", href: "#labs/induction" },
