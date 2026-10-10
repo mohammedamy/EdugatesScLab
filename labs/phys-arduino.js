@@ -3072,6 +3072,7 @@ export function initArduinoLab(containerId) {
           "19.5 mV per unit",
           "48.8 mV per unit"
         ],
+        correctIndex: 1,
         correct: 1,
         explanation: "A 10-bit ADC provides 2¹⁰ = 1024 distinct quantization steps (0 to 1023). Therefore, resolution = 5.0 V / 1023 ≈ 4.887 mV per unit."
       },
@@ -3083,6 +3084,7 @@ export function initArduinoLab(containerId) {
           "15.0 cm",
           "120.0 cm"
         ],
+        correctIndex: 1,
         correct: 1,
         explanation: "Distance = (Speed × Time) / 2 = (0.0343 cm/µs × 1750 µs) / 2 = 59.99 cm / 2 ≈ 30.0 cm."
       },
@@ -3094,6 +3096,7 @@ export function initArduinoLab(containerId) {
           "1,000 Ω (1 kΩ)",
           "10,000 Ω (10 kΩ)"
         ],
+        correctIndex: 1,
         correct: 1,
         explanation: "Using Ohm's Law: R = (V_supply - V_forward) / I = (5.0V - 2.0V) / 0.020A = 3.0V / 0.020A = 150 Ω. Standard 220 Ω resistors are widely used to maintain safe 14 mA current."
       }

@@ -2143,6 +2143,45 @@ export const LAB_CHECKPOINTS = {
       correctIndex: 1,
       explanation: "Every point on the perpendicular bisecting axis is equidistant ($r_+ = r_- = r$) from both charges. The net potential is $V = \\frac{k_e (+q)}{r} + \\frac{k_e (-q)}{r} = 0\\text{ V}$. The perpendicular bisector is thus the planar $V = 0$ equipotential surface."
     }
+  ],
+
+  arduino: [
+    {
+      id: "q1",
+      question: "An Arduino Uno utilizes a 10-bit Analog-to-Digital Converter (ADC) referenced to a 5.0 V analog reference rail. What is the approximate voltage step represented by 1 unit of ADC reading?",
+      options: [
+        "0.98 mV per unit",
+        "4.89 mV per unit ($5.0\\text{ V} / 1023$)",
+        "19.5 mV per unit",
+        "48.8 mV per unit"
+      ],
+      correctIndex: 1,
+      explanation: "A 10-bit ADC provides $2^{10} = 1024$ distinct quantization codes (0 to 1023). Therefore, resolution = $\\frac{5.0\\text{ V}}{1023} \\approx 4.887\\text{ mV}$ per quantization step."
+    },
+    {
+      id: "q2",
+      question: "When triggering the HC-SR04 ultrasonic sonar sensor, the echo pulse duration is measured as 1,750 µs. Given the speed of sound is 343 m/s ($0.0343\\text{ cm/µs}$), what is the calculated distance to the target?",
+      options: [
+        "60.0 cm",
+        "30.0 cm (Round-trip time divided by 2)",
+        "15.0 cm",
+        "120.0 cm"
+      ],
+      correctIndex: 1,
+      explanation: "Distance = $\\frac{v \\cdot t}{2} = \\frac{0.0343\\text{ cm/µs} \\times 1750\\text{ µs}}{2} = \\frac{59.99\\text{ cm}}{2} \\approx 30.0\\text{ cm}$."
+    },
+    {
+      id: "q3",
+      question: "To connect a standard Red LED (forward voltage 2.0 V, target forward current 20 mA = 0.020 A) safely to an Arduino 5.0 V digital output pin, what is the ideal minimum current-limiting resistor required?",
+      options: [
+        "22 Ω",
+        "150 Ω (or standard 220 Ω)",
+        "1,000 Ω (1 kΩ)",
+        "10,000 Ω (10 kΩ)"
+      ],
+      correctIndex: 1,
+      explanation: "Applying Ohm's Law to the series resistor: $R = \\frac{V_{\\text{supply}} - V_f}{I} = \\frac{5.0\\text{ V} - 2.0\\text{ V}}{0.020\\text{ A}} = \\frac{3.0\\text{ V}}{0.020\\text{ A}} = 150\\ \\Omega$. In practical breadboard engineering, standard 220 Ω metal-film resistors are used to ensure safe 13.6 mA current."
+    }
   ]
 };
 
@@ -2159,6 +2198,7 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
     if (LAB_CHECKPOINTS[raw]) return LAB_CHECKPOINTS[raw];
     if (LAB_CHECKPOINTS[clean]) return LAB_CHECKPOINTS[clean];
     if (LAB_CHECKPOINTS[clean + "s"]) return LAB_CHECKPOINTS[clean + "s"];
+    if (clean.includes("arduino") || clean.includes("atmega") || clean.includes("mcu")) return LAB_CHECKPOINTS.arduino;
     if (clean.includes("flame") || clean.includes("spectro")) return LAB_CHECKPOINTS.flametest;
     if (clean.includes("precip") || clean.includes("solubil")) return LAB_CHECKPOINTS.precipitation;
     if (clean.includes("activity") || clean.includes("displace") || clean.includes("redox")) return LAB_CHECKPOINTS.activityseries;
@@ -2220,9 +2260,11 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
   if (!questions) questions = LAB_CHECKPOINTS.projectile;
   let userAnswers = {};
 
+  const getCorrectIdx = (q) => (q && q.correctIndex !== undefined ? q.correctIndex : (q && q.correct !== undefined ? q.correct : 0));
+
   function render() {
     let answeredCount = Object.keys(userAnswers).length;
-    let correctCount = Object.entries(userAnswers).filter(([idx, ans]) => ans === questions[idx].correctIndex).length;
+    let correctCount = Object.entries(userAnswers).filter(([idx, ans]) => ans === getCorrectIdx(questions[idx])).length;
 
     container.innerHTML = `
       <div class="lab-checkpoint-section">
@@ -2238,9 +2280,10 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
 
         <div class="lab-checkpoint-grid">
           ${questions.map((q, qIdx) => {
+            const correctIdx = getCorrectIdx(q);
             const chosen = userAnswers[qIdx];
             const isAnswered = chosen !== undefined;
-            const isCorrect = chosen === q.correctIndex;
+            const isCorrect = chosen === correctIdx;
             const cardClass = !isAnswered ? "" : (isCorrect ? "correct" : "incorrect");
 
             return `
@@ -2254,7 +2297,7 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
                   ${q.options.map((opt, optIdx) => {
                     let optClass = "";
                     if (isAnswered) {
-                      if (optIdx === q.correctIndex) optClass = "selected-correct";
+                      if (optIdx === correctIdx) optClass = "selected-correct";
                       else if (optIdx === chosen) optClass = "selected-wrong";
                     }
                     return `
@@ -2287,7 +2330,7 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
 
         // Auto record quiz progress when all questions are answered
         if (Object.keys(userAnswers).length === questions.length) {
-          const finalCorrect = Object.entries(userAnswers).filter(([idx, ans]) => ans === questions[idx].correctIndex).length;
+          const finalCorrect = Object.entries(userAnswers).filter(([idx, ans]) => ans === getCorrectIdx(questions[idx])).length;
           ProgressStore.recordQuizResult(questions.length, finalCorrect);
           showToast("Lab Assessment Recorded!", `Score: ${finalCorrect}/${questions.length} Mastery Points`, "success");
         }
