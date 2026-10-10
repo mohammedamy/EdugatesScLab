@@ -477,6 +477,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "The pH jump around the equivalence point is so steep that adding a fraction of a drop of 0.1 M NaOH surges the pH past 8.2, making the volumetric error negligible."
+    },
+    {
+      id: "q4",
+      question: "During the titration of a weak monoprotic acid (HA) with strong base (NaOH), at the half-equivalence point ($V = \\frac{1}{2}V_{\\text{eq}}$), the solution pH satisfies:",
+      options: [
+        "pH = pKa (because [A⁻] = [HA] in the Henderson-Hasselbalch equation)",
+        "pH = 7.00 (neutrality)",
+        "pH = 14 - pKb",
+        "pH = 0"
+      ],
+      correctIndex: 0,
+      explanation: "At half-equivalence, exactly half of the weak acid has been converted to its conjugate base ([A⁻] = [HA]). By Henderson-Hasselbalch, pH = pKa + log([A⁻]/[HA]) = pKa + log(1) = pKa."
+    },
+    {
+      id: "q5",
+      question: "At the equivalence point of a weak acid (e.g., acetic acid, $\\text{CH}_3\\text{COOH}$) titrated with strong base ($\\text{NaOH}$), the solution is:",
+      options: [
+        "Slightly basic (pH > 7) due to conjugate base hydrolysis (CH₃COO⁻ + H₂O ⇌ CH₃COOH + OH⁻)",
+        "Neutral (pH = 7.00) because all acid and base have reacted",
+        "Acidic (pH < 7) due to sodium cation acidity",
+        "Strongly acidic (pH ≈ 1)"
+      ],
+      correctIndex: 0,
+      explanation: "At stoichiometric equivalence, the solution contains sodium acetate (CH₃COONa). The acetate ion (CH₃COO⁻) acts as a weak Brønsted base and hydrolyzes water, releasing OH⁻ and elevating the equivalence pH above 7 (~8.72 for 0.1 M acetate)."
     }
   ],
 

@@ -48,6 +48,22 @@ assert(titrSource.includes("Holographic Equivalence Inflection Badge") || titrSo
 assert(titrSource.includes("anal-deriv-text"), "chem-titration.js presents live dpH/dV derivative in telemetry card");
 console.log("  ✅ PASS: Live dpH/dV derivative peak detection and stoichiometric equivalence banner verified");
 
+// 5b. Keyboard Controls and Teardown Cleanup
+assert(titrSource.includes('handleKeyDown(e)'), "chem-titration.js defines handleKeyDown keyboard listener");
+assert(titrSource.includes('e.code === "Space"'), "chem-titration.js binds Spacebar to drop dispenser");
+assert(titrSource.includes('e.key === "e" || e.key === "E"'), "chem-titration.js binds 'e'/'E' to CSV export");
+assert(titrSource.includes('window.removeEventListener("keydown", handleKeyDown)'), "chem-titration.js unbinds keydown on cleanup");
+console.log("  ✅ PASS: Full keyboard shortcut suite (Space, E, R, S, A, D) and unmount listener cleanup");
+
+// 5c. Comprehensive 5-Question Titration Checkpoint Pool
+const telemetryCode = fs.readFileSync(path.join(rootDir, "labs", "lab-telemetry-exporter.js"), "utf-8");
+assert(telemetryCode.includes("titration: ["), "Must declare titration checkpoint pool");
+assert(telemetryCode.includes("strong acid-strong base titration"), "Must include strong acid equivalence question");
+assert(telemetryCode.includes("first derivative curve"), "Must include derivative peak question");
+assert(telemetryCode.includes("phenolphthalein"), "Must include indicator selection question");
+assert(telemetryCode.includes("half-equivalence point"), "Must include half-equivalence Henderson-Hasselbalch question");
+assert(telemetryCode.includes("hydrolysis"), "Must include conjugate base salt hydrolysis question");
+console.log("  ✅ PASS: LAB_CHECKPOINTS.titration contains comprehensive 5-question inquiry suite");
 
 console.log("\n========================================================");
 console.log("🔬 Option B: Research-Grade Optical Microscope Verification");

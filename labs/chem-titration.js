@@ -1535,9 +1535,35 @@ export function initTitrationLab(containerId) {
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("titr-checkpoint-container", "titration");
 
+  // Keyboard Shortcuts (Space: Drop, E: CSV, R: Reset, S: Stop, A: Auto, D: Derivative)
+  function handleKeyDown(e) {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA") return;
+    if (e.code === "Space") {
+      e.preventDefault();
+      document.getElementById("btn-add-drop")?.click();
+    } else if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      document.getElementById("btn-export-titr-csv")?.click();
+    } else if (e.key === "r" || e.key === "R") {
+      e.preventDefault();
+      document.getElementById("btn-titr-reset")?.click();
+    } else if (e.key === "s" || e.key === "S") {
+      e.preventDefault();
+      document.getElementById("btn-titr-stop")?.click();
+    } else if (e.key === "a" || e.key === "A") {
+      e.preventDefault();
+      document.getElementById("btn-titr-auto")?.click();
+    } else if (e.key === "d" || e.key === "D") {
+      e.preventDefault();
+      document.getElementById("chk-derivative")?.click();
+    }
+  }
+  window.addEventListener("keydown", handleKeyDown);
+
   const cleanup = () => {
     stopAutoTitrate();
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
   _currentTitrationCleanup = cleanup;
   return cleanup;
