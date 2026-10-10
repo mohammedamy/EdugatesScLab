@@ -2236,6 +2236,9 @@ export function initProjectileLab(containerId) {
         chk.checked = !chk.checked;
         isSlowMo = chk.checked;
       }
+    } else if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      document.getElementById("btn-export-proj-csv")?.click();
     }
   }
 

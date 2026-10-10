@@ -380,6 +380,22 @@ test("Analytical Trajectory & Energy Charts view switcher and rendering componen
   assert(code.includes('VELOCITY COMPONENT DECAY v(t)'), "Chart must include velocity decay graph");
 });
 
+test("phys-projectile.js binds 'e' / 'E' keyboard shortcut to export telemetry CSV", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-projectile.js"), "utf-8");
+  assert(code.includes('e.key === "e" || e.key === "E"'), "Must handle 'e'/'E' export telemetry shortcut");
+  assert(code.includes('btn-export-proj-csv'), "Must click btn-export-proj-csv");
+});
+
+test("LAB_CHECKPOINTS.projectile contains comprehensive 5-question inquiry suite", () => {
+  const telemetrySrc = fs.readFileSync(path.resolve("labs/lab-telemetry-exporter.js"), "utf-8");
+  assert(telemetrySrc.includes("projectile: ["), "Must declare projectile checkpoint pool");
+  assert(telemetrySrc.includes("launch angle yields the maximum horizontal range"), "Must include 45-deg max range question");
+  assert(telemetrySrc.includes("complementary angles"), "Must include complementary angles question");
+  assert(telemetrySrc.includes("peak of its trajectory"), "Must include apex kinematics question");
+  assert(telemetrySrc.includes("elevated cliff or platform"), "Must include elevated launch angle question");
+  assert(telemetrySrc.includes("aerodynamic air drag"), "Must include air drag trajectory asymmetry question");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Projectile Lab Tests: ${passed} Passed, 0 Failed`);
 console.log("========================================================\n");

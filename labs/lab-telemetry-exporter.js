@@ -414,6 +414,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 0,
       explanation: "At the apex, vertical velocity instantaneously halts ($v_y = 0$) before reversing downwards. Neglecting drag, no horizontal force acts on the mass, so $a_x = 0$."
+    },
+    {
+      id: "q4",
+      question: "When launching from an elevated cliff or platform ($y_0 > 0$) toward a ground target below, how does the launch angle for maximum horizontal range compare to flat ground ($45^\\circ$)?",
+      options: [
+        "The optimal angle is strictly less than 45° (< 45°)",
+        "The optimal angle is strictly greater than 45° (> 45°)",
+        "The optimal angle remains strictly 45°",
+        "The optimal angle is exactly 90° (vertical)"
+      ],
+      correctIndex: 0,
+      explanation: "From an elevated platform (y₀ > 0), gravity aids the downward leg of flight, extending time of flight. Shifting launch velocity more into the horizontal (θ < 45°, typically 35°–42°) yields greater horizontal travel before landing."
+    },
+    {
+      id: "q5",
+      question: "When aerodynamic air drag ($\\vec{F}_d \\propto -v^2 \\hat{v}$) is enabled, what happens to the trajectory geometry compared to an ideal vacuum parabola?",
+      options: [
+        "The trajectory becomes asymmetric, with a steeper descent than ascent and reduced range",
+        "The trajectory remains a symmetric parabola with identical range",
+        "The apex shifts towards the end of the flight path",
+        "The projectile accelerates continuously during descent"
+      ],
+      correctIndex: 0,
+      explanation: "Air resistance continuously dissipates kinetic energy into thermal drag work, decelerating horizontal velocity vx. This shifts the apex backwards and produces a steep, non-parabolic plunge towards the ground with reduced range."
     }
   ],
 
