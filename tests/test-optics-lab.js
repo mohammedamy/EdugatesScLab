@@ -240,7 +240,32 @@ assert(opticsSrc.includes("calculateCompoundOptics"), "phys-optics.js must defin
 assert(opticsSrc.includes("drawCompoundView"), "phys-optics.js must implement drawCompoundView() rendering pipeline");
 console.log("  ✅ PASS: phys-optics.js integrates compound optics calculation and drawCompoundView renderer");
 
+// 23. Verify Mode-Specific CSV Telemetry Export
+assert(opticsSrc.includes('labId: "optics_compound"'), "Must export compound multi-lens cascade dataset");
+assert(opticsSrc.includes('labId: "optics_refraction"'), "Must export refraction / TIR angular sweep dataset");
+assert(opticsSrc.includes('labId: "optics_diffraction"'), "Must export diffraction grating spectral dataset");
+assert(opticsSrc.includes('labId: "optics_geometric"'), "Must export geometric lens/mirror benchmark dataset");
+assert(opticsSrc.includes('"Ray Transfer Matrix ABCD"'), "Compound export must include ABCD matrix parameter");
+assert(opticsSrc.includes('"Critical Angle (θ_c)"'), "Refraction export must include critical angle");
+assert(opticsSrc.includes('"Grating Spacing d (μm)"'), "Diffraction export must include grating pitch");
+console.log("  ✅ PASS: phys-optics.js exports mode-specific CSV telemetry across geometric, refraction, diffraction, and compound modes");
+
+// 24. Verify Comprehensive 5-Question Optics Checkpoint Assessment
+const telemetrySrc = fs.readFileSync(path.join(rootDir, "labs/lab-telemetry-exporter.js"), "utf-8");
+assert(telemetrySrc.includes("optics: ["), "Must declare optics checkpoint pool");
+assert(telemetrySrc.includes("Snell's law"), "Must include Snell's law refraction checkpoint");
+assert(telemetrySrc.includes("Total Internal Reflection"), "Must include TIR checkpoint");
+assert(telemetrySrc.includes("thin converging (convex) lens"), "Must include thin lens checkpoint");
+assert(telemetrySrc.includes("Keplerian astronomical telescope"), "Must include Keplerian telescope checkpoint");
+assert(telemetrySrc.includes("transmission diffraction grating"), "Must include diffraction grating checkpoint");
+console.log("  ✅ PASS: LAB_CHECKPOINTS.optics contains comprehensive 5-question inquiry suite across geometric, wave, and compound optics");
+
+// 25. Verify Keyboard Shortcut 'e' / 'E' for CSV Telemetry Export
+assert(opticsSrc.includes('e.key.toLowerCase() === "e"'), "phys-optics.js must bind 'e'/'E' to CSV export");
+console.log("  ✅ PASS: phys-optics.js binds 'e'/'E' shortcut for instant telemetry CSV export");
+
 console.log("\n========================================================");
-console.log("📊 Optics Lab Tests: All 22 Passed!");
+console.log("📊 Optics Lab Tests: All 25 Passed!");
 console.log("========================================================\n");
+
 

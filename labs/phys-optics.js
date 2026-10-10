@@ -2359,24 +2359,181 @@ export function initOpticsLab(containerId) {
 
   // Telemetry Suite: Export CSV
   document.getElementById("btn-export-optics-csv")?.addEventListener("click", () => {
-    const img = calculateImage();
-    const effF = (opticType === "convex_lens" || opticType === "concave_mirror") ? fVal : -fVal;
+    if (currentTab === "compound") {
+      const comp = calculateCompoundOptics();
+      exportLabDataCsv({
+        title: "Precision Compound Multi-Lens Optics Laboratory",
+        labId: "optics_compound",
+        parameters: {
+          "Active Mode": "Compound Multi-Lens Cascade",
+          "Optical Configuration": comp.isAfocal ? `${compoundPreset} (Afocal/Confocal)` : compoundPreset,
+          "Objective Lens (f₁)": `${comp.f1.toFixed(1)} cm`,
+          "Eyepiece Lens (f₂)": `${comp.f2.toFixed(1)} cm`,
+          "Tube Length (L)": `${comp.L.toFixed(1)} cm`,
+          "Object Distance (d_o1)": `${comp.do1.toFixed(1)} cm`,
+          "System Focal Length (F_sys)": isFinite(comp.fSys) ? `${comp.fSys.toFixed(2)} cm` : "Afocal (Infinity)",
+          "Alignment Condition": comp.isAfocal ? "Confocal / Afocal (L = f₁ + f₂)" : "Finite Conjugate",
+          "Ray Transfer Matrix ABCD": `[A=${comp.A.toFixed(3)}, B=${comp.B.toFixed(1)}, C=${comp.C.toFixed(4)}, D=${comp.D.toFixed(3)}]`
+        },
+        headers: [
+          "Stage / Subsystem",
+          "Optical Element",
+          "Focal Length f (cm)",
+          "Object Distance do (cm)",
+          "Image Distance di (cm)",
+          "Transverse Mag m",
+          "System / Angular Mag",
+          "Image Character",
+          "ABCD Ray Parameter"
+        ],
+        dataRows: [
+          [
+            "Stage 1 (Objective)",
+            "Objective Lens L₁",
+            comp.f1,
+            comp.do1,
+            isFinite(comp.di1) ? parseFloat(comp.di1.toFixed(2)) : "Infinity",
+            isFinite(comp.m1) ? parseFloat(comp.m1.toFixed(2)) : "N/A",
+            "N/A",
+            comp.di1 > 0 ? "Real, Inverted" : "Virtual, Upright",
+            `A = ${comp.A.toFixed(3)}`
+          ],
+          [
+            "Stage 2 (Eyepiece)",
+            "Eyepiece Lens L₂",
+            comp.f2,
+            isFinite(comp.do2) ? parseFloat(comp.do2.toFixed(2)) : "Infinity",
+            isFinite(comp.di2) ? parseFloat(comp.di2.toFixed(2)) : "Infinity",
+            isFinite(comp.m2) ? parseFloat(comp.m2.toFixed(2)) : "N/A",
+            compoundPreset === "telescope" ? `${comp.mTotal.toFixed(2)}× (Angular)` : `${comp.mTotal.toFixed(2)}× (Linear)`,
+            comp.di2 > 0 ? "Real" : "Virtual",
+            `D = ${comp.D.toFixed(3)}`
+          ],
+          [
+            "System Cascade",
+            compoundPreset.toUpperCase(),
+            isFinite(comp.fSys) ? parseFloat(comp.fSys.toFixed(2)) : "Afocal",
+            comp.do1,
+            isFinite(comp.di2) ? parseFloat(comp.di2.toFixed(2)) : "Collimated",
+            "N/A",
+            `${comp.mTotal.toFixed(2)}×`,
+            comp.isAfocal ? "Afocal Parallel Output Beam" : "Final Projected Image",
+            "det(M) = 1.000"
+          ]
+        ]
+      });
+    } else if (currentTab === "snell") {
+      const snell = calculateSnell();
+      if (interfaceShape === "grating") {
+        const dUm = 1000 / 600; // 600 lines/mm -> ~1.667 um
+        const dM = 1e-3 / 600;
+        const gratingRows = [
+          { name: "Green (Laser)", lambdaNm: 532, m: 1 },
+          { name: "Green (Laser)", lambdaNm: 532, m: 2 },
+          { name: "Red (Laser)", lambdaNm: 650, m: 1 },
+          { name: "Violet (Laser)", lambdaNm: 405, m: 1 }
+        ].map(item => {
+          const sinTheta = (item.m * item.lambdaNm * 1e-9) / dM;
+          const thetaDeg = sinTheta <= 1.0 ? parseFloat(((Math.asin(sinTheta) * 180) / Math.PI).toFixed(2)) : "N/A";
+          return [
+            "Diffraction Grating (600 lines/mm)",
+            parseFloat(dUm.toFixed(3)),
+            item.name,
+            item.lambdaNm,
+            item.m,
+            thetaDeg,
+            parseFloat(sinTheta.toFixed(4))
+          ];
+        });
 
-    exportLabDataCsv({
-      title: "Precision Geometric & Physical Optics Laboratory",
-      labId: "optics",
-      parameters: {
-        "Active Apparatus": currentTab,
-        "Optical Element": opticType,
-        "Focal Length (|f|)": `${fVal.toFixed(1)} cm`,
-        "Object Distance (d_o)": `${doVal.toFixed(1)} cm`,
-        "Object Height (h_o)": `${hoVal.toFixed(1)} cm`,
-        "Compound System": currentTab === "compound" ? compoundPreset : "N/A",
-        "Tube Length": currentTab === "compound" ? `${tubeLen.toFixed(1)} cm` : "N/A",
-        "Laser Collimator": laserMode ? "Active" : "Standard Multi-Ray"
-      },
-      headers: ["Element Type", "Focal Length f (cm)", "Object Distance do (cm)", "Image Distance di (cm)", "Object Height ho (cm)", "Image Height hi (cm)", "Magnification m", "Image Nature"],
-      dataRows: [
+        exportLabDataCsv({
+          title: "Precision Transmission Diffraction Grating Laboratory",
+          labId: "optics_diffraction",
+          parameters: {
+            "Active Apparatus": "Transmission Diffraction Grating",
+            "Grating Density": "600 lines/mm",
+            "Slit Spacing (d)": `${dUm.toFixed(3)} μm`,
+            "Incident Angle": "Normal Incidence (0°)",
+            "Governing Law": "d · sin(θ_m) = m · λ"
+          },
+          headers: [
+            "Apparatus",
+            "Grating Spacing d (μm)",
+            "Spectral Line",
+            "Wavelength λ (nm)",
+            "Diffraction Order m",
+            "Diffracted Angle θ_m (deg)",
+            "sin(θ_m)"
+          ],
+          dataRows: gratingRows
+        });
+      } else {
+        const rows = [];
+        // Add current observation
+        rows.push([
+          interfaceShape === "prism" ? "Cauchy Dispersive Prism" : "Semicircular D-Block",
+          medium1Index,
+          medium2Index,
+          theta1Deg,
+          snell.theta2Deg !== null ? parseFloat(snell.theta2Deg.toFixed(2)) : "N/A (TIR)",
+          snell.critAngleDeg !== null ? parseFloat(snell.critAngleDeg.toFixed(2)) : "N/A",
+          snell.tir ? "YES (Total Internal Reflection)" : "NO (Refracted)",
+          parseFloat((snell.reflectance * 100).toFixed(1)),
+          parseFloat(((1 - snell.reflectance) * 100).toFixed(1))
+        ]);
+
+        // Add 10-degree incident angle sweep for plotting Snell curve
+        for (let a = 0; a <= 80; a += 10) {
+          if (Math.abs(a - theta1Deg) < 0.1) continue;
+          const aRad = (a * Math.PI) / 180;
+          const sT2 = (medium1Index / medium2Index) * Math.sin(aRad);
+          const isTir = sT2 > 1.0;
+          const t2Deg = isTir ? "N/A (TIR)" : parseFloat(((Math.asin(sT2) * 180) / Math.PI).toFixed(2));
+          rows.push([
+            "Snell Angle Sweep",
+            medium1Index,
+            medium2Index,
+            a,
+            t2Deg,
+            snell.critAngleDeg !== null ? parseFloat(snell.critAngleDeg.toFixed(2)) : "N/A",
+            isTir ? "YES (Total Internal Reflection)" : "NO (Refracted)",
+            isTir ? 100.0 : parseFloat((Math.pow((medium1Index - medium2Index) / (medium1Index + medium2Index), 2) * 100).toFixed(1)),
+            isTir ? 0.0 : parseFloat((100 - Math.pow((medium1Index - medium2Index) / (medium1Index + medium2Index), 2) * 100).toFixed(1))
+          ]);
+        }
+
+        exportLabDataCsv({
+          title: "Precision Refraction & Total Internal Reflection Laboratory",
+          labId: "optics_refraction",
+          parameters: {
+            "Active Apparatus": interfaceShape === "prism" ? "Equilateral Dispersion Prism" : "Semicircular D-Block",
+            "Incident Medium (n₁)": medium1Index.toFixed(3),
+            "Refracting Medium (n₂)": medium2Index.toFixed(3),
+            "Current Angle of Incidence (θ₁)": `${theta1Deg.toFixed(1)}°`,
+            "Critical Angle (θ_c)": snell.critAngleDeg !== null ? `${snell.critAngleDeg.toFixed(2)}°` : "N/A (n₁ ≤ n₂)",
+            "TIR Status": snell.tir ? "Active (Total Reflection)" : "Inactive (Refracted Beam)"
+          },
+          headers: [
+            "Apparatus",
+            "Medium 1 n₁",
+            "Medium 2 n₂",
+            "Incident Angle θ₁ (deg)",
+            "Refracted Angle θ₂ (deg)",
+            "Critical Angle θ_c (deg)",
+            "TIR Status",
+            "Reflectance R (%)",
+            "Transmittance T (%)"
+          ],
+          dataRows: rows
+        });
+      }
+    } else {
+      // Geometric Optics (Lens / Mirror)
+      const img = calculateImage();
+      const effF = (opticType === "convex_lens" || opticType === "concave_mirror") ? fVal : -fVal;
+      const absF = Math.abs(effF);
+
+      const rows = [
         [
           opticType,
           effF,
@@ -2385,10 +2542,64 @@ export function initOpticsLab(containerId) {
           hoVal,
           isFinite(img.hi) ? parseFloat(img.hi.toFixed(2)) : "Infinity",
           isFinite(img.m) ? parseFloat(img.m.toFixed(2)) : "Infinity",
-          img.isReal ? "Real, Inverted" : "Virtual, Upright"
+          img.isReal ? "Real, Inverted" : "Virtual, Upright",
+          doVal > 2 * absF ? "Beyond 2F" : (Math.abs(doVal - 2 * absF) < 0.5 ? "At 2F" : (doVal > absF ? "Between F and 2F" : "Inside F (Magnifier)"))
         ]
-      ]
-    });
+      ];
+
+      // Add standard canonical reference benchmarks for student lab reports
+      const benchmarks = [
+        { name: "2F Benchmark", doTest: 2 * absF },
+        { name: "1.5F Benchmark", doTest: 1.5 * absF },
+        { name: "0.5F Magnifier", doTest: 0.5 * absF }
+      ];
+
+      benchmarks.forEach(bm => {
+        if (Math.abs(bm.doTest - doVal) > 0.5) {
+          const testDi = (effF * bm.doTest) / (bm.doTest - effF);
+          const testM = -testDi / bm.doTest;
+          const testHi = testM * hoVal;
+          const testReal = testDi > 0;
+          rows.push([
+            `${opticType} (${bm.name})`,
+            effF,
+            bm.doTest,
+            parseFloat(testDi.toFixed(2)),
+            hoVal,
+            parseFloat(testHi.toFixed(2)),
+            parseFloat(testM.toFixed(2)),
+            testReal ? "Real, Inverted" : "Virtual, Upright",
+            bm.name
+          ]);
+        }
+      });
+
+      exportLabDataCsv({
+        title: "Precision Geometric Optics Laboratory",
+        labId: "optics_geometric",
+        parameters: {
+          "Active Apparatus": currentTab === "lens" ? "Thin Optical Lens Bench" : "Curved Optical Mirror Bench",
+          "Optical Element": opticType,
+          "Focal Length (|f|)": `${fVal.toFixed(1)} cm`,
+          "Signed Focal Length (f)": `${effF.toFixed(1)} cm`,
+          "Object Distance (d_o)": `${doVal.toFixed(1)} cm`,
+          "Object Height (h_o)": `${hoVal.toFixed(1)} cm`,
+          "Laser Collimator": laserMode ? "Active" : "Standard Multi-Ray"
+        },
+        headers: [
+          "Element Type",
+          "Signed Focal Length f (cm)",
+          "Object Distance do (cm)",
+          "Image Distance di (cm)",
+          "Object Height ho (cm)",
+          "Image Height hi (cm)",
+          "Magnification m",
+          "Image Nature",
+          "Position Regime"
+        ],
+        dataRows: rows
+      });
+    }
   });
 
   // Telemetry Suite: Generate Lab Dossier
@@ -2445,6 +2656,8 @@ export function initOpticsLab(containerId) {
       document.getElementById("preset-concave")?.click();
     } else if (e.key.toLowerCase() === "r") {
       document.getElementById("preset-2f")?.click();
+    } else if (e.key.toLowerCase() === "e") {
+      document.getElementById("btn-export-optics-csv")?.click();
     }
   }
   window.addEventListener("keydown", handleKeyDown);

@@ -609,6 +609,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "From 1/f = 1/d_o + 1/d_i, when d_o > 2f, the image is real, inverted, located between f and 2f, and diminished."
+    },
+    {
+      id: "q4",
+      question: "A Keplerian astronomical telescope has an objective lens with focal length $f_{\\text{obj}} = 80\\text{ cm}$ and an eyepiece with $f_{\\text{eye}} = 4\\text{ cm}$. Under confocal afocal alignment, what is the tube separation $L$ and angular magnification $M$?",
+      options: [
+        "L = 84 cm, M = -20× (inverted)",
+        "L = 76 cm, M = +20× (upright)",
+        "L = 320 cm, M = -0.05× (reduced)",
+        "L = 40 cm, M = -4× (inverted)"
+      ],
+      correctIndex: 0,
+      explanation: "In an afocal Keplerian refractor, the lenses are confocal with tube length L = f_obj + f_eye = 80 + 4 = 84 cm, and angular magnification is M = -f_obj / f_eye = -80 / 4 = -20× (producing an inverted image)."
+    },
+    {
+      id: "q5",
+      question: "When monochromatic laser light of wavelength $\\lambda = 532\\text{ nm}$ illuminates a transmission diffraction grating with $600\\text{ lines/mm}$, the first-order ($m = 1$) diffracted beam angle $\\theta_1$ is given by:",
+      options: [
+        "θ₁ ≈ 18.6° from d · sin(θ) = mλ",
+        "θ₁ ≈ 35.8° from Snell's law",
+        "θ₁ ≈ 9.2° from Bragg's law",
+        "θ₁ ≈ 45.0° from Brewster's angle"
+      ],
+      correctIndex: 0,
+      explanation: "Grating spacing d = 1 mm / 600 = 1.667 × 10⁻⁶ m. Using d · sin(θ₁) = 1 · λ, sin(θ₁) = 532 × 10⁻⁹ / 1.667 × 10⁻⁶ ≈ 0.3192, yielding θ₁ = arcsin(0.3192) ≈ 18.61°."
     }
   ],
 
