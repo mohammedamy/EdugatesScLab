@@ -279,7 +279,7 @@ export function initDnaProteinLab(containerId) {
             <span>📸 Log Genetic Variant</span>
           </button>
           <button class="btn btn-secondary" id="btn-export-dna-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;" title="Export complete codon transcription & translation dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export CSV Data (Shortcut: E)">
-            <span>📥 Export CSV Data (E)</span>
+            <span>📥 Export CSV (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-dna-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #059669, #047857); border: none;">
             <span>📑 Generate Lab Report</span>

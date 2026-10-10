@@ -245,7 +245,7 @@ export function initTitrationLab(containerId) {
             <span>📸 Log Current Trial</span>
           </button>
           <button class="btn btn-secondary" id="btn-export-titr-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
-            <span>📥 Export CSV Data</span>
+            <span>📥 Export CSV (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-titr-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #0891b2, #0284c7); border: none;">
             <span>📑 Generate Lab Report</span>

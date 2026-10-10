@@ -443,7 +443,7 @@ export function initProjectileLab(containerId) {
 
         <div class="lab-export-buttons-group">
           <button class="btn btn-secondary" id="btn-export-proj-csv" style="padding: 6px 14px; font-size: 0.82rem; gap: 6px;">
-            <span>📥 Export Telemetry (CSV)</span>
+            <span>📥 Export CSV (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-proj-report" style="padding: 6px 14px; font-size: 0.82rem; gap: 6px; background: linear-gradient(135deg, #0284c7, #2563eb); border: none;">
             <span>📑 Generate Lab Report</span>

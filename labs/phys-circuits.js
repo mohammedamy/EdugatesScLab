@@ -391,7 +391,7 @@ export function initCircuitsLab(containerId) {
             <span>📸 Log Current State</span>
           </button>
           <button class="btn btn-secondary" id="btn-export-circ-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
-            <span>📥 Export CSV Data</span>
+            <span>📥 Export CSV (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-circ-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #d97706, #b45309); border: none;">
             <span>📑 Generate Lab Dossier</span>

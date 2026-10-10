@@ -2400,7 +2400,7 @@ export function initArduinoLab(containerId) {
 
           <!-- Export CSV Data -->
           <button id="btn-arduino-export" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
-            <span>📊</span>
+            <span>📥</span>
             <span>Export CSV (E)</span>
           </button>
 

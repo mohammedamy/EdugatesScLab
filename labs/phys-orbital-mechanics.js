@@ -346,7 +346,7 @@ export function initOrbitalMechanicsLab(containerId) {
             📋 Lab Dossier
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-orbital-export" style="padding: 5px 11px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Ephemeris CSV
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -1502,6 +1502,9 @@ export function initOrbitalMechanicsLab(containerId) {
       isRunning = !isRunning;
       if (btnPause) btnPause.textContent = isRunning ? "⏸️ Pause" : "▶️ Resume";
       SoundFX.playClick();
+    } else if ((e.key === "e" || e.key === "E") && document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "SELECT" && document.activeElement?.tagName !== "TEXTAREA") {
+      e.preventDefault();
+      btnExport?.click();
     }
   }
   window.addEventListener("keydown", handleKeyDown);

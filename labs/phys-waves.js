@@ -257,7 +257,7 @@ export function initWaveLab(containerId) {
             <span>📸 Record Trial</span>
           </button>
           <button class="btn btn-secondary" id="btn-wave-export" style="padding: 6px 14px; font-size: 0.82rem; gap: 6px; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            <span>📥 Export Telemetry (CSV)</span>
+            <span>📥 Export CSV (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-wave-open-report" style="padding: 6px 14px; font-size: 0.82rem; gap: 6px; background: linear-gradient(135deg, #4f46e5, #0284c7); border: none;">
             <span>📑 Generate Lab Report</span>

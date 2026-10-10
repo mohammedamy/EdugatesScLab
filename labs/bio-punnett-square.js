@@ -263,7 +263,7 @@ export function initPunnettLab(containerId) {
             <span>📸 Log Cross Results</span>
           </button>
           <button class="btn btn-secondary" id="btn-export-punnett-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;" title="Export Mendelian cross distribution & Chi-Square goodness-of-fit dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export CSV Data (Shortcut: E)">
-            <span>📥 Export CSV Data (E)</span>
+            <span>📥 Export CSV (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-punnett-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #059669, #047857); border: none;">
             <span>📑 Generate Lab Report</span>

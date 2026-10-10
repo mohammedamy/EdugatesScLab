@@ -279,6 +279,8 @@ test("phys-orbital-mechanics.js implements HiDPI DPR canvas scaling with window.
 test("phys-orbital-mechanics.js implements Spacebar pause/resume listener with cleanup unbinding", () => {
   const code = fs.readFileSync(path.resolve("labs/phys-orbital-mechanics.js"), "utf-8");
   assert(code.includes('e.code === "Space"'), "Must handle Spacebar pause/play");
+  assert(code.includes('e.key === "e" || e.key === "E"'), "Must handle 'e'/'E' export shortcut");
+  assert(code.includes('📥 Export CSV (E)'), "Export button must include (E) hotkey hint");
   assert(code.includes("removeEventListener"), "Must unbind event listeners on cleanup");
 });
 

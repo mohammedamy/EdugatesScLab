@@ -226,7 +226,7 @@ export function initGasLawsLab(containerId) {
             <span>📸 Log Current State</span>
           </button>
           <button class="btn btn-secondary" id="btn-export-gas-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;" title="Export continuous thermodynamic state & Boyle's law isotherm sweep (Shortcut: E)" aria-label="Export CSV Data (Shortcut: E)">
-            <span>📥 Export CSV Data (E)</span>
+            <span>📥 Export CSV (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-gas-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
             <span>📑 Generate Lab Report</span>

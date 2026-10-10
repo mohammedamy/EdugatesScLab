@@ -304,7 +304,7 @@ export function initMicroscopeLab(containerId) {
         <!-- Export Data & Lab Report Buttons -->
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
           <button class="btn btn-secondary" id="btn-export-micro-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;" title="Export optical microscope telemetry dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export CSV Data (Shortcut: E)">
-            <span>📥 Export CSV Data (E)</span>
+            <span>📥 Export CSV (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-micro-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #059669, #047857); border: none;">
             <span>📑 Generate Lab Report</span>

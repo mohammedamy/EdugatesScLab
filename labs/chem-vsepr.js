@@ -364,7 +364,7 @@ export function initVseprLab(containerId) {
             ${autoRotate ? "⏸ Pause Rotation" : "▶ Auto-Rotate"}
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-vsepr-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Export comprehensive molecular geometry & electron repulsion dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export Telemetry as CSV (Shortcut: E)">
-            📥 Export Telemetry (E)
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
