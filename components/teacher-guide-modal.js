@@ -100,26 +100,26 @@ export function openTeacherGuideModal() {
               <div style="font-size: 1.4rem; margin-bottom: 6px;">⚛️</div>
               <div style="font-weight: 700; color: var(--chem-primary); font-size: 0.95rem;">Inspire Chemistry</div>
               <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-                23 Modules • 95 Lessons. Atomic theory, stoichiometry, thermodynamics, gas laws, equilibrium, acid-base titration, and organic chemistry.
+                23 Modules • 89 Lessons. Atomic theory, stoichiometry, thermodynamics, gas laws, equilibrium, acid-base titration, and organic chemistry.
               </div>
             </div>
             <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 14px;">
               <div style="font-size: 1.4rem; margin-bottom: 6px;">🧬</div>
               <div style="font-weight: 700; color: var(--bio-primary); font-size: 0.95rem;">Inspire Biology</div>
               <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-                27 Modules • 108 Lessons. Cellular biology, respiration, photosynthesis, genetics, evolution, microbiology, and 3D human anatomy atlas.
+                27 Modules • 81 Lessons. Cellular biology, respiration, photosynthesis, genetics, evolution, microbiology, and 3D human anatomy atlas.
               </div>
             </div>
             <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 12px; padding: 14px;">
               <div style="font-size: 1.4rem; margin-bottom: 6px;">🪐</div>
               <div style="font-weight: 700; color: var(--phys-primary); font-size: 0.95rem;">Inspire Physics</div>
               <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-                24 Modules • 96 Lessons. Newtonian mechanics, fluids, projectile motion, wave interference, ray optics, electrostatics, and circuits.
+                24 Modules • 72 Lessons. Newtonian mechanics, fluids, projectile motion, wave interference, ray optics, electrostatics, circuits, and Arduino.
               </div>
             </div>
           </div>
 
-          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 10px;">Flagship Virtual Laboratory Engines</h3>
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 10px;">Flagship Virtual Laboratory Engines (45 STEM Workbenches)</h3>
           <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 12px;">
             Every virtual lab bench in Edugates-ClipSAT is powered by continuous mathematical physics calculators rather than pre-rendered video clips. Key demonstration benches include:
           </p>
@@ -127,6 +127,8 @@ export function openTeacherGuideModal() {
             <li><b>Acid-Base Titration:</b> Dynamic volumetric burette with live phenolphthalein/bromothymol indicator transition and first-derivative dpH/dV equivalence point peak detection.</li>
             <li><b>Research Optical Microscope:</b> Revolving 4x to 100x turret nosepiece with optical numerical aperture (NA 0.10 to 1.25) depth-of-field blur and Köhler illumination.</li>
             <li><b>Wave Ripple Tank Simulator:</b> 2D surface wave propagation with absorbing PML sponge boundaries, Doppler frequency shifts, and Young's double-slit interference fringes.</li>
+            <li><b>Fluid Dynamics &amp; Hydraulic Suite:</b> Archimedes overflow buoyancy ($F_b = \rho V g$), Venturi tube continuity &amp; Bernoulli pressure drop, Torricelli liquid efflux parabolic range, and Pascal hydraulic press with vehicle loading.</li>
+            <li><b>Microcontroller &amp; Arduino Workbench:</b> Authentic ATmega328P C++ micro-compiler, through-hole breadboard electronics with 220Ω limiters, dual-channel DSO logic oscilloscope, and SPICE CAD netlist exporter.</li>
             <li><b>Human Anatomy 3D Atlas:</b> Layer-by-layer peeling across Skeletal, Muscular, Circulatory, Nervous, Visceral, and Skin systems with 8K coronal organ cross-sections.</li>
           </ul>
         </div>

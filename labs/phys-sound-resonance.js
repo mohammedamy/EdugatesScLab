@@ -627,5 +627,9 @@ export function initSoundResonanceLab(containerId) {
   return function cleanupSoundResonanceLab() {
     if (animId) cancelAnimationFrame(animId);
     setAudioPlayback(false);
+    if (audioCtx && typeof audioCtx.close === "function") {
+      try { audioCtx.close(); } catch (e) {}
+      audioCtx = null;
+    }
   };
 }
