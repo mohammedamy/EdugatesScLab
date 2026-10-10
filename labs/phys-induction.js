@@ -96,7 +96,7 @@ export function initInductionLab(containerId) {
             <button id="btn-view-sim" class="btn btn-sm active" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0;">🔬 Induction Simulator</button>
             <button id="btn-view-photo" class="btn btn-sm" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0; background: transparent;">📸 4K Real Bench</button>
           </div>
-          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem;">📥 Export CSV</button>
+          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem;">📥 Export CSV (E)</button>
         </div>
       </div>
 
@@ -331,22 +331,24 @@ export function initInductionLab(containerId) {
     canvas.style.cursor = "grabbing";
   });
 
-  window.addEventListener("mousemove", (e) => {
+  const onMouseMove = (e) => {
     if (!isDragging || isOscillating) return;
     const currentCoord = getCanvasCoord(e);
     const delta = (currentCoord - dragStartX) * 2.0; // scale
     const newX = Math.max(-0.95, Math.min(0.95, dragStartMagnetX + delta));
     magnetVx = (newX - magnetX) * 60; // instantaneous speed
     magnetX = newX;
-  });
+  };
+  window.addEventListener("mousemove", onMouseMove);
 
-  window.addEventListener("mouseup", () => {
+  const onMouseUp = () => {
     if (isDragging) {
       isDragging = false;
       if (canvas) canvas.style.cursor = "grab";
       magnetVx = 0;
     }
-  });
+  };
+  window.addEventListener("mouseup", onMouseUp);
 
   // Touch support for Smartboards & Tablets
   canvas?.addEventListener("touchstart", (e) => {
@@ -355,19 +357,21 @@ export function initInductionLab(containerId) {
     dragStartMagnetX = magnetX;
   }, { passive: true });
 
-  window.addEventListener("touchmove", (e) => {
+  const onTouchMove = (e) => {
     if (!isDragging || isOscillating) return;
     const currentCoord = getCanvasCoord(e);
     const delta = (currentCoord - dragStartX) * 2.0;
     const newX = Math.max(-0.95, Math.min(0.95, dragStartMagnetX + delta));
     magnetVx = (newX - magnetX) * 60;
     magnetX = newX;
-  }, { passive: true });
+  };
+  window.addEventListener("touchmove", onTouchMove, { passive: true });
 
-  window.addEventListener("touchend", () => {
+  const onTouchEnd = () => {
     isDragging = false;
     magnetVx = 0;
-  });
+  };
+  window.addEventListener("touchend", onTouchEnd);
 
   function recordPoint(data) {
     telemetryHistory.unshift({
@@ -806,8 +810,45 @@ export function initInductionLab(containerId) {
       const data = getFluxAndEmf(0.016);
       recordPoint(data);
     }
-    exportLabDataCsv("Electromagnetic_Induction_Faraday", telemetryHistory);
+    exportLabDataCsv({
+      title: "Electromagnetic Induction & Faraday-Lenz Dynamo Telemetry",
+      labId: "induction",
+      parameters: {
+        "Coil Turns (N)": `${coilTurns}`,
+        "Coil Resistance (Ω)": `${COIL_RESISTANCE_OHMS} Ω`,
+        "Solenoid Loop Radius (m)": `${COIL_RADIUS_M} m`,
+        "Magnet Remanence B0 (T)": `${B0_TESLA} T`,
+        "Ferromagnetic Core": hasIronCore ? "High-Permeability Soft Iron" : "Air Core"
+      },
+      headers: [
+        "Time (s)",
+        "Magnet Position x (m)",
+        "Coil Turns (N)",
+        "Magnetic Flux Φ (µWb)",
+        "dΦ/dt (µWb/s)",
+        "Induced EMF (mV)",
+        "Induced Current (µA)"
+      ],
+      dataRows: telemetryHistory.map(row => [
+        row.time,
+        row.x,
+        row.turns,
+        row.flux,
+        row.dPhi,
+        row.emf,
+        row.current
+      ])
+    });
   });
+
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      exportBtn?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
 
   // Mount Assessment Checkpoint
   mountLabCheckpoint("induction-checkpoint-mount", "phys-induction");
@@ -817,5 +858,10 @@ export function initInductionLab(containerId) {
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("mousemove", onMouseMove);
+    window.removeEventListener("mouseup", onMouseUp);
+    window.removeEventListener("touchmove", onTouchMove);
+    window.removeEventListener("touchend", onTouchEnd);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

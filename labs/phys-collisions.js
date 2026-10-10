@@ -125,7 +125,7 @@ export function initCollisionsLab(containerId) {
             <button id="btn-view-sim" class="btn btn-sm active" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0;">🔬 Air Track Simulator</button>
             <button id="btn-view-photo" class="btn btn-sm" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0; background: transparent;">📸 4K Real Bench</button>
           </div>
-          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem;">📥 Export CSV</button>
+          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem;">📥 Export CSV (E)</button>
         </div>
       </div>
 
@@ -900,12 +900,58 @@ export function initCollisionsLab(containerId) {
   });
 
   exportBtn?.addEventListener("click", () => {
-    if (collisionHistory.length === 0) {
-      alert("Please launch gliders and record at least one collision trial before exporting.");
-      return;
-    }
-    exportLabDataCsv("Linear_Momentum_Air_Track_Collisions", collisionHistory);
+    const dataRows = collisionHistory.length > 0
+      ? collisionHistory.map(row => [
+          row.time,
+          row.m1,
+          row.m2,
+          row.u1,
+          row.u2,
+          row.v1,
+          row.v2,
+          row.pTotal,
+          row.pAfter,
+          row.keLoss,
+          row.elasticity
+        ])
+      : [
+          [simTime.toFixed(2), m1.toFixed(2), m2.toFixed(2), g1_v.toFixed(2), g2_v.toFixed(2), g1_v.toFixed(2), g2_v.toFixed(2), (m1 * g1_v + m2 * g2_v).toFixed(3), (m1 * g1_v + m2 * g2_v).toFixed(3), "0.0", elasticity.toFixed(2)]
+        ];
+
+    exportLabDataCsv({
+      title: "Linear Momentum and Air Track Collisions",
+      labId: "collisions",
+      parameters: {
+        "Glider 1 Mass (kg)": `${m1.toFixed(2)} kg`,
+        "Glider 2 Mass (kg)": `${m2.toFixed(2)} kg`,
+        "Coefficient of Restitution (e)": elasticity.toFixed(2),
+        "Air Cushion State": airBlowerOn ? "Air Cushion Active (Zero Friction)" : "Blower Off (High Friction)"
+      },
+      headers: [
+        "Time (s)",
+        "Mass 1 (kg)",
+        "Mass 2 (kg)",
+        "Initial Velocity 1 (m/s)",
+        "Initial Velocity 2 (m/s)",
+        "Final Velocity 1 (m/s)",
+        "Final Velocity 2 (m/s)",
+        "Total Initial Momentum (kg·m/s)",
+        "Total Final Momentum (kg·m/s)",
+        "Kinetic Energy Loss (%)",
+        "Coefficient of Restitution (e)"
+      ],
+      dataRows
+    });
   });
+
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      exportBtn?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
 
   // Checkpoint Quiz
   mountLabCheckpoint("collisions-checkpoint-mount", "phys-collisions");
@@ -917,5 +963,6 @@ export function initCollisionsLab(containerId) {
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

@@ -200,7 +200,7 @@ export function initReactionKineticsLab(containerId) {
             ⟲ Reset Flask
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-kinetics-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Telemetry
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -742,8 +742,44 @@ export function initReactionKineticsLab(containerId) {
 
   exportBtn?.addEventListener("click", () => {
     if (timeSeries.length === 0) recordTelemetryPoint();
-    exportLabDataCsv("Chemical_Kinetics_Reaction_Rates", timeSeries);
+    const kin = calculateKinetics();
+    exportLabDataCsv({
+      title: "Chemical Reaction Kinetics & Arrhenius Dynamics Telemetry",
+      labId: "kinetics",
+      parameters: {
+        "Reaction Profile": REACTION_PROFILES[currentReactionKey].name,
+        "Reaction Order": reactionOrder === 0 ? "Zero Order ([A] vs t)" : reactionOrder === 1 ? "First Order (ln[A] vs t)" : "Second Order (1/[A] vs t)",
+        "Temperature (K)": `${kin.tempK} K (${(kin.tempK - 273.15).toFixed(1)} °C)`,
+        "Activation Energy (kJ/mol)": `${kin.activeEa} kJ/mol`,
+        "Catalyst Applied": hasCatalyst ? "Yes (Transition Metal Co-factor)" : "None (Uncatalyzed)"
+      },
+      headers: [
+        "Time (s)",
+        "Reactant Concentration [A] (M)",
+        "Product Concentration [P] (M)",
+        "Instantaneous Rate (M/s)",
+        "Temperature (K)",
+        "Ea (kJ/mol)"
+      ],
+      dataRows: timeSeries.map(row => [
+        row.time,
+        row.concA,
+        row.productConc,
+        row.rate,
+        row.tempK,
+        row.ea
+      ])
+    });
   });
+
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      exportBtn?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
 
   // Checkpoint Assessment
   mountLabCheckpoint("kinetics-checkpoint-mount", "chem-kinetics");
@@ -755,5 +791,6 @@ export function initReactionKineticsLab(containerId) {
   // Return Cleanup function
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

@@ -138,7 +138,7 @@ export function initElectrostaticsLab(containerId) {
             📍 Center Probe
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-electro-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Field Data
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -543,6 +543,15 @@ export function initElectrostaticsLab(containerId) {
     SoundFX.success();
   });
 
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      btnExport.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
+
   // Start Animation Loop
   loadPreset(currentPresetKey);
   updateHUD();
@@ -550,5 +559,6 @@ export function initElectrostaticsLab(containerId) {
 
   return function cleanupElectrostaticsLab() {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

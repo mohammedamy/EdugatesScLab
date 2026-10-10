@@ -2355,6 +2355,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 0,
       explanation: "Taking the natural logarithm of the Arrhenius equation yields $\\ln(k) = -\\left(\\frac{E_a}{R}\\right)\\left(\\frac{1}{T}\\right) + \\ln(A)$. Plotting $\\ln(k)$ vs $(1/T)$ gives a linear slope $m = -\\frac{E_a}{R}$."
+    },
+    {
+      id: "q4",
+      question: "For a first-order decomposition reaction ($\\text{A} \\rightarrow \\text{Products}$) with rate constant $k = 0.0693\\text{ s}^{-1}$, what is the half-life ($t_{1/2}$) of the reaction, and how does it change as the initial concentration $[\\text{A}]_0$ decreases?",
+      options: [
+        "$t_{1/2} = 10.0\\text{ s}$; the half-life remains strictly constant regardless of initial reactant concentration",
+        "$t_{1/2} = 14.4\\text{ s}$; the half-life decreases proportionally with $[\\text{A}]_0$",
+        "$t_{1/2} = 6.93\\text{ s}$; the half-life doubles when $[\\text{A}]_0$ is halved",
+        "$t_{1/2} = 20.0\\text{ s}$; the half-life increases logarithmically"
+      ],
+      correctIndex: 0,
+      explanation: "For a first-order reaction, the integrated rate law yields $t_{1/2} = \\frac{\\ln(2)}{k} = \\frac{0.693}{0.0693\\text{ s}^{-1}} = 10.0\\text{ s}$. Crucially, first-order half-life is completely independent of initial reactant concentration $[\\text{A}]_0$."
+    },
+    {
+      id: "q5",
+      question: "Consider a two-step reaction mechanism: Step 1 (slow, rate-determining): $\\text{NO}_2 + \\text{NO}_2 \\rightarrow \\text{NO}_3 + \\text{NO}$; Step 2 (fast): $\\text{NO}_3 + \\text{CO} \\rightarrow \\text{NO}_2 + \\text{CO}_2$. What is the overall stoichiometric equation and the experimental rate law predicted by this mechanism?",
+      options: [
+        "Overall: $\\text{NO}_2 + \\text{CO} \\rightarrow \\text{NO} + \\text{CO}_2$; Rate Law: $\\text{Rate} = k[\\text{NO}_2]^2$",
+        "Overall: $2\\text{NO}_2 + \\text{CO} \\rightarrow \\text{NO} + \\text{CO}_2$; Rate Law: $\\text{Rate} = k[\\text{NO}_2][\\text{CO}]$",
+        "Overall: $\\text{NO}_2 + \\text{CO} \\rightarrow \\text{NO} + \\text{CO}_2$; Rate Law: $\\text{Rate} = k[\\text{NO}_3][\\text{CO}]$",
+        "Overall: $\\text{NO}_3 + \\text{CO} \\rightarrow \\text{NO}_2 + \\text{CO}_2$; Rate Law: $\\text{Rate} = k[\\text{NO}_2]^2[\\text{CO}]$"
+      ],
+      correctIndex: 0,
+      explanation: "Adding both elementary steps and cancelling the reactive intermediate $\\text{NO}_3$ and one $\\text{NO}_2$ yields $\\text{NO}_2 + \\text{CO} \\rightarrow \\text{NO} + \\text{CO}_2$. The overall reaction rate is governed by the slow rate-determining step, which involves a bimolecular collision between two $\\text{NO}_2$ molecules, yielding $\\text{Rate} = k[\\text{NO}_2]^2$."
     }
   ],
 
@@ -2394,6 +2418,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 0,
       explanation: "For equal masses in a 1D perfectly elastic collision, the colliding bodies completely exchange velocities: the incident glider halts (v₁ = 0) and the target glider moves away with the incident velocity (v₂ = +2.0 m/s)."
+    },
+    {
+      id: "q4",
+      question: "A 0.40 kg glider travelling at $+1.5\\text{ m/s}$ hits an elastic bumper and rebounds at $-1.2\\text{ m/s}$. If the optical collision sensor records an interaction duration of $\\Delta t = 0.030\\text{ s}$, what was the magnitude of the average force ($\\bar{F}$) exerted by the bumper on the glider?",
+      options: [
+        "$\\bar{F} = 36.0\\text{ N}$ [using $J = m\\Delta v = \\bar{F}\\Delta t$]",
+        "$\\bar{F} = 4.0\\text{ N}$",
+        "$\\bar{F} = 12.0\\text{ N}$",
+        "$\\bar{F} = 1.08\\text{ N}$"
+      ],
+      correctIndex: 0,
+      explanation: "The change in momentum (impulse) is $\\Delta p = m(v_f - v_i) = 0.40\\text{ kg} \\times (-1.2 - 1.5)\\text{ m/s} = 0.40 \\times (-2.7) = -1.08\\text{ kg}\\cdot\\text{m/s}$. By the impulse-momentum theorem $J = \\bar{F}\\Delta t$, the average force magnitude is $|\\bar{F}| = \\frac{|\\Delta p|}{\\Delta t} = \\frac{1.08}{0.030\\text{ s}} = 36.0\\text{ N}$."
+    },
+    {
+      id: "q5",
+      question: "Glider 1 ($m_1 = 0.30\\text{ kg}$) moving at $u_1 = +2.0\\text{ m/s}$ collides and sticks ($e = 0.0$) to stationary Glider 2 ($m_2 = 0.60\\text{ kg}$, $u_2 = 0$). What percentage of initial system kinetic energy is converted into non-mechanical forms (heat, sound, deformation) during this collision?",
+      options: [
+        "$66.7\\%$ kinetic energy loss",
+        "$33.3\\%$ kinetic energy loss",
+        "$50.0\\%$ kinetic energy loss",
+        "$0\\%$ (all kinetic energy is conserved)"
+      ],
+      correctIndex: 0,
+      explanation: "Initial momentum is $p = 0.30 \\times 2.0 = 0.60\\text{ kg}\\cdot\\text{m/s}$. Combined mass is $0.90\\text{ kg}$, giving final velocity $v_f = 0.60 / 0.90 = \\frac{2}{3}\\text{ m/s}$. Initial $KE_i = \\frac{1}{2}(0.30)(2.0)^2 = 0.60\\text{ J}$. Final $KE_f = \\frac{1}{2}(0.90)(\\frac{2}{3})^2 = 0.20\\text{ J}$. Loss = $\\frac{0.60 - 0.20}{0.60} = \\frac{0.40}{0.60} = 66.7\\%$."
     }
   ],
 
@@ -2433,6 +2481,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Ferromagnetic materials have high relative permeability (μ_r >> 1), which dramatically intensifies and concentrates the magnetic flux lines through the coil loops, multiplying dΦ_B/dt and the induced EMF."
+    },
+    {
+      id: "q4",
+      question: "A conductive slider bar of length $L = 0.25\\text{ m}$ slides horizontally at velocity $v = 4.0\\text{ m/s}$ across frictionless rails in a perpendicular uniform magnetic field $B = 0.80\\text{ T}$. If the rail loop has a total circuit resistance of $R = 2.0\\ \\Omega$, what are the motional EMF ($\\mathcal{E}$) and induced current ($I$)?",
+      options: [
+        "$\\mathcal{E} = 0.80\\text{ V}$ and $I = 0.40\\text{ A}$ [using $\\mathcal{E} = BLv$ and $I = \\mathcal{E}/R$]",
+        "$\\mathcal{E} = 1.60\\text{ V}$ and $I = 0.80\\text{ A}$",
+        "$\\mathcal{E} = 0.20\\text{ V}$ and $I = 0.10\\text{ A}$",
+        "$\\mathcal{E} = 0.0\\text{ V}$ because magnetic fields do no work on charges"
+      ],
+      correctIndex: 0,
+      explanation: "The motional electromotive force developed across a conductor moving perpendicular to $B$ is $\\mathcal{E} = B L v = 0.80\\text{ T} \\times 0.25\\text{ m} \\times 4.0\\text{ m/s} = 0.80\\text{ V}$. By Ohm's Law, the induced current in the closed circuit is $I = \\frac{\\mathcal{E}}{R} = \\frac{0.80\\text{ V}}{2.0\\ \\Omega} = 0.40\\text{ A}$."
+    },
+    {
+      id: "q5",
+      question: "A flat rectangular coil with $N = 100$ turns and loop area $A = 0.050\\text{ m}^2$ rotates at constant angular frequency $\\omega = 60\\pi\\text{ rad/s}$ ($30\\text{ Hz}$) in a uniform field $B = 0.20\\text{ T}$. What is the peak output voltage ($\\mathcal{E}_{\\text{max}}$) generated across the slip rings?",
+      options: [
+        "$\\mathcal{E}_{\\text{max}} = 188.5\\text{ V}$ [using $\\mathcal{E}_{\\text{max}} = N B A \\omega$]",
+        "$\\mathcal{E}_{\\text{max}} = 60.0\\text{ V}$",
+        "$\\mathcal{E}_{\\text{max}} = 300.0\\text{ V}$",
+        "$\\mathcal{E}_{\\text{max}} = 94.2\\text{ V}$"
+      ],
+      correctIndex: 0,
+      explanation: "Magnetic flux through the rotating loop is $\\Phi_B(t) = B A \\cos(\\omega t)$. By Faraday's Law, $\\mathcal{E}(t) = -N \\frac{d\\Phi_B}{dt} = N B A \\omega \\sin(\\omega t)$. The peak amplitude is $\\mathcal{E}_{\\text{max}} = N B A \\omega = 100 \\times 0.20\\text{ T} \\times 0.050\\text{ m}^2 \\times 60\\pi\\text{ rad/s} = 60\\pi \\approx 188.5\\text{ V}$."
     }
   ],
 
@@ -2847,6 +2919,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Speed of sound in an ideal gas depends on temperature: $v = \\sqrt{\\frac{\\gamma RT}{M}}$. At $25^\\circ\\text{C}$ (298.15 K), $v = 331.3 \\times \\sqrt{\\frac{298.15}{273.15}} \\approx 331.3 \\times 1.0447 \\approx 346.1\\text{ m/s}$, demonstrating an increase of approximately $0.6\\text{ m/s}$ per $^\\circ\\text{C}$."
+    },
+    {
+      id: "q4",
+      question: "In an acoustic resonance tube with inner bore radius $r$, the acoustic displacement antinode forms slightly outside the physical open lip by an end correction $c \\approx 0.61 r$. How does using the harmonic difference method ($L_2 - L_1$) improve experimental accuracy when determining the speed of sound?",
+      options: [
+        "Because $L_1 = \\frac{\\lambda}{4} - c$ and $L_2 = \\frac{3\\lambda}{4} - c$, subtracting $(L_2 - L_1) = \\frac{\\lambda}{2}$ completely cancels the systematic end correction error ($c$)",
+        "It doubles the frequency of the sound wave inside the tube",
+        "It eliminates the need to measure ambient air temperature",
+        "It transforms longitudinal sound waves into transverse shear waves"
+      ],
+      correctIndex: 0,
+      explanation: "Both resonance positions share the exact same end correction: $L_1 = \\frac{\\lambda}{4} - c$ and $L_2 = \\frac{3\\lambda}{4} - c$. Subtracting the two measurements yields $L_2 - L_1 = \\frac{3\\lambda}{4} - c - (\\frac{\\lambda}{4} - c) = \\frac{\\lambda}{2}$. The end correction $c$ perfectly subtracts out, eliminating a primary source of systematic instrumental error."
+    },
+    {
+      id: "q5",
+      question: "A resonance tube closed at one end (water column) resonates with fundamental frequency $f_1 = 200\\text{ Hz}$. What are the next two possible resonant frequencies for this closed-open tube, and why are even harmonics absent?",
+      options: [
+        "$f_3 = 600\\text{ Hz}$ and $f_5 = 1000\\text{ Hz}$; because one end must be a displacement node and the other an antinode, only odd harmonics ($f_n = n f_1$, where $n = 1, 3, 5, \\dots$) satisfy the boundary conditions",
+        "$f_2 = 400\\text{ Hz}$ and $f_3 = 600\\text{ Hz}$; all integer harmonics are present",
+        "$f_2 = 300\\text{ Hz}$ and $f_3 = 500\\text{ Hz}$; even harmonics cancel due to destructive acoustic interference",
+        "$f_3 = 800\\text{ Hz}$ and $f_5 = 1600\\text{ Hz}$; acoustic resonance quadruples with harmonic index"
+      ],
+      correctIndex: 0,
+      explanation: "For an air column closed at one end and open at the other, resonant standing wave lengths satisfy $L = \\frac{n\\lambda}{4}$ where $n$ must be an odd integer ($n = 1, 3, 5, \\dots$). Even harmonics would require identical boundary conditions at both ends (either both nodes or both antinodes), which contradicts the closed/open geometry. Thus, $f_3 = 3(200) = 600\\text{ Hz}$ and $f_5 = 5(200) = 1000\\text{ Hz}$."
     }
   ],
 
@@ -2886,6 +2982,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Every point on the perpendicular bisecting axis is equidistant ($r_+ = r_- = r$) from both charges. The net potential is $V = \\frac{k_e (+q)}{r} + \\frac{k_e (-q)}{r} = 0\\text{ V}$. The perpendicular bisector is thus the planar $V = 0$ equipotential surface."
+    },
+    {
+      id: "q4",
+      question: "At a distance of $r = 0.30\\text{ m}$ from an isolated point charge $Q = +4.0\\text{ nC}$ ($4.0 \\times 10^{-9}\\text{ C}$), what are the electric potential ($V$) and the electric field magnitude ($E$) in vacuum ($k_e = 8.99 \\times 10^9\\text{ N}\\cdot\\text{m}^2/\\text{C}^2$)?",
+      options: [
+        "$V = 119.9\\text{ V}$ and $E = 399.6\\text{ V/m}$ [using $V = \\frac{k_e Q}{r}$ and $E = \\frac{k_e Q}{r^2}$]",
+        "$V = 399.6\\text{ V}$ and $E = 119.9\\text{ V/m}$",
+        "$V = 35.9\\text{ V}$ and $E = 10.8\\text{ V/m}$",
+        "$V = 12.0\\text{ V}$ and $E = 4.0\\text{ V/m}$"
+      ],
+      correctIndex: 0,
+      explanation: "Electric potential is $V = \\frac{k_e Q}{r} = \\frac{8.988 \\times 10^9 \\times 4.0 \\times 10^{-9}}{0.30} = 119.84\\text{ V} \\approx 119.9\\text{ V}$. Electric field magnitude is $E = \\frac{k_e Q}{r^2} = \\frac{V}{r} = \\frac{119.84\\text{ V}}{0.30\\text{ m}} \\approx 399.6\\text{ V/m}$ (directed radially outward)."
+    },
+    {
+      id: "q5",
+      question: "A hollow spherical metal conductor with inner radius $R_1$ and outer radius $R_2$ is placed in a strong external electric field. In static equilibrium, what are the net electric field inside the hollow cavity and the distribution of excess free charge?",
+      options: [
+        "The electric field inside the cavity is strictly zero ($\\vec{E} = 0$), and any excess charge resides entirely on the exterior conductive surface",
+        "The electric field inside the cavity equals the external field because air is a dielectric",
+        "Excess charge concentrates along the interior cavity wall to shield internal observers",
+        "The electric field oscillates with the plasma frequency of the conductor"
+      ],
+      correctIndex: 0,
+      explanation: "In electrostatic equilibrium, mobile valence electrons in the conductor redistribute instantaneously until $\\vec{E} = 0$ everywhere inside the bulk conductor and within any uncharged hollow cavity (Gauss's law and Faraday cage shielding). All excess net electrostatic charge repels to the outer surface."
     }
   ],
 
