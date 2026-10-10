@@ -149,8 +149,8 @@ export function initFluidsBuoyancyLab(containerId) {
             <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #06b6d4; box-shadow: 0 0 10px #06b6d4;"></span>
             Fluid Dynamics, Buoyancy &amp; Bernoulli Suite
           </span>
-          <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #38bdf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            ${renderLatex("F_b = \\rho_{f} V_{\\text{disp}} g \\quad \\bullet \\quad P_1 + \\frac{1}{2}\\rho v_1^2 = P_2 + \\frac{1}{2}\\rho v_2^2")}
+          <span id="badge-fluids-formula" class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.3); color: #38bdf8; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
+            ${renderLatex("F_b = \\rho_{f} V_{\\text{disp}} g \\quad \\bullet \\quad W_{\\text{app}} = W - F_b")}
           </span>
         </div>
 
@@ -163,8 +163,8 @@ export function initFluidsBuoyancyLab(containerId) {
               📸 4K Real Bench
             </button>
           </div>
-          <button class="btn btn-secondary btn-sm" id="btn-fluid-mode" aria-label="Switch Mode between Archimedes Tank, Venturi Tube, and Torricelli Tank" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(6, 182, 212, 0.4); color: #38bdf8;" title="Hotkey: M">
-            🔀 Switch Mode
+          <button class="btn btn-secondary btn-sm" id="btn-fluid-mode" aria-label="Switch Mode between Archimedes Tank, Venturi Tube, Torricelli Tank, and Pascal Hydraulic Press" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(6, 182, 212, 0.4); color: #38bdf8;" title="Switch Apparatus Mode (Hotkey: M)">
+            🔀 Switch to Venturi Tube
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-fluid-probe" aria-label="Toggle Hydrostatic Depth Pressure Probe" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(14, 165, 233, 0.4); color: #38bdf8;" title="Toggle Depth Pressure Mano-Probe (Hotkey: P)">
             📍 Depth Probe
@@ -181,7 +181,7 @@ export function initFluidsBuoyancyLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-fluid-export" aria-label="Export Fluid Dynamics Trials to CSV" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(148, 163, 184, 0.4); color: #94a3b8;" title="Export CSV Data (Hotkey: E)">
             📥 Export CSV (E)
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-fluid-reset" aria-label="Reset Fluid Dynamics Simulation Parameters" style="padding: 5px 12px; font-size: 0.78rem;">
+          <button class="btn btn-secondary btn-sm" id="btn-fluid-reset" aria-label="Reset Fluid Dynamics Simulation Parameters" style="padding: 5px 12px; font-size: 0.78rem;" title="Reset Simulation Parameters (Escape)">
             ⟲ Reset
           </button>
         </div>
@@ -4187,6 +4187,8 @@ export function initFluidsBuoyancyLab(containerId) {
       container.querySelector("#btn-fluid-report")?.click();
     } else if (e.key === "e" || e.key === "E") {
       container.querySelector("#btn-fluid-export")?.click();
+    } else if (e.key === "Escape") {
+      container.querySelector("#btn-fluid-reset")?.click();
     }
   }
   window.addEventListener("keydown", handleKeyDown);
@@ -4246,9 +4248,11 @@ export function initFluidsBuoyancyLab(containerId) {
     const dragHint = container.querySelector("#fluids-drag-hint");
     const btnFloat = container.querySelector("#btn-fluid-float");
     const btnProbe = container.querySelector("#btn-fluid-probe");
+    const badgeFormula = container.querySelector("#badge-fluids-formula");
 
     if (apparatusMode === "venturi") {
       btn.innerText = "🔀 Switch to Torricelli Tank";
+      if (badgeFormula) badgeFormula.innerHTML = renderLatex("A_1 v_1 = A_2 v_2 \\quad \\bullet \\quad P_1 + \\frac{1}{2}\\rho v_1^2 = P_2 + \\frac{1}{2}\\rho v_2^2");
       if (pBuoy) pBuoy.style.display = "none";
       if (pVent) pVent.style.display = "block";
       if (pTorr) pTorr.style.display = "none";
@@ -4266,6 +4270,7 @@ export function initFluidsBuoyancyLab(containerId) {
       }
     } else if (apparatusMode === "torricelli") {
       btn.innerText = "🔀 Switch to Hydraulic Press";
+      if (badgeFormula) badgeFormula.innerHTML = renderLatex("v = C_d \\sqrt{2gh} \\quad \\bullet \\quad R = 2\\sqrt{h(H-h)}");
       if (pBuoy) pBuoy.style.display = "none";
       if (pVent) pVent.style.display = "none";
       if (pTorr) pTorr.style.display = "block";
@@ -4283,6 +4288,7 @@ export function initFluidsBuoyancyLab(containerId) {
       }
     } else if (apparatusMode === "hydraulic") {
       btn.innerText = "🔀 Switch to Archimedes Tank";
+      if (badgeFormula) badgeFormula.innerHTML = renderLatex("\\frac{F_1}{A_1} = \\frac{F_2}{A_2} \\quad \\bullet \\quad \\text{IMA} = \\left(\\frac{D_2}{D_1}\\right)^2");
       if (pBuoy) pBuoy.style.display = "none";
       if (pVent) pVent.style.display = "none";
       if (pTorr) pTorr.style.display = "none";
@@ -4300,6 +4306,7 @@ export function initFluidsBuoyancyLab(containerId) {
       }
     } else {
       btn.innerText = "🔀 Switch to Venturi Tube";
+      if (badgeFormula) badgeFormula.innerHTML = renderLatex("F_b = \\rho_{f} V_{\\text{disp}} g \\quad \\bullet \\quad W_{\\text{app}} = W - F_b");
       if (pBuoy) pBuoy.style.display = "block";
       if (pVent) pVent.style.display = "none";
       if (pTorr) pTorr.style.display = "none";
@@ -4563,10 +4570,24 @@ export function initFluidsBuoyancyLab(containerId) {
     const selLoad = container.querySelector("#select-hydraulic-load");
     if (selLoad) selLoad.value = "car";
 
+    const badgeFormula = container.querySelector("#badge-fluids-formula");
+    if (badgeFormula) {
+      if (apparatusMode === "venturi") {
+        badgeFormula.innerHTML = renderLatex("A_1 v_1 = A_2 v_2 \\quad \\bullet \\quad P_1 + \\frac{1}{2}\\rho v_1^2 = P_2 + \\frac{1}{2}\\rho v_2^2");
+      } else if (apparatusMode === "torricelli") {
+        badgeFormula.innerHTML = renderLatex("v = C_d \\sqrt{2gh} \\quad \\bullet \\quad R = 2\\sqrt{h(H-h)}");
+      } else if (apparatusMode === "hydraulic") {
+        badgeFormula.innerHTML = renderLatex("\\frac{F_1}{A_1} = \\frac{F_2}{A_2} \\quad \\bullet \\quad \\text{IMA} = \\left(\\frac{D_2}{D_1}\\right)^2");
+      } else {
+        badgeFormula.innerHTML = renderLatex("F_b = \\rho_{f} V_{\\text{disp}} g \\quad \\bullet \\quad W_{\\text{app}} = W - F_b");
+      }
+    }
+
     surfaceRippleAmp = 3.0;
     updateHUD();
     needsRedraw = true;
     SoundFX.playClick();
+    showToast("Simulation Parameters Reset", "Restored calibrated apparatus defaults", "info");
   });
 
   // Record Trial Store Integration
