@@ -4352,6 +4352,7 @@ export function initFluidsBuoyancyLab(containerId) {
     probeDepthCm = parseFloat(e.target.value);
     const lbl = container.querySelector("#lbl-probe-depth");
     if (lbl) lbl.innerText = `${probeDepthCm.toFixed(1)} cm`;
+    updateHUD();
     needsRedraw = true;
   });
 
@@ -4360,12 +4361,14 @@ export function initFluidsBuoyancyLab(containerId) {
     orificeHeightM = parseFloat(e.target.value);
     const lbl = container.querySelector("#lbl-orifice-height");
     if (lbl) lbl.innerText = `${orificeHeightM.toFixed(2)} m (${(orificeHeightM * 100).toFixed(0)} cm)`;
+    updateHUD();
     needsRedraw = true;
   });
 
   // Torricelli Nozzle Profile Selector
   container.querySelector("#select-nozzle-type")?.addEventListener("change", (e) => {
     dischargeCoeff = parseFloat(e.target.value);
+    updateHUD();
     needsRedraw = true;
     SoundFX.playClick();
   });
@@ -4423,6 +4426,7 @@ export function initFluidsBuoyancyLab(containerId) {
       btn.style.borderColor = "rgba(245, 158, 11, 0.4)";
       showToast("Object Hooked to Spring Scale", "Scale measures apparent weight", "info");
     }
+    updateHUD();
     needsRedraw = true;
     SoundFX.playClick();
   });
@@ -4430,6 +4434,7 @@ export function initFluidsBuoyancyLab(containerId) {
   container.querySelector("#select-fluids-fluid")?.addEventListener("change", (e) => {
     fluidKey = e.target.value;
     surfaceRippleAmp = 3.0;
+    updateHUD();
     needsRedraw = true;
     SoundFX.playClick();
   });
@@ -4437,27 +4442,34 @@ export function initFluidsBuoyancyLab(containerId) {
   container.querySelector("#select-fluids-material")?.addEventListener("change", (e) => {
     materialKey = e.target.value;
     surfaceRippleAmp = 3.0;
+    updateHUD();
     needsRedraw = true;
     SoundFX.playClick();
   });
 
   container.querySelector("#slider-fluids-submersion")?.addEventListener("input", (e) => {
     submersionPercent = parseFloat(e.target.value);
-    container.querySelector("#lbl-fluids-submersion").innerText = `${submersionPercent.toFixed(0)}%`;
+    const lbl = container.querySelector("#lbl-fluids-submersion");
+    if (lbl) lbl.innerText = `${submersionPercent.toFixed(0)}%`;
     surfaceRippleAmp = 2.0;
+    updateHUD();
     needsRedraw = true;
   });
 
   container.querySelector("#slider-fluids-vol")?.addEventListener("input", (e) => {
     blockVolumeLiters = parseFloat(e.target.value);
-    container.querySelector("#lbl-fluids-vol").innerText = `${blockVolumeLiters.toFixed(2)} L (${(blockVolumeLiters * 1000).toFixed(0)} cm³)`;
+    const lbl = container.querySelector("#lbl-fluids-vol");
+    if (lbl) lbl.innerText = `${blockVolumeLiters.toFixed(2)} L (${(blockVolumeLiters * 1000).toFixed(0)} cm³)`;
     surfaceRippleAmp = 2.5;
+    updateHUD();
     needsRedraw = true;
   });
 
   container.querySelector("#slider-venturi-flow")?.addEventListener("input", (e) => {
     flowRateLps = parseFloat(e.target.value);
-    container.querySelector("#lbl-venturi-flow").innerText = `${flowRateLps.toFixed(2)} L/s`;
+    const lbl = container.querySelector("#lbl-venturi-flow");
+    if (lbl) lbl.innerText = `${flowRateLps.toFixed(2)} L/s`;
+    updateHUD();
     needsRedraw = true;
   });
 
@@ -4552,6 +4564,7 @@ export function initFluidsBuoyancyLab(containerId) {
     if (selLoad) selLoad.value = "car";
 
     surfaceRippleAmp = 3.0;
+    updateHUD();
     needsRedraw = true;
     SoundFX.playClick();
   });

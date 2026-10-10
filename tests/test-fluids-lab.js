@@ -450,6 +450,17 @@ test("phys-fluids-buoyancy.js renders physical nozzle hardware fittings and vena
   assert(code.includes("Vena Contracta (C_c ≈ 0.62)"), "Must render visual annotation for vena contracta");
 });
 
+test("phys-fluids-buoyancy.js triggers synchronous updateHUD across all slider and mode control handlers", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
+  assert(code.includes('#slider-input-force")?.addEventListener("input"') && code.includes("updateHUD();"), "Must update HUD on input force change");
+  assert(code.includes('#slider-orifice-height")?.addEventListener("input"') && code.includes("updateHUD();"), "Must update HUD on orifice height change");
+  assert(code.includes('#slider-probe-depth")?.addEventListener("input"') && code.includes("updateHUD();"), "Must update HUD on probe depth change");
+  assert(code.includes('#slider-fluids-submersion")?.addEventListener("input"') && code.includes("updateHUD();"), "Must update HUD on submersion change");
+  assert(code.includes('#slider-fluids-vol")?.addEventListener("input"') && code.includes("updateHUD();"), "Must update HUD on volume change");
+  assert(code.includes('#slider-venturi-flow")?.addEventListener("input"') && code.includes("updateHUD();"), "Must update HUD on Venturi flow change");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Fluids Lab Tests: All ${passed} Passed!`);
 console.log("========================================================\n");
+
