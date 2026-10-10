@@ -198,6 +198,43 @@ testAssert(
   "Live assessment header bar stacks vertically on mobile viewports"
 );
 
+testAssert(
+  cssSrc.includes(".lab-header-bar > div:last-child {") &&
+  cssSrc.includes("-webkit-overflow-scrolling: touch !important;"),
+  "Virtual laboratory action toolbar converts into a smooth horizontal touch-scrolling strip on mobile"
+);
+
+testAssert(
+  cssSrc.includes(".lab-nav-pills-container {") &&
+  cssSrc.includes("grid-template-columns: 1fr !important;"),
+  "46-laboratory catalog displays as an ergonomic thumb-friendly single column feed on mobile"
+);
+
+testAssert(
+  cssSrc.includes(".teacher-guide-card {") &&
+  cssSrc.includes("width: 100vw !important;") &&
+  cssSrc.includes("height: 100% !important;"),
+  "Teacher implementation guide modal expands to an edge-to-edge sheet on mobile viewports"
+);
+
+testAssert(
+  cssSrc.includes(".view-mode-toggle-group {") &&
+  cssSrc.includes("grid-template-columns: 1fr 1fr !important;"),
+  "Home portal chapter/lesson view mode toggle balances across 2 columns on mobile"
+);
+
+testAssert(
+  cssSrc.includes(".hero-quick-actions {") &&
+  cssSrc.includes("grid-template-columns: 1fr !important;"),
+  "Home portal quick action buttons expand to full-width mobile touch targets"
+);
+
+testAssert(
+  cssSrc.includes(".lab-report-sheet table {") &&
+  cssSrc.includes("overflow-x: auto !important;"),
+  "Lab report dossier multi-trial tables wrap with horizontal scrolling on mobile"
+);
+
 // ----------------------------------------------------
 // 2. Tablet Viewport (768px - iPad Portrait)
 // ----------------------------------------------------
