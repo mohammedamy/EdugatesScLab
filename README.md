@@ -158,23 +158,23 @@ Open `http://localhost:8000` in any modern web browser (Chrome, Edge, Safari, Fi
 
 ## 🧪 Automated Verification & Testing Suite
 
-The repository contains **62 automated test suites** guaranteeing zero regressions:
+The repository contains **67 automated test suites** (62 `.js` + 5 `.mjs` modules) guaranteeing zero regressions:
 
 ```bash
 # Run all automated test suites
-for f in tests/*.js; do node "$f"; done
+for f in tests/*.js tests/*.mjs; do node "$f"; done
 ```
 
 ### Test Suite Coverage:
-1. `tests/test-curriculum-integrity.js`: Validates 74 chapters, 242 lessons, and interactive spec mappings.
-2. `tests/test-question-bank.js`: Validates 7,292 questions across all lessons with answer keys and rubrics.
-3. `tests/test-virtual-labs.js`: Tests instantiation and cleanup of all 36 virtual lab workbenches.
+1. `tests/verify-curriculum.js`: Validates 74 chapters, 242 lessons, 46 virtual labs, and interactive spec mappings.
+2. `tests/test-quiz-zero-duplicates.js`: Validates 7,260 questions across all lessons with 0 duplicate prompts or choices.
+3. `tests/test-all-46-virtual-labs-lifecycle.js`: Tests instantiation, rendering cycles, and cleanup teardown of all 46 virtual lab workbenches.
 4. `tests/test-worked-example-and-offline-diagnostics.js`: Tests step-by-step solver numerical tolerances, parsing engine, storage quota, and offline diagnostics.
 5. `tests/test-maxhub-optimizations.js`: Validates Smartboard Turbo profile, 30 FPS pacing, fullscreen zero-box mode, and annotation bar layering.
 6. `tests/test-periodic-table.js`: Audits all 118 elements, atomic weights, electron configurations, and media links.
 7. `tests/test-qr-code.js`: Tests ISO-compliant QR code generation and mobile camera scan URL normalization.
-8. `tests/test-classroom-timer.js`: Verifies stopwatch/countdown widgets, keyboard shortcuts, and state toggles.
-9. `tests/test-offline-service-worker.js`: Audits PWA cache completeness and Service Worker routing.
+8. `tests/test-smartboard-timer.js`: Verifies stopwatch/countdown widgets, keyboard shortcuts, and state toggles.
+9. `tests/scan-site-integrity.mjs`: Audits PWA cache completeness, Service Worker shell paths, and static assets.
 
 ---
 
