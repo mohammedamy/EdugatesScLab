@@ -805,10 +805,11 @@ function renderAppShell() {
           </div>
 
           <div>
-            <h3 class="footer-heading">Institution</h3>
+            <h3 class="footer-heading">Institution &amp; Support</h3>
             <ul class="footer-links">
               <li><a href="https://edugates-school.edu.sa/" target="_blank" rel="noopener noreferrer" aria-label="Visit Edugates International School Official Website">Edugates International School</a></li>
               <li><span>Department of Natural Sciences</span></li>
+              <li><a href="mailto:admin@clipsat.org?subject=Edugates%20Science%20Lab%20-%20Error%20Report&body=Describe%20the%20error%20or%20issue%20encountered%3A%0A%0APage%2FWorkbench%3A%20%0ADevice%2FBrowser%3A%20%0ADetails%3A%20" aria-label="Report an Error or Issue to admin@clipsat.org" style="color: #f87171;" title="Send an Error Report to admin@clipsat.org">⚠️ Report Error (admin@clipsat.org)</a></li>
               <li><span style="color: #38bdf8;">Status: Fully Operational</span></li>
               <li><span style="color: #10b981;">PWA Offline: Enabled</span></li>
               <li><a href="https://github.com/mohammedamy/EdugatesScLab" target="_blank" rel="noopener noreferrer" aria-label="View Project on GitHub">GitHub Repository</a></li>
@@ -826,7 +827,8 @@ function renderAppShell() {
             <a href="#labs" aria-label="Browse All Labs">Virtual Benches</a> &bull;
             <a href="#chem" aria-label="Explore Chemistry">Chemistry</a> &bull;
             <a href="#bio" aria-label="Explore Biology">Biology</a> &bull;
-            <a href="#phys" aria-label="Explore Physics">Physics</a>
+            <a href="#phys" aria-label="Explore Physics">Physics</a> &bull;
+            <a href="mailto:admin@clipsat.org?subject=Edugates%20Science%20Lab%20-%20Error%20Report" aria-label="Report an Error to admin@clipsat.org" style="color: #f87171;" title="Report an Error to admin@clipsat.org">Report Error</a>
           </div>
         </div>
       </div>
