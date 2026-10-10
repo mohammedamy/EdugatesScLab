@@ -131,10 +131,16 @@ test("phys-fluids-buoyancy.js implements HiDPI DPR canvas scaling with window.ge
   assert(code.includes("window.getLabDPR"), "Must shield canvas resolution using window.getLabDPR");
 });
 
-test("phys-fluids-buoyancy.js implements Spacebar pause/resume listener with cleanup unbinding", () => {
+test("phys-fluids-buoyancy.js implements Spacebar pause/resume listener with cleanup unbinding and full keyboard shortcut mapping", () => {
   const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
   assert(code.includes('e.code === "Space" || e.key === " "'), "Must handle Spacebar event");
   assert(code.includes('window.removeEventListener("keydown", handleKeyDown)'), "Cleanup must remove keydown listener");
+  assert(code.includes('e.key === "m" || e.key === "M"'), "Must handle 'm' mode switch shortcut");
+  assert(code.includes('e.key === "p" || e.key === "P"'), "Must handle 'p' probe toggle shortcut");
+  assert(code.includes('e.key === "f" || e.key === "F"'), "Must handle 'f' free float toggle shortcut");
+  assert(code.includes('e.key === "t" || e.key === "T"'), "Must handle 't' record trial shortcut");
+  assert(code.includes('e.key === "r" || e.key === "R"'), "Must handle 'r' lab report shortcut");
+  assert(code.includes('e.key === "e" || e.key === "E"'), "Must handle 'e' export CSV shortcut");
 });
 
 test("phys-fluids-buoyancy.js integrates Lab Dossier generator with openLabReportModal", () => {

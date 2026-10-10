@@ -4107,6 +4107,8 @@ export function initFluidsBuoyancyLab(containerId) {
       container.querySelector("#btn-record-trial")?.click();
     } else if (e.key === "r" || e.key === "R") {
       container.querySelector("#btn-fluid-report")?.click();
+    } else if (e.key === "e" || e.key === "E") {
+      container.querySelector("#btn-fluid-export")?.click();
     }
   }
   window.addEventListener("keydown", handleKeyDown);
