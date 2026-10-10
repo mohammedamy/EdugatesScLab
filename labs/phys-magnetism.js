@@ -76,8 +76,8 @@ export function initMagnetismLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-mag-invert-b" style="padding: 5px 12px; font-size: 0.78rem;">
             🔄 Reverse B-Field
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-mag-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Telemetry
+          <button class="btn btn-secondary btn-sm" id="btn-mag-export" title="Export experimental telemetry to RFC-4180 CSV (Hotkey: E)" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -968,10 +968,20 @@ export function initMagnetismLab(containerId) {
     });
   });
 
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      container.querySelector("#btn-mag-export")?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("mag-checkpoint-container", "magnetism");
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

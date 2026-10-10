@@ -104,8 +104,8 @@ export function initElectrochemLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-ec-switch-circuit" style="padding: 5px 14px; font-size: 0.78rem;">
             ${isClosedCircuit ? "⚡ Open Switch" : "🔌 Close Switch"}
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-ec-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Telemetry
+          <button class="btn btn-secondary btn-sm" id="btn-ec-export" title="Export experimental telemetry to RFC-4180 CSV (Hotkey: E)" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -636,10 +636,20 @@ export function initElectrochemLab(containerId) {
     });
   });
 
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      container.querySelector("#btn-ec-export")?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("ec-checkpoint-container", "electrochem");
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

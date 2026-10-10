@@ -64,8 +64,8 @@ export function initPhotoelectricLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-pe-find-vstop" style="padding: 5px 14px; font-size: 0.78rem; background: #6b21a8; color: #fff; border: none; font-weight: 700;">
             🎯 Auto-Find V_stop
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-pe-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Telemetry
+          <button class="btn btn-secondary btn-sm" id="btn-pe-export" title="Export experimental telemetry to RFC-4180 CSV (Hotkey: E)" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -631,11 +631,21 @@ export function initPhotoelectricLab(containerId) {
     });
   });
 
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      container.querySelector("#btn-pe-export")?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("pe-checkpoint-container", "photoelectric");
 
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
   activePhotoelectricCleanup = cleanup;
   return cleanup;

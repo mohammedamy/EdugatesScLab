@@ -1233,6 +1233,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 2,
       explanation: "At constant volume, adding an inert gas increases total pressure, but does not alter the volume or partial pressures of the reactant and product gases, leaving Q and equilibrium position unchanged."
+    },
+    {
+      id: "q4",
+      question: "In the industrial synthesis of ammonia: $\\text{N}_2\\text{(g)} + 3\\text{H}_2\\text{(g)} \\rightleftharpoons 2\\text{NH}_3\\text{(g)} \\quad (\\Delta H^\\circ = -92.2\\text{ kJ/mol})$, what happens to the equilibrium yield of ammonia if the container volume is decreased (pressure is increased) at constant temperature?",
+      options: [
+        "Equilibrium shifts to the right (toward NH₃) because 4 moles of gaseous reactant convert into 2 moles of gaseous product, relieving pressure",
+        "Equilibrium shifts to the left because higher pressure forces molecules apart",
+        "The equilibrium constant Kp increases exponentially",
+        "The position of equilibrium remains completely unaffected because mole ratios are fixed"
+      ],
+      correctIndex: 0,
+      explanation: "According to Le Chatelier's principle, increasing pressure by compressing volume shifts the equilibrium toward the side with fewer gas moles (4 mol gas → 2 mol gas) to relieve the stress. Kp remains constant because temperature is unchanged."
+    },
+    {
+      id: "q5",
+      question: "If a reacting mixture at a specific instant has a reaction quotient $Q$ greater than the equilibrium constant $K$ ($Q > K$), what spontaneous process occurs to re-establish equilibrium?",
+      options: [
+        "The net forward reaction accelerates to produce more products",
+        "The net reverse reaction proceeds, consuming products and producing reactants until Q = K",
+        "The value of K automatically increases until it equals Q",
+        "The reaction stops permanently without further change"
+      ],
+      correctIndex: 1,
+      explanation: "When Q > K, there is a higher ratio of products relative to reactants than at equilibrium. To decrease Q until it equals K, the net reverse reaction proceeds spontaneously, consuming excess products and forming reactants."
     }
   ],
 
@@ -1272,6 +1296,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 0,
       explanation: "When Q < 1, ln(Q) is negative, making the term - (RT/nF)ln(Q) positive. Hence, the instantaneous cell voltage E exceeds standard potential E°."
+    },
+    {
+      id: "q4",
+      question: "When a standard galvanic cell discharges until it reaches thermodynamic equilibrium ($\\Delta G = 0$), what are the values of the cell potential ($E_{\\text{cell}}$) and reaction quotient ($Q$)?",
+      options: [
+        "$E_{\\text{cell}} = 0\\text{ V}$ and $Q = K_{\\text{eq}}$ (the cell is completely discharged and cannot deliver electrical work)",
+        "$E_{\\text{cell}} = E^\\circ_{\\text{cell}}$ and $Q = 1$",
+        "$E_{\\text{cell}} = -1.0\\text{ V}$ and $Q = 0$",
+        "$E_{\\text{cell}} = +1.10\\text{ V}$ and $Q = \\infty$"
+      ],
+      correctIndex: 0,
+      explanation: "At chemical equilibrium, ΔG = -nFE_cell = 0, meaning E_cell = 0 V (dead battery). At this point, the instantaneous reaction quotient equals the chemical equilibrium constant (Q = K_eq)."
+    },
+    {
+      id: "q5",
+      question: "Given standard reduction potentials $E^\\circ(\\text{Ag}^+/\\text{Ag}) = +0.80\\text{ V}$ and $E^\\circ(\\text{Cu}^{2+}/\\text{Cu}) = +0.34\\text{ V}$, what is $E^\\circ_{\\text{cell}}$ for the spontaneous reaction $\\text{Cu(s)} + 2\\text{Ag}^+\\text{(aq)} \\to \\text{Cu}^{2+}\\text{(aq)} + 2\\text{Ag(s)}$?",
+      options: [
+        "$E^\\circ_{\\text{cell}} = +0.46\\text{ V} \\quad (E^\\circ_{\\text{cathode}} - E^\\circ_{\\text{anode}} = +0.80\\text{ V} - 0.34\\text{ V})$",
+        "$E^\\circ_{\\text{cell}} = +1.14\\text{ V}$",
+        "$E^\\circ_{\\text{cell}} = +1.26\\text{ V} \\quad (2 \\times 0.80\\text{ V} - 0.34\\text{ V})$",
+        "$E^\\circ_{\\text{cell}} = -0.46\\text{ V}$"
+      ],
+      correctIndex: 0,
+      explanation: "Standard cell potential is E°_cell = E°_cathode - E°_anode = +0.80 V - 0.34 V = +0.46 V. Because reduction potential is an intensive property, multiplying the silver half-reaction by 2 does not multiply its standard reduction potential."
     }
   ],
 
@@ -1374,6 +1422,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 2,
       explanation: "Higher intensity means more photons per second, yielding a higher rate of ejected electrons (photocurrent). Since photon energy hf is unchanged, maximum kinetic energy KE_max is identical."
+    },
+    {
+      id: "q4",
+      question: "When stopping potential $V_{\\text{stop}}$ is plotted on the vertical axis against incident light frequency $f$ on the horizontal axis ($V_{\\text{stop}} = \\frac{h}{e}f - \\frac{\\Phi}{e}$), what physical quantity is determined from the slope of the linear graph?",
+      options: [
+        "The ratio of Planck's constant to elementary charge ($h/e$)",
+        "The speed of light in vacuum $c$",
+        "Avogadro's constant $N_A$",
+        "The electron rest mass $m_e$"
+      ],
+      correctIndex: 0,
+      explanation: "Rearranging Einstein's equation gives $V_{\\text{stop}} = (h/e)f - (\\Phi/e)$. The slope of the line equals $h/e$, which Robert Millikan verified experimentally to provide direct precision measurement of Planck's constant."
+    },
+    {
+      id: "q5",
+      question: "If a photoelectron is emitted with kinetic energy $K$, what is its corresponding de Broglie matter wavelength?",
+      options: [
+        "$\\lambda = \\frac{h}{\\sqrt{2 m_e K}}$",
+        "$\\lambda = \\frac{h K}{m_e c}$",
+        "$\\lambda = \\frac{h c}{K}$",
+        "$\\lambda = \\frac{2 m_e K}{h^2}$"
+      ],
+      correctIndex: 0,
+      explanation: "By de Broglie's relation $\\lambda = h/p$. For a non-relativistic electron, kinetic energy $K = p^2 / (2m_e) \\implies p = \\sqrt{2m_e K}$. Substituting momentum yields $\\lambda = \\frac{h}{\\sqrt{2m_e K}}$."
     }
   ],
 
@@ -1413,6 +1485,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Kinetic energy is ½ mv² = eV, so v = √(2eV/m). The radius is r = mv / (eB) = (1/B) √(2mV/e). Hence, r is proportional to √V. Doubling V increases r by √2."
+    },
+    {
+      id: "q4",
+      question: "When a charged particle enters a uniform magnetic field $\\vec{B}$ at an oblique angle $\\theta$ ($0^\\circ < \\theta < 90^\\circ$) relative to the field lines, what trajectory does it follow?",
+      options: [
+        "A helical (corkscrew) trajectory around the magnetic field lines with constant pitch",
+        "A parabolic trajectory identical to gravitational projectile motion",
+        "An exponentially expanding hyperbolic spiral",
+        "A straight line completely undeflected by the magnetic field"
+      ],
+      correctIndex: 0,
+      explanation: "The parallel velocity component $v_\\parallel = v\\cos\\theta$ experiences zero magnetic force ($v_\\parallel \\times B = 0$), maintaining constant translation along field lines. The perpendicular component $v_\\perp = v\\sin\\theta$ undergoes uniform circular motion, resulting in a helix."
+    },
+    {
+      id: "q5",
+      question: "In J.J. Thomson's specific charge experiment, an electron accelerated through potential difference $V$ enters a perpendicular magnetic field $B$ and curves with radius $r$. What is the formula for specific charge $e/m$?",
+      options: [
+        "$\\frac{e}{m} = \\frac{2 V}{B^2 r^2}$",
+        "$\\frac{e}{m} = \\frac{V^2}{2 B r}$",
+        "$\\frac{e}{m} = \\frac{B^2 r^2}{2 V}$",
+        "$\\frac{e}{m} = \\frac{2 B V}{r^2}$"
+      ],
+      correctIndex: 0,
+      explanation: "Equating kinetic energy $eV = \\frac{1}{2}mv^2$ with circular magnetic deflection $r = \\frac{mv}{eB} \\implies v = \\frac{eBr}{m}$ yields $v^2 = \\frac{2eV}{m} = \\frac{e^2 B^2 r^2}{m^2}$. Canceling $e/m$ gives $\\frac{e}{m} = \\frac{2V}{B^2 r^2}$."
     }
   ],
 
@@ -1452,6 +1548,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Enzymes are globular proteins whose catalytic function depends on precise tertiary folding. Excess thermal energy denatures the enzyme, destroying the catalytic active site cleft."
+    },
+    {
+      id: "q4",
+      question: "In a Lineweaver-Burk double-reciprocal plot ($1/V_0$ vs $1/[S]$), what kinetic parameters are directly represented by the y-intercept and x-intercept?",
+      options: [
+        "$\\text{y-intercept} = \\frac{1}{V_{\\max}}$ and $\\text{x-intercept} = -\\frac{1}{K_m}$",
+        "$\\text{y-intercept} = V_{\\max}$ and $\\text{x-intercept} = K_m$",
+        "$\\text{y-intercept} = \\frac{K_m}{V_{\\max}}$ and $\\text{x-intercept} = 0$",
+        "$\\text{y-intercept} = -\\frac{1}{K_m}$ and $\\text{x-intercept} = \\frac{1}{V_{\\max}}$"
+      ],
+      correctIndex: 0,
+      explanation: "From $\\frac{1}{V_0} = \\left(\\frac{K_m}{V_{\\max}}\\right)\\frac{1}{[S]} + \\frac{1}{V_{\\max}}$, the vertical axis intercept ($1/[S] = 0$) is $1/V_{\\max}$, and setting $1/V_0 = 0$ gives horizontal intercept $-1/K_m$."
+    },
+    {
+      id: "q5",
+      question: "How does a pure non-competitive inhibitor (which binds with equal affinity to both free enzyme E and ES complex at an allosteric site) alter $V_{\\max}$ and $K_m$?",
+      options: [
+        "Decreases $V_{\\max}$ while leaving $K_m$ unchanged",
+        "Increases $K_m$ while leaving $V_{\\max}$ unchanged",
+        "Increases both $V_{\\max}$ and $K_m$",
+        "Decreases $K_m$ while increasing $V_{\\max}$"
+      ],
+      correctIndex: 0,
+      explanation: "Non-competitive inhibitors do not compete with substrate for active site binding, leaving substrate affinity ($K_m$) unchanged. However, by inactivating bound enzyme complexes, overall catalytic turnover decreases, lowering $V_{\\max}$."
     }
   ],
 
