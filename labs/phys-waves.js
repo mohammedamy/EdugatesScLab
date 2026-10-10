@@ -967,6 +967,9 @@ export function initWaveLab(containerId) {
     } else if (e.key === "c" || e.key === "C") {
       e.preventDefault();
       resetGrid();
+    } else if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      exportTelemetryCsv();
     } else if (e.key === "1") {
       e.preventDefault();
       container.querySelector('[data-wave-mode="double_slit"]')?.click();

@@ -167,6 +167,22 @@ test("index.css includes .wave-layout in responsive media queries", () => {
   assert(css.includes(".wave-layout"), "index.css must include .wave-layout rule");
 });
 
+test("phys-waves.js binds 'e' / 'E' keyboard shortcut to export telemetry CSV", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-waves.js"), "utf-8");
+  assert(code.includes('e.key === "e" || e.key === "E"'), "Must handle 'e'/'E' export telemetry shortcut");
+  assert(code.includes("exportTelemetryCsv()"), "Must invoke exportTelemetryCsv");
+});
+
+test("LAB_CHECKPOINTS.waves contains comprehensive 5-question inquiry suite", () => {
+  const telemetrySrc = fs.readFileSync(path.resolve("labs/lab-telemetry-exporter.js"), "utf-8");
+  assert(telemetrySrc.includes("waves: ["), "Must declare waves checkpoint pool");
+  assert(telemetrySrc.includes("Young's double-slit experiment"), "Must include Young's double slit question");
+  assert(telemetrySrc.includes("fringe separation"), "Must include fringe separation question");
+  assert(telemetrySrc.includes("light waves are transverse"), "Must include transverse polarization question");
+  assert(telemetrySrc.includes("single-slit Fraunhofer diffraction"), "Must include single slit diffraction question");
+  assert(telemetrySrc.includes("approaching source"), "Must include Doppler effect question");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Wave Lab Tests: ${passed} Passed, 0 Failed`);
 console.log("========================================================\n");

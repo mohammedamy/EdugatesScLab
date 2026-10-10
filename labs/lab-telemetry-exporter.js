@@ -828,6 +828,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 2,
       explanation: "Polarization can only occur in transverse waves where oscillation occurs perpendicular to the direction of wave travel. Longitudinal waves cannot be polarized."
+    },
+    {
+      id: "q4",
+      question: "In single-slit Fraunhofer diffraction, the angular width of the central diffraction peak is inversely proportional to the aperture width ($a$). If the slit width $a$ is halved, the physical width of the central maximum on the observation screen ($w = 2\\lambda L / a$):",
+      options: [
+        "Doubles (becomes twice as wide)",
+        "Halves (becomes narrower)",
+        "Remains unchanged",
+        "Decreases by a factor of 4"
+      ],
+      correctIndex: 0,
+      explanation: "From w = 2λL/a, the central diffraction maximum width is inversely proportional to slit width a. Halving a exactly doubles the central peak width."
+    },
+    {
+      id: "q5",
+      question: "A wave source travels at half the speed of wave propagation ($v_s / v = 0.5$, or $\\text{Mach } 0.5$) emitting waves at frequency $f_0 = 4.0\\text{ Hz}$. What frequency is perceived by a stationary observer directly in front of the approaching source?",
+      options: [
+        "8.0 Hz (f_obs = f_0 / (1 - v_s/v) = 4.0 / 0.5)",
+        "2.0 Hz",
+        "4.0 Hz",
+        "6.0 Hz"
+      ],
+      correctIndex: 0,
+      explanation: "For an approaching source, wave crests are compressed ahead of motion, yielding f_obs = f_0 / (1 - v_s/v) = 4.0 / (1 - 0.5) = 8.0 Hz (perceived frequency doubles)."
     }
   ],
 
