@@ -2382,6 +2382,16 @@ export function initArduinoLab(containerId) {
 
         <!-- Header Action Controls -->
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <!-- 4K Authentic Bench Photo View Switcher -->
+          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
+            <button id="view-mode-arduino-sim" class="btn btn-secondary active" aria-label="Switch to Arduino Simulator Canvas" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
+              🔬 MCU Simulator
+            </button>
+            <button id="view-mode-arduino-photo" class="btn btn-secondary" aria-label="Switch to 4K Real Laboratory Bench Photo" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+              📸 4K Real Bench
+            </button>
+          </div>
+
           <!-- Sound Effects Mute Toggle Button -->
           <button id="btn-arduino-mute" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; border-color: rgba(56, 189, 248, 0.3);" title="Toggle Synthesized Sound Effects">
             <span id="mute-icon">${audio.isMuted() ? "🔇" : "🔊"}</span>
@@ -2577,6 +2587,30 @@ export function initArduinoLab(containerId) {
           <!-- Interactive Circuit Board Viewport (Canvas Simulation) -->
           <div class="lab-canvas-area" style="position: relative; background: #050811; border: 1.5px solid rgba(6, 182, 212, 0.35); border-radius: 12px; overflow: hidden; height: 460px; box-shadow: inset 0 0 40px rgba(0,0,0,0.8);">
             <canvas id="arduino-canvas" width="850" height="460" style="width: 100%; height: 100%; display: block;"></canvas>
+
+            <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
+            <div id="arduino-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+              <picture>
+                <source srcset="assets/labs/arduino_bench.webp" type="image/webp">
+                <img src="assets/labs/arduino_bench.jpg" alt="4K Authentic Arduino Microcontroller Workbench" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+              </picture>
+              
+              <!-- Live Analytical Telemetry Callout on Photo -->
+              <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(6, 182, 212, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+                <div>
+                  <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">ATmega328P MCU Core</div>
+                  <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">16 MHz Crystal · 5.0V Logic</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Breadboard Prototyping</div>
+                  <div style="color: #facc15; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Through-Hole DuPont Netlist</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Dual DSO Signal Probe</div>
+                  <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.92rem;">Real-Time Logic Oscilloscope</div>
+                </div>
+              </div>
+            </div>
 
             <!-- Top Overlay Telemetry HUD -->
             <div style="position: absolute; top: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; pointer-events: none;">
@@ -3205,6 +3239,29 @@ export function initArduinoLab(containerId) {
   const netlistContentBox = document.getElementById("netlist-content-box");
   let currentNetlistTab = "spice";
   let cachedNetlistData = null;
+
+  // 4K Photo View Switcher
+  const btnArduinoSim = document.getElementById("view-mode-arduino-sim");
+  const btnArduinoPhoto = document.getElementById("view-mode-arduino-photo");
+  const arduinoPhotoOverlay = document.getElementById("arduino-photo-overlay");
+
+  btnArduinoSim?.addEventListener("click", () => {
+    btnArduinoSim.classList.add("active");
+    btnArduinoSim.style.background = "";
+    btnArduinoPhoto?.classList.remove("active");
+    if (btnArduinoPhoto) btnArduinoPhoto.style.background = "transparent";
+    if (arduinoPhotoOverlay) arduinoPhotoOverlay.style.display = "none";
+    audio.playClick();
+  });
+
+  btnArduinoPhoto?.addEventListener("click", () => {
+    btnArduinoPhoto.classList.add("active");
+    btnArduinoPhoto.style.background = "";
+    btnArduinoSim?.classList.remove("active");
+    if (btnArduinoSim) btnArduinoSim.style.background = "transparent";
+    if (arduinoPhotoOverlay) arduinoPhotoOverlay.style.display = "block";
+    audio.playClick();
+  });
 
   // Wire Routing Toolbar Elements
   const btnToggleWireMode = document.getElementById("btn-toggle-wire-mode");

@@ -72,10 +72,11 @@ const expectedBenchImages = [
   "transpiration_bench.jpg",
   "orbital_bench.jpg",
   "sound_resonance_bench.jpg",
-  "electrostatics_bench.jpg"
+  "electrostatics_bench.jpg",
+  "arduino_bench.jpg"
 ];
 
-console.log("📁 Test 1: Verifying 44 Lab Bench Image Files in assets/labs/");
+console.log("📁 Test 1: Verifying 45 Lab Bench Image Files in assets/labs/");
 expectedBenchImages.forEach((filename) => {
   const filePath = path.join(rootDir, "assets", "labs", filename);
   const exists = fs.existsSync(filePath);
@@ -262,6 +263,13 @@ const newLabConfigs = [
     simBtn: "view-mode-electro-sim",
     photoBtn: "view-mode-electro-photo",
     overlay: "electro-photo-overlay"
+  },
+  {
+    file: "labs/phys-arduino.js",
+    image: "assets/labs/arduino_bench.jpg",
+    simBtn: "view-mode-arduino-sim",
+    photoBtn: "view-mode-arduino-photo",
+    overlay: "arduino-photo-overlay"
   }
 ];
 
