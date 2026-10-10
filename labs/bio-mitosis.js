@@ -111,7 +111,7 @@ export function initMitosisLab(containerId) {
             <button id="btn-view-sim" class="btn btn-sm active" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0;">🔬 Mitosis Simulator</button>
             <button id="btn-view-photo" class="btn btn-sm" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0; background: transparent;">📸 4K Real Bench</button>
           </div>
-          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem;">📥 Export CSV</button>
+          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem;">📥 Export CSV (E)</button>
         </div>
       </div>
 
@@ -828,11 +828,47 @@ export function initMitosisLab(containerId) {
 
   exportBtn?.addEventListener("click", () => {
     const { mi, phaseCounts } = calculateMitoticIndex();
-    const rows = [
-      { treatment: hasColchicine ? "Colchicine Treated" : "Untreated Control", mitoticIndex: `${mi.toFixed(1)}%`, ...phaseCounts }
-    ];
-    exportLabDataCsv("Cell_Cycle_Mitosis_Cytogenetics", rows);
+    exportLabDataCsv({
+      title: "Cell Cycle & Mitotic Index Cytogenetics Telemetry",
+      labId: "mitosis",
+      parameters: {
+        "Specimen Tissue": "Allium Cepa (Onion Root Tip Meristem)",
+        "Spindle Toxin": hasColchicine ? "Colchicine (Metaphase Arrest Active)" : "None (Normal Mitotic Spindle)",
+        "Mitotic Index (MI)": `${mi.toFixed(1)}%`
+      },
+      headers: [
+        "Treatment Group",
+        "Interphase Cells",
+        "Prophase Cells",
+        "Metaphase Cells",
+        "Anaphase Cells",
+        "Telophase Cells",
+        "Total Counted Cells",
+        "Mitotic Index (%)"
+      ],
+      dataRows: [
+        [
+          hasColchicine ? "Colchicine (Arrest)" : "Untreated Control",
+          phaseCounts.interphase,
+          phaseCounts.prophase,
+          phaseCounts.metaphase,
+          phaseCounts.anaphase,
+          phaseCounts.telophase,
+          phaseCounts.total,
+          mi.toFixed(1)
+        ]
+      ]
+    });
   });
+
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      exportBtn?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
 
   // Mount Assessment Checkpoint
   mountLabCheckpoint("mitosis-checkpoint-mount", "bio-mitosis");
@@ -844,5 +880,6 @@ export function initMitosisLab(containerId) {
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

@@ -102,7 +102,7 @@ export function initElisaLab(containerId) {
             📊 Read Plate (OD₄₅₀)
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-elisa-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export ELISA Dataset
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -583,11 +583,21 @@ export function initElisaLab(containerId) {
     SoundFX.success();
   });
 
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      btnExport.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
+
   // Start Animation Loop
   updateHUD();
   animId = requestAnimationFrame(renderElisaCanvas);
 
   return function cleanupElisaLab() {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

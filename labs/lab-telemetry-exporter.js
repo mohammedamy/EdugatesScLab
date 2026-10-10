@@ -2544,6 +2544,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Plasmolysis is the shrinking of the plant cell protoplast and detachment of the plasma membrane from the rigid cellulose cell wall caused by exosmosis in a hypertonic medium."
+    },
+    {
+      id: "q4",
+      question: "Using the Van 't Hoff equation $\\Psi_s = -i C R T$, what is the solute potential of a $0.20\\text{ M}\\ \\text{NaCl}$ solution ($i = 2.0$) at $27^\\circ\\text{C}$ ($300\\text{ K}$) using $R = 0.08314\\text{ L}\\cdot\\text{bar}/(\\text{mol}\\cdot\\text{K})$?",
+      options: [
+        "$\\Psi_s = -9.98\\text{ bar}$",
+        "$\\Psi_s = -4.99\\text{ bar}$",
+        "$\\Psi_s = +9.98\\text{ bar}$",
+        "$\\Psi_s = -19.95\\text{ bar}$"
+      ],
+      correctIndex: 0,
+      explanation: "$\\Psi_s = -i C R T = -(2.0)(0.20\\text{ mol/L})(0.08314\\text{ L}\\cdot\\text{bar}/(\\text{mol}\\cdot\\text{K}))(300\\text{ K}) = -9.9768\\text{ bar} \\approx -9.98\\text{ bar}$. Solute potential is always negative or zero for pure water."
+    },
+    {
+      id: "q5",
+      question: "Although water can diffuse slowly across the hydrophobic phospholipid bilayer via simple diffusion, why do proximal renal tubules and erythrocytes exhibit water permeability rates several orders of magnitude higher?",
+      options: [
+        "They express abundant transmembrane aquaporin water channels (e.g., AQP1) that facilitate rapid bidirectional passive osmosis",
+        "Active transport ATP-dependent water pumps drive water molecules across the membrane",
+        "Their cell membranes lack cholesterol, making them freely porous to all polar solutes",
+        "Endocytosis and pinocytosis engulf extracellular water continuously"
+      ],
+      correctIndex: 0,
+      explanation: "Aquaporins are specialized homotetrameric channel proteins featuring an aromatic/arginine selectivity filter that allows rapid single-file passage of water molecules ($>10^9\\text{ molecules/s}$) while strictly excluding hydronium ions and solutes."
     }
   ],
 
@@ -2583,6 +2607,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Without functional spindle microtubules to generate tension on kinetochores, the Spindle Assembly Checkpoint (SAC) remains persistently active, arresting cells at the equatorial Metaphase plate."
+    },
+    {
+      id: "q4",
+      question: "Progression from the G₂ phase into mitosis (M phase) is triggered by the activation of Maturation/Mitosis Promoting Factor (MPF), which consists of:",
+      options: [
+        "A complex of Cyclin B and Cyclin-Dependent Kinase 1 (CDK1) activated by Cdc25 phosphatase dephosphorylation",
+        "A p53 transcription factor complex bound to retinoblastoma protein (pRb)",
+        "A dimer of DNA polymerase III and topoisomerase II",
+        "Tubulin dimers coupled to dynein motor enzymes"
+      ],
+      correctIndex: 0,
+      explanation: "MPF is a heterodimer composed of Cyclin B (regulatory subunit) and CDK1 (catalytic kinase). As Cyclin B accumulates during G₂, CDK1 is primed by phosphorylation, and full mitotic entry occurs when Cdc25 phosphatase removes inhibitory phosphates from Thr14/Tyr15."
+    },
+    {
+      id: "q5",
+      question: "How does cytokinesis fundamentally differ between animal cells and plant cells during late telophase?",
+      options: [
+        "Animal cells divide via an actomyosin contractile ring forming a cleavage furrow, whereas plant cells construct a cell plate from Golgi-derived vesicles guided by the phragmoplast",
+        "Animal cells build a cellulose cell wall from inside out, whereas plant cells pinch inward",
+        "Plant cells undergo nuclear envelope breakdown while animal cells maintain an intact nucleus",
+        "Animal cells replicate centrosomes while plant cells eliminate their chromosomes"
+      ],
+      correctIndex: 0,
+      explanation: "Because plant cells are constrained by a rigid outer cell wall, they cannot pinch inward. Instead, a microtubule array called the phragmoplast guides Golgi-derived vesicles containing pectin and cellulose to the cell equator to form the cell plate, fusing outward. Animal cells constrict inward using a cortical contractile ring of actin microfilaments and myosin II."
     }
   ],
 
@@ -2739,6 +2787,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Vancomycin's large molecular weight (~1449 Da) prevents it from traversing the outer membrane porins of Gram-negative bacteria, rendering them intrinsically resistant despite having a peptidoglycan layer."
+    },
+    {
+      id: "q4",
+      question: "Bacterial resistance to beta-lactam antibiotics (such as penicillins and cephalosporins) most frequently arises from which enzyme-mediated biochemical mechanism?",
+      options: [
+        "Expression of beta-lactamases that enzymatically hydrolyze the four-membered beta-lactam ring, rendering the antibiotic incapable of inhibiting transpeptidases (PBPs)",
+        "Phosphorylation of 16S ribosomal RNA subunits",
+        "Overexpression of DNA gyrase subunit A",
+        "Efflux of lipopolysaccharide into the extracellular biofilm"
+      ],
+      correctIndex: 0,
+      explanation: "Beta-lactamases (including extended-spectrum beta-lactamases, ESBLs, and carbapenemases) catalyze the nucleophilic hydrolysis of the essential amide bond in the beta-lactam ring, preventing the drug from covalently inhibiting bacterial penicillin-binding proteins (PBPs/transpeptidases)."
+    },
+    {
+      id: "q5",
+      question: "In antimicrobial therapy, what is the fundamental mechanistic distinction between a bactericidal antibiotic (e.g., Ciprofloxacin) and a bacteriostatic antibiotic (e.g., Tetracycline)?",
+      options: [
+        "Bactericidal agents actively kill bacteria ($>99.9\\%$ reduction in CFU/mL), whereas bacteriostatic agents inhibit cellular growth and replication, relying on the host immune system to eliminate remaining viable bacteria",
+        "Bactericidal agents work exclusively against fungi, while bacteriostatic agents target viruses",
+        "Bacteriostatic agents destroy bacterial cell membranes, while bactericidal agents inhibit translation",
+        "Bacteriostatic agents are always broad-spectrum, while bactericidal agents are narrow-spectrum"
+      ],
+      correctIndex: 0,
+      explanation: "Bactericidal drugs (e.g., aminoglycosides, fluoroquinolones, beta-lactams) directly induce bacterial lethality (Minimum Bactericidal Concentration MBC $\\approx$ MIC). Bacteriostatic agents (e.g., tetracyclines, macrolides, sulfonamides) reversibly inhibit bacterial protein synthesis or folate metabolism, halting exponential population expansion while requiring host phagocytic leukocytes to clear bacteria."
     }
   ],
 
@@ -2778,6 +2850,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 0,
       explanation: "$\\text{Cutoff} = \\text{Mean}(\\text{Neg}) + 3 \\times \\text{SD} = 0.055 + 3(0.005) = 0.055 + 0.015 = 0.070$. Any patient sample with an optical density greater than 0.070 is classified as seropositive."
+    },
+    {
+      id: "q4",
+      question: "When quantifying low-abundance viral protein antigens (such as HIV p24 or SARS-CoV-2 Spike) in human clinical serum, why is a Double-Antibody Sandwich ELISA preferred over a direct adsorption ELISA?",
+      options: [
+        "The capture antibody selectively enriches and immobilizes the target antigen from complex crude serum, providing 2- to 5-fold higher analytical specificity and sensitivity than non-specific plate adsorption",
+        "Sandwich ELISA does not require any enzymatic substrate or wash steps",
+        "Sandwich ELISA eliminates the need for primary antibodies",
+        "Direct ELISA only works on RNA, while Sandwich ELISA measures DNA"
+      ],
+      correctIndex: 0,
+      explanation: "In complex biological matrices like whole serum, competing serum proteins saturate polystyrene binding sites during direct coating. A sandwich ELISA uses an immobilized monoclonal capture antibody to specifically extract and concentrate the target antigen, followed by a matched detection antibody recognizing a non-overlapping epitope, maximizing specificity and limit of detection (LOD)."
+    },
+    {
+      id: "q5",
+      question: "In quantitative ELISA, a 4-Parameter Logistic (4-PL) calibration curve is constructed from serial twofold dilutions of an IgG reference standard. If an unknown patient serum well exhibits an $\\text{OD}_{450} = 2.85$ that falls on the flat upper plateau above the dynamic linear range, how must the assay be adjusted for accurate quantification?",
+      options: [
+        "Dilute the patient serum sample (e.g., 1:10 or 1:100) and re-assay so that its optical density falls within the steep, linear quantification range of the standard curve, then multiply by the dilution factor",
+        "Double the concentration of sulfuric acid stop solution in the well",
+        "Read the microplate at a higher ultraviolet wavelength (260 nm)",
+        "Record the concentration as infinite because optical saturation indicates zero error"
+      ],
+      correctIndex: 0,
+      explanation: "At high analyte concentrations, optical density plateaus due to saturation of solid-phase capture antibodies and detector steric hindrance. For accurate interpolation, the specimen must be diluted so that its signal falls within the linear dynamic range ($0.1 < \\text{OD} < 2.0$), and the interpolated concentration is then multiplied by the dilution factor."
     }
   ],
 
@@ -2817,6 +2913,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "In still air, transpired vapor accumulates in an unstirred boundary layer adjacent to the epidermis, slowing diffusion. Wind sweeps away this layer, reducing boundary layer resistance (rb) and steepening the vapor gradient from leaf interior to ambient air."
+    },
+    {
+      id: "q4",
+      question: "According to the Dixon and Joly Cohesion-Tension theory, how is sap pulled continuously upward from roots to leaves in trees exceeding 100 meters in height?",
+      options: [
+        "Evaporative transpiration at menisci in mesophyll cell walls generates extreme negative hydrostatic pressure (tension), pulling continuous water columns upward via intermolecular hydrogen bonding (cohesion) and cell wall adhesion",
+        "Active osmotic root pressure pumps water up the trunk under positive pressure exceeding 10 atmospheres",
+        "Capillary action alone pulls water upward due to surface tension in wide xylem vessel elements",
+        "Phloem companion cells use ATP to pump sucrose and water against gravity"
+      ],
+      correctIndex: 0,
+      explanation: "Transpiration generates negative water potential ($\\Psi$) in the leaf apoplast. This tension pulls the continuous xylem water column upward under negative pressure (often -1.5 to -3.0 MPa), made possible by the immense tensile strength of water provided by intermolecular hydrogen-bonding cohesion."
+    },
+    {
+      id: "q5",
+      question: "During severe soil drought, what biochemical signaling mechanism induces rapid stomatal closure to prevent xylem cavitation and desiccation?",
+      options: [
+        "Roots synthesize abscisic acid (ABA), which is transported via xylem to guard cells, triggering calcium influx and opening of anion/potassium efflux channels, causing guard cell deflation",
+        "High auxins induce rapid cell wall loosening, causing guard cells to burst open",
+        "Ethylene gas freezes the xylem vessels to stop water flow",
+        "Gibberellins stimulate starch synthesis in guard cell vacuoles"
+      ],
+      correctIndex: 0,
+      explanation: "Drought induces root and leaf synthesis of abscisic acid (ABA). ABA binds PYR/RCAR receptors in guard cells, activating SnRK2 kinase, which triggers cytosolic $\\text{Ca}^{2+}$ elevation and opening of S-type anion channels (SLAC1) and voltage-gated outward $\\text{K}^+$ channels (GORK). Solute efflux causes osmotic water loss and turgor collapse, rapidly sealing the stomatal pore."
     }
   ],
 

@@ -155,7 +155,7 @@ export function initOsmosisLab(containerId) {
             <button id="btn-view-sim" class="btn btn-sm active" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0;">🔬 Osmosis Simulator</button>
             <button id="btn-view-photo" class="btn btn-sm" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0; background: transparent;">📸 4K Real Bench</button>
           </div>
-          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem;">📥 Export CSV</button>
+          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem;">📥 Export CSV (E)</button>
         </div>
       </div>
 
@@ -1051,8 +1051,46 @@ export function initOsmosisLab(containerId) {
 
   exportBtn?.addEventListener("click", () => {
     if (trialLogs.length === 0) logTrial();
-    exportLabDataCsv("Cell_Membrane_Osmosis_Tonicity", trialLogs);
+    exportLabDataCsv({
+      title: "Cell Membrane Osmosis & Tonicity Water Potential Telemetry",
+      labId: "osmosis",
+      parameters: {
+        "Assay Mode": activeMode === "utube" ? "U-Tube Dialysis Membrane" : `Cell Tonicity (${cellType.toUpperCase()})`,
+        "Solute Tested": selectedSolute.toUpperCase(),
+        "Temperature": `${tempC} °C`,
+        "Gas Constant R": "0.08314 L·bar/(mol·K)"
+      },
+      headers: [
+        "Mode / Model",
+        "Solute",
+        "Left/Internal Conc (M)",
+        "Right/External Conc (M)",
+        "Left/Internal Ψs (bar)",
+        "Right/External Ψs (bar)",
+        "Height Diff Δh (cm)",
+        "Osmotic Equilibrium Status"
+      ],
+      dataRows: trialLogs.map(row => [
+        row.mode,
+        row.solute,
+        row.cL,
+        row.cR,
+        row.psiL,
+        row.psiR,
+        row.dh,
+        row.status
+      ])
+    });
   });
+
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      exportBtn?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
 
   // Mount Assessment Checkpoint
   mountLabCheckpoint("osmosis-checkpoint-mount", "bio-osmosis");
@@ -1063,5 +1101,6 @@ export function initOsmosisLab(containerId) {
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }
