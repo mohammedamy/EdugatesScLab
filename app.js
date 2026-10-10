@@ -2963,11 +2963,14 @@ export function renderClassifiedLabNavHTML(activeLabId, filterSubject = "all") {
 function renderVirtualLabsHub(container) {
   container.innerHTML = `
     <div style="display: flex; flex-direction: column; gap: 28px;">
-      <!-- Labs Header -->
+      <!-- Mount Container for Selected Lab: Displayed as the FIRST part of the page -->
+      <div id="active-lab-mount" style="min-height: 580px;"></div>
+
+      <!-- Labs Catalog & Navigation -->
       <div class="hero-banner labs-suite-hero">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div class="hero-badge labs-suite-badge">
-            Interactive Simulation Workbenches (60 FPS)
+            Interactive Simulation Workbenches (46 Labs)
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <button class="btn btn-secondary" id="btn-lms-share-active-lab" title="Assign this laboratory workbench to Google Classroom, Classera, Canvas, or Teams" aria-label="Assign this laboratory workbench to LMS" style="padding: 6px 14px; font-size: 0.85rem; font-weight: 700; gap: 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
@@ -2986,9 +2989,6 @@ function renderVirtualLabsHub(container) {
         <!-- Dynamic Classified & Alphabetically Organized Labs Navigation -->
         ${renderClassifiedLabNavHTML(AppState.activeLabId, AppState.labsFilterSubject)}
       </div>
-
-      <!-- Mount Container for Selected Lab -->
-      <div id="active-lab-mount" style="min-height: 580px;"></div>
     </div>
   `;
 
@@ -3040,6 +3040,12 @@ function renderVirtualLabsHub(container) {
       try { SoundFX.playClick(); } catch (err) {}
       AppState.activeLabId = normalizeLabId(btn.dataset.lab);
       window.location.hash = `#labs/${AppState.activeLabId}`;
+      const mount = document.getElementById("active-lab-mount");
+      if (mount && typeof mount.scrollIntoView === "function") {
+        mount.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     });
   });
 
@@ -3059,6 +3065,15 @@ function mountActiveLab() {
   const normId = normalizeLabId(AppState.activeLabId);
   AppState.activeLabId = normId;
   ProgressStore.recordLabLaunched(normId);
+
+  // Ensure active lab is in view as the first part of the page
+  if (typeof window !== "undefined") {
+    if (typeof mount.scrollIntoView === "function") {
+      mount.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else if (typeof window.scrollTo === "function") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
 
   // Update active pill button visual state in case hash was typed directly
   document.querySelectorAll(".lab-nav-btn").forEach(btn => {
