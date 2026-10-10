@@ -78,6 +78,21 @@ assert(missingCodons === 0, `Universal genetic code covers all 64 triplet codons
 // 6. Anticodon Pairing Logic
 assert(labCode.includes('getAnticodon'), 'Implements getAnticodon for accurate tRNA complementary base-pairing');
 
+// 7. Keyboard Shortcuts and Cleanup
+assert(labCode.includes('e.key === "e" || e.key === "E"'), "bio-dna-protein.js binds 'e'/'E' to CSV export");
+assert(labCode.includes('window.removeEventListener("keydown", handleKeyDown)'), "bio-dna-protein.js unbinds keydown on cleanup");
+
+// 8. Checkpoint Inquiry Suite
+const { LAB_CHECKPOINTS } = await import("../labs/lab-telemetry-exporter.js");
+assert(Array.isArray(LAB_CHECKPOINTS.dnaprotein) && LAB_CHECKPOINTS.dnaprotein.length === 5, `LAB_CHECKPOINTS.dnaprotein contains comprehensive 5-question inquiry suite (found: ${LAB_CHECKPOINTS.dnaprotein?.length})`);
+
+const dnaPrompts = LAB_CHECKPOINTS.dnaprotein.map(q => q.question);
+assert(dnaPrompts.some(p => p.includes("Adenine (A) on the DNA template")), "Must include base pairing question");
+assert(dnaPrompts.some(p => p.includes("consecutive mRNA nucleotides")), "Must include codon triplet question");
+assert(dnaPrompts.some(p => p.includes("code degeneracy")), "Must include silent mutation degeneracy question");
+assert(dnaPrompts.some(p => p.includes("frameshift mutation")), "Must include frameshift indel question");
+assert(dnaPrompts.some(p => p.includes("synthesizes the nascent mRNA transcript in which chemical direction")), "Must include 5' to 3' transcription and translation directionality question");
+
 console.log('\n--------------------------------------------------------');
 console.log(`Summary: ${passed} Passed, ${failed} Failed`);
 console.log('========================================================\n');

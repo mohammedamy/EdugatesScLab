@@ -855,6 +855,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 2,
       explanation: "Because multiple codons can code for the same amino acid (wobble hypothesis), a silent mutation leaves the polypeptide sequence unaltered."
+    },
+    {
+      id: "q4",
+      question: "An insertion or deletion of a single nucleotide within a protein-coding sequence causes a frameshift mutation, which results in:",
+      options: [
+        "Altering the reading frame of all subsequent downstream codons, typically generating premature stop codons and truncated non-functional proteins",
+        "Changing only the single amino acid at the mutation site while preserving all downstream residues",
+        "Preventing RNA polymerase from binding to the promoter region",
+        "Converting the entire mRNA molecule into double-stranded DNA"
+      ],
+      correctIndex: 0,
+      explanation: "Because genetic code is read non-overlappingly in triplets of three, inserting or deleting 1 or 2 nucleotides shifts the reading frame for all downstream codons, altering the entire following amino acid sequence and usually producing a premature termination STOP codon."
+    },
+    {
+      id: "q5",
+      question: "During gene expression, RNA polymerase synthesizes the nascent mRNA transcript in which chemical direction, and ribosomes translate mRNA into polypeptide in which direction?",
+      options: [
+        "RNA synthesis: 5' → 3'; Ribosome translation: 5' → 3' (N-terminus to C-terminus)",
+        "RNA synthesis: 3' → 5'; Ribosome translation: 3' → 5' (C-terminus to N-terminus)",
+        "RNA synthesis: 5' → 3'; Ribosome translation: 3' → 5'",
+        "RNA synthesis: bidirectional; Ribosome translation: random order"
+      ],
+      correctIndex: 0,
+      explanation: "Nucleic acid polymerization occurs strictly 5' to 3' as the 3'-OH group attacks incoming nucleoside triphosphates. Ribosomes translate the resulting mRNA from 5' to 3', synthesizing the polypeptide chain from the amino-terminal (N-terminal) to carboxyl-terminal (C-terminal) direction."
     }
   ],
 
@@ -894,6 +918,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Crossing the unknown with homozygous recessive (bb) reveals the genotype: if any recessive offspring appear (bb), the parent was heterozygous (Bb)."
+    },
+    {
+      id: "q4",
+      question: "In a dihybrid cross between two heterozygous pea plants for seed shape and color (RrYy × RrYy), what is the expected phenotypic ratio among offspring assuming independent assortment?",
+      options: [
+        "9 Round Yellow : 3 Round Green : 3 Wrinkled Yellow : 1 Wrinkled Green (9:3:3:1)",
+        "3 Round Yellow : 1 Wrinkled Green (3:1)",
+        "1 Round Yellow : 1 Round Green : 1 Wrinkled Yellow : 1 Wrinkled Green (1:1:1:1)",
+        "15 Dominant : 1 Recessive (15:1)"
+      ],
+      correctIndex: 0,
+      explanation: "Mendel's Law of Independent Assortment predicts that the two gene pairs segregate independently. Multiplying the individual 3:1 probabilities ((3/4 R + 1/4 r)(3/4 Y + 1/4 y)) yields the classic 9/16 : 3/16 : 3/16 : 1/16 dihybrid phenotypic ratio."
+    },
+    {
+      id: "q5",
+      question: "When conducting a Chi-Square goodness-of-fit test ($\\chi^2 = \\sum \\frac{(O - E)^2}{E}$) on genetic cross data with 4 phenotypic classes, how many degrees of freedom ($df$) are used, and what does a calculated $\\chi^2$ value lower than the critical value indicate?",
+      options: [
+        "df = 3 (classes - 1); the null hypothesis of Mendelian segregation cannot be rejected (data fits expected ratios)",
+        "df = 4; the experimental sample size was too small",
+        "df = 1; the alleles are definitely sex-linked",
+        "df = 16; crossing over occurred during prophase I"
+      ],
+      correctIndex: 0,
+      explanation: "Degrees of freedom are defined as df = k - 1 = 4 - 1 = 3. If the calculated χ² is less than the critical threshold (e.g. 7.815 at p = 0.05), the observed variations are statistically consistent with random sampling deviations from Mendelian inheritance."
     }
   ],
 
@@ -933,6 +981,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "The two unshared lone pairs on oxygen occupy more space and exert stronger electron repulsion than bonding pairs, compressing the bond angle from 109.5° down to 104.5°."
+    },
+    {
+      id: "q4",
+      question: "For a molecule with steric number 5 possessing 5 single bonding pairs and 0 lone pairs (such as Phosphorus Pentachloride, $\\text{PCl}_5$, $\\text{AX}_5$), what is its molecular geometry and equatorial vs axial bond angles?",
+      options: [
+        "Trigonal bipyramidal; 120° equatorial and 90° axial",
+        "Octahedral; all 90° angles",
+        "Square pyramidal; 90° and 180°",
+        "Tetrahedral; 109.5° angles"
+      ],
+      correctIndex: 0,
+      explanation: "With steric number 5 (AX₅), the three equatorial bonds form a planar triangle with 120° angles, while the two axial bonds are oriented perpendicular at 90° to the equatorial plane, producing a trigonal bipyramidal molecular geometry (sp³d hybridization)."
+    },
+    {
+      id: "q5",
+      question: "Why is Carbon Dioxide ($\\text{CO}_2$) completely nonpolar ($\\mu = 0\\text{ D}$) despite containing two strongly polar $\\text{C}=\\text{O}$ bonds ($\\Delta\\chi \\approx 0.89$)?",
+      options: [
+        "Because its linear molecular geometry (AX₂, 180°) causes the two identical bond dipole vectors to cancel symmetrically",
+        "Because oxygen cannot hold partial negative charge in the gas phase",
+        "Because double bonds never generate dipole moments",
+        "Because carbon has a complete valence octet"
+      ],
+      correctIndex: 0,
+      explanation: "Carbon dioxide has steric number 2 with zero lone pairs on the central carbon atom (AX₂), adopting a strictly linear geometry with a 180° bond angle. The two opposing dipole vectors of equal magnitude point in diametrically opposite directions and sum to zero net dipole moment (μ_net = 0)."
     }
   ],
 
@@ -1035,6 +1107,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Rubisco is the primary enzyme responsible for fixing inorganic CO₂ onto RuBP to yield 3-phosphoglycerate (3-PGA) during the first stage of the Calvin cycle."
+    },
+    {
+      id: "q4",
+      question: "When Elodea or spinach leaves are illuminated with green light (~550 nm) compared to blue (430 nm) or red (660 nm) light of equal photon irradiance, the rate of oxygen bubble evolution is:",
+      options: [
+        "Substantially lower because Chlorophyll a and b pigments reflect rather than absorb green wavelengths",
+        "Highest because green photons possess the highest kinetic energy",
+        "Identical because chloroplasts absorb all visible wavelengths equally",
+        "Zero because green light destroys chloroplast thylakoids"
+      ],
+      correctIndex: 0,
+      explanation: "The absorption spectra of Chlorophyll a and b show deep troughs between 500 nm and 600 nm (the green window). Because green wavelengths are mostly reflected or transmitted rather than absorbed, photolysis of water in Photosystem II slows dramatically, minimizing oxygen evolution."
+    },
+    {
+      id: "q5",
+      question: "In a plant exposed to saturating light intensity and abundant carbon dioxide at 25°C, increasing the temperature past 45°C causes the photosynthetic rate to drop sharply because:",
+      options: [
+        "Enzymes such as Rubisco denature and stomata close to prevent excessive water loss",
+        "Photons can no longer travel through warm air",
+        "Chlorophyll molecules turn into carotenoids",
+        "Water photolysis reverses and consumes oxygen"
+      ],
+      correctIndex: 0,
+      explanation: "Photosynthesis is enzymatically driven (especially the Calvin cycle). Exceeding the thermal optimum denatures critical enzymes like Rubisco and damages photosynthetic membrane integrity, while heat-induced stomatal closure limits CO₂ uptake, causing photosynthetic output to crash."
     }
   ],
 
@@ -1074,6 +1170,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Specific heat capacity is the intensive property $c = \\frac{q}{m \\cdot \\Delta T}$, measured in $\\text{J}/(\\text{g}\\cdot^\\circ\\text{C})$ or $\\text{J}/(\\text{g}\\cdot\\text{K})$."
+    },
+    {
+      id: "q4",
+      question: "In an acid-base neutralization experiment inside a constant-pressure coffee-cup calorimeter, 0.050 moles of water are formed, and the aqueous solution absorbs $2.85\\text{ kJ}$ of heat ($q_{\\text{cal}} = +2.85\\text{ kJ}$). What is the molar enthalpy of neutralization ($\\Delta H_{\\text{neut}}$) per mole of water?",
+      options: [
+        "ΔH = -57.0 kJ/mol (exothermic)",
+        "ΔH = +57.0 kJ/mol (endothermic)",
+        "ΔH = -2.85 kJ/mol",
+        "ΔH = 0 kJ/mol"
+      ],
+      correctIndex: 0,
+      explanation: "Since the calorimeter absorbed heat (q_cal = +2.85 kJ), the chemical reaction released heat: q_rxn = -2.85 kJ. Dividing by moles of water produced: ΔH = -2.85 kJ / 0.050 mol = -57.0 kJ/mol."
+    },
+    {
+      id: "q5",
+      question: "According to Hess's Law of Heat Summation, if a chemical reaction can be expressed as the algebraic sum of several elementary steps, the overall enthalpy change ($\\Delta H_{\\text{rxn}}$) equals:",
+      options: [
+        "The sum of the enthalpy changes of the individual reaction steps (ΔH_overall = Σ ΔH_steps)",
+        "The product of the activation energies of all elementary steps",
+        "Zero in all closed thermodynamic systems",
+        "The calorimeter heat capacity divided by absolute temperature"
+      ],
+      correctIndex: 0,
+      explanation: "Because enthalpy (H) is a thermodynamic state function, the net change ΔH depends solely on initial and final thermodynamic states, making it independent of the specific reaction pathway. Thus, ΔH_overall = Σ ΔH_steps."
     }
   ],
 

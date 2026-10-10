@@ -262,8 +262,8 @@ export function initPunnettLab(containerId) {
           <button class="btn btn-secondary" id="btn-record-punnett-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(16,185,129,0.4); color: #10b981;">
             <span>📸 Log Cross Results</span>
           </button>
-          <button class="btn btn-secondary" id="btn-export-punnett-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
-            <span>📥 Export CSV Data</span>
+          <button class="btn btn-secondary" id="btn-export-punnett-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;" title="Export Mendelian cross distribution & Chi-Square goodness-of-fit dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export CSV Data (Shortcut: E)">
+            <span>📥 Export CSV Data (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-punnett-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #059669, #047857); border: none;">
             <span>📑 Generate Lab Report</span>
@@ -1643,6 +1643,23 @@ export function initPunnettLab(containerId) {
     if (photoOverlay) photoOverlay.style.display = "block";
   });
 
+  // Keyboard Shortcuts (E for CSV export)
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("keydown", handleKeyDown);
+      return;
+    }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
+      return;
+    }
+    if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      document.getElementById("btn-export-punnett-csv")?.click();
+      return;
+    }
+  }
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("punnett-checkpoint-container", "punnett");
 
@@ -1651,5 +1668,6 @@ export function initPunnettLab(containerId) {
   return () => {
     if (ro) ro.disconnect();
     window.removeEventListener("resize", handleResize);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

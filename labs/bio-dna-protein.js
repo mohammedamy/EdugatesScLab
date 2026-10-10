@@ -278,8 +278,8 @@ export function initDnaProteinLab(containerId) {
           <button class="btn btn-secondary" id="btn-record-dna-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(16,185,129,0.4); color: #10b981;">
             <span>📸 Log Genetic Variant</span>
           </button>
-          <button class="btn btn-secondary" id="btn-export-dna-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
-            <span>📥 Export CSV Data</span>
+          <button class="btn btn-secondary" id="btn-export-dna-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;" title="Export complete codon transcription & translation dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export CSV Data (Shortcut: E)">
+            <span>📥 Export CSV Data (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-dna-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #059669, #047857); border: none;">
             <span>📑 Generate Lab Report</span>
@@ -1008,9 +1008,27 @@ export function initDnaProteinLab(containerId) {
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("dna-checkpoint-container", "dnaprotein");
 
+  // Keyboard Shortcuts (E for CSV export)
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("keydown", handleKeyDown);
+      return;
+    }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
+      return;
+    }
+    if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      document.getElementById("btn-export-dna-csv")?.click();
+      return;
+    }
+  }
+  window.addEventListener("keydown", handleKeyDown);
+
   function handleResize() {
     if (!container || !container.isConnected) {
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("keydown", handleKeyDown);
       return;
     }
     const rect = canvas.getBoundingClientRect();
@@ -1024,5 +1042,6 @@ export function initDnaProteinLab(containerId) {
 
   return () => {
     window.removeEventListener("resize", handleResize);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

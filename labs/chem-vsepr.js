@@ -363,8 +363,8 @@ export function initVseprLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-vsepr-autorotate" style="padding: 5px 12px; font-size: 0.78rem;">
             ${autoRotate ? "⏸ Pause Rotation" : "▶ Auto-Rotate"}
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-vsepr-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Telemetry
+          <button class="btn btn-secondary btn-sm" id="btn-vsepr-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Export comprehensive molecular geometry & electron repulsion dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export Telemetry as CSV (Shortcut: E)">
+            📥 Export Telemetry (E)
           </button>
         </div>
       </div>
@@ -944,40 +944,73 @@ export function initVseprLab(containerId) {
 
   // Export Telemetry CSV
   document.getElementById("btn-vsepr-export").addEventListener("click", () => {
-    const data = MOLECULES.map(m => ({
-      Molecule: m.name,
-      Formula: m.formula,
-      StericNumber: m.stericNumber,
-      BondingPairs: m.bondingPairs,
-      LonePairs: m.lonePairs,
-      AX_Code: m.axCode,
-      ElectronGeometry: m.electronGeo,
-      MolecularGeometry: m.molecularGeo,
-      BondAngle_Deg: m.actualAngle,
-      Hybridization: m.hybridization,
-      Polarity: m.isPolar ? "Polar" : "Nonpolar"
-    }));
-    exportLabDataCsv("chem_vsepr_geometry_telemetry.csv", data);
+    exportLabDataCsv({
+      title: "VSEPR Molecular Geometry & Valence Electron Repulsion Analysis",
+      labId: "vsepr",
+      parameters: {
+        "Currently Selected Molecule": selectedMol?.name || "Methane (CH₄)",
+        "Chemical Formula": selectedMol?.formula || "CH₄",
+        "Steric Number": selectedMol?.stericNumber || 4,
+        "AX_E Notation": selectedMol?.axCode || "AX₄",
+        "Electron Domain Geometry": selectedMol?.electronGeo || "Tetrahedral",
+        "Molecular Geometry": selectedMol?.molecularGeo || "Tetrahedral",
+        "Bond Angle": `${selectedMol?.actualAngle || 109.5}°`,
+        "Orbital Hybridization": selectedMol?.hybridization || "sp³",
+        "Molecular Polarity": selectedMol?.isPolar ? "Polar (Dipole Moment μ > 0)" : "Nonpolar (Symmetric, μ = 0)"
+      },
+      headers: [
+        "Molecule Name",
+        "Chemical Formula",
+        "Steric Number",
+        "Bonding Pairs",
+        "Lone Pairs",
+        "AX_E Notation",
+        "Electron Geometry",
+        "Molecular Geometry",
+        "Bond Angle (deg)",
+        "Hybridization",
+        "Polarity"
+      ],
+      dataRows: MOLECULES.map(m => [
+        m.name,
+        m.formula,
+        m.stericNumber,
+        m.bondingPairs,
+        m.lonePairs,
+        m.axCode,
+        m.electronGeo,
+        m.molecularGeo,
+        m.actualAngle,
+        m.hybridization,
+        m.isPolar ? "Polar" : "Nonpolar"
+      ])
+    });
   });
 
-  // Mount CER Checkpoint
-  mountLabCheckpoint("vsepr-checkpoint-mount", {
-    id: "vsepr-checkpoint",
-    labTitle: "Chemistry: VSEPR Molecular Geometry & Polarity Analysis",
-    prompt: "Compare the molecular geometries and polarities of H₂O (AX₂E₂) and CO₂ (AX₂). Both molecules possess two bonding pairs attached to central atoms, yet H₂O is strongly polar (μ = 1.85 D) while CO₂ is completely nonpolar (μ = 0 D). Formulate your scientific Claim, ground it in Evidence from electron domain repulsion, and provide your thermodynamic Reasoning.",
-    claimStarter: "Although both molecules have two terminal atoms, H₂O has a bent shape while CO₂ is linear because...",
-    sampleClaim: "Water is polar and bent due to two lone pairs on oxygen, whereas CO₂ has no lone pairs on carbon and has a linear shape with canceling bond dipoles.",
-    evidenceStarters: [
-      "Oxygen in H₂O has steric number 4 (2 bonding pairs + 2 lone pairs), compressing the bond angle to 104.5°.",
-      "Carbon in CO₂ has steric number 2 (2 double bonds, 0 lone pairs), yielding a bond angle of 180°.",
-      "The bond dipole vectors in linear CO₂ point in exactly opposite directions and cancel out symmetrically."
-    ],
-    reasoningKey: "VSEPR theory dictates that electron pairs maximize separation to minimize Coulombic repulsion. Lone pairs exert greater repulsion than bonding pairs. In CO₂, the linear geometry allows the opposite C=O dipoles to vectorially cancel. In H₂O, the tetrahedral electron geometry results in an asymmetrical bent molecular geometry where the two O-H bond dipole components add constructively along the molecular axis."
-  });
+  // Keyboard Shortcuts (E for CSV export)
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("keydown", handleKeyDown);
+      return;
+    }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
+      return;
+    }
+    if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      document.getElementById("btn-vsepr-export")?.click();
+      return;
+    }
+  }
+  window.addEventListener("keydown", handleKeyDown);
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("vsepr-checkpoint-mount", "vsepr");
 
   // Cleanup on unmount
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
   _currentVseprCleanup = cleanup;
   return cleanup;

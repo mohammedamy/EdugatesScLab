@@ -57,8 +57,8 @@ export function initPhotosynthesisLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-photo-toggle-run" style="padding: 5px 12px; font-size: 0.78rem;">
             ${isRunning ? "⏸ Pause" : "▶ Resume"}
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-photo-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Telemetry
+          <button class="btn btn-secondary btn-sm" id="btn-photo-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Export photosynthetic respirometry telemetry dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export Telemetry as CSV (Shortcut: E)">
+            📥 Export Telemetry (E)
           </button>
         </div>
       </div>
@@ -714,39 +714,60 @@ export function initPhotosynthesisLab(containerId) {
 
   // Export Telemetry
   document.getElementById("btn-photo-export").addEventListener("click", () => {
-    const rows = [
-      { Parameter: "Apparatus Mode", Value: apparatusMode },
-      { Parameter: "Light Intensity (lux)", Value: lightIntensity },
-      { Parameter: "Light Spectrum Filter", Value: wavelengthFilter },
-      { Parameter: "CO2 Concentration (ppm)", Value: co2Concentration },
-      { Parameter: "Temperature (°C)", Value: temperature },
-      { Parameter: "Specimen State", Value: peaState },
-      { Parameter: "Elapsed Time (s)", Value: Math.floor(elapsedSeconds) },
-      { Parameter: "Oxygen Rate (bubbles/min)", Value: bubblesPerMin },
-      { Parameter: "Total Accumulated O2 (mL)", Value: o2ProducedTotal.toFixed(3) }
-    ];
-    exportLabDataCsv("photosynthesis_respirometry_telemetry.csv", rows);
+    exportLabDataCsv({
+      title: "Photosynthetic Action Spectra & Limiting Factors Respirometry",
+      labId: "photosynthesis",
+      parameters: {
+        "Apparatus Mode": apparatusMode.toUpperCase(),
+        "Light Intensity": `${lightIntensity} lux`,
+        "Optical Filter": wavelengthFilter.toUpperCase(),
+        "CO2 Concentration": `${co2Concentration} ppm`,
+        "Chamber Temperature": `${temperature} °C`,
+        "Specimen Condition": peaState.toUpperCase(),
+        "Oxygen Production Rate": `${bubblesPerMin} bubbles/min`,
+        "Net O2 Volume": `${o2ProducedTotal.toFixed(3)} mL`,
+        "Elapsed Time": `${Math.floor(elapsedSeconds)} s`
+      },
+      headers: ["Parameter", "Measurement Value", "Physical Unit"],
+      dataRows: [
+        ["Apparatus Mode", apparatusMode.toUpperCase(), "Configuration"],
+        ["Light Intensity", lightIntensity, "lux"],
+        ["Light Spectrum Filter", wavelengthFilter.toUpperCase(), "Spectral Band"],
+        ["Carbon Dioxide Concentration", co2Concentration, "ppm"],
+        ["Chamber Temperature", temperature, "°C"],
+        ["Specimen Condition", peaState.toUpperCase(), "Biological State"],
+        ["Elapsed Physical Time", Math.floor(elapsedSeconds), "s"],
+        ["Oxygen Bubble Frequency", bubblesPerMin, "bubbles/min"],
+        ["Total Net O2 Evolved", parseFloat(o2ProducedTotal.toFixed(3)), "mL"]
+      ]
+    });
   });
 
-  // Mount CER Checkpoint
-  mountLabCheckpoint("photo-checkpoint-mount", {
-    id: "photosynthesis-checkpoint",
-    labTitle: "Biology: Photosynthetic Action Spectra & Limiting Factors",
-    prompt: "Investigate why green light (550 nm) produces the lowest oxygen bubble rate compared to blue (430 nm) and red (660 nm) light at equal illuminance. Formulate your Claim, provide Evidence from the spectrophotometer absorption curves of Chlorophyll a and b, and present your biochemical Reasoning.",
-    claimStarter: "Green light produces the lowest oxygen evolution rate in Elodea because...",
-    sampleClaim: "Green light yields the lowest photosynthetic rate because plant pigments reflect rather than absorb green wavelengths, starving the light-dependent reactions of photons.",
-    evidenceStarters: [
-      "Switching from white to green light (550 nm) dropped the oxygen bubble production from 32 bubbles/min to 3 bubbles/min.",
-      "The spectrophotometer absorption spectrum shows deep troughs at 500-600 nm for both Chlorophyll a and Chlorophyll b.",
-      "Blue (430 nm) and red (660 nm) wavelengths showed maximum absorbance peaks corresponding to high bubble evolution."
-    ],
-    reasoningKey: "Photosynthesis is initiated by photon absorption by antenna complex pigments in Thylakoid membranes (Photosystems II and I). Photons in the blue (430 nm) and red (660 nm) bands have quantum energy states matching electron transitions in the porphyrin ring of chlorophyll molecules. In contrast, green wavelengths (520-560 nm) are largely reflected or transmitted rather than absorbed, causing minimal photolysis of water ($2\\text{H}_2\\text{O} \\to 4\\text{H}^+ + 4e^- + \\text{O}_2$) and drastically reducing oxygen bubble formation."
-  });
+  // Keyboard Shortcuts (E for CSV export)
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("keydown", handleKeyDown);
+      return;
+    }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
+      return;
+    }
+    if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      document.getElementById("btn-photo-export")?.click();
+      return;
+    }
+  }
+  window.addEventListener("keydown", handleKeyDown);
+
+  // Mount Post-Lab Checkpoint Assessment
+  mountLabCheckpoint("photo-checkpoint-mount", "photosynthesis");
 
   updateHUD();
 
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
   activePhotosynthesisCleanup = cleanup;
   return cleanup;

@@ -106,8 +106,8 @@ export function initCalorimetryLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-cal-reset" style="padding: 5px 12px; font-size: 0.78rem;">
             ⟲ Reset Cell
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-cal-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Telemetry
+          <button class="btn btn-secondary btn-sm" id="btn-cal-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Export thermal calorimetry reaction telemetry as RFC-4180 CSV (Shortcut: E)" aria-label="Export Telemetry as CSV (Shortcut: E)">
+            📥 Export Telemetry (E)
           </button>
         </div>
       </div>
@@ -690,10 +690,28 @@ export function initCalorimetryLab(containerId) {
     });
   });
 
+  // Keyboard Shortcuts (E for CSV export)
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("keydown", handleKeyDown);
+      return;
+    }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
+      return;
+    }
+    if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      container.querySelector("#btn-cal-export")?.click();
+      return;
+    }
+  }
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Post-Lab Assessment Checkpoint
   mountLabCheckpoint("cal-checkpoint-container", "calorimetry");
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }
