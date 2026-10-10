@@ -1832,60 +1832,227 @@ export function initOrbitalMechanicsLab(containerId) {
     SoundFX.playSuccess();
   });
 
-  // Ephemeris CSV Export
+  // Multi-Mode Ephemeris & Mission CSV Export
   btnExport?.addEventListener("click", () => {
     const orb = calculateOrbitalState();
     const body = CENTRAL_BODIES[currentBodyKey];
 
-    exportLabDataCsv({
-      title: "Keplerian Orbital Mechanics & Ephemeris Telemetry",
-      labId: "orbital",
-      parameters: {
-        "Central Primary Attractor": body.name,
-        "Gravitational Parameter (μ)": `${body.gm.toExponential(4)} m³/s²`,
-        "Semi-Major Axis (a)": `${Math.round(orb.aKm)} km`,
-        "Orbital Eccentricity (e)": eccentricity.toFixed(4),
-        "Orbital Period (T)": `${orb.periodHours.toFixed(3)} hours`,
-        "Periapsis Radius (r_p)": `${Math.round(orb.rpKm)} km`,
-        "Apoapsis Radius (r_a)": `${Math.round(orb.raKm)} km`,
-        "Specific Angular Momentum (h)": `${orb.specificAngularMomentum.toExponential(4)} m²/s`,
-        "Specific Orbital Energy (ε)": `${(orb.specificEnergyJ / 1e6).toFixed(2)} MJ/kg`,
-        "Kepler Harmonic T²/a³": `${orb.measuredHarmonic.toExponential(4)} s²/m³`
-      },
-      headers: [
-        "True Anomaly (deg)",
-        "Orbital Radius (km)",
-        "Orbital Velocity (km/s)",
-        "Radial Velocity (km/s)",
-        "Tangential Velocity (km/s)",
-        "Escape Velocity (km/s)",
-        "Kinetic Energy (GJ)",
-        "Potential Energy (GJ)"
-      ],
-      dataRows: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => {
-        const rad = (deg * Math.PI) / 180;
-        const rKm = (orb.aKm * (1 - eccentricity * eccentricity)) / (1 + eccentricity * Math.cos(rad));
-        const rM = rKm * 1000;
-        const vMs = Math.sqrt(Math.max(1, body.gm * (2 / rM - 1 / (orb.aKm * 1000))));
-        const vKms = vMs / 1000;
-        const pM = orb.pKm * 1000;
-        const vrKms = (Math.sqrt(body.gm / pM) * eccentricity * Math.sin(rad)) / 1000;
-        const vtKms = (Math.sqrt(body.gm / pM) * (1 + eccentricity * Math.cos(rad))) / 1000;
-        const vEsc = Math.sqrt(2 * body.gm / rM) / 1000;
-        const kGj = (0.5 * satelliteMassKg * Math.pow(vMs, 2)) / 1e9;
-        const uGj = -(body.gm * satelliteMassKg / rM) / 1e9;
-        return [
-          deg,
-          Math.round(rKm),
-          vKms.toFixed(2),
-          vrKms.toFixed(2),
-          vtKms.toFixed(2),
-          vEsc.toFixed(2),
-          kGj.toFixed(2),
-          uGj.toFixed(2)
-        ];
-      })
-    });
+    if (currentMissionMode === "hohmann") {
+      const r1Km = orb.r1HohmannKm;
+      const r2Km = orb.r2HohmannKm;
+      const atxKm = orb.aTxKm;
+      const vCirc1 = orb.vCirc1Ms / 1000;
+      const vTx1 = orb.vTx1Ms / 1000;
+      const dv1 = orb.deltaV1Ms / 1000;
+      const vCirc2 = orb.vCirc2Ms / 1000;
+      const vTx2 = orb.vTx2Ms / 1000;
+      const dv2 = orb.deltaV2Ms / 1000;
+      const dvTot = orb.deltaVTotMs / 1000;
+
+      exportLabDataCsv({
+        title: "Hohmann Orbital Transfer Burn Budget & Flight Trajectory",
+        labId: "orbital_hohmann",
+        parameters: {
+          "Central Primary Attractor": body.name,
+          "Gravitational Parameter (μ)": `${body.gm.toExponential(4)} m³/s²`,
+          "Departure Orbit Radius (r₁)": `${Math.round(r1Km).toLocaleString()} km (Alt: ${Math.round(r1Km - body.radiusKm).toLocaleString()} km)`,
+          "Target Orbit Radius (r₂)": `${Math.round(r2Km).toLocaleString()} km (Alt: ${Math.round(r2Km - body.radiusKm).toLocaleString()} km)`,
+          "Transfer Semi-Major Axis (a_tx)": `${Math.round(atxKm).toLocaleString()} km`,
+          "Transfer Flight Duration (t_tx)": `${orb.hohmannTransferTimeHours.toFixed(2)} hours (${(orb.hohmannTransferTimeSec / 60).toFixed(0)} min)`,
+          "Departure Burn (Δv₁)": `+${dv1.toFixed(3)} km/s`,
+          "Insertion Burn (Δv₂)": `+${dv2.toFixed(3)} km/s`,
+          "Total Transfer Budget (Δv_tot)": `${dvTot.toFixed(3)} km/s`
+        },
+        headers: [
+          "Trajectory Phase",
+          "Maneuver Point",
+          "Radius (km)",
+          "Velocity (km/s)",
+          "Applied Burn Δv (km/s)",
+          "Specific Energy (MJ/kg)",
+          "Local Escape Speed (km/s)"
+        ],
+        dataRows: [
+          [
+            "1. LEO Parking",
+            "Initial Circular Orbit",
+            Math.round(r1Km),
+            vCirc1.toFixed(3),
+            "0.000",
+            (-body.gm / (2 * r1Km * 1000) / 1e6).toFixed(2),
+            (Math.sqrt(2 * body.gm / (r1Km * 1000)) / 1000).toFixed(3)
+          ],
+          [
+            "2. Trans-GEO Injection",
+            "Periapsis Departure Burn",
+            Math.round(r1Km),
+            vTx1.toFixed(3),
+            `+${dv1.toFixed(3)}`,
+            (-body.gm / (2 * atxKm * 1000) / 1e6).toFixed(2),
+            (Math.sqrt(2 * body.gm / (r1Km * 1000)) / 1000).toFixed(3)
+          ],
+          [
+            "3. Coasting Phase",
+            "Transfer Ellipse Midpoint",
+            Math.round(atxKm),
+            (Math.sqrt(Math.max(1, body.gm * (2 / (atxKm * 1000) - 1 / (atxKm * 1000)))) / 1000).toFixed(3),
+            "0.000",
+            (-body.gm / (2 * atxKm * 1000) / 1e6).toFixed(2),
+            (Math.sqrt(2 * body.gm / (atxKm * 1000)) / 1000).toFixed(3)
+          ],
+          [
+            "4. GEO Arrival",
+            "Apoapsis Coast (Pre-Burn)",
+            Math.round(r2Km),
+            vTx2.toFixed(3),
+            "0.000",
+            (-body.gm / (2 * atxKm * 1000) / 1e6).toFixed(2),
+            (Math.sqrt(2 * body.gm / (r2Km * 1000)) / 1000).toFixed(3)
+          ],
+          [
+            "5. GEO Insertion",
+            "Circularization Burn",
+            Math.round(r2Km),
+            vCirc2.toFixed(3),
+            `+${dv2.toFixed(3)}`,
+            (-body.gm / (2 * r2Km * 1000) / 1e6).toFixed(2),
+            (Math.sqrt(2 * body.gm / (r2Km * 1000)) / 1000).toFixed(3)
+          ]
+        ]
+      });
+    } else if (currentMissionMode === "lagrange") {
+      const isSun = body.type === "star";
+      const secName = isSun ? "Earth" : (body.shortName === "Earth" ? "Moon" : "Major Moon");
+      const secMassKg = isSun ? 5.972e24 : (body.shortName === "Earth" ? 7.342e22 : 1.482e23);
+      const sepDistKm = isSun ? 1.496e8 : (body.shortName === "Earth" ? 384400 : 1070400);
+      const massRatio = secMassKg / (body.massKg + secMassKg);
+      const hillRadiusKm = sepDistKm * Math.cbrt(massRatio / 3);
+
+      const l1DistKm = sepDistKm * (1 - Math.cbrt(massRatio / 3));
+      const l2DistKm = sepDistKm * (1 + Math.cbrt(massRatio / 3));
+      const l3DistKm = -sepDistKm * (1 + (5 / 12) * massRatio);
+      const l4DistKm = sepDistKm;
+      const l5DistKm = sepDistKm;
+
+      exportLabDataCsv({
+        title: "Circular Restricted Three-Body Problem & Lagrange Equilibrium Points",
+        labId: "orbital_lagrange",
+        parameters: {
+          "Primary Attractor (M₁)": `${body.name} (${body.massKg.toExponential(3)} kg)`,
+          "Secondary Body (M₂)": `${secName} (${secMassKg.toExponential(3)} kg)`,
+          "Orbital Separation Distance (R)": `${Math.round(sepDistKm).toLocaleString()} km`,
+          "Dimensionless Mass Parameter (μ)": massRatio.toExponential(4),
+          "Secondary Hill Radius (r_H)": `${Math.round(hillRadiusKm).toLocaleString()} km`,
+          "Routh Stability Criterion (μ < 0.0385)": massRatio < 0.0385 ? "STABLE for L4/L5 (Coriolis restored)" : "UNSTABLE"
+        },
+        headers: [
+          "Lagrange Point",
+          "Geometry / Configuration",
+          "Distance from Primary (km)",
+          "Distance from Secondary (km)",
+          "Equilibrium Stability",
+          "Exemplar Astronomical Mission"
+        ],
+        dataRows: [
+          ["L₁ (Collinear)", "Between M₁ and M₂ along inter-body axis", Math.round(l1DistKm), Math.round(sepDistKm - l1DistKm), "Unstable (Saddle / Lyapunov)", "SOHO, DSCOVR, Genesis"],
+          ["L₂ (Collinear)", "Exterior behind M₂ along inter-body axis", Math.round(l2DistKm), Math.round(l2DistKm - sepDistKm), "Unstable (Halo / Lissajous)", "JWST, WMAP, Planck, Gaia"],
+          ["L₃ (Collinear)", "Exterior behind M₁ (anti-secondary axis)", Math.round(Math.abs(l3DistKm)), Math.round(Math.abs(l3DistKm) + sepDistKm), "Unstable (Linear)", "Theoretical Counter-Earth"],
+          ["L₄ (Triangular)", "Leading +60° equilateral vertex", Math.round(l4DistKm), Math.round(l4DistKm), "Conditionally Stable", "Jupiter Greeks, Trojan Asteroids"],
+          ["L₅ (Triangular)", "Trailing -60° equilateral vertex", Math.round(l5DistKm), Math.round(l5DistKm), "Conditionally Stable", "Jupiter Trojans, Kordylewski Clouds"]
+        ]
+      });
+    } else if (currentMissionMode === "slingshot") {
+      const vInf = slingshotApproachSpeedKms * 1000;
+      const rMin = orb.body.radiusKm * 1000 * slingshotPeriapsisDistScale;
+      const eHyp = 1 + (rMin * vInf * vInf) / orb.body.gm;
+      const deltaRad = 2 * Math.asin(Math.min(1, 1 / eHyp));
+      const deltaDeg = (deltaRad * 180) / Math.PI;
+      const vPeriapsisMs = Math.sqrt(vInf * vInf + (2 * orb.body.gm) / rMin);
+      const vPeriapsisKms = vPeriapsisMs / 1000;
+      const boostKms = 2 * (slingshotApproachSpeedKms * 0.75) * Math.sin(deltaRad / 2);
+
+      exportLabDataCsv({
+        title: "Hyperbolic Planetary Slingshot & Gravity Assist Telemetry",
+        labId: "orbital_slingshot",
+        parameters: {
+          "Encounter Primary Planet": body.name,
+          "Hyperbolic Approach Speed (v_∞)": `${slingshotApproachSpeedKms.toFixed(2)} km/s`,
+          "Closest Approach Periapsis Radius (r_p)": `${Math.round(rMin / 1000).toLocaleString()} km (Alt: ${Math.round((rMin / 1000) - body.radiusKm).toLocaleString()} km)`,
+          "Hyperbolic Eccentricity (e_hyp)": eHyp.toFixed(4),
+          "Deflection / Turning Angle (δ)": `${deltaDeg.toFixed(2)}°`,
+          "Peak Periapsis Flyby Velocity (v_max)": `${vPeriapsisKms.toFixed(2)} km/s`,
+          "Heliocentric Velocity Boost (Δv)": `+${boostKms.toFixed(2)} km/s`
+        },
+        headers: [
+          "Offset Distance from Periapsis (km)",
+          "True Anomaly Phase",
+          "Flyby Velocity (km/s)",
+          "Local Escape Velocity (km/s)",
+          "Gravitational Force (N)",
+          "Specific Energy (MJ/kg)"
+        ],
+        dataRows: [
+          [-50000, "-120.0° (Inbound)", (Math.sqrt(Math.max(1, vInf * vInf + (2 * orb.body.gm) / ((rMin + 50000000)))) / 1000).toFixed(2), (Math.sqrt((2 * orb.body.gm) / (rMin + 50000000)) / 1000).toFixed(2), ((orb.body.gm * satelliteMassKg) / Math.pow(rMin + 50000000, 2)).toFixed(1), ((vInf * vInf) / 2 / 1e6).toFixed(2)],
+          [-20000, "-90.0° (Inbound)", (Math.sqrt(Math.max(1, vInf * vInf + (2 * orb.body.gm) / ((rMin + 20000000)))) / 1000).toFixed(2), (Math.sqrt((2 * orb.body.gm) / (rMin + 20000000)) / 1000).toFixed(2), ((orb.body.gm * satelliteMassKg) / Math.pow(rMin + 20000000, 2)).toFixed(1), ((vInf * vInf) / 2 / 1e6).toFixed(2)],
+          [-5000, "-45.0° (Approach)", (Math.sqrt(Math.max(1, vInf * vInf + (2 * orb.body.gm) / ((rMin + 5000000)))) / 1000).toFixed(2), (Math.sqrt((2 * orb.body.gm) / (rMin + 5000000)) / 1000).toFixed(2), ((orb.body.gm * satelliteMassKg) / Math.pow(rMin + 5000000, 2)).toFixed(1), ((vInf * vInf) / 2 / 1e6).toFixed(2)],
+          [0, "0.0° (Periapsis CA)", vPeriapsisKms.toFixed(2), (Math.sqrt((2 * orb.body.gm) / rMin) / 1000).toFixed(2), ((orb.body.gm * satelliteMassKg) / Math.pow(rMin, 2)).toFixed(1), ((vInf * vInf) / 2 / 1e6).toFixed(2)],
+          [5000, "+45.0° (Receding)", (Math.sqrt(Math.max(1, vInf * vInf + (2 * orb.body.gm) / ((rMin + 5000000)))) / 1000).toFixed(2), (Math.sqrt((2 * orb.body.gm) / (rMin + 5000000)) / 1000).toFixed(2), ((orb.body.gm * satelliteMassKg) / Math.pow(rMin + 5000000, 2)).toFixed(1), ((vInf * vInf) / 2 / 1e6).toFixed(2)],
+          [20000, "+90.0° (Outbound)", (Math.sqrt(Math.max(1, vInf * vInf + (2 * orb.body.gm) / ((rMin + 20000000)))) / 1000).toFixed(2), (Math.sqrt((2 * orb.body.gm) / (rMin + 20000000)) / 1000).toFixed(2), ((orb.body.gm * satelliteMassKg) / Math.pow(rMin + 20000000, 2)).toFixed(1), ((vInf * vInf) / 2 / 1e6).toFixed(2)],
+          [50000, "+120.0° (Outbound)", (Math.sqrt(Math.max(1, vInf * vInf + (2 * orb.body.gm) / ((rMin + 50000000)))) / 1000).toFixed(2), (Math.sqrt((2 * orb.body.gm) / (rMin + 50000000)) / 1000).toFixed(2), ((orb.body.gm * satelliteMassKg) / Math.pow(rMin + 50000000, 2)).toFixed(1), ((vInf * vInf) / 2 / 1e6).toFixed(2)]
+        ]
+      });
+    } else {
+      // Default: Keplerian Ephemeris Table
+      exportLabDataCsv({
+        title: "Keplerian Orbital Mechanics & Ephemeris Telemetry",
+        labId: "orbital_kepler",
+        parameters: {
+          "Central Primary Attractor": body.name,
+          "Gravitational Parameter (μ)": `${body.gm.toExponential(4)} m³/s²`,
+          "Semi-Major Axis (a)": `${Math.round(orb.aKm)} km`,
+          "Orbital Eccentricity (e)": eccentricity.toFixed(4),
+          "Orbital Period (T)": `${orb.periodHours.toFixed(3)} hours`,
+          "Periapsis Radius (r_p)": `${Math.round(orb.rpKm)} km`,
+          "Apoapsis Radius (r_a)": `${Math.round(orb.raKm)} km`,
+          "Specific Angular Momentum (h)": `${orb.specificAngularMomentum.toExponential(4)} m²/s`,
+          "Specific Orbital Energy (ε)": `${(orb.specificEnergyJ / 1e6).toFixed(2)} MJ/kg`,
+          "Kepler Harmonic T²/a³": `${orb.measuredHarmonic.toExponential(4)} s²/m³`
+        },
+        headers: [
+          "True Anomaly (deg)",
+          "Orbital Radius (km)",
+          "Orbital Velocity (km/s)",
+          "Radial Velocity (km/s)",
+          "Tangential Velocity (km/s)",
+          "Escape Velocity (km/s)",
+          "Kinetic Energy (GJ)",
+          "Potential Energy (GJ)"
+        ],
+        dataRows: [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => {
+          const rad = (deg * Math.PI) / 180;
+          const rKm = (orb.aKm * (1 - eccentricity * eccentricity)) / (1 + eccentricity * Math.cos(rad));
+          const rM = rKm * 1000;
+          const vMs = Math.sqrt(Math.max(1, body.gm * (2 / rM - 1 / (orb.aKm * 1000))));
+          const vKms = vMs / 1000;
+          const pM = orb.pKm * 1000;
+          const vrKms = (Math.sqrt(body.gm / pM) * eccentricity * Math.sin(rad)) / 1000;
+          const vtKms = (Math.sqrt(body.gm / pM) * (1 + eccentricity * Math.cos(rad))) / 1000;
+          const vEsc = Math.sqrt(2 * body.gm / rM) / 1000;
+          const kGj = (0.5 * satelliteMassKg * Math.pow(vMs, 2)) / 1e9;
+          const uGj = -(body.gm * satelliteMassKg / rM) / 1e9;
+          return [
+            deg,
+            Math.round(rKm),
+            vKms.toFixed(2),
+            vrKms.toFixed(2),
+            vtKms.toFixed(2),
+            vEsc.toFixed(2),
+            kGj.toFixed(2),
+            uGj.toFixed(2)
+          ];
+        })
+      });
+    }
     SoundFX.playSuccess();
   });
 

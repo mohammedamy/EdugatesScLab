@@ -2088,6 +2088,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 2,
       explanation: "From $T \\propto a^{3/2}$, if $a$ is increased by a factor of 4, the new period $T_2 = (4)^{3/2} \\cdot T_1 = (\\sqrt{4})^3 \\cdot T_1 = 2^3 \\cdot T_1 = 8 \\cdot T_1$."
+    },
+    {
+      id: "q4",
+      question: "In a Hohmann transfer from a circular Low Earth Orbit ($r_1$) to a circular Geostationary Orbit ($r_2$), what is the semi-major axis $a_{\\text{tx}}$ of the elliptical transfer orbit, and how are the two impulse burns directed?",
+      options: [
+        "$a_{\\text{tx}} = \\frac{r_1 + r_2}{2}$; both $\\Delta v_1$ and $\\Delta v_2$ are applied as prograde burns tangential to the velocity vector",
+        "$a_{\\text{tx}} = r_2 - r_1$; the first burn is prograde and the second is retrograde",
+        "$a_{\\text{tx}} = \\sqrt{r_1 r_2}$; both burns are directed radially toward the center of Earth",
+        "$a_{\\text{tx}} = 2(r_1 + r_2)$; only a single continuous burn is executed throughout the transfer"
+      ],
+      correctIndex: 0,
+      explanation: "The transfer ellipse connects periapsis at $r_1$ and apoapsis at $r_2$, so $2a_{\\text{tx}} = r_1 + r_2 \\implies a_{\\text{tx}} = \\frac{r_1 + r_2}{2}$. The first burn $\\Delta v_1 = v_{\\text{tx},p} - v_{\\text{circ},1}$ is prograde to enter the ellipse, and the second burn $\\Delta v_2 = v_{\\text{circ},2} - v_{\\text{tx},a}$ is prograde at apoapsis to circularize into the higher orbit."
+    },
+    {
+      id: "q5",
+      question: "In the Circular Restricted Three-Body Problem (CR3BP) for the Sun-Earth system, where are the triangular Lagrange points $L_4$ and $L_5$ located, and what enables their orbital stability?",
+      options: [
+        "Directly between Sun and Earth; stabilized by magnetic reconnection",
+        "Forming equilateral triangles with the two primaries (60° ahead and 60° behind Earth in its orbital plane); stabilized by the Coriolis force when the mass ratio $\\mu < 0.0385$",
+        "Directly behind the Sun on the opposite side of Earth's orbit; stabilized by solar radiation pressure",
+        "At the North and South ecliptic poles; stabilized by electrostatic repulsion"
+      ],
+      correctIndex: 1,
+      explanation: "Lagrange discovered that points $L_4$ and $L_5$ form equilateral triangles with distance $R$ to both primaries. In the rotating reference frame, although the effective gravitational potential is a local maximum (hilltop), the Coriolis acceleration creates stable epicyclic librations around $L_4$ and $L_5$ provided Gascheau's/Routh's criterion ($27\\mu(1-\\mu) < 1 \\implies \\mu < 0.03852$) is satisfied."
     }
   ],
 

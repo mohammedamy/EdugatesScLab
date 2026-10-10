@@ -318,6 +318,28 @@ test("index.css includes .orbital-layout in responsive single-column layout at 9
   assert(css.includes(".orbital-layout"), "index.css must include .orbital-layout in media query");
 });
 
+test("phys-orbital-mechanics.js exports mode-specific CSV telemetry for Kepler, Hohmann, Lagrange, and Slingshot", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-orbital-mechanics.js"), "utf-8");
+  assert(code.includes('labId: "orbital_kepler"'), "Must export Kepler ephemeris dataset");
+  assert(code.includes('labId: "orbital_hohmann"'), "Must export Hohmann transfer burn budget dataset");
+  assert(code.includes('labId: "orbital_lagrange"'), "Must export Lagrange equilibrium points dataset");
+  assert(code.includes('labId: "orbital_slingshot"'), "Must export Slingshot gravity assist dataset");
+  assert(code.includes('"Departure Burn (Δv₁)"'), "Hohmann CSV must include Δv1 column");
+  assert(code.includes('"Insertion Burn (Δv₂)"'), "Hohmann CSV must include Δv2 column");
+  assert(code.includes('"Secondary Hill Radius (r_H)"'), "Lagrange CSV must include Hill radius");
+  assert(code.includes('"Deflection / Turning Angle (δ)"'), "Slingshot CSV must include deflection angle");
+});
+
+test("LAB_CHECKPOINTS.orbital contains comprehensive 5-question inquiry suite across Kepler, Vis-Viva, Hohmann, and Lagrange", () => {
+  const telemetryCode = fs.readFileSync(path.resolve("labs/lab-telemetry-exporter.js"), "utf-8");
+  assert(telemetryCode.includes("orbital: ["), "Must declare orbital checkpoint pool");
+  assert(telemetryCode.includes("Kepler's First and Second Laws"), "Must include Kepler 1st & 2nd Laws question");
+  assert(telemetryCode.includes("Vis-Viva equation"), "Must include Vis-Viva orbital speed question");
+  assert(telemetryCode.includes("Kepler's Third Law"), "Must include Kepler's 3rd Law question");
+  assert(telemetryCode.includes("Hohmann transfer"), "Must include Hohmann transfer burn question");
+  assert(telemetryCode.includes("Lagrange points $L_4$ and $L_5$"), "Must include Lagrange points question");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Orbital Mechanics Lab Tests: All ${passed} Passed!`);
 console.log("========================================================\n");
