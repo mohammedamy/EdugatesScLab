@@ -172,7 +172,7 @@ export function initFlameTestLab(containerId) {
             🧪 Clean Wire (HCl Dip)
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-flame-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Spectrum CSV
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -752,7 +752,7 @@ export function initFlameTestLab(containerId) {
   });
 
   // Telemetry CSV Export
-  btnExport.addEventListener("click", () => {
+  const handleExportCsv = () => {
     const salt = METAL_SALTS[currentSaltKey];
     const { energyJoules, energyEv, frequencyThz } = calculatePhotonEnergy(salt.wavelength);
 
@@ -778,7 +778,17 @@ export function initFlameTestLab(containerId) {
       ])
     });
     SoundFX.success();
-  });
+  };
+  btnExport.addEventListener("click", handleExportCsv);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "e" || e.key === "E") {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+      e.preventDefault();
+      handleExportCsv();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
 
   // Start Animation Loop
   updateHUD();
@@ -786,5 +796,6 @@ export function initFlameTestLab(containerId) {
 
   return function cleanupFlameTestLab() {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

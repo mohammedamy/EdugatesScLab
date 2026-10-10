@@ -304,6 +304,11 @@ export function initAnatomyAtlasLab(containerId) {
             <span>4K PNG Export</span>
           </button>
 
+          <button id="btn-anatomy-export-csv" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
+            <span>📥</span>
+            <span>Export CSV (E)</span>
+          </button>
+
           <button id="btn-open-dossier" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;">
             <span>📋</span>
             <span>Lab Dossier</span>
@@ -636,6 +641,7 @@ export function initAnatomyAtlasLab(containerId) {
   const btnTabHistology = document.getElementById("btn-tab-histology");
   const btnTabQuiz = document.getElementById("btn-tab-quiz");
   const btnExport4k = document.getElementById("btn-export-4k");
+  const btnExportCsv = document.getElementById("btn-anatomy-export-csv");
   const btnOpenDossier = document.getElementById("btn-open-dossier");
   const btnViewAnt = document.getElementById("btn-view-anterior");
   const btnViewPost = document.getElementById("btn-view-posterior");
@@ -1715,6 +1721,50 @@ export function initAnatomyAtlasLab(containerId) {
       }))
     });
   });
+
+  // Telemetry CSV Export
+  const handleExportCsv = () => {
+    SoundFX.playClick();
+    const plate = ANATOMICAL_PLATES[activePlate] || {};
+    const plateStructures = (plate.structures || []).map(id => ANATOMICAL_STRUCTURES.find(s => s.id === id)).filter(Boolean);
+    const structuresToExport = plateStructures.length > 0 ? plateStructures : ANATOMICAL_STRUCTURES;
+
+    exportLabDataCsv({
+      title: "Human Anatomy & Histology Interactive Atlas",
+      labId: "anatomy",
+      parameters: {
+        "Active Plate": plate.name || "Full Body",
+        "System Category": plate.system || "Multisystem",
+        "Gender Model": activeGender === "female" ? "Female Anatomical Model" : "Male Anatomical Model",
+        "View Angle": activeView === "anterior" ? "Coronal Anterior (Ventral)" : "Coronal Posterior (Dorsal)",
+        "Active Tab": activeTab,
+        "Selected Structure": selectedStructure ? `${selectedStructure.name} (${selectedStructure.latinName || ""})` : "None",
+        "Magnification Zoom": `${zoom.toFixed(1)}x`,
+        "Histology Model": activeHistologyModel
+      },
+      headers: ["Structure Name", "Latin Nomenclature", "Organ System", "Anatomical Region", "Pin Coordinate X", "Pin Coordinate Y", "Clinical Function"],
+      dataRows: structuresToExport.map(s => [
+        s.name,
+        s.latinName || "",
+        s.system,
+        s.region,
+        s.coords?.x ?? "",
+        s.coords?.y ?? "",
+        (s.function || s.description || "").slice(0, 120)
+      ])
+    });
+  };
+
+  btnExportCsv?.addEventListener("click", handleExportCsv);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "e" || e.key === "E") {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+      e.preventDefault();
+      handleExportCsv();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
 
   // ----------------------------------------------------
   // 8K ULTRA-HD MEDICAL DISSECTION & COMPOSITING ENGINE
@@ -4714,6 +4764,7 @@ export function initAnatomyAtlasLab(containerId) {
     }
     window.removeEventListener("pointermove", handlePointerMove);
     window.removeEventListener("pointerup", handlePointerUp);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 
   return _currentAtlasCleanup;

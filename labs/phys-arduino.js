@@ -2401,7 +2401,7 @@ export function initArduinoLab(containerId) {
           <!-- Export CSV Data -->
           <button id="btn-arduino-export" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; font-weight: 600; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px;">
             <span>📊</span>
-            <span>Export CSV</span>
+            <span>Export CSV (E)</span>
           </button>
 
           <!-- Lab Report Generator -->
@@ -3094,48 +3094,7 @@ export function initArduinoLab(containerId) {
   // -------------------------------------------------------------------------
   // Mount Educational Checkpoint for Competency Assessment
   // -------------------------------------------------------------------------
-  mountLabCheckpoint("arduino-checkpoint-mount", {
-    labId: "arduino",
-    title: "Arduino & Embedded Circuits Assessment",
-    questions: [
-      {
-        question: "An Arduino Uno utilizes a 10-bit Analog-to-Digital Converter (ADC) referenced to 5.0 V. What is the approximate voltage step represented by 1 unit of ADC reading?",
-        options: [
-          "0.98 mV per unit",
-          "4.89 mV per unit (5.0V / 1023)",
-          "19.5 mV per unit",
-          "48.8 mV per unit"
-        ],
-        correctIndex: 1,
-        correct: 1,
-        explanation: "A 10-bit ADC provides 2¹⁰ = 1024 distinct quantization steps (0 to 1023). Therefore, resolution = 5.0 V / 1023 ≈ 4.887 mV per unit."
-      },
-      {
-        question: "When triggering the HC-SR04 ultrasonic sensor, the echo pulse duration is measured as 1,750 µs. Given the speed of sound is 343 m/s (0.0343 cm/µs), what is the calculated distance to the target?",
-        options: [
-          "60.0 cm",
-          "30.0 cm (Round-trip time divided by 2)",
-          "15.0 cm",
-          "120.0 cm"
-        ],
-        correctIndex: 1,
-        correct: 1,
-        explanation: "Distance = (Speed × Time) / 2 = (0.0343 cm/µs × 1750 µs) / 2 = 59.99 cm / 2 ≈ 30.0 cm."
-      },
-      {
-        question: "To connect a standard Red LED (forward voltage 2.0 V, target current 20 mA = 0.020 A) safely to an Arduino 5.0 V digital output pin, what is the ideal minimum current-limiting resistor required?",
-        options: [
-          "22 Ω",
-          "150 Ω (or standard 220 Ω)",
-          "1,000 Ω (1 kΩ)",
-          "10,000 Ω (10 kΩ)"
-        ],
-        correctIndex: 1,
-        correct: 1,
-        explanation: "Using Ohm's Law: R = (V_supply - V_forward) / I = (5.0V - 2.0V) / 0.020A = 3.0V / 0.020A = 150 Ω. Standard 220 Ω resistors are widely used to maintain safe 14 mA current."
-      }
-    ]
-  });
+  mountLabCheckpoint("arduino-checkpoint-mount", "arduino");
 
   // -------------------------------------------------------------------------
   // DOM Element References
@@ -4380,7 +4339,19 @@ export function initArduinoLab(containerId) {
     if (rows.length === 0) {
       rows.push([state.simTimeMs.toFixed(1), state.components.potValue, state.components.obstacleDistCm, state.components.ldrLux, state.components.temperatureC, 0, 0]);
     }
-    exportLabDataCsv("arduino_circuit_telemetry", headers, rows);
+    exportLabDataCsv({
+      title: "Arduino Microcontroller & Embedded Systems Laboratory",
+      labId: "arduino",
+      parameters: {
+        "MCU Clock": "16.0 MHz (ATmega328P)",
+        "Supply Voltage": "5.00 V",
+        "Active Experiment": ARDUINO_EXPERIMENTS[state.selectedExpIndex].title,
+        "ADC Resolution": "10-bit (1024 steps, 4.89 mV/step)",
+        "Baud Rate": `${state.baudRate} bps`
+      },
+      headers,
+      dataRows: rows
+    });
   });
 
   btnReport?.addEventListener("click", () => {
@@ -7983,6 +7954,16 @@ export function initArduinoLab(containerId) {
     }
   }
 
+  // Global Keyboard Shortcuts
+  const handleKeyDown = (e) => {
+    if (e.key === "e" || e.key === "E") {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+      e.preventDefault();
+      btnExport?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
+
   // Start Animation Frame Loop
   animationFrameId = requestAnimationFrame(renderLoop);
 
@@ -8002,6 +7983,7 @@ export function initArduinoLab(containerId) {
       canvas.removeEventListener("touchend", handleCanvasPointerUp);
       canvas.removeEventListener("touchcancel", handleCanvasPointerLeave);
     }
+    window.removeEventListener("keydown", handleKeyDown);
     audio.destroy();
   };
 

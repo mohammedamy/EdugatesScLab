@@ -200,7 +200,7 @@ export function initActivitySeriesLab(containerId) {
             ✨ Polish / Fresh Strip
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-activity-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Redox Data
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -678,7 +678,7 @@ export function initActivitySeriesLab(containerId) {
   });
 
   // Telemetry CSV Export
-  btnExport.addEventListener("click", () => {
+  const handleExportCsv = () => {
     const metal = METALS[currentMetalKey];
     const solution = SOLUTIONS[currentSolutionKey];
     const { deltaE0, isSpontaneous, oxidationHalf, reductionHalf, status } = calculateRedox();
@@ -705,7 +705,17 @@ export function initActivitySeriesLab(containerId) {
       ]
     });
     SoundFX.success();
-  });
+  };
+  btnExport.addEventListener("click", handleExportCsv);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "e" || e.key === "E") {
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+      e.preventDefault();
+      handleExportCsv();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
 
   // Start Animation Loop
   initDendrites();
@@ -714,5 +724,6 @@ export function initActivitySeriesLab(containerId) {
 
   return function cleanupActivitySeriesLab() {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

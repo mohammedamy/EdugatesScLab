@@ -2316,6 +2316,18 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "ATP binding allosterically lowers the affinity of the myosin cross-bridge head for actin, triggering immediate detachment. In the absence of ATP (as after death), detachment cannot occur, resulting in rigor mortis."
+    },
+    {
+      id: "q5",
+      question: "In pulmonary histology, what is the primary physiological function of Type II alveolar cells (pneumocytes) within the lung parenchyma?",
+      options: [
+        "Engulfing inhaled particulates and dust particles as resident alveolar macrophages",
+        "Synthesizing and secreting pulmonary surfactant (primarily dipalmitoylphosphatidylcholine) to reduce surface tension and prevent alveolar collapse (atelectasis) in accordance with the Law of Laplace ($P = \\frac{2\\gamma}{r}$)",
+        "Forming the ultra-thin simple squamous barrier optimized for passive oxygen diffusion into capillaries",
+        "Secreting mucus to coat the alveolar lumen and trap inhaled bacteria"
+      ],
+      correctIndex: 1,
+      explanation: "Type II pneumocytes produce and secrete pulmonary surfactant, a lipid-protein mixture containing dipalmitoylphosphatidylcholine. Surfactant reduces surface tension $\\gamma$ at the air-water alveolar interface, equalizing the collapsing pressure $P = \\frac{2\\gamma}{r}$ across alveoli of different diameters to prevent expiratory collapse (atelectasis)."
     }
   ],
 
@@ -2670,6 +2682,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 0,
       explanation: "$\\Delta E = \\frac{hc}{\\lambda} = \\frac{6.626 \\times 10^{-34} \\times 3.00 \\times 10^8}{670.8 \\times 10^{-9}} \\approx 2.964 \\times 10^{-19}\\text{ J}$. Converting to electron-volts: $\\frac{2.964 \\times 10^{-19}}{1.602 \\times 10^{-19}} \\approx 1.85\\text{ eV}$."
+    },
+    {
+      id: "q4",
+      question: "According to the Rydberg equation for hydrogen-like electronic transitions ($\\frac{1}{\\lambda} = R_H \\left(\\frac{1}{n_1^2} - \\frac{1}{n_2^2}\\right)$ where $R_H \\approx 1.097 \\times 10^7\\text{ m}^{-1}$), which electronic transition produces the red emission line (Balmer $\\alpha$ / $\\text{H}_\\alpha$ at $656.3\\text{ nm}$ in the visible spectrum)?",
+      options: [
+        "$n = 2 \\longrightarrow n = 1$ (Lyman series)",
+        "$n = 3 \\longrightarrow n = 2$ (Balmer series)",
+        "$n = 4 \\longrightarrow n = 2$ (Balmer series)",
+        "$n = 4 \\longrightarrow n = 3$ (Paschen series)"
+      ],
+      correctIndex: 1,
+      explanation: "The Balmer series corresponds to electron relaxations down to the $n=2$ principal quantum shell in hydrogen. The longest wavelength, lowest energy transition in this series is $n = 3 \\longrightarrow n = 2$, yielding the red $\\text{H}_\\alpha$ photon at $656.3\\text{ nm}$."
+    },
+    {
+      id: "q5",
+      question: "Prior to dipping a platinum or nichrome wire loop into an analyte salt, why must the wire be repeatedly dipped in concentrated hydrochloric acid ($\\text{HCl}$) and heated in the burner flame until no coloration is visible?",
+      options: [
+        "To coat the wire with an inert layer of platinum chloride catalyst",
+        "To convert non-volatile contaminants into volatile metal chlorides that readily vaporize and burn off in the flame, ensuring an uncontaminated analyte spectrum",
+        "To oxidize the nichrome alloy and decrease its melting point",
+        "To neutralize basic carbonate salts on the wire that would absorb visible light"
+      ],
+      correctIndex: 1,
+      explanation: "Concentrated $\\text{HCl}$ converts metal oxides and salts on the wire loop into volatile metal chlorides (such as $\\text{NaCl}$ and $\\text{CuCl}_2$). When heated in the hot oxidizing zone of the flame, these chlorides readily sublime and vaporize away, eliminating residual spectral background interference."
     }
   ],
 
@@ -2709,6 +2745,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "The dissolution PbI₂(s) ⇌ Pb²⁺(aq) + 2I⁻(aq) has a positive enthalpy of solution (ΔH° > 0). According to the van 't Hoff equation, higher temperature increases Ksp, dissolving the solid. Cooling causes controlled recrystallization into sparkling golden hexagonal platelets."
+    },
+    {
+      id: "q4",
+      question: "According to Le Chatelier's principle and the common ion effect, how will the molar solubility of silver chloride ($\\text{AgCl}$, $K_{\\text{sp}} = 1.8 \\times 10^{-10}$) in a $0.10\\text{ M } \\text{NaCl}$ solution compare to its solubility in pure water?",
+      options: [
+        "The solubility in 0.10 M NaCl will be approximately 7,400 times lower because the high concentration of common $\\text{Cl}^-$ ions shifts the dissolution equilibrium $\\text{AgCl(s)} \\rightleftharpoons \\text{Ag}^+\\text{(aq)} + \\text{Cl}^-\\text{(aq)}$ toward the solid precipitate",
+        "The solubility will remain identical because $K_{\\text{sp}}$ is an invariant thermodynamic constant at constant temperature",
+        "The solubility will increase due to electrostatic stabilization by sodium ions",
+        "AgCl will completely dissolve into gaseous chlorine"
+      ],
+      correctIndex: 0,
+      explanation: "In pure water, $s = \\sqrt{K_{\\text{sp}}} = \\sqrt{1.8 \\times 10^{-10}} \\approx 1.34 \\times 10^{-5}\\text{ M}$. In $0.10\\text{ M } \\text{NaCl}$, $[\\text{Cl}^-] \\approx 0.10\\text{ M}$, so $s = \\frac{K_{\\text{sp}}}{[\\text{Cl}^-]} = \\frac{1.8 \\times 10^{-10}}{0.10} = 1.8 \\times 10^{-9}\\text{ M}$, which is about 7,440 times lower due to the common ion effect."
+    },
+    {
+      id: "q5",
+      question: "When concentrated aqueous ammonia ($\\text{NH}_3$) is added dropwise to a cloudy suspension of white silver chloride precipitate ($\\text{AgCl}$), the precipitate completely redissolves into a clear solution. What explains this phenomenon?",
+      options: [
+        "Ammonia reacts with chloride ions to produce insoluble ammonium chloride crystals",
+        "Formation of the stable diamminesilver(I) coordination complex $[\\text{Ag}(\\text{NH}_3)_2]^+$ ($K_f \\approx 1.7 \\times 10^7$) sequesters free $\\text{Ag}^+$ ions, driving $Q < K_{\\text{sp}}$ and forcing $\\text{AgCl(s)}$ to dissolve",
+        "Ammonia neutralizes the acidic silver ions into metallic silver mirror plating",
+        "Ammonia reduces the dielectric constant of water, forcing ionic precipitation to reverse"
+      ],
+      correctIndex: 1,
+      explanation: "Ammonia is a Lewis base that coordinates with $\\text{Ag}^+$ cations to form the stable complex $[\\text{Ag}(\\text{NH}_3)_2]^+$: $\\text{Ag}^+\\text{(aq)} + 2\\text{NH}_3\\text{(aq)} \\rightleftharpoons [\\text{Ag}(\\text{NH}_3)_2]^+\\text{(aq)}$ with a large formation constant $K_f = 1.7 \\times 10^7$. This drastically lowers free $[\\text{Ag}^+]$, driving the ion product $Q = [\\text{Ag}^+][\\text{Cl}^-]$ below $K_{\\text{sp}}$ and dissolving the precipitate."
     }
   ],
 
@@ -2748,6 +2808,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Copper displaces silver: Cu(s) + 2Ag⁺(aq) ⟶ Cu²⁺(aq) + 2Ag(s). The release of Cu²⁺ ions forms hydrated hexaaquacopper(II) complexes [Cu(H₂O)₆]²⁺ which absorb red light and impart a characteristic clear blue color."
+    },
+    {
+      id: "q4",
+      question: "Aluminum (Al) has a highly negative standard reduction potential ($E^\\circ = -1.66\\text{ V}$), placing it well above hydrogen in the activity series, yet an aluminum soda can does not rapidly dissolve or react vigorously with liquid water or air. Why?",
+      options: [
+        "Aluminum forms a non-conductive covalent network with water molecules",
+        "Aluminum spontaneously forms a microscopic, highly adherent, impermeable passivating passivation layer of aluminum oxide ($\\text{Al}_2\\text{O}_3$) that shields the underlying metal from further chemical attack",
+        "Standard reduction potentials reverse in the presence of atmospheric nitrogen",
+        "Aluminum atoms lack d-orbitals required for redox electron transfer"
+      ],
+      correctIndex: 1,
+      explanation: "Although thermodynamically active, aluminum rapidly reacts with oxygen to form a dense, insoluble nanometer-thick passivation layer of $\\text{Al}_2\\text{O}_3$. This protective oxide barrier prevents water and oxygen from contacting the underlying metal, kinetic inhibition known as chemical passivation."
+    },
+    {
+      id: "q5",
+      question: "The thermodynamic spontaneity of a single-displacement redox reaction is governed by $\\Delta G^\\circ = -nFE^\\circ_{\\text{cell}}$. For a reaction transferring $n = 2\\text{ moles of electrons}$ with $E^\\circ_{\\text{cell}} = +1.10\\text{ V}$ (using Faraday's constant $F = 96,485\\text{ C/mol}$), what is the standard Gibbs free energy change $\\Delta G^\\circ$?",
+      options: [
+        "$\\Delta G^\\circ \\approx +212.3\\text{ kJ/mol}$ (Endergonic)",
+        "$\\Delta G^\\circ \\approx -212.3\\text{ kJ/mol}$ (Spontaneous / Exergonic)",
+        "$\\Delta G^\\circ \\approx -106.1\\text{ kJ/mol}$",
+        "$\\Delta G^\\circ \\approx 0.00\\text{ kJ/mol}$ (Equilibrium)"
+      ],
+      correctIndex: 1,
+      explanation: "$\\Delta G^\\circ = -nFE^\\circ_{\\text{cell}} = -(2\\text{ mol})(96,485\\text{ C/mol})(1.10\\text{ V}) = -212,267\\text{ J/mol} \\approx -212.3\\text{ kJ/mol}$. A positive standard cell EMF ($E^\\circ > 0$) yields a negative $\\Delta G^\\circ$, confirming thermodynamic spontaneity."
     }
   ],
 
@@ -3165,6 +3249,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Applying Ohm's Law to the series resistor: $R = \\frac{V_{\\text{supply}} - V_f}{I} = \\frac{5.0\\text{ V} - 2.0\\text{ V}}{0.020\\text{ A}} = \\frac{3.0\\text{ V}}{0.020\\text{ A}} = 150\\ \\Omega$. In practical breadboard engineering, standard 220 Ω metal-film resistors are used to ensure safe 13.6 mA current."
+    },
+    {
+      id: "q4",
+      question: "On an Arduino Uno, digital pins 3, 5, 6, 9, 10, and 11 support hardware Pulse-Width Modulation (PWM) via the `analogWrite(pin, value)` function with an 8-bit resolution (0 to 255). If `analogWrite(9, 64)` is executed with a 5.0 V rail, what is the duty cycle and equivalent average DC voltage delivered?",
+      options: [
+        "50.0% duty cycle, delivering an average of 2.50 V",
+        "25.1% duty cycle ($64 / 255$), delivering an average of approximately 1.25 V",
+        "75.0% duty cycle, delivering an average of 3.75 V",
+        "10.0% duty cycle, delivering an average of 0.50 V"
+      ],
+      correctIndex: 1,
+      explanation: "The duty cycle represents the fraction of time the rectangular wave is HIGH: $\\text{Duty Cycle} = \\frac{64}{255} \\approx 25.1\\%$. The average output voltage filtered over time is $V_{\\text{avg}} = V_{\\text{high}} \\times \\text{Duty Cycle} = 5.0\\text{ V} \\times \\frac{64}{255} \\approx 1.255\\text{ V}$."
+    },
+    {
+      id: "q5",
+      question: "When a mechanical tactile pushbutton connected to a microcontroller digital input is pressed, high-speed sampling frequently detects erratic multi-triggering within the first 5 to 20 ms. What causes this, and how is it resolved in embedded firmware?",
+      options: [
+        "Electromagnetic radiation from the microcontroller crystal oscillator; resolved by wrapping the switch in copper tape",
+        "Mechanical contact bounce caused by physical elastic collisions between metallic contacts; resolved in software by sampling the pin, awaiting a 10–20 ms settling delay, and confirming the stable state before registering the event",
+        "Thermal expansion of the copper traces; resolved by placing a thermoelectric Peltier cooler under the breadboard",
+        "Quantization noise in the digital input buffer; resolved by reducing system clock frequency to 1 kHz"
+      ],
+      correctIndex: 1,
+      explanation: "Mechanical switches contain elastic metal spring contacts that bounce against each other repeatedly upon closure over 5–20 ms before settling. Firmware debouncing ignores state changes occurring within a refractory window (typically 10–20 ms delay or state machine timer) to register exactly one clean edge per press."
     }
   ]
 };
