@@ -1545,6 +1545,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 2,
       explanation: "True weight $W = m \\cdot g = 5.0\\text{ kg} \\times 9.81\\text{ m/s}^2 = 49.05\\text{ N}$. Buoyant force $F_b = \\rho \\cdot V \\cdot g = 1000\\text{ kg/m}^3 \\times 0.002\\text{ m}^3 \\times 9.81\\text{ m/s}^2 = 19.62\\text{ N}$. Apparent weight $W_{\\text{app}} = W - F_b = 49.05\\text{ N} - 19.62\\text{ N} = 29.43\\text{ N}$."
+    },
+    {
+      id: "q4",
+      question: "According to Torricelli's Law, at what vertical orifice height $y$ along an open cylindrical liquid tank of total liquid depth $H$ will the discharged fluid jet achieve its maximum horizontal landing range ($R_{\\max} = H$)?",
+      options: [
+        "At the very bottom of the tank ($y = 0$)",
+        "At exactly half the total liquid depth ($y = \\frac{H}{2}$)",
+        "At the top fluid surface ($y = H$)",
+        "At three-quarters of the depth ($y = \\frac{3}{4}H$)"
+      ],
+      correctIndex: 1,
+      explanation: "The horizontal range is given by $R = v t = \\sqrt{2g(H - y)} \\cdot \\sqrt{\\frac{2y}{g}} = 2\\sqrt{y(H - y)}$. Maximizing $y(H - y)$ yields $\\frac{d}{dy}[Hy - y^2] = H - 2y = 0 \\implies y = \\frac{H}{2}$. At this mid-depth, the efflux jet achieves maximum horizontal range $R_{\\max} = 2\\sqrt{\\frac{H}{2} \\cdot \\frac{H}{2}} = H$."
+    },
+    {
+      id: "q5",
+      question: "In a hydraulic press governed by Pascal's Principle ($P_1 = P_2$), the input piston has diameter $D_1 = 4.0\\text{ cm}$ and the slave output piston has diameter $D_2 = 20.0\\text{ cm}$. What input force $F_1$ is required to lift a load of $15,000\\text{ N}$?",
+      options: [
+        "3,000 N",
+        "600 N",
+        "150 N",
+        "60 N"
+      ],
+      correctIndex: 1,
+      explanation: "Ideal Mechanical Advantage $\\text{IMA} = \\frac{A_2}{A_1} = \\left(\\frac{D_2}{D_1}\\right)^2 = \\left(\\frac{20}{4}\\right)^2 = 5^2 = 25$. Therefore, the required input force is $F_1 = \\frac{F_2}{\\text{IMA}} = \\frac{15,000\\text{ N}}{25} = 600\\text{ N}$."
     }
   ],
 

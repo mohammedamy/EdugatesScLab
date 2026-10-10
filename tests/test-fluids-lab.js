@@ -412,6 +412,16 @@ test("phys-fluids-buoyancy.js exports mode-specific CSV telemetry for Archimedes
   assert(code.includes('"Output Lift Force F₂ (kN)"'), "Hydraulic CSV must include output force column");
 });
 
+test("LAB_CHECKPOINTS.fluids contains comprehensive 5-question inquiry suite across Archimedes, Venturi, Torricelli, and Pascal", () => {
+  const telemetryCode = fs.readFileSync(path.resolve("labs/lab-telemetry-exporter.js"), "utf-8");
+  assert(telemetryCode.includes("fluids: ["), "Must declare fluids checkpoint pool");
+  assert(telemetryCode.includes("Archimedes' Principle"), "Must include Archimedes checkpoint question");
+  assert(telemetryCode.includes("Venturi flow tube"), "Must include Venturi checkpoint question");
+  assert(telemetryCode.includes("apparent weight"), "Must include Apparent Weight checkpoint question");
+  assert(telemetryCode.includes("Torricelli's Law"), "Must include Torricelli checkpoint question");
+  assert(telemetryCode.includes("hydraulic press governed by Pascal's Principle"), "Must include Pascal checkpoint question");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Fluids Lab Tests: All ${passed} Passed!`);
 console.log("========================================================\n");
