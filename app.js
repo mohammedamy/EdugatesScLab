@@ -807,7 +807,7 @@ function renderAppShell() {
           <div>
             <h3 class="footer-heading">Institution</h3>
             <ul class="footer-links">
-              <li><span>Edugates International School</span></li>
+              <li><a href="https://edugates-school.edu.sa/" target="_blank" rel="noopener noreferrer" aria-label="Visit Edugates International School Official Website">Edugates International School</a></li>
               <li><span>Department of Natural Sciences</span></li>
               <li><span style="color: #38bdf8;">Status: Fully Operational</span></li>
               <li><span style="color: #10b981;">PWA Offline: Enabled</span></li>
@@ -818,7 +818,7 @@ function renderAppShell() {
 
         <div class="footer-bottom-bar">
           <div>
-            &copy; 2026 Edugates International School. All rights reserved. Virtual Science Laboratory Portal &amp; Resources.
+            &copy; 2026 <a href="https://edugates-school.edu.sa/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;" aria-label="Visit Edugates International School Official Website">Edugates International School</a>. All rights reserved. Virtual Science Laboratory Portal &amp; Resources.
           </div>
           <div class="footer-extra-links">
             <a href="#home" aria-label="Return to Portal Home">Home</a> &bull;
@@ -1595,10 +1595,11 @@ function renderHomePortal(container) {
         <div style="position: absolute; bottom: -60px; left: -60px; width: 260px; height: 260px; background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
 
         <div style="position: relative; z-index: 2; max-width: 820px;">
-          <div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 9999px; padding: 6px 16px; margin-bottom: 20px;">
+          <a href="https://edugates-school.edu.sa/" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 9999px; padding: 6px 16px; margin-bottom: 20px; text-decoration: none; color: inherit; transition: background 0.2s, border-color 0.2s;" title="Visit Edugates International School Official Website" aria-label="Visit Edugates International School Official Website">
             <span style="font-size: 0.85rem;">🏫</span>
             <span style="font-size: 0.82rem; font-weight: 700; color: #38bdf8; letter-spacing: 0.04em; text-transform: uppercase;">Edugates International School</span>
-          </div>
+            <span style="font-size: 0.75rem; color: #7dd3fc; margin-left: 2px;">↗</span>
+          </a>
 
           <h1 id="home-hero-title" style="font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; line-height: 1.15; color: #ffffff; margin: 0 0 16px; letter-spacing: -0.02em;">
             Edugates Science Lab <br>
