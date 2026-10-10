@@ -4163,20 +4163,64 @@ export function initFluidsBuoyancyLab(containerId) {
       SoundFX.playClick();
     } else if (e.code === "ArrowUp") {
       e.preventDefault();
-      submersionPercent = Math.min(100, submersionPercent + 5);
-      const slider = container.querySelector("#slider-fluids-submersion");
-      if (slider) slider.value = submersionPercent;
-      container.querySelector("#lbl-fluids-submersion").innerText = `${submersionPercent}%`;
-      surfaceRippleAmp = 2.5;
+      if (apparatusMode === "venturi") {
+        flowRateLps = Math.min(15.0, parseFloat((flowRateLps + 0.5).toFixed(1)));
+        const slider = container.querySelector("#slider-venturi-flow");
+        if (slider) slider.value = flowRateLps;
+        const lbl = container.querySelector("#lbl-venturi-flow");
+        if (lbl) lbl.innerText = `${flowRateLps.toFixed(1)} L/s`;
+      } else if (apparatusMode === "torricelli") {
+        orificeHeightM = Math.min(0.70, parseFloat((orificeHeightM + 0.05).toFixed(2)));
+        const slider = container.querySelector("#slider-orifice-height");
+        if (slider) slider.value = orificeHeightM;
+        const lbl = container.querySelector("#lbl-orifice-height");
+        if (lbl) lbl.innerText = `${orificeHeightM.toFixed(2)} m (${(orificeHeightM * 100).toFixed(0)} cm)`;
+      } else if (apparatusMode === "hydraulic") {
+        inputForceN = Math.min(1000, inputForceN + 50);
+        const slider = container.querySelector("#slider-input-force");
+        if (slider) slider.value = inputForceN;
+        const lbl = container.querySelector("#lbl-input-force");
+        if (lbl) lbl.innerText = `${inputForceN.toFixed(0)} N (${(inputForceN / 9.81).toFixed(1)} kg equiv)`;
+      } else {
+        submersionPercent = Math.min(100, submersionPercent + 5);
+        const slider = container.querySelector("#slider-fluids-submersion");
+        if (slider) slider.value = submersionPercent;
+        const lbl = container.querySelector("#lbl-fluids-submersion");
+        if (lbl) lbl.innerText = `${submersionPercent}%`;
+        surfaceRippleAmp = 2.5;
+      }
+      updateHUD();
       needsRedraw = true;
       SoundFX.playClick();
     } else if (e.code === "ArrowDown") {
       e.preventDefault();
-      submersionPercent = Math.max(0, submersionPercent - 5);
-      const slider = container.querySelector("#slider-fluids-submersion");
-      if (slider) slider.value = submersionPercent;
-      container.querySelector("#lbl-fluids-submersion").innerText = `${submersionPercent}%`;
-      surfaceRippleAmp = 2.5;
+      if (apparatusMode === "venturi") {
+        flowRateLps = Math.max(0.5, parseFloat((flowRateLps - 0.5).toFixed(1)));
+        const slider = container.querySelector("#slider-venturi-flow");
+        if (slider) slider.value = flowRateLps;
+        const lbl = container.querySelector("#lbl-venturi-flow");
+        if (lbl) lbl.innerText = `${flowRateLps.toFixed(1)} L/s`;
+      } else if (apparatusMode === "torricelli") {
+        orificeHeightM = Math.max(0.10, parseFloat((orificeHeightM - 0.05).toFixed(2)));
+        const slider = container.querySelector("#slider-orifice-height");
+        if (slider) slider.value = orificeHeightM;
+        const lbl = container.querySelector("#lbl-orifice-height");
+        if (lbl) lbl.innerText = `${orificeHeightM.toFixed(2)} m (${(orificeHeightM * 100).toFixed(0)} cm)`;
+      } else if (apparatusMode === "hydraulic") {
+        inputForceN = Math.max(10, inputForceN - 50);
+        const slider = container.querySelector("#slider-input-force");
+        if (slider) slider.value = inputForceN;
+        const lbl = container.querySelector("#lbl-input-force");
+        if (lbl) lbl.innerText = `${inputForceN.toFixed(0)} N (${(inputForceN / 9.81).toFixed(1)} kg equiv)`;
+      } else {
+        submersionPercent = Math.max(0, submersionPercent - 5);
+        const slider = container.querySelector("#slider-fluids-submersion");
+        if (slider) slider.value = submersionPercent;
+        const lbl = container.querySelector("#lbl-fluids-submersion");
+        if (lbl) lbl.innerText = `${submersionPercent}%`;
+        surfaceRippleAmp = 2.5;
+      }
+      updateHUD();
       needsRedraw = true;
       SoundFX.playClick();
     } else if (e.key === "m" || e.key === "M") {
