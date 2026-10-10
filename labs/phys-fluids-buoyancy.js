@@ -4373,37 +4373,31 @@ export function initFluidsBuoyancyLab(containerId) {
   // Pascal Hydraulic Lift Controls Listeners
   container.querySelector("#slider-input-force")?.addEventListener("input", (e) => {
     inputForceN = parseFloat(e.target.value);
-    const lbl = container.querySelector("#lbl-input-force");
-    if (lbl) lbl.innerText = `${inputForceN.toFixed(0)} N (${(inputForceN / g).toFixed(1)} kg equiv)`;
+    updateHUD();
     needsRedraw = true;
   });
 
   container.querySelector("#slider-d1")?.addEventListener("input", (e) => {
     piston1DiameterCm = parseFloat(e.target.value);
-    const calc = getCalculations();
-    const lbl = container.querySelector("#lbl-d1");
-    if (lbl) lbl.innerText = `${piston1DiameterCm.toFixed(1)} cm (A₁ = ${calc.a1Cm2.toFixed(1)} cm²)`;
+    updateHUD();
     needsRedraw = true;
   });
 
   container.querySelector("#slider-d2")?.addEventListener("input", (e) => {
     piston2DiameterCm = parseFloat(e.target.value);
-    const calc = getCalculations();
-    const lbl = container.querySelector("#lbl-d2");
-    if (lbl) lbl.innerText = `${piston2DiameterCm.toFixed(1)} cm (A₂ = ${calc.a2Cm2.toFixed(1)} cm²)`;
+    updateHUD();
     needsRedraw = true;
   });
 
   container.querySelector("#slider-input-stroke")?.addEventListener("input", (e) => {
     inputStrokeCm = parseFloat(e.target.value);
-    const calc = getCalculations();
-    const lbl = container.querySelector("#lbl-input-stroke");
-    if (lbl) lbl.innerText = `${inputStrokeCm.toFixed(1)} cm (d₂ = ${calc.outputStrokeCm.toFixed(2)} cm)`;
+    updateHUD();
     needsRedraw = true;
   });
 
   container.querySelector("#select-hydraulic-load")?.addEventListener("change", (e) => {
     liftedLoadKey = e.target.value;
+    updateHUD();
     needsRedraw = true;
     SoundFX.playClick();
   });
