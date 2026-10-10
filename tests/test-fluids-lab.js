@@ -459,6 +459,7 @@ test("phys-fluids-buoyancy.js triggers synchronous updateHUD across all slider a
   assert(code.includes('#slider-fluids-submersion")?.addEventListener("input"') && code.includes("updateHUD();"), "Must update HUD on submersion change");
   assert(code.includes('#slider-fluids-vol")?.addEventListener("input"') && code.includes("updateHUD();"), "Must update HUD on volume change");
   assert(code.includes('#slider-venturi-flow")?.addEventListener("input"') && code.includes("updateHUD();"), "Must update HUD on Venturi flow change");
+  assert(code.includes("if (isDraggingOrifice)") && code.includes("if (isDraggingProbe)"), "Must support direct canvas drag interactions");
 });
 
 console.log("\n========================================================");

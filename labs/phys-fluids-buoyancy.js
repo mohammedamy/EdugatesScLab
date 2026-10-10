@@ -4021,6 +4021,7 @@ export function initFluidsBuoyancyLab(containerId) {
       if (sliderStroke) sliderStroke.value = inputStrokeCm;
       const calc = getCalculations();
       if (lblStroke) lblStroke.innerText = `${inputStrokeCm.toFixed(1)} cm (d₂ = ${calc.outputStrokeCm.toFixed(2)} cm)`;
+      updateHUD();
       needsRedraw = true;
       return;
     }
@@ -4034,6 +4035,7 @@ export function initFluidsBuoyancyLab(containerId) {
       const lblOrifice = container.querySelector("#lbl-orifice-height");
       if (sliderOrifice) sliderOrifice.value = orificeHeightM;
       if (lblOrifice) lblOrifice.innerText = `${orificeHeightM.toFixed(2)} m (${(orificeHeightM * 100).toFixed(0)} cm)`;
+      updateHUD();
       needsRedraw = true;
       return;
     }
@@ -4047,6 +4049,7 @@ export function initFluidsBuoyancyLab(containerId) {
       const lblProbe = container.querySelector("#lbl-probe-depth");
       if (sliderProbe) sliderProbe.value = probeDepthCm;
       if (lblProbe) lblProbe.innerText = `${probeDepthCm.toFixed(1)} cm`;
+      updateHUD();
       needsRedraw = true;
       return;
     }
@@ -4063,6 +4066,7 @@ export function initFluidsBuoyancyLab(containerId) {
       if (lblSub) lblSub.innerText = `${submersionPercent}%`;
 
       surfaceRippleAmp = Math.min(5.0, surfaceRippleAmp + Math.abs(deltaY) * 0.05);
+      updateHUD();
       needsRedraw = true;
       return;
     }
