@@ -115,8 +115,8 @@ export function initHarmonicLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-shm-open-report" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Generate 2-Page NGSS Lab Report Dossier with Canvas snapshot and CER rubric" aria-label="Generate NGSS Lab Report Dossier">
             📋 Lab Report Dossier
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-shm-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Export continuous trajectory data as RFC-4180 CSV" aria-label="Export continuous telemetry as CSV">
-            📥 Export CSV
+          <button class="btn btn-secondary btn-sm" id="btn-shm-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;" title="Export continuous trajectory data as RFC-4180 CSV (Shortcut: E)" aria-label="Export continuous telemetry as CSV (Shortcut: E)">
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -1174,6 +1174,17 @@ export function initHarmonicLab(containerId) {
       }
       needsRedraw = true;
       SoundFX.playClick();
+      return;
+    }
+    if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      container.querySelector("#btn-shm-export")?.click();
+      return;
+    }
+    if (e.key === "r" || e.key === "R") {
+      e.preventDefault();
+      container.querySelector("#btn-shm-reset")?.click();
+      return;
     }
   }
 

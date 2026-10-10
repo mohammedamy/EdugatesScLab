@@ -603,6 +603,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 2,
       explanation: "From $V = \\frac{nRT}{P} = \\frac{1\\text{ mol} \\times 0.08206\\text{ L}\\cdot\\text{atm}/(\\text{mol}\\cdot\\text{K}) \\times 273.15\\text{ K}}{1\\text{ atm}} \\approx 22.414\\text{ L}$."
+    },
+    {
+      id: "q4",
+      question: "According to Charles's Law, if an enclosed flexible container of gas at constant pressure has its absolute temperature doubled from 300 K to 600 K, what happens to its volume?",
+      options: [
+        "The volume doubles ($V_2 = 2 V_1$)",
+        "The volume halves ($V_2 = 0.5 V_1$)",
+        "The volume quadruples ($V_2 = 4 V_1$)",
+        "The volume remains unchanged because pressure is constant"
+      ],
+      correctIndex: 0,
+      explanation: "Charles's Law states that at constant pressure and molar quantity, gas volume is directly proportional to absolute temperature ($V_1/T_1 = V_2/T_2$). Doubling absolute temperature (300 K to 600 K) doubles the volume."
+    },
+    {
+      id: "q5",
+      question: "According to the Maxwell-Boltzmann distribution and Kinetic Molecular Theory ($v_{\\text{rms}} = \\sqrt{\\frac{3RT}{M}}$), how does the root-mean-square speed of gas molecules change if the molar mass is quadrupled (e.g. comparing Helium $M = 4\\text{ g/mol}$ to Methane $M = 16\\text{ g/mol}$) at the same temperature?",
+      options: [
+        "The rms speed is halved ($v_{\\text{rms}}' = \\frac{1}{2} v_{\\text{rms}}$)",
+        "The rms speed is doubled ($v_{\\text{rms}}' = 2 v_{\\text{rms}}$)",
+        "The rms speed is quartered ($v_{\\text{rms}}' = \\frac{1}{4} v_{\\text{rms}}$)",
+        "The rms speed remains identical because temperature is the same"
+      ],
+      correctIndex: 0,
+      explanation: "Because $v_{\\text{rms}} = \\sqrt{\\frac{3RT}{M}}$, the molecular speed is inversely proportional to the square root of molar mass ($\\sqrt{M}$). Quadrupling molar mass results in $\\sqrt{1/4} = 1/2$, so the heavier gas molecules move at half the average speed."
     }
   ],
 
@@ -642,6 +666,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Compound microscopes invert and reverse the optical image across both horizontal and vertical axes."
+    },
+    {
+      id: "q4",
+      question: "According to Ernst Abbe's diffraction limit criterion ($d = \\frac{0.61\\lambda}{\\text{NA}}$), what adjustments will improve (decrease) the minimum resolvable distance $d$ between two specimen structures?",
+      options: [
+        "Using light with a shorter wavelength (e.g. blue/violet) and an objective with higher Numerical Aperture (NA)",
+        "Using light with a longer wavelength (infrared) and lower Numerical Aperture",
+        "Increasing the ocular magnification while keeping the objective lens unchanged",
+        "Closing the condenser iris diaphragm to a pinpoint opening"
+      ],
+      correctIndex: 0,
+      explanation: "Resolving power is mathematically governed by $d = \\frac{0.61\\lambda}{\\text{NA}}$. Decreasing wavelength $\\lambda$ (such as using blue filters) and increasing Numerical Aperture (NA) minimizes $d$, allowing smaller structures to be clearly resolved."
+    },
+    {
+      id: "q5",
+      question: "When switching the revolving nosepiece from low power (10×) to high power (40×) objective, what happens to the diameter of the field of view and the image brightness?",
+      options: [
+        "The field of view diameter shrinks proportionally by a factor of 4, and the image becomes dimmer (requiring more light)",
+        "The field of view diameter increases 4× and brightness increases",
+        "The field of view remains constant but depth of field becomes infinite",
+        "The field of view becomes completely dark unless immersion oil is applied"
+      ],
+      correctIndex: 0,
+      explanation: "Field of view diameter is inversely proportional to magnification ($M_1 D_1 = M_2 D_2$). Increasing magnification from 10× to 40× narrows the field of view to 1/4 its previous diameter and distributes fewer photons across the larger visual angle, dimming the view."
     }
   ],
 
@@ -744,6 +792,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Group members possess identical valence electron configurations (e.g. Alkali metals ns¹), giving them similar chemical behavior."
+    },
+    {
+      id: "q4",
+      question: "Down a group (column) from top to bottom on the periodic table, the first ionization energy generally:",
+      options: [
+        "Decreases because valence electrons occupy higher principal energy levels with greater nuclear shielding",
+        "Increases because the nucleus contains more total protons",
+        "Remains constant across all main group elements",
+        "Drops to zero for all alkali metals"
+      ],
+      correctIndex: 0,
+      explanation: "Down a group, outer electrons occupy higher principal quantum shells further from the nucleus, shielded by inner electron shells. The effective electrostatic attraction diminishes, so less energy is required to remove the outermost valence electron."
+    },
+    {
+      id: "q5",
+      question: "Why do the 4s orbitals fill before the 3d orbitals when building up ground-state electron configurations for Potassium (Z=19) and Calcium (Z=20) according to the Aufbau principle?",
+      options: [
+        "Because the radial penetration of the 4s orbital gives it a lower average energy level than 3d in neutral atoms before the d-subshell fills",
+        "Because 3d orbitals can only hold 2 electrons while 4s holds 10",
+        "Because 4s has higher orbital angular momentum than 3d",
+        "Because the Pauli exclusion principle prohibits 3d electrons until period 5"
+      ],
+      correctIndex: 0,
+      explanation: "Due to orbital penetration closer to the nucleus, the 4s orbital experiences less shielding and has a slightly lower energy state than the 3d orbital in neutral atoms, so it fills first ([Ar] 4s¹ for K and [Ar] 4s² for Ca)."
     }
   ],
 
@@ -1119,6 +1191,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 2,
       explanation: "Frequency $f = \\frac{1}{2\\pi} \\sqrt{\\frac{k}{m}}$. Multiplying mass $m$ by 4 results in $\\sqrt{1/4} = 1/2$, so the frequency is halved."
+    },
+    {
+      id: "q4",
+      question: "For an ideal simple pendulum oscillating at small angles ($\\theta < 15^\\circ$), how does doubling the bob mass $m$ while keeping the string length $L$ constant affect its oscillation period $T$?",
+      options: [
+        "The period remains strictly unchanged ($T = 2\\pi\\sqrt{L/g}$)",
+        "The period doubles ($2T$)",
+        "The period is multiplied by $\\sqrt{2}$",
+        "The period is halved (½T)"
+      ],
+      correctIndex: 0,
+      explanation: "Because gravitational driving torque and inertial mass cancel out exactly ($m g L \\sin\\theta \\approx m L^2 \\ddot{\\theta} \\implies \\ddot{\\theta} + \\frac{g}{L}\\theta = 0$), the period of a simple pendulum depends solely on length $L$ and gravitational acceleration $g$, completely independent of bob mass $m$."
+    },
+    {
+      id: "q5",
+      question: "When viscous damping ($F_d = -b v$) is introduced into a harmonic oscillator, what happens to the oscillation amplitude and total mechanical energy over time?",
+      options: [
+        "Amplitude decays exponentially ($A(t) = A_0 e^{-\\frac{b}{2m}t}$) as mechanical energy is continuously dissipated as heat",
+        "Amplitude remains constant while frequency shifts to infinity",
+        "Total mechanical energy is strictly conserved and oscillation continues forever",
+        "The oscillator instantaneously halts at the maximum positive displacement point"
+      ],
+      correctIndex: 0,
+      explanation: "Viscous resistance continuously performs negative work on the oscillating mass ($W_d = \\int -b v^2 dt < 0$), causing the envelope amplitude to decay exponentially as $e^{-\\gamma t}$ (where $\\gamma = \\frac{b}{2m}$) and transferring mechanical energy into thermal energy."
     }
   ],
 

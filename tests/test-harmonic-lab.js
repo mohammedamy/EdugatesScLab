@@ -117,6 +117,25 @@ test("phys-harmonic.js includes dynamic real-time mechanical energy partition ra
   assert(code.includes('id="shm-energy-bar-ke"'), "Must include KE progress bar segment");
 });
 
+test("phys-harmonic.js implements 'e'/'E' CSV export and 'r'/'R' reset shortcuts", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-harmonic.js"), "utf-8");
+  assert(code.includes('e.key === "e" || e.key === "E"'), "Must handle 'e'/'E' export shortcut");
+  assert(code.includes('e.key === "r" || e.key === "R"'), "Must handle 'r'/'R' reset shortcut");
+});
+
+test("LAB_CHECKPOINTS.harmonic contains comprehensive 5-question inquiry suite", async () => {
+  const { LAB_CHECKPOINTS } = await import("../labs/lab-telemetry-exporter.js");
+  assert(Array.isArray(LAB_CHECKPOINTS.harmonic), "harmonic checkpoint pool must be an array");
+  assert.strictEqual(LAB_CHECKPOINTS.harmonic.length, 5, `Expected 5 harmonic questions, found ${LAB_CHECKPOINTS.harmonic.length}`);
+  
+  const prompts = LAB_CHECKPOINTS.harmonic.map(q => q.question);
+  assert(prompts.some(p => p.includes("period of oscillation $T$ is given by")), "Must include mass-spring period formula question");
+  assert(prompts.some(p => p.includes("maximum displacement")), "Must include turning point acceleration question");
+  assert(prompts.some(p => p.includes("factor of 4")), "Must include 4x mass frequency halving question");
+  assert(prompts.some(p => p.includes("doubling the bob mass")), "Must include simple pendulum mass independence question");
+  assert(prompts.some(p => p.includes("viscous damping")), "Must include damped harmonic oscillator decay question");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Harmonic Lab Tests: ${passed} Passed, 0 Failed`);
 console.log("========================================================\n");

@@ -459,8 +459,8 @@ export function initPeriodicTableLab(containerId) {
           <button class="btn btn-secondary" id="btn-record-ptable-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(56,189,248,0.4); color: #38bdf8;">
             <span>📸 Log Element Data</span>
           </button>
-          <button class="btn btn-secondary" id="btn-export-ptable-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
-            <span>📥 Export All 118 Elements CSV</span>
+          <button class="btn btn-secondary" id="btn-export-ptable-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;" title="Export complete 118-element IUPAC dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export All 118 Elements CSV (Shortcut: E)">
+            <span>📥 Export All 118 Elements CSV (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-ptable-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
             <span>📑 Generate Lab Report</span>
@@ -1499,6 +1499,23 @@ export function initPeriodicTableLab(containerId) {
     });
   });
 
+  // Keyboard Shortcuts (E for CSV export)
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("keydown", handleKeyDown);
+      return;
+    }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
+      return;
+    }
+    if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      document.getElementById("btn-export-ptable-csv")?.click();
+      return;
+    }
+  }
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("ptable-checkpoint-container", "ptable");
 
@@ -1509,5 +1526,6 @@ export function initPeriodicTableLab(containerId) {
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

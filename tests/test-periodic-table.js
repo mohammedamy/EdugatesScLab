@@ -2,6 +2,8 @@
 // Automated Verification Suite for IUPAC 118 Chemical Elements Master Database,
 // Grid Coordinates, Quantum Bohr Shells, 4K Specimen Telemetry, and Interactive DOM Controls.
 
+import fs from "fs";
+import path from "path";
 import { PERIODIC_ELEMENTS, CATEGORY_METADATA } from "../data/periodic-table-data.js";
 import { initPeriodicTableLab } from "../labs/chem-periodic-table.js";
 
@@ -148,6 +150,22 @@ assert(allLiquidsHaveRawSamples, `All ${liquids.length} liquid elements (Bromine
 
 const noSyntheticBrokenUrls = PERIODIC_ELEMENTS.every(e => !e.image.includes("/thumb/") || !e.image.includes("/640px-"));
 assert(noSyntheticBrokenUrls, "All 118 elements use direct Wikimedia Commons / cdn image URLs, preventing edge-cache HTTP 400 thumbnail rejections");
+
+// 7. Keyboard Shortcuts and Cleanup
+const ptableSource = fs.readFileSync(path.resolve("labs/chem-periodic-table.js"), "utf-8");
+assert(ptableSource.includes('e.key === "e" || e.key === "E"'), "chem-periodic-table.js binds 'e'/'E' to CSV export");
+assert(ptableSource.includes('window.removeEventListener("keydown", handleKeyDown)'), "chem-periodic-table.js unbinds keydown on cleanup");
+
+// 8. Checkpoint Inquiry Suite
+const { LAB_CHECKPOINTS } = await import("../labs/lab-telemetry-exporter.js");
+assert(Array.isArray(LAB_CHECKPOINTS.ptable) && LAB_CHECKPOINTS.ptable.length === 5, `LAB_CHECKPOINTS.ptable contains comprehensive 5-question inquiry suite (found: ${LAB_CHECKPOINTS.ptable?.length})`);
+
+const ptablePrompts = LAB_CHECKPOINTS.ptable.map(q => q.question);
+assert(ptablePrompts.some(p => p.includes("atomic radius generally")), "Must include atomic radius periodic trend question");
+assert(ptablePrompts.some(p => p.includes("highest electronegativity")), "Must include electronegativity question");
+assert(ptablePrompts.some(p => p.includes("same vertical group")), "Must include group valence configuration question");
+assert(ptablePrompts.some(p => p.includes("first ionization energy generally")), "Must include group ionization energy trend question");
+assert(ptablePrompts.some(p => p.includes("4s orbitals fill before the 3d orbitals")), "Must include Aufbau principle orbital penetration question");
 
 console.log("\n--------------------------------------------------------");
 console.log(`Summary: ${passed} Passed, ${failed} Failed`);

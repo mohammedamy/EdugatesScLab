@@ -106,7 +106,21 @@ assert(microSource.includes("filter-btn"), "bio-microscope.js provides contrast 
 assert(microSource.includes("darkfield") && microSource.includes("fluorescence"), "bio-microscope.js implements Darkfield and Epi-Fluorescence optical modes");
 console.log("  ✅ PASS: Optical illumination modes (Köhler Brightfield, Darkfield / Phase Contrast, Epi-Fluorescence)");
 
+// 12. Keyboard Controls and Teardown Cleanup
+assert(microSource.includes("handleKeyDown(e)"), "bio-microscope.js defines handleKeyDown keyboard listener");
+assert(microSource.includes('e.key === "e" || e.key === "E"'), "bio-microscope.js binds 'e'/'E' to CSV export");
+assert(microSource.includes('window.removeEventListener("keydown", handleKeyDown)'), "bio-microscope.js unbinds keydown on cleanup");
+console.log("  ✅ PASS: Microscope keyboard shortcut suite ('E' CSV export) and unmount listener cleanup");
+
+// 13. Comprehensive 5-Question Microscope Checkpoint Pool
+assert(telemetryCode.includes("microscope: ["), "Must declare microscope checkpoint pool");
+assert(telemetryCode.includes("10× ocular eyepiece and a 40× high-power objective"), "Must include total magnification question");
+assert(telemetryCode.includes("immersion oil required"), "Must include immersion oil refractive index question");
+assert(telemetryCode.includes("slide to the right"), "Must include FOV image inversion question");
+assert(telemetryCode.includes("Ernst Abbe's diffraction limit criterion"), "Must include Abbe resolution limit question");
+assert(telemetryCode.includes("field of view and the image brightness"), "Must include FOV shrinkage and image dimming question");
+console.log("  ✅ PASS: LAB_CHECKPOINTS.microscope contains comprehensive 5-question inquiry suite");
 
 console.log("\n========================================================");
-console.log("📊 Flagship Lab Upgrade Verification: All 11 Tests Passed!");
+console.log("📊 Flagship Lab Upgrade Verification: All 13 Tests Passed!");
 console.log("========================================================\n");

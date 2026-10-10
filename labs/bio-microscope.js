@@ -303,8 +303,8 @@ export function initMicroscopeLab(containerId) {
 
         <!-- Export Data & Lab Report Buttons -->
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px;">
-          <button class="btn btn-secondary" id="btn-export-micro-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
-            <span>📥 Export CSV Data</span>
+          <button class="btn btn-secondary" id="btn-export-micro-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;" title="Export optical microscope telemetry dataset as RFC-4180 CSV (Shortcut: E)" aria-label="Export CSV Data (Shortcut: E)">
+            <span>📥 Export CSV Data (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-micro-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #059669, #047857); border: none;">
             <span>📑 Generate Lab Report</span>
@@ -2437,6 +2437,23 @@ export function initMicroscopeLab(containerId) {
     }
   });
 
+  // Keyboard Shortcuts (E for CSV export)
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("keydown", handleKeyDown);
+      return;
+    }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
+      return;
+    }
+    if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      document.getElementById("btn-export-micro-csv")?.click();
+      return;
+    }
+  }
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("micro-checkpoint-container", "microscope");
 
@@ -2445,6 +2462,7 @@ export function initMicroscopeLab(containerId) {
     if (!container || !container.isConnected) {
       if (animId) cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("keydown", handleKeyDown);
       return;
     }
     const rect = canvas.getBoundingClientRect();
@@ -2459,6 +2477,7 @@ export function initMicroscopeLab(containerId) {
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("resize", handleResize);
+    window.removeEventListener("keydown", handleKeyDown);
   };
   _currentMicroscopeCleanup = cleanup;
   return cleanup;

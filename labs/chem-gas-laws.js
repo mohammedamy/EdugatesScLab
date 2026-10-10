@@ -225,8 +225,8 @@ export function initGasLawsLab(containerId) {
           <button class="btn btn-secondary" id="btn-record-gas-trial" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px; border-color: rgba(6,182,212,0.4); color: #06b6d4;">
             <span>📸 Log Current State</span>
           </button>
-          <button class="btn btn-secondary" id="btn-export-gas-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;">
-            <span>📥 Export CSV Data</span>
+          <button class="btn btn-secondary" id="btn-export-gas-csv" style="padding: 6px 12px; font-size: 0.8rem; gap: 6px;" title="Export continuous thermodynamic state & Boyle's law isotherm sweep (Shortcut: E)" aria-label="Export CSV Data (Shortcut: E)">
+            <span>📥 Export CSV Data (E)</span>
           </button>
           <button class="btn btn-primary" id="btn-open-gas-report" style="padding: 6px 14px; font-size: 0.8rem; gap: 6px; background: linear-gradient(135deg, #0284c7, #0369a1); border: none;">
             <span>📑 Generate Lab Report</span>
@@ -807,6 +807,52 @@ export function initGasLawsLab(containerId) {
     const R_atm = 0.08206;
     const P_atm = (moles * R_atm * temperature) / volume;
     const vRMS = Math.sqrt((3 * 8.314 * temperature) / 0.028);
+    const meanKE = 1.5 * 1.3806e-23 * temperature;
+    const trials = LabTrialStore.getTrials("gaslaws");
+
+    const rows = [
+      [
+        "Current State",
+        parseFloat(P_atm.toFixed(3)),
+        parseFloat(volume.toFixed(1)),
+        parseFloat(temperature.toFixed(1)),
+        parseFloat(moles.toFixed(2)),
+        Math.round(vRMS),
+        parseFloat(meanKE.toExponential(3)),
+        parseFloat((P_atm * volume).toFixed(3))
+      ]
+    ];
+
+    if (trials && trials.length > 0) {
+      trials.forEach(tr => {
+        const m = tr.measurements || {};
+        rows.push([
+          `Logged Trial ${tr.trialNumber}`,
+          m["Pressure (atm)"] ?? parseFloat(P_atm.toFixed(3)),
+          m["Volume (L)"] ?? parseFloat(volume.toFixed(1)),
+          m["Temperature (K)"] ?? parseFloat(temperature.toFixed(1)),
+          m["Moles (mol)"] ?? parseFloat(moles.toFixed(2)),
+          Math.round(Math.sqrt((3 * 8.314 * (m["Temperature (K)"] ?? temperature)) / 0.028)),
+          parseFloat((1.5 * 1.3806e-23 * (m["Temperature (K)"] ?? temperature)).toExponential(3)),
+          parseFloat(((m["Pressure (atm)"] ?? P_atm) * (m["Volume (L)"] ?? volume)).toFixed(3))
+        ]);
+      });
+    }
+
+    // Isothermal Pressure-Volume Boyle's Law Sweep at current T and n (5 L to 45 L)
+    for (let vSweep = 5.0; vSweep <= 45.01; vSweep += 2.5) {
+      const pSweep = (moles * R_atm * temperature) / vSweep;
+      rows.push([
+        `Isotherm T=${temperature.toFixed(0)}K`,
+        parseFloat(pSweep.toFixed(3)),
+        parseFloat(vSweep.toFixed(1)),
+        parseFloat(temperature.toFixed(1)),
+        parseFloat(moles.toFixed(2)),
+        Math.round(vRMS),
+        parseFloat(meanKE.toExponential(3)),
+        parseFloat((pSweep * vSweep).toFixed(3))
+      ]);
+    }
 
     exportLabDataCsv({
       title: "Kinetic Molecular Theory & Ideal Gas Metrology",
@@ -815,19 +861,23 @@ export function initGasLawsLab(containerId) {
         "Enclosed Volume (V)": `${volume.toFixed(1)} L`,
         "Thermal Energy (T)": `${temperature.toFixed(1)} K`,
         "Gas Substance (n)": `${moles.toFixed(2)} mol`,
-        "Gas Constant (R)": "0.08206 L·atm/(mol·K)"
+        "Gas Constant (R)": "0.08206 L·atm/(mol·K)",
+        "Instantaneous Pressure (P)": `${P_atm.toFixed(3)} atm`,
+        "RMS Molecular Velocity (N₂)": `${Math.round(vRMS)} m/s`,
+        "Mean Molecular Kinetic Energy": `${meanKE.toExponential(3)} J`,
+        "Logged Trials Count": `${trials.length}`
       },
-      headers: ["Pressure (atm)", "Volume (L)", "Temperature (K)", "Moles (mol)", "v_rms (m/s)", "Kinetic Energy (J)"],
-      dataRows: [
-        [
-          parseFloat(P_atm.toFixed(3)),
-          volume,
-          temperature,
-          moles,
-          Math.round(vRMS),
-          parseFloat((1.5 * 1.3806e-23 * temperature).toExponential(3))
-        ]
-      ]
+      headers: [
+        "Dataset Series",
+        "Pressure (atm)",
+        "Volume (L)",
+        "Temperature (K)",
+        "Moles (mol)",
+        "v_rms (m/s)",
+        "Kinetic Energy (J)",
+        "P · V Product (atm·L)"
+      ],
+      dataRows: rows
     });
   });
 
@@ -859,6 +909,38 @@ export function initGasLawsLab(containerId) {
     });
   });
 
+  // Keyboard Shortcuts (E for CSV export, R for reset, H for burner, C for ice bath)
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) {
+      window.removeEventListener("keydown", handleKeyDown);
+      return;
+    }
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.isContentEditable) {
+      return;
+    }
+    if (e.key === "e" || e.key === "E") {
+      e.preventDefault();
+      document.getElementById("btn-export-gas-csv")?.click();
+      return;
+    }
+    if (e.key === "r" || e.key === "R") {
+      e.preventDefault();
+      document.getElementById("btn-reset-gas")?.click();
+      return;
+    }
+    if (e.key === "h" || e.key === "H") {
+      e.preventDefault();
+      document.getElementById("btn-heat-burner")?.click();
+      return;
+    }
+    if (e.key === "c" || e.key === "C") {
+      e.preventDefault();
+      document.getElementById("btn-cool-ice")?.click();
+      return;
+    }
+  }
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Post-Lab Checkpoint Assessment
   mountLabCheckpoint("gas-checkpoint-container", "gaslaws");
 
@@ -866,6 +948,7 @@ export function initGasLawsLab(containerId) {
     if (!container || !container.isConnected) {
       if (animId) cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("keydown", handleKeyDown);
       return;
     }
     const rect1 = chamberCanvas.getBoundingClientRect();
@@ -883,6 +966,7 @@ export function initGasLawsLab(containerId) {
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("resize", handleResize);
+    window.removeEventListener("keydown", handleKeyDown);
   };
   _currentGasLawsCleanup = cleanup;
   return cleanup;
