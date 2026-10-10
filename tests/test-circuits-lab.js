@@ -253,6 +253,28 @@ const cssSrc = fs.readFileSync(path.join(rootDir, "index.css"), "utf-8");
 assert(cssSrc.includes(".circuits-layout"), "index.css must include .circuits-layout in responsive media query list");
 console.log("  ✅ PASS: index.css includes .circuits-layout in responsive single-column layout at 980px");
 
+// 24. Verify Mode-Specific CSV Telemetry Export
+assert(circuitsSrc.includes('labId: "circuits_dc"'), "Must export DC series/parallel analysis dataset");
+assert(circuitsSrc.includes('labId: "circuits_ac"'), "Must export AC RLC resonance frequency sweep dataset");
+assert(circuitsSrc.includes('labId: "circuits_bridge"'), "Must export Wheatstone bridge metrology dataset");
+assert(circuitsSrc.includes('"Resonant Frequency (f₀)"'), "AC export must include resonant frequency");
+assert(circuitsSrc.includes('"Ratio Arm R1"'), "Bridge export must include ratio arm R1");
+console.log("  ✅ PASS: phys-circuits.js exports mode-specific CSV telemetry across DC, AC RLC, and Wheatstone bridge modes");
+
+// 25. Verify Comprehensive 5-Question Circuits Checkpoint Assessment
+const telemetryCode = fs.readFileSync(path.join(rootDir, "labs/lab-telemetry-exporter.js"), "utf-8");
+assert(telemetryCode.includes("circuits: ["), "Must declare circuits checkpoint pool");
+assert(telemetryCode.includes("Ohm's Law"), "Must include Ohm's law question");
+assert(telemetryCode.includes("series circuit containing two resistors"), "Must include series current invariance question");
+assert(telemetryCode.includes("parallel branches"), "Must include parallel equivalent resistance question");
+assert(telemetryCode.includes("resonant frequency"), "Must include AC RLC resonance impedance minimum question");
+assert(telemetryCode.includes("Wheatstone bridge"), "Must include Wheatstone bridge null balance question");
+console.log("  ✅ PASS: LAB_CHECKPOINTS.circuits contains comprehensive 5-question inquiry suite");
+
+// 26. Verify Keyboard Shortcut 'e' / 'E' for CSV Telemetry Export
+assert(circuitsSrc.includes('e.key === "e" || e.key === "E"'), "phys-circuits.js must bind 'e'/'E' to CSV export");
+console.log("  ✅ PASS: phys-circuits.js binds 'e'/'E' shortcut for instant telemetry CSV export");
+
 console.log("\n========================================================");
-console.log("📊 DC & AC Circuits Lab Tests: All 23 Passed!");
+console.log("📊 DC & AC Circuits Lab Tests: All 26 Passed!");
 console.log("========================================================\n");

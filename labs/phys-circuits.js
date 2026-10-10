@@ -1836,6 +1836,8 @@ export function initCircuitsLab(containerId) {
       switchTab("photo");
     } else if (e.key === "r" || e.key === "R") {
       document.getElementById("btn-reset-bench")?.click();
+    } else if (e.key === "e" || e.key === "E") {
+      document.getElementById("btn-export-circ-csv")?.click();
     }
   }
   window.addEventListener("keydown", handleKeyDown);
@@ -1900,20 +1902,171 @@ export function initCircuitsLab(containerId) {
   });
 
   document.getElementById("btn-export-circ-csv")?.addEventListener("click", () => {
-    const trials = LabTrialStore.getTrials("circuits");
-    const dataRows = trials.map(t => Object.values(t.measurements));
-    const headers = trials.length > 0 ? Object.keys(trials[0].measurements) : ["Parameter", "Value"];
+    if (currentTab === "ac") {
+      const ac = calculateACCircuit();
+      const f0 = ac.f0;
+      const rows = [];
 
-    exportLabDataCsv({
-      title: "Precision DC & AC Circuit Analysis Suite",
-      labId: "circuits",
-      parameters: {
-        "Active Mode": currentTab.toUpperCase(),
-        "Switch State": switchClosed ? "CLOSED" : "OPEN"
-      },
-      headers: headers.length > 0 ? headers : ["Metric", "Value"],
-      dataRows: dataRows.length > 0 ? dataRows : [["Status", "Active"]]
-    });
+      // Current operating point
+      rows.push([
+        parseFloat(acFreq.toFixed(1)),
+        parseFloat(ac.XL.toFixed(2)),
+        parseFloat(ac.XC.toFixed(2)),
+        parseFloat(ac.Xnet.toFixed(2)),
+        parseFloat(ac.Z.toFixed(2)),
+        parseFloat(ac.Irms.toFixed(4)),
+        parseFloat(ac.phiDeg.toFixed(2)),
+        parseFloat(ac.powerFactor.toFixed(3)),
+        parseFloat(ac.powerReal.toFixed(3)),
+        ac.isResonant ? "RESONANT" : (ac.phiDeg > 0 ? "INDUCTIVE LAG" : "CAPACITIVE LEAD")
+      ]);
+
+      // Frequency sweep around resonance
+      const testFreqs = [0.25 * f0, 0.5 * f0, 0.75 * f0, 0.9 * f0, f0, 1.1 * f0, 1.25 * f0, 1.5 * f0, 2.0 * f0];
+      testFreqs.forEach(tf => {
+        if (Math.abs(tf - acFreq) > 2) {
+          const omegaT = 2 * Math.PI * tf;
+          const xlT = omegaT * acL;
+          const xcT = 1 / (omegaT * acC);
+          const xnetT = xlT - xcT;
+          const zT = Math.sqrt(acR * acR + xnetT * xnetT);
+          const phiRadT = Math.atan2(xnetT, acR);
+          const phiDegT = (phiRadT * 180) / Math.PI;
+          const irmsT = (acV0 / Math.SQRT2) / zT;
+          const pfT = Math.cos(phiRadT);
+          const pT = (acV0 / Math.SQRT2) * irmsT * pfT;
+          rows.push([
+            parseFloat(tf.toFixed(1)),
+            parseFloat(xlT.toFixed(2)),
+            parseFloat(xcT.toFixed(2)),
+            parseFloat(xnetT.toFixed(2)),
+            parseFloat(zT.toFixed(2)),
+            parseFloat(irmsT.toFixed(4)),
+            parseFloat(phiDegT.toFixed(2)),
+            parseFloat(pfT.toFixed(3)),
+            parseFloat(pT.toFixed(3)),
+            Math.abs(tf - f0) < 1 ? "NATURAL RESONANCE f₀" : (phiDegT > 0 ? "Inductive" : "Capacitive")
+          ]);
+        }
+      });
+
+      exportLabDataCsv({
+        title: "Precision AC Series RLC Resonance & Impedance Laboratory",
+        labId: "circuits_ac",
+        parameters: {
+          "Active Mode": "AC Series RLC Resonance",
+          "AC Voltage Amplitude (V₀)": `${acV0.toFixed(1)} V`,
+          "AC Frequency (f)": `${acFreq.toFixed(1)} Hz`,
+          "Resistance (R)": `${acR.toFixed(1)} Ω`,
+          "Inductance (L)": `${(acL * 1000).toFixed(1)} mH`,
+          "Capacitance (C)": `${(acC * 1e6).toFixed(1)} µF`,
+          "Resonant Frequency (f₀)": `${f0.toFixed(1)} Hz`,
+          "Quality Factor (Q)": ac.Q.toFixed(2),
+          "Bandwidth (Δf)": `${ac.deltaF.toFixed(1)} Hz`,
+          "Switch State": switchClosed ? "CLOSED" : "OPEN"
+        },
+        headers: [
+          "Frequency f (Hz)",
+          "Inductive XL (Ω)",
+          "Capacitive XC (Ω)",
+          "Net Reactance Xnet (Ω)",
+          "Impedance Z (Ω)",
+          "Current Irms (A)",
+          "Phase φ (deg)",
+          "Power Factor",
+          "Real Power P (W)",
+          "Operating Regime"
+        ],
+        dataRows: rows
+      });
+    } else if (currentTab === "bridge") {
+      const br = calculateBridge();
+      const rows = [
+        ["Current Bridge State", bridgeVin, bridgeR1, bridgeR2, bridgeR3, bridgeRx, parseFloat(br.vb.toFixed(3)), parseFloat(br.vd.toFixed(3)), parseFloat(br.vg.toFixed(4)), parseFloat(br.rxCalc.toFixed(2)), br.isBalanced ? "BALANCED NULL (VG ≈ 0)" : "OFF-BALANCE"]
+      ];
+
+      // Benchmark balanced null state
+      const balancedRx = (bridgeR2 * bridgeR3) / bridgeR1;
+      if (Math.abs(balancedRx - bridgeRx) > 0.5) {
+        const vbNull = bridgeVin * (bridgeR2 / (bridgeR1 + bridgeR2));
+        rows.push([
+          "Theoretical Balanced Null",
+          bridgeVin,
+          bridgeR1,
+          bridgeR2,
+          bridgeR3,
+          parseFloat(balancedRx.toFixed(2)),
+          parseFloat(vbNull.toFixed(3)),
+          parseFloat(vbNull.toFixed(3)),
+          0.0000,
+          parseFloat(balancedRx.toFixed(2)),
+          "IDEAL NULL (R1/R2 = R3/Rx)"
+        ]);
+      }
+
+      exportLabDataCsv({
+        title: "Precision Wheatstone Bridge Resistance Metrology Laboratory",
+        labId: "circuits_bridge",
+        parameters: {
+          "Active Mode": "Wheatstone Bridge Null Metrology",
+          "DC Excitation (Vin)": `${bridgeVin.toFixed(1)} V`,
+          "Ratio Arm R1": `${bridgeR1.toFixed(1)} Ω`,
+          "Ratio Arm R2": `${bridgeR2.toFixed(1)} Ω`,
+          "Standard Arm R3": `${bridgeR3.toFixed(1)} Ω`,
+          "Unknown Arm Rx (Actual)": `${bridgeRx.toFixed(1)} Ω`,
+          "Calculated Rx": `${br.rxCalc.toFixed(2)} Ω`,
+          "Galvanometer Potential VG": `${br.vg.toFixed(4)} V`,
+          "Bridge Null Status": br.isBalanced ? "BALANCED (VG = 0 V)" : "DEFLECTED"
+        },
+        headers: [
+          "Measurement Run",
+          "Supply Vin (V)",
+          "R1 (Ω)",
+          "R2 (Ω)",
+          "R3 (Ω)",
+          "Rx (Ω)",
+          "Node VB (V)",
+          "Node VD (V)",
+          "Galvanometer VG (V)",
+          "Calculated Rx (Ω)",
+          "Null Balance Status"
+        ],
+        dataRows: rows
+      });
+    } else {
+      // DC Kirchhoff & Ohm's Law Mode
+      const dc = calculateDCCircuit();
+      const pTot = switchClosed ? (topology === "series" ? dc.current * dc.current * (r1 + r2) : voltage * (dc.i1 + dc.i2)) : 0;
+      const rows = [
+        ["Branch 1 (R1)", r1, isFinite(dc.i1) ? parseFloat(dc.i1.toFixed(3)) : 0, isFinite(dc.v1) ? parseFloat(dc.v1.toFixed(2)) : 0, isFinite(dc.i1) ? parseFloat((dc.i1 * dc.v1).toFixed(3)) : 0, "Ohmic Drop V1 = I1 · R1"],
+        ["Branch 2 (R2)", r2, isFinite(dc.i2) ? parseFloat(dc.i2.toFixed(3)) : 0, isFinite(dc.v2) ? parseFloat(dc.v2.toFixed(2)) : 0, isFinite(dc.i2) ? parseFloat((dc.i2 * dc.v2).toFixed(3)) : 0, "Ohmic Drop V2 = I2 · R2"],
+        ["Total Network", isFinite(dc.req) ? parseFloat(dc.req.toFixed(2)) : "Open", isFinite(dc.current) ? parseFloat(dc.current.toFixed(3)) : 0, voltage, parseFloat(pTot.toFixed(3)), topology === "series" ? "Series Req = R1 + R2" : "Parallel 1/Req = 1/R1 + 1/R2"]
+      ];
+
+      exportLabDataCsv({
+        title: "Precision DC Circuit Analysis Laboratory",
+        labId: "circuits_dc",
+        parameters: {
+          "Active Mode": topology === "series" ? "DC Series Circuit" : "DC Parallel Circuit",
+          "DC Voltage (Vin)": `${voltage.toFixed(1)} V`,
+          "Resistor R1": `${r1.toFixed(1)} Ω`,
+          "Resistor R2": `${r2.toFixed(1)} Ω`,
+          "Equivalent Resistance (Req)": isFinite(dc.req) ? `${dc.req.toFixed(2)} Ω` : "Open Circuit",
+          "Total Supply Current (Itot)": isFinite(dc.current) ? `${dc.current.toFixed(3)} A` : "0.000 A",
+          "Total Circuit Power": `${pTot.toFixed(2)} W`,
+          "Switch State": switchClosed ? "CLOSED" : "OPEN"
+        },
+        headers: [
+          "Component / Node",
+          "Resistance (Ω)",
+          "Current (A)",
+          "Voltage Drop (V)",
+          "Power Dissipation (W)",
+          "Network Law"
+        ],
+        dataRows: rows
+      });
+    }
   });
 
   document.getElementById("btn-open-circ-report")?.addEventListener("click", () => {

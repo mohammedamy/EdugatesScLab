@@ -540,6 +540,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Each parallel branch provides an additional conductive pathway for current: $\\frac{1}{R_{\\text{eq}}} = \\frac{1}{R_1} + \\frac{1}{R_2}$, reducing overall equivalent resistance."
+    },
+    {
+      id: "q4",
+      question: "At the resonant frequency ($f_0 = \\frac{1}{2\\pi\\sqrt{LC}}$) of a series RLC circuit, what is the net circuit impedance $Z$ and phase angle $\\phi$?",
+      options: [
+        "Z = R (reactances cancel: X_L = X_C) and φ = 0° (in phase, unity power factor)",
+        "Z = 0 Ω and φ = 90°",
+        "Z = ∞ Ω and φ = -90°",
+        "Z = X_L + X_C and φ = 45°"
+      ],
+      correctIndex: 0,
+      explanation: "At natural resonance, inductive reactance X_L exactly equals capacitive reactance X_C, so the net reactance (X_L - X_C) cancels to zero. The impedance reaches its minimum possible value Z = √(R² + 0) = R, and current is perfectly in phase with voltage (φ = 0°)."
+    },
+    {
+      id: "q5",
+      question: "In a four-arm Wheatstone bridge ($R_1, R_2, R_3, R_x$), what condition indicates that the bridge is balanced and what is the formula for the unknown resistance $R_x$?",
+      options: [
+        "Galvanometer voltage VG = 0 V, and Rx = (R2 · R3) / R1",
+        "Galvanometer voltage VG = Vin, and Rx = R1 + R2 + R3",
+        "Galvanometer current is at its maximum value, and Rx = R1 / (R2 · R3)",
+        "All four resistors must be exactly equal to 100 Ω"
+      ],
+      correctIndex: 0,
+      explanation: "When bridge nodes B and D are at identical electric potentials (V_B = V_D, so V_G = 0 V), the ratio arms satisfy R1/R2 = R3/Rx, yielding Rx = (R2 · R3) / R1."
     }
   ],
 
