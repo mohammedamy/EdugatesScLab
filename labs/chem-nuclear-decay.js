@@ -83,8 +83,8 @@ export function initNuclearDecayLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-decay-reset" style="padding: 5px 12px; font-size: 0.78rem;">
             ⟲ Reset Sample
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-decay-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Telemetry
+          <button class="btn btn-secondary btn-sm" id="btn-decay-export" title="Export experimental telemetry to RFC-4180 CSV (Hotkey: E)" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -557,6 +557,15 @@ export function initNuclearDecayLab(containerId) {
     SoundFX.playClick();
   });
 
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      container.querySelector("#btn-decay-export")?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Assessment
   mountLabCheckpoint("decay-checkpoint-container", "decay");
 
@@ -565,5 +574,6 @@ export function initNuclearDecayLab(containerId) {
   return () => {
     isRunning = false;
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }

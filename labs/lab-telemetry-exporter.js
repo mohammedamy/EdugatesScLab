@@ -1611,6 +1611,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "In the absence of oxygen, yeast decarboxylates pyruvate to acetaldehyde releasing CO₂, then reduces acetaldehyde to ethanol to regenerate NAD⁺ so glycolysis can continue generating 2 ATP per glucose."
+    },
+    {
+      id: "q4",
+      question: "The Respiratory Quotient ($RQ = \\frac{\\text{moles of CO}_2\\text{ produced}}{\\text{moles of O}_2\\text{ consumed}}$) for the complete aerobic oxidation of glucose ($\\text{C}_6\\text{H}_{12}\\text{O}_6 + 6\\text{O}_2 \\to 6\\text{CO}_2 + 6\\text{H}_2\\text{O}$) equals:",
+      options: [
+        "$RQ = 1.0 \\quad (6\\text{ CO}_2 / 6\\text{ O}_2)$",
+        "$RQ = 0.70$ (characteristic of pure triglycerides)",
+        "$RQ = 0.82$ (characteristic of mixed proteins)",
+        "$RQ = 0.0$ (no carbon dioxide is produced)"
+      ],
+      correctIndex: 0,
+      explanation: "From the balanced stoichiometric equation for glucose aerobic oxidation, 6 moles of CO₂ are produced for every 6 moles of O₂ consumed, giving an RQ of 6/6 = 1.0. Fats yield an RQ of approximately 0.7 due to their lower oxygen content."
+    },
+    {
+      id: "q5",
+      question: "If a chemical uncoupler like 2,4-dinitrophenol (DNP) permeabilizes the inner mitochondrial membrane to protons ($H^+$), what effect does this have on electron transport and ATP synthesis?",
+      options: [
+        "Oxygen consumption continues or accelerates, but ATP synthesis collapses because the proton gradient is dissipated as heat",
+        "Both oxygen consumption and electron transport instantly halt",
+        "ATP synthase runs in reverse to synthesize extra glucose",
+        "Cytochrome c is permanently destroyed"
+      ],
+      correctIndex: 0,
+      explanation: "DNP is a lipid-soluble proton ionophore that shuttles protons across the inner mitochondrial membrane, bypassing ATP synthase. This dissipates the proton motive force, so ATP cannot be generated; however, electron transport runs uninhibited at maximum rate to attempt restoring the gradient, releasing energy solely as metabolic heat."
     }
   ],
 
@@ -1650,6 +1674,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "At λ_max, molar absorptivity ε reaches its peak value. This yields the greatest change in absorbance per unit concentration (maximum sensitivity) and ensures that minor instrumental wavelength drift produces negligible error."
+    },
+    {
+      id: "q4",
+      question: "If a solution in a standard 1.00 cm cuvette has an optical absorbance of $A = 0.400$, what will the measured absorbance be if the sample is transferred to a 2.00 cm cuvette (keeping concentration and wavelength identical)?",
+      options: [
+        "$A = 0.800$ (absorbance doubles proportionally with path length $b$)",
+        "$A = 0.200$ (absorbance halves)",
+        "$A = 0.400$ (absorbance is independent of cell geometry)",
+        "$A = 1.600$ (absorbance quadruples)"
+      ],
+      correctIndex: 0,
+      explanation: "By the Beer-Lambert Law $A = \\varepsilon \\cdot b \\cdot c$, absorbance is strictly linear with respect to optical path length $b$. Doubling path length from 1.00 cm to 2.00 cm doubles the number of light-absorbing solute particles in the optical path, doubling absorbance to 0.800."
+    },
+    {
+      id: "q5",
+      question: "Why does the calibration plot of absorbance versus concentration deviate negatively from linearity (flattens out) at very high solute concentrations ($c > 0.01\\text{ M}$ or $A > 2.0$)?",
+      options: [
+        "Electrostatic interactions between solute molecules alter their charge distribution and refractive index, and stray instrument light becomes significant",
+        "Photons move faster through concentrated solutions",
+        "The cuvette dissolves into the solvent",
+        "Concentrated solutes stop absorbing photons entirely"
+      ],
+      correctIndex: 0,
+      explanation: "At concentrations above ~0.01 M, inter-ionic and molecular interactions alter the local electronic environment and refractive index (η), changing the effective molar absorptivity ε. Additionally, at $A > 2.0$, less than 1% of light is transmitted, making instrument stray light and detector dark-current limits dominant causes of negative deviation."
     }
   ],
 
@@ -1689,6 +1737,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "In β⁻ decay, weak interaction converts a down quark to an up quark: n → p + e⁻ + ν̄_e. The mass number A remains constant while atomic number Z increases by 1."
+    },
+    {
+      id: "q4",
+      question: "The radioactive decay constant $\\lambda$ and half-life $t_{1/2}$ are related by which fundamental formula?",
+      options: [
+        "$\\lambda = \\frac{\\ln(2)}{t_{1/2}} \\approx \\frac{0.693}{t_{1/2}}$",
+        "$\\lambda = t_{1/2} \\cdot \\ln(2)$",
+        "$\\lambda = \\frac{1}{2 \\cdot t_{1/2}}$",
+        "$\\lambda = (t_{1/2})^2$"
+      ],
+      correctIndex: 0,
+      explanation: "From the first-order exponential decay law $N(t) = N_0 e^{-\\lambda t}$, setting $N(t)/N_0 = 1/2$ at $t = t_{1/2}$ yields $1/2 = e^{-\\lambda t_{1/2}} \\implies \\ln(2) = \\lambda t_{1/2} \\implies \\lambda = \\frac{\\ln(2)}{t_{1/2}} \\approx \\frac{0.693}{t_{1/2}}$."
+    },
+    {
+      id: "q5",
+      question: "Gamma ($\\gamma$) decay occurs when an excited nucleus transitions to a lower nuclear energy state. Gamma radiation consists of:",
+      options: [
+        "High-energy, uncharged electromagnetic photons requiring dense materials like lead or concrete for effective attenuation",
+        "Positively charged helium nuclei deflected easily by magnetic fields",
+        "High-speed electrons that ionize water rapidly",
+        "Heavy neutral hadrons that decay into pions"
+      ],
+      correctIndex: 0,
+      explanation: "Gamma rays are high-frequency electromagnetic photons emitted from an excited nucleus ($A$ and $Z$ remain unchanged). Because they have zero mass and zero charge, they do not interact via Coulomb forces, giving them immense penetration power that necessitates high-Z shielding such as lead."
     }
   ],
 
@@ -1728,6 +1800,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "By definition, colligative properties depend only on the concentration of solute particles (ions or molecules) in a given mass or volume of solvent, not on the identity or chemical properties of the solute."
+    },
+    {
+      id: "q4",
+      question: "When 5.00 g of an unknown non-electrolyte solute is dissolved in 100.0 g of water ($K_f = 1.86^\\circ\\text{C}\\cdot\\text{kg/mol}$), the freezing point drops by $1.86^\\circ\\text{C}$. What is the molar mass of the solute?",
+      options: [
+        "$50.0\\text{ g/mol}$",
+        "$100.0\\text{ g/mol}$",
+        "$25.0\\text{ g/mol}$",
+        "$200.0\\text{ g/mol}$"
+      ],
+      correctIndex: 0,
+      explanation: "From $\\Delta T_f = K_f \\cdot m \\implies 1.86 = 1.86 \\cdot m \\implies m = 1.00\\text{ mol/kg}$. Molality is moles solute per kg solvent: $1.00\\text{ mol/kg} = \\frac{n_{\\text{solute}}}{0.100\\text{ kg}} \\implies n_{\\text{solute}} = 0.100\\text{ mol}$. Molar mass $M = \\frac{5.00\\text{ g}}{0.100\\text{ mol}} = 50.0\\text{ g/mol}$."
+    },
+    {
+      id: "q5",
+      question: "According to the van 't Hoff equation for osmotic pressure ($\\Pi = i M R T$), what happens to osmotic pressure when the absolute temperature $T$ of the solution is doubled (at constant concentration)?",
+      options: [
+        "Osmotic pressure doubles ($2\\Pi$)",
+        "Osmotic pressure is halved (½$\\Pi$)",
+        "Osmotic pressure quadruples ($4\\Pi$)",
+        "Osmotic pressure drops to zero"
+      ],
+      correctIndex: 0,
+      explanation: "In the van 't Hoff relation $\\Pi = i M R T$, osmotic pressure is directly proportional to absolute temperature in Kelvin ($T$). Doubling $T$ doubles the kinetic bombardment and thermal expansion pressure of solute particles across the semipermeable membrane."
     }
   ],
 
@@ -1767,6 +1863,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "The energy peak corresponds to the transition state (‡), a transient molecular geometry with highest potential energy containing partially broken and partially formed bonds."
+    },
+    {
+      id: "q4",
+      question: "According to Zaitsev's rule, when an alkyl halide undergoes base-promoted E2 elimination with a non-bulky base (such as $\\text{NaOCH}_3$), the major alkene product is:",
+      options: [
+        "The more substituted, thermodynamically more stable alkene",
+        "The least substituted alkene (Hofmann product)",
+        "Exclusively a terminal alkyne",
+        "A cyclic ether"
+      ],
+      correctIndex: 0,
+      explanation: "Zaitsev's rule states that base-induced elimination predominantly yields the more substituted, thermodynamically more stable alkene due to hyperconjugation and alkyl group stabilization of the carbon-carbon double bond."
+    },
+    {
+      id: "q5",
+      question: "In the electrophilic addition of hydrogen chloride ($\\text{HCl}$) to propene ($\\text{CH}_3\\text{-CH=CH}_2$), Markovnikov's rule predicts that 2-chloropropane is the major product because:",
+      options: [
+        "Protonation occurs on the terminal carbon to form the more stable secondary carbocation intermediate ($\\text{CH}_3\\text{-CH}^+\\text{-CH}_3$)",
+        "Chlorine is larger than hydrogen and repels the secondary carbon",
+        "The primary carbocation is more stable than the secondary carbocation",
+        "The reaction proceeds via a radical mechanism"
+      ],
+      correctIndex: 0,
+      explanation: "Electrophilic attack by $H^+$ adds to the less substituted carbon ($\text{CH}_2$) so that positive charge resides on the more substituted carbon, yielding a stable $2^\circ$ carbocation (stabilized by hyperconjugation) rather than an unstable $1^\circ$ carbocation. Chloride then attacks the secondary carbocation to form 2-chloropropane."
     }
   ],
 
