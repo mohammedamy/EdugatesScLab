@@ -1886,7 +1886,7 @@ export const LAB_CHECKPOINTS = {
         "The reaction proceeds via a radical mechanism"
       ],
       correctIndex: 0,
-      explanation: "Electrophilic attack by $H^+$ adds to the less substituted carbon ($\text{CH}_2$) so that positive charge resides on the more substituted carbon, yielding a stable $2^\circ$ carbocation (stabilized by hyperconjugation) rather than an unstable $1^\circ$ carbocation. Chloride then attacks the secondary carbocation to form 2-chloropropane."
+      explanation: "Electrophilic attack by $H^+$ adds to the less substituted carbon ($\\text{CH}_2$) so that positive charge resides on the more substituted carbon, yielding a stable $2^\\circ$ carbocation (stabilized by hyperconjugation) rather than an unstable $1^\\circ$ carbocation. Chloride then attacks the secondary carbocation to form 2-chloropropane."
     }
   ],
 
@@ -1926,6 +1926,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Higher agarose concentrations (e.g. 1.8% - 2.0%) create smaller pores in the polymeric gel matrix, which increases friction and separation resolution for low-molecular-weight DNA fragments."
+    },
+    {
+      id: "q4",
+      question: "How do fluorescent dyes such as Ethidium Bromide or GelGreen enable nucleic acid visualization in an agarose gel under UV/blue light transillumination?",
+      options: [
+        "They intercalate between stacked nitrogenous base pairs, dramatically increasing their fluorescence quantum yield when irradiated with excitation light",
+        "They chemically cleave the DNA fragments into fluorescent nucleosides",
+        "They react with agarose polymer chains to make the gel glow",
+        "They oxidize the phosphate backbone to produce chemiluminescence"
+      ],
+      correctIndex: 0,
+      explanation: "Planar fluorophores like ethidium bromide intercalate into the hydrophobic interior between adjacent nitrogenous base pairs of double-stranded DNA. In this immobilized environment, vibrational decay is inhibited, multiplying fluorescence intensity ~20- to 100-fold upon UV/blue excitation."
+    },
+    {
+      id: "q5",
+      question: "Why is a calibrated DNA ladder (molecular weight standard) always loaded into an adjacent lane during agarose gel electrophoresis?",
+      options: [
+        "To provide reference fragments of known base-pair lengths and masses, allowing empirical interpolation of unknown sample fragment sizes",
+        "To provide extra electrical conductance across the gel tray",
+        "To neutralize buffer pH gradients across the cathode",
+        "To prevent thermal convection currents from warping bands"
+      ],
+      correctIndex: 0,
+      explanation: "A DNA ladder contains pre-measured DNA fragments of standardized sizes. By plotting migration distance against log₁₀(bp) of ladder bands, a calibration curve is constructed to determine the exact base-pair sizes of unknown experimental samples."
     }
   ],
 
@@ -1965,6 +1989,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Removing a keystone predator triggers a top-down trophic cascade: herbivore prey populations irrupt unchecked, overgrazing primary producers and devastating habitat architecture and overall biodiversity."
+    },
+    {
+      id: "q4",
+      question: "Which ecological characteristics distinguish an r-selected species (such as bacteria or insects) from a K-selected species (such as elephants or humans)?",
+      options: [
+        "r-selected species exhibit high biotic potential, rapid maturation, large numbers of small offspring, and minimal parental investment",
+        "r-selected species invest heavily in parental care of very few offspring near carrying capacity",
+        "K-selected species have explosive exponential booms and catastrophic crashes",
+        "r-selected species never experience mortality"
+      ],
+      correctIndex: 0,
+      explanation: "r-selected species prioritize maximizing reproductive rate ($r$): early sexual maturity, high fecundity, small body size, and little parental care in unstable environments. K-selected species emphasize competitive ability near carrying capacity ($K$): low fecundity, large body size, and prolonged parental investment."
+    },
+    {
+      id: "q5",
+      question: "Gause's Competitive Exclusion Principle dictates that when two competing species occupy the exact same fundamental ecological niche in a stable environment:",
+      options: [
+        "One species will inevitably outcompete and displace the other, unless resource partitioning or niche differentiation evolves",
+        "Both species will indefinitely coexist at exactly equal population sizes",
+        "Both species instantly mutate to consume different elements",
+        "Total carrying capacity K doubles automatically"
+      ],
+      correctIndex: 0,
+      explanation: "If two species compete for identical limiting resources without niche differentiation, the more efficient competitor will drive the other to local extinction (complete exclusion) or force evolutionary resource partitioning."
     }
   ],
 
@@ -2004,6 +2052,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Following peak depolarization, voltage-gated Na⁺ channels undergo inactivation gate (h-gate) closure. Until the membrane potential repolarizes sufficiently to relieve inactivation, no amount of stimulus current can open them."
+    },
+    {
+      id: "q4",
+      question: "During the falling phase (repolarization) of the neuronal action potential, which ion conductances drive the membrane potential back toward resting values?",
+      options: [
+        "Inactivation of voltage-gated Na⁺ channels combined with delayed opening of voltage-gated K⁺ channels, causing rapid outward K⁺ efflux",
+        "Inward pumping of calcium by ATP synthase",
+        "Active influx of chloride ions through leak channels",
+        "Opening of extra sodium channels"
+      ],
+      correctIndex: 0,
+      explanation: "Repolarization is achieved by the closure of voltage-gated Na⁺ inactivation gates (h-gates) halting Na⁺ entry, alongside the opening of delayed-rectifier voltage-gated K⁺ channels allowing intracellular K⁺ to rush out down its electrochemical gradient."
+    },
+    {
+      id: "q5",
+      question: "Why does myelin sheath insulation (provided by Schwann cells in the PNS or oligodendrocytes in the CNS) accelerate action potential propagation velocity along an axon?",
+      options: [
+        "It increases membrane resistance and decreases capacitance, forcing depolarization to leap electrotonically between Nodes of Ranvier (saltatory conduction)",
+        "It heats the axon to increase ion kinetic energy",
+        "It generates photons that travel at light speed along the axoplasm",
+        "It increases intracellular sodium concentration by ten-fold"
+      ],
+      correctIndex: 0,
+      explanation: "Myelin acts as an electrical insulator: it increases effective membrane resistance (R_m) and decreases membrane capacitance (C_m), minimizing trans-membrane charge leakage. Passive electrotonic current spreads rapidly beneath the myelin, regenerating active action potentials exclusively at unmyelinated Nodes of Ranvier (saltatory conduction)."
     }
   ],
 
@@ -2043,6 +2115,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "With zero external torque, angular momentum $L = I \\omega$ is conserved. Pulling mass inward reduces $I$, increasing $\\omega$. Because $\\text{KE}_{\\text{rot}} = \\frac{L^2}{2I}$, reducing $I$ increases kinetic energy; the extra energy comes from mechanical work done by skater muscles."
+    },
+    {
+      id: "q4",
+      question: "According to the Parallel Axis Theorem ($I = I_{\\text{cm}} + M d^2$), the moment of inertia of a rigid body of mass $M$ about any axis parallel to an axis through its center of mass:",
+      options: [
+        "Is always strictly greater than $I_{\\text{cm}}$ by the quantity $M d^2$ (where $d$ is the perpendicular distance between axes)",
+        "Is always less than $I_{\\text{cm}}$",
+        "Equals zero when $d$ is maximized",
+        "Is independent of the center-of-mass moment of inertia"
+      ],
+      correctIndex: 0,
+      explanation: "The moment of inertia about the center of mass ($I_{\\text{cm}}$) is the absolute minimum possible for that orientation. Moving the rotation axis by perpendicular distance $d$ adds $M d^2$ to the moment of inertia: $I = I_{\\text{cm}} + M d^2$."
+    },
+    {
+      id: "q5",
+      question: "For a uniform solid cylinder ($I = \\frac{1}{2} M R^2$) rolling without slipping at speed $v$, what fraction of its total mechanical kinetic energy is stored in rotational kinetic energy?",
+      options: [
+        "One-third (33.3%, $\\text{KE}_{\\text{rot}} = \\frac{1}{3}\\text{KE}_{\\text{total}}$)",
+        "One-half (50.0%)",
+        "Two-thirds (66.7%)",
+        "One-quarter (25.0%)"
+      ],
+      correctIndex: 0,
+      explanation: "Translational kinetic energy is $\\text{KE}_{\\text{trans}} = \\frac{1}{2} M v^2$. Rotational kinetic energy is $\\text{KE}_{\\text{rot}} = \\frac{1}{2} I \\omega^2 = \\frac{1}{2} (\\frac{1}{2} M R^2) (\\frac{v}{R})^2 = \\frac{1}{4} M v^2$. Total kinetic energy is $\\text{KE}_{\\text{total}} = \\frac{1}{2} M v^2 + \\frac{1}{4} M v^2 = \\frac{3}{4} M v^2$. The fraction in rotation is $\\frac{1/4}{3/4} = \\frac{1}{3}$ (33.3%)."
     }
   ],
 
@@ -2082,6 +2178,30 @@ export const LAB_CHECKPOINTS = {
       ],
       correctIndex: 1,
       explanation: "Under steady-state conditions without internal heat generation and with insulated walls, heat flux $\\frac{dQ}{dt}$ must be uniform across every cross section: $\\frac{dQ}{dt} = -k A \\frac{dT}{dx} = \\text{const}$. Therefore, $\\frac{dT}{dx}$ is constant, yielding a linear profile."
+    },
+    {
+      id: "q4",
+      question: "By analogy to Ohm's Law in electrical circuits ($I = \\frac{\\Delta V}{R}$), thermal conduction rate through a multi-layer composite wall is modeled as $\\frac{dQ}{dt} = \\frac{\\Delta T}{R_{\\text{total}}}$. For two insulating slabs in series, total thermal resistance $R_{\\text{total}}$ equals:",
+      options: [
+        "$R_{\\text{total}} = R_1 + R_2 = \\frac{L_1}{k_1 A} + \\frac{L_2}{k_2 A}$",
+        "$R_{\\text{total}} = \\frac{R_1 R_2}{R_1 + R_2}$",
+        "$R_{\\text{total}} = (R_1 + R_2)^2$",
+        "$R_{\\text{total}} = k_1 k_2 A$"
+      ],
+      correctIndex: 0,
+      explanation: "In series heat conduction, the same conductive heat current $\\frac{dQ}{dt}$ passes sequentially through both layers, and temperature drops sum: $\\Delta T = \\Delta T_1 + \\Delta T_2$. Therefore, thermal resistances add linearly: $R_{\\text{total}} = R_1 + R_2 = \\frac{L_1}{k_1 A} + \\frac{L_2}{k_2 A}$."
+    },
+    {
+      id: "q5",
+      question: "Thermal diffusivity $\\alpha = \\frac{k}{\\rho \\cdot c_p}$ quantifies how rapidly heat diffuses through a material during transient warming/cooling. A material with high thermal conductivity $k$ but very low volumetric heat capacity ($\\rho \\cdot c_p$) will:",
+      options: [
+        "Reach thermal equilibrium rapidly because it conducts heat swiftly while storing very little thermal energy per unit volume",
+        "Take an infinitely long time to warm up",
+        "Stop heat conduction completely",
+        "Undergo instantaneous phase change"
+      ],
+      correctIndex: 0,
+      explanation: "Thermal diffusivity measures the rate of transfer of thermal energy relative to energy storage. High conductivity transfers heat rapidly, and low volumetric heat capacity requires little energy absorption to change temperature, yielding rapid transient thermal equilibration."
     }
   ],
 

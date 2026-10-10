@@ -73,8 +73,8 @@ export function initActionPotentialLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-neuro-reset" style="padding: 5px 12px; font-size: 0.78rem;">
             ⟲ Clear Trace
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-neuro-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
-            📥 Export Telemetry
+          <button class="btn btn-secondary btn-sm" id="btn-neuro-export" title="Export experimental telemetry to RFC-4180 CSV (Hotkey: E)" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
+            📥 Export CSV (E)
           </button>
         </div>
       </div>
@@ -536,6 +536,15 @@ export function initActionPotentialLab(containerId) {
     SoundFX.playClick();
   });
 
+  // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
+  const handleKeyDown = (e) => {
+    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+      e.preventDefault();
+      container.querySelector("#btn-neuro-export")?.click();
+    }
+  };
+  window.addEventListener("keydown", handleKeyDown);
+
   // Mount Assessment
   mountLabCheckpoint("actionpotential-checkpoint-container", "actionpotential");
 
@@ -545,5 +554,6 @@ export function initActionPotentialLab(containerId) {
   return () => {
     isRunning = false;
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("keydown", handleKeyDown);
   };
 }
