@@ -4448,6 +4448,35 @@ export function initFluidsBuoyancyLab(containerId) {
     const lblProbe = container.querySelector("#lbl-probe-depth");
     if (lblProbe) lblProbe.innerText = "10.0 cm";
 
+    inputForceN = 150.0;
+    piston1DiameterCm = 4.0;
+    piston2DiameterCm = 20.0;
+    inputStrokeCm = 12.0;
+    liftedLoadKey = "car";
+
+    const sliderForce = container.querySelector("#slider-input-force");
+    if (sliderForce) sliderForce.value = 150;
+    const lblForce = container.querySelector("#lbl-input-force");
+    if (lblForce) lblForce.innerText = "150 N (15.3 kg equiv)";
+
+    const sliderD1 = container.querySelector("#slider-d1");
+    if (sliderD1) sliderD1.value = 4.0;
+    const lblD1 = container.querySelector("#lbl-d1");
+    if (lblD1) lblD1.innerText = "4.0 cm (A₁ = 12.6 cm²)";
+
+    const sliderD2 = container.querySelector("#slider-d2");
+    if (sliderD2) sliderD2.value = 20.0;
+    const lblD2 = container.querySelector("#lbl-d2");
+    if (lblD2) lblD2.innerText = "20.0 cm (A₂ = 314.2 cm²)";
+
+    const sliderStroke = container.querySelector("#slider-input-stroke");
+    if (sliderStroke) sliderStroke.value = 12.0;
+    const lblStroke = container.querySelector("#lbl-input-stroke");
+    if (lblStroke) lblStroke.innerText = "12.0 cm (d₂ = 0.48 cm)";
+
+    const selLoad = container.querySelector("#select-hydraulic-load");
+    if (selLoad) selLoad.value = "car";
+
     surfaceRippleAmp = 3.0;
     needsRedraw = true;
     SoundFX.playClick();

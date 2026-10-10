@@ -422,6 +422,19 @@ test("LAB_CHECKPOINTS.fluids contains comprehensive 5-question inquiry suite acr
   assert(telemetryCode.includes("hydraulic press governed by Pascal's Principle"), "Must include Pascal checkpoint question");
 });
 
+test("btn-fluid-reset comprehensively resets state and controls across all 4 apparatus modes", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
+  assert(code.includes('container.querySelector("#btn-fluid-reset")'), "Must bind reset button");
+  assert(code.includes('sliderForce.value = 150'), "Must reset hydraulic force slider");
+  assert(code.includes('sliderD1.value = 4.0'), "Must reset hydraulic D1 cylinder diameter");
+  assert(code.includes('sliderD2.value = 20.0'), "Must reset hydraulic D2 cylinder diameter");
+  assert(code.includes('sliderStroke.value = 12.0'), "Must reset hydraulic stroke slider");
+  assert(code.includes('selLoad.value = "car"'), "Must reset hydraulic load selector");
+  assert(code.includes('sliderOrifice.value = 0.40'), "Must reset Torricelli orifice elevation");
+  assert(code.includes('sliderVent.value = 2.0'), "Must reset Venturi flow rate");
+  assert(code.includes('sliderSub.value = 100'), "Must reset Archimedes submersion slider");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Fluids Lab Tests: All ${passed} Passed!`);
 console.log("========================================================\n");
