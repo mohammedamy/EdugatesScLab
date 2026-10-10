@@ -2665,6 +2665,64 @@ export function initFluidsBuoyancyLab(containerId) {
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
+    // Nozzle Profile Specific Hardware Fitting
+    if (dischargeCoeff >= 0.95 && dischargeCoeff < 1.0) {
+      // Well-rounded streamlined bellmouth nozzle
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(tankRightX + 16, nozzleY - 9);
+      ctx.quadraticCurveTo(nozzleExitX + 6, nozzleY - 8, nozzleExitX + 8, nozzleY - 5);
+      ctx.lineTo(nozzleExitX + 8, nozzleY + 5);
+      ctx.quadraticCurveTo(nozzleExitX + 6, nozzleY + 8, tankRightX + 16, nozzleY + 9);
+      ctx.closePath();
+      const bellGrad = ctx.createLinearGradient(tankRightX, nozzleY - 9, nozzleExitX + 8, nozzleY + 9);
+      bellGrad.addColorStop(0, "#475569");
+      bellGrad.addColorStop(0.5, "#94a3b8");
+      bellGrad.addColorStop(1, "#38bdf8");
+      ctx.fillStyle = bellGrad;
+      ctx.fill();
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.restore();
+    } else if (Math.abs(dischargeCoeff - 0.80) < 0.05) {
+      // Short cylindrical Borda tube (machined cylindrical brass sleeve)
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(tankRightX + 16, nozzleY - 6.5, 12, 13);
+      const bordaGrad = ctx.createLinearGradient(tankRightX, nozzleY - 6.5, nozzleExitX + 8, nozzleY + 6.5);
+      bordaGrad.addColorStop(0, "#92400e");
+      bordaGrad.addColorStop(0.5, "#d97706");
+      bordaGrad.addColorStop(1, "#b45309");
+      ctx.fillStyle = bordaGrad;
+      ctx.fill();
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+      ctx.restore();
+    } else if (Math.abs(dischargeCoeff - 0.62) < 0.05) {
+      // Sharp-edged orifice plate with vena contracta bevel
+      ctx.save();
+      ctx.fillStyle = "#64748b";
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1.0;
+      ctx.beginPath();
+      ctx.moveTo(tankRightX + 15, nozzleY - 9);
+      ctx.lineTo(nozzleExitX + 2, nozzleY - 6);
+      ctx.lineTo(nozzleExitX - 2, nozzleY - 6);
+      ctx.lineTo(tankRightX + 15, nozzleY - 9);
+      ctx.fill();
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(tankRightX + 15, nozzleY + 9);
+      ctx.lineTo(nozzleExitX + 2, nozzleY + 6);
+      ctx.lineTo(nozzleExitX - 2, nozzleY + 6);
+      ctx.lineTo(tankRightX + 15, nozzleY + 9);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // Tactile drag arrows on nozzle collar
     ctx.fillStyle = isDraggingOrifice ? "#facc15" : "#f8fafc";
     ctx.font = "bold 9px system-ui, sans-serif";
@@ -2803,8 +2861,11 @@ export function initFluidsBuoyancyLab(containerId) {
       const t = (s / steps) * calc.tFlight;
       const x = nozzleExitX + (calc.vActual * t) * S_x;
       const y = nozzleY + 0.5 * 9.81 * t * t * S_y;
-      // Jet thickness tapers slightly due to gravitational acceleration
-      const thick = 5.5 * Math.pow(Math.max(0.2, 1.0 - (s / steps) * 0.45), 0.5);
+      // Jet thickness tapers slightly due to gravitational acceleration and vena contracta necking
+      let thick = 5.5 * Math.pow(Math.max(0.2, 1.0 - (s / steps) * 0.45), 0.5);
+      if (Math.abs(dischargeCoeff - 0.62) < 0.05 && (s === 1 || s === 2)) {
+        thick *= 0.72; // Vena contracta constriction waist (Cc ≈ 0.62)
+      }
       upperPoints.push({ x, y: y - thick });
       lowerPoints.push({ x, y: y + thick });
     }
@@ -2830,6 +2891,23 @@ export function initFluidsBuoyancyLab(containerId) {
     ctx.moveTo(upperPoints[0].x, upperPoints[0].y + 1);
     for (let i = 1; i < upperPoints.length; i++) ctx.lineTo(upperPoints[i].x, upperPoints[i].y + 1);
     ctx.stroke();
+
+    // Vena contracta callout on sharp-edged orifice
+    if (Math.abs(dischargeCoeff - 0.62) < 0.05) {
+      const vcX = nozzleExitX + 12;
+      ctx.fillStyle = "rgba(250, 204, 21, 0.9)";
+      ctx.font = "bold 8px var(--font-mono, monospace)";
+      ctx.textAlign = "left";
+      ctx.fillText("Vena Contracta (C_c ≈ 0.62)", vcX + 6, nozzleY - 10);
+      ctx.strokeStyle = "rgba(250, 204, 21, 0.45)";
+      ctx.lineWidth = 1.0;
+      ctx.setLineDash([2, 2]);
+      ctx.beginPath();
+      ctx.moveTo(vcX, nozzleY - 8);
+      ctx.lineTo(vcX, nozzleY + 8);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
     ctx.restore();
 
     // Animated Streaming Water Droplets inside Jet

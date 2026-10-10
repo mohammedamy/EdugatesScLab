@@ -441,6 +441,15 @@ test("btn-fluid-reset comprehensively resets state and controls across all 4 app
   assert(code.includes('sliderSub.value = 100'), "Must reset Archimedes submersion slider");
 });
 
+test("phys-fluids-buoyancy.js renders physical nozzle hardware fittings and vena contracta jet constriction", () => {
+  const code = fs.readFileSync(path.resolve("labs/phys-fluids-buoyancy.js"), "utf-8");
+  assert(code.includes("Well-rounded streamlined bellmouth nozzle"), "Must support bellmouth nozzle geometry");
+  assert(code.includes("Short cylindrical Borda tube"), "Must support Borda tube cylinder geometry");
+  assert(code.includes("Sharp-edged orifice plate with vena contracta bevel"), "Must support sharp orifice plate bevel");
+  assert(code.includes("Vena contracta constriction waist"), "Must model fluid jet vena contracta waist constriction");
+  assert(code.includes("Vena Contracta (C_c ≈ 0.62)"), "Must render visual annotation for vena contracta");
+});
+
 console.log("\n========================================================");
 console.log(`📊 Fluids Lab Tests: All ${passed} Passed!`);
 console.log("========================================================\n");
