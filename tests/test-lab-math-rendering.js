@@ -113,7 +113,7 @@ test("cleanLatexForSpeech produces accessible spoken text for screen readers", (
 });
 
 // ----------------------------------------------------
-// 4. Audit All 45 Lab Files for Header Badges
+// 4. Audit All 46 Lab Files for Header Badges
 // ----------------------------------------------------
 test("All virtual laboratory files have typeset formulas in badges without raw unrendered LaTeX", () => {
   const labsDir = path.join(rootDir, "labs");

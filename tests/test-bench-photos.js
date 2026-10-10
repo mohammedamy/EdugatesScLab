@@ -76,7 +76,7 @@ const expectedBenchImages = [
   "arduino_bench.jpg"
 ];
 
-console.log("📁 Test 1: Verifying 45 Lab Bench Image Files in assets/labs/");
+console.log("📁 Test 1: Verifying 46 Lab Bench Image Files in assets/labs/");
 expectedBenchImages.forEach((filename) => {
   const filePath = path.join(rootDir, "assets", "labs", filename);
   const exists = fs.existsSync(filePath);

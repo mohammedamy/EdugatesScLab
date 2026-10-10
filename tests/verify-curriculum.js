@@ -258,7 +258,8 @@ const virtualLabFiles = [
   "labs/bio-plant-transpiration.js",
   "labs/phys-orbital-mechanics.js",
   "labs/phys-sound-resonance.js",
-  "labs/phys-electrostatics.js"
+  "labs/phys-electrostatics.js",
+  "labs/phys-arduino.js"
 ];
 
 let allLabsImported = true;

@@ -225,7 +225,9 @@ const testCases = [
   { input: "lab-sound-resonance", expected: "resonance" },
   { input: "resonance", expected: "resonance" },
   { input: "lab-electrostatics", expected: "electrostatics" },
-  { input: "electrostatics", expected: "electrostatics" }
+  { input: "electrostatics", expected: "electrostatics" },
+  { input: "lab-arduino", expected: "arduino" },
+  { input: "arduino", expected: "arduino" }
 ];
 
 let allNormalized = true;
@@ -251,7 +253,8 @@ const expectedLabIds = [
   "induction", "osmosis", "mitosis", "anatomy",
   "flametest", "precipitation", "activityseries",
   "antibiotic", "elisa", "transpiration",
-  "orbital", "resonance", "electrostatics"
+  "orbital", "resonance", "electrostatics",
+  "arduino"
 ];
 
 let allModulesMapValid = true;
@@ -339,7 +342,8 @@ const labLoaders = [
   { name: "transpiration", loader: () => import("../labs/bio-plant-transpiration.js").then(m => m.initTranspirationLab("test-mount")) },
   { name: "orbital", loader: () => import("../labs/phys-orbital-mechanics.js").then(m => m.initOrbitalMechanicsLab("test-mount")) },
   { name: "resonance", loader: () => import("../labs/phys-sound-resonance.js").then(m => m.initSoundResonanceLab("test-mount")) },
-  { name: "electrostatics", loader: () => import("../labs/phys-electrostatics.js").then(m => m.initElectrostaticsLab("test-mount")) }
+  { name: "electrostatics", loader: () => import("../labs/phys-electrostatics.js").then(m => m.initElectrostaticsLab("test-mount")) },
+  { name: "arduino", loader: () => import("../labs/phys-arduino.js").then(m => m.initArduinoLab("test-mount")) }
 ];
 
 let allLabsInitCleanly = true;
@@ -360,8 +364,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appJsContent = fs.readFileSync(path.join(__dirname, "../app.js"), "utf-8");
-assert(/badge:\s*"45 Labs"/.test(appJsContent), 'Virtual Labs navigation tab badge displays "45 Labs"');
-assert(/tagline:\s*"45 Interactive STEM Workbenches"/.test(appJsContent), 'Virtual Labs navigation tab tagline displays "45 Interactive STEM Workbenches"');
+assert(/badge:\s*"46 Labs"/.test(appJsContent), 'Virtual Labs navigation tab badge displays "46 Labs"');
+assert(/tagline:\s*"46 Interactive STEM Workbenches"/.test(appJsContent), 'Virtual Labs navigation tab tagline displays "46 Interactive STEM Workbenches"');
 
 console.log("\n========================================================");
 console.log(`📊 Lab Links Tests: ${passed} Passed, ${failed} Failed`);

@@ -109,8 +109,8 @@ export const NAV_SUBJECTS = [
   {
     id: "labs",
     name: "Virtual Labs",
-    badge: "45 Labs",
-    tagline: "45 Interactive STEM Workbenches",
+    badge: "46 Labs",
+    tagline: "46 Interactive STEM Workbenches",
     icon: icons.microscope,
     themeClass: "tab-labs",
     color: "#38bdf8"
@@ -788,7 +788,7 @@ function renderAppShell() {
               <li><a href="#chem" aria-label="Chemistry Curriculum Modules">Chemistry (23 Modules)</a></li>
               <li><a href="#bio" aria-label="Biology Curriculum Modules">Biology (27 Modules)</a></li>
               <li><a href="#phys" aria-label="Physics Curriculum Modules">Physics (24 Modules)</a></li>
-              <li><a href="#labs" aria-label="Virtual Science Laboratories Hub">45 Virtual Lab Benches</a></li>
+              <li><a href="#labs" aria-label="Virtual Science Laboratories Hub">46 Virtual Lab Benches</a></li>
               <li><a href="#quiz" aria-label="Automated Assessment Generator">Assessment Generator</a></li>
             </ul>
           </div>
@@ -1606,7 +1606,7 @@ function renderHomePortal(container) {
           </h1>
 
           <p style="font-size: 1.05rem; line-height: 1.65; color: #94a3b8; margin: 0 0 28px; max-width: 720px;">
-            Welcome to the official digital STEM laboratory suite. Engage in 45 high-fidelity 60 FPS interactive laboratory workbenches, explore rigorous Inspire Chemistry, Biology, and Physics curricula, and review certified OSHA safety protocols.
+            Welcome to the official digital STEM laboratory suite. Engage in 46 high-fidelity 60 FPS interactive laboratory workbenches, explore rigorous Inspire Chemistry, Biology, and Physics curricula, and review certified OSHA safety protocols.
           </p>
 
           <div style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 32px;">
@@ -1631,7 +1631,7 @@ function renderHomePortal(container) {
               <div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Inspire Modules</div>
             </div>
             <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 18px;">
-              <div style="font-size: 1.4rem; font-weight: 800; color: #34d399;">45</div>
+              <div style="font-size: 1.4rem; font-weight: 800; color: #34d399;">46</div>
               <div style="font-size: 0.76rem; color: #94a3b8; font-weight: 600; text-transform: uppercase;">Virtual Workbenches</div>
             </div>
             <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 10px 18px;">

@@ -119,7 +119,7 @@ export function openTeacherGuideModal() {
             </div>
           </div>
 
-          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 10px;">Flagship Virtual Laboratory Engines (45 STEM Workbenches)</h3>
+          <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin: 0 0 10px;">Flagship Virtual Laboratory Engines (46 STEM Workbenches)</h3>
           <p style="font-size: 0.86rem; color: var(--text-muted); line-height: 1.5; margin: 0 0 12px;">
             Every virtual lab bench in Edugates-ClipSAT is powered by continuous mathematical physics calculators rather than pre-rendered video clips. Key demonstration benches include:
           </p>
@@ -246,7 +246,7 @@ export function openTeacherGuideModal() {
               <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
                 <td style="padding: 8px 10px;"><code style="background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 4px; font-weight: bold; color: var(--chem-primary);">Ctrl / Cmd + K</code></td>
                 <td style="padding: 8px 10px; font-weight: 600; color: var(--text-main);">Instant Search</td>
-                <td style="padding: 8px 10px;">Search all 74 modules and 45 labs in real-time.</td>
+                <td style="padding: 8px 10px;">Search all 74 modules and 46 labs in real-time.</td>
               </tr>
               <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
                 <td style="padding: 8px 10px;"><code style="background: rgba(255, 255, 255, 0.08); padding: 2px 6px; border-radius: 4px; font-weight: bold; color: var(--chem-primary);">O</code></td>
