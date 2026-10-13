@@ -29,7 +29,7 @@ export function initMitosisLab(containerId) {
   // State Variables
   let activeTab = "animator"; // "animator" or "histology"
   let specimenType = "plant"; // "plant" (Allium cepa) or "animal" (Mammalian somatic)
-  let stainingMode = "fluorescence"; // "fluorescence" (Confocal DAPI/GFP) or "acetocarmine" (Brightfield Feulgen)
+  let stainingMode = "acetocarmine"; // "acetocarmine" (Brightfield real micrograph slide, default) or "fluorescence" (Confocal DAPI/GFP)
   let activeChannel = "all"; // "all", "dapi", "gfp", "kineto"
   let currentPhaseIdx = 0; // 0..4
   let phaseProgress = 0.0; // 0.0 to 1.0 within phase
@@ -141,6 +141,30 @@ export function initMitosisLab(containerId) {
   let animId = null;
   let lastTime = performance.now();
 
+  // Real brightfield photomicrographs (Allium cepa root tip squash, aceto-orcein, 1000x).
+  // All frames share the same cell framing so phases can crossfade in place.
+  const MICROGRAPH_KEYS = ["interphase", "prophase", "metaphase", "anaphase", "telophase", "c_metaphase"];
+  const micrographs = {};
+  if (typeof Image !== "undefined") {
+    MICROGRAPH_KEYS.forEach((k) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = `assets/labs/mitosis/${k}.jpg`;
+      micrographs[k] = img;
+    });
+  }
+
+  function getPhaseImage(phaseKey) {
+    const k = phaseKey === "metaphase" && hasColchicine ? "c_metaphase" : phaseKey;
+    const img = micrographs[k];
+    return img && img.complete && img.naturalWidth > 0 ? img : null;
+  }
+
+  function smoothstep(e0, e1, x) {
+    const t = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1);
+    return t * t * (3 - 2 * t);
+  }
+
   initHistologyCells();
 
   container.innerHTML = `
@@ -184,17 +208,17 @@ export function initMitosisLab(containerId) {
         <div style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">Microscopy Stain:</span>
           <div class="btn-group" style="display: flex; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 6px; padding: 2px;">
-            <button id="btn-stain-fluor" class="btn btn-sm active" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: #38bdf8; color: #082f49; font-weight: 700;">
-              ✨ Confocal (DAPI / GFP)
+            <button id="btn-stain-aceto" class="btn btn-sm active" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: #f43f5e; color: #ffffff; font-weight: 700;" title="Real brightfield photomicrographs of a stained onion root tip squash">
+              🔬 Real Slide (Aceto-orcein)
             </button>
-            <button id="btn-stain-aceto" class="btn btn-sm" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: transparent; color: #cbd5e1; font-weight: 600;">
-              🧪 Acetocarmine / Feulgen
+            <button id="btn-stain-fluor" class="btn btn-sm" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: transparent; color: #cbd5e1; font-weight: 600;" title="Schematic confocal model with separable DNA / tubulin / kinetochore channels">
+              ✨ Confocal Model (DAPI / GFP)
             </button>
           </div>
         </div>
 
         <!-- Confocal Laser Channel Splitter (Visible when Confocal is selected) -->
-        <div id="confocal-channels-wrapper" style="display: flex; align-items: center; gap: 6px;">
+        <div id="confocal-channels-wrapper" style="display: none; align-items: center; gap: 6px;">
           <span style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">Channels:</span>
           <div class="btn-group" style="display: flex; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 6px; padding: 2px;">
             <button class="btn btn-sm channel-btn active" data-chan="all" style="padding: 3px 8px; font-size: 0.72rem; border: none; border-radius: 4px; background: rgba(56, 189, 248, 0.25); color: #38bdf8; font-weight: 700;">Merged RGB</button>
@@ -805,6 +829,15 @@ export function initMitosisLab(containerId) {
     const focusBlur = Math.abs(fineFocus);
     if (focusBlur > 0.2) {
       ctx.filter = `blur(${Math.min(focusBlur * 1.4, 4.0).toFixed(1)}px)`;
+    }
+
+    // Real photomicrograph path (brightfield plant slide)
+    if (!isFluor && specimenType === "plant" && getPhaseImage("interphase")) {
+      drawMicrographView(cx, cy, ocularR, focusBlur);
+      drawMicrographInspector(cx, cy, ocularR);
+      ctx.restore(); // Restore clip
+      drawAnimatorOverlays();
+      return;
     }
 
     // 3. Meristematic Tissue Layer & Cell Boundary: Plant vs Animal Architecture
@@ -1518,7 +1551,109 @@ export function initMitosisLab(containerId) {
     }
 
     ctx.restore(); // Restore clip
+    drawAnimatorOverlays();
+  }
 
+  // Crossfade the real micrographs according to phase + progress.
+  function getMicrographBlend() {
+    const key = PHASES[currentPhaseIdx].key;
+    const cur = getPhaseImage(key);
+    if (currentPhaseIdx === 0) return { a: cur, b: null, t: 0, label: "Interphase" };
+    const prev = getPhaseImage(PHASES[currentPhaseIdx - 1].key);
+    const t = smoothstep(0.0, 0.35, phaseProgress);
+    const name = key === "metaphase" && hasColchicine ? "C-metaphase (colchicine)" : PHASES[currentPhaseIdx].shortName;
+    const label = t < 1 ? `Early ${name.toLowerCase()} (transition)` : name;
+    return { a: prev || cur, b: cur, t, label };
+  }
+
+  function drawMicrographView(cx, cy, ocularR, focusBlur) {
+    const blend = getMicrographBlend();
+    const size = ocularR * 2 * 1.18;
+    // Slow stage drift + slight vibration, like a live eyepiece view
+    const driftX = Math.sin(simTime * 0.37) * 1.6 + Math.sin(simTime * 1.9) * 0.35;
+    const driftY = Math.cos(simTime * 0.29) * 1.2 + Math.cos(simTime * 2.3) * 0.3;
+    const x = cx - size / 2 + driftX;
+    const y = cy - size / 2 + driftY;
+
+    // Defocus: blur + loss of contrast, just like turning the fine focus knob
+    const blurPx = focusBlur > 0.15 ? Math.min(focusBlur * 1.7, 5.5) : 0;
+    const contrast = Math.max(0.6, 1 - focusBlur * 0.11);
+    ctx.filter = `${blurPx ? `blur(${blurPx.toFixed(1)}px) ` : ""}contrast(${contrast.toFixed(2)})`;
+    ctx.globalAlpha = 1;
+    if (blend.a) ctx.drawImage(blend.a, x, y, size, size);
+    if (blend.b && blend.b !== blend.a && blend.t > 0) {
+      ctx.globalAlpha = blend.t;
+      ctx.drawImage(blend.b, x, y, size, size);
+    }
+    ctx.globalAlpha = 1;
+    ctx.filter = "none";
+
+    // Eyepiece field vignette (real oculars darken toward the field stop)
+    const vg = ctx.createRadialGradient(cx, cy, ocularR * 0.55, cx, cy, ocularR);
+    vg.addColorStop(0, "rgba(0,0,0,0)");
+    vg.addColorStop(0.82, "rgba(60,35,15,0.14)");
+    vg.addColorStop(1, "rgba(15,8,2,0.62)");
+    ctx.fillStyle = vg;
+    ctx.fillRect(cx - ocularR, cy - ocularR, ocularR * 2, ocularR * 2);
+
+    // Stage label
+    ctx.font = "bold 11px Inter, system-ui, sans-serif";
+    ctx.textAlign = "center";
+    const lw = ctx.measureText(blend.label).width + 18;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.72)";
+    ctx.beginPath();
+    ctx.roundRect(cx - lw / 2, cy - ocularR + 14, lw, 20, 10);
+    ctx.fill();
+    ctx.fillStyle = "#f8fafc";
+    ctx.fillText(blend.label, cx, cy - ocularR + 28);
+  }
+
+  function drawMicrographInspector(cx, cy, ocularR) {
+    if (!canvasMouse.isOver) return;
+    const mx = canvasMouse.x;
+    const my = canvasMouse.y;
+    const dx = Math.abs(mx - cx);
+    const dy = Math.abs(my - cy);
+    if (Math.hypot(mx - cx, my - cy) > ocularR) return;
+    const key = PHASES[currentPhaseIdx].key;
+    let hit = null;
+
+    if (key === "telophase" && dx < 10 && dy < 190) {
+      hit = { title: "Cell Plate", desc: "Golgi vesicles fuse in the middle of the cell to build a new wall. Plant cells can't pinch in like animal cells because of the rigid wall.", tag: "Plant Cytokinesis" };
+    } else if (Math.abs(dx - 191) < 11 || Math.abs(dy - 205) < 11) {
+      hit = { title: "Cellulose Cell Wall", desc: "Rigid wall shared with the neighbouring meristem cells. It barely takes up the orcein stain, so it looks pale tan.", tag: "Cell Wall" };
+    } else if (dx < 110 && dy < 110) {
+      const info = {
+        interphase: ["Interphase Nucleus", "Intact nuclear envelope with loose, granular chromatin. The dark spot is the nucleolus. DNA is copied during S phase.", "G₁ / S / G₂"],
+        prophase: ["Condensing Chromosomes", "Chromatin coils into visible threads; the nucleolus fades and the nuclear envelope is about to break down.", "Prophase"],
+        metaphase: hasColchicine
+          ? ["C-metaphase Chromosomes", "Colchicine stops spindle formation, so chromosomes scatter instead of lining up. Sister chromatids splay into X shapes but stay joined at the centromere. Count them: 2n = 16.", "Colchicine Arrest"]
+          : ["Metaphase Plate", "Chromosomes line up across the middle of the cell, each attached to spindle fibres from both poles.", "Metaphase"],
+        anaphase: ["Separating Chromatids", "Sister chromatids are pulled to opposite poles. They form V shapes because the centromere leads and the arms trail behind.", "Anaphase"],
+        telophase: ["Daughter Nuclei", "Chromosomes decondense at each pole and new nuclear envelopes form.", "Telophase"]
+      }[key];
+      hit = { title: info[0], desc: info[1], tag: info[2] };
+    } else {
+      hit = { title: "Cytoplasm", desc: "Dense meristem cytoplasm. Small vacuoles, no chloroplasts (root tip cells are non-photosynthetic).", tag: "Cytoplasm" };
+    }
+
+    if (hit && inspectTitle && inspectDesc && inspectTag) {
+      inspectTitle.textContent = `🔬 ${hit.title}`;
+      inspectDesc.textContent = hit.desc;
+      inspectTag.textContent = hit.tag;
+      inspectTag.style.background = "rgba(16, 185, 129, 0.2)";
+      inspectTag.style.color = "#34d399";
+    }
+    // Eyepiece pointer
+    ctx.strokeStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(mx, my);
+    ctx.lineTo(mx + 22, my + 22);
+    ctx.stroke();
+  }
+
+  function drawAnimatorOverlays() {
     // 8. Draggable Ocular Micrometer (Graticule Ruler Tool)
     if (showGraticule) {
       drawOcularGraticule(ctx, graticulePos.x, graticulePos.y);
@@ -1728,6 +1863,42 @@ export function initMitosisLab(containerId) {
         ctx.globalAlpha = 0.2;
       }
 
+      // Real micrograph tile (same photo set as the animator, so each cell's true phase is correct)
+      const tileImg = !isFluor && specimenType === "plant" ? getPhaseImage(c.actualPhase) : null;
+      if (tileImg) {
+        const tx = gx + 1 + c.wallJitterX * 0.5;
+        const ty = gy + 1 + c.wallJitterY * 0.5;
+        const tw = cellW - 2;
+        const th = cellH - 2;
+        const flipX = (c.id * 7) % 2 === 0;
+        const flipY = (c.id * 13) % 3 === 0;
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(tx, ty, tw, th);
+        ctx.clip();
+        ctx.translate(tx + tw / 2, ty + th / 2);
+        ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+        const tone = 0.92 + ((c.id * 37) % 17) / 100;
+        const sat = 0.88 + ((c.id * 11) % 22) / 100;
+        ctx.filter = `brightness(${tone.toFixed(2)}) saturate(${sat.toFixed(2)})`;
+        const sw = tileImg.naturalWidth;
+        const sh = tileImg.naturalHeight;
+        const cropW = sw * 0.65;
+        const cropH = cropW * (th / tw);
+        ctx.drawImage(tileImg, (sw - cropW) / 2, (sh - cropH) / 2, cropW, cropH, -tw / 2, -th / 2, tw, th);
+        ctx.restore();
+        ctx.strokeStyle = "rgba(176, 120, 96, 0.9)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(tx, ty, tw, th);
+        if (isSelected) {
+          ctx.strokeStyle = "#0ea5e9";
+          ctx.lineWidth = 3;
+          ctx.strokeRect(tx + 1.5, ty + 1.5, tw - 3, th - 3);
+        }
+        ctx.restore();
+        return;
+      }
+
       // Authentic Plant Meristem Cell Wall (Cellulose file with subtle jitter)
       ctx.strokeStyle = isFluor ? "#065f46" : "#b45309";
       ctx.lineWidth = isSelected ? 3.5 : 2;
@@ -1837,9 +2008,14 @@ export function initMitosisLab(containerId) {
         ctx.translate(-lx, -ly);
 
         // Render high-mag cell detail
-        ctx.strokeStyle = "#38bdf8";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(lx - 25, ly - 18, 50, 36);
+        const loupeImg = !isFluor && specimenType === "plant" ? getPhaseImage(hCell.actualPhase) : null;
+        if (loupeImg) {
+          ctx.drawImage(loupeImg, lx - 30, ly - 30, 60, 60);
+        } else {
+          ctx.strokeStyle = "#38bdf8";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(lx - 25, ly - 18, 50, 36);
+        }
 
         ctx.restore();
 

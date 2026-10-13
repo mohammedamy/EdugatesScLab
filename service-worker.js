@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v114";
+const CACHE_NAME = "amscilab-pwa-v115";
 
 const CORE_APP_SHELL = [
   "./",
@@ -279,6 +279,12 @@ const SECONDARY_ASSETS = [
   "./assets/labs/induction_bench.jpg",
   "./assets/labs/osmosis_bench.jpg",
   "./assets/labs/mitosis_bench.jpg",
+  "./assets/labs/mitosis/interphase.jpg",
+  "./assets/labs/mitosis/prophase.jpg",
+  "./assets/labs/mitosis/metaphase.jpg",
+  "./assets/labs/mitosis/anaphase.jpg",
+  "./assets/labs/mitosis/telophase.jpg",
+  "./assets/labs/mitosis/c_metaphase.jpg",
   "./assets/labs/flame_test_bench.jpg",
   "./assets/labs/precipitation_bench.jpg",
   "./assets/labs/activity_series_bench.jpg",
