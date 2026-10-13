@@ -55,9 +55,9 @@
 body.mode-smartboard,
 html.mode-smartboard,
 .fast-smartboard-mode {
-  --nav-height: 96px;
-  --touch-target: 64px;
-  font-size: 19px;
+  --nav-height: 56px;
+  --touch-target: 48px;
+  font-size: 17px;
   scroll-behavior: auto !important; /* Immediate 1:1 touch response without software animation lag */
   -webkit-overflow-scrolling: touch;
 }
@@ -541,28 +541,83 @@ html.mode-smartboard *,
   transition-duration: 0.06s !important;
 }
 
-[data-mode="smartboard"] .brand-logo-box,
-body.mode-smartboard .brand-logo-box {
-  width: 70px;
-  height: 70px;
+/* SMARTBOARD / TURBO HEADER: Keep navbar brand, dropdown, and buttons compact and smaller */
+[data-mode="smartboard"] .app-navbar .brand-logo-box,
+body.mode-smartboard .app-navbar .brand-logo-box,
+.fast-smartboard-mode .app-navbar .brand-logo-box,
+.is-smartboard .app-navbar .brand-logo-box {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  border-radius: 9px !important;
+  padding: 2px !important;
 }
 
-[data-mode="smartboard"] .brand-text h1,
-body.mode-smartboard .brand-text h1 {
-  font-size: 1.65rem;
+[data-mode="smartboard"] .app-navbar .brand-text h1,
+body.mode-smartboard .app-navbar .brand-text h1,
+.fast-smartboard-mode .app-navbar .brand-text h1,
+.is-smartboard .app-navbar .brand-text h1 {
+  font-size: 1.05rem !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
 }
 
-[data-mode="smartboard"] .btn,
-body.mode-smartboard .btn {
-  min-height: 58px;
-  padding: 14px 28px;
-  font-size: 1.15rem;
+[data-mode="smartboard"] .app-navbar .brand-tagline,
+body.mode-smartboard .app-navbar .brand-tagline,
+.fast-smartboard-mode .app-navbar .brand-tagline,
+.is-smartboard .app-navbar .brand-tagline {
+  font-size: 0.62rem !important;
+  margin-top: 1px !important;
+  letter-spacing: 0.04em !important;
 }
 
-[data-mode="smartboard"] .nav-tab,
-body.mode-smartboard .nav-tab {
-  padding: 16px 24px;
-  font-size: 1.2rem;
+/* Scoped to main page interactive buttons, NEVER navbar header controls */
+[data-mode="smartboard"] .app-main .btn,
+body.mode-smartboard .app-main .btn,
+[data-mode="smartboard"] .modal-content-shell .btn,
+body.mode-smartboard .modal-content-shell .btn {
+  min-height: 52px;
+  padding: 12px 24px;
+  font-size: 1.05rem;
+}
+
+/* Ensure navbar action buttons (Mastery, Focus) stay sleek, small, and elegant */
+[data-mode="smartboard"] .app-navbar .btn,
+body.mode-smartboard .app-navbar .btn,
+.fast-smartboard-mode .app-navbar .btn,
+.is-smartboard .app-navbar .btn,
+[data-mode="smartboard"] .app-navbar .nav-action-btn,
+body.mode-smartboard .app-navbar .nav-action-btn,
+.fast-smartboard-mode .app-navbar .nav-action-btn,
+.is-smartboard .app-navbar .nav-action-btn {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 2px 10px !important;
+  font-size: 0.74rem !important;
+  font-weight: 600 !important;
+  border-radius: 9999px !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+}
+
+[data-mode="smartboard"] .app-navbar .nav-tab,
+body.mode-smartboard .app-navbar .nav-tab,
+.fast-smartboard-mode .app-navbar .nav-tab,
+.is-smartboard .app-navbar .nav-tab,
+[data-mode="smartboard"] .app-navbar .nav-subjects-dropdown-btn,
+body.mode-smartboard .app-navbar .nav-subjects-dropdown-btn,
+.fast-smartboard-mode .app-navbar .nav-subjects-dropdown-btn,
+.is-smartboard .app-navbar .nav-subjects-dropdown-btn,
+[data-mode="smartboard"] .app-navbar .nav-dropdown-trigger,
+body.mode-smartboard .app-navbar .nav-dropdown-trigger,
+.fast-smartboard-mode .app-navbar .nav-dropdown-trigger,
+.is-smartboard .app-navbar .nav-dropdown-trigger {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 2px 10px 2px 8px !important;
+  font-size: 0.78rem !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
 }
 
 [data-mode="smartboard"] .module-card,
@@ -15319,8 +15374,112 @@ body.focus-mode .btn-focus-mode-exit {
 [data-mode="smartboard"] .app-navbar,
 .fast-smartboard-mode .app-navbar,
 .is-smartboard .app-navbar,
-.is-android .app-navbar {
+.is-android .app-navbar,
+body.mode-smartboard .app-navbar {
   background: #070a12 !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 0 16px !important;
+  gap: 8px 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: nowrap !important;
+  overflow: visible !important;
+}
+
+[data-mode="smartboard"] .app-navbar .brand-section,
+body.mode-smartboard .app-navbar .brand-section,
+.fast-smartboard-mode .app-navbar .brand-section,
+.is-smartboard .app-navbar .brand-section {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+[data-mode="smartboard"] .app-navbar .nav-right-controls,
+body.mode-smartboard .app-navbar .nav-right-controls,
+.fast-smartboard-mode .app-navbar .nav-right-controls,
+.is-smartboard .app-navbar .nav-right-controls,
+.is-android .app-navbar .nav-right-controls {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+  flex-wrap: nowrap !important;
+}
+
+[data-mode="smartboard"] .app-navbar .theme-toggle-btn,
+body.mode-smartboard .app-navbar .theme-toggle-btn,
+.fast-smartboard-mode .app-navbar .theme-toggle-btn,
+.is-smartboard .app-navbar .theme-toggle-btn {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 2px 7px !important;
+  gap: 5px !important;
+  flex-shrink: 0 !important;
+}
+
+[data-mode="smartboard"] .app-navbar .theme-toggle-track,
+body.mode-smartboard .app-navbar .theme-toggle-track,
+.fast-smartboard-mode .app-navbar .theme-toggle-track,
+.is-smartboard .app-navbar .theme-toggle-track {
+  width: 30px !important;
+  height: 16px !important;
+}
+
+[data-mode="smartboard"] .app-navbar .theme-toggle-thumb,
+body.mode-smartboard .app-navbar .theme-toggle-thumb,
+.fast-smartboard-mode .app-navbar .theme-toggle-thumb,
+.is-smartboard .app-navbar .theme-toggle-thumb {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+[data-mode="smartboard"] .app-navbar .theme-toggle-text,
+body.mode-smartboard .app-navbar .theme-toggle-text,
+.fast-smartboard-mode .app-navbar .theme-toggle-text,
+.is-smartboard .app-navbar .theme-toggle-text {
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+}
+
+[data-mode="smartboard"] .app-navbar .device-mode-toggle,
+body.mode-smartboard .app-navbar .device-mode-toggle,
+.fast-smartboard-mode .app-navbar .device-mode-toggle,
+.is-smartboard .app-navbar .device-mode-toggle {
+  min-height: 28px !important;
+  height: 28px !important;
+  padding: 2px !important;
+  gap: 2px !important;
+  flex-shrink: 0 !important;
+}
+
+[data-mode="smartboard"] .app-navbar .device-btn,
+body.mode-smartboard .app-navbar .device-btn,
+.fast-smartboard-mode .app-navbar .device-btn,
+.is-smartboard .app-navbar .device-btn {
+  min-height: 24px !important;
+  height: 24px !important;
+  padding: 2px 7px !important;
+  font-size: 0.72rem !important;
+  gap: 3px !important;
+  line-height: 1.2 !important;
+}
+
+[data-mode="smartboard"] .app-navbar .device-btn .device-btn-full,
+body.mode-smartboard .app-navbar .device-btn .device-btn-full,
+.fast-smartboard-mode .app-navbar .device-btn .device-btn-full,
+.is-smartboard .app-navbar .device-btn .device-btn-full {
+  display: none !important;
+}
+
+[data-mode="smartboard"] .app-navbar .device-btn .device-btn-short,
+body.mode-smartboard .app-navbar .device-btn .device-btn-short,
+.fast-smartboard-mode .app-navbar .device-btn .device-btn-short,
+.is-smartboard .app-navbar .device-btn .device-btn-short {
+  display: inline !important;
 }
 
 [data-mode="smartboard"] .smartboard-pen-bar,
