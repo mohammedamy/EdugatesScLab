@@ -3104,6 +3104,26 @@ export function initArduinoLab(containerId) {
   const plotterCanvas = document.getElementById("plotter-canvas");
   const plotterCtx = plotterCanvas ? plotterCanvas.getContext("2d") : null;
 
+  // HiDPI Retina / Smartboard Scaling for Arduino Workbench and Oscilloscope Plotter
+  const LOGICAL_ARDUINO_W = 850;
+  const LOGICAL_ARDUINO_H = 460;
+  const LOGICAL_PLOTTER_W = 900;
+  const LOGICAL_PLOTTER_H = 200;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(LOGICAL_ARDUINO_W * dpr);
+      canvas.height = Math.round(LOGICAL_ARDUINO_H * dpr);
+    }
+    if (plotterCanvas) {
+      plotterCanvas.width = Math.round(LOGICAL_PLOTTER_W * dpr);
+      plotterCanvas.height = Math.round(LOGICAL_PLOTTER_H * dpr);
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   const btnMute = document.getElementById("btn-arduino-mute");
   const muteIcon = document.getElementById("mute-icon");
   const muteLabel = document.getElementById("mute-label");
@@ -4387,8 +4407,8 @@ export function initArduinoLab(containerId) {
     const rect = (canvas.getBoundingClientRect && canvas.getBoundingClientRect()) || {
       left: 0,
       top: 0,
-      width: canvas.width || 850,
-      height: canvas.height || 460
+      width: LOGICAL_ARDUINO_W,
+      height: LOGICAL_ARDUINO_H
     };
     let clientX = e.clientX;
     let clientY = e.clientY;
@@ -4400,8 +4420,8 @@ export function initArduinoLab(containerId) {
       clientY = e.changedTouches[0].clientY;
     }
     if (clientX === undefined || clientY === undefined) return null;
-    const scaleX = (canvas.width || 850) / (rect.width || 1);
-    const scaleY = (canvas.height || 460) / (rect.height || 1);
+    const scaleX = LOGICAL_ARDUINO_W / (rect.width || 1);
+    const scaleY = LOGICAL_ARDUINO_H / (rect.height || 1);
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY
@@ -5472,30 +5492,43 @@ export function initArduinoLab(containerId) {
   // -------------------------------------------------------------------------
   function drawArduinoWorkbench() {
     if (!ctx || !canvas) return;
-    const w = canvas.width;
-    const h = canvas.height;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const w = LOGICAL_ARDUINO_W;
+    const h = LOGICAL_ARDUINO_H;
 
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
 
-    // 1. Dark Workbench Bench Mat Background
-    ctx.fillStyle = "#070c18";
+    // 1. Dark Workbench Bench Mat Background with realistic textured ESD silicone finish
+    const matGrad = ctx.createLinearGradient(0, 0, 0, h);
+    matGrad.addColorStop(0, "#080d1a");
+    matGrad.addColorStop(0.5, "#060914");
+    matGrad.addColorStop(1, "#03060d");
+    ctx.fillStyle = matGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // Antistatic grid lines
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.05)";
+    // Antistatic ESD grid lines with grounded crosshair ticks
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.06)";
     ctx.lineWidth = 1;
-    for (let x = 0; x < w; x += 25) {
+    for (let x = 0; x <= w; x += 25) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, h);
       ctx.stroke();
     }
-    for (let y = 0; y < h; y += 25) {
+    for (let y = 0; y <= h; y += 25) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(w, y);
       ctx.stroke();
     }
+
+    // Outer grounded mat bezel
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.22)";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(1, 1, w - 2, h - 2);
 
     // 2. Draw Realistic Arduino Uno R3 Board on Left (x: 40, y: 55, w: 340, h: 350)
     drawArduinoBoard(ctx, 40, 55, 340, 350);
@@ -5508,6 +5541,8 @@ export function initArduinoLab(containerId) {
 
     // 5. Draw Canvas Interactive Hover Highlights & Component Tooltips
     drawCanvasInteractions(ctx);
+
+    ctx.restore();
   }
 
   // Render Canvas Hover Feedback & Interactive Cues
@@ -5583,7 +5618,7 @@ export function initArduinoLab(containerId) {
     let badgeY = hoveredTarget.center.y - (hoveredTarget.box ? hoveredTarget.box.h / 2 + 28 : 34);
 
     if (badgeX < 10) badgeX = 10;
-    if (badgeX + badgeW > (canvas ? canvas.width : 850) - 10) badgeX = (canvas ? canvas.width : 850) - badgeW - 10;
+    if (badgeX + badgeW > LOGICAL_ARDUINO_W - 10) badgeX = LOGICAL_ARDUINO_W - badgeW - 10;
     if (badgeY < 10) badgeY = hoveredTarget.center.y + 30;
 
     c.fillStyle = "rgba(5, 8, 17, 0.92)";
@@ -5770,22 +5805,44 @@ export function initArduinoLab(containerId) {
   function drawLedBulb(c, lx, ly, color, isActive, label = "") {
     c.save();
     c.beginPath();
-    c.arc(lx, ly, 4, 0, Math.PI * 2);
+    c.arc(lx, ly, 4.5, 0, Math.PI * 2);
     if (isActive) {
       c.fillStyle = color;
       c.shadowColor = color;
-      c.shadowBlur = 12;
+      c.shadowBlur = 14;
+      c.fill();
+
+      // White-hot core photon emission
+      c.beginPath();
+      c.arc(lx, ly, 2.2, 0, Math.PI * 2);
+      c.fillStyle = "#ffffff";
+      c.shadowColor = "#ffffff";
+      c.shadowBlur = 6;
       c.fill();
     } else {
-      c.fillStyle = "rgba(100, 116, 139, 0.4)";
+      const offGrad = c.createRadialGradient(lx - 1, ly - 1, 0.5, lx, ly, 4.5);
+      offGrad.addColorStop(0, "rgba(226, 232, 240, 0.6)");
+      offGrad.addColorStop(0.5, "rgba(100, 116, 139, 0.5)");
+      offGrad.addColorStop(1, "rgba(51, 65, 85, 0.7)");
+      c.fillStyle = offGrad;
       c.fill();
     }
+    c.shadowColor = "transparent";
+    c.strokeStyle = "rgba(15, 23, 42, 0.5)";
+    c.lineWidth = 0.8;
+    c.stroke();
+
+    // Specular highlight glint on lens dome
+    c.fillStyle = "rgba(255, 255, 255, 0.8)";
+    c.beginPath();
+    c.arc(lx - 1.2, ly - 1.2, 1.2, 0, Math.PI * 2);
+    c.fill();
     c.restore();
 
     if (label) {
       c.fillStyle = "#94a3b8";
-      c.font = "7px sans-serif";
-      c.fillText(label, lx - 4, ly + 12);
+      c.font = "bold 7px monospace";
+      c.fillText(label, lx - 4, ly + 13);
     }
   }
 
@@ -7764,9 +7821,13 @@ export function initArduinoLab(containerId) {
   // -------------------------------------------------------------------------
   function drawPlotterWaveforms() {
     if (!plotterCtx || !plotterCanvas) return;
-    const pw = plotterCanvas.width;
-    const ph = plotterCanvas.height;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const pw = LOGICAL_PLOTTER_W;
+    const ph = LOGICAL_PLOTTER_H;
 
+    plotterCtx.save();
+    plotterCtx.resetTransform();
+    plotterCtx.scale(dpr, dpr);
     plotterCtx.clearRect(0, 0, pw, ph);
 
     // 1. Deep Oscilloscope Phosphor Graticule Screen Background
@@ -7952,6 +8013,7 @@ export function initArduinoLab(containerId) {
     if (dsoMetricsCh2) {
       dsoMetricsCh2.textContent = `CH2 (${state.dso?.ch2Probe || "pot"}): Vpp = ${ch2Vpp.toFixed(2)}V | Vrms = ${ch2Vrms.toFixed(2)}V | Max = ${ch2Max.toFixed(2)}V`;
     }
+    plotterCtx.restore();
   }
 
   // Global Keyboard Shortcuts
@@ -7973,6 +8035,7 @@ export function initArduinoLab(containerId) {
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
     }
+    window.removeEventListener("resize", setupHiDPICanvas);
     if (canvas) {
       canvas.removeEventListener("mousedown", handleCanvasPointerDown);
       canvas.removeEventListener("mousemove", handleCanvasPointerMove);

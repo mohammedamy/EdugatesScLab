@@ -56,6 +56,7 @@ export function initRespirationLab(containerId) {
   let o2ConsumedTotal = 0.0; // mL
   let manometerShift = 0.0; // mm
   let animId = null;
+  let simClock = 0;
 
   // Time-series recording
   const timeSeries = [];
@@ -230,6 +231,26 @@ export function initRespirationLab(containerId) {
   const graphCanvas = container.querySelector("#resp-graph-canvas");
   const graphCtx = graphCanvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+  const graphLogicalW = 420;
+  const graphLogicalH = 120;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+    if (graphCanvas) {
+      graphCanvas.width = Math.round(graphLogicalW * dpr);
+      graphCanvas.height = Math.round(graphLogicalH * dpr);
+    }
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   // DOM Elements
   const dispRate = container.querySelector("#disp-resp-rate");
   const dispAccum = container.querySelector("#disp-resp-accum");
@@ -258,215 +279,431 @@ export function initRespirationLab(containerId) {
 
   // 60 FPS HTML5 Simulation of Respirometer Chamber & Manometer
   function renderApparatus() {
-    const W = canvas.width;
-    const H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
-    // Bench Surface
+    simClock += 0.03;
+
+    // 1. Heavy Laboratory Benchtop
     const benchY = 460;
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(0, benchY, W, H - benchY);
-    ctx.strokeStyle = "#475569";
+    const benchGrad = ctx.createLinearGradient(0, benchY, 0, logicalH);
+    benchGrad.addColorStop(0, "#334155");
+    benchGrad.addColorStop(0.1, "#1e293b");
+    benchGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = benchGrad;
+    ctx.fillRect(0, benchY, logicalW, logicalH - benchY);
+
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, benchY);
-    ctx.lineTo(W, benchY);
+    ctx.lineTo(logicalW, benchY);
     ctx.stroke();
 
-    const CX = W * 0.48;
+    const CX = logicalW * 0.48;
     const CY = 270;
 
-    // --- WATER BATH CHAMBER (Outer Glass Tank) ---
-    const tankW = 320;
-    const tankH = 220;
-    const tankX = CX - tankW/2;
-    const tankY = CY - tankH/2 + 30;
+    // 2. Thermostatic Water Bath Tank (Polished Acrylic Container)
+    const tankW = 340;
+    const tankH = 230;
+    const tankX = CX - tankW / 2;
+    const tankY = CY - tankH / 2 + 25;
 
-    ctx.fillStyle = "rgba(56, 189, 248, 0.18)";
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
-    ctx.lineWidth = 2.5;
+    // Shadow under water bath
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 8;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
     ctx.beginPath();
-    ctx.roundRect(tankX, tankY, tankW, tankH, [0, 0, 10, 10]);
+    ctx.roundRect(tankX, tankY, tankW, tankH, 12);
     ctx.fill();
+    ctx.restore();
+
+    // Water fluid fill with caustics and thermal gradient
+    const waterGrad = ctx.createLinearGradient(0, tankY, 0, tankY + tankH);
+    waterGrad.addColorStop(0, "rgba(56, 189, 248, 0.22)");
+    waterGrad.addColorStop(0.5, "rgba(14, 165, 233, 0.28)");
+    waterGrad.addColorStop(1, "rgba(3, 105, 161, 0.38)");
+    ctx.fillStyle = waterGrad;
+    ctx.beginPath();
+    ctx.roundRect(tankX, tankY + 15, tankW, tankH - 15, [0, 0, 10, 10]);
+    ctx.fill();
+
+    // Water Surface Meniscus with gentle thermal ripple
+    const ripple = Math.sin(simClock * 2) * 2;
+    ctx.strokeStyle = "rgba(186, 230, 253, 0.8)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(tankX + 4, tankY + 15 + ripple);
+    ctx.bezierCurveTo(tankX + tankW * 0.33, tankY + 13 - ripple, tankX + tankW * 0.66, tankY + 17 + ripple, tankX + tankW - 4, tankY + 15 - ripple);
     ctx.stroke();
 
-    // Water Bath Label
+    // Tank Acrylic Walls & Bevels
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.65)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(tankX, tankY, tankW, tankH, 12);
+    ctx.stroke();
+
+    // Thermostatic Circulator Head on Tank Left Rim (x: tankX + 10, y: tankY - 30)
+    const circX = tankX + 12;
+    const circY = tankY - 35;
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(circX, circY, 36, 45);
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(circX, circY, 36, 45);
+
+    // Digital readout on circulator
+    ctx.fillStyle = "#020617";
+    ctx.fillRect(circX + 4, circY + 6, 28, 14);
+    ctx.fillStyle = "#ec4899";
+    ctx.font = "bold 8px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`${temperature}°C`, circX + 18, circY + 16);
+
+    // Submersible heating rod extending into water
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillRect(circX + 14, circY + 45, 8, 90);
+
+    // Tank Title Plaque
     ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 10px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(`THERMOSTATIC WATER BATH (${temperature}°C)`, CX, tankY + tankH - 12);
+    ctx.fillText(`THERMOSTATIC WATER BATH (${temperature.toFixed(1)}°C CONSTANT)`, CX, tankY + tankH - 12);
 
-    // --- EXPERIMENTAL RESPIROMETER VIAL (Left) ---
-    const vialW = 75;
-    const vialH = 160;
-    const vial1X = CX - 100;
-    const vial1Y = CY - 50;
+    // 3. Experimental Respirometer Vial (Left)
+    const vialW = 76;
+    const vialH = 165;
+    const vial1X = CX - 95;
+    const vial1Y = CY - 48;
 
-    ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
-    ctx.strokeStyle = "#94a3b8";
+    // Glass body
+    ctx.fillStyle = "rgba(255, 255, 255, 0.07)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(vial1X - vialW/2, vial1Y, vialW, vialH, [0, 0, 10, 10]);
+    ctx.roundRect(vial1X - vialW / 2, vial1Y, vialW, vialH, [0, 0, 10, 10]);
     ctx.fill();
     ctx.stroke();
 
-    // Rubber Stopper
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(vial1X - vialW/2 - 4, vial1Y - 14, vialW + 8, 14);
+    // Neoprene Rubber Stopper
+    const stopperGrad = ctx.createLinearGradient(vial1X - vialW / 2, 0, vial1X + vialW / 2, 0);
+    stopperGrad.addColorStop(0, "#1e293b");
+    stopperGrad.addColorStop(0.5, "#475569");
+    stopperGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = stopperGrad;
+    ctx.beginPath();
+    ctx.roundRect(vial1X - vialW / 2 - 4, vial1Y - 14, vialW + 8, 16, 3);
+    ctx.fill();
+
+    // Brass capillary fitting through stopper
+    ctx.fillStyle = "#f59e0b";
+    ctx.fillRect(vial1X - 4, vial1Y - 20, 8, 8);
+
+    // Vial Label Top
+    ctx.fillStyle = "#fb923c";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("EXPERIMENTAL", vial1X, vial1Y + 18);
 
     // KOH Pellets at bottom of vial
     if (kohActive) {
-      ctx.fillStyle = "#ffffff";
-      for (let i = 0; i < 6; i++) {
-        ctx.beginPath();
-        ctx.arc(vial1X - 20 + (i % 3) * 20, vial1Y + vialH - 12 - Math.floor(i / 3) * 12, 5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.fillStyle = "#facc15";
-      ctx.font = "8px monospace";
-      ctx.fillText("KOH", vial1X, vial1Y + vialH - 2);
-    }
-
-    // Absorbent Cotton Barrier
-    ctx.fillStyle = "rgba(241, 245, 249, 0.75)";
-    ctx.fillRect(vial1X - vialW/2 + 6, vial1Y + vialH - 45, vialW - 12, 14);
-
-    // Living Specimen (Germinating Peas or Beads)
-    if (activeSpecimen.type === "aerobic") {
-      ctx.fillStyle = "#4ade80"; // pea green
+      // Base layer of crystalline KOH pellets
       for (let i = 0; i < 8; i++) {
-        const px = vial1X - 22 + (i % 3) * 20;
-        const py = vial1Y + vialH - 65 - Math.floor(i / 3) * 18;
+        const kx = vial1X - 24 + (i % 4) * 16;
+        const ky = vial1Y + vialH - 10 - Math.floor(i / 4) * 12;
         ctx.beginPath();
-        ctx.arc(px, py, 7, 0, Math.PI * 2);
+        ctx.arc(kx, ky, 5.5, 0, Math.PI * 2);
+        const kGrad = ctx.createRadialGradient(kx - 1, ky - 1, 1, kx, ky, 5.5);
+        kGrad.addColorStop(0, "#ffffff");
+        kGrad.addColorStop(0.7, "#f1f5f9");
+        kGrad.addColorStop(1, "#94a3b8");
+        ctx.fillStyle = kGrad;
         ctx.fill();
-        // Sprout rootlet
-        ctx.strokeStyle = "#ffffff";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(px, py);
-        ctx.lineTo(px + 4, py - 6);
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+        ctx.lineWidth = 1;
         ctx.stroke();
       }
-    } else if (activeSpecimen.type === "control") {
-      ctx.fillStyle = "rgba(255,255,255,0.7)"; // glass beads
-      for (let i = 0; i < 8; i++) {
-        const px = vial1X - 22 + (i % 3) * 20;
-        const py = vial1Y + vialH - 65 - Math.floor(i / 3) * 18;
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 8px monospace";
+      ctx.fillText("15% KOH PELLETS", vial1X, vial1Y + vialH - 2);
+    }
+
+    // Absorbent Cotton Barrier Cushion
+    const cottonY = vial1Y + vialH - 46;
+    ctx.fillStyle = "rgba(248, 250, 252, 0.85)";
+    ctx.beginPath();
+    ctx.roundRect(vial1X - vialW / 2 + 6, cottonY, vialW - 12, 14, 4);
+    ctx.fill();
+    ctx.fillStyle = "#64748b";
+    ctx.font = "bold 7px sans-serif";
+    ctx.fillText("NON-ABSORBENT COTTON", vial1X, cottonY + 10);
+
+    // Living Specimen inside Experimental Vial
+    if (activeSpecimen.type === "aerobic") {
+      // Germinating Peas with radicles
+      for (let i = 0; i < 9; i++) {
+        const px = vial1X - 22 + (i % 3) * 22;
+        const py = vial1Y + vialH - 68 - Math.floor(i / 3) * 20;
+
+        // Cotyledon body
         ctx.beginPath();
-        ctx.arc(px, py, 7, 0, Math.PI * 2);
+        ctx.arc(px, py, 7.5, 0, Math.PI * 2);
+        const pGrad = ctx.createRadialGradient(px - 2, py - 2, 1, px, py, 7.5);
+        if (currentSpecimenKey === "germinating_peas") {
+          pGrad.addColorStop(0, "#86efac");
+          pGrad.addColorStop(0.6, "#22c55e");
+          pGrad.addColorStop(1, "#15803d");
+        } else {
+          // Dormant dry peas
+          pGrad.addColorStop(0, "#fde68a");
+          pGrad.addColorStop(0.7, "#d97706");
+          pGrad.addColorStop(1, "#78350f");
+        }
+        ctx.fillStyle = pGrad;
         ctx.fill();
+
+        // Emerging germ rootlet
+        if (currentSpecimenKey === "germinating_peas") {
+          ctx.strokeStyle = "#f8fafc";
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.moveTo(px, py + 2);
+          ctx.quadraticCurveTo(px + 4, py + 10, px + 8, py + 14);
+          ctx.stroke();
+
+          // Metabolic O2 uptake glow
+          if (isRunning) {
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(px, py, 11, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      }
+    } else if (activeSpecimen.type === "control") {
+      // Glass beads: optical refractive spheres
+      for (let i = 0; i < 9; i++) {
+        const px = vial1X - 22 + (i % 3) * 22;
+        const py = vial1Y + vialH - 68 - Math.floor(i / 3) * 20;
+        ctx.beginPath();
+        ctx.arc(px, py, 7.5, 0, Math.PI * 2);
+        const bGrad = ctx.createRadialGradient(px - 2, py - 2, 1, px, py, 7.5);
+        bGrad.addColorStop(0, "#ffffff");
+        bGrad.addColorStop(0.5, "rgba(224, 242, 254, 0.8)");
+        bGrad.addColorStop(1, "rgba(56, 189, 248, 0.4)");
+        ctx.fillStyle = bGrad;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
       }
     } else {
       // Yeast suspension with CO2 bubbles
-      ctx.fillStyle = "rgba(251, 146, 60, 0.4)";
-      ctx.fillRect(vial1X - vialW/2 + 6, vial1Y + 40, vialW - 12, vialH - 50);
+      const yGrad = ctx.createLinearGradient(0, vial1Y + 35, 0, vial1Y + vialH - 20);
+      yGrad.addColorStop(0, "rgba(251, 146, 60, 0.3)");
+      yGrad.addColorStop(1, "rgba(217, 119, 6, 0.6)");
+      ctx.fillStyle = yGrad;
+      ctx.fillRect(vial1X - vialW / 2 + 5, vial1Y + 35, vialW - 10, vialH - 55);
+
+      // Bubbles rising
       ctx.fillStyle = "#ffffff";
-      for (let i = 0; i < 6; i++) {
-        const bx = vial1X - 20 + Math.sin(elapsedMinutes * 50 + i * 2) * 20;
-        const by = vial1Y + vialH - 40 - ((elapsedMinutes * 120 + i * 25) % 80);
+      for (let i = 0; i < 8; i++) {
+        const bx = vial1X - 22 + Math.sin(simClock * 3 + i * 2) * 22;
+        const by = vial1Y + vialH - 30 - ((simClock * 35 + i * 20) % 95);
         ctx.beginPath();
-        ctx.arc(bx, by, 3, 0, Math.PI * 2);
+        ctx.arc(bx, by, 2.5 + (i % 3), 0, Math.PI * 2);
         ctx.fill();
       }
     }
 
-    // --- CONTROL VIAL (Right) ---
-    const vial2X = CX + 100;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
-    ctx.strokeStyle = "#94a3b8";
+    // 4. Control Thermobarometer Vial (Right)
+    const vial2X = CX + 95;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.07)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(vial2X - vialW/2, vial1Y, vialW, vialH, [0, 0, 10, 10]);
+    ctx.roundRect(vial2X - vialW / 2, vial1Y, vialW, vialH, [0, 0, 10, 10]);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(vial2X - vialW/2 - 4, vial1Y - 14, vialW + 8, 14);
+    // Stopper
+    ctx.fillStyle = stopperGrad;
+    ctx.beginPath();
+    ctx.roundRect(vial2X - vialW / 2 - 4, vial1Y - 14, vialW + 8, 16, 3);
+    ctx.fill();
+
+    // Brass capillary fitting
+    ctx.fillStyle = "#f59e0b";
+    ctx.fillRect(vial2X - 4, vial1Y - 20, 8, 8);
+
+    // Control Label
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("THERMOBAROMETER", vial2X, vial1Y + 18);
 
     // Control glass beads in right vial
-    ctx.fillStyle = "rgba(255,255,255,0.6)";
-    for (let i = 0; i < 8; i++) {
-      const px = vial2X - 22 + (i % 3) * 20;
-      const py = vial1Y + vialH - 65 - Math.floor(i / 3) * 18;
+    for (let i = 0; i < 9; i++) {
+      const px = vial2X - 22 + (i % 3) * 22;
+      const py = vial1Y + vialH - 68 - Math.floor(i / 3) * 20;
       ctx.beginPath();
-      ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.arc(px, py, 7.5, 0, Math.PI * 2);
+      const bGrad = ctx.createRadialGradient(px - 2, py - 2, 1, px, py, 7.5);
+      bGrad.addColorStop(0, "#ffffff");
+      bGrad.addColorStop(0.5, "rgba(224, 242, 254, 0.7)");
+      bGrad.addColorStop(1, "rgba(56, 189, 248, 0.35)");
+      ctx.fillStyle = bGrad;
       ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
     }
 
-    // --- CONNECTING U-TUBE MANOMETER ---
-    const tubeY = vial1Y - 45;
-    ctx.strokeStyle = "rgba(255,255,255,0.8)";
-    ctx.lineWidth = 6;
+    // 5. Calibrated U-Tube Differential Manometer
+    const tubeY = vial1Y - 55;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.lineWidth = 7;
+    ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(vial1X, vial1Y);
+    ctx.moveTo(vial1X, vial1Y - 14);
     ctx.lineTo(vial1X, tubeY);
     ctx.lineTo(vial2X, tubeY);
-    ctx.lineTo(vial2X, vial1Y);
+    ctx.lineTo(vial2X, vial1Y - 14);
+    ctx.stroke();
+
+    // Inner bore highlight
+    ctx.strokeStyle = "rgba(15, 23, 42, 0.6)";
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(vial1X, vial1Y - 14);
+    ctx.lineTo(vial1X, tubeY);
+    ctx.lineTo(vial2X, tubeY);
+    ctx.lineTo(vial2X, vial1Y - 14);
     ctx.stroke();
 
     // Indicator Liquid Droplet inside Manometer
-    // Moves towards the experimental vial (left) as pressure inside vial 1 drops
-    const dropletMaxShift = 50; // pixels
+    const dropletMaxShift = 65; // pixels
     const dropPixelShift = Math.min(dropletMaxShift, (manometerShift / 20) * dropletMaxShift);
     const dropX = CX - dropPixelShift;
 
-    ctx.fillStyle = "#ef4444"; // Red indicator dye
+    // Red Brodie's Solution indicator dye slug
+    ctx.fillStyle = "#ef4444";
+    ctx.shadowColor = "#ef4444";
+    ctx.shadowBlur = 8;
     ctx.beginPath();
-    ctx.roundRect(dropX - 10, tubeY - 4, 20, 8, 4);
+    ctx.roundRect(dropX - 12, tubeY - 3, 24, 6, 3);
     ctx.fill();
+    ctx.shadowBlur = 0;
 
-    // Direction arrow on tube
+    // Manometer mm scale graduations along top horizontal arm
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 1;
+    for (let gx = CX - 70; gx <= CX + 70; gx += 10) {
+      ctx.beginPath();
+      ctx.moveTo(gx, tubeY - 9);
+      ctx.lineTo(gx, tubeY - 5);
+      ctx.stroke();
+    }
+
+    // Fluid shift direction arrow
     ctx.fillStyle = "#facc15";
-    ctx.font = "bold 9px system-ui";
-    ctx.fillText("FLUID SHIFT ⬅", CX, tubeY - 8);
+    ctx.font = "bold 10px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("FLUID SHIFT ⬅ (NET O₂ CONSUMPTION)", CX, tubeY - 14);
+
+    ctx.restore();
   }
 
   // Render Time-Series Chart
   function renderChart() {
-    const W = graphCanvas.width;
-    const H = graphCanvas.height;
-    graphCtx.clearRect(0, 0, W, H);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    graphCtx.save();
+    graphCtx.resetTransform();
+    graphCtx.scale(dpr, dpr);
+    graphCtx.clearRect(0, 0, graphLogicalW, graphLogicalH);
 
     const padL = 40;
     const padB = 25;
     const padT = 15;
     const padR = 20;
-    const plotW = W - padL - padR;
-    const plotH = H - padT - padB;
+    const plotW = graphLogicalW - padL - padR;
+    const plotH = graphLogicalH - padT - padB;
 
-    graphCtx.strokeStyle = "rgba(255,255,255,0.15)";
+    // Grid lines & Axes
+    graphCtx.strokeStyle = "rgba(255,255,255,0.08)";
     graphCtx.lineWidth = 1;
+    for (let f = 0.25; f <= 1.0; f += 0.25) {
+      const gy = (graphLogicalH - padB) - f * plotH;
+      graphCtx.beginPath();
+      graphCtx.moveTo(padL, gy);
+      graphCtx.lineTo(graphLogicalW - padR, gy);
+      graphCtx.stroke();
+    }
+
+    graphCtx.strokeStyle = "rgba(255,255,255,0.2)";
+    graphCtx.lineWidth = 1.5;
     graphCtx.beginPath();
     graphCtx.moveTo(padL, padT);
-    graphCtx.lineTo(padL, H - padB);
-    graphCtx.lineTo(W - padR, H - padB);
+    graphCtx.lineTo(padL, graphLogicalH - padB);
+    graphCtx.lineTo(graphLogicalW - padR, graphLogicalH - padB);
     graphCtx.stroke();
 
-    if (timeSeries.length < 2) return;
+    if (timeSeries.length < 2) {
+      graphCtx.restore();
+      return;
+    }
 
     const maxVal = Math.max(0.5, Math.max(...timeSeries.map(p => p.val)) * 1.15);
     const maxT = Math.max(5.0, timeSeries[timeSeries.length - 1].t);
 
+    // Gradient fill under curve
+    const fillGrad = graphCtx.createLinearGradient(0, padT, 0, graphLogicalH - padB);
+    fillGrad.addColorStop(0, "rgba(251, 146, 60, 0.35)");
+    fillGrad.addColorStop(1, "rgba(251, 146, 60, 0.0)");
+
+    graphCtx.beginPath();
+    graphCtx.moveTo(padL, graphLogicalH - padB);
+    timeSeries.forEach((pt) => {
+      const px = padL + (pt.t / maxT) * plotW;
+      const py = (graphLogicalH - padB) - (pt.val / maxVal) * plotH;
+      graphCtx.lineTo(px, py);
+    });
+    const lastPt = timeSeries[timeSeries.length - 1];
+    const lastPx = padL + (lastPt.t / maxT) * plotW;
+    graphCtx.lineTo(lastPx, graphLogicalH - padB);
+    graphCtx.closePath();
+    graphCtx.fillStyle = fillGrad;
+    graphCtx.fill();
+
+    // Plot stroke line
     graphCtx.strokeStyle = "#fb923c";
     graphCtx.lineWidth = 2.5;
     graphCtx.beginPath();
-
     timeSeries.forEach((pt, idx) => {
       const px = padL + (pt.t / maxT) * plotW;
-      const py = (H - padB) - (pt.val / maxVal) * plotH;
+      const py = (graphLogicalH - padB) - (pt.val / maxVal) * plotH;
       if (idx === 0) graphCtx.moveTo(px, py);
       else graphCtx.lineTo(px, py);
     });
     graphCtx.stroke();
 
+    // Axis values
     graphCtx.fillStyle = "#94a3b8";
     graphCtx.font = "9px monospace";
     graphCtx.textAlign = "right";
     graphCtx.fillText(`${maxVal.toFixed(2)}mL`, padL - 4, padT + 8);
-    graphCtx.fillText("0", padL - 4, H - padB);
+    graphCtx.fillText("0", padL - 4, graphLogicalH - padB);
     graphCtx.textAlign = "center";
-    graphCtx.fillText("Time (minutes) ➔", W / 2, H - 6);
+    graphCtx.fillText("Time (minutes) ➔", graphLogicalW / 2, graphLogicalH - 6);
+
+    graphCtx.restore();
   }
 
   // Animation Loop
@@ -635,5 +872,6 @@ export function initRespirationLab(containerId) {
   return () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }

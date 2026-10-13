@@ -1,10 +1,9 @@
-// Edugates-ClipSAT Science Labs - Physics: Acoustic Resonance Tube & Speed of Sound Suite
-// 60 FPS Precision Wave Acoustics Simulation:
-// Variable water column closed-open tube standing waves,
-// Speed of sound temperature dependence v(T) = 331.3·√(1 + T/273.15),
-// Harmonic resonances L₁ = λ/4 - c, L₂ = 3λ/4 - c, L₃ = 5λ/4 - c,
-// End correction c = 0.61·r, experimental sound speed v = 2f·(L₂ - L₁),
-// Web Audio API real-time acoustic resonance amplification synthesizer.
+// Edugates-ClipSAT Science Labs - Physics: Speed of Sound & Resonance Tube Suite
+// 60 FPS Precision Acoustic Wave Simulation:
+// Speed of Sound in Air v(T) = 331.3·√(1 + T/273.15) m/s,
+// Closed-Open Resonance Cavity Harmonics L_n = (2n-1)·λ/4 - c, End Correction c = 0.61·r,
+// Longitudinal Acoustic Compression & Rarefaction Particle Density Waves,
+// Vibrating Tuning Fork with Spherical Acoustic Wavefronts, Web Audio API Synth Engine.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
@@ -14,125 +13,126 @@ export function initSoundResonanceLab(containerId) {
   const container = document.getElementById(containerId);
   if (!container) return () => {};
 
-  // Standard Lab Tuning Forks
+  // Standard Acoustic Tuning Fork Frequencies (Hz)
   const TUNING_FORKS = {
-    "512": { name: "High C (C₅)", frequency: 512, note: "C₅", color: "#38bdf8" },
-    "440": { name: "Concert Pitch (A₄)", frequency: 440, note: "A₄", color: "#818cf8" },
-    "384": { name: "Musical G (G₄)", frequency: 384, note: "G₄", color: "#34d399" },
-    "256": { name: "Middle C (C₄)", frequency: 256, note: "C₄", color: "#fbbf24" }
+    c4: { name: "C₄ Middle C (261.6 Hz)", frequency: 261.63, note: "C4" },
+    d4: { name: "D₄ (293.7 Hz)", frequency: 293.66, note: "D4" },
+    e4: { name: "E₄ (329.6 Hz)", frequency: 329.63, note: "E4" },
+    f4: { name: "F₄ (349.2 Hz)", frequency: 349.23, note: "F4" },
+    g4: { name: "G₄ (392.0 Hz)", frequency: 392.00, note: "G4" },
+    a4: { name: "A₄ Concert Pitch (440.0 Hz)", frequency: 440.00, note: "A4" },
+    b4: { name: "B₄ (493.9 Hz)", frequency: 493.88, note: "B4" },
+    c5: { name: "C₅ Treble C (523.3 Hz)", frequency: 523.25, note: "C5" }
   };
 
   // State Variables
-  let currentForkKey = "440";
-  let waterLevelCm = 45.0; // Water column height from bottom (0 to 100 cm)
-  let airTempC = 20.0; // °C (-10 to 45)
-  let tubeRadiusCm = 2.0; // Internal bore radius cm
-  let endCorrectionCm = 0.61 * tubeRadiusCm; // ~1.22 cm
+  let currentForkKey = "a4"; // 440 Hz
+  let waterLevelCm = 45.0; // cm (Reservoir height, 0 to 95 cm)
+  let airTempC = 20.0; // degrees Celsius (-10 to 45 °C)
+  let tubeRadiusCm = 2.0; // cm (4.0 cm bore diameter)
+  let endCorrectionCm = 0.61 * tubeRadiusCm; // c = 0.61 · r ≈ 1.22 cm
   let isSoundActive = false;
   let viewMode = "sim"; // "sim" or "photo"
   let animId = null;
   let timeTick = 0;
 
-  // Web Audio API Synth Engine for realistic acoustic resonance
+  // Web Audio Context & Oscillator Nodes
   let audioCtx = null;
   let oscNode = null;
   let gainNode = null;
 
-  function initAudio() {
+  // Longitudinal Acoustic Air Molecule Particles
+  const airMolecules = [];
+  const NUM_MOLECULES = 120;
+  for (let i = 0; i < NUM_MOLECULES; i++) {
+    airMolecules.push({
+      yFrac: Math.random(), // 0 (top mouth) to 1 (water surface)
+      xOffset: -16 + Math.random() * 32,
+      baseSize: 1.2 + Math.random() * 1.0,
+      phase: Math.random() * Math.PI * 2
+    });
+  }
+
+  function getAudioContext() {
     if (!audioCtx) {
       const AudioContextClass = window.AudioContext || window.webkitAudioContext;
       if (AudioContextClass) {
         audioCtx = new AudioContextClass();
-        gainNode = audioCtx.createGain();
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.connect(audioCtx.destination);
       }
     }
+    if (audioCtx && audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+    return audioCtx;
   }
 
   function setAudioPlayback(active) {
-    initAudio();
-    if (!audioCtx) return;
-
-    if (active) {
-      if (audioCtx.state === "suspended") audioCtx.resume();
-      if (!oscNode) {
-        oscNode = audioCtx.createOscillator();
-        oscNode.type = "sine";
-        oscNode.frequency.setValueAtTime(TUNING_FORKS[currentForkKey].frequency, audioCtx.currentTime);
-        oscNode.connect(gainNode);
-        oscNode.start();
+    if (!active) {
+      if (gainNode && audioCtx) {
+        gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
       }
-    } else {
-      if (gainNode?.gain) {
-        if (typeof gainNode.gain.setTargetAtTime === "function") {
-          gainNode.gain.setTargetAtTime(0, audioCtx.currentTime || 0, 0.05);
-        } else if (typeof gainNode.gain.setValueAtTime === "function") {
-          gainNode.gain.setValueAtTime(0, audioCtx.currentTime || 0);
-        } else {
-          gainNode.gain.value = 0;
-        }
-      }
-      if (oscNode) {
-        try { oscNode.stop(); } catch (err) {}
-        oscNode = null;
-      }
+      return;
     }
+
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    if (!oscNode) {
+      oscNode = ctx.createOscillator();
+      gainNode = ctx.createGain();
+
+      oscNode.type = "sine";
+      oscNode.frequency.setValueAtTime(TUNING_FORKS[currentForkKey].frequency, ctx.currentTime);
+
+      gainNode.gain.setValueAtTime(0, ctx.currentTime);
+
+      oscNode.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      oscNode.start();
+    }
+
+    oscNode.frequency.setValueAtTime(TUNING_FORKS[currentForkKey].frequency, ctx.currentTime);
+    const ac = calculateAcoustics();
+    // Loudness modulated by acoustic cavity resonance gain
+    const targetGain = 0.04 + ac.resonanceGain * 0.28;
+    gainNode.gain.setTargetAtTime(targetGain, ctx.currentTime, 0.08);
   }
 
-  // Physics Calculations
+  // Physics Calculations: Speed of Sound & Resonant Wavelengths
   function calculateAcoustics() {
     const fork = TUNING_FORKS[currentForkKey];
-    // True speed of sound in air at temp T: v = 331.3 * sqrt(1 + T / 273.15)
-    const speedOfSound = 331.3 * Math.sqrt(1 + airTempC / 273.15); // m/s
-    // Wavelength λ = v / f
+    // v(T) = 331.3 · √(1 + T / 273.15)
+    const speedOfSound = 331.3 * Math.sqrt(1 + airTempC / 273.15);
     const wavelengthM = speedOfSound / fork.frequency;
     const wavelengthCm = wavelengthM * 100;
 
-    // Tube total length = 100 cm
-    // Air column length L = 100 - waterLevelCm
+    // Tube Total Length = 100 cm
+    // Air Column Length L = 100 cm - waterLevelCm
     const airColumnLengthCm = 100 - waterLevelCm;
 
-    // Resonant harmonic lengths for closed-open tube:
-    // L1 = λ/4 - c
-    // L2 = 3λ/4 - c
-    // L3 = 5λ/4 - c
-    const res1 = wavelengthCm * 0.25 - endCorrectionCm;
-    const res2 = wavelengthCm * 0.75 - endCorrectionCm;
-    const res3 = wavelengthCm * 1.25 - endCorrectionCm;
+    // Theoretical resonant lengths for closed-open pipe:
+    // L_n = (2n - 1)·λ/4 - c
+    const resonantLengths = [
+      (1 * wavelengthCm) / 4 - endCorrectionCm,
+      (3 * wavelengthCm) / 4 - endCorrectionCm,
+      (5 * wavelengthCm) / 4 - endCorrectionCm
+    ].filter(l => l > 0 && l <= 100);
 
-    const resonantLengths = [res1, res2, res3].filter(l => l > 0 && l <= 100);
-
-    // Calculate proximity to closest resonance (for sound volume & VU meter)
-    let minDelta = 999;
+    // Calculate Resonance Gain Factor (Lorentzian acoustic Q-factor profile)
+    let maxGain = 0;
+    const Q = 18.0; // Cavity acoustic resonance sharpness
     resonantLengths.forEach(resL => {
-      const delta = Math.abs(airColumnLengthCm - resL);
-      if (delta < minDelta) minDelta = delta;
+      const deltaL = Math.abs(airColumnLengthCm - resL);
+      const gain = 1 / (1 + Math.pow((2 * Q * deltaL) / wavelengthCm, 2));
+      if (gain > maxGain) maxGain = gain;
     });
-
-    // Q-factor resonance sharpness (half-width ~1.8 cm)
-    const resonanceSharpness = 1.8;
-    const resonanceGain = Math.exp(-Math.pow(minDelta / resonanceSharpness, 2));
-
-    // Update real audio gain if sound active
-    if (audioCtx && gainNode && isSoundActive) {
-      const targetGain = 0.02 + resonanceGain * 0.28;
-      if (typeof gainNode.gain.setTargetAtTime === "function") {
-        gainNode.gain.setTargetAtTime(targetGain, audioCtx.currentTime || 0, 0.03);
-      } else if (typeof gainNode.gain.setValueAtTime === "function") {
-        gainNode.gain.setValueAtTime(targetGain, audioCtx.currentTime || 0);
-      } else {
-        gainNode.gain.value = targetGain;
-      }
-    }
 
     return {
       speedOfSound,
       wavelengthCm,
       airColumnLengthCm,
       resonantLengths,
-      minDelta,
-      resonanceGain
+      resonanceGain: maxGain
     };
   }
 
@@ -140,30 +140,30 @@ export function initSoundResonanceLab(containerId) {
     <div class="lab-container">
       <!-- Header Bar -->
       <div class="lab-header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(15, 23, 42, 0.92); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 18px; flex-wrap: wrap; gap: 12px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
           <span style="font-size: 0.85rem; font-weight: 700; color: #818cf8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
             <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #818cf8; box-shadow: 0 0 10px #818cf8;"></span>
-            Acoustic Resonance Tube &amp; Speed of Sound
+            Speed of Sound &amp; Acoustic Resonance Tube
           </span>
           <span class="badge" style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); color: #a5b4fc; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            ${renderLatex("v = 2f(L_2 - L_1) \\quad \\bullet \\quad \\text{Standing Waves } \\lambda/4")}
+            ${renderLatex("v = f \\lambda \\quad \\bullet \\quad L_n = (2n-1)\\frac{\\lambda}{4} - c \\quad \\bullet \\quad v(T) = 331.3\\sqrt{1 + \\frac{T}{273.15}}")}
           </span>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
           <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
             <button id="view-mode-sound-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
-              🔊 Resonance Apparatus
+              🔊 Wave Simulator
             </button>
             <button id="view-mode-sound-photo" class="btn btn-secondary" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
               📸 4K Real Bench
             </button>
           </div>
-          <button class="btn btn-primary btn-sm" id="btn-sound-strike-fork" style="padding: 5px 14px; font-size: 0.78rem;">
+          <button class="btn btn-primary btn-sm" id="btn-strike-fork" style="padding: 5px 14px; font-size: 0.78rem; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);">
             🔔 Strike Tuning Fork
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-sound-snap-resonance" style="padding: 5px 12px; font-size: 0.78rem;">
-            🎯 Snap to Nearest Resonance
+          <button class="btn btn-secondary btn-sm" id="btn-snap-resonance" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(99, 102, 241, 0.4); color: #a5b4fc;">
+            🎯 Snap to 1st Node
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-sound-export" style="padding: 5px 12px; font-size: 0.78rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
             📥 Export CSV (E)
@@ -174,7 +174,7 @@ export function initSoundResonanceLab(containerId) {
       <!-- Main Layout Grid -->
       <div style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px;" class="sound-layout">
         <!-- Canvas Viewport -->
-        <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(99, 102, 241, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #1e1b4b 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
+        <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(99, 102, 241, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #12103a 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="sound-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
 
           <!-- 4K Real Laboratory Photograph Overlay -->
@@ -202,15 +202,21 @@ export function initSoundResonanceLab(containerId) {
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
-            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 10px; padding: 8px 14px; pointer-events: auto;">
-              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase;">ACOUSTIC SOUND SPEED v(T)</div>
+            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(99, 102, 241, 0.4); border-radius: 10px; padding: 8px 14px; pointer-events: auto; box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
+              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #818cf8; display: inline-block; box-shadow: 0 0 6px #818cf8;"></span>
+                ACOUSTIC SOUND SPEED v(T)
+              </div>
               <div id="hud-sound-speed" style="font-size: 1.12rem; font-weight: 800; color: #818cf8; font-family: var(--font-mono);">
                 v = 343.2 m/s (λ = 78.0 cm)
               </div>
             </div>
 
-            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 10px; padding: 8px 14px; text-align: right; pointer-events: auto;">
-              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase;">RESONANCE AMPLITUDE (VU)</div>
+            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 10px; padding: 8px 14px; text-align: right; pointer-events: auto; box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
+              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase; display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                RESONANCE AMPLITUDE (VU)
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 6px #10b981;"></span>
+              </div>
               <div id="hud-sound-gain" style="font-size: 1.12rem; font-weight: 800; color: #10b981; font-family: var(--font-mono);">
                 Peak Resonance: 98% (+18 dB)
               </div>
@@ -235,7 +241,7 @@ export function initSoundResonanceLab(containerId) {
             <div style="margin-bottom: 12px;">
               <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
                 <span style="color: #94a3b8;">Water Level (Reservoir Height)</span>
-                <span id="lbl-water-level" style="color: #38bdf8; font-weight: 700;">45.0 cm (Air Column L = 55.0 cm)</span>
+                <span id="lbl-water-level" style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono);">45.0 cm (Air Column L = 55.0 cm)</span>
               </div>
               <input id="slider-water-level" type="range" min="0" max="95" step="0.5" value="45.0" style="width: 100%; accent-color: #38bdf8;">
             </div>
@@ -244,7 +250,7 @@ export function initSoundResonanceLab(containerId) {
             <div style="margin-bottom: 8px;">
               <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
                 <span style="color: #94a3b8;">Air Temperature [v(T)]</span>
-                <span id="lbl-sound-temp" style="color: #facc15; font-weight: 700;">20.0 °C</span>
+                <span id="lbl-sound-temp" style="color: #facc15; font-weight: 700; font-family: var(--font-mono);">20.0 °C</span>
               </div>
               <input id="slider-sound-temp" type="range" min="-10" max="45" step="1" value="20" style="width: 100%; accent-color: #facc15;">
             </div>
@@ -278,7 +284,7 @@ export function initSoundResonanceLab(containerId) {
             <div style="margin-top: 12px;">
               <div style="display: flex; justify-content: space-between; font-size: 0.74rem; margin-bottom: 4px;">
                 <span style="color: #94a3b8;">Acoustic Cavity Loudness (VU)</span>
-                <span id="lbl-vu-gain" style="color: #10b981; font-weight: 700;">85%</span>
+                <span id="lbl-vu-gain" style="color: #10b981; font-weight: 700; font-family: var(--font-mono);">85%</span>
               </div>
               <div style="height: 10px; background: #0f172a; border-radius: 5px; overflow: hidden; border: 1px solid #334155; position: relative;">
                 <div id="bar-vu-gain" style="height: 100%; width: 85%; background: linear-gradient(90deg, #38bdf8, #10b981, #f59e0b); border-radius: 4px; transition: width 0.1s ease;"></div>
@@ -299,30 +305,44 @@ export function initSoundResonanceLab(containerId) {
   // DOM Elements
   const canvas = document.getElementById("sound-canvas");
   const ctx = canvas.getContext("2d");
-
+  const selectFork = document.getElementById("select-tuning-fork");
+  const sliderWater = document.getElementById("slider-water-level");
+  const sliderTemp = document.getElementById("slider-sound-temp");
+  const btnStrike = document.getElementById("btn-strike-fork");
+  const btnSnap = document.getElementById("btn-snap-resonance");
+  const btnExport = document.getElementById("btn-sound-export");
   const viewSimBtn = document.getElementById("view-mode-sound-sim");
   const viewPhotoBtn = document.getElementById("view-mode-sound-photo");
   const photoOverlay = document.getElementById("sound-photo-overlay");
 
-  const btnStrike = document.getElementById("btn-sound-strike-fork");
-  const btnSnap = document.getElementById("btn-sound-snap-resonance");
-  const btnExport = document.getElementById("btn-sound-export");
-
-  const selectFork = document.getElementById("select-tuning-fork");
-  const sliderWater = document.getElementById("slider-water-level");
-  const sliderTemp = document.getElementById("slider-sound-temp");
-
-  const lblWater = document.getElementById("lbl-water-level");
-  const lblTemp = document.getElementById("lbl-sound-temp");
-
+  // HUD Elements
   const hudSpeed = document.getElementById("hud-sound-speed");
   const hudGain = document.getElementById("hud-sound-gain");
+  const lblWater = document.getElementById("lbl-water-level");
+  const lblTemp = document.getElementById("lbl-sound-temp");
   const valL1 = document.getElementById("val-res-l1");
   const valL2 = document.getElementById("val-res-l2");
   const valCalcSpeed = document.getElementById("val-calc-speed");
   const barVu = document.getElementById("bar-vu-gain");
   const lblVu = document.getElementById("lbl-vu-gain");
   const badgeRes = document.getElementById("badge-resonance-status");
+
+  // HiDPI / Retina Canvas Setup
+  const logicalW = 580;
+  const logicalH = 530;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.resetTransform();
+    ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
 
   function updateHUD() {
     const ac = calculateAcoustics();
@@ -361,156 +381,345 @@ export function initSoundResonanceLab(containerId) {
       badgeRes.style.background = "rgba(100, 116, 139, 0.15)";
       badgeRes.style.color = "#94a3b8";
     }
+
+    if (isSoundActive && gainNode && audioCtx) {
+      const targetGain = 0.04 + ac.resonanceGain * 0.28;
+      gainNode.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.05);
+    }
   }
 
   // 60 FPS Sound Tube Render Loop
   function renderSoundCanvas() {
     if (!container || !container.isConnected) return;
     timeTick += 0.04;
-    const cw = canvas.width;
-    const ch = canvas.height;
-    ctx.clearRect(0, 0, cw, ch);
+
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
     const ac = calculateAcoustics();
     const fork = TUNING_FORKS[currentForkKey];
 
-    // 1. Lab Workbench Base
+    // 1. Lab Workbench Base with Cast Iron Heavy Base
     const benchY = 460;
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(0, benchY, cw, ch - benchY);
-    ctx.strokeStyle = "#334155";
+    ctx.save();
+    const benchGrad = ctx.createLinearGradient(0, benchY, 0, logicalH);
+    benchGrad.addColorStop(0, "#334155");
+    benchGrad.addColorStop(0.2, "#1e293b");
+    benchGrad.addColorStop(1, "#0f172a");
+
+    ctx.fillStyle = benchGrad;
+    ctx.fillRect(0, benchY, logicalW, logicalH - benchY);
+    ctx.strokeStyle = "#475569";
     ctx.lineWidth = 2;
-    ctx.strokeRect(0, benchY, cw, ch - benchY);
+    ctx.strokeRect(0, benchY, logicalW, logicalH - benchY);
+
+    // Beveled bench trim
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(0, benchY, logicalW, 3);
+    ctx.restore();
 
     // 2. Vertical Glass Resonance Tube
-    const tubeX = cw * 0.5 - 40;
+    const tubeX = logicalW * 0.5 - 45;
     const tubeTopY = 110;
     const tubeH = 340; // Represents 100 cm tube (scale: 3.4 px/cm)
     const pxPerCm = tubeH / 100;
-    const tubeW = 44;
+    const tubeW = 46;
 
     // Water level position inside tube
     const waterHeightPx = waterLevelCm * pxPerCm;
     const waterSurfaceY = (tubeTopY + tubeH) - waterHeightPx;
 
-    // Draw Water Reservoir
+    // Cast-Iron Retort Stand Clamp Arm holding the tube
     ctx.save();
-    ctx.fillStyle = "rgba(56, 189, 248, 0.35)";
-    ctx.fillRect(tubeX - tubeW / 2 + 2, waterSurfaceY, tubeW - 4, waterHeightPx);
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(tubeX - tubeW / 2 - 28, tubeTopY + 40, 28, 12);
+    ctx.strokeRect(tubeX - tubeW / 2 - 28, tubeTopY + 40, 28, 12);
+    ctx.fillRect(tubeX - tubeW / 2 - 28, tubeTopY + 240, 28, 12);
+    ctx.strokeRect(tubeX - tubeW / 2 - 28, tubeTopY + 240, 28, 12);
 
-    // Meniscus Ellipse at Water Surface (Displacement Node!)
-    ctx.fillStyle = "#38bdf8";
+    // Vertical Steel Stand Rod
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(tubeX - tubeW / 2 - 36, 60, 8, benchY - 60);
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(tubeX - tubeW / 2 - 36, 60, 8, benchY - 60);
+
+    // Brass Knurled Thumbscrews on clamps
+    ctx.fillStyle = "#f59e0b";
     ctx.beginPath();
-    ctx.ellipse(tubeX, waterSurfaceY, tubeW / 2 - 3, 4, 0, 0, Math.PI * 2);
+    ctx.arc(tubeX - tubeW / 2 - 20, tubeTopY + 46, 5, 0, Math.PI * 2);
+    ctx.arc(tubeX - tubeW / 2 - 20, tubeTopY + 246, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
 
-    // 3. Standing Longitudinal Wave Envelope Overlay inside Air Column
+    // 3. Water Column Reservoir inside Tube
+    ctx.save();
+    // Water gradient with depth shading
+    const waterGrad = ctx.createLinearGradient(tubeX - tubeW / 2, 0, tubeX + tubeW / 2, 0);
+    waterGrad.addColorStop(0, "rgba(2, 132, 199, 0.45)");
+    waterGrad.addColorStop(0.4, "rgba(56, 189, 248, 0.35)");
+    waterGrad.addColorStop(1, "rgba(3, 105, 161, 0.55)");
+
+    ctx.fillStyle = waterGrad;
+    ctx.fillRect(tubeX - tubeW / 2 + 2, waterSurfaceY, tubeW - 4, waterHeightPx);
+
+    // Water column surface meniscus (Elliptic displacement node)
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.ellipse(tubeX, waterSurfaceY, tubeW / 2 - 3, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Water surface specular highlight
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(tubeX, waterSurfaceY, tubeW / 2 - 5, 3.5, 0, Math.PI, Math.PI * 2);
+    ctx.stroke();
+
+    // Subtle fluid micro-bubbles in water
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    for (let b = 0; b < 6; b++) {
+      const bx = tubeX - tubeW / 4 + (b * 7) % (tubeW / 2);
+      const by = waterSurfaceY + 15 + ((b * 45 + timeTick * 15) % Math.max(10, waterHeightPx - 20));
+      ctx.beginPath();
+      ctx.arc(bx, by, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 4. Longitudinal Acoustic Compression & Rarefaction Air Molecules
     if (isSoundActive) {
       ctx.save();
       const airH = waterSurfaceY - tubeTopY;
-      ctx.strokeStyle = `rgba(129, 140, 248, ${0.4 + ac.resonanceGain * 0.55})`;
-      ctx.lineWidth = 2;
-
-      // Draw sinusoidal wave envelope
       const waveFreq = (Math.PI * 2) / (ac.wavelengthCm * pxPerCm);
-      ctx.beginPath();
-      for (let y = tubeTopY; y <= waterSurfaceY; y += 3) {
-        // Distance from water surface (node at waterSurfaceY)
-        const distFromNode = waterSurfaceY - y;
-        const amp = Math.sin(distFromNode * waveFreq) * (tubeW / 2 - 4) * Math.sin(timeTick * 18);
-        const wx = tubeX + amp;
-        if (y === tubeTopY) ctx.moveTo(wx, y);
-        else ctx.lineTo(wx, y);
-      }
-      ctx.stroke();
+      const ampMax = 12 * ac.resonanceGain;
 
-      // Mirror Envelope
-      ctx.beginPath();
-      for (let y = tubeTopY; y <= waterSurfaceY; y += 3) {
-        const distFromNode = waterSurfaceY - y;
-        const amp = -Math.sin(distFromNode * waveFreq) * (tubeW / 2 - 4) * Math.sin(timeTick * 18);
-        const wx = tubeX + amp;
-        if (y === tubeTopY) ctx.moveTo(wx, y);
-        else ctx.lineTo(wx, y);
-      }
-      ctx.stroke();
+      // Draw Air Molecule Particles
+      airMolecules.forEach(mol => {
+        // y0 in equilibrium
+        const y0 = tubeTopY + mol.yFrac * airH;
+        const distFromWater = waterSurfaceY - y0;
+
+        // Longitudinal displacement: 0 at water surface (Node), max at tube mouth (Antinode)
+        const longitudinalDisplacement = Math.sin(distFromWater * waveFreq) * ampMax * Math.sin(timeTick * 25);
+        const curY = y0 + longitudinalDisplacement;
+        const curX = tubeX + mol.xOffset;
+
+        // Density color modulation
+        const isCompressed = Math.abs(longitudinalDisplacement) < 2.0;
+        ctx.fillStyle = isCompressed ? "rgba(165, 180, 252, 0.85)" : "rgba(129, 140, 248, 0.45)";
+        ctx.beginPath();
+        ctx.arc(curX, curY, mol.baseSize, 0, Math.PI * 2);
+        ctx.fill();
+      });
       ctx.restore();
     }
 
-    // 4. Glass Resonance Tube Walls & Metric Scale
+    // 5. Standing Wave Envelope Overlay inside Air Column
+    if (isSoundActive) {
+      ctx.save();
+      const airH = waterSurfaceY - tubeTopY;
+      const waveFreq = (Math.PI * 2) / (ac.wavelengthCm * pxPerCm);
+      const envelopeAmp = (tubeW / 2 - 5) * (0.35 + ac.resonanceGain * 0.65);
+
+      // Standing wave envelope gradient
+      ctx.strokeStyle = `rgba(129, 140, 248, ${0.45 + ac.resonanceGain * 0.55})`;
+      ctx.lineWidth = 2.2;
+
+      // Positive side
+      ctx.beginPath();
+      for (let y = tubeTopY; y <= waterSurfaceY; y += 2) {
+        const distFromNode = waterSurfaceY - y;
+        const amp = Math.sin(distFromNode * waveFreq) * envelopeAmp * Math.sin(timeTick * 25);
+        const wx = tubeX + amp;
+        if (y === tubeTopY) ctx.moveTo(wx, y);
+        else ctx.lineTo(wx, y);
+      }
+      ctx.stroke();
+
+      // Mirror side
+      ctx.beginPath();
+      for (let y = tubeTopY; y <= waterSurfaceY; y += 2) {
+        const distFromNode = waterSurfaceY - y;
+        const amp = -Math.sin(distFromNode * waveFreq) * envelopeAmp * Math.sin(timeTick * 25);
+        const wx = tubeX + amp;
+        if (y === tubeTopY) ctx.moveTo(wx, y);
+        else ctx.lineTo(wx, y);
+      }
+      ctx.stroke();
+
+      // Displacement Node (N) and Antinode (A) Markers
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "bold 9px 'JetBrains Mono', monospace";
+      ctx.textAlign = "right";
+      ctx.fillText("NODE (N)", tubeX - tubeW / 2 - 8, waterSurfaceY + 3);
+
+      ctx.fillStyle = "#f43f5e";
+      ctx.fillText("ANTINODE (A)", tubeX - tubeW / 2 - 8, tubeTopY + 3);
+      ctx.restore();
+    }
+
+    // 6. Borosilicate Glass Tube Walls & Optical Glare
     ctx.save();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+    // Glass cylinder reflection
+    const glassReflect = ctx.createLinearGradient(tubeX - tubeW / 2, 0, tubeX + tubeW / 2, 0);
+    glassReflect.addColorStop(0, "rgba(255, 255, 255, 0.45)");
+    glassReflect.addColorStop(0.15, "rgba(255, 255, 255, 0.08)");
+    glassReflect.addColorStop(0.85, "rgba(255, 255, 255, 0.05)");
+    glassReflect.addColorStop(1, "rgba(255, 255, 255, 0.35)");
+
+    ctx.fillStyle = glassReflect;
+    ctx.fillRect(tubeX - tubeW / 2, tubeTopY, tubeW, tubeH);
+
+    // Glass wall outer strokes
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
     ctx.lineWidth = 2.5;
     ctx.strokeRect(tubeX - tubeW / 2, tubeTopY, tubeW, tubeH);
 
-    // Graduated Centimeter Scale on Side
+    // Graduated Centimeter Scale on Right Side
     ctx.strokeStyle = "#94a3b8";
     ctx.lineWidth = 1;
-    ctx.fillStyle = "#64748b";
-    ctx.font = "8px 'JetBrains Mono', monospace";
-    for (let cm = 0; cm <= 100; cm += 10) {
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "9px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+
+    for (let cm = 0; cm <= 100; cm += 5) {
       const my = tubeTopY + cm * pxPerCm;
+      const isMajor = cm % 10 === 0;
       ctx.beginPath();
       ctx.moveTo(tubeX + tubeW / 2, my);
-      ctx.lineTo(tubeX + tubeW / 2 + (cm % 20 === 0 ? 8 : 4), my);
+      ctx.lineTo(tubeX + tubeW / 2 + (isMajor ? 10 : 5), my);
       ctx.stroke();
-      if (cm % 20 === 0) {
-        ctx.fillText(`${cm}`, tubeX + tubeW / 2 + 12, my + 3);
+      if (isMajor) {
+        ctx.fillText(`${cm}`, tubeX + tubeW / 2 + 14, my + 3);
       }
     }
 
-    // Mark Theoretical Resonance Positions (Red markers)
+    // Mark Theoretical Resonance Positions (L₁, L₂, L₃)
     ac.resonantLengths.forEach((resL, idx) => {
       const resY = tubeTopY + resL * pxPerCm;
-      ctx.fillStyle = "#f43f5e";
-      ctx.beginPath();
-      ctx.arc(tubeX - tubeW / 2 - 6, resY, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.font = "bold 8px 'JetBrains Mono', monospace";
-      ctx.fillText(`L${idx + 1}`, tubeX - tubeW / 2 - 22, resY + 3);
+      if (resY <= tubeTopY + tubeH) {
+        ctx.fillStyle = "#f43f5e";
+        ctx.beginPath();
+        ctx.arc(tubeX - tubeW / 2 - 8, resY, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = "#f87171";
+        ctx.font = "bold 9px 'JetBrains Mono', monospace";
+        ctx.textAlign = "right";
+        ctx.fillText(`L${idx + 1}=${resL.toFixed(1)}cm`, tubeX - tubeW / 2 - 16, resY + 3);
+      }
     });
     ctx.restore();
 
-    // 5. Vibrating Tuning Fork Apparatus (Mounted above open tube top)
+    // 7. Vibrating Nickel-Chrome Tuning Fork Apparatus
     const forkX = tubeX;
-    const forkY = tubeTopY - 45;
-    const prongVibe = isSoundActive ? Math.sin(timeTick * 35) * 3 : 0;
+    const forkY = tubeTopY - 48;
+    const prongVibe = isSoundActive ? Math.sin(timeTick * 35) * (2 + ac.resonanceGain * 2) : 0;
 
     ctx.save();
-    ctx.strokeStyle = "#cbd5e1";
-    ctx.lineWidth = 4;
+    // Stainless steel metallic gradient for tuning fork
+    const forkGrad = ctx.createLinearGradient(forkX - 20, 0, forkX + 20, 0);
+    forkGrad.addColorStop(0, "#94a3b8");
+    forkGrad.addColorStop(0.5, "#f1f5f9");
+    forkGrad.addColorStop(1, "#64748b");
+
+    ctx.strokeStyle = forkGrad;
+    ctx.lineWidth = 5.0;
     ctx.lineCap = "round";
 
     // Stem Handle
     ctx.beginPath();
     ctx.moveTo(forkX, forkY);
-    ctx.lineTo(forkX, forkY - 20);
+    ctx.lineTo(forkX, forkY - 24);
     ctx.stroke();
+
+    // Center base block
+    ctx.fillStyle = "#475569";
+    ctx.beginPath();
+    ctx.arc(forkX, forkY - 24, 4, 0, Math.PI * 2);
+    ctx.fill();
 
     // U-shaped Prongs
     ctx.beginPath();
     // Left prong
     ctx.moveTo(forkX, forkY);
-    ctx.lineTo(forkX - 10 - prongVibe, forkY);
-    ctx.lineTo(forkX - 10 - prongVibe, forkY + 32);
+    ctx.lineTo(forkX - 12 - prongVibe, forkY);
+    ctx.lineTo(forkX - 12 - prongVibe, forkY + 36);
     // Right prong
     ctx.moveTo(forkX, forkY);
-    ctx.lineTo(forkX + 10 + prongVibe, forkY);
-    ctx.lineTo(forkX + 10 + prongVibe, forkY + 32);
+    ctx.lineTo(forkX + 12 + prongVibe, forkY);
+    ctx.lineTo(forkX + 12 + prongVibe, forkY + 36);
     ctx.stroke();
 
-    // Sound Wave Emanation Rings
+    // Frequency Stamp on Fork Stem
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "bold 8px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`${fork.frequency.toFixed(0)}Hz`, forkX, forkY - 8);
+
+    // Expanding Acoustic Wavefront Ripples
     if (isSoundActive) {
-      for (let w = 1; w <= 3; w++) {
-        const ringR = ((timeTick * 40 + w * 25) % 65);
-        ctx.strokeStyle = `rgba(129, 140, 248, ${Math.max(0, 1 - ringR / 65) * ac.resonanceGain})`;
-        ctx.lineWidth = 1.5;
+      for (let w = 1; w <= 4; w++) {
+        const ringR = ((timeTick * 45 + w * 22) % 75);
+        const ringAlpha = Math.max(0, 1 - ringR / 75) * (0.35 + ac.resonanceGain * 0.65);
+        ctx.strokeStyle = `rgba(129, 140, 248, ${ringAlpha})`;
+        ctx.lineWidth = 2.0;
         ctx.beginPath();
-        ctx.arc(forkX, forkY + 30, ringR, 0, Math.PI);
+        ctx.arc(forkX, forkY + 34, ringR, 0, Math.PI);
         ctx.stroke();
       }
+
+      // Resonance Aura Flash at peak resonance
+      if (ac.resonanceGain > 0.7) {
+        const auraPulse = (ac.resonanceGain - 0.7) / 0.3;
+        const auraGrad = ctx.createRadialGradient(forkX, tubeTopY, 5, forkX, tubeTopY, 45);
+        auraGrad.addColorStop(0, `rgba(52, 211, 153, ${0.4 * auraPulse})`);
+        auraGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+        ctx.fillStyle = auraGrad;
+        ctx.beginPath();
+        ctx.arc(forkX, tubeTopY, 45, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
+    ctx.restore();
+
+    // 8. Leveling Reservoir Bulb on Right Side
+    ctx.save();
+    const resX = tubeX + 120;
+    const resY = waterSurfaceY - 10;
+
+    // Flexible rubber tube connecting bottom of tube to reservoir bulb
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(tubeX, tubeTopY + tubeH);
+    ctx.bezierCurveTo(tubeX + 30, tubeTopY + tubeH + 30, resX - 30, benchY - 10, resX, resY + 45);
+    ctx.stroke();
+
+    // Reservoir Bulb Body
+    ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(resX, resY + 20, 22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Glass funnel neck
+    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.fillRect(resX - 6, resY - 15, 12, 18);
+    ctx.strokeRect(resX - 6, resY - 15, 12, 18);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "8px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("RESERVOIR", resX, resY + 54);
     ctx.restore();
 
     animId = requestAnimationFrame(renderSoundCanvas);
@@ -588,7 +797,7 @@ export function initSoundResonanceLab(containerId) {
     viewPhotoBtn.classList.add("active");
     viewSimBtn.classList.remove("active");
     viewPhotoBtn.style.background = "#0284c7";
-    viewSimBtn.style.background = "transparent";
+    viewPhotoBtn.style.background = "transparent";
     photoOverlay.style.display = "block";
     canvas.style.display = "none";
     SoundFX.click();
@@ -635,6 +844,7 @@ export function initSoundResonanceLab(containerId) {
 
   return function cleanupSoundResonanceLab() {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("resize", setupHiDPICanvas);
     window.removeEventListener("keydown", handleKeyDown);
     setAudioPlayback(false);
     if (audioCtx && typeof audioCtx.close === "function") {

@@ -293,6 +293,19 @@ export function initAntibioticResistanceLab(containerId) {
   const canvas = document.getElementById("antibiotic-canvas");
   const ctx = canvas.getContext("2d");
 
+  // HiDPI Canvas Scaling
+  const logicalW = 580;
+  const logicalH = 530;
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   const viewSimBtn = document.getElementById("view-mode-antibiotic-sim");
   const viewPhotoBtn = document.getElementById("view-mode-antibiotic-photo");
   const photoOverlay = document.getElementById("antibiotic-photo-overlay");
@@ -357,56 +370,114 @@ export function initAntibioticResistanceLab(containerId) {
   function renderPetriCanvas() {
     if (!container || !container.isConnected) return;
     timeTick += 0.03;
-    const cw = canvas.width;
-    const ch = canvas.height;
-    ctx.clearRect(0, 0, cw, ch);
 
-    const centerX = cw * 0.5;
-    const centerY = ch * 0.5;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
+
+    // Workbench Mat Background
+    ctx.fillStyle = "#0c1322";
+    ctx.fillRect(0, 0, logicalW, logicalH);
+
+    // Bench Grid
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.03)";
+    ctx.lineWidth = 1;
+    for (let gx = 30; gx < logicalW; gx += 40) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, logicalH);
+      ctx.stroke();
+    }
+    for (let gy = 30; gy < logicalH; gy += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(logicalW, gy);
+      ctx.stroke();
+    }
+
+    const centerX = logicalW * 0.5;
+    const centerY = logicalH * 0.5;
     const dishRadius = 210; // Represents 100mm petri dish (scale: ~4.2 px/mm)
     const pxPerMm = dishRadius / 50;
 
     const strain = BACTERIAL_STRAINS[currentStrainKey];
     const lawnAlpha = Math.min(1.0, incubationHours / 14);
 
-    // 1. Petri Dish Base Shadow & Rim
+    // 1. Petri Dish Depth Shadow
     ctx.save();
     ctx.beginPath();
-    ctx.arc(centerX, centerY, dishRadius + 14, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    ctx.arc(centerX + 6, centerY + 8, dishRadius + 10, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 24;
     ctx.fill();
+    ctx.restore();
 
-    // Outer Glass Rim
+    // 2. Clear Polystyrene Outer Dish Base & Wall
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(centerX, centerY, dishRadius + 4, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, dishRadius + 6, 0, Math.PI * 2);
     ctx.fillStyle = "#1e293b";
     ctx.fill();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 3.5;
     ctx.stroke();
 
-    // Mueller-Hinton Agar Substrate (Translucent amber agar)
+    // Dish Wall Bevel Inner Ring
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, dishRadius + 2, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 3. Mueller-Hinton Agar Substrate (Deep Golden Amber Gelatinous Matrix)
     ctx.beginPath();
     ctx.arc(centerX, centerY, dishRadius, 0, Math.PI * 2);
-    const agarGrad = ctx.createRadialGradient(centerX - 40, centerY - 40, 30, centerX, centerY, dishRadius);
-    agarGrad.addColorStop(0, "#d97706");
-    agarGrad.addColorStop(0.7, "#b45309");
+    const agarGrad = ctx.createRadialGradient(centerX - 50, centerY - 50, 40, centerX, centerY, dishRadius);
+    agarGrad.addColorStop(0, "#f59e0b");
+    agarGrad.addColorStop(0.5, "#d97706");
+    agarGrad.addColorStop(0.85, "#b45309");
     agarGrad.addColorStop(1, "#78350f");
     ctx.fillStyle = agarGrad;
     ctx.fill();
 
-    // Confluent Bacterial Lawn Layer
+    // Agar meniscus edge shadow
+    ctx.strokeStyle = "rgba(120, 53, 15, 0.6)";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // 4. Confluent Bacterial Lawn Layer
     if (lawnAlpha > 0.05) {
       ctx.beginPath();
       ctx.arc(centerX, centerY, dishRadius - 2, 0, Math.PI * 2);
-      ctx.fillStyle = strain.lawnColor;
-      ctx.globalAlpha = lawnAlpha * 0.88;
+      
+      // Lawn color gradient with natural biological texture
+      const lawnGrad = ctx.createRadialGradient(centerX - 30, centerY - 30, 20, centerX, centerY, dishRadius);
+      lawnGrad.addColorStop(0, strain.lawnColor);
+      lawnGrad.addColorStop(0.8, strain.lawnColor);
+      lawnGrad.addColorStop(1, "rgba(217, 119, 6, 0.8)");
+      ctx.fillStyle = lawnGrad;
+      ctx.globalAlpha = lawnAlpha * 0.90;
       ctx.fill();
       ctx.globalAlpha = 1.0;
+
+      // Fine bacterial colony granular stippling
+      if (lawnAlpha > 0.3) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.04)";
+        for (let s = 0; s < 45; s++) {
+          const ang = (s / 45) * Math.PI * 2;
+          const r = 30 + ((s * 37) % (dishRadius - 40));
+          ctx.beginPath();
+          ctx.arc(centerX + Math.cos(ang) * r, centerY + Math.sin(ang) * r, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
     }
     ctx.restore();
 
-    // 2. Render Antibiotic Disks & Zones of Inhibition (ZOI)
+    // 5. Render Antibiotic Disks & Zones of Inhibition (ZOI)
     DISK_SLOTS.forEach((slot, idx) => {
       const diskX = centerX + slot.xRel * dishRadius;
       const diskY = centerY + slot.yRel * dishRadius;
@@ -414,34 +485,45 @@ export function initAntibioticResistanceLab(containerId) {
 
       const zoneRadiusPx = (status.currentZoneMm / 2) * pxPerMm;
 
-      // Draw Clear Zone of Inhibition (punching hole through bacterial lawn)
+      // Draw Clear Zone of Inhibition (punching halo through bacterial lawn)
       if (status.currentZoneMm > 6.5 && lawnAlpha > 0.1) {
         ctx.save();
         ctx.beginPath();
         ctx.arc(diskX, diskY, zoneRadiusPx, 0, Math.PI * 2);
-        // Clear agar view (amber)
-        const zoiGrad = ctx.createRadialGradient(diskX, diskY, 5, diskX, diskY, zoneRadiusPx);
-        zoiGrad.addColorStop(0, "#d97706");
-        zoiGrad.addColorStop(0.85, "#b45309");
+        
+        // Translucent Amber Agar Visible in ZOI
+        const zoiGrad = ctx.createRadialGradient(diskX, diskY, 6, diskX, diskY, zoneRadiusPx);
+        zoiGrad.addColorStop(0, "#f59e0b");
+        zoiGrad.addColorStop(0.7, "#d97706");
+        zoiGrad.addColorStop(0.92, "#b45309");
         zoiGrad.addColorStop(1, strain.lawnColor);
         ctx.fillStyle = zoiGrad;
-        ctx.globalAlpha = lawnAlpha * 0.95;
+        ctx.globalAlpha = lawnAlpha * 0.96;
         ctx.fill();
 
-        // Delicate zone boundary ring
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        // Zone boundary margin line
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
         ctx.lineWidth = 1.5;
         ctx.stroke();
+
+        // Sub-inhibitory partial clearance haze
+        ctx.strokeStyle = "rgba(251, 191, 36, 0.25)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(diskX, diskY, zoneRadiusPx - 1, 0, Math.PI * 2);
+        ctx.stroke();
+
         ctx.restore();
       }
 
-      // Antibiotic Paper Filter Disk (Standard 6mm diameter)
-      const diskRadiusPx = 3 * pxPerMm; // 3mm radius
+      // Antibiotic Paper Filter Disk (Standard 6mm diameter Whatman No. 1)
+      const diskRadiusPx = 3 * pxPerMm; // 3mm radius = 6mm diameter
       ctx.save();
-      // Drop shadow for paper disk
-      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetX = 1;
+      
+      // Paper disk drop shadow
+      ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+      ctx.shadowBlur = 5;
+      ctx.shadowOffsetX = 1.5;
       ctx.shadowOffsetY = 2;
 
       ctx.beginPath();
@@ -450,22 +532,23 @@ export function initAntibioticResistanceLab(containerId) {
       ctx.fill();
       ctx.restore();
 
+      // Paper disk fibrous edge
       ctx.strokeStyle = "#cbd5e1";
-      ctx.lineWidth = 1;
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.arc(diskX, diskY, diskRadiusPx, 0, Math.PI * 2);
       ctx.stroke();
 
-      // Disk Printed Code
+      // Disk Printed Pharmaceutical Code
       ctx.fillStyle = "#0f172a";
       ctx.font = "bold 9px 'JetBrains Mono', monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(status.ant.code.split("-")[0], diskX, diskY - 2);
+      ctx.fillText(status.ant.code.split("-")[0], diskX, diskY - 2.5);
       ctx.font = "8px 'JetBrains Mono', monospace";
       ctx.fillText(status.ant.code.split("-")[1], diskX, diskY + 6);
 
-      // Highlight Active Caliper Disk
+      // Highlight Active Caliper Selected Disk Ring
       if (idx === selectedSlotIndex) {
         ctx.strokeStyle = "#10b981";
         ctx.lineWidth = 2.5;
@@ -475,7 +558,7 @@ export function initAntibioticResistanceLab(containerId) {
       }
     });
 
-    // 3. Digital Vernier Caliper Overlay Tool
+    // 6. Digital Vernier Caliper Precision Measurement Tool
     if (isCaliperActive) {
       const activeSlot = DISK_SLOTS[selectedSlotIndex];
       const activeStatus = getSlotStatus(activeSlot);
@@ -484,7 +567,7 @@ export function initAntibioticResistanceLab(containerId) {
       const zoneRadiusPx = (activeStatus.currentZoneMm / 2) * pxPerMm;
 
       ctx.save();
-      // Caliper measurement beam line
+      // Caliper measurement beam line across ZOI diameter
       ctx.strokeStyle = "#38bdf8";
       ctx.lineWidth = 2;
       ctx.setLineDash([4, 3]);
@@ -494,27 +577,28 @@ export function initAntibioticResistanceLab(containerId) {
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Caliper Jaws
-      const jawH = 26;
+      // Stainless Steel Caliper Jaws
+      const jawH = 30;
       ctx.strokeStyle = "#38bdf8";
-      ctx.lineWidth = 3;
-      // Left jaw
+      ctx.lineWidth = 3.5;
+      
+      // Left measuring jaw
       ctx.beginPath();
       ctx.moveTo(activeX - zoneRadiusPx, activeY - jawH / 2);
       ctx.lineTo(activeX - zoneRadiusPx, activeY + jawH / 2);
       ctx.stroke();
 
-      // Right jaw
+      // Right measuring jaw
       ctx.beginPath();
       ctx.moveTo(activeX + zoneRadiusPx, activeY - jawH / 2);
       ctx.lineTo(activeX + zoneRadiusPx, activeY + jawH / 2);
       ctx.stroke();
 
-      // Caliper LCD Readout Pod
-      const podW = 100;
-      const podH = 28;
+      // Caliper LCD Digital Readout Pod
+      const podW = 105;
+      const podH = 30;
       const podX = activeX - podW / 2;
-      const podY = activeY - zoneRadiusPx - 38;
+      const podY = activeY - zoneRadiusPx - 42;
 
       ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
       ctx.strokeStyle = "#38bdf8";
@@ -525,19 +609,28 @@ export function initAntibioticResistanceLab(containerId) {
       ctx.stroke();
 
       ctx.fillStyle = "#38bdf8";
-      ctx.font = "bold 12px 'JetBrains Mono', monospace";
+      ctx.font = "bold 13px 'JetBrains Mono', monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(`${activeStatus.currentZoneMm.toFixed(1)} mm`, activeX, podY + podH / 2);
       ctx.restore();
     }
 
-    // 4. Petri Dish Plastic Cover Specular Reflection
+    // 7. Petri Dish Polystyrene Lid Specular Glare Arc
     ctx.save();
     ctx.beginPath();
-    ctx.ellipse(centerX - 40, centerY - 60, dishRadius * 0.7, dishRadius * 0.35, -Math.PI / 6, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.ellipse(centerX - 45, centerY - 65, dishRadius * 0.72, dishRadius * 0.38, -Math.PI / 6, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
     ctx.fill();
+
+    // Curved edge reflection highlights
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, dishRadius - 6, Math.PI * 1.05, Math.PI * 1.45);
+    ctx.stroke();
+    ctx.restore();
+
     ctx.restore();
 
     animId = requestAnimationFrame(renderPetriCanvas);
@@ -546,7 +639,7 @@ export function initAntibioticResistanceLab(containerId) {
   // Event Listeners
   selectStrain.addEventListener("change", (e) => {
     currentStrainKey = e.target.value;
-    SoundFX.droplet();
+    SoundFX.droplet?.() || SoundFX.playClick?.();
     updateHUD();
   });
 
@@ -561,7 +654,7 @@ export function initAntibioticResistanceLab(containerId) {
       document.querySelectorAll(".btn-slot-select").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
       selectedSlotIndex = parseInt(btn.dataset.slot, 10);
-      SoundFX.click();
+      SoundFX.click?.() || SoundFX.playClick?.();
       updateHUD();
     });
   });
@@ -570,14 +663,14 @@ export function initAntibioticResistanceLab(containerId) {
     incubationHours = 24;
     sliderIncubation.value = 24;
     lblIncubation.textContent = "24.0 Hours (Full Incubation)";
-    SoundFX.success();
+    SoundFX.success?.() || SoundFX.playBeep?.();
     updateHUD();
   });
 
   btnCaliperToggle.addEventListener("click", () => {
     isCaliperActive = !isCaliperActive;
     btnCaliperToggle.classList.toggle("active", isCaliperActive);
-    SoundFX.click();
+    SoundFX.click?.() || SoundFX.playClick?.();
   });
 
   // View Switcher (Sim vs 4K Photo)
@@ -589,7 +682,7 @@ export function initAntibioticResistanceLab(containerId) {
     viewPhotoBtn.style.background = "transparent";
     photoOverlay.style.display = "none";
     canvas.style.display = "block";
-    SoundFX.click();
+    SoundFX.click?.() || SoundFX.playClick?.();
   });
 
   viewPhotoBtn.addEventListener("click", () => {
@@ -600,7 +693,7 @@ export function initAntibioticResistanceLab(containerId) {
     viewSimBtn.style.background = "transparent";
     photoOverlay.style.display = "block";
     canvas.style.display = "none";
-    SoundFX.click();
+    SoundFX.click?.() || SoundFX.playClick?.();
   });
 
   // Telemetry CSV Export
@@ -629,7 +722,7 @@ export function initAntibioticResistanceLab(containerId) {
         ];
       })
     });
-    SoundFX.success();
+    SoundFX.success?.() || SoundFX.playBeep?.();
   });
 
   // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
@@ -648,5 +741,7 @@ export function initAntibioticResistanceLab(containerId) {
   return function cleanupAntibioticResistanceLab() {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }
+

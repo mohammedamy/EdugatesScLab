@@ -74,8 +74,15 @@ export function initElectrochemLab(containerId) {
 
   // Particle tracking
   const electrons = [];
-  for (let i = 0; i < 16; i++) {
-    electrons.push({ pos: i / 16 });
+  for (let i = 0; i < 20; i++) {
+    electrons.push({ pos: i / 20 });
+  }
+  const bridgeIons = [];
+  for (let i = 0; i < 18; i++) {
+    bridgeIons.push({
+      type: i % 2 === 0 ? "k" : "no3",
+      pos: i / 18
+    });
   }
 
   container.innerHTML = `
@@ -251,6 +258,21 @@ export function initElectrochemLab(containerId) {
   const canvas = container.querySelector("#electrochem-canvas");
   const ctx = canvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   // Telemetry DOM elements
   const dispVoltage = container.querySelector("#disp-voltage-val");
   const dispE0 = container.querySelector("#disp-e0-val");
@@ -283,92 +305,246 @@ export function initElectrochemLab(containerId) {
 
   // 60 FPS HTML5 Canvas Simulation
   function renderApparatus() {
-    const W = canvas.width;
-    const H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
     // Bench Surface
     const benchY = 460;
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(0, benchY, W, H - benchY);
-    ctx.strokeStyle = "#475569";
-    ctx.lineWidth = 2;
+    const benchGrad = ctx.createLinearGradient(0, benchY, 0, logicalH);
+    benchGrad.addColorStop(0, "#1e293b");
+    benchGrad.addColorStop(0.05, "#0f172a");
+    benchGrad.addColorStop(1, "#020617");
+    ctx.fillStyle = benchGrad;
+    ctx.fillRect(0, benchY, logicalW, logicalH - benchY);
+
+    // Bench bevel edge
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(0, benchY);
-    ctx.lineTo(W, benchY);
+    ctx.lineTo(logicalW, benchY);
     ctx.stroke();
 
-    const CX = W * 0.48;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY + 2);
+    ctx.lineTo(logicalW, benchY + 2);
+    ctx.stroke();
+
+    const CX = logicalW * 0.48;
     const beakerW = 160;
     const beakerH = 210;
     const beakerY = 240;
     const leftBX = CX - 170;
     const rightBX = CX + 10;
 
-    // --- LEFT BEAKER: ANODE (Oxidation) ---
-    // Beaker Solution (Anode)
-    ctx.fillStyle = activePair.anodeSolColor;
-    ctx.fillRect(leftBX + 5, beakerY + 30, beakerW - 10, beakerH - 35);
+    // Contact shadows under both beakers
+    const lShadow = ctx.createRadialGradient(leftBX + beakerW/2, benchY, 20, leftBX + beakerW/2, benchY, 90);
+    lShadow.addColorStop(0, "rgba(0,0,0,0.6)");
+    lShadow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = lShadow;
+    ctx.fillRect(leftBX - 20, benchY - 4, beakerW + 40, 16);
 
-    // Left Borosilicate Glass Outline
-    ctx.strokeStyle = "rgba(255,255,255,0.4)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.roundRect(leftBX, beakerY, beakerW, beakerH, [0, 0, 12, 12]);
-    ctx.stroke();
+    const rShadow = ctx.createRadialGradient(rightBX + beakerW/2, benchY, 20, rightBX + beakerW/2, benchY, 90);
+    rShadow.addColorStop(0, "rgba(0,0,0,0.6)");
+    rShadow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = rShadow;
+    ctx.fillRect(rightBX - 20, benchY - 4, beakerW + 40, 16);
 
-    // Anode Metallic Strip
+    // Caustics on bench top from colored solutions
+    ctx.save();
+    const lCaustic = ctx.createRadialGradient(leftBX + beakerW/2, benchY + 4, 5, leftBX + beakerW/2, benchY + 10, 80);
+    lCaustic.addColorStop(0, "rgba(56, 189, 248, 0.35)");
+    lCaustic.addColorStop(1, "rgba(56, 189, 248, 0)");
+    ctx.fillStyle = lCaustic;
+    ctx.fillRect(leftBX, benchY, beakerW, 20);
+
+    const rCaustic = ctx.createRadialGradient(rightBX + beakerW/2, benchY + 4, 5, rightBX + beakerW/2, benchY + 10, 80);
+    rCaustic.addColorStop(0, activePair.cathodeIon.includes("Cu") ? "rgba(37, 99, 235, 0.45)" : "rgba(224, 242, 254, 0.2)");
+    rCaustic.addColorStop(1, "rgba(37, 99, 235, 0)");
+    ctx.fillStyle = rCaustic;
+    ctx.fillRect(rightBX, benchY, beakerW, 20);
+    ctx.restore();
+
+    // Helper: draw realistic borosilicate beaker
+    function drawBeaker(bx, by, bw, bh, solColor, meniscusTint) {
+      const liquidY = by + 35;
+      const bBottom = by + bh;
+
+      // Solution Liquid Body
+      ctx.save();
+      const solGrad = ctx.createLinearGradient(0, liquidY, 0, bBottom);
+      solGrad.addColorStop(0, solColor);
+      solGrad.addColorStop(1, "rgba(0,0,0,0.2)");
+      ctx.fillStyle = solColor;
+      ctx.beginPath();
+      ctx.moveTo(bx + 5, liquidY);
+      ctx.lineTo(bx + bw - 5, liquidY);
+      ctx.lineTo(bx + bw - 5, bBottom - 8);
+      ctx.arcTo(bx + bw - 5, bBottom - 3, bx + bw - 14, bBottom - 3, 10);
+      ctx.lineTo(bx + 14, bBottom - 3);
+      ctx.arcTo(bx + 5, bBottom - 3, bx + 5, bBottom - 8, 10);
+      ctx.closePath();
+      ctx.fill();
+
+      // Liquid Meniscus Ellipse
+      ctx.fillStyle = meniscusTint || "rgba(255,255,255,0.15)";
+      ctx.beginPath();
+      ctx.ellipse(bx + bw/2, liquidY, bw/2 - 6, 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.5)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+
+      // Glass Wall Outline
+      ctx.strokeStyle = "rgba(255,255,255,0.5)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      // Lip spout at top-left
+      ctx.moveTo(bx - 6, by - 2);
+      ctx.quadraticCurveTo(bx - 2, by, bx, by);
+      ctx.lineTo(bx, bBottom - 10);
+      ctx.arcTo(bx, bBottom, bx + 12, bBottom, 10);
+      ctx.lineTo(bx + bw - 12, bBottom);
+      ctx.arcTo(bx + bw, bBottom, bx + bw, bBottom - 10, 10);
+      ctx.lineTo(bx + bw, by);
+      ctx.stroke();
+
+      // Cylinder specular highlights
+      const leftGlow = ctx.createLinearGradient(bx + 6, 0, bx + 18, 0);
+      leftGlow.addColorStop(0, "rgba(255,255,255,0.3)");
+      leftGlow.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = leftGlow;
+      ctx.fillRect(bx + 6, by + 8, 12, bh - 16);
+
+      const rightGlow = ctx.createLinearGradient(bx + bw - 18, 0, bx + bw - 6, 0);
+      rightGlow.addColorStop(0, "rgba(255,255,255,0)");
+      rightGlow.addColorStop(1, "rgba(255,255,255,0.2)");
+      ctx.fillStyle = rightGlow;
+      ctx.fillRect(bx + bw - 18, by + 8, 12, bh - 16);
+
+      // Volume Graduations (50, 100, 150 mL)
+      ctx.strokeStyle = "rgba(255,255,255,0.55)";
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.font = "7.5px monospace";
+      ctx.textAlign = "left";
+      [
+        { y: bBottom - 45, ml: "50" },
+        { y: bBottom - 85, ml: "100" },
+        { y: bBottom - 125, ml: "150" }
+      ].forEach(g => {
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(bx + 6, g.y);
+        ctx.lineTo(bx + 22, g.y);
+        ctx.stroke();
+        ctx.fillText(`${g.ml}`, bx + 25, g.y + 2.5);
+      });
+      ctx.restore();
+    }
+
+    // Draw Left Beaker (Anode) & Right Beaker (Cathode)
+    drawBeaker(leftBX, beakerY, beakerW, beakerH, activePair.anodeSolColor, "rgba(56, 189, 248, 0.3)");
+    drawBeaker(rightBX, beakerY, beakerW, beakerH, activePair.cathodeSolColor, "rgba(37, 99, 235, 0.35)");
+
+    // --- ANODE METALLIC STRIP ---
     const anodeW = 28;
     const anodeH = 200;
-    const anodeX = leftBX + 40;
+    const anodeX = leftBX + 35;
     const anodeY = beakerY - 40;
-    ctx.fillStyle = activePair.anodeColor;
-    ctx.strokeStyle = "#cbd5e1";
-    ctx.lineWidth = 1.5;
+
+    ctx.save();
+    const anodeGrad = ctx.createLinearGradient(anodeX, 0, anodeX + anodeW, 0);
+    anodeGrad.addColorStop(0, activePair.anodeColor);
+    anodeGrad.addColorStop(0.3, "#ffffff");
+    anodeGrad.addColorStop(0.7, activePair.anodeColor);
+    anodeGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = anodeGrad;
     ctx.fillRect(anodeX, anodeY, anodeW, anodeH);
+
+    // Micro brushed lines on anode
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 1;
+    for (let gy = anodeY + 6; gy < anodeY + anodeH - 6; gy += 12) {
+      ctx.beginPath();
+      ctx.moveTo(anodeX + 2, gy);
+      ctx.lineTo(anodeX + anodeW - 2, gy);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = "#475569";
     ctx.strokeRect(anodeX, anodeY, anodeW, anodeH);
 
+    // Label with glow badge
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 11px system-ui";
+    ctx.font = "bold 10px Inter, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText(`${activePair.anodeMetal} Anode (-)`, anodeX + anodeW/2, anodeY - 8);
+    ctx.fillText(`${activePair.anodeMetal} Anode (-)`, anodeX + anodeW/2, anodeY - 14);
+    ctx.restore();
 
-    // --- RIGHT BEAKER: CATHODE (Reduction) ---
-    // Beaker Solution (Cathode)
-    ctx.fillStyle = activePair.cathodeSolColor;
-    ctx.fillRect(rightBX + 5, beakerY + 30, beakerW - 10, beakerH - 35);
-
-    // Right Borosilicate Glass Outline
-    ctx.strokeStyle = "rgba(255,255,255,0.4)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.roundRect(rightBX, beakerY, beakerW, beakerH, [0, 0, 12, 12]);
-    ctx.stroke();
-
-    // Cathode Metallic Strip
+    // --- CATHODE METALLIC STRIP ---
     const cathW = 28;
     const cathH = 200;
-    const cathX = rightBX + beakerW - 68;
+    const cathX = rightBX + beakerW - 63;
     const cathY = beakerY - 40;
-    ctx.fillStyle = activePair.cathodeColor;
-    ctx.strokeStyle = "#fdba74";
-    ctx.lineWidth = 1.5;
+
+    ctx.save();
+    const cathGrad = ctx.createLinearGradient(cathX, 0, cathX + cathW, 0);
+    cathGrad.addColorStop(0, activePair.cathodeColor);
+    cathGrad.addColorStop(0.3, "#ffffff");
+    cathGrad.addColorStop(0.7, activePair.cathodeColor);
+    cathGrad.addColorStop(1, "#451a03");
+    ctx.fillStyle = cathGrad;
     ctx.fillRect(cathX, cathY, cathW, cathH);
+
+    // Micro brushed lines on cathode
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 1;
+    for (let gy = cathY + 6; gy < cathY + cathH - 6; gy += 12) {
+      ctx.beginPath();
+      ctx.moveTo(cathX + 2, gy);
+      ctx.lineTo(cathX + cathW - 2, gy);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = "#475569";
     ctx.strokeRect(cathX, cathY, cathW, cathH);
 
+    // Cathode Label
     ctx.fillStyle = "#ffffff";
-    ctx.fillText(`${activePair.cathodeMetal} Cathode (+)`, cathX + cathW/2, cathY - 8);
+    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(`${activePair.cathodeMetal} Cathode (+)`, cathX + cathW/2, cathY - 14);
+    ctx.restore();
 
     // --- INVERTED U-TUBE SALT BRIDGE ---
-    const bridgeX1 = leftBX + beakerW - 35;
-    const bridgeX2 = rightBX + 35;
-    const bridgeTopY = beakerY + 10;
-    const bridgeBotY = beakerY + 160;
+    const bridgeX1 = leftBX + beakerW - 32;
+    const bridgeX2 = rightBX + 32;
+    const bridgeTopY = beakerY + 12;
+    const bridgeBotY = beakerY + 165;
 
-    // Salt Bridge Tube Outline
-    ctx.strokeStyle = "rgba(255,255,255,0.85)";
-    ctx.lineWidth = 16;
+    ctx.save();
+    // Glass Tube Shadow
+    ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    ctx.lineWidth = 18;
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(bridgeX1, bridgeBotY + 2);
+    ctx.lineTo(bridgeX1, bridgeTopY + 2);
+    ctx.lineTo(bridgeX2, bridgeTopY + 2);
+    ctx.lineTo(bridgeX2, bridgeBotY + 2);
+    ctx.stroke();
+
+    // Outer Glass Sheath
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+    ctx.lineWidth = 16;
     ctx.beginPath();
     ctx.moveTo(bridgeX1, bridgeBotY);
     ctx.lineTo(bridgeX1, bridgeTopY);
@@ -376,97 +552,251 @@ export function initElectrochemLab(containerId) {
     ctx.lineTo(bridgeX2, bridgeBotY);
     ctx.stroke();
 
-    // Salt Bridge Inner Electrolyte (Agarose Gel with KNO3)
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 10;
+    // Inner Agarose Gel Matrix (1.0 M KNO3)
+    const gelGrad = ctx.createLinearGradient(bridgeX1, 0, bridgeX2, 0);
+    gelGrad.addColorStop(0, "rgba(56, 189, 248, 0.4)");
+    gelGrad.addColorStop(0.5, "rgba(186, 230, 253, 0.65)");
+    gelGrad.addColorStop(1, "rgba(56, 189, 248, 0.4)");
+    ctx.strokeStyle = gelGrad;
+    ctx.lineWidth = 11;
     ctx.stroke();
 
-    // Migrating Ions in Salt Bridge
-    if (isClosedCircuit) {
-      const ionShift = (elapsedSeconds * 20) % 40;
-      ctx.fillStyle = "#facc15"; // K+ to Cathode
-      ctx.font = "bold 9px monospace";
-      ctx.fillText("K⁺ ➔", CX + ionShift, bridgeTopY + 3);
-      ctx.fillStyle = "#a855f7"; // NO3- to Anode
-      ctx.fillText("⬅ NO₃⁻", CX - 40 - ionShift, bridgeTopY + 3);
-    }
+    // Porous Cotton/Fritted Plugs at bottom tips
+    ctx.fillStyle = "#fef08a";
+    ctx.strokeStyle = "#ca8a04";
+    ctx.lineWidth = 1;
+    ctx.fillRect(bridgeX1 - 5, bridgeBotY - 4, 10, 8);
+    ctx.strokeRect(bridgeX1 - 5, bridgeBotY - 4, 10, 8);
+    ctx.fillRect(bridgeX2 - 5, bridgeBotY - 4, 10, 8);
+    ctx.strokeRect(bridgeX2 - 5, bridgeBotY - 4, 10, 8);
 
-    // --- EXTERNAL CIRCUIT & DIGITAL MULTIMETER ---
+    // Salt Bridge Glass Specular Highlight
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bridgeX1 + 4, bridgeBotY - 4);
+    ctx.lineTo(bridgeX1 + 4, bridgeTopY + 4);
+    ctx.lineTo(bridgeX2 - 4, bridgeTopY + 4);
+    ctx.lineTo(bridgeX2 - 4, bridgeBotY - 4);
+    ctx.stroke();
+
+    // Migrating Ions in Salt Bridge (K+ to Cathode, NO3- to Anode)
+    if (isClosedCircuit) {
+      bridgeIons.forEach(ion => {
+        ion.pos = (ion.pos + 0.005) % 1.0;
+        let ix, iy;
+        if (ion.type === "k") {
+          // Drifts toward Cathode (left-to-right along top)
+          ix = bridgeX1 + ion.pos * (bridgeX2 - bridgeX1);
+          iy = bridgeTopY;
+          ctx.fillStyle = "#facc15";
+          ctx.shadowColor = "#facc15";
+          ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.arc(ix, iy, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // NO3- Drifts toward Anode (right-to-left along top)
+          ix = bridgeX2 - ion.pos * (bridgeX2 - bridgeX1);
+          iy = bridgeTopY + 1.5;
+          ctx.fillStyle = "#c084fc";
+          ctx.shadowColor = "#c084fc";
+          ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.arc(ix, iy, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      ctx.shadowBlur = 0;
+
+      // Salt bridge labels
+      ctx.font = "bold 8.5px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#facc15";
+      ctx.fillText("K⁺ ➔", CX + 16, bridgeTopY - 10);
+      ctx.fillStyle = "#c084fc";
+      ctx.fillText("⬅ NO₃⁻", CX - 38, bridgeTopY - 10);
+    }
+    ctx.restore();
+
+    // --- EXTERNAL CIRCUIT & BENCHTOP MULTIMETER ---
     const wireY = 85;
     const meterCX = CX;
     const meterCY = wireY;
 
-    // Connecting Lead Wires
-    ctx.strokeStyle = "#e2e8f0";
-    ctx.lineWidth = 2.5;
+    // Multimeter Chassis
+    ctx.save();
+    const meterW = 124;
+    const meterH = 80;
 
-    // Left wire: Anode to DMM (-)
+    // Contact shadow
+    const mShadow = ctx.createRadialGradient(meterCX, meterCY + meterH/2, 10, meterCX, meterCY + meterH/2, 60);
+    mShadow.addColorStop(0, "rgba(0,0,0,0.5)");
+    mShadow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = mShadow;
+    ctx.fillRect(meterCX - 65, meterCY + meterH/2 - 5, 130, 15);
+
+    // Chassis Box
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(anodeX + anodeW/2, anodeY);
-    ctx.lineTo(anodeX + anodeW/2, wireY);
-    ctx.lineTo(meterCX - 45, wireY);
+    ctx.roundRect(meterCX - meterW/2, meterCY - meterH/2, meterW, meterH, 8);
+    ctx.fill();
     ctx.stroke();
 
-    // Right wire: DMM (+) to Cathode
+    // Corner yellow bumpers
+    ctx.fillStyle = "#f59e0b";
+    const bSize = 8;
+    ctx.fillRect(meterCX - meterW/2, meterCY - meterH/2, bSize, bSize);
+    ctx.fillRect(meterCX + meterW/2 - bSize, meterCY - meterH/2, bSize, bSize);
+    ctx.fillRect(meterCX - meterW/2, meterCY + meterH/2 - bSize, bSize, bSize);
+    ctx.fillRect(meterCX + meterW/2 - bSize, meterCY + meterH/2 - bSize, bSize, bSize);
+
+    // Recessed Screen Bezel
+    ctx.fillStyle = "#020617";
+    ctx.fillRect(meterCX - 48, meterCY - 30, 96, 36);
+    ctx.strokeStyle = "#0f172a";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(meterCX - 48, meterCY - 30, 96, 36);
+
+    // Backlit LCD Display
+    const E_cell = calculateCellPotential();
+    ctx.fillStyle = isClosedCircuit ? "#38bdf8" : "#94a3b8";
+    ctx.font = "800 15px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.shadowColor = isClosedCircuit ? "rgba(56, 189, 248, 0.4)" : "transparent";
+    ctx.shadowBlur = 6;
+    ctx.fillText(`${isClosedCircuit ? "+" + E_cell.toFixed(3) : "OPEN"} V`, meterCX, meterCY - 12);
+    ctx.shadowBlur = 0;
+
+    // Annunciators on LCD
+    ctx.font = "bold 6.5px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "rgba(45, 212, 191, 0.75)";
+    ctx.textAlign = "left";
+    ctx.fillText("AUTO", meterCX - 44, meterCY - 22);
+    ctx.textAlign = "right";
+    ctx.fillText("V DC", meterCX + 44, meterCY - 22);
+
+    // Binding Post Terminals: Red (+) and Black (COM)
+    const redJackX = meterCX + 26;
+    const blackJackX = meterCX - 26;
+    const jackY = meterCY + 22;
+
+    // Black (-) Jack
+    ctx.fillStyle = "#0f172a";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(meterCX + 45, wireY);
-    ctx.lineTo(cathX + cathW/2, wireY);
-    ctx.lineTo(cathX + cathW/2, cathY);
+    ctx.arc(blackJackX, jackY, 5, 0, Math.PI * 2);
+    ctx.fill();
     ctx.stroke();
 
-    // Streaming Electrons Animation (From Anode - to Cathode +)
+    // Red (+) Jack
+    ctx.fillStyle = "#ef4444";
+    ctx.strokeStyle = "#991b1b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(redJackX, jackY, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+
+    // --- CONNECTING TEST LEAD WIRES ---
+    ctx.save();
+    // Left Lead (Black): Anode (-) to Multimeter COM Jack
+    const aLeadX = anodeX + anodeW/2;
+    const aLeadY = anodeY;
+
+    // Lead shadow
+    ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(aLeadX, aLeadY + 2);
+    ctx.bezierCurveTo(aLeadX - 30, aLeadY - 45, blackJackX - 20, jackY + 20, blackJackX, jackY + 2);
+    ctx.stroke();
+
+    // Black lead core
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 2.8;
+    ctx.beginPath();
+    ctx.moveTo(aLeadX, aLeadY);
+    ctx.bezierCurveTo(aLeadX - 30, aLeadY - 45, blackJackX - 20, jackY + 20, blackJackX, jackY);
+    ctx.stroke();
+
+    // Right Lead (Red): Cathode (+) to Multimeter Red Jack
+    const cLeadX = cathX + cathW/2;
+    const cLeadY = cathY;
+
+    ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.moveTo(cLeadX, cLeadY + 2);
+    ctx.bezierCurveTo(cLeadX + 30, cLeadY - 45, redJackX + 20, jackY + 20, redJackX, jackY + 2);
+    ctx.stroke();
+
+    // Red lead core
+    ctx.strokeStyle = "#dc2626";
+    ctx.lineWidth = 2.8;
+    ctx.beginPath();
+    ctx.moveTo(cLeadX, cLeadY);
+    ctx.bezierCurveTo(cLeadX + 30, cLeadY - 45, redJackX + 20, jackY + 20, redJackX, jackY);
+    ctx.stroke();
+
+    // Alligator clip at anode
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#475569";
+    ctx.fillRect(aLeadX - 6, aLeadY - 6, 12, 10);
+    ctx.strokeRect(aLeadX - 6, aLeadY - 6, 12, 10);
+
+    // Alligator clip at cathode
+    ctx.fillStyle = "#b91c1c";
+    ctx.strokeStyle = "#7f1d1d";
+    ctx.fillRect(cLeadX - 6, cLeadY - 6, 12, 10);
+    ctx.strokeRect(cLeadX - 6, cLeadY - 6, 12, 10);
+
+    // Streaming Electrons Animation (From Anode - through DMM to Cathode +)
     if (isClosedCircuit) {
-      ctx.fillStyle = "#00f0ff";
       electrons.forEach(el => {
-        el.pos = (el.pos + 0.006) % 1.0;
+        el.pos = (el.pos + 0.007) % 1.0;
         let ex, ey;
-        if (el.pos < 0.3) {
-          const t = el.pos / 0.3;
-          ex = anodeX + anodeW/2;
-          ey = anodeY - t * (anodeY - wireY);
-        } else if (el.pos < 0.7) {
-          const t = (el.pos - 0.3) / 0.4;
-          ex = (anodeX + anodeW/2) + t * (cathX + cathW/2 - (anodeX + anodeW/2));
-          ey = wireY;
+        if (el.pos < 0.45) {
+          // Along Left Wire: Anode to DMM COM
+          const t = el.pos / 0.45;
+          const p0 = { x: aLeadX, y: aLeadY };
+          const p1 = { x: aLeadX - 30, y: aLeadY - 45 };
+          const p2 = { x: blackJackX - 20, y: jackY + 20 };
+          const p3 = { x: blackJackX, y: jackY };
+          ex = (1-t)**3 * p0.x + 3*(1-t)**2 * t * p1.x + 3*(1-t)*t**2 * p2.x + t**3 * p3.x;
+          ey = (1-t)**3 * p0.y + 3*(1-t)**2 * t * p1.y + 3*(1-t)*t**2 * p2.y + t**3 * p3.y;
+        } else if (el.pos < 0.55) {
+          // Inside DMM from Black Jack to Red Jack
+          const t = (el.pos - 0.45) / 0.10;
+          ex = blackJackX + t * (redJackX - blackJackX);
+          ey = jackY;
         } else {
-          const t = (el.pos - 0.7) / 0.3;
-          ex = cathX + cathW/2;
-          ey = wireY + t * (cathY - wireY);
+          // Along Right Wire: Red Jack to Cathode
+          const t = (el.pos - 0.55) / 0.45;
+          const p0 = { x: redJackX, y: jackY };
+          const p1 = { x: redJackX + 20, y: jackY + 20 };
+          const p2 = { x: cLeadX + 30, y: cLeadY - 45 };
+          const p3 = { x: cLeadX, y: cLeadY };
+          ex = (1-t)**3 * p0.x + 3*(1-t)**2 * t * p1.x + 3*(1-t)*t**2 * p2.x + t**3 * p3.x;
+          ey = (1-t)**3 * p0.y + 3*(1-t)**2 * t * p1.y + 3*(1-t)*t**2 * p2.y + t**3 * p3.y;
         }
+
+        ctx.fillStyle = "#00f0ff";
+        ctx.shadowColor = "#00f0ff";
+        ctx.shadowBlur = 6;
         ctx.beginPath();
-        ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+        ctx.arc(ex, ey, 2.5, 0, Math.PI * 2);
         ctx.fill();
       });
+      ctx.shadowBlur = 0;
     }
+    ctx.restore();
 
-    // Digital Multimeter Box
-    ctx.fillStyle = "#0f172a";
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.roundRect(meterCX - 50, meterCY - 35, 100, 70, 8);
-    ctx.fill();
-    ctx.stroke();
-
-    // Multimeter Screen
-    ctx.fillStyle = "#020617";
-    ctx.fillRect(meterCX - 40, meterCY - 25, 80, 32);
-    ctx.fillStyle = "#00f0ff";
-    ctx.font = "bold 13px monospace";
-    ctx.textAlign = "center";
-    const E_cell = calculateCellPotential();
-    ctx.fillText(`${isClosedCircuit ? E_cell.toFixed(3) : "OPEN"} V`, meterCX, meterCY - 5);
-
-    // Multimeter Jacks (-) and (+)
-    ctx.fillStyle = "#ef4444"; // red +
-    ctx.beginPath();
-    ctx.arc(meterCX + 25, meterCY + 20, 5, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#000000"; // black -
-    ctx.beginPath();
-    ctx.arc(meterCX - 25, meterCY + 20, 5, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.restore();
   }
 
   // Animation Loop
@@ -651,5 +981,6 @@ export function initElectrochemLab(containerId) {
   return () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }

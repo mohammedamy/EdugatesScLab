@@ -35,8 +35,16 @@ export function initPhotoelectricLab(containerId) {
   const c = 2.99792458e8; // m/s
   const hc_eVnm = 1239.84; // eV·nm
 
-  // Photoelectron particles array
+  // HiDPI Logical Dimensions
+  const logicalW = 580;
+  const logicalH = 530;
+  const graphLogicalW = 420;
+  const graphLogicalH = 130;
+
+  // Photoelectron particles, photon wave-packets, and collection sparks
   const photoelectrons = [];
+  const incomingPhotons = [];
+  const anodeSparks = [];
 
   container.innerHTML = `
     <div class="lab-container">
@@ -215,6 +223,36 @@ export function initPhotoelectricLab(containerId) {
   const graphCanvas = container.querySelector("#pe-graph-canvas");
   const graphCtx = graphCanvas.getContext("2d");
 
+  let needsRedraw = true;
+  let graphNeedsRedraw = true;
+
+  // HiDPI / Retina Canvas Setup
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    if (canvas && ctx) {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width > 0 ? rect.width : logicalW;
+      const h = rect.height > 0 ? rect.height : logicalH;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.resetTransform();
+      ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    }
+    if (graphCanvas && graphCtx) {
+      const gRect = graphCanvas.getBoundingClientRect();
+      const gw = gRect.width > 0 ? gRect.width : graphLogicalW;
+      const gh = gRect.height > 0 ? gRect.height : graphLogicalH;
+      graphCanvas.width = Math.round(gw * dpr);
+      graphCanvas.height = Math.round(gh * dpr);
+      graphCtx.resetTransform();
+      graphCtx.scale(dpr * (gw / graphLogicalW), dpr * (gh / graphLogicalH));
+    }
+    needsRedraw = true;
+    graphNeedsRedraw = true;
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   // DOM Elements
   const dispEnergy = container.querySelector("#disp-pe-energy");
   const dispFreq = container.querySelector("#disp-pe-freq");
@@ -236,14 +274,19 @@ export function initPhotoelectricLab(containerId) {
 
   // 60 FPS HTML5 Canvas Simulation
   function renderApparatus() {
-    const W = canvas.width;
-    const H = canvas.height;
+    const W = logicalW;
+    const H = logicalH;
     ctx.clearRect(0, 0, W, H);
 
-    // Bench Surface
+    // Bench Surface with M6 optical rail mounting sockets
     const benchY = 460;
-    ctx.fillStyle = "#1e293b";
+    const railGrad = ctx.createLinearGradient(0, benchY, 0, H);
+    railGrad.addColorStop(0, "#334155");
+    railGrad.addColorStop(0.2, "#1e293b");
+    railGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = railGrad;
     ctx.fillRect(0, benchY, W, H - benchY);
+
     ctx.strokeStyle = "#475569";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -251,83 +294,298 @@ export function initPhotoelectricLab(containerId) {
     ctx.lineTo(W, benchY);
     ctx.stroke();
 
+    // M6 threaded optical table mounting holes
+    ctx.fillStyle = "#090d16";
+    for (let bx = 30; bx < W; bx += 40) {
+      ctx.beginPath();
+      ctx.arc(bx, benchY + 18, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    }
+
     const CX = W * 0.48;
     const CY = 240;
 
-    // --- QUARTZ VACUUM TUBE ENVELOPE (Spherical Bulge) ---
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-    ctx.lineWidth = 3;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+    // Tube Pedestal Stand
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(CX - 24, CY + 110, 48, benchY - (CY + 110));
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(CX - 24, CY + 110, 48, benchY - (CY + 110));
+
+    // Pedestal adjustment collar
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(CX - 28, benchY - 14, 56, 14);
+
+    // --- FUSED SILICA QUARTZ VACUUM TUBE ENVELOPE ---
+    // Outer glow aura
+    const tubeAura = ctx.createRadialGradient(CX, CY, 80, CX, CY, 180);
+    tubeAura.addColorStop(0, "rgba(56, 189, 248, 0.05)");
+    tubeAura.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = tubeAura;
+    ctx.beginPath();
+    ctx.ellipse(CX, CY, 175, 125, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Quartz Glass Bulb Wall
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+    ctx.lineWidth = 3.5;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.25)";
     ctx.beginPath();
     ctx.ellipse(CX, CY, 160, 110, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // Specular Reflection Curve on Glass
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-    ctx.lineWidth = 2;
+    // Inner Glass Refraction Boundary
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.15)";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.ellipse(CX, CY - 20, 140, 80, 0, Math.PI * 1.1, Math.PI * 1.9);
+    ctx.ellipse(CX, CY, 154, 104, 0, 0, Math.PI * 2);
     ctx.stroke();
+
+    // Top Evacuation Seal Tip (Quartz glass pull-off tip)
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.beginPath();
+    ctx.moveTo(CX - 8, CY - 110);
+    ctx.lineTo(CX, CY - 128);
+    ctx.lineTo(CX + 8, CY - 110);
+    ctx.closePath();
+    ctx.fill();
+
+    // Specular Reflection Curves on Quartz Bulb
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.ellipse(CX, CY - 24, 138, 76, 0, Math.PI * 1.12, Math.PI * 1.88);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(CX, CY + 24, 138, 76, 0, Math.PI * 0.15, Math.PI * 0.85);
+    ctx.stroke();
+
+    // --- ELECTRIC FIELD GRADIENT & FORCE VECTOR VISUALIZATION ---
+    if (Math.abs(batteryVoltage) > 0.05) {
+      const isRetarding = batteryVoltage < 0;
+      ctx.strokeStyle = isRetarding ? "rgba(244, 63, 94, 0.25)" : "rgba(56, 189, 248, 0.25)";
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      for (let ey = CY - 50; ey <= CY + 50; ey += 25) {
+        ctx.beginPath();
+        ctx.moveTo(CX - 75, ey);
+        ctx.lineTo(CX + 75, ey);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // Electric field text badge
+      ctx.font = "bold 9px monospace";
+      ctx.fillStyle = isRetarding ? "#f43f5e" : "#38bdf8";
+      ctx.textAlign = "center";
+      ctx.fillText(isRetarding ? "RETARDING FIELD (← FORCE)" : "ACCELERATING FIELD (FORCE →)", CX, CY - 75);
+    }
 
     // --- CATHODE PLATE (Target Metal on Left) ---
     const cathX = CX - 100;
     const cathY = CY;
     const cathH = 130;
 
-    ctx.fillStyle = activeMetal.color;
+    // Metal Base Slab with Material-Specific Shading
+    const metalGrad = ctx.createLinearGradient(cathX - 10, cathY, cathX + 10, cathY);
+    if (currentMetalKey === "cesium") {
+      metalGrad.addColorStop(0, "#d97706");
+      metalGrad.addColorStop(0.3, "#fde68a");
+      metalGrad.addColorStop(0.7, "#b45309");
+      metalGrad.addColorStop(1, "#78350f");
+    } else if (currentMetalKey === "potassium") {
+      metalGrad.addColorStop(0, "#818cf8");
+      metalGrad.addColorStop(0.4, "#e0e7ff");
+      metalGrad.addColorStop(0.8, "#6366f1");
+      metalGrad.addColorStop(1, "#3730a3");
+    } else if (currentMetalKey === "sodium") {
+      metalGrad.addColorStop(0, "#94a3b8");
+      metalGrad.addColorStop(0.3, "#f8fafc");
+      metalGrad.addColorStop(0.7, "#cbd5e1");
+      metalGrad.addColorStop(1, "#64748b");
+    } else if (currentMetalKey === "zinc") {
+      metalGrad.addColorStop(0, "#475569");
+      metalGrad.addColorStop(0.3, "#94a3b8");
+      metalGrad.addColorStop(0.7, "#64748b");
+      metalGrad.addColorStop(1, "#334155");
+    } else { // platinum
+      metalGrad.addColorStop(0, "#cbd5e1");
+      metalGrad.addColorStop(0.3, "#ffffff");
+      metalGrad.addColorStop(0.7, "#e2e8f0");
+      metalGrad.addColorStop(1, "#94a3b8");
+    }
+
+    ctx.fillStyle = metalGrad;
     ctx.strokeStyle = "#cbd5e1";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.roundRect(cathX - 8, cathY - cathH/2, 16, cathH, 4);
+    ctx.roundRect(cathX - 8, cathY - cathH / 2, 16, cathH, 3);
     ctx.fill();
     ctx.stroke();
 
+    // Cathode Mounting Bracket & Negative Terminal Wire
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(cathX - 8, cathY);
+    ctx.lineTo(cathX - 35, cathY);
+    ctx.lineTo(cathX - 35, CY + 100);
+    ctx.stroke();
+
+    // Negative Terminal Badge
+    ctx.fillStyle = "#ef4444";
+    ctx.beginPath();
+    ctx.arc(cathX - 35, CY + 100, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cathode Target Text Label
     ctx.fillStyle = "#ffffff";
     ctx.font = "bold 11px system-ui";
     ctx.textAlign = "center";
-    ctx.fillText(`${activeMetal.name} (Cathode -)`, cathX, cathY - cathH/2 - 10);
+    ctx.fillText(`${activeMetal.name}`, cathX, cathY - cathH / 2 - 14);
+    ctx.font = "9px monospace";
+    ctx.fillStyle = "#c084fc";
+    ctx.fillText(`Φ = ${activeMetal.workFunction.toFixed(2)} eV (Cathode -)`, cathX, cathY - cathH / 2 - 4);
 
     // --- ANODE COLLECTOR RING (Right) ---
     const anodX = CX + 100;
     const anodY = CY;
     const anodH = 110;
 
+    // Toroidal Ring (Chrome/copper circular collector ring with center opening)
     ctx.strokeStyle = "#38bdf8";
     ctx.lineWidth = 4;
+    ctx.shadowColor = "#38bdf8";
+    ctx.shadowBlur = 6;
     ctx.beginPath();
-    ctx.arc(anodX, anodY, anodH/2, -Math.PI/2, Math.PI/2);
+    ctx.arc(anodX, anodY, anodH / 2, -Math.PI / 2, Math.PI / 2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Anode Collector Lead Wire to Positive Terminal
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(anodX, anodY);
+    ctx.lineTo(anodX + 35, anodY);
+    ctx.lineTo(anodX + 35, CY + 100);
     ctx.stroke();
 
+    // Positive Terminal Badge
     ctx.fillStyle = "#38bdf8";
-    ctx.fillText("Anode (+)", anodX, anodY - anodH/2 - 10);
+    ctx.beginPath();
+    ctx.arc(anodX + 35, CY + 100, 5, 0, Math.PI * 2);
+    ctx.fill();
 
-    // --- INCIDENT MONOCHROMATIC LIGHT BEAM ---
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 11px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("Anode Ring (+)", anodX, anodY - anodH / 2 - 8);
+
+    // --- MONOCHROMATOR LIGHT SOURCE & VOLUMETRIC BEAM ---
     const beamColor = getWavelengthColor(wavelength);
     const lampX = 40;
     const lampY = 120;
 
-    ctx.fillStyle = beamColor;
-    ctx.beginPath();
-    ctx.moveTo(lampX, lampY - 15);
-    ctx.lineTo(cathX, cathY - cathH/2 + 20);
-    ctx.lineTo(cathX, cathY + cathH/2 - 20);
-    ctx.lineTo(lampX, lampY + 15);
-    ctx.closePath();
-    ctx.fill();
-
-    // Monochromator Lamp Head
-    ctx.fillStyle = "#0f172a";
+    // Monochromator Lamp Housing
+    const lampGrad = ctx.createLinearGradient(lampX - 25, lampY - 30, lampX + 25, lampY + 30);
+    lampGrad.addColorStop(0, "#1e293b");
+    lampGrad.addColorStop(0.5, "#334155");
+    lampGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = lampGrad;
     ctx.strokeStyle = "#38bdf8";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(lampX - 25, lampY - 30, 45, 60, 6);
+    ctx.roundRect(lampX - 25, lampY - 30, 48, 60, 6);
     ctx.fill();
     ctx.stroke();
 
+    // Lamp Collimator Lens Barrel
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(lampX + 23, lampY - 18, 12, 36);
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(lampX + 23, lampY - 18, 12, 36);
+
+    // Emission Lens Face
+    ctx.fillStyle = beamColor;
+    ctx.beginPath();
+    ctx.arc(lampX + 35, lampY, 14, -Math.PI / 2, Math.PI / 2);
+    ctx.fill();
+
+    // Lamp Label & Wavelength Indicator
     ctx.fillStyle = "#fbbf24";
     ctx.font = "bold 9px system-ui";
-    ctx.fillText("LAMP", lampX - 2, lampY + 4);
+    ctx.textAlign = "center";
+    ctx.fillText("MONO-LAMP", lampX - 1, lampY - 4);
+    ctx.font = "8px monospace";
+    ctx.fillStyle = "#38bdf8";
+    ctx.fillText(`${wavelength} nm`, lampX - 1, lampY + 10);
+
+    // Volumetric Incident Light Beam (if intensity > 0)
+    if (lightIntensity > 0) {
+      const beamAlpha = (lightIntensity / 100) * 0.75;
+      const beamGrad = ctx.createLinearGradient(lampX + 35, lampY, cathX, cathY);
+      beamGrad.addColorStop(0, beamColor.replace("0.85", (beamAlpha * 0.9).toFixed(2)));
+      beamGrad.addColorStop(0.7, beamColor.replace("0.85", (beamAlpha * 0.6).toFixed(2)));
+      beamGrad.addColorStop(1, beamColor.replace("0.85", (beamAlpha * 0.3).toFixed(2)));
+
+      ctx.fillStyle = beamGrad;
+      ctx.beginPath();
+      ctx.moveTo(lampX + 35, lampY - 14);
+      ctx.lineTo(cathX, cathY - cathH / 2 + 18);
+      ctx.lineTo(cathX, cathY + cathH / 2 - 18);
+      ctx.lineTo(lampX + 35, lampY + 14);
+      ctx.closePath();
+      ctx.fill();
+
+      // Spawn incoming photon wave-packets
+      if (Math.random() < (lightIntensity / 100) * 0.35) {
+        incomingPhotons.push({
+          progress: 0,
+          speed: 0.022 + Math.random() * 0.008,
+          offsetY: (Math.random() - 0.5) * (cathH - 40)
+        });
+      }
+
+      // Draw photon wave packets traveling along beam
+      ctx.save();
+      for (let i = incomingPhotons.length - 1; i >= 0; i--) {
+        const pk = incomingPhotons[i];
+        pk.progress += pk.speed;
+        if (pk.progress >= 1.0) {
+          incomingPhotons.splice(i, 1);
+          continue;
+        }
+
+        const px = (lampX + 35) + pk.progress * (cathX - (lampX + 35));
+        const py = lampY + pk.progress * (cathY + pk.offsetY - lampY);
+
+        // Sinusoidal wave packet
+        ctx.strokeStyle = beamColor;
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = beamColor;
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        const waveLen = 16;
+        const cycles = 2.5;
+        for (let w = -waveLen; w <= waveLen; w += 2) {
+          const envelope = Math.cos((w / waveLen) * (Math.PI / 2));
+          const waveY = Math.sin((w / waveLen) * cycles * Math.PI * 2) * 5 * envelope;
+          if (w === -waveLen) ctx.moveTo(px + w, py + waveY);
+          else ctx.lineTo(px + w, py + waveY);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
 
     // --- PHOTOELECTRONS SIMULATION ---
     const E_photon = hc_eVnm / wavelength;
@@ -335,62 +593,127 @@ export function initPhotoelectricLab(containerId) {
     const isEmitting = (KE_max > 0) && (lightIntensity > 0);
 
     if (isEmitting) {
-      // Net force on electrons: accelerating voltage F = q * V / d
-      // If batteryVoltage is negative, it opposes electron flow
-      const netEffectiveKE = KE_max + batteryVoltage;
-
-      // Spawn or animate electrons
-      if (Math.random() < (lightIntensity / 100) * 0.4) {
+      // Spawn new photoelectrons
+      if (Math.random() < (lightIntensity / 100) * 0.45) {
         photoelectrons.push({
           x: cathX + 8,
           y: cathY + (Math.random() - 0.5) * (cathH - 40),
-          vx: Math.sqrt(Math.max(0.1, KE_max)) * (2.0 + Math.random()),
-          vy: (Math.random() - 0.5) * 1.2,
-          alive: true
+          vx: Math.sqrt(Math.max(0.1, KE_max)) * (1.8 + Math.random() * 0.8),
+          vy: (Math.random() - 0.5) * 1.0,
+          trail: []
         });
       }
 
-      ctx.fillStyle = "#00f0ff";
+      // Update and render photoelectrons
       for (let i = photoelectrons.length - 1; i >= 0; i--) {
         const p = photoelectrons[i];
-        // Deceleration/acceleration from electric field
-        const ax = batteryVoltage * 1.5;
+
+        // Electric field acceleration/deceleration: F = q * V / d
+        const ax = batteryVoltage * 1.4;
         p.vx += ax * 0.016;
         p.x += p.vx;
         p.y += p.vy;
 
-        // Draw particle
+        // Keep trail
+        p.trail.push({ x: p.x, y: p.y });
+        if (p.trail.length > 5) p.trail.shift();
+
+        // Render trail
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        for (let t = 0; t < p.trail.length; t++) {
+          const pt = p.trail[t];
+          if (t === 0) ctx.moveTo(pt.x, pt.y);
+          else ctx.lineTo(pt.x, pt.y);
+        }
+        ctx.stroke();
+
+        // Render glowing electron particle
+        ctx.save();
+        ctx.fillStyle = "#38bdf8";
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 8;
         ctx.beginPath();
         ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
         ctx.fill();
+        ctx.restore();
 
-        // Check if reached collector or bounced back
-        if (p.x >= anodX || p.x < cathX - 5 || p.y < CY - 100 || p.y > CY + 100) {
+        // Check if reached anode ring
+        if (p.x >= anodX) {
+          // Charge collection spark at anode
+          anodeSparks.push({
+            x: anodX,
+            y: p.y,
+            alpha: 1.0,
+            radius: 3
+          });
+          photoelectrons.splice(i, 1);
+          continue;
+        }
+
+        // Check if turned around and bounced back to cathode or out of bulb bounds
+        if (p.x < cathX - 4 || p.y < CY - 95 || p.y > CY + 95) {
           photoelectrons.splice(i, 1);
         }
       }
     } else {
       photoelectrons.length = 0;
     }
+
+    // Render Anode Collection Sparks
+    for (let i = anodeSparks.length - 1; i >= 0; i--) {
+      const sp = anodeSparks[i];
+      sp.radius += 0.8;
+      sp.alpha -= 0.08;
+      if (sp.alpha <= 0) {
+        anodeSparks.splice(i, 1);
+        continue;
+      }
+      ctx.save();
+      ctx.strokeStyle = `rgba(56, 189, 248, ${sp.alpha})`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, sp.radius, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   // Render V_stop vs Frequency Plot
   function renderGraph() {
-    const W = graphCanvas.width;
-    const H = graphCanvas.height;
+    const W = graphLogicalW;
+    const H = graphLogicalH;
     graphCtx.clearRect(0, 0, W, H);
 
-    // Axes
-    const padL = 40;
-    const padB = 25;
-    const padT = 15;
-    const padR = 20;
+    // Padding
+    const padL = 44;
+    const padB = 28;
+    const padT = 16;
+    const padR = 24;
 
     const plotW = W - padL - padR;
     const plotH = H - padT - padB;
 
-    graphCtx.strokeStyle = "rgba(255,255,255,0.15)";
+    // Background Grid
+    graphCtx.strokeStyle = "rgba(255, 255, 255, 0.05)";
     graphCtx.lineWidth = 1;
+    for (let gx = padL; gx <= W - padR; gx += plotW / 5) {
+      graphCtx.beginPath();
+      graphCtx.moveTo(gx, padT);
+      graphCtx.lineTo(gx, H - padB);
+      graphCtx.stroke();
+    }
+    for (let gy = padT; gy <= H - padB; gy += plotH / 4) {
+      graphCtx.beginPath();
+      graphCtx.moveTo(padL, gy);
+      graphCtx.lineTo(W - padR, gy);
+      graphCtx.stroke();
+    }
+
+    // Axes
+    graphCtx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    graphCtx.lineWidth = 1.5;
     graphCtx.beginPath();
     graphCtx.moveTo(padL, padT);
     graphCtx.lineTo(padL, H - padB);
@@ -398,14 +721,9 @@ export function initPhotoelectricLab(containerId) {
     graphCtx.stroke();
 
     // Plot Theoretical Straight Line: V_stop = (h/e) * f - (Phi/e)
-    // Frequency range: 4.0e14 to 15.0e14 Hz
     const f_min = 4.0e14;
     const f_max = 15.0e14;
     const V_max_plot = 4.0;
-
-    graphCtx.strokeStyle = "#a855f7";
-    graphCtx.lineWidth = 2;
-    graphCtx.beginPath();
 
     const f0 = (activeMetal.workFunction / h_eVs);
     const x0 = padL + Math.max(0, (f0 - f_min) / (f_max - f_min)) * plotW;
@@ -413,6 +731,27 @@ export function initPhotoelectricLab(containerId) {
 
     const yEnd = (H - padB) - ((h_eVs * f_max - activeMetal.workFunction) / V_max_plot) * plotH;
 
+    // Threshold frequency cutoff guideline
+    if (x0 >= padL && x0 <= W - padR) {
+      graphCtx.strokeStyle = "rgba(234, 179, 8, 0.4)";
+      graphCtx.lineWidth = 1;
+      graphCtx.setLineDash([3, 3]);
+      graphCtx.beginPath();
+      graphCtx.moveTo(x0, H - padB);
+      graphCtx.lineTo(x0, padT + 10);
+      graphCtx.stroke();
+      graphCtx.setLineDash([]);
+
+      graphCtx.fillStyle = "#facc15";
+      graphCtx.font = "8px monospace";
+      graphCtx.textAlign = "center";
+      graphCtx.fillText("f₀", x0, H - padB + 10);
+    }
+
+    // Theoretical Linear Fit: V_stop vs f
+    graphCtx.strokeStyle = "#c084fc";
+    graphCtx.lineWidth = 2.2;
+    graphCtx.beginPath();
     graphCtx.moveTo(x0, y0);
     graphCtx.lineTo(W - padR, yEnd);
     graphCtx.stroke();
@@ -424,27 +763,43 @@ export function initPhotoelectricLab(containerId) {
     const ptY = (H - padB) - (currentVstop / V_max_plot) * plotH;
 
     if (ptX >= padL && ptX <= W - padR && ptY <= H - padB && ptY >= padT) {
-      graphCtx.fillStyle = "#00f0ff";
+      // Glow halo
+      graphCtx.fillStyle = "rgba(56, 189, 248, 0.3)";
       graphCtx.beginPath();
-      graphCtx.arc(ptX, ptY, 5, 0, Math.PI * 2);
+      graphCtx.arc(ptX, ptY, 8, 0, Math.PI * 2);
       graphCtx.fill();
+
+      // Core point
+      graphCtx.fillStyle = "#38bdf8";
+      graphCtx.beginPath();
+      graphCtx.arc(ptX, ptY, 4.5, 0, Math.PI * 2);
+      graphCtx.fill();
+
+      // Operating Point Tooltip Coordinates
+      graphCtx.fillStyle = "#38bdf8";
+      graphCtx.font = "bold 9px monospace";
+      graphCtx.textAlign = "left";
+      graphCtx.fillText(`(${ (currentF / 1e14).toFixed(1) }×10¹⁴, ${currentVstop.toFixed(2)}V)`, Math.min(ptX + 6, W - padR - 70), ptY - 6);
     }
 
     // Axis Labels
     graphCtx.fillStyle = "#94a3b8";
     graphCtx.font = "9px monospace";
     graphCtx.textAlign = "right";
-    graphCtx.fillText("4V", padL - 4, padT + 8);
-    graphCtx.fillText("0V", padL - 4, H - padB);
+    graphCtx.fillText("4.0V", padL - 4, padT + 8);
+    graphCtx.fillText("0.0V", padL - 4, H - padB);
     graphCtx.textAlign = "center";
-    graphCtx.fillText("Frequency f (Hz) ➔", W / 2, H - 6);
+    graphCtx.fillText("Frequency f (×10¹⁴ Hz) ➔", W / 2, H - 8);
+    graphCtx.save();
+    graphCtx.translate(12, H / 2);
+    graphCtx.rotate(-Math.PI / 2);
+    graphCtx.fillText("V_stop (V)", 0, 0);
+    graphCtx.restore();
   }
 
   // Animation Step
   let lastTime = performance.now();
   let lastFrameTime = 0;
-  let needsRedraw = true;
-  let graphNeedsRedraw = true;
 
   function loop(currentTime) {
     if (!container || !container.isConnected) {
@@ -482,8 +837,9 @@ export function initPhotoelectricLab(containerId) {
       }
 
       const isCurrentFlowing = isEmitting && batteryVoltage > -V_stop;
+      const hasActiveAnimation = (lightIntensity > 0) || (photoelectrons.length > 0) || (incomingPhotons.length > 0) || (anodeSparks.length > 0);
 
-      if (isCurrentFlowing) {
+      if (isCurrentFlowing || hasActiveAnimation) {
         if (!currentTime || currentTime - lastFrameTime >= interval) {
           lastFrameTime = currentTime;
           elapsedSeconds += dt;
@@ -493,7 +849,13 @@ export function initPhotoelectricLab(containerId) {
           dispKE.innerText = `KE_max = ${KE_max.toFixed(3)} eV`;
           dispVstop.innerText = `Stopping V_stop = ${V_stop.toFixed(3)} V`;
           dispCurrent.innerText = `${current_nA.toFixed(2)} nA`;
-          dispStatus.innerText = `⚡ Photoemission Active: Ejected electrons bridge cathode to anode (I = ${current_nA.toFixed(2)} nA).`;
+          if (!isEmitting) {
+            dispStatus.innerText = "🛑 No Emission: Photon energy hf is below work function Φ. Zero electrons ejected.";
+          } else if (batteryVoltage <= -V_stop) {
+            dispStatus.innerText = "⛔ Stopping Potential Reached: Retarding field halts all ejected photoelectrons.";
+          } else {
+            dispStatus.innerText = `⚡ Photoemission Active: Ejected electrons bridge cathode to anode (I = ${current_nA.toFixed(2)} nA).`;
+          }
 
           renderApparatus();
           if (graphNeedsRedraw) {
@@ -645,6 +1007,7 @@ export function initPhotoelectricLab(containerId) {
 
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("resize", setupHiDPICanvas);
     window.removeEventListener("keydown", handleKeyDown);
   };
   activePhotoelectricCleanup = cleanup;

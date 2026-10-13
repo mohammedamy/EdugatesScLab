@@ -128,18 +128,32 @@ export function initActivitySeriesLab(containerId) {
   let animId = null;
   let timeTick = 0;
 
-  // Effervescence bubbles and dendrite crystal growth structures
+  // Effervescence bubbles, dendrite crystals, and meniscus ripples
   const bubbles = [];
   const dendrites = [];
+  const ripples = [];
 
   function initDendrites() {
     dendrites.length = 0;
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 55; i++) {
+      const subBranches = [];
+      const branchCount = 2 + Math.floor(Math.random() * 4);
+      for (let b = 0; b < branchCount; b++) {
+        subBranches.push({
+          pos: 0.3 + Math.random() * 0.55,
+          side: Math.random() > 0.5 ? 1 : -1,
+          angle: (Math.random() - 0.5) * 0.9 + (Math.random() > 0.5 ? 0.45 : -0.45),
+          lenRatio: 0.3 + Math.random() * 0.45
+        });
+      }
       dendrites.push({
-        y: 200 + Math.random() * 140,
+        y: 220 + Math.random() * 135,
         side: Math.random() > 0.5 ? 1 : -1,
-        length: 2 + Math.random() * 18,
-        angle: (Math.random() - 0.5) * 0.8
+        length: 8 + Math.random() * 22,
+        angle: (Math.random() - 0.5) * 0.85,
+        subBranches,
+        sparklePhase: Math.random() * Math.PI * 2,
+        sparkleSpeed: 2 + Math.random() * 3
       });
     }
   }
@@ -335,6 +349,21 @@ export function initActivitySeriesLab(containerId) {
   const canvas = document.getElementById("activity-canvas");
   const ctx = canvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   const viewSimBtn = document.getElementById("view-mode-activity-sim");
   const viewPhotoBtn = document.getElementById("view-mode-activity-photo");
   const photoOverlay = document.getElementById("activity-photo-overlay");
@@ -389,15 +418,22 @@ export function initActivitySeriesLab(containerId) {
     }
   }
 
-  // 60 FPS Canvas Render Loop
+  // 60 FPS Precision Canvas Render Loop
   function renderActivityCanvas() {
     if (!container || !container.isConnected) return;
     timeTick += 0.035;
-    const cw = canvas.width;
-    const ch = canvas.height;
-    ctx.clearRect(0, 0, cw, ch);
 
-    // Smooth strip motion
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    ctx.clearRect(0, 0, logicalW, logicalH);
+
+    // Smooth strip vertical motion
     stripY += (targetStripY - stripY) * 0.12;
 
     const { deltaE0, isSpontaneous } = calculateRedox();
@@ -406,201 +442,663 @@ export function initActivitySeriesLab(containerId) {
 
     // Grow reaction progress if submerged & spontaneous
     if (isSubmerged && isSpontaneous && reactionProgress < 1.0) {
-      reactionProgress += 0.0015;
+      reactionProgress += 0.0016;
     }
 
-    // 1. Lab Workbench
-    const benchY = 440;
-    const benchGrad = ctx.createLinearGradient(0, benchY, 0, ch);
-    benchGrad.addColorStop(0, "#1e293b");
-    benchGrad.addColorStop(1, "#020617");
-    ctx.fillStyle = benchGrad;
-    ctx.fillRect(0, benchY, cw, ch - benchY);
-
-    ctx.strokeStyle = "#334155";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, benchY);
-    ctx.lineTo(cw, benchY);
-    ctx.stroke();
-
-    // 2. Beaker Apparatus
-    const beakerX = cw * 0.5;
+    // Geometry layout constants
+    const benchY = 430;
+    const beakerX = 350;
     const beakerBottomY = benchY;
-    const beakerW = 200;
-    const beakerH = 220;
+    const beakerW = 210;
+    const beakerH = 230;
     const beakerTopY = beakerBottomY - beakerH;
     const liquidMeniscusY = beakerTopY + 70;
 
-    // Solution Liquid in Beaker
+    // 1. Lab Workbench & Surface Reflections
+    const benchGrad = ctx.createLinearGradient(0, benchY, 0, logicalH);
+    benchGrad.addColorStop(0, "#1e293b");
+    benchGrad.addColorStop(0.04, "#0f172a");
+    benchGrad.addColorStop(1, "#020617");
+    ctx.fillStyle = benchGrad;
+    ctx.fillRect(0, benchY, logicalW, logicalH - benchY);
+
+    // Top specular chamfer / bevel on bench
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY);
+    ctx.lineTo(logicalW, benchY);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY + 2);
+    ctx.lineTo(logicalW, benchY + 2);
+    ctx.stroke();
+
+    // Solution Caustic Glow on Bench
     ctx.save();
-    ctx.fillStyle = solution.color;
-    ctx.fillRect(beakerX - beakerW / 2 + 5, liquidMeniscusY, beakerW - 10, beakerBottomY - liquidMeniscusY - 4);
+    const causticGrad = ctx.createRadialGradient(beakerX, benchY + 5, 8, beakerX, benchY + 12, 105);
+    if (currentSolutionKey === "copper_sulfate") {
+      causticGrad.addColorStop(0, "rgba(56, 189, 248, 0.45)");
+      causticGrad.addColorStop(0.5, "rgba(14, 165, 233, 0.18)");
+      causticGrad.addColorStop(1, "rgba(14, 165, 233, 0)");
+    } else if (currentSolutionKey === "iron_sulfate") {
+      causticGrad.addColorStop(0, "rgba(16, 185, 129, 0.35)");
+      causticGrad.addColorStop(0.5, "rgba(5, 150, 105, 0.12)");
+      causticGrad.addColorStop(1, "rgba(5, 150, 105, 0)");
+    } else {
+      causticGrad.addColorStop(0, "rgba(224, 242, 254, 0.22)");
+      causticGrad.addColorStop(0.5, "rgba(186, 230, 253, 0.06)");
+      causticGrad.addColorStop(1, "rgba(186, 230, 253, 0)");
+    }
+    ctx.fillStyle = causticGrad;
+    ctx.fillRect(beakerX - 110, benchY, 220, 24);
+
+    // Beaker Base Contact Shadow
+    const shadowGrad = ctx.createRadialGradient(beakerX, beakerBottomY, 30, beakerX, beakerBottomY, 115);
+    shadowGrad.addColorStop(0, "rgba(0, 0, 0, 0.65)");
+    shadowGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = shadowGrad;
+    ctx.fillRect(beakerX - 115, beakerBottomY - 4, 230, 16);
     ctx.restore();
 
-    // 3. Solid Metal Strip
+    // 2. Liquid Solution inside Beaker
+    ctx.save();
+    // Solution body gradient
+    const solGrad = ctx.createLinearGradient(0, liquidMeniscusY, 0, beakerBottomY);
+    if (currentSolutionKey === "copper_sulfate") {
+      solGrad.addColorStop(0, "rgba(56, 189, 248, 0.4)");
+      solGrad.addColorStop(0.65, "rgba(14, 165, 233, 0.6)");
+      solGrad.addColorStop(1, "rgba(2, 132, 199, 0.75)");
+    } else if (currentSolutionKey === "iron_sulfate") {
+      solGrad.addColorStop(0, "rgba(52, 211, 153, 0.22)");
+      solGrad.addColorStop(0.65, "rgba(16, 185, 129, 0.38)");
+      solGrad.addColorStop(1, "rgba(5, 150, 105, 0.52)");
+    } else {
+      solGrad.addColorStop(0, "rgba(241, 245, 249, 0.08)");
+      solGrad.addColorStop(0.65, "rgba(226, 232, 240, 0.14)");
+      solGrad.addColorStop(1, "rgba(203, 213, 225, 0.22)");
+    }
+
+    ctx.fillStyle = solGrad;
+    ctx.beginPath();
+    ctx.moveTo(beakerX - beakerW / 2 + 5, liquidMeniscusY);
+    ctx.lineTo(beakerX + beakerW / 2 - 5, liquidMeniscusY);
+    ctx.lineTo(beakerX + beakerW / 2 - 5, beakerBottomY - 8);
+    ctx.arcTo(beakerX + beakerW / 2 - 5, beakerBottomY - 4, beakerX + beakerW / 2 - 14, beakerBottomY - 4, 10);
+    ctx.lineTo(beakerX - beakerW / 2 + 14, beakerBottomY - 4);
+    ctx.arcTo(beakerX - beakerW / 2 + 5, beakerBottomY - 4, beakerX - beakerW / 2 + 5, beakerBottomY - 8, 10);
+    ctx.closePath();
+    ctx.fill();
+
+    // Internal meniscus background ellipse
+    ctx.fillStyle = currentSolutionKey === "copper_sulfate" ? "rgba(14, 165, 233, 0.35)" : (currentSolutionKey === "iron_sulfate" ? "rgba(16, 185, 129, 0.22)" : "rgba(255, 255, 255, 0.08)");
+    ctx.beginPath();
+    ctx.ellipse(beakerX, liquidMeniscusY, beakerW / 2 - 7, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 3. Solid Metal Strip (Anode)
     const stripW = 34;
     const stripH = 220;
-    const stripX = beakerX - stripW / 2;
+    const stripX = beakerX - stripW / 2 - 15;
 
     ctx.save();
-    // Strip body
+    // Metal Strip Texture & Chamfer
     const stripGrad = ctx.createLinearGradient(stripX, 0, stripX + stripW, 0);
     stripGrad.addColorStop(0, metal.stripColor);
-    stripGrad.addColorStop(0.5, "#ffffff");
-    stripGrad.addColorStop(1, metal.platedColor);
+    stripGrad.addColorStop(0.2, "#ffffff");
+    stripGrad.addColorStop(0.55, metal.stripColor);
+    stripGrad.addColorStop(0.85, metal.platedColor);
+    stripGrad.addColorStop(1, "#334155");
+
     ctx.fillStyle = stripGrad;
     ctx.fillRect(stripX, stripY, stripW, stripH);
 
-    ctx.strokeStyle = "#475569";
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(stripX, stripY, stripW, stripH);
+    // Micro brushed texture lines on the metal surface
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+    ctx.lineWidth = 1;
+    for (let gy = stripY + 6; gy < stripY + stripH - 4; gy += 14) {
+      ctx.beginPath();
+      ctx.moveTo(stripX + 2, gy);
+      ctx.lineTo(stripX + stripW - 2, gy + (Math.sin(gy * 0.1) * 2));
+      ctx.stroke();
+    }
 
-    // Crocodile Clip at Top of Strip
-    ctx.fillStyle = "#ef4444";
-    ctx.fillRect(stripX + 4, stripY - 14, stripW - 8, 14);
-    ctx.strokeStyle = "#991b1b";
-    ctx.strokeRect(stripX + 4, stripY - 14, stripW - 8, 14);
-
-    // Wire to Multimeter
-    ctx.strokeStyle = "#ef4444";
-    ctx.lineWidth = 3;
+    // Bevel edges of metal strip
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(stripX + stripW / 2, stripY - 14);
-    ctx.bezierCurveTo(stripX - 60, stripY - 80, 80, 100, 110, 150);
+    ctx.moveTo(stripX, stripY);
+    ctx.lineTo(stripX, stripY + stripH);
     ctx.stroke();
 
-    // Spontaneous Plating / Dendrite Crystals on Submerged Portion
-    if (isSpontaneous && reactionProgress > 0.05) {
-      const subTop = Math.max(stripY, liquidMeniscusY);
-      const subBottom = Math.min(stripY + stripH, beakerBottomY - 6);
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+    ctx.beginPath();
+    ctx.moveTo(stripX + stripW, stripY);
+    ctx.lineTo(stripX + stripW, stripY + stripH);
+    ctx.stroke();
 
-      if (subBottom > subTop) {
-        // Plating coating
-        ctx.fillStyle = solution.isAcid ? "rgba(255,255,255,0.2)" : (solution.productColor || "#ea580c");
-        ctx.globalAlpha = Math.min(0.9, reactionProgress * 1.5);
-        ctx.fillRect(stripX - 2, subTop, stripW + 4, subBottom - subTop);
+    // Submerged portion refraction shimmer
+    const subTop = Math.max(stripY, liquidMeniscusY);
+    const subBottom = Math.min(stripY + stripH, beakerBottomY - 6);
 
-        // Branching dendrite needle crystals (e.g. silver needles or copper plating)
-        if (!solution.isAcid) {
-          ctx.strokeStyle = solution.productColor || "#f8fafc";
-          ctx.lineWidth = 1.8;
-          dendrites.forEach(d => {
-            if (d.y >= subTop && d.y <= subBottom) {
-              const startX = d.side === 1 ? stripX + stripW : stripX;
-              const endX = startX + d.side * (d.length * reactionProgress);
-              const endY = d.y + Math.sin(d.angle) * d.length * reactionProgress;
+    if (subBottom > subTop) {
+      ctx.fillStyle = currentSolutionKey === "copper_sulfate" ? "rgba(14, 165, 233, 0.18)" : "rgba(255, 255, 255, 0.08)";
+      ctx.fillRect(stripX, subTop, stripW, subBottom - subTop);
+    }
 
-              ctx.beginPath();
-              ctx.moveTo(startX, d.y);
-              ctx.lineTo(endX, endY);
-              ctx.stroke();
+    // Spontaneous Plating & Dendrite Branching Crystals
+    if (isSpontaneous && reactionProgress > 0.03 && subBottom > subTop) {
+      // Base plating deposit layer
+      const platingColor = solution.isAcid ? "rgba(255,255,255,0.22)" : (solution.productColor || "#ea580c");
+      ctx.fillStyle = platingColor;
+      ctx.globalAlpha = Math.min(0.92, reactionProgress * 1.4);
+      ctx.fillRect(stripX - 2, subTop, stripW + 4, subBottom - subTop);
+
+      // Micro-texture stippling on deposit
+      ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+      for (let sy = subTop + 4; sy < subBottom - 4; sy += 7) {
+        ctx.fillRect(stripX + 4 + (sy % 19), sy, 3, 2);
+      }
+
+      // Branching fractal dendrite needle crystals (Diana's tree for Ag, nodular needles for Cu)
+      if (!solution.isAcid) {
+        dendrites.forEach((d) => {
+          if (d.y >= subTop + 8 && d.y <= subBottom - 6) {
+            const startX = d.side === 1 ? stripX + stripW : stripX;
+            const curLen = d.length * Math.min(1, reactionProgress * 1.6);
+            const endX = startX + d.side * (curLen * Math.cos(d.angle));
+            const endY = d.y + curLen * Math.sin(d.angle);
+
+            // Primary needle trunk
+            ctx.strokeStyle = solution.productColor || "#f8fafc";
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.moveTo(startX, d.y);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            // Secondary fractal sub-branches
+            if (reactionProgress > 0.35 && d.subBranches) {
+              ctx.lineWidth = 1.1;
+              d.subBranches.forEach(sb => {
+                const bx = startX + (endX - startX) * sb.pos;
+                const by = d.y + (endY - d.y) * sb.pos;
+                const sbLen = curLen * sb.lenRatio;
+                const sbEndX = bx + d.side * sb.side * sbLen * Math.cos(sb.angle);
+                const sbEndY = by + sbLen * Math.sin(sb.angle);
+                ctx.beginPath();
+                ctx.moveTo(bx, by);
+                ctx.lineTo(sbEndX, sbEndY);
+                ctx.stroke();
+              });
             }
-          });
-        }
+
+            // Glistening specular glints on silver crystals (Diana's tree)
+            if (currentSolutionKey === "silver_nitrate" && reactionProgress > 0.2) {
+              const glint = Math.sin(timeTick * d.sparkleSpeed + d.sparklePhase);
+              if (glint > 0.6) {
+                const glintAlpha = (glint - 0.6) / 0.4;
+                ctx.save();
+                ctx.fillStyle = `rgba(255, 255, 255, ${glintAlpha.toFixed(2)})`;
+                ctx.shadowColor = "#ffffff";
+                ctx.shadowBlur = 6;
+                ctx.beginPath();
+                ctx.arc(endX, endY, 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 4-point starlet sparkle
+                ctx.strokeStyle = `rgba(255, 255, 255, ${(glintAlpha * 0.8).toFixed(2)})`;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(endX - 4, endY);
+                ctx.lineTo(endX + 4, endY);
+                ctx.moveTo(endX, endY - 4);
+                ctx.lineTo(endX, endY + 4);
+                ctx.stroke();
+                ctx.restore();
+              }
+            }
+          }
+        });
       }
     }
     ctx.restore();
 
-    // 4. Acid Reaction Effervescence (H2 gas bubble stream)
+    // 4. Acid Reaction Effervescence (H2 Gas Bubble Streams)
     if (isSubmerged && isSpontaneous && solution.isAcid) {
-      // Spawn new bubbles
-      if (Math.random() > 0.3) {
+      if (Math.random() > 0.2) {
         bubbles.push({
-          x: stripX + Math.random() * stripW,
-          y: Math.min(stripY + stripH - 10, beakerBottomY - 10),
-          vy: 1.5 + Math.random() * 2.5,
-          radius: 1.5 + Math.random() * 3
+          x: stripX + 3 + Math.random() * (stripW - 6),
+          y: Math.min(stripY + stripH - 10, beakerBottomY - 12),
+          vy: 1.6 + Math.random() * 2.6,
+          radius: 1.2 + Math.random() * 2.4,
+          phase: Math.random() * Math.PI * 2
         });
       }
 
       ctx.save();
-      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
       for (let i = bubbles.length - 1; i >= 0; i--) {
         const b = bubbles[i];
         b.y -= b.vy;
-        b.x += Math.sin(timeTick * 5 + b.y * 0.1) * 0.6;
+        b.x += Math.sin(timeTick * 4 + b.phase + b.y * 0.08) * 0.7;
 
+        // Slight bubble expansion as hydrostatic pressure decreases
+        const curR = b.radius * (1 + (beakerBottomY - b.y) / 400);
+
+        // Bubble sphere with refractive gradient
+        const bGrad = ctx.createRadialGradient(b.x - curR * 0.35, b.y - curR * 0.35, 0.4, b.x, b.y, curR);
+        bGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+        bGrad.addColorStop(0.6, "rgba(224, 242, 254, 0.5)");
+        bGrad.addColorStop(1, "rgba(186, 230, 253, 0.2)");
+
+        ctx.fillStyle = bGrad;
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+        ctx.lineWidth = 0.8;
         ctx.beginPath();
-        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+        ctx.arc(b.x, b.y, curR, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        if (b.y < liquidMeniscusY) {
+        // Popping at meniscus
+        if (b.y <= liquidMeniscusY) {
+          ripples.push({ x: b.x, y: liquidMeniscusY, r: 1.5, maxR: 7 + Math.random() * 6, alpha: 0.7 });
           bubbles.splice(i, 1);
+        }
+      }
+
+      // Render surface capillary ripples from burst bubbles
+      for (let r = ripples.length - 1; r >= 0; r--) {
+        const rip = ripples[r];
+        rip.r += 0.55;
+        rip.alpha *= 0.91;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${rip.alpha.toFixed(2)})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.ellipse(rip.x, rip.y, rip.r, rip.r * 0.35, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (rip.alpha < 0.04 || rip.r > rip.maxR) {
+          ripples.splice(r, 1);
         }
       }
       ctx.restore();
     }
 
-    // 5. Beaker Glass Outline & Meniscus
+    // 5. Reference Electrode (Cathode Probe in Solution)
+    const refProbeX = beakerX + 65;
+    const refProbeY = liquidMeniscusY + 60;
     ctx.save();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(beakerX - beakerW / 2 - 10, beakerTopY);
-    ctx.lineTo(beakerX - beakerW / 2, beakerTopY);
-    ctx.lineTo(beakerX - beakerW / 2, beakerBottomY - 8);
-    ctx.arcTo(beakerX - beakerW / 2, beakerBottomY, beakerX - beakerW / 2 + 8, beakerBottomY, 8);
-    ctx.lineTo(beakerX + beakerW / 2 - 8, beakerBottomY);
-    ctx.arcTo(beakerX + beakerW / 2, beakerBottomY, beakerX + beakerW / 2, beakerBottomY - 8, 8);
-    ctx.lineTo(beakerX + beakerW / 2, beakerTopY);
-    ctx.stroke();
+    // Glass sheath of reference electrode
+    const refSheathGrad = ctx.createLinearGradient(refProbeX - 4, 0, refProbeX + 4, 0);
+    refSheathGrad.addColorStop(0, "rgba(255, 255, 255, 0.3)");
+    refSheathGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.8)");
+    refSheathGrad.addColorStop(1, "rgba(100, 116, 139, 0.4)");
+    ctx.fillStyle = refSheathGrad;
+    ctx.fillRect(refProbeX - 4, 140, 8, refProbeY - 140);
 
-    // Graduated volume lines on beaker
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
-    ctx.lineWidth = 1.5;
-    for (let h = 0; h < 4; h++) {
-      const lineY = beakerBottomY - 35 - h * 35;
-      ctx.beginPath();
-      ctx.moveTo(beakerX - beakerW / 2 + 5, lineY);
-      ctx.lineTo(beakerX - beakerW / 2 + 25, lineY);
-      ctx.stroke();
-    }
+    // Porous ceramic junction tip
+    ctx.fillStyle = "#fbbf24";
+    ctx.fillRect(refProbeX - 3.5, refProbeY, 7, 12);
+    ctx.strokeStyle = "#d97706";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(refProbeX - 3.5, refProbeY, 7, 12);
 
-    // Liquid Meniscus Ellipse
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(beakerX, liquidMeniscusY, beakerW / 2 - 6, 8, 0, 0, Math.PI * 2);
-    ctx.stroke();
+    // Reference electrode top cap
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(refProbeX - 6, 132, 12, 10);
+    ctx.strokeStyle = "#475569";
+    ctx.strokeRect(refProbeX - 6, 132, 12, 10);
     ctx.restore();
 
-    // 6. Digital Electrometer Voltmeter Display Unit
+    // 6. High-Precision Griffin Borosilicate Beaker (Glass Optics)
     ctx.save();
-    const meterX = 40;
-    const meterY = 150;
-    const meterW = 140;
-    const meterH = 110;
+    // Spout at top-left
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    // Spout lip
+    ctx.moveTo(beakerX - beakerW / 2 - 14, beakerTopY - 4);
+    ctx.quadraticCurveTo(beakerX - beakerW / 2 - 6, beakerTopY, beakerX - beakerW / 2, beakerTopY);
+    // Left outer wall
+    ctx.lineTo(beakerX - beakerW / 2, beakerBottomY - 12);
+    ctx.arcTo(beakerX - beakerW / 2, beakerBottomY, beakerX - beakerW / 2 + 14, beakerBottomY, 12);
+    // Beaker bottom
+    ctx.lineTo(beakerX + beakerW / 2 - 14, beakerBottomY);
+    ctx.arcTo(beakerX + beakerW / 2, beakerBottomY, beakerX + beakerW / 2, beakerBottomY - 12, 12);
+    // Right outer wall
+    ctx.lineTo(beakerX + beakerW / 2, beakerTopY);
+    // Top rim lip
+    ctx.arcTo(beakerX + beakerW / 2 + 4, beakerTopY, beakerX + beakerW / 2 + 4, beakerTopY + 4, 3);
+    ctx.stroke();
 
-    // Chassis
-    ctx.fillStyle = "#1e293b";
-    ctx.strokeStyle = "#475569";
+    // Inner heavy glass base line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(beakerX - beakerW / 2 + 6, beakerBottomY - 6);
+    ctx.lineTo(beakerX + beakerW / 2 - 6, beakerBottomY - 6);
+    ctx.stroke();
+
+    // Cylinder specular reflection down left wall
+    const leftSpec = ctx.createLinearGradient(beakerX - beakerW / 2 + 8, 0, beakerX - beakerW / 2 + 24, 0);
+    leftSpec.addColorStop(0, "rgba(255, 255, 255, 0.35)");
+    leftSpec.addColorStop(0.5, "rgba(255, 255, 255, 0.15)");
+    leftSpec.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = leftSpec;
+    ctx.fillRect(beakerX - beakerW / 2 + 8, beakerTopY + 10, 16, beakerH - 20);
+
+    // Cylinder reflection down right wall
+    const rightSpec = ctx.createLinearGradient(beakerX + beakerW / 2 - 20, 0, beakerX + beakerW / 2 - 6, 0);
+    rightSpec.addColorStop(0, "rgba(255, 255, 255, 0)");
+    rightSpec.addColorStop(1, "rgba(255, 255, 255, 0.25)");
+    ctx.fillStyle = rightSpec;
+    ctx.fillRect(beakerX + beakerW / 2 - 20, beakerTopY + 10, 14, beakerH - 20);
+
+    // Front liquid meniscus curved rim highlight
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(meterX, meterY, meterW, meterH, 8);
+    ctx.ellipse(beakerX, liquidMeniscusY, beakerW / 2 - 7, 7, 0, 0, Math.PI);
+    ctx.stroke();
+
+    // Ceramic white enamel graduations (50, 100, 150, 200, 250 mL)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+    ctx.font = "8px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+    const graduations = [
+      { yOffset: 35, ml: "50" },
+      { yOffset: 70, ml: "100" },
+      { yOffset: 105, ml: "150" },
+      { yOffset: 140, ml: "200" },
+      { yOffset: 175, ml: "250" }
+    ];
+    graduations.forEach((g) => {
+      const markY = beakerBottomY - g.yOffset;
+      // Main graduation line
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(beakerX - beakerW / 2 + 6, markY);
+      ctx.lineTo(beakerX - beakerW / 2 + 30, markY);
+      ctx.stroke();
+      ctx.fillText(`${g.ml} mL`, beakerX - beakerW / 2 + 35, markY + 3);
+
+      // Intermediate 25 mL tick mark
+      if (g.ml !== "250") {
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(beakerX - beakerW / 2 + 6, markY - 17.5);
+        ctx.lineTo(beakerX - beakerW / 2 + 18, markY - 17.5);
+        ctx.stroke();
+      }
+    });
+
+    // Beaker Laboratory Branding
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.font = "7.5px 'JetBrains Mono', monospace";
+    ctx.fillText("BORO 3.3", beakerX - beakerW / 2 + 35, beakerBottomY - 195);
+    ctx.fillText("APPROX. VOL.", beakerX - beakerW / 2 + 35, beakerBottomY - 205);
+    ctx.restore();
+
+    // 7. Alligator Clip Clamped to Strip Top
+    ctx.save();
+    const clipX = stripX + 3;
+    const clipY = stripY - 18;
+    const clipW = stripW - 6;
+
+    // Steel jaws
+    ctx.fillStyle = "#94a3b8";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.2;
+    ctx.fillRect(clipX + 2, stripY - 6, clipW - 4, 8);
+    ctx.strokeRect(clipX + 2, stripY - 6, clipW - 4, 8);
+
+    // Grip teeth serrations
+    ctx.fillStyle = "#334155";
+    for (let t = clipX + 4; t < clipX + clipW - 6; t += 4) {
+      ctx.fillRect(t, stripY, 2, 3);
+    }
+
+    // Crimson red rubber insulated boot
+    const bootGrad = ctx.createLinearGradient(clipX, clipY, clipX + clipW, clipY);
+    bootGrad.addColorStop(0, "#b91c1c");
+    bootGrad.addColorStop(0.4, "#ef4444");
+    bootGrad.addColorStop(1, "#991b1b");
+    ctx.fillStyle = bootGrad;
+    ctx.strokeStyle = "#7f1d1d";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(clipX, clipY, clipW, 14, [4, 4, 2, 2]);
     ctx.fill();
     ctx.stroke();
 
-    // LCD Screen
-    ctx.fillStyle = "#030712";
-    ctx.fillRect(meterX + 12, meterY + 14, meterW - 24, 45);
+    // Pivot rivet
+    ctx.fillStyle = "#e2e8f0";
+    ctx.beginPath();
+    ctx.arc(clipX + clipW / 2, clipY + 7, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // 8. Digital Electrometer Voltmeter Display Unit
+    ctx.save();
+    const meterX = 32;
+    const meterY = 160;
+    const meterW = 165;
+    const meterH = 175;
+
+    // Soft drop shadow under electrometer
+    const mShadowGrad = ctx.createRadialGradient(meterX + meterW / 2, meterY + meterH + 4, 20, meterX + meterW / 2, meterY + meterH + 4, 85);
+    mShadowGrad.addColorStop(0, "rgba(0, 0, 0, 0.7)");
+    mShadowGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = mShadowGrad;
+    ctx.fillRect(meterX - 10, meterY + meterH - 4, meterW + 20, 16);
+
+    // Heavy-duty electrometer chassis with protective bumper corners
+    ctx.fillStyle = "#1e293b";
     ctx.strokeStyle = "#334155";
-    ctx.strokeRect(meterX + 12, meterY + 14, meterW - 24, 45);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(meterX, meterY, meterW, meterH, 10);
+    ctx.fill();
+    ctx.stroke();
 
-    // LCD Value
-    ctx.fillStyle = isSubmerged ? (isSpontaneous ? "#38bdf8" : "#94a3b8") : "#475569";
-    ctx.font = "bold 18px 'JetBrains Mono', monospace";
+    // Yellow rubberized corner bumpers
+    ctx.fillStyle = "#f59e0b";
+    const bSize = 12;
+    // Top-left
+    ctx.beginPath();
+    ctx.roundRect(meterX - 2, meterY - 2, bSize, bSize, [8, 2, 2, 2]);
+    ctx.fill();
+    // Top-right
+    ctx.beginPath();
+    ctx.roundRect(meterX + meterW - bSize + 2, meterY - 2, bSize, bSize, [2, 8, 2, 2]);
+    ctx.fill();
+    // Bottom-left
+    ctx.beginPath();
+    ctx.roundRect(meterX - 2, meterY + meterH - bSize + 2, bSize, bSize, [2, 2, 2, 8]);
+    ctx.fill();
+    // Bottom-right
+    ctx.beginPath();
+    ctx.roundRect(meterX + meterW - bSize + 2, meterY + meterH - bSize + 2, bSize, bSize, [2, 2, 8, 2]);
+    ctx.fill();
+
+    // Recessed LCD Bezel
+    ctx.fillStyle = "#090d16";
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(meterX + 12, meterY + 14, meterW - 24, 76, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // High-contrast backlit LCD screen
+    const lcdGrad = ctx.createLinearGradient(0, meterY + 16, 0, meterY + 86);
+    lcdGrad.addColorStop(0, "#042f2e");
+    lcdGrad.addColorStop(1, "#021d1d");
+    ctx.fillStyle = lcdGrad;
+    ctx.fillRect(meterX + 14, meterY + 16, meterW - 28, 72);
+
+    // LCD Status Annunciators
+    ctx.fillStyle = "rgba(45, 212, 191, 0.75)";
+    ctx.font = "bold 7.5px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("AUTO", meterX + 18, meterY + 28);
+    ctx.fillText("HIGH-Z", meterX + 50, meterY + 28);
+    ctx.textAlign = "right";
+    ctx.fillText("V DC", meterX + meterW - 18, meterY + 28);
+
+    // Primary Digital Readout
+    const displayVoltage = isSubmerged ? (deltaE0 > 0 ? `+${deltaE0.toFixed(2)}` : deltaE0.toFixed(2)) : " 0.00";
+    ctx.fillStyle = isSubmerged ? (isSpontaneous ? "#38bdf8" : "#f87171") : "#94a3b8";
+    ctx.font = "800 24px 'JetBrains Mono', monospace";
     ctx.textAlign = "center";
-    const displayVoltage = isSubmerged ? deltaE0.toFixed(2) : "0.00";
-    ctx.fillText(`${displayVoltage} V`, meterX + meterW / 2, meterY + 44);
+    ctx.shadowColor = isSubmerged && isSpontaneous ? "rgba(56, 189, 248, 0.45)" : "transparent";
+    ctx.shadowBlur = 8;
+    ctx.fillText(`${displayVoltage} V`, meterX + meterW / 2, meterY + 58);
+    ctx.shadowBlur = 0;
 
-    // Label
+    // Dynamic analog segmented bargraph at bottom of LCD
+    const barW = meterW - 36;
+    const barX = meterX + 18;
+    const barY = meterY + 74;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.6)";
+    ctx.fillRect(barX, barY, barW, 6);
+
+    const deflection = isSubmerged ? Math.max(-1, Math.min(1, deltaE0 / 3.0)) : 0;
+    const zeroX = barX + barW / 2;
+    const defW = (barW / 2) * deflection;
+    ctx.fillStyle = isSpontaneous ? "#34d399" : "#f87171";
+    ctx.fillRect(zeroX, barY + 1, defW, 4);
+
+    // Center zero tick
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(zeroX - 0.5, barY - 1, 1, 8);
+
+    // Electrometer Model & Spec
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "bold 8px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("ELECTROMETER 6517B", meterX + meterW / 2, meterY + 104);
+    ctx.fillStyle = "#64748b";
+    ctx.font = "7px 'JetBrains Mono', monospace";
+    ctx.fillText("INPUT Z > 10 GΩ • 0.01% ACCURACY", meterX + meterW / 2, meterY + 115);
+
+    // Rotary Function Knob
+    const knobX = meterX + meterW / 2;
+    const knobY = meterY + 138;
+    const knobR = 12;
+    ctx.fillStyle = "#0f172a";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(knobX, knobY, knobR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Aluminum knob cap with indicator notch
+    ctx.fillStyle = "#334155";
+    ctx.beginPath();
+    ctx.arc(knobX, knobY, knobR - 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(knobX, knobY - knobR + 3);
+    ctx.lineTo(knobX, knobY - 2);
+    ctx.stroke();
+
+    // Binding Post Terminals: Red (+) and Black (COM)
+    const redPostX = meterX + 32;
+    const blackPostX = meterX + meterW - 32;
+    const postY = meterY + 144;
+
+    // Red Positive Terminal
+    ctx.fillStyle = "#ef4444";
+    ctx.strokeStyle = "#991b1b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(redPostX, postY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 7px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("+", redPostX, postY + 2.5);
+
+    // Black COM Terminal
+    ctx.fillStyle = "#0f172a";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(blackPostX, postY, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
     ctx.fillStyle = "#94a3b8";
-    ctx.font = "9px Inter, sans-serif";
-    ctx.fillText("DIGITAL ELECTROMETER", meterX + meterW / 2, meterY + 76);
-    ctx.fillText("HIGH-Z INPUT", meterX + meterW / 2, meterY + 92);
+    ctx.fillText("-", blackPostX, postY + 2.5);
+
+    ctx.restore();
+
+    // 9. Flexible Silicone Wires (Red Test Lead & Black Reference Lead)
+    ctx.save();
+    // Red Lead (from Red Terminal to Alligator Clip)
+    const redTermX = redPostX;
+    const redTermY = postY;
+    const clipTermX = clipX + clipW / 2;
+    const clipTermY = clipY;
+
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(redTermX, redTermY);
+    ctx.bezierCurveTo(redTermX - 40, redTermY - 70, clipTermX - 50, clipTermY - 50, clipTermX, clipTermY);
+    ctx.stroke();
+
+    // 3D Red silicone wire core
+    ctx.strokeStyle = "#dc2626";
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.moveTo(redTermX, redTermY);
+    ctx.bezierCurveTo(redTermX - 40, redTermY - 70, clipTermX - 50, clipTermY - 50, clipTermX, clipTermY);
+    ctx.stroke();
+
+    // Specular highlight along wire
+    ctx.strokeStyle = "rgba(254, 202, 202, 0.65)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(redTermX, redTermY);
+    ctx.bezierCurveTo(redTermX - 40, redTermY - 70, clipTermX - 50, clipTermY - 50, clipTermX, clipTermY);
+    ctx.stroke();
+
+    // Black Reference Lead (from COM Terminal to Reference Electrode)
+    const blackTermX = blackPostX;
+    const blackTermY = postY;
+    const refTermX = refProbeX;
+    const refTermY = 132;
+
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(blackTermX, blackTermY);
+    ctx.bezierCurveTo(blackTermX + 50, blackTermY - 40, refTermX - 30, refTermY + 60, refTermX, refTermY);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.moveTo(blackTermX, blackTermY);
+    ctx.bezierCurveTo(blackTermX + 50, blackTermY - 40, refTermX - 30, refTermY + 60, refTermX, refTermY);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.5)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(blackTermX, blackTermY);
+    ctx.bezierCurveTo(blackTermX + 50, blackTermY - 40, refTermX - 30, refTermY + 60, refTermX, refTermY);
+    ctx.stroke();
     ctx.restore();
 
     animId = requestAnimationFrame(renderActivityCanvas);
@@ -725,5 +1223,6 @@ export function initActivitySeriesLab(containerId) {
   return function cleanupActivitySeriesLab() {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }

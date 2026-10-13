@@ -1,7 +1,8 @@
 // Edugates-ClipSAT Science Labs - Biology: Neurobiology & Action Potential Patch Clamp Suite
 // 60 FPS Precision Electrophysiology Simulation:
 // Hodgkin-Huxley & GHK Membrane Voltage Vm, Voltage-Gated Na+/K+ Channel Kinetics,
-// Threshold Stimulus, Absolute/Relative Refractory Periods, Neurotoxins (TTX & TEA), and Dual-Trace Oscilloscope.
+// Fluid Mosaic Phospholipid Bilayer with Polar Inversion, Ball-and-Chain Inactivation,
+// Ion Influx/Efflux Streams, Neurotoxins (TTX & TEA), and Dual-Trace Oscilloscope.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
@@ -40,6 +41,27 @@ export function initActionPotentialLab(containerId) {
   let simTimeMs = 0.0;
   let isRunning = true;
   let animId = null;
+  let timeTick = 0;
+
+  // Ion Particle System
+  const naIons = [];
+  const kIons = [];
+  for (let i = 0; i < 40; i++) {
+    naIons.push({
+      x: Math.random() * 580,
+      y: 40 + Math.random() * 140, // Extracellular
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: (Math.random() - 0.5) * 0.8,
+      isTransiting: false
+    });
+    kIons.push({
+      x: Math.random() * 580,
+      y: 330 + Math.random() * 150, // Intracellular
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: (Math.random() - 0.5) * 0.8,
+      isTransiting: false
+    });
+  }
 
   // Trace Buffer for Oscilloscope
   const oscilloscopeTrace = []; // { t, vm, gNa, gK }
@@ -48,7 +70,7 @@ export function initActionPotentialLab(containerId) {
     <div class="lab-container">
       <!-- Header -->
       <div class="lab-header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(15, 23, 42, 0.92); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 18px; flex-wrap: wrap; gap: 12px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
           <span style="font-size: 0.85rem; font-weight: 700; color: #a855f7; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
             <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #a855f7; box-shadow: 0 0 10px #a855f7;"></span>
             Neurobiology &amp; Action Potential Patch Clamp
@@ -58,7 +80,7 @@ export function initActionPotentialLab(containerId) {
           </span>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
           <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 3px;">
             <button id="view-mode-neuro-sim" class="btn btn-secondary active" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-radius: 6px; border: none;">
               🔬 Patch Simulator
@@ -67,7 +89,7 @@ export function initActionPotentialLab(containerId) {
               📸 4K Real Rig
             </button>
           </div>
-          <button class="btn btn-primary btn-sm" id="btn-neuro-stim" style="padding: 5px 14px; font-size: 0.78rem;">
+          <button class="btn btn-primary btn-sm" id="btn-neuro-stim" style="padding: 5px 14px; font-size: 0.78rem; background: linear-gradient(135deg, #a855f7, #7e22ce); border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(168, 85, 247, 0.35);">
             ⚡ Inject Stimulus Current
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-neuro-reset" style="padding: 5px 12px; font-size: 0.78rem;">
@@ -82,7 +104,7 @@ export function initActionPotentialLab(containerId) {
       <!-- Main Layout -->
       <div style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px;" class="neuro-layout">
         <!-- Canvas Viewport: Axon Lipid Bilayer & Channel Conformation -->
-        <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(168, 85, 247, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #1e1b4b 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
+        <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(168, 85, 247, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #17113a 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="neuro-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
 
           <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
@@ -111,15 +133,21 @@ export function initActionPotentialLab(containerId) {
 
           <!-- Top HUD -->
           <div style="position: absolute; top: 14px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5;">
-            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 10px; padding: 8px 14px; pointer-events: auto;">
-              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase;">MEMBRANE VOLTAGE V_m</div>
+            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 10px; padding: 8px 14px; pointer-events: auto; box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
+              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #c084fc; display: inline-block; box-shadow: 0 0 6px #c084fc;"></span>
+                MEMBRANE VOLTAGE V_m
+              </div>
               <div id="hud-neuro-vm" style="font-size: 1.3rem; font-weight: 800; color: #c084fc; font-family: var(--font-mono);">
                 -70.0 mV
               </div>
             </div>
 
-            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 10px; padding: 8px 14px; text-align: right; pointer-events: auto;">
-              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase;">MEMBRANE PHASE</div>
+            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(10px); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 10px; padding: 8px 14px; text-align: right; pointer-events: auto; box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
+              <div style="font-size: 0.68rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase; display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
+                MEMBRANE PHASE
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; display: inline-block; box-shadow: 0 0 6px #38bdf8;"></span>
+              </div>
               <div id="hud-neuro-phase" style="font-size: 1.05rem; font-weight: 800; color: #38bdf8; font-family: var(--font-mono);">
                 Resting (-70 mV)
               </div>
@@ -193,6 +221,36 @@ export function initActionPotentialLab(containerId) {
   const chartCanvas = container.querySelector("#neuro-chart-canvas");
   const chartCtx = chartCanvas.getContext("2d");
 
+  // HiDPI / Retina Canvas Setup
+  const logicalW = 580;
+  const logicalH = 530;
+  const chartLogicalW = 460;
+  const chartLogicalH = 180;
+  let needsRedraw = true;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.resetTransform();
+    ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+
+    const chartRect = chartCanvas.getBoundingClientRect();
+    const cw = chartRect.width > 0 ? chartRect.width : chartLogicalW;
+    const ch = chartRect.height > 0 ? chartRect.height : chartLogicalH;
+    chartCanvas.width = Math.round(cw * dpr);
+    chartCanvas.height = Math.round(ch * dpr);
+    chartCtx.resetTransform();
+    chartCtx.scale(dpr * (cw / chartLogicalW), dpr * (ch / chartLogicalH));
+
+    needsRedraw = true;
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   // Hodgkin-Huxley Step Functions
   function alphaM(v) { return 0.1 * (v + 40.0) / (1.0 - Math.exp(-(v + 40.0) / 10.0)); }
   function betaM(v) { return 4.0 * Math.exp(-(v + 65.0) / 18.0); }
@@ -248,142 +306,346 @@ export function initActionPotentialLab(containerId) {
     if (hudVm) hudVm.innerText = `${vm.toFixed(1)} mV`;
     if (hudPhase) {
       if (vm > 20.0) hudPhase.innerText = "Peak Overshoot (+35 mV)";
-      else if (vm > -55.0 && dVm > 0.5) hudPhase.innerText = "Rapid Depolarization (Na⁺ Influx)";
-      else if (vm > -60.0 && dVm < -0.5) hudPhase.innerText = "Repolarization (K⁺ Efflux)";
-      else if (vm < -72.0) hudPhase.innerText = "Hyperpolarization / Refractory";
-      else hudPhase.innerText = "Resting Potential (-70 mV)";
+      else if (vm > -55.0 && dVm > 0) hudPhase.innerText = "Depolarization Phase";
+      else if (vm > -70.0 && dVm < 0) hudPhase.innerText = "Repolarization Phase";
+      else if (vm < -70.5) hudPhase.innerText = "Hyperpolarization Afterpotential";
+      else hudPhase.innerText = "Resting State (-70 mV)";
     }
   }
 
+  // Draw High-Fidelity Axon Membrane & Gated Channel Proteins
   function drawNeuronMembrane() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, logicalW, logicalH);
+    timeTick += 0.03;
 
-    // Extracellular fluid top (dark blue)
-    ctx.fillStyle = "rgba(14, 165, 233, 0.08)";
-    ctx.fillRect(0, 0, canvas.width, 210);
+    // Extracellular fluid tint (Top)
+    const extraGrad = ctx.createLinearGradient(0, 0, 0, 200);
+    extraGrad.addColorStop(0, "rgba(56, 189, 248, 0.08)");
+    extraGrad.addColorStop(1, "rgba(56, 189, 248, 0.02)");
+    ctx.fillStyle = extraGrad;
+    ctx.fillRect(0, 0, logicalW, 200);
 
-    // Intracellular cytoplasm bottom (dark purple)
-    ctx.fillStyle = "rgba(168, 85, 247, 0.08)";
-    ctx.fillRect(0, 310, canvas.width, 220);
+    // Intracellular axoplasm tint (Bottom)
+    const intraGrad = ctx.createLinearGradient(0, 320, 0, logicalH);
+    intraGrad.addColorStop(0, "rgba(168, 85, 247, 0.02)");
+    intraGrad.addColorStop(1, "rgba(168, 85, 247, 0.08)");
+    ctx.fillStyle = intraGrad;
+    ctx.fillRect(0, 320, logicalW, logicalH - 320);
 
-    // Labels
+    // Section Labels
+    ctx.save();
     ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 11px system-ui";
+    ctx.font = "bold 11px system-ui, sans-serif";
     ctx.fillText("EXTRACELLULAR FLUID (High Na⁺, Low K⁺)", 20, 35);
 
     ctx.fillStyle = "#c084fc";
     ctx.fillText("INTRACELLULAR AXOPLASM (High K⁺, Low Na⁺)", 20, 500);
+    ctx.restore();
 
-    // Phospholipid Bilayer
+    // Phospholipid Bilayer Geometry
     const memY1 = 210;
     const memY2 = 310;
+    const isDepolarized = vm > 0;
 
-    // Outer leaflet heads
-    ctx.fillStyle = "#64748b";
-    for (let x = 10; x < canvas.width; x += 14) {
+    // Outer & Inner Membrane Surface Potential Signs (+ / - charges)
+    ctx.save();
+    ctx.font = "bold 11px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center";
+    for (let cx = 15; cx < logicalW; cx += 28) {
+      // Extracellular charge
+      ctx.fillStyle = isDepolarized ? "#ef4444" : "#38bdf8";
+      ctx.fillText(isDepolarized ? "−" : "+", cx, memY1 - 12);
+
+      // Intracellular charge
+      ctx.fillStyle = isDepolarized ? "#38bdf8" : "#ef4444";
+      ctx.fillText(isDepolarized ? "+" : "−", cx, memY2 + 20);
+    }
+    ctx.restore();
+
+    // Phospholipid heads and tails
+    ctx.save();
+    for (let x = 8; x < logicalW; x += 14) {
+      // Exclude channel zones
+      if ((x > 145 && x < 215) || (x > 365 && x < 435)) continue;
+
+      const lipidWobble = Math.sin(timeTick * 4 + x * 0.1) * 1.5;
+
+      // Outer leaflet head
+      const headGrad1 = ctx.createRadialGradient(x - 1, memY1 - 1, 1, x, memY1, 5.5);
+      headGrad1.addColorStop(0, "#cbd5e1");
+      headGrad1.addColorStop(0.5, "#64748b");
+      headGrad1.addColorStop(1, "#334155");
+      ctx.fillStyle = headGrad1;
       ctx.beginPath();
-      ctx.arc(x, memY1, 5, 0, Math.PI * 2);
+      ctx.arc(x, memY1, 5.5, 0, Math.PI * 2);
       ctx.fill();
 
+      // Inner leaflet head
+      const headGrad2 = ctx.createRadialGradient(x - 1, memY2 - 1, 1, x, memY2, 5.5);
+      headGrad2.addColorStop(0, "#cbd5e1");
+      headGrad2.addColorStop(0.5, "#64748b");
+      headGrad2.addColorStop(1, "#334155");
+      ctx.fillStyle = headGrad2;
       ctx.beginPath();
-      ctx.arc(x, memY2, 5, 0, Math.PI * 2);
+      ctx.arc(x, memY2, 5.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Hydrophobic fatty acid tails
-      ctx.strokeStyle = "rgba(148, 163, 184, 0.35)";
+      // Hydrophobic fatty acid hydrocarbon tails
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
       ctx.lineWidth = 1.5;
+
+      // Top tails
       ctx.beginPath();
-      ctx.moveTo(x, memY1 + 5);
-      ctx.lineTo(x + (Math.sin(x) * 2), memY1 + 35);
-      ctx.moveTo(x, memY2 - 5);
-      ctx.lineTo(x + (Math.cos(x) * 2), memY2 - 35);
+      ctx.moveTo(x - 2, memY1 + 5);
+      ctx.lineTo(x - 2 + lipidWobble, memY1 + 38);
+      ctx.moveTo(x + 2, memY1 + 5);
+      ctx.lineTo(x + 2 - lipidWobble, memY1 + 38);
+      // Bottom tails
+      ctx.moveTo(x - 2, memY2 - 5);
+      ctx.lineTo(x - 2 + lipidWobble, memY2 - 38);
+      ctx.moveTo(x + 2, memY2 - 5);
+      ctx.lineTo(x + 2 - lipidWobble, memY2 - 38);
       ctx.stroke();
     }
+    ctx.restore();
 
-    // Voltage-Gated Na+ Channel (Center-Left)
+    // 1. Voltage-Gated Na+ Channel (Center-Left)
     const naChanX = 180;
     const isOpenNa = mGate > 0.4 && hGate > 0.2;
-    ctx.fillStyle = isOpenNa ? "#06b6d4" : "#1e293b";
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 2.5;
+    const isBlockedTTX = activeToxinKey === "ttx";
+
+    ctx.save();
+    // Drop shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
     ctx.beginPath();
-    ctx.roundRect(naChanX - 25, memY1 - 10, 50, 120, 8);
+    ctx.roundRect(naChanX - 28, memY1 - 12, 56, 126, 8);
+    ctx.fill();
+
+    // Protein Subunit Body
+    const naBodyGrad = ctx.createLinearGradient(naChanX - 26, memY1, naChanX + 26, memY2);
+    if (isOpenNa && !isBlockedTTX) {
+      naBodyGrad.addColorStop(0, "#0284c7");
+      naBodyGrad.addColorStop(0.5, "#06b6d4");
+      naBodyGrad.addColorStop(1, "#0369a1");
+    } else {
+      naBodyGrad.addColorStop(0, "#1e293b");
+      naBodyGrad.addColorStop(0.5, "#0f172a");
+      naBodyGrad.addColorStop(1, "#020617");
+    }
+
+    ctx.fillStyle = naBodyGrad;
+    ctx.strokeStyle = isOpenNa ? "#38bdf8" : "#475569";
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.roundRect(naChanX - 26, memY1 - 10, 52, 122, 8);
     ctx.fill();
     ctx.stroke();
 
-    // Pore Channel Pore
-    ctx.fillStyle = isOpenNa ? "rgba(6, 182, 212, 0.4)" : "#0f172a";
-    ctx.fillRect(naChanX - 6, memY1 - 5, 12, 110);
+    // Central Pore Aperture
+    const naPoreWidth = (isOpenNa && !isBlockedTTX) ? 14 : 3;
+    ctx.fillStyle = (isOpenNa && !isBlockedTTX) ? "rgba(56, 189, 248, 0.45)" : "#020617";
+    ctx.fillRect(naChanX - naPoreWidth / 2, memY1 - 8, naPoreWidth, 118);
 
+    // Ball-and-Chain Inactivation Gate (h-gate)
+    const ballX = naChanX + (hGate < 0.3 ? 0 : 22);
+    const ballY = memY2 + (hGate < 0.3 ? 8 : 24);
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(naChanX + 16, memY2 + 2);
+    ctx.quadraticCurveTo(naChanX + 24, memY2 + 15, ballX, ballY);
+    ctx.stroke();
+
+    ctx.fillStyle = hGate < 0.3 ? "#ef4444" : "#f59e0b";
+    ctx.beginPath();
+    ctx.arc(ballX, ballY, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // TTX Toxin Block Plug on Na+ Channel Mouth
+    if (isBlockedTTX) {
+      ctx.fillStyle = "#ef4444";
+      ctx.beginPath();
+      ctx.arc(naChanX, memY1 - 12, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 8px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("TTX", naChanX, memY1 - 9);
+    }
+
+    // Na+ Channel Title
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 11px system-ui";
+    ctx.font = "bold 11px system-ui, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Na⁺ Channel", naChanX, memY1 + 55);
-    ctx.font = "9px system-ui";
-    ctx.fillText(isOpenNa ? "OPEN" : "CLOSED", naChanX, memY1 + 70);
+    ctx.fillText("Na⁺ Channel", naChanX, memY1 + 50);
+    ctx.fillStyle = isOpenNa && !isBlockedTTX ? "#34d399" : (isBlockedTTX ? "#ef4444" : "#94a3b8");
+    ctx.font = "bold 9px 'JetBrains Mono', monospace";
+    ctx.fillText(isBlockedTTX ? "TTX BLOCKED" : (isOpenNa ? "OPEN (INFLUX)" : "CLOSED"), naChanX, memY1 + 65);
+    ctx.restore();
 
-    // Voltage-Gated K+ Channel (Center-Right)
+    // 2. Voltage-Gated K+ Channel (Center-Right)
     const kChanX = 400;
     const isOpenK = nGate > 0.5;
-    ctx.fillStyle = isOpenK ? "#a855f7" : "#1e293b";
-    ctx.strokeStyle = "#c084fc";
-    ctx.lineWidth = 2.5;
+    const isBlockedTEA = activeToxinKey === "tea";
+
+    ctx.save();
+    // Drop shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
     ctx.beginPath();
-    ctx.roundRect(kChanX - 25, memY1 - 10, 50, 120, 8);
+    ctx.roundRect(kChanX - 28, memY1 - 12, 56, 126, 8);
+    ctx.fill();
+
+    // Protein Body
+    const kBodyGrad = ctx.createLinearGradient(kChanX - 26, memY1, kChanX + 26, memY2);
+    if (isOpenK && !isBlockedTEA) {
+      kBodyGrad.addColorStop(0, "#7e22ce");
+      kBodyGrad.addColorStop(0.5, "#a855f7");
+      kBodyGrad.addColorStop(1, "#581c87");
+    } else {
+      kBodyGrad.addColorStop(0, "#1e293b");
+      kBodyGrad.addColorStop(0.5, "#0f172a");
+      kBodyGrad.addColorStop(1, "#020617");
+    }
+
+    ctx.fillStyle = kBodyGrad;
+    ctx.strokeStyle = isOpenK ? "#c084fc" : "#475569";
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.roundRect(kChanX - 26, memY1 - 10, 52, 122, 8);
     ctx.fill();
     ctx.stroke();
 
-    // Pore
-    ctx.fillStyle = isOpenK ? "rgba(168, 85, 247, 0.4)" : "#0f172a";
-    ctx.fillRect(kChanX - 6, memY1 - 5, 12, 110);
+    // K+ Central Pore Aperture
+    const kPoreWidth = (isOpenK && !isBlockedTEA) ? 14 : 3;
+    ctx.fillStyle = (isOpenK && !isBlockedTEA) ? "rgba(168, 85, 247, 0.45)" : "#020617";
+    ctx.fillRect(kChanX - kPoreWidth / 2, memY1 - 8, kPoreWidth, 118);
 
+    // TEA Toxin Block Plug
+    if (isBlockedTEA) {
+      ctx.fillStyle = "#f59e0b";
+      ctx.beginPath();
+      ctx.arc(kChanX, memY2 + 10, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 8px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("TEA", kChanX, memY2 + 13);
+    }
+
+    // K+ Channel Title
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 11px system-ui";
-    ctx.fillText("K⁺ Channel", kChanX, memY1 + 55);
-    ctx.font = "9px system-ui";
-    ctx.fillText(isOpenK ? "OPEN" : "CLOSED", kChanX, memY1 + 70);
+    ctx.font = "bold 11px system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("K⁺ Channel", kChanX, memY1 + 50);
+    ctx.fillStyle = isOpenK && !isBlockedTEA ? "#34d399" : (isBlockedTEA ? "#f59e0b" : "#94a3b8");
+    ctx.font = "bold 9px 'JetBrains Mono', monospace";
+    ctx.fillText(isBlockedTEA ? "TEA BLOCKED" : (isOpenK ? "OPEN (EFFLUX)" : "CLOSED"), kChanX, memY1 + 65);
+    ctx.restore();
 
-    // Ions floating around
-    // Na+ (Cyan)
-    for (let i = 0; i < 24; i++) {
-      const ix = (i * 24 + simTimeMs * 10) % canvas.width;
-      const iy = 60 + (i * 17) % 130;
-      ctx.beginPath();
-      ctx.arc(ix, iy, 4, 0, Math.PI * 2);
+    // 3. Dynamic Ion Influx & Efflux Streams
+    ctx.save();
+    // Na+ Ions (Cyan)
+    naIons.forEach(ion => {
+      // Brownian motion
+      ion.x += ion.vx;
+      ion.y += ion.vy;
+      if (ion.x < 10) ion.x = logicalW - 10;
+      if (ion.x > logicalW - 10) ion.x = 10;
+      if (ion.y < 30) ion.vy = Math.abs(ion.vy);
+      if (ion.y > memY1 - 12 && !ion.isTransiting) ion.vy = -Math.abs(ion.vy);
+
+      // Influx through open Na+ channel
+      if (isOpenNa && !isBlockedTTX && Math.abs(ion.x - naChanX) < 18 && ion.y < memY1) {
+        ion.isTransiting = true;
+      }
+      if (ion.isTransiting) {
+        ion.x += (naChanX - ion.x) * 0.15;
+        ion.y += 3.2; // Move downward into axoplasm
+        if (ion.y > memY2 + 25) {
+          ion.isTransiting = false;
+          ion.y = memY2 + 35 + Math.random() * 80;
+        }
+      }
+
       ctx.fillStyle = "#38bdf8";
-      ctx.fill();
-    }
-
-    // K+ (Purple)
-    for (let i = 0; i < 24; i++) {
-      const ix = (i * 24 + simTimeMs * 8) % canvas.width;
-      const iy = 340 + (i * 19) % 130;
       ctx.beginPath();
-      ctx.arc(ix, iy, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#c084fc";
+      ctx.arc(ion.x, ion.y, 4, 0, Math.PI * 2);
       ctx.fill();
-    }
+
+      // Ion charge label
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 6px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("+", ion.x, ion.y);
+    });
+
+    // K+ Ions (Purple)
+    kIons.forEach(ion => {
+      ion.x += ion.vx;
+      ion.y += ion.vy;
+      if (ion.x < 10) ion.x = logicalW - 10;
+      if (ion.x > logicalW - 10) ion.x = 10;
+      if (ion.y > logicalH - 30) ion.vy = -Math.abs(ion.vy);
+      if (ion.y < memY2 + 12 && !ion.isTransiting) ion.vy = Math.abs(ion.vy);
+
+      // Efflux through open K+ channel
+      if (isOpenK && !isBlockedTEA && Math.abs(ion.x - kChanX) < 18 && ion.y > memY2) {
+        ion.isTransiting = true;
+      }
+      if (ion.isTransiting) {
+        ion.x += (kChanX - ion.x) * 0.15;
+        ion.y -= 3.2; // Move upward out of axoplasm
+        if (ion.y < memY1 - 25) {
+          ion.isTransiting = false;
+          ion.y = memY1 - 35 - Math.random() * 80;
+        }
+      }
+
+      ctx.fillStyle = "#c084fc";
+      ctx.beginPath();
+      ctx.arc(ion.x, ion.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 6px system-ui";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("+", ion.x, ion.y);
+    });
+    ctx.restore();
   }
 
   function drawOscilloscope() {
-    chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+    chartCtx.clearRect(0, 0, chartLogicalW, chartLogicalH);
 
-    // Background
+    // Phosphor Grid Background
     chartCtx.fillStyle = "#030712";
-    chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+    chartCtx.fillRect(0, 0, chartLogicalW, chartLogicalH);
     chartCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     chartCtx.lineWidth = 1;
 
-    for (let x = 40; x < chartCanvas.width; x += 40) {
+    for (let x = 40; x < chartLogicalW; x += 40) {
       chartCtx.beginPath();
       chartCtx.moveTo(x, 10);
-      chartCtx.lineTo(x, chartCanvas.height - 25);
+      chartCtx.lineTo(x, chartLogicalH - 25);
       chartCtx.stroke();
     }
-    for (let y = 15; y < chartCanvas.height - 25; y += 30) {
+    for (let y = 15; y < chartLogicalH - 25; y += 30) {
       chartCtx.beginPath();
       chartCtx.moveTo(40, y);
-      chartCtx.lineTo(chartCanvas.width - 15, y);
+      chartCtx.lineTo(chartLogicalW - 15, y);
       chartCtx.stroke();
     }
 
@@ -392,13 +654,13 @@ export function initActionPotentialLab(containerId) {
     chartCtx.lineWidth = 1.5;
     chartCtx.beginPath();
     chartCtx.moveTo(40, 10);
-    chartCtx.lineTo(40, chartCanvas.height - 25);
-    chartCtx.lineTo(chartCanvas.width - 15, chartCanvas.height - 25);
+    chartCtx.lineTo(40, chartLogicalH - 25);
+    chartCtx.lineTo(chartLogicalW - 15, chartLogicalH - 25);
     chartCtx.stroke();
 
     // Scale Labels
     chartCtx.fillStyle = "#94a3b8";
-    chartCtx.font = "9px var(--font-mono, monospace)";
+    chartCtx.font = "9px 'JetBrains Mono', monospace";
     chartCtx.textAlign = "right";
     chartCtx.fillText("+40mV", 36, 25);
     chartCtx.fillText("0mV", 36, 68);
@@ -406,22 +668,22 @@ export function initActionPotentialLab(containerId) {
 
     // Threshold dashed line (-55 mV)
     const yThresh = 150 - ((-55 + 80) / 120) * 125;
-    chartCtx.strokeStyle = "rgba(244, 63, 94, 0.5)";
+    chartCtx.strokeStyle = "rgba(244, 63, 94, 0.6)";
     chartCtx.setLineDash([4, 4]);
     chartCtx.beginPath();
     chartCtx.moveTo(40, yThresh);
-    chartCtx.lineTo(chartCanvas.width - 15, yThresh);
+    chartCtx.lineTo(chartLogicalW - 15, yThresh);
     chartCtx.stroke();
     chartCtx.setLineDash([]);
 
-    // Draw Vm Trace (Purple)
+    // Draw Vm Trace (Purple Glow)
     if (oscilloscopeTrace.length > 1) {
       chartCtx.strokeStyle = "#c084fc";
       chartCtx.lineWidth = 2.4;
       chartCtx.beginPath();
 
       oscilloscopeTrace.forEach((pt, idx) => {
-        const px = 40 + (idx / (oscilloscopeTrace.length - 1)) * (chartCanvas.width - 55);
+        const px = 40 + (idx / (oscilloscopeTrace.length - 1)) * (chartLogicalW - 55);
         // Map Vm (-90 to +50) to y (155 to 20)
         const py = 150 - ((pt.vm + 80) / 130) * 125;
         if (idx === 0) chartCtx.moveTo(px, py);
@@ -432,7 +694,6 @@ export function initActionPotentialLab(containerId) {
   }
 
   let lastFrameTime = 0;
-  let needsRedraw = true;
 
   function loop(now) {
     if (!isRunning) return;
@@ -554,6 +815,7 @@ export function initActionPotentialLab(containerId) {
   return () => {
     isRunning = false;
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("resize", setupHiDPICanvas);
     window.removeEventListener("keydown", handleKeyDown);
   };
 }

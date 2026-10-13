@@ -501,6 +501,20 @@ export function initVseprLab(containerId) {
   const canvas = document.getElementById("vsepr-canvas");
   const ctx = canvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   function project3D(x, y, z, cx, cy, scale) {
     // 3D rotation matrix (Yaw Y, Pitch X)
     // 1. Rotate around Y
@@ -527,12 +541,14 @@ export function initVseprLab(containerId) {
   }
 
   function render3D() {
-    const width = canvas.width;
-    const height = canvas.height;
-    ctx.clearRect(0, 0, width, height);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
-    const cx = width / 2;
-    const cy = height / 2;
+    const cx = logicalW / 2;
+    const cy = logicalH / 2;
 
     // Background coordinate grid circles
     ctx.save();
@@ -750,6 +766,7 @@ export function initVseprLab(containerId) {
       ctx.fillText(`${currentMolecule.actualAngle}°`, cx, cy - 50 * zoom);
       ctx.restore();
     }
+    ctx.restore();
   }
 
   // Animation Loop (Decoupled Delta-T Rotation with Smartboard Pacing)
@@ -1011,6 +1028,7 @@ export function initVseprLab(containerId) {
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
   _currentVseprCleanup = cleanup;
   return cleanup;

@@ -201,6 +201,33 @@ export function initThermalConductionLab(containerId) {
   const chartCanvas = container.querySelector("#cond-chart-canvas");
   const chartCtx = chartCanvas.getContext("2d");
 
+  // HiDPI / Retina Canvas Setup
+  const logicalW = 580;
+  const logicalH = 530;
+  const chartLogicalW = 460;
+  const chartLogicalH = 180;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.resetTransform();
+    ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+
+    const chartRect = chartCanvas.getBoundingClientRect();
+    const cw = chartRect.width > 0 ? chartRect.width : chartLogicalW;
+    const ch = chartRect.height > 0 ? chartRect.height : chartLogicalH;
+    chartCanvas.width = Math.round(cw * dpr);
+    chartCanvas.height = Math.round(ch * dpr);
+    chartCtx.resetTransform();
+    chartCtx.scale(dpr * (cw / chartLogicalW), dpr * (ch / chartLogicalH));
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   function getCalculations() {
     const mat = MATERIALS[materialKey];
     const areaM2 = rodAreaCm2 * 1e-4; // m²
@@ -220,7 +247,7 @@ export function initThermalConductionLab(containerId) {
   }
 
   function drawApparatus() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, logicalW, logicalH);
     const { mat, deltaT, heatFluxWatts } = getCalculations();
 
     // Hot Thermal Reservoir on Left (Red immersion bath)
@@ -230,7 +257,7 @@ export function initThermalConductionLab(containerId) {
     const resY = 150;
 
     // Cold Thermal Reservoir on Right (Blue chiller bath)
-    const coldX = canvas.width - 32 - resW; // 464
+    const coldX = logicalW - 32 - resW; // 464
 
     // Conduction Rod connecting Left and Right
     const rodStartX = hotX + resW; // 116
@@ -245,7 +272,7 @@ export function initThermalConductionLab(containerId) {
     ctx.strokeStyle = "rgba(251, 146, 60, 0.35)";
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.roundRect(canvas.width / 2 - 195, 96, 390, 28, 14);
+    ctx.roundRect(logicalW / 2 - 195, 96, 390, 28, 14);
     ctx.fill();
     ctx.stroke();
 
@@ -253,7 +280,7 @@ export function initThermalConductionLab(containerId) {
     ctx.font = "bold 13px system-ui, -apple-system, sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(`${mat.name} • k = ${mat.k} W/(m·K) • A = ${rodAreaCm2.toFixed(1)} cm² • L = ${rodLengthM.toFixed(2)} m`, canvas.width / 2, 110);
+    ctx.fillText(`${mat.name} • k = ${mat.k} W/(m·K) • A = ${rodAreaCm2.toFixed(1)} cm² • L = ${rodLengthM.toFixed(2)} m`, logicalW / 2, 110);
     ctx.restore();
 
     // 2. Hot Thermal Reservoir (Left)
@@ -608,24 +635,24 @@ export function initThermalConductionLab(containerId) {
   }
 
   function drawProfileChart() {
-    chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+    chartCtx.clearRect(0, 0, chartLogicalW, chartLogicalH);
 
     // Background
     chartCtx.fillStyle = "#030712";
-    chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+    chartCtx.fillRect(0, 0, chartLogicalW, chartLogicalH);
     chartCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     chartCtx.lineWidth = 1;
 
-    for (let x = 40; x < chartCanvas.width; x += 40) {
+    for (let x = 40; x < chartLogicalW; x += 40) {
       chartCtx.beginPath();
       chartCtx.moveTo(x, 10);
-      chartCtx.lineTo(x, chartCanvas.height - 25);
+      chartCtx.lineTo(x, chartLogicalH - 25);
       chartCtx.stroke();
     }
-    for (let y = 15; y < chartCanvas.height - 25; y += 30) {
+    for (let y = 15; y < chartLogicalH - 25; y += 30) {
       chartCtx.beginPath();
       chartCtx.moveTo(40, y);
-      chartCtx.lineTo(chartCanvas.width - 15, y);
+      chartCtx.lineTo(chartLogicalW - 15, y);
       chartCtx.stroke();
     }
 
@@ -634,18 +661,18 @@ export function initThermalConductionLab(containerId) {
     chartCtx.lineWidth = 1.5;
     chartCtx.beginPath();
     chartCtx.moveTo(40, 10);
-    chartCtx.lineTo(40, chartCanvas.height - 25);
-    chartCtx.lineTo(chartCanvas.width - 15, chartCanvas.height - 25);
+    chartCtx.lineTo(40, chartLogicalH - 25);
+    chartCtx.lineTo(chartLogicalW - 15, chartLogicalH - 25);
     chartCtx.stroke();
 
     // Axis Labels
     chartCtx.fillStyle = "#94a3b8";
     chartCtx.font = "10px var(--font-mono, monospace)";
     chartCtx.textAlign = "center";
-    chartCtx.fillText("Distance along rod x (m)", chartCanvas.width / 2, chartCanvas.height - 6);
+    chartCtx.fillText("Distance along rod x (m)", chartLogicalW / 2, chartLogicalH - 6);
 
     chartCtx.save();
-    chartCtx.translate(18, chartCanvas.height / 2);
+    chartCtx.translate(18, chartLogicalH / 2);
     chartCtx.rotate(-Math.PI / 2);
     chartCtx.fillText("Temperature T (°C)", 0, 0);
     chartCtx.restore();
@@ -656,11 +683,11 @@ export function initThermalConductionLab(containerId) {
     chartCtx.beginPath();
 
     const startX = 45;
-    const endX = chartCanvas.width - 25;
+    const endX = chartLogicalW - 25;
     const maxT = Math.max(120, tHot + 10);
 
-    const startY = (chartCanvas.height - 25) - (tHot / maxT) * (chartCanvas.height - 40);
-    const endY = (chartCanvas.height - 25) - (tCold / maxT) * (chartCanvas.height - 40);
+    const startY = (chartLogicalH - 25) - (tHot / maxT) * (chartLogicalH - 40);
+    const endY = (chartLogicalH - 25) - (tCold / maxT) * (chartLogicalH - 40);
 
     chartCtx.moveTo(startX, startY);
     chartCtx.lineTo(endX, endY);
@@ -815,6 +842,7 @@ export function initThermalConductionLab(containerId) {
   return () => {
     isRunning = false;
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("resize", setupHiDPICanvas);
     window.removeEventListener("keydown", handleKeyDown);
   };
 }

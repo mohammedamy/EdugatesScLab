@@ -223,6 +223,19 @@ export function initElisaLab(containerId) {
   const canvas = document.getElementById("elisa-canvas");
   const ctx = canvas.getContext("2d");
 
+  // HiDPI Canvas Scaling
+  const logicalW = 580;
+  const logicalH = 530;
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   const viewSimBtn = document.getElementById("view-mode-elisa-sim");
   const viewPhotoBtn = document.getElementById("view-mode-elisa-photo");
   const photoOverlay = document.getElementById("elisa-photo-overlay");
@@ -317,7 +330,7 @@ export function initElisaLab(containerId) {
 
   document.addEventListener("select-well", (e) => {
     selectedWellIndex = e.detail;
-    SoundFX.click();
+    SoundFX.click?.() || SoundFX.playClick?.();
     updateHUD();
   });
 
@@ -325,37 +338,81 @@ export function initElisaLab(containerId) {
   function renderElisaCanvas() {
     if (!container || !container.isConnected) return;
     timeTick += 0.035;
-    const cw = canvas.width;
-    const ch = canvas.height;
-    ctx.clearRect(0, 0, cw, ch);
+
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
     pipetteY += (targetPipetteY - pipetteY) * 0.12;
 
-    // 1. Microplate Spectrophotometer Bay
-    const plateX = cw * 0.5 - 190;
-    const plateY = 220;
-    const plateW = 380;
-    const plateH = 260;
+    // Workbench Mat Background
+    ctx.fillStyle = "#0c1322";
+    ctx.fillRect(0, 0, logicalW, logicalH);
 
-    // Outer Tray Chamber
-    ctx.fillStyle = "#0f172a";
-    ctx.strokeStyle = "#334155";
-    ctx.lineWidth = 2;
+    // Bench Grid Lines
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.03)";
+    ctx.lineWidth = 1;
+    for (let gx = 30; gx < logicalW; gx += 40) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, logicalH);
+      ctx.stroke();
+    }
+    for (let gy = 30; gy < logicalH; gy += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, gy);
+      ctx.lineTo(logicalW, gy);
+      ctx.stroke();
+    }
+
+    // 1. Microplate Spectrophotometer Bay
+    const plateX = logicalW * 0.5 - 195;
+    const plateY = 210;
+    const plateW = 390;
+    const plateH = 270;
+
+    // Reader Carrier Tray Shadow
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.shadowColor = "rgba(0,0,0,0.75)";
+    ctx.shadowBlur = 24;
     ctx.beginPath();
-    ctx.roundRect(plateX - 15, plateY - 15, plateW + 30, plateH + 30, 10);
+    ctx.roundRect(plateX - 18, plateY - 18, plateW + 36, plateH + 36, 12);
+    ctx.fill();
+    ctx.restore();
+
+    // Dark Aluminum Spectrophotometer Tray
+    const trayGrad = ctx.createLinearGradient(plateX - 16, plateY - 16, plateX + plateW + 16, plateY + plateH + 16);
+    trayGrad.addColorStop(0, "#1e293b");
+    trayGrad.addColorStop(0.5, "#0f172a");
+    trayGrad.addColorStop(1, "#020617");
+    ctx.fillStyle = trayGrad;
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(plateX - 16, plateY - 16, plateW + 32, plateH + 32, 10);
     ctx.fill();
     ctx.stroke();
 
-    // 96-Well Microplate (White Polystyrene Base)
-    ctx.fillStyle = "#ffffff";
+    // 96-Well Microplate (White Polystyrene ANSI/SLAS Base with Chamfered A1 Corner)
+    ctx.fillStyle = "#f8fafc";
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.roundRect(plateX, plateY, plateW, plateH, 6);
     ctx.fill();
+    ctx.stroke();
 
-    // Microplate Bevel Border
-    ctx.strokeStyle = "#cbd5e1";
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(plateX, plateY, plateW, plateH);
+    // Chamfer notch at top left corner (A1 indexing marker)
+    ctx.fillStyle = "#cbd5e1";
+    ctx.beginPath();
+    ctx.moveTo(plateX, plateY + 14);
+    ctx.lineTo(plateX + 14, plateY);
+    ctx.lineTo(plateX, plateY);
+    ctx.closePath();
+    ctx.fill();
 
     // 2. Render 8 Wells of Column 1 (A1 to H1) and Background Ghost Wells
     const cols = 12;
@@ -364,7 +421,7 @@ export function initElisaLab(containerId) {
     const wellSpacingY = plateH / (rows + 1);
     const wellRadius = 14;
 
-    // Draw Column Headers (1 to 12)
+    // Column Headers (1 to 12)
     ctx.fillStyle = "#64748b";
     ctx.font = "bold 9px 'JetBrains Mono', monospace";
     ctx.textAlign = "center";
@@ -372,10 +429,10 @@ export function initElisaLab(containerId) {
       ctx.fillText(`${c}`, plateX + c * wellSpacingX, plateY + 12);
     }
 
-    // Draw Row Headers (A to H)
+    // Row Headers (A to H)
     const rowLabels = ["A", "B", "C", "D", "E", "F", "G", "H"];
     for (let r = 0; r < rows; r++) {
-      ctx.fillText(rowLabels[r], plateX + 10, plateY + (r + 1) * wellSpacingY + 3);
+      ctx.fillText(rowLabels[r], plateX + 11, plateY + (r + 1) * wellSpacingY + 3);
     }
 
     // Render Wells
@@ -384,19 +441,23 @@ export function initElisaLab(containerId) {
         const wx = plateX + c * wellSpacingX;
         const wy = plateY + (r + 1) * wellSpacingY;
 
-        // Well Recessed Well Hole
         ctx.save();
+        // Cylindrical well recessed cavity (concentric bevel shading)
+        const cavityGrad = ctx.createRadialGradient(wx - 4, wy - 4, 3, wx, wy, wellRadius);
+        cavityGrad.addColorStop(0, "#f1f5f9");
+        cavityGrad.addColorStop(0.7, "#e2e8f0");
+        cavityGrad.addColorStop(1, "#94a3b8");
+        ctx.fillStyle = cavityGrad;
         ctx.beginPath();
         ctx.arc(wx, wy, wellRadius, 0, Math.PI * 2);
-        ctx.fillStyle = "#e2e8f0";
         ctx.fill();
-        ctx.strokeStyle = "#94a3b8";
-        ctx.lineWidth = 1.2;
+        ctx.strokeStyle = "#64748b";
+        ctx.lineWidth = 1;
         ctx.stroke();
 
         // Liquid inside well
         if (c === 1) {
-          // Active Column 1 with reagents!
+          // Active Diagnostic Column 1 with reagents!
           const wellData = MICROPLATE_WELLS[r];
           const od = calculateWellOD(wellData);
           const isSelected = r === selectedWellIndex;
@@ -407,25 +468,41 @@ export function initElisaLab(containerId) {
           if (currentStepIndex === 5) {
             // TMB Blue Stage (scaled with OD)
             const blueIntensity = Math.min(1.0, od / 2.2);
-            ctx.fillStyle = `rgba(37, 99, 235, ${0.15 + blueIntensity * 0.8})`;
+            const blueGrad = ctx.createRadialGradient(wx - 3, wy - 3, 2, wx, wy, wellRadius - 2);
+            blueGrad.addColorStop(0, `rgba(96, 165, 250, ${0.4 + blueIntensity * 0.6})`);
+            blueGrad.addColorStop(1, `rgba(29, 78, 216, ${0.3 + blueIntensity * 0.7})`);
+            ctx.fillStyle = blueGrad;
           } else if (currentStepIndex === 6) {
             // Stopped Yellow Stage (OD450)
             const yellowIntensity = Math.min(1.0, od / 2.2);
-            ctx.fillStyle = `rgba(250, 204, 21, ${0.15 + yellowIntensity * 0.85})`;
+            const yelGrad = ctx.createRadialGradient(wx - 3, wy - 3, 2, wx, wy, wellRadius - 2);
+            yelGrad.addColorStop(0, `rgba(254, 240, 138, ${0.4 + yellowIntensity * 0.6})`);
+            yelGrad.addColorStop(0.7, `rgba(234, 179, 8, ${0.3 + yellowIntensity * 0.7})`);
+            yelGrad.addColorStop(1, `rgba(161, 98, 7, ${0.2 + yellowIntensity * 0.8})`);
+            ctx.fillStyle = yelGrad;
           } else {
-            // Pre-substrate buffer
+            // Pre-substrate reagent buffer
             ctx.fillStyle = PROTOCOL_STEPS[currentStepIndex].color;
           }
           ctx.fill();
 
-          // Selection Glow
+          // Liquid meniscus crescent highlight
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(wx, wy, wellRadius - 3, Math.PI * 1.1, Math.PI * 1.6);
+          ctx.stroke();
+
+          // Selection Halo
           if (isSelected) {
             ctx.strokeStyle = "#38bdf8";
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(wx, wy, wellRadius + 2, 0, Math.PI * 2);
             ctx.stroke();
           }
         } else {
-          // Empty inactive wells
+          // Empty inactive wells (clear optical polystyrene bottom)
           ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
           ctx.beginPath();
           ctx.arc(wx, wy, wellRadius - 2, 0, Math.PI * 2);
@@ -438,60 +515,98 @@ export function initElisaLab(containerId) {
     // 3. Multichannel 8-Tip Pipette Animation (Hovering above Column 1)
     const pipColX = plateX + 1 * wellSpacingX;
     ctx.save();
+    
     // Pipette Body Bar
-    const barW = 34;
-    const barH = plateH - 20;
+    const barW = 36;
+    const barH = plateH - 24;
     const pipBarY = pipetteY;
 
-    ctx.fillStyle = "#334155";
-    ctx.strokeStyle = "#475569";
+    // Drop shadow
+    ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 6;
+
+    const pipBodyGrad = ctx.createLinearGradient(pipColX - barW / 2, 0, pipColX + barW / 2, 0);
+    pipBodyGrad.addColorStop(0, "#475569");
+    pipBodyGrad.addColorStop(0.4, "#64748b");
+    pipBodyGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = pipBodyGrad;
+    ctx.strokeStyle = "#0284c7";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(pipColX - barW / 2, pipBarY, barW, barH, 4);
+    ctx.roundRect(pipColX - barW / 2, pipBarY, barW, barH, 6);
     ctx.fill();
     ctx.stroke();
+    ctx.shadowBlur = 0;
 
-    // 8 Pipette Plastic Tips
+    // Pipette Digital Volume Dial
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(pipColX - 12, pipBarY + 20, 24, 18);
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 8px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("100µL", pipColX, pipBarY + 32);
+
+    // 8 Pipette Translucent Polypropylene Tips
     for (let r = 0; r < rows; r++) {
       const tipY = pipBarY + (r + 1) * wellSpacingY;
-      ctx.fillStyle = "rgba(56, 189, 248, 0.7)";
+      ctx.fillStyle = "rgba(56, 189, 248, 0.75)";
       ctx.beginPath();
-      ctx.moveTo(pipColX - 3, tipY - 4);
-      ctx.lineTo(pipColX + 3, tipY - 4);
-      ctx.lineTo(pipColX + 1.5, tipY + 12);
-      ctx.lineTo(pipColX - 1.5, tipY + 12);
+      ctx.moveTo(pipColX - 3.5, tipY - 4);
+      ctx.lineTo(pipColX + 3.5, tipY - 4);
+      ctx.lineTo(pipColX + 1.8, tipY + 14);
+      ctx.lineTo(pipColX - 1.8, tipY + 14);
       ctx.closePath();
       ctx.fill();
 
       // Fluid droplet when dispensing
       if (isDispensing) {
         ctx.beginPath();
-        ctx.arc(pipColX, tipY + 16, 2, 0, Math.PI * 2);
+        ctx.arc(pipColX, tipY + 18, 2.5, 0, Math.PI * 2);
         ctx.fillStyle = "#38bdf8";
         ctx.fill();
       }
     }
 
-    // Pipette Top Handle
+    // Pipette Top Handle & Plunger Button
     ctx.fillStyle = "#0284c7";
-    ctx.fillRect(pipColX - 10, pipBarY - 30, 20, 30);
+    ctx.fillRect(pipColX - 10, pipBarY - 28, 20, 28);
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.roundRect(pipColX - 14, pipBarY - 36, 28, 8, 3);
+    ctx.fill();
     ctx.restore();
 
-    // 4. Optical Sensor Scan Beam (When Reading Plate)
+    // 4. Optical Monochromator 450nm Scan Beam (When Reading Plate)
     if (isPlateRead) {
       ctx.save();
       const beamX = plateX + 1 * wellSpacingX;
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
-      ctx.lineWidth = 4;
+      
+      // Vertical Collimated Laser Beam
+      const beamGrad = ctx.createLinearGradient(beamX - 16, 0, beamX + 16, 0);
+      beamGrad.addColorStop(0, "rgba(56, 189, 248, 0.05)");
+      beamGrad.addColorStop(0.5, "rgba(56, 189, 248, 0.75)");
+      beamGrad.addColorStop(1, "rgba(56, 189, 248, 0.05)");
+      ctx.fillStyle = beamGrad;
+      ctx.fillRect(beamX - 16, plateY - 10, 32, plateH + 20);
+
+      // Core Monochromator Line
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(beamX, plateY);
-      ctx.lineTo(beamX, plateY + plateH);
+      ctx.moveTo(beamX, plateY - 10);
+      ctx.lineTo(beamX, plateY + plateH + 10);
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
-      ctx.fillRect(beamX - 15, plateY, 30, plateH);
+      // Optical Sensor Detector Read Head
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("λ = 450 nm SCAN", beamX, plateY - 16);
       ctx.restore();
     }
+
+    ctx.restore();
 
     animId = requestAnimationFrame(renderElisaCanvas);
   }
@@ -502,7 +617,7 @@ export function initElisaLab(containerId) {
       currentStepIndex++;
       isDispensing = true;
       targetPipetteY = 190;
-      SoundFX.droplet();
+      SoundFX.droplet?.() || SoundFX.playClick?.();
 
       setTimeout(() => {
         isDispensing = false;
@@ -512,7 +627,7 @@ export function initElisaLab(containerId) {
     } else {
       currentStepIndex = 0; // Reset workflow loop
       isPlateRead = false;
-      SoundFX.click();
+      SoundFX.click?.() || SoundFX.playClick?.();
       updateHUD();
     }
   });
@@ -520,7 +635,7 @@ export function initElisaLab(containerId) {
   btnReadPlate.addEventListener("click", () => {
     isPlateRead = true;
     currentStepIndex = 6; // Stop acid final readout
-    SoundFX.success();
+    SoundFX.success?.() || SoundFX.playBeep?.();
     updateHUD();
     setTimeout(() => {
       isPlateRead = false;
@@ -536,7 +651,7 @@ export function initElisaLab(containerId) {
     viewPhotoBtn.style.background = "transparent";
     photoOverlay.style.display = "none";
     canvas.style.display = "block";
-    SoundFX.click();
+    SoundFX.click?.() || SoundFX.playClick?.();
   });
 
   viewPhotoBtn.addEventListener("click", () => {
@@ -547,7 +662,7 @@ export function initElisaLab(containerId) {
     viewSimBtn.style.background = "transparent";
     photoOverlay.style.display = "block";
     canvas.style.display = "none";
-    SoundFX.click();
+    SoundFX.click?.() || SoundFX.playClick?.();
   });
 
   // Telemetry CSV Export
@@ -580,7 +695,7 @@ export function initElisaLab(containerId) {
         ];
       })
     });
-    SoundFX.success();
+    SoundFX.success?.() || SoundFX.playBeep?.();
   });
 
   // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
@@ -599,5 +714,9 @@ export function initElisaLab(containerId) {
   return function cleanupElisaLab() {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }
+
+export const initImmuneElisaLab = initElisaLab;
+

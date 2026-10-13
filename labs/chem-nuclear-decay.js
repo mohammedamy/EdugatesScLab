@@ -12,10 +12,10 @@ export function initNuclearDecayLab(containerId) {
   if (!container) return;
 
   const ISOTOPES = {
-    c14: { name: "Carbon-14 (¹⁴C)", mode: "Beta (β⁻)", halfLife: 5.73, unit: "kyr", daughter: "Nitrogen-14 (¹⁴N)", color: "#38bdf8", rayColor: "#3b82f6" },
-    i131: { name: "Iodine-131 (¹³¹I)", mode: "Beta / Gamma (β⁻/γ)", halfLife: 8.0, unit: "days", daughter: "Xenon-131 (¹³¹Xe)", color: "#c026d3", rayColor: "#ec4899" },
-    co60: { name: "Cobalt-60 (⁶⁰Co)", mode: "Beta / Gamma (β⁻/γ)", halfLife: 5.27, unit: "years", daughter: "Nickel-60 (⁶⁰Ni)", color: "#f59e0b", rayColor: "#eab308" },
-    ra226: { name: "Radium-226 (²²⁶Ra)", mode: "Alpha (α)", halfLife: 1.60, unit: "kyr", daughter: "Radon-222 (²²²Rn)", color: "#10b981", rayColor: "#22c55e" }
+    c14: { name: "Carbon-14 (¹⁴C)", mode: "Beta (β⁻)", halfLife: 5.73, unit: "kyr", daughter: "Nitrogen-14 (¹⁴N)", color: "#38bdf8", rayColor: "#38bdf8", type: "beta" },
+    i131: { name: "Iodine-131 (¹³¹I)", mode: "Beta / Gamma (β⁻/γ)", halfLife: 8.0, unit: "days", daughter: "Xenon-131 (¹³¹Xe)", color: "#c026d3", rayColor: "#ec4899", type: "mixed" },
+    co60: { name: "Cobalt-60 (⁶⁰Co)", mode: "Beta / Gamma (β⁻/γ)", halfLife: 5.27, unit: "years", daughter: "Nickel-60 (⁶⁰Ni)", color: "#f59e0b", rayColor: "#facc15", type: "gamma" },
+    ra226: { name: "Radium-226 (²²⁶Ra)", mode: "Alpha (α)", halfLife: 1.60, unit: "kyr", daughter: "Radon-222 (²²²Rn)", color: "#10b981", rayColor: "#34d399", type: "alpha" }
   };
 
   let currentIsoKey = "i131";
@@ -28,10 +28,13 @@ export function initNuclearDecayLab(containerId) {
   let isRunning = true;
   let animId = null;
 
-  // Discrete particles array
+  // Discrete particles & shockwave animations
   let atoms = [];
   const emittedRays = [];
   const decayHistory = [];
+  const decayFlashes = [];
+  let tubeDischargeIntensity = 0;
+  let meterNeedleValue = 0;
 
   function resetAtoms() {
     atoms = [];
@@ -40,13 +43,16 @@ export function initNuclearDecayLab(containerId) {
     elapsedTime = 0;
     decayHistory.length = 0;
     emittedRays.length = 0;
+    decayFlashes.length = 0;
 
     for (let i = 0; i < initialNucleiCount; i++) {
       atoms.push({
-        x: 60 + Math.random() * 240,
-        y: 160 + Math.random() * 240,
+        x: 65 + Math.random() * 220,
+        y: 165 + Math.random() * 230,
         decayed: false,
-        pulseOffset: Math.random() * Math.PI * 2
+        pulseOffset: Math.random() * Math.PI * 2,
+        coreRadius: 3.2 + Math.random() * 1.0,
+        daughterAngle: Math.random() * Math.PI * 2
       });
     }
     decayHistory.push({ t: 0, n: remainingNuclei });
@@ -92,7 +98,7 @@ export function initNuclearDecayLab(containerId) {
       <!-- Main Grid -->
       <div style="display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px;" class="decay-layout">
         <!-- Canvas Viewport -->
-        <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(239, 68, 68, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #2a0b0b 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
+        <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(239, 68, 68, 0.35); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at center, #1e0b0b 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 530px;">
           <canvas id="decay-canvas" width="580" height="530" style="height: 530px; width: 100%; display: block;"></canvas>
 
           <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
@@ -199,6 +205,26 @@ export function initNuclearDecayLab(containerId) {
   const plotCanvas = container.querySelector("#decay-plot-canvas");
   const plotCtx = plotCanvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+  const plotLogicalW = 450;
+  const plotLogicalH = 210;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+    if (plotCanvas) {
+      plotCanvas.width = Math.round(plotLogicalW * dpr);
+      plotCanvas.height = Math.round(plotLogicalH * dpr);
+    }
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   let geigerCpm = 0;
   let decayLambda = Math.log(2) / 1.0; // in half-lives
 
@@ -219,7 +245,12 @@ export function initNuclearDecayLab(containerId) {
   }
 
   function renderFrame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
+
     const iso = ISOTOPES[currentIsoKey];
 
     // 1. Advance Decay Kinetics
@@ -236,14 +267,33 @@ export function initNuclearDecayLab(containerId) {
           remainingNuclei--;
           newlyDecayedThisFrame++;
 
-          // Emit radiation ray towards detector
-          const angle = (Math.random() - 0.5) * 0.8;
+          // Create expanding shockwave flash
+          decayFlashes.push({
+            x: atom.x,
+            y: atom.y,
+            r: 4,
+            maxR: 24,
+            alpha: 1.0,
+            color: iso.color
+          });
+
+          // Emit radiation ray towards detector aperture
+          const targetY = 240 + (Math.random() - 0.5) * 60;
+          const dx = 430 - atom.x;
+          const dy = targetY - atom.y;
+          const dist = Math.hypot(dx, dy);
+          const speed = 7.5;
+
           emittedRays.push({
             x: atom.x,
             y: atom.y,
-            vx: Math.cos(angle) * 7.0,
-            vy: Math.sin(angle) * 7.0,
-            life: 1.0
+            vx: (dx / dist) * speed,
+            vy: (dy / dist) * speed,
+            startX: atom.x,
+            startY: atom.y,
+            life: 1.0,
+            type: iso.type,
+            wavePhase: Math.random() * Math.PI * 2
           });
         }
       });
@@ -254,121 +304,36 @@ export function initNuclearDecayLab(containerId) {
       geigerCpm = geigerCpm * 0.92 + targetCpm * 0.08;
 
       if (newlyDecayedThisFrame > 0 && Math.random() < 0.3) {
+        tubeDischargeIntensity = Math.min(1.0, tubeDischargeIntensity + 0.6);
         try { SoundFX.playClick(); } catch (e) {}
       }
 
-      // Record History every ~0.1 half-lives
+      // Record History every ~0.08 half-lives
       if (decayHistory.length === 0 || elapsedTime - decayHistory[decayHistory.length - 1].t >= 0.08) {
         decayHistory.push({ t: elapsedTime, n: remainingNuclei });
       }
     }
 
-    // 2. Draw Sample Chamber Area
-    ctx.strokeStyle = "#475569";
-    ctx.fillStyle = "rgba(15, 23, 42, 0.7)";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(40, 140, 280, 280);
-    ctx.fillRect(40, 140, 280, 280);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "bold 11px sans-serif";
-    ctx.fillText(`Radioactive Sample Chamber: ${iso.name}`, 55, 130);
+    tubeDischargeIntensity = Math.max(0, tubeDischargeIntensity - 0.08);
+    meterNeedleValue = meterNeedleValue * 0.90 + geigerCpm * 0.10;
 
-    // 3. Draw Atoms (Parent vs Daughter)
-    atoms.forEach(atom => {
-      ctx.beginPath();
-      ctx.arc(atom.x, atom.y, 4, 0, Math.PI * 2);
-      if (!atom.decayed) {
-        ctx.fillStyle = iso.color;
-        ctx.shadowColor = iso.color;
-        ctx.shadowBlur = 6;
-      } else {
-        ctx.fillStyle = "#475569";
-        ctx.shadowBlur = 0;
-      }
-      ctx.fill();
-    });
-    ctx.shadowBlur = 0;
+    // 2. Draw Radiochemistry Cleanroom Environment & Benchtop
+    drawWorkbenchEnclosure(ctx);
 
-    // 4. Draw Shielding Barrier
-    const shieldX = 350;
-    const shieldY = 130;
-    const shieldW = shielding === "none" ? 0 : (shielding === "paper" ? 4 : (shielding === "aluminum" ? 14 : 32));
-    const shieldH = 300;
+    // 3. Draw Heavy Lead Shielded Castle Chamber
+    drawLeadChamber(ctx, iso);
 
-    if (shielding !== "none") {
-      ctx.fillStyle = shielding === "paper" ? "#fef08a" : (shielding === "aluminum" ? "#94a3b8" : "#475569");
-      ctx.strokeStyle = "#cbd5e1";
-      ctx.fillRect(shieldX, shieldY, shieldW, shieldH);
-      ctx.strokeRect(shieldX, shieldY, shieldW, shieldH);
+    // 4. Draw Nuclei & Energetic Shockwave Bursts
+    drawNuclei(ctx, iso);
 
-      ctx.save();
-      ctx.translate(shieldX - 10, shieldY + 150);
-      ctx.rotate(-Math.PI / 2);
-      ctx.fillStyle = "#f8fafc";
-      ctx.font = "bold 10px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(shielding.toUpperCase() + " SHIELD", 0, 0);
-      ctx.restore();
-    }
+    // 5. Draw Shielding Station & Guides
+    drawShieldingAssembly(ctx);
 
-    // 5. Draw Emitted Radiation Rays
-    ctx.lineWidth = 2.5;
-    for (let i = emittedRays.length - 1; i >= 0; i--) {
-      const ray = emittedRays[i];
-      ray.x += ray.vx;
-      ray.y += ray.vy;
-      ray.life -= 0.025;
+    // 6. Draw Emitted Particle Rays with Mode Physics
+    drawRays(ctx, iso);
 
-      // Check collision with shield
-      if (shielding !== "none" && ray.x >= shieldX && ray.x <= shieldX + shieldW) {
-        if (Math.random() > getShieldingEfficiency(iso.mode, shielding)) {
-          emittedRays.splice(i, 1);
-          continue;
-        }
-      }
-
-      ctx.strokeStyle = iso.rayColor;
-      ctx.globalAlpha = Math.max(0, ray.life);
-      ctx.beginPath();
-      ctx.moveTo(ray.x, ray.y);
-      ctx.lineTo(ray.x - ray.vx * 2, ray.y - ray.vy * 2);
-      ctx.stroke();
-
-      if (ray.life <= 0 || ray.x > 580) {
-        emittedRays.splice(i, 1);
-      }
-    }
-    ctx.globalAlpha = 1.0;
-
-    // 6. Draw Geiger-Müller Sensor Tube
-    const geigerX = 420;
-    const geigerY = 220;
-    ctx.fillStyle = "#0f172a";
-    ctx.strokeStyle = "#ef4444";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(geigerX, geigerY, 130, 110, 8);
-    ctx.fill();
-    ctx.stroke();
-
-    // Mica Window
-    ctx.fillStyle = "#334155";
-    ctx.fillRect(geigerX, geigerY + 30, 14, 50);
-
-    // Indicator Light
-    const ledOn = geigerCpm > 300;
-    ctx.fillStyle = ledOn ? "#ef4444" : "#450a0a";
-    ctx.beginPath();
-    ctx.arc(geigerX + 110, geigerY + 25, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#f8fafc";
-    ctx.font = "bold 11px sans-serif";
-    ctx.textAlign = "left";
-    ctx.fillText("Geiger Counter", geigerX + 22, geigerY + 28);
-    ctx.fillStyle = "#10b981";
-    ctx.font = "bold 15px monospace";
-    ctx.fillText(`${Math.round(geigerCpm)} CPM`, geigerX + 25, geigerY + 65);
+    // 7. Draw Geiger-Müller Scintillation Probe & Scaler Ratemeter
+    drawGeigerApparatus(ctx);
 
     // Update HUD Text
     const hudN = container.querySelector("#hud-decay-nuclei");
@@ -378,7 +343,558 @@ export function initNuclearDecayLab(containerId) {
     if (hudCpm) hudCpm.innerText = `${Math.round(geigerCpm)} CPM`;
     if (lblHalf) lblHalf.innerText = `${elapsedTime.toFixed(2)} t½ elapsed`;
 
+    ctx.restore();
     renderDecayPlot();
+  }
+
+  function drawWorkbenchEnclosure(ctx) {
+    // Cleanroom background grid
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.04)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < logicalW; x += 30) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, logicalH);
+      ctx.stroke();
+    }
+    for (let y = 0; y < logicalH; y += 30) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(logicalW, y);
+      ctx.stroke();
+    }
+
+    // Heavy stainless steel workbench surface (y: 470 to 530)
+    const benchGrad = ctx.createLinearGradient(0, 465, 0, 530);
+    benchGrad.addColorStop(0, "#334155");
+    benchGrad.addColorStop(0.08, "#1e293b");
+    benchGrad.addColorStop(0.3, "#0f172a");
+    benchGrad.addColorStop(1, "#020617");
+    ctx.fillStyle = benchGrad;
+    ctx.fillRect(0, 465, logicalW, 65);
+
+    // Brushed benchtop chamfer line
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, 465);
+    ctx.lineTo(logicalW, 465);
+    ctx.stroke();
+
+    // Laser optical alignment beamline along y=240
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.15)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.moveTo(40, 240);
+    ctx.lineTo(540, 240);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  function drawLeadChamber(ctx, iso) {
+    const chX = 40;
+    const chY = 110;
+    const chW = 275;
+    const chH = 340;
+
+    // Chamber drop shadow
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.85)";
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetY = 12;
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath();
+    ctx.roundRect(chX, chY, chW, chH, 12);
+    ctx.fill();
+    ctx.restore();
+
+    // Heavy Interlocking Lead Castle Wall
+    const leadGrad = ctx.createLinearGradient(chX, chY, chX + chW, chY + chH);
+    leadGrad.addColorStop(0, "#475569");
+    leadGrad.addColorStop(0.5, "#334155");
+    leadGrad.addColorStop(1, "#1e293b");
+    ctx.fillStyle = leadGrad;
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(chX, chY, chW, chH, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    // Lead Brick Interlocking Seams
+    ctx.strokeStyle = "rgba(15, 23, 42, 0.6)";
+    ctx.lineWidth = 1.5;
+    for (let by = chY + 50; by < chY + chH; by += 55) {
+      ctx.beginPath();
+      ctx.moveTo(chX, by);
+      ctx.lineTo(chX + chW, by);
+      ctx.stroke();
+    }
+    for (let bx = chX + 60; bx < chX + chW; bx += 70) {
+      ctx.beginPath();
+      ctx.moveTo(bx, chY);
+      ctx.lineTo(bx, chY + 50);
+      ctx.stroke();
+    }
+
+    // Inner Radioprotective Specimen Cavity
+    const cavX = chX + 16;
+    const cavY = chY + 45;
+    const cavW = chW - 32;
+    const cavH = chH - 60;
+    const cavGrad = ctx.createRadialGradient(cavX + cavW / 2, cavY + cavH / 2, 20, cavX + cavW / 2, cavY + cavH / 2, cavW);
+    cavGrad.addColorStop(0, "#1c0b0b");
+    cavGrad.addColorStop(0.8, "#0a0303");
+    cavGrad.addColorStop(1, "#020101");
+    ctx.fillStyle = cavGrad;
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(cavX, cavY, cavW, cavH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Collimator Exit Port on Right Wall
+    const portY = 215;
+    const portH = 50;
+    ctx.fillStyle = "#020101";
+    ctx.fillRect(chX + chW - 16, portY, 16, portH);
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(chX + chW - 16, portY, 16, portH);
+
+    // Chamber Header Bar & Radioactive Warning Trefoil
+    ctx.fillStyle = "#facc15";
+    ctx.font = "900 13px system-ui, sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("☢ HOT CELL", chX + 16, chY + 28);
+
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = "bold 11px system-ui, sans-serif";
+    ctx.fillText(iso.name, chX + 115, chY + 28);
+
+    // Specimen Elevator Stage at Chamber Bottom
+    const stageY = chY + chH - 35;
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(cavX + 35, stageY, cavW - 70, 10);
+    // Knurled elevator screw
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillRect(cavX + cavW / 2 - 8, stageY + 10, 16, 15);
+  }
+
+  function drawNuclei(ctx, iso) {
+    // 1. Draw Shockwave Rings
+    for (let i = decayFlashes.length - 1; i >= 0; i--) {
+      const f = decayFlashes[i];
+      f.r += 1.2;
+      f.alpha -= 0.045;
+      if (f.alpha <= 0 || f.r >= f.maxR) {
+        decayFlashes.splice(i, 1);
+        continue;
+      }
+      ctx.save();
+      ctx.strokeStyle = f.color;
+      ctx.globalAlpha = Math.max(0, f.alpha);
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 2. Draw Atoms
+    atoms.forEach(atom => {
+      ctx.beginPath();
+      ctx.arc(atom.x, atom.y, atom.coreRadius, 0, Math.PI * 2);
+
+      if (!atom.decayed) {
+        // Undecayed parent isotope: glowing 3D sphere with orbital quantum sheen
+        const grad = ctx.createRadialGradient(atom.x - 1, atom.y - 1, 0.5, atom.x, atom.y, atom.coreRadius + 2);
+        grad.addColorStop(0, "#ffffff");
+        grad.addColorStop(0.3, iso.color);
+        grad.addColorStop(0.9, iso.color);
+        grad.addColorStop(1, "rgba(0,0,0,0.4)");
+        ctx.fillStyle = grad;
+        ctx.shadowColor = iso.color;
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      } else {
+        // Decayed daughter isotope: stable metallic slate / inert noble gas
+        const dGrad = ctx.createRadialGradient(atom.x - 0.8, atom.y - 0.8, 0.5, atom.x, atom.y, atom.coreRadius);
+        dGrad.addColorStop(0, "#94a3b8");
+        dGrad.addColorStop(0.6, "#475569");
+        dGrad.addColorStop(1, "#1e293b");
+        ctx.fillStyle = dGrad;
+        ctx.shadowBlur = 0;
+        ctx.fill();
+        ctx.strokeStyle = "rgba(148, 163, 184, 0.25)";
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    });
+  }
+
+  function drawShieldingAssembly(ctx) {
+    const rackX = 345;
+    const rackY = 120;
+    const rackH = 320;
+
+    // Optical guide rails top and bottom
+    ctx.fillStyle = "#334155";
+    ctx.fillRect(rackX - 10, rackY - 14, 46, 12);
+    ctx.fillRect(rackX - 10, rackY + rackH + 2, 46, 12);
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(rackX - 10, rackY - 14, 46, 12);
+    ctx.strokeRect(rackX - 10, rackY + rackH + 2, 46, 12);
+
+    if (shielding === "none") {
+      // Empty slot with guide channel lines
+      ctx.strokeStyle = "rgba(71, 85, 105, 0.35)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(rackX, rackY, 26, rackH);
+      ctx.setLineDash([]);
+      ctx.fillStyle = "rgba(148, 163, 184, 0.5)";
+      ctx.font = "bold 9px monospace";
+      ctx.textAlign = "center";
+      ctx.save();
+      ctx.translate(rackX + 13, rackY + rackH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("AIR GAP", 0, 0);
+      ctx.restore();
+      return;
+    }
+
+    let shieldW = 8;
+    let sColor1 = "#fef08a";
+    let sColor2 = "#fde047";
+    let sBorder = "#facc15";
+    let sLabel = "PAPER (0.1 mm)";
+
+    if (shielding === "aluminum") {
+      shieldW = 16;
+      sColor1 = "#cbd5e1";
+      sColor2 = "#64748b";
+      sBorder = "#94a3b8";
+      sLabel = "ALUMINUM (2.0 mm)";
+    } else if (shielding === "lead") {
+      shieldW = 32;
+      sColor1 = "#475569";
+      sColor2 = "#0f172a";
+      sBorder = "#64748b";
+      sLabel = "LEAD (20.0 mm)";
+    }
+
+    const sx = rackX + (26 - shieldW) / 2;
+    const grad = ctx.createLinearGradient(sx, rackY, sx + shieldW, rackY);
+    grad.addColorStop(0, sColor1);
+    grad.addColorStop(0.3, sColor1);
+    grad.addColorStop(0.8, sColor2);
+    grad.addColorStop(1, "#0f172a");
+
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.roundRect(sx, rackY, shieldW, rackH, 3);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.strokeStyle = sBorder;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(sx, rackY, shieldW, rackH);
+
+    // Vertical label on shield plate
+    ctx.save();
+    ctx.translate(sx + shieldW / 2, rackY + rackH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = shielding === "paper" ? "#713f12" : "#f8fafc";
+    ctx.font = "900 10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(sLabel, 0, 3);
+    ctx.restore();
+  }
+
+  function drawRays(ctx, iso) {
+    const shieldX = 345;
+    const shieldW = shielding === "none" ? 0 : (shielding === "paper" ? 8 : (shielding === "aluminum" ? 16 : 32));
+    const sx = shieldX + (26 - shieldW) / 2;
+
+    for (let i = emittedRays.length - 1; i >= 0; i--) {
+      const ray = emittedRays[i];
+      ray.x += ray.vx;
+      ray.y += ray.vy;
+      ray.life -= 0.022;
+      ray.wavePhase += 0.45;
+
+      // Shield collision check
+      if (shielding !== "none" && ray.x >= sx && ray.x <= sx + shieldW) {
+        if (Math.random() > getShieldingEfficiency(iso.mode, shielding)) {
+          // Ray absorbed by shield! Create tiny impact spark
+          decayFlashes.push({
+            x: sx,
+            y: ray.y,
+            r: 2,
+            maxR: 8,
+            alpha: 0.8,
+            color: "#ffffff"
+          });
+          emittedRays.splice(i, 1);
+          continue;
+        }
+      }
+
+      // Check arrival at Geiger-Müller Mica Window (x: 420, y: 220-270)
+      if (ray.x >= 420 && ray.x <= 435 && ray.y >= 215 && ray.y <= 270) {
+        tubeDischargeIntensity = 1.0;
+        emittedRays.splice(i, 1);
+        continue;
+      }
+
+      if (ray.life <= 0 || ray.x > 570) {
+        emittedRays.splice(i, 1);
+        continue;
+      }
+
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, ray.life);
+
+      if (ray.type === "alpha") {
+        // Alpha particle: Heavy Helium-4 nucleus (charge +2), thick dual-filament emerald ionization track
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 3.8;
+        ctx.shadowColor = "#34d399";
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(ray.x, ray.y);
+        ctx.lineTo(ray.x - ray.vx * 2.2, ray.y - ray.vy * 2.2);
+        ctx.stroke();
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(ray.x, ray.y);
+        ctx.lineTo(ray.x - ray.vx * 1.2, ray.y - ray.vy * 1.2);
+        ctx.stroke();
+      } else if (ray.type === "gamma") {
+        // Gamma radiation: Transverse oscillating sinusoidal electromagnetic wave packet
+        ctx.strokeStyle = "#facc15";
+        ctx.lineWidth = 2.2;
+        ctx.shadowColor = "#f59e0b";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        for (let s = 0; s < 18; s += 2) {
+          const px = ray.x - ray.vx * (s / 7.5);
+          const wave = Math.sin(ray.wavePhase - s * 0.6) * 4.5;
+          const py = ray.y - ray.vy * (s / 7.5) + wave;
+          if (s === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.stroke();
+      } else {
+        // Beta particle: High-velocity electron, zigzagging electric cyan trajectory
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2.2;
+        ctx.shadowColor = "#0284c7";
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(ray.x, ray.y);
+        ctx.lineTo(ray.x - ray.vx * 1.2 + (Math.sin(ray.wavePhase) * 2), ray.y - ray.vy * 1.2);
+        ctx.lineTo(ray.x - ray.vx * 2.5, ray.y - ray.vy * 2.5);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+  }
+
+  function drawGeigerApparatus(ctx) {
+    const probeX = 415;
+    const probeY = 215;
+    const probeW = 145;
+    const probeH = 50;
+
+    // 1. GM Cylindrical Probe Housing (Optical Rail Mounted)
+    const probeGrad = ctx.createLinearGradient(probeX, probeY, probeX, probeY + probeH);
+    probeGrad.addColorStop(0, "#94a3b8");
+    probeGrad.addColorStop(0.2, "#f1f5f9");
+    probeGrad.addColorStop(0.5, "#64748b");
+    probeGrad.addColorStop(0.85, "#334155");
+    probeGrad.addColorStop(1, "#1e293b");
+
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = probeGrad;
+    ctx.beginPath();
+    ctx.roundRect(probeX + 12, probeY, probeW - 12, probeH, 8);
+    ctx.fill();
+    ctx.restore();
+
+    // Chrome body highlight line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(probeX + 18, probeY + 8);
+    ctx.lineTo(probeX + probeW - 10, probeY + 8);
+    ctx.stroke();
+
+    // Thin Mica End-Window (left entrance face)
+    const micaGrad = ctx.createLinearGradient(probeX, probeY + 6, probeX + 12, probeY + probeH - 6);
+    micaGrad.addColorStop(0, "#38bdf8");
+    micaGrad.addColorStop(0.5, "#ec4899");
+    micaGrad.addColorStop(1, "#facc15");
+    ctx.fillStyle = micaGrad;
+    ctx.fillRect(probeX, probeY + 6, 12, probeH - 12);
+    ctx.strokeStyle = "#e2e8f0";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(probeX, probeY + 6, 12, probeH - 12);
+
+    // Viewing Cutaway Slot showing internal Townsend Avalanche discharge
+    const slotX = probeX + 30;
+    const slotY = probeY + 12;
+    const slotW = 75;
+    const slotH = 26;
+    ctx.fillStyle = "#020617";
+    ctx.fillRect(slotX, slotY, slotW, slotH);
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(slotX, slotY, slotW, slotH);
+
+    // Central Tungsten Anode Wire (+900 V)
+    ctx.strokeStyle = "#facc15";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(slotX, slotY + slotH / 2);
+    ctx.lineTo(slotX + slotW, slotY + slotH / 2);
+    ctx.stroke();
+
+    // Townsend Avalanche Ionization Discharge Flash inside tube
+    if (tubeDischargeIntensity > 0.05) {
+      ctx.save();
+      ctx.fillStyle = `rgba(239, 68, 68, ${tubeDischargeIntensity * 0.85})`;
+      ctx.shadowColor = "#ef4444";
+      ctx.shadowBlur = 16;
+      ctx.fillRect(slotX, slotY, slotW, slotH);
+
+      // Core plasma glow
+      ctx.fillStyle = `rgba(255, 255, 255, ${tubeDischargeIntensity * 0.95})`;
+      ctx.fillRect(slotX + 10, slotY + slotH / 2 - 2, slotW - 20, 4);
+      ctx.restore();
+    }
+
+    // Probe Label
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("GM PROBE +900V", probeX + 32, probeY + probeH - 3);
+
+    // 2. Benchtop Scaler Ratemeter Instrumentation Unit (x: 400, y: 300, w: 165, h: 145)
+    const meterX = 400;
+    const meterY = 300;
+    const meterW = 165;
+    const meterH = 145;
+
+    // Safety-yellow and slate rugged enclosure
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.7)";
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = "#f59e0b"; // Yellow rugged instrumentation trim
+    ctx.beginPath();
+    ctx.roundRect(meterX, meterY, meterW, meterH, 12);
+    ctx.fill();
+
+    ctx.fillStyle = "#0f172a"; // Dark slate faceplate
+    ctx.beginPath();
+    ctx.roundRect(meterX + 6, meterY + 6, meterW - 12, meterH - 12, 8);
+    ctx.fill();
+    ctx.restore();
+
+    // Digital Backlit LCD Panel
+    const lcdX = meterX + 14;
+    const lcdY = meterY + 16;
+    const lcdW = meterW - 28;
+    const lcdH = 50;
+
+    const lcdGrad = ctx.createLinearGradient(lcdX, lcdY, lcdX, lcdY + lcdH);
+    lcdGrad.addColorStop(0, "#052e16");
+    lcdGrad.addColorStop(1, "#021c0e");
+    ctx.fillStyle = lcdGrad;
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(lcdX, lcdY, lcdW, lcdH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // LCD Text Readouts
+    ctx.fillStyle = "#34d399";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("DIGITAL SCALER RATEMETER", lcdX + 8, lcdY + 14);
+
+    ctx.font = "900 20px monospace";
+    ctx.fillText(`${Math.round(geigerCpm)}`, lcdX + 8, lcdY + 38);
+
+    ctx.font = "bold 10px monospace";
+    ctx.fillText("CPM", lcdX + 90, lcdY + 38);
+
+    // Micro-Sieverts dose conversion: ~0.005 uSv/h per CPM for I-131/Cs-137
+    const uSv = (geigerCpm * 0.005).toFixed(2);
+    ctx.font = "bold 8px monospace";
+    ctx.fillStyle = "#a7f3d0";
+    ctx.textAlign = "right";
+    ctx.fillText(`${uSv} μSv/h`, lcdX + lcdW - 8, lcdY + 38);
+
+    // Analog Deflection Bargraph Meter below LCD
+    const barX = meterX + 16;
+    const barY = meterY + 76;
+    const barW = meterW - 32;
+    const barH = 12;
+
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 1;
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.strokeRect(barX, barY, barW, barH);
+
+    // Active Bargraph Fill
+    const fillFraction = Math.min(1.0, meterNeedleValue / 1800);
+    const fillGrad = ctx.createLinearGradient(barX, barY, barX + barW, barY);
+    fillGrad.addColorStop(0, "#10b981");
+    fillGrad.addColorStop(0.6, "#f59e0b");
+    fillGrad.addColorStop(1, "#ef4444");
+    ctx.fillStyle = fillGrad;
+    ctx.fillRect(barX, barY, barW * fillFraction, barH);
+
+    // Scale tick marks
+    ctx.fillStyle = "#64748b";
+    ctx.font = "8px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("0", barX, barY + 22);
+    ctx.textAlign = "center";
+    ctx.fillText("1k", barX + barW / 2, barY + 22);
+    ctx.textAlign = "right";
+    ctx.fillText("2k CPM", barX + barW, barY + 22);
+
+    // BNC Coaxial Signal Cable between GM Tube and Scaler Unit
+    ctx.strokeStyle = "#020617";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(probeX + probeW - 20, probeY + probeH);
+    ctx.bezierCurveTo(probeX + probeW, probeY + probeH + 40, meterX + meterW - 20, meterY + 40, meterX + meterW - 30, meterY + meterH - 20);
+    ctx.stroke();
+
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(probeX + probeW - 20, probeY + probeH);
+    ctx.bezierCurveTo(probeX + probeW, probeY + probeH + 40, meterX + meterW - 20, meterY + 40, meterX + meterW - 30, meterY + meterH - 20);
+    ctx.stroke();
   }
 
   let lastFrameTime = 0;
@@ -412,10 +928,31 @@ export function initNuclearDecayLab(containerId) {
   }
 
   function renderDecayPlot() {
-    plotCtx.clearRect(0, 0, plotCanvas.width, plotCanvas.height);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    plotCtx.save();
+    plotCtx.resetTransform();
+    plotCtx.scale(dpr, dpr);
+    plotCtx.clearRect(0, 0, plotLogicalW, plotLogicalH);
+
     const margin = { left: 45, right: 25, top: 20, bottom: 35 };
-    const w = plotCanvas.width - margin.left - margin.right;
-    const h = plotCanvas.height - margin.top - margin.bottom;
+    const w = plotLogicalW - margin.left - margin.right;
+    const h = plotLogicalH - margin.top - margin.bottom;
+
+    // Grid lines & Axes
+    plotCtx.strokeStyle = "#1e293b";
+    plotCtx.lineWidth = 1;
+    for (let y = 0.25; y <= 1.0; y += 0.25) {
+      const gy = margin.top + h - y * h;
+      plotCtx.beginPath();
+      plotCtx.moveTo(margin.left, gy);
+      plotCtx.lineTo(margin.left + w, gy);
+      plotCtx.stroke();
+
+      plotCtx.fillStyle = "#475569";
+      plotCtx.font = "8px monospace";
+      plotCtx.textAlign = "right";
+      plotCtx.fillText(`${Math.round(y * 100)}%`, margin.left - 6, gy + 3);
+    }
 
     // Axes
     plotCtx.strokeStyle = "#334155";
@@ -449,12 +986,30 @@ export function initNuclearDecayLab(containerId) {
     plotCtx.textAlign = "center";
     plotCtx.fillText("Elapsed Time (Half-Lives t₁/₂)", margin.left + w / 2, margin.top + h + 28);
 
-    // Theoretical Exponential Curve
+    // Theoretical Exponential Curve with Gradient Fill
+    const fillGrad = plotCtx.createLinearGradient(0, margin.top, 0, margin.top + h);
+    fillGrad.addColorStop(0, "rgba(248, 113, 113, 0.25)");
+    fillGrad.addColorStop(1, "rgba(248, 113, 113, 0.0)");
+
+    plotCtx.beginPath();
+    plotCtx.moveTo(margin.left, margin.top + h);
+    for (let px = 0; px <= w; px++) {
+      const t = (px / w) * 4;
+      const nFraction = Math.pow(0.5, t);
+      const py = margin.top + h - nFraction * h;
+      plotCtx.lineTo(margin.left + px, py);
+    }
+    plotCtx.lineTo(margin.left + w, margin.top + h);
+    plotCtx.closePath();
+    plotCtx.fillStyle = fillGrad;
+    plotCtx.fill();
+
+    // Theoretical Curve Line
     plotCtx.strokeStyle = "#f87171";
     plotCtx.lineWidth = 2.5;
     plotCtx.beginPath();
     for (let px = 0; px <= w; px++) {
-      const t = (px / w) * 4; // up to 4 half-lives
+      const t = (px / w) * 4;
       const nFraction = Math.pow(0.5, t);
       const py = margin.top + h - nFraction * h;
       if (px === 0) plotCtx.moveTo(margin.left + px, py);
@@ -474,7 +1029,18 @@ export function initNuclearDecayLab(containerId) {
         else plotCtx.lineTo(px, py);
       });
       plotCtx.stroke();
+
+      // Current point pulse
+      const latest = decayHistory[decayHistory.length - 1];
+      const curX = margin.left + Math.min(1.0, latest.t / 4.0) * w;
+      const curY = margin.top + h - (latest.n / initialNucleiCount) * h;
+      plotCtx.fillStyle = "#38bdf8";
+      plotCtx.beginPath();
+      plotCtx.arc(curX, curY, 4, 0, Math.PI * 2);
+      plotCtx.fill();
     }
+
+    plotCtx.restore();
   }
 
   // Event Handlers
@@ -575,5 +1141,6 @@ export function initNuclearDecayLab(containerId) {
     isRunning = false;
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }

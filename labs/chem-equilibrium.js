@@ -246,37 +246,175 @@ export function initEquilibriumLab(containerId) {
   const dispShift = container.querySelector("#disp-shift-direction");
   const dispTemp = container.querySelector("#disp-temp-val");
 
+  // HiDPI / Retina DPR Scaling Setup
+  const logicalW = 580;
+  const logicalH = 530;
+  const chartLogicalW = 420;
+  const chartLogicalH = 130;
+  let needsRedraw = true;
+  let lastFrameTime = 0;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    if (canvas && ctx) {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width > 0 ? rect.width : logicalW;
+      const h = rect.height > 0 ? rect.height : logicalH;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.resetTransform();
+      ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    }
+    if (chartCanvas && chartCtx) {
+      const crect = chartCanvas.getBoundingClientRect();
+      const cw = crect.width > 0 ? crect.width : chartLogicalW;
+      const ch = crect.height > 0 ? crect.height : chartLogicalH;
+      chartCanvas.width = Math.round(cw * dpr);
+      chartCanvas.height = Math.round(ch * dpr);
+      chartCtx.resetTransform();
+      chartCtx.scale(dpr * (cw / chartLogicalW), dpr * (ch / chartLogicalH));
+    }
+    needsRedraw = true;
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
+  // Physical Gas Molecule Kinetics Pool (Brownian motion & molecular geometry)
+  const GAS_PARTICLE_COUNT = 44;
+  const gasParticles = [];
+  function initGasParticles() {
+    gasParticles.length = 0;
+    const barrelX = 145;
+    const barrelY = 205;
+    const barrelH = 110;
+    const plungerX = barrelX + (syringeVolume / 2.5) * 230;
+    for (let i = 0; i < GAS_PARTICLE_COUNT; i++) {
+      gasParticles.push({
+        x: barrelX + 16 + Math.random() * Math.max(16, plungerX - barrelX - 36),
+        y: barrelY + 14 + Math.random() * (barrelH - 28),
+        vx: (Math.random() - 0.5) * 75,
+        vy: (Math.random() - 0.5) * 75,
+        angle: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 3.5,
+        type: i % 2 === 0 ? "NO2" : "N2O4"
+      });
+    }
+  }
+  initGasParticles();
+
+  // Colloidal Tyndall Scatter Particles for Aqueous Cuvette
+  const tyndallParticles = [];
+  for (let i = 0; i < 28; i++) {
+    tyndallParticles.push({
+      x: 265 + Math.random() * 90,
+      y: 195 + Math.random() * 155,
+      vx: (Math.random() - 0.5) * 8,
+      vy: -3 - Math.random() * 10,
+      size: 1.0 + Math.random() * 1.8,
+      alpha: 0.2 + Math.random() * 0.6
+    });
+  }
+
   // Van 't Hoff Equation for K_c(T)
   function getEquilibriumConstant(T_celsius) {
     const T_kelvin = T_celsius + 273.15;
     const R = 8.314; // J/(mol·K)
     const T_ref = 298.15;
-    // ln(K2/K1) = -(deltaH / R) * (1/T2 - 1/T1)
     const exponent = -(activeSys.deltaH * 1000 / R) * ((1 / T_kelvin) - (1 / T_ref));
     return activeSys.K_ref * Math.exp(exponent);
   }
 
   // Render Visual Reaction Cell & Gas Syringe
-  function renderCell() {
-    const W = canvas.width;
-    const H = canvas.height;
+  function renderCell(dt = 0.016) {
+    const W = logicalW;
+    const H = logicalH;
     ctx.clearRect(0, 0, W, H);
 
-    // Bench Surface
-    const benchY = 460;
-    ctx.fillStyle = "#1e293b";
+    // 1. Granite Laboratory Optical Bench Surface
+    const benchY = 445;
+    const benchGrad = ctx.createLinearGradient(0, benchY, 0, H);
+    benchGrad.addColorStop(0, "#1e293b");
+    benchGrad.addColorStop(0.2, "#0f172a");
+    benchGrad.addColorStop(1, "#020617");
+    ctx.fillStyle = benchGrad;
     ctx.fillRect(0, benchY, W, H - benchY);
+
+    // Benchtop Polished Chamfer Bevel Highlight
     ctx.strokeStyle = "#475569";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(0, benchY);
     ctx.lineTo(W, benchY);
     ctx.stroke();
 
-    const CX = W * 0.48;
-    const CY = 270;
+    ctx.strokeStyle = "rgba(255,255,255,0.18)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY + 1.5);
+    ctx.lineTo(W, benchY + 1.5);
+    ctx.stroke();
 
-    // Calculate Current Color Interpolation
+    // Extruded Aluminum Equipment Track on Bench
+    ctx.fillStyle = "#090d16";
+    ctx.fillRect(40, benchY + 14, W - 80, 14);
+    ctx.strokeStyle = "rgba(255,255,255,0.12)";
+    ctx.strokeRect(40, benchY + 14, W - 80, 14);
+    ctx.strokeStyle = "rgba(148,163,184,0.3)";
+    ctx.lineWidth = 1;
+    for (let rx = 50; rx < W - 50; rx += 15) {
+      ctx.beginPath();
+      ctx.moveTo(rx, benchY + 14);
+      ctx.lineTo(rx, benchY + 20);
+      ctx.stroke();
+    }
+
+    // Heavy Retort Stand with Bosshead Clamp
+    const standX = 85;
+    // Cast iron base
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(standX - 35, benchY - 10, 70, 14, [4, 4, 0, 0]);
+    ctx.fill();
+    ctx.stroke();
+
+    // Chrome vertical rod
+    const rodGrad = ctx.createLinearGradient(standX - 5, 0, standX + 5, 0);
+    rodGrad.addColorStop(0, "#64748b");
+    rodGrad.addColorStop(0.35, "#f8fafc");
+    rodGrad.addColorStop(0.7, "#94a3b8");
+    rodGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = rodGrad;
+    ctx.fillRect(standX - 4.5, 75, 9, benchY - 85);
+
+    // Bosshead clamp holding reaction apparatus
+    const clampY = 260;
+    ctx.fillStyle = "#334155";
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(standX - 8, clampY - 14, 16, 28, 3);
+    ctx.fill();
+    ctx.stroke();
+
+    // Clamp adjustment thumbscrew
+    ctx.fillStyle = "#94a3b8";
+    ctx.fillRect(standX - 16, clampY - 4, 8, 8);
+
+    // Horizontal clamp arm extending to apparatus
+    ctx.fillStyle = rodGrad;
+    ctx.fillRect(standX + 8, clampY - 4, 38, 8);
+
+    // Apparatus Grip Prongs
+    ctx.fillStyle = "#0f172a";
+    ctx.strokeStyle = "#475569";
+    ctx.fillRect(standX + 44, clampY - 18, 8, 36);
+
+    const CX = W * 0.51;
+    const CY = 260;
+
+    // Fluid and Gas Color Interpolation
     const totalConc = reactantConc + productConc;
     const fractionProd = Math.max(0, Math.min(1, productConc / Math.max(0.001, totalConc)));
     const c1 = activeSys.colorStart;
@@ -284,170 +422,517 @@ export function initEquilibriumLab(containerId) {
     const r = Math.round(c1[0] + fractionProd * (c2[0] - c1[0]));
     const g = Math.round(c1[1] + fractionProd * (c2[1] - c1[1]));
     const b = Math.round(c1[2] + fractionProd * (c2[2] - c1[2]));
-    const fluidColor = `rgba(${r}, ${g}, ${b}, ${0.55 + fractionProd * 0.35})`;
+    const fluidAlpha = Math.min(0.92, 0.40 + fractionProd * 0.45);
+    const fluidColor = `rgba(${r}, ${g}, ${b}, ${fluidAlpha})`;
 
     if (activeSys.phase === "gas") {
-      // Draw Gas Syringe Apparatus
-      const barrelW = 260;
-      const barrelH = 90;
-      const barrelX = CX - barrelW/2;
-      const barrelY = CY - barrelH/2;
+      // ==========================================
+      // GAS SYRINGE APPARATUS (N2O4 ⇌ 2 NO2)
+      // ==========================================
+      const barrelX = 135;
+      const barrelW = 285;
+      const barrelH = 110;
+      const barrelY = CY - barrelH / 2;
 
-      // Outer Glass Barrel
-      ctx.fillStyle = "rgba(255,255,255,0.06)";
+      // Soft shadow under syringe
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.beginPath();
+      ctx.ellipse(barrelX + barrelW / 2, barrelY + barrelH + 24, barrelW / 2 + 20, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Plunger position based on syringeVolume (0.5 to 2.5)
+      const plungerTravel = 230;
+      const plungerX = barrelX + 10 + (syringeVolume / 2.5) * plungerTravel;
+
+      // 1. Gas Volume Fill (Density increases with compression)
+      const gasAlpha = Math.min(0.95, (0.30 + fractionProd * 0.55) * Math.sqrt(1 / syringeVolume));
+      const gasFillGrad = ctx.createLinearGradient(0, barrelY, 0, barrelY + barrelH);
+      gasFillGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${gasAlpha * 0.65})`);
+      gasFillGrad.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, ${gasAlpha})`);
+      gasFillGrad.addColorStop(1, `rgba(${r}, ${g}, ${b}, ${gasAlpha * 0.85})`);
+      ctx.fillStyle = gasFillGrad;
+      ctx.fillRect(barrelX + 4, barrelY + 5, Math.max(10, plungerX - barrelX - 18), barrelH - 10);
+
+      // 2. Gas Molecule Particle Simulation (Maxwell-Boltzmann root-mean-square thermal scaling)
+      const speedFactor = Math.sqrt((temperature + 273.15) / 298.15);
+      const activeRightWall = plungerX - 20;
+
+      gasParticles.forEach((p, idx) => {
+        // Dynamic molecular reaction based on equilibrium state
+        p.type = (idx / GAS_PARTICLE_COUNT < fractionProd) ? "NO2" : "N2O4";
+
+        p.x += p.vx * dt * speedFactor;
+        p.y += p.vy * dt * speedFactor;
+        p.angle += p.rotSpeed * dt;
+
+        // Wall collisions
+        const minX = barrelX + 14;
+        const maxX = activeRightWall;
+        const minY = barrelY + 14;
+        const maxY = barrelY + barrelH - 14;
+
+        if (p.x < minX) { p.x = minX; p.vx = Math.abs(p.vx); }
+        if (p.x > maxX) { p.x = maxX; p.vx = -Math.abs(p.vx); }
+        if (p.y < minY) { p.y = minY; p.vy = Math.abs(p.vy); }
+        if (p.y > maxY) { p.y = maxY; p.vy = -Math.abs(p.vy); }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.angle);
+
+        if (p.type === "NO2") {
+          // Triatomic NO2 Molecule: Amber/Reddish bent configuration (134° angle)
+          ctx.fillStyle = "rgba(234, 88, 12, 0.35)";
+          ctx.beginPath();
+          ctx.arc(0, 0, 9, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Central Nitrogen
+          ctx.fillStyle = "#ea580c";
+          ctx.beginPath();
+          ctx.arc(0, -1, 3.8, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Two Oxygen satellites
+          ctx.fillStyle = "#fb923c";
+          ctx.beginPath();
+          ctx.arc(-4.5, 4, 3.0, 0, Math.PI * 2);
+          ctx.arc(4.5, 4, 3.0, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          // Planar N2O4 Molecule: Translucent Ice-Blue / Colorless complex
+          ctx.fillStyle = "rgba(56, 189, 248, 0.22)";
+          ctx.beginPath();
+          ctx.arc(0, 0, 11, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Two Nitrogen atoms
+          ctx.fillStyle = "#38bdf8";
+          ctx.beginPath();
+          ctx.arc(-3.5, 0, 3.2, 0, Math.PI * 2);
+          ctx.arc(3.5, 0, 3.2, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Four Oxygen satellites
+          ctx.fillStyle = "#bae6fd";
+          ctx.beginPath();
+          ctx.arc(-7, -4.5, 2.4, 0, Math.PI * 2);
+          ctx.arc(-7, 4.5, 2.4, 0, Math.PI * 2);
+          ctx.arc(7, -4.5, 2.4, 0, Math.PI * 2);
+          ctx.arc(7, 4.5, 2.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      });
+
+      // 3. Luer-Lock Glass Nozzle & Stopcock Valve at Left
+      const nozzleGrad = ctx.createLinearGradient(0, CY - 14, 0, CY + 14);
+      nozzleGrad.addColorStop(0, "rgba(255,255,255,0.45)");
+      nozzleGrad.addColorStop(0.5, "rgba(255,255,255,0.12)");
+      nozzleGrad.addColorStop(1, "rgba(148,163,184,0.3)");
+      ctx.fillStyle = nozzleGrad;
+      ctx.fillRect(barrelX - 35, CY - 12, 35, 24);
       ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(barrelX - 35, CY - 12, 35, 24);
+
+      // Stopcock valve body
+      ctx.fillStyle = "#10b981";
+      ctx.beginPath();
+      ctx.roundRect(barrelX - 24, CY - 20, 12, 40, 3);
+      ctx.fill();
+      ctx.strokeStyle = "#047857";
+      ctx.stroke();
+
+      // 4. Plunger Rubber Stopper Head (Dual O-Rings)
+      const stopperW = 20;
+      const stopperX = plungerX - stopperW;
+      const stopperGrad = ctx.createLinearGradient(0, barrelY + 5, 0, barrelY + barrelH - 5);
+      stopperGrad.addColorStop(0, "#334155");
+      stopperGrad.addColorStop(0.5, "#0f172a");
+      stopperGrad.addColorStop(1, "#020617");
+      ctx.fillStyle = stopperGrad;
+      ctx.fillRect(stopperX, barrelY + 5, stopperW, barrelH - 10);
+
+      // Dual Sealing O-Ring Ribs with Glint
+      ctx.fillStyle = "#475569";
+      ctx.fillRect(stopperX + 3, barrelY + 5, 4, barrelH - 10);
+      ctx.fillRect(stopperX + 13, barrelY + 5, 4, barrelH - 10);
+      ctx.strokeStyle = "#64748b";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(stopperX, barrelY + 5, stopperW, barrelH - 10);
+
+      // 5. Stainless Steel Plunger Shaft
+      const shaftLen = barrelX + barrelW + 40 - plungerX;
+      const shaftGrad = ctx.createLinearGradient(0, CY - 10, 0, CY + 10);
+      shaftGrad.addColorStop(0, "#475569");
+      shaftGrad.addColorStop(0.35, "#f1f5f9");
+      shaftGrad.addColorStop(0.7, "#94a3b8");
+      shaftGrad.addColorStop(1, "#334155");
+      ctx.fillStyle = shaftGrad;
+      ctx.fillRect(plungerX, CY - 9, shaftLen, 18);
+      ctx.strokeStyle = "#64748b";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(plungerX, CY - 9, shaftLen, 18);
+
+      // Knurled Thumb Grip Flange
+      ctx.fillStyle = "#1e293b";
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.roundRect(plungerX + shaftLen, CY - 28, 14, 56, 5);
+      ctx.fill();
+      ctx.stroke();
+
+      // Knurling grooves
+      ctx.strokeStyle = "rgba(255,255,255,0.4)";
+      ctx.lineWidth = 1;
+      for (let ky = CY - 22; ky <= CY + 22; ky += 6) {
+        ctx.beginPath();
+        ctx.moveTo(plungerX + shaftLen + 2, ky);
+        ctx.lineTo(plungerX + shaftLen + 12, ky);
+        ctx.stroke();
+      }
+
+      // 6. Outer Borosilicate Glass Cylinder Body
+      ctx.fillStyle = "rgba(255,255,255,0.04)";
+      ctx.strokeStyle = "rgba(255,255,255,0.55)";
       ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.roundRect(barrelX, barrelY, barrelW, barrelH, 8);
       ctx.fill();
       ctx.stroke();
 
-      // Plunger position based on syringeVolume (0.5 to 2.5)
-      const plungerMaxTravel = barrelW - 40;
-      const plungerX = barrelX + (syringeVolume / 2.5) * plungerMaxTravel;
+      // Specular Reflection Glare along Top Glass Surface
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.fillRect(barrelX + 10, barrelY + 4, barrelW - 20, 3.5);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.fillRect(barrelX + 10, barrelY + 8, barrelW - 20, 2);
 
-      // Filled Gas Volume
-      ctx.fillStyle = fluidColor;
-      ctx.fillRect(barrelX + 4, barrelY + 4, plungerX - barrelX - 4, barrelH - 8);
+      // Etched Milliliter Measurement Graduations
+      ctx.fillStyle = "#e2e8f0";
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 1.2;
+      ctx.font = "9px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
 
-      // Gas Molecules Particles Simulation
-      const numParticles = Math.round(35 * (1 / syringeVolume));
-      for (let i = 0; i < numParticles; i++) {
-        const px = barrelX + 12 + Math.abs(Math.sin(elapsedSeconds * 2 + i * 13) * (plungerX - barrelX - 24));
-        const py = barrelY + 12 + Math.abs(Math.cos(elapsedSeconds * 2.5 + i * 19) * (barrelH - 24));
-        const isProduct = (i % 2 === 0);
-        ctx.fillStyle = isProduct ? "#ea580c" : "#38bdf8";
+      const markStart = barrelX + 22;
+      const markRange = barrelW - 45;
+      for (let i = 0; i <= 6; i++) {
+        const mx = markStart + (i / 6) * markRange;
         ctx.beginPath();
-        ctx.arc(px, py, isProduct ? 3.5 : 2.5, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(mx, barrelY + 5);
+        ctx.lineTo(mx, barrelY + 20);
+        ctx.stroke();
+
+        ctx.fillText(`${i * 10}`, mx, barrelY + 32);
+
+        // Sub-ticks
+        if (i < 6) {
+          for (let s = 1; s < 5; s++) {
+            const sx = mx + (s / 5) * (markRange / 6);
+            ctx.beginPath();
+            ctx.moveTo(sx, barrelY + 5);
+            ctx.lineTo(sx, barrelY + 12);
+            ctx.stroke();
+          }
+        }
       }
 
-      // Plunger Stopper Head (Black Rubber Gasket)
-      ctx.fillStyle = "#1e293b";
-      ctx.strokeStyle = "#475569";
-      ctx.lineWidth = 2;
-      ctx.fillRect(plungerX - 12, barrelY + 4, 16, barrelH - 8);
+      // Technical Apparatus Label
+      ctx.font = "bold 8px 'JetBrains Mono', monospace";
+      ctx.fillStyle = "#94a3b8";
+      ctx.textAlign = "left";
+      ctx.fillText("BOROSILICATE 3.3 • 60 mL GAS SYRINGE • ±0.5 mL", barrelX + 20, barrelY + barrelH - 12);
 
-      // Plunger Rod & Handle
-      ctx.fillStyle = "#cbd5e1";
-      ctx.fillRect(plungerX + 4, CY - 10, barrelW + 30 - plungerX, 20);
+    } else {
+      // ==========================================
+      // AQUEOUS COLORIMETRIC CUVETTE & WATER BATH
+      // ==========================================
+      const cuvW = 100;
+      const cuvH = 200;
+      const cuvX = CX - cuvW / 2;
+      const cuvY = CY - cuvH / 2 + 10;
+
+      // Outer Thermostatic Jacketed Glass Chamber
+      const jacketW = 180;
+      const jacketH = 230;
+      const jacketX = CX - jacketW / 2;
+      const jacketY = CY - jacketH / 2 + 15;
+
+      // Soft shadow
+      ctx.fillStyle = "rgba(0,0,0,0.5)";
       ctx.beginPath();
-      ctx.roundRect(barrelX + barrelW + 20, CY - 25, 14, 50, 4);
+      ctx.ellipse(CX, jacketY + jacketH + 12, jacketW / 2 + 15, 12, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Graduation Ticks on Barrel
-      ctx.strokeStyle = "#cbd5e1";
-      ctx.lineWidth = 1;
-      for (let x = barrelX + 20; x < barrelX + barrelW - 10; x += 25) {
+      // Jacketed circulating water
+      const waterGrad = ctx.createLinearGradient(0, jacketY, 0, jacketY + jacketH);
+      waterGrad.addColorStop(0, "rgba(56, 189, 248, 0.12)");
+      waterGrad.addColorStop(1, "rgba(14, 165, 233, 0.22)");
+      ctx.fillStyle = waterGrad;
+      ctx.beginPath();
+      ctx.roundRect(jacketX, jacketY, jacketW, jacketH, [0, 0, 16, 16]);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Water inlet & outlet circulation hose barbs
+      ctx.fillStyle = "#f59e0b"; // brass barbs
+      ctx.fillRect(jacketX - 16, jacketY + 30, 16, 12);
+      ctx.fillRect(jacketX + jacketW, jacketY + jacketH - 45, 16, 12);
+
+      // Spectrophotometer Monochromatic Gaussian Light Beam
+      const beamY = CY + 10;
+      const beamH = 28;
+      const absVal = Math.min(1.8, productConc * 0.85);
+      const transmit = Math.pow(10, -absVal);
+
+      // Light beam from left lamp to cuvette
+      const beamInGrad = ctx.createLinearGradient(0, beamY - beamH/2, 0, beamY + beamH/2);
+      beamInGrad.addColorStop(0, "rgba(250, 204, 21, 0.05)");
+      beamInGrad.addColorStop(0.5, "rgba(250, 204, 21, 0.85)");
+      beamInGrad.addColorStop(1, "rgba(250, 204, 21, 0.05)");
+      ctx.fillStyle = beamInGrad;
+      ctx.fillRect(40, beamY - beamH/2, cuvX - 40, beamH);
+
+      // Light beam through and exiting cuvette to detector (attenuated)
+      const beamOutGrad = ctx.createLinearGradient(0, beamY - beamH/2, 0, beamY + beamH/2);
+      beamOutGrad.addColorStop(0, `rgba(250, 204, 21, ${0.05 * transmit})`);
+      beamOutGrad.addColorStop(0.5, `rgba(250, 204, 21, ${0.85 * transmit})`);
+      beamOutGrad.addColorStop(1, `rgba(250, 204, 21, ${0.05 * transmit})`);
+      ctx.fillStyle = beamOutGrad;
+      ctx.fillRect(cuvX + cuvW, beamY - beamH/2, W - (cuvX + cuvW) - 70, beamH);
+
+      // Fused Silica Quartz Cuvette Fluid
+      const fluidGrad = ctx.createLinearGradient(cuvX, 0, cuvX + cuvW, 0);
+      fluidGrad.addColorStop(0, fluidColor);
+      fluidGrad.addColorStop(0.5, fluidColor);
+      fluidGrad.addColorStop(1, fluidColor);
+      ctx.fillStyle = fluidGrad;
+      ctx.beginPath();
+      ctx.roundRect(cuvX + 4, cuvY + 25, cuvW - 8, cuvH - 30, [0, 0, 4, 4]);
+      ctx.fill();
+
+      // Tyndall Scattering Particles drifting in the light path
+      tyndallParticles.forEach(tp => {
+        tp.x += tp.vx * dt;
+        tp.y += tp.vy * dt;
+        if (tp.y < cuvY + 30) tp.y = cuvY + cuvH - 15;
+        if (tp.x < cuvX + 8) tp.x = cuvX + cuvW - 12;
+        if (tp.x > cuvX + cuvW - 12) tp.x = cuvX + 8;
+
+        const inBeam = Math.abs(tp.y - beamY) < beamH / 2;
+        ctx.fillStyle = inBeam ? `rgba(254, 240, 138, ${tp.alpha * 0.95})` : `rgba(255, 255, 255, ${tp.alpha * 0.25})`;
         ctx.beginPath();
-        ctx.moveTo(x, barrelY + 4);
-        ctx.lineTo(x, barrelY + 16);
+        ctx.arc(tp.x, tp.y, inBeam ? tp.size * 1.3 : tp.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Liquid Meniscus at top
+      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.beginPath();
+      ctx.ellipse(CX, cuvY + 25, (cuvW - 8) / 2, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Quartz Cuvette Walls with Refraction Edges
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(cuvX, cuvY, cuvW, cuvH, 4);
+      ctx.stroke();
+
+      // Frosted vertical grip lines on sides
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.lineWidth = 1;
+      for (let gy = cuvY + 15; gy < cuvY + cuvH - 15; gy += 10) {
+        ctx.beginPath();
+        ctx.moveTo(cuvX + 2, gy);
+        ctx.lineTo(cuvX + 8, gy);
+        ctx.moveTo(cuvX + cuvW - 8, gy);
+        ctx.lineTo(cuvX + cuvW - 2, gy);
         ctx.stroke();
       }
-    } else {
-      // Aqueous Reaction Cuvette in Optical Chamber
-      const cuvW = 140;
-      const cuvH = 220;
-      const cuvX = CX - cuvW/2;
-      const cuvY = CY - cuvH/2 + 20;
 
-      // Optical Spectrophotometer Light Beam
-      const beamGrad = ctx.createLinearGradient(0, CY, W, CY);
-      beamGrad.addColorStop(0, "rgba(250, 204, 21, 0.8)");
-      beamGrad.addColorStop(0.35, "rgba(250, 204, 21, 0.8)");
-      beamGrad.addColorStop(0.65, "rgba(250, 204, 21, 0.2)");
-      beamGrad.addColorStop(1, "rgba(250, 204, 21, 0.1)");
-      ctx.fillStyle = beamGrad;
-      ctx.fillRect(0, CY - 12, W, 24);
-
-      // Borosilicate Cuvette Body
-      ctx.fillStyle = fluidColor;
+      // Optical Monochromator Light Housing (Left)
+      ctx.fillStyle = "#0f172a";
       ctx.strokeStyle = "#38bdf8";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(cuvX, cuvY, cuvW, cuvH, 8);
+      ctx.roundRect(35, beamY - 32, 65, 64, 8);
       ctx.fill();
       ctx.stroke();
 
-      // Liquid Meniscus at top
-      ctx.fillStyle = "rgba(255,255,255,0.2)";
-      ctx.beginPath();
-      ctx.ellipse(CX, cuvY + 10, cuvW/2 - 4, 8, 0, 0, Math.PI * 2);
-      ctx.fill();
+      // Optical lens barrel
+      ctx.fillStyle = "#334155";
+      ctx.fillRect(100, beamY - 18, 14, 36);
+      ctx.fillStyle = "#38bdf8";
+      ctx.font = "bold 8px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("COLLIMATOR", 67, beamY - 6);
+      ctx.fillText("λ = 450nm", 67, beamY + 10);
 
-      // Photocell Detector Head on Right
+      // Digital PIN Photodiode Detector (Right)
+      const detX = W - 100;
       ctx.fillStyle = "#0f172a";
-      ctx.strokeStyle = "#22c55e";
+      ctx.strokeStyle = "#10b981";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.roundRect(CX + cuvW/2 + 30, CY - 35, 60, 70, 8);
+      ctx.roundRect(detX, beamY - 32, 65, 64, 8);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = "#22c55e";
-      ctx.font = "bold 9px system-ui";
+
+      // Sensor aperture slit
+      ctx.fillStyle = "#334155";
+      ctx.fillRect(detX - 12, beamY - 18, 12, 36);
+
+      // Active locked LED indicator
+      ctx.fillStyle = "#10b981";
+      ctx.shadowColor = "#10b981";
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.arc(detX + 16, beamY - 12, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.font = "bold 8px 'JetBrains Mono', monospace";
       ctx.textAlign = "center";
-      ctx.fillText("DETECTOR", CX + cuvW/2 + 60, CY);
+      ctx.fillText("DETECTOR", detX + 38, beamY - 8);
+      ctx.fillStyle = "#6ee7b7";
+      ctx.fillText(`${(transmit * 100).toFixed(1)}% T`, detX + 38, beamY + 8);
     }
   }
 
-  // Render Distribution Bar Chart
+  // Render High-Resolution Vector Mole Fraction Distribution Bar Chart
   function renderChart() {
-    const W = chartCanvas.width;
-    const H = chartCanvas.height;
+    const W = chartLogicalW;
+    const H = chartLogicalH;
     chartCtx.clearRect(0, 0, W, H);
 
-    const total = reactantConc + productConc;
+    const total = Math.max(0.001, reactantConc + productConc);
     const fReag = reactantConc / total;
     const fProd = productConc / total;
 
-    // Background Bar
-    const barX = 50;
-    const barY = 35;
-    const barW = W - 100;
-    const barH = 30;
+    // Outer card boundary
+    chartCtx.fillStyle = "rgba(15, 23, 42, 0.6)";
+    chartCtx.fillRect(0, 0, W, H);
 
-    // Reactant segment
-    chartCtx.fillStyle = "#38bdf8";
-    chartCtx.fillRect(barX, barY, barW * fReag, barH);
-
-    // Product segment
-    chartCtx.fillStyle = "#f97316";
-    chartCtx.fillRect(barX + barW * fReag, barY, barW * fProd, barH);
-
-    // Outer border
-    chartCtx.strokeStyle = "#cbd5e1";
-    chartCtx.lineWidth = 1.5;
-    chartCtx.strokeRect(barX, barY, barW, barH);
-
-    // Labels
-    chartCtx.fillStyle = "#cbd5e1";
-    chartCtx.font = "bold 11px system-ui";
+    // Percentage Labels
+    chartCtx.font = "bold 10px 'JetBrains Mono', monospace";
     chartCtx.textAlign = "left";
-    chartCtx.fillText(`[Reactants]: ${(fReag * 100).toFixed(1)}%`, barX, 24);
-    chartCtx.textAlign = "right";
-    chartCtx.fillText(`[Products]: ${(fProd * 100).toFixed(1)}%`, barX + barW, 24);
+    chartCtx.fillStyle = "#38bdf8";
+    chartCtx.fillText(`■ [Reactants]: ${(fReag * 100).toFixed(1)}%`, 35, 20);
 
-    chartCtx.font = "10px monospace";
-    chartCtx.fillStyle = "#94a3b8";
+    chartCtx.textAlign = "right";
+    chartCtx.fillStyle = "#fb923c";
+    chartCtx.fillText(`■ [Products]: ${(fProd * 100).toFixed(1)}%`, W - 35, 20);
+
+    // Mole Fraction Progress Bar
+    const barX = 35;
+    const barY = 28;
+    const barW = W - 70;
+    const barH = 26;
+    const reagW = barW * fReag;
+
+    // Reactant Fill (Sky Blue)
+    const reagGrad = chartCtx.createLinearGradient(barX, 0, barX + reagW, 0);
+    reagGrad.addColorStop(0, "#0284c7");
+    reagGrad.addColorStop(1, "#38bdf8");
+    chartCtx.fillStyle = reagGrad;
+    chartCtx.beginPath();
+    chartCtx.roundRect(barX, barY, Math.max(4, reagW), barH, [6, 0, 0, 6]);
+    chartCtx.fill();
+
+    // Product Fill (Vibrant Amber/Orange)
+    const prodGrad = chartCtx.createLinearGradient(barX + reagW, 0, barX + barW, 0);
+    prodGrad.addColorStop(0, "#ea580c");
+    prodGrad.addColorStop(1, "#f97316");
+    chartCtx.fillStyle = prodGrad;
+    chartCtx.beginPath();
+    chartCtx.roundRect(barX + reagW, barY, Math.max(4, barW - reagW), barH, [0, 6, 6, 0]);
+    chartCtx.fill();
+
+    // Metallic Bevel Frame
+    chartCtx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    chartCtx.lineWidth = 1.5;
+    chartCtx.beginPath();
+    chartCtx.roundRect(barX, barY, barW, barH, 6);
+    chartCtx.stroke();
+
+    // Dividing Line & Equilibrium Needle Diamond
+    const splitX = barX + reagW;
+    chartCtx.strokeStyle = "#ffffff";
+    chartCtx.lineWidth = 2.5;
+    chartCtx.beginPath();
+    chartCtx.moveTo(splitX, barY - 2);
+    chartCtx.lineTo(splitX, barY + barH + 2);
+    chartCtx.stroke();
+
+    // Glowing Diamond Indicator
+    chartCtx.fillStyle = "#ffffff";
+    chartCtx.shadowColor = "#38bdf8";
+    chartCtx.shadowBlur = 6;
+    chartCtx.beginPath();
+    chartCtx.moveTo(splitX, barY - 4);
+    chartCtx.lineTo(splitX + 4, barY);
+    chartCtx.lineTo(splitX, barY + 4);
+    chartCtx.lineTo(splitX - 4, barY);
+    chartCtx.closePath();
+    chartCtx.fill();
+    chartCtx.shadowBlur = 0;
+
+    // Le Chatelier Dynamic Equilibrium Gauge Panel
+    const Kc = getEquilibriumConstant(temperature);
+    const currentQ = productConc / Math.max(0.001, reactantConc);
+    const isEquilibrium = Math.abs(currentQ - Kc) / Kc < 0.08;
+    const isForward = currentQ < Kc;
+
+    const gaugeY = 74;
+    chartCtx.fillStyle = "rgba(2, 6, 23, 0.75)";
+    chartCtx.strokeStyle = isEquilibrium ? "rgba(16, 185, 129, 0.4)" : (isForward ? "rgba(56, 189, 248, 0.4)" : "rgba(249, 115, 22, 0.4)");
+    chartCtx.lineWidth = 1;
+    chartCtx.beginPath();
+    chartCtx.roundRect(barX, gaugeY, barW, 44, 6);
+    chartCtx.fill();
+    chartCtx.stroke();
+
+    // Reaction Quotient & Constant Readout
+    chartCtx.font = "bold 10px 'JetBrains Mono', monospace";
+    chartCtx.fillStyle = "#cbd5e1";
+    chartCtx.textAlign = "left";
+    chartCtx.fillText(`Reaction Quotient Q = ${currentQ.toFixed(4)}`, barX + 12, gaugeY + 18);
+
+    chartCtx.textAlign = "right";
+    chartCtx.fillStyle = "#a7f3d0";
+    chartCtx.fillText(`Constant Kc = ${Kc.toFixed(4)}`, barX + barW - 12, gaugeY + 18);
+
+    // Directional Le Chatelier Indicator Badge
+    chartCtx.font = "bold 9.5px 'JetBrains Mono', monospace";
     chartCtx.textAlign = "center";
-    chartCtx.fillText(`Current Reaction Ratio Q = ${(productConc / Math.max(0.001, reactantConc)).toFixed(3)}`, W / 2, barY + barH + 28);
+    if (isEquilibrium) {
+      chartCtx.fillStyle = "#10b981";
+      chartCtx.fillText("⚖️ DYNAMIC EQUILIBRIUM: Rates Balanced (Q ≈ Kc)", barX + barW / 2, gaugeY + 34);
+    } else if (isForward) {
+      chartCtx.fillStyle = "#38bdf8";
+      chartCtx.fillText("➡️ LE CHATELIER SHIFT: Driving Forward → Products (Q < Kc)", barX + barW / 2, gaugeY + 34);
+    } else {
+      chartCtx.fillStyle = "#f97316";
+      chartCtx.fillText("⬅️ LE CHATELIER SHIFT: Driving Reverse ← Reactants (Q > Kc)", barX + barW / 2, gaugeY + 34);
+    }
   }
 
-  // Dynamic Kinetics Update Loop
+  // Dynamic Kinetics & Brownian Simulation Loop
   let lastTime = performance.now();
   function loop(currentTime) {
     const dt = Math.min(0.05, (currentTime - lastTime) / 1000);
     lastTime = currentTime;
     elapsedSeconds += dt;
 
-    // Equilibrium constant K_c at current temperature
     const Kc = getEquilibriumConstant(temperature);
-
-    // Target product concentration based on Kc and volume
     const volumeFactor = activeSys.phase === "gas" ? syringeVolume : 1.0;
     const effectiveKc = Kc * volumeFactor;
 
-    // Dynamic shift toward equilibrium
     const targetProduct = (effectiveKc / (1 + effectiveKc)) * 1.5;
     const targetReactant = 1.5 - targetProduct;
 
@@ -469,38 +954,18 @@ export function initEquilibriumLab(containerId) {
     const isPhotoOverlay = photoOverlay && photoOverlay.style.display === "block";
 
     if (!isPhotoOverlay) {
-      if (isRelaxing) {
-        if (!currentTime || currentTime - lastFrameTime >= interval) {
-          lastFrameTime = currentTime || performance.now();
+      if (!currentTime || currentTime - lastFrameTime >= interval) {
+        lastFrameTime = currentTime || performance.now();
+
+        if (isRelaxing) {
           reactantConc += diffR * 0.08;
           productConc += diffP * 0.08;
-
-          const currentQ = productConc / Math.max(0.001, reactantConc);
-          const absVal = Math.min(1.8, productConc * 0.85);
-
-          // Telemetry updates
-          dispQ.innerText = `Q = ${currentQ.toFixed(4)} • K_c = ${Kc.toFixed(4)}`;
-          dispAbs.innerText = `${absVal.toFixed(3)} AU`;
-          dispTemp.innerText = `${temperature.toFixed(1)} °C`;
-
-          if (Math.abs(currentQ - Kc) / Kc < 0.08) {
-            dispEqStatus.innerText = "⚖️ Dynamic Equilibrium Reached (Q ≈ K_c)";
-            dispShift.innerText = "➡️ Equilibrium Shift: Stationary (Forward Rate = Reverse Rate)";
-          } else if (currentQ < Kc) {
-            dispEqStatus.innerText = "➡️ Forward Reaction Driving (Q < K_c)";
-            dispShift.innerText = "➡️ Shifting Right toward Products (Producing Color)";
-          } else {
-            dispEqStatus.innerText = "⬅️ Reverse Reaction Driving (Q > K_c)";
-            dispShift.innerText = "⬅️ Shifting Left toward Reactants (Reversing Color)";
-          }
-
-          renderCell();
-          renderChart();
         }
-      } else if (needsRedraw) {
+
         const currentQ = productConc / Math.max(0.001, reactantConc);
         const absVal = Math.min(1.8, productConc * 0.85);
 
+        // Update Live DOM Telemetry
         dispQ.innerText = `Q = ${currentQ.toFixed(4)} • K_c = ${Kc.toFixed(4)}`;
         dispAbs.innerText = `${absVal.toFixed(3)} AU`;
         dispTemp.innerText = `${temperature.toFixed(1)} °C`;
@@ -516,16 +981,16 @@ export function initEquilibriumLab(containerId) {
           dispShift.innerText = "⬅️ Shifting Left toward Reactants (Reversing Color)";
         }
 
-        renderCell();
-        renderChart();
-        needsRedraw = false;
+        renderCell(dt);
+        if (isRelaxing || needsRedraw) {
+          renderChart();
+          needsRedraw = false;
+        }
       }
     }
 
     animId = requestAnimationFrame(loop);
   }
-  let lastFrameTime = 0;
-  let needsRedraw = true;
   animId = requestAnimationFrame(loop);
 
   // --- EVENT LISTENERS ---

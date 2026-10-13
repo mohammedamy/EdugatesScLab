@@ -17,6 +17,8 @@ export function initCollisionsLab(containerId) {
   const TRACK_LENGTH_M = 2.0; // 2.00 meter PASCO precision air track
   const FLAG_WIDTH_M = 0.05; // 5.0 cm optical flag for photogates
   const AIR_RESISTANCE = 0.0002; // ultra-low friction air cushion
+  const logicalW = 940;
+  const logicalH = 490;
 
   // State Variables
   let m1 = 0.25; // kg (Glider 1 mass)
@@ -43,8 +45,9 @@ export function initCollisionsLab(containerId) {
   const photogate1 = { x: 0.32, active: false, timer: 0, lastSpeed: 0, beamBroken: false };
   const photogate2 = { x: 0.68, active: false, timer: 0, lastSpeed: 0, beamBroken: false };
 
-  // Telemetry Log Store
+  // Telemetry Log Store & Collision Micro-Animations
   const collisionHistory = [];
+  const collisionEffects = [];
 
   function calculateKinematics() {
     const p1 = m1 * g1_v;
@@ -87,6 +90,35 @@ export function initCollisionsLab(containerId) {
 
     // Audio chirp
     SoundFX.playBeep();
+
+    // Spawn tactile collision shockwave and impact spark particles
+    const trackLeft = 50;
+    const trackRight = logicalW - 50;
+    const trackWidth = trackRight - trackLeft;
+    const impactX = trackLeft + ((g1_x + g2_x) / 2) * trackWidth;
+    const impactY = 220 - 16;
+    const sparks = [];
+    const sparkCount = elasticity > 0.5 ? 10 : 5;
+    for (let s = 0; s < sparkCount; s++) {
+      const angle = (Math.random() - 0.5) * Math.PI;
+      const spd = 1.5 + Math.random() * 3.5;
+      sparks.push({
+        x: impactX,
+        y: impactY,
+        vx: Math.sin(angle) * spd,
+        vy: -Math.cos(angle) * spd - 1,
+        life: 1.0,
+        color: elasticity > 0.5 ? "#facc15" : "#38bdf8"
+      });
+    }
+    collisionEffects.push({
+      x: impactX,
+      y: impactY,
+      radius: 4,
+      maxRadius: 30,
+      alpha: 1.0,
+      sparks
+    });
 
     // Log to collision history
     collisionHistory.unshift({
@@ -332,6 +364,23 @@ export function initCollisionsLab(containerId) {
   // Elements
   const canvas = document.getElementById("airtrack-canvas");
   const ctx = canvas?.getContext("2d");
+
+  // HiDPI / Retina Canvas Setup
+  function setupHiDPICanvas() {
+    if (!canvas) return;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    if (ctx) {
+      ctx.resetTransform();
+      ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
   const playBtn = document.getElementById("btn-play-pause");
   const resetBtn = document.getElementById("btn-reset");
   const exportBtn = document.getElementById("btn-export-csv");
@@ -402,65 +451,153 @@ export function initCollisionsLab(containerId) {
 
   function drawAirTrack() {
     if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
     // Track Geometry
     const trackY = 220;
     const trackHeight = 44;
     const trackLeft = 50;
-    const trackRight = canvas.width - 50;
+    const trackRight = logicalW - 50;
     const trackWidth = trackRight - trackLeft;
 
-    // 1. Background Grid & Lab Bench Top
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+    // 1. Background Precision Grid & Ambient Lab Lighting
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.035)";
     ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 40) {
+    for (let x = 0; x < logicalW; x += 40) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
+      ctx.lineTo(x, logicalH);
       ctx.stroke();
     }
-    for (let y = 0; y < canvas.height; y += 40) {
+    for (let y = 0; y < logicalH; y += 40) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
+      ctx.lineTo(logicalW, y);
       ctx.stroke();
     }
 
-    // Heavy Aluminum Extrusion Air Track Bed
+    // Heavy Cast Anodized Base Mounts & Leveling Screws
+    const legWidth = 24;
+    const legHeight = 60;
+    const leg1X = trackLeft + 80;
+    const leg2X = trackRight - 104;
+
+    const drawLeg = (lx) => {
+      // Support Pillar
+      const legGrad = ctx.createLinearGradient(lx, trackY + trackHeight, lx + legWidth, trackY + trackHeight);
+      legGrad.addColorStop(0, "#334155");
+      legGrad.addColorStop(0.5, "#475569");
+      legGrad.addColorStop(1, "#1e293b");
+      ctx.fillStyle = legGrad;
+      ctx.fillRect(lx, trackY + trackHeight, legWidth, legHeight);
+
+      // Threaded Brass Leveling Thumbscrew
+      const screwX = lx + legWidth / 2 - 4;
+      const screwY = trackY + trackHeight + legHeight;
+      ctx.fillStyle = "#d97706";
+      ctx.fillRect(screwX, screwY, 8, 14);
+      // Knurled grip lines
+      ctx.strokeStyle = "#f59e0b";
+      ctx.lineWidth = 1;
+      for (let ky = screwY + 2; ky <= screwY + 12; ky += 3) {
+        ctx.beginPath();
+        ctx.moveTo(screwX, ky);
+        ctx.lineTo(screwX + 8, ky);
+        ctx.stroke();
+      }
+
+      // Foot Pad on bench
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.roundRect(lx - 10, screwY + 14, legWidth + 20, 8, 3);
+      ctx.fill();
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    };
+
+    drawLeg(leg1X);
+    drawLeg(leg2X);
+
+    // Bench Top Ground Line
+    ctx.strokeStyle = "rgba(51, 65, 85, 0.6)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(trackLeft - 20, trackY + trackHeight + legHeight + 22);
+    ctx.lineTo(trackRight + 20, trackY + trackHeight + legHeight + 22);
+    ctx.stroke();
+
+    // Heavy Aluminum Extrusion Air Track Bed (Multi-stop gradient with chamfered sheen)
     const trackGrad = ctx.createLinearGradient(0, trackY, 0, trackY + trackHeight);
-    trackGrad.addColorStop(0, "#475569");
-    trackGrad.addColorStop(0.3, "#94a3b8");
-    trackGrad.addColorStop(0.7, "#64748b");
-    trackGrad.addColorStop(1, "#1e293b");
+    trackGrad.addColorStop(0, "#64748b");
+    trackGrad.addColorStop(0.18, "#94a3b8");
+    trackGrad.addColorStop(0.5, "#475569");
+    trackGrad.addColorStop(0.85, "#334155");
+    trackGrad.addColorStop(1, "#0f172a");
 
     ctx.fillStyle = trackGrad;
-    ctx.fillRect(trackLeft, trackY, trackWidth, trackHeight);
+    ctx.beginPath();
+    ctx.roundRect(trackLeft, trackY, trackWidth, trackHeight, 3);
+    ctx.fill();
 
-    // Track Supports (Legs)
-    ctx.fillStyle = "#334155";
-    ctx.fillRect(trackLeft + 80, trackY + trackHeight, 24, 60);
-    ctx.fillRect(trackRight - 104, trackY + trackHeight, 24, 60);
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(trackLeft + 70, trackY + trackHeight + 50, 44, 10);
-    ctx.fillRect(trackRight - 114, trackY + trackHeight + 50, 44, 10);
+    // Top Chrome Guide Rail Reflection
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(trackLeft + 2, trackY + 1.5);
+    ctx.lineTo(trackRight - 2, trackY + 1.5);
+    ctx.stroke();
 
-    // Air Holes & Millimeter Ruler on Track
-    ctx.fillStyle = "#0f172a";
+    // Longitudinal Guide Channel Groove
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(trackLeft, trackY + 22);
+    ctx.lineTo(trackRight, trackY + 22);
+    ctx.stroke();
+
+    // Pneumatic Air Intake Manifold (Left End)
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(trackLeft - 22, trackY + 10, 14, 24);
+    ctx.strokeStyle = airBlowerOn ? "#38bdf8" : "#64748b";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(trackLeft - 22, trackY + 10, 14, 24);
+    // Hose connector fitting
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(trackLeft - 32, trackY + 16, 10, 12);
+    // Blower Air Status LED
+    ctx.fillStyle = airBlowerOn ? "#38bdf8" : "#475569";
+    ctx.beginPath();
+    ctx.arc(trackLeft - 15, trackY + 22, 3, 0, Math.PI * 2);
+    ctx.fill();
+    if (airBlowerOn) {
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // Air Holes & High-Precision Millimeter Metric Ruler on Track
+    ctx.fillStyle = "#090d16";
     ctx.strokeStyle = "#cbd5e1";
     for (let i = 0; i <= 40; i++) {
       const rx = trackLeft + (i / 40) * trackWidth;
-      // Air hole
+      // Air hole (precision orifice with countersink)
+      ctx.fillStyle = "#090d16";
       ctx.beginPath();
       ctx.arc(rx, trackY + 12, 1.8, 0, Math.PI * 2);
       ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
 
       // Air jet micro-eddies if blower is ON
-      if (airBlowerOn && isRunning && Math.random() > 0.4) {
-        ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+      if (airBlowerOn && isRunning && Math.random() > 0.35) {
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+        ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(rx, trackY + 8);
-        ctx.lineTo(rx, trackY - 4 - Math.random() * 8);
+        ctx.lineTo(rx + (Math.random() - 0.5) * 4, trackY - 3 - Math.random() * 8);
         ctx.stroke();
       }
 
@@ -481,50 +618,75 @@ export function initCollisionsLab(containerId) {
       }
     }
 
-    // End Rebound Bumpers
+    // End Rebound Bumpers (Heavy rubber dampener + aluminum faceplate)
     ctx.fillStyle = "#0284c7";
     ctx.fillRect(trackLeft - 10, trackY - 14, 12, trackHeight + 20);
     ctx.fillRect(trackRight - 2, trackY - 14, 12, trackHeight + 20);
 
-    // End Springs
+    // End Spring Loops
     ctx.strokeStyle = "#facc15";
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(trackLeft + 2, trackY + 16);
-    ctx.lineTo(trackLeft + 12, trackY + 16);
+    ctx.arc(trackLeft + 7, trackY + 16, 6, -Math.PI / 2, Math.PI / 2);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(trackRight - 2, trackY + 16);
-    ctx.lineTo(trackRight - 12, trackY + 16);
+    ctx.arc(trackRight - 7, trackY + 16, 6, Math.PI / 2, (3 * Math.PI) / 2);
     ctx.stroke();
 
-    // 2. Photogates (U-shaped optical sensors)
+    // 2. Photogates (U-shaped precision optoelectronic sensors)
     const renderPhotogate = (gate, label, color) => {
       const gx = trackLeft + gate.x * trackWidth;
-      // Photogate Post
+      // Photogate Mount Post
       ctx.fillStyle = "#1e293b";
       ctx.fillRect(gx - 6, trackY - 90, 12, 90);
-      // Photogate Arch
+      ctx.strokeStyle = "#334155";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(gx - 6, trackY - 90, 12, 90);
+
+      // Photogate Arch Head
       ctx.fillStyle = "#334155";
-      ctx.fillRect(gx - 18, trackY - 90, 36, 14);
-      ctx.fillRect(gx - 18, trackY - 90, 10, 48);
-      ctx.fillRect(gx + 8, trackY - 90, 10, 48);
+      ctx.fillRect(gx - 20, trackY - 90, 40, 15);
+      ctx.fillRect(gx - 20, trackY - 90, 12, 50);
+      ctx.fillRect(gx + 8, trackY - 90, 12, 50);
 
-      // Laser Beam (infrared optical detection line)
-      ctx.strokeStyle = gate.beamBroken ? "#ef4444" : "rgba(239, 68, 68, 0.4)";
-      ctx.lineWidth = gate.beamBroken ? 2.5 : 1.2;
-      ctx.beginPath();
-      ctx.moveTo(gx - 8, trackY - 54);
-      ctx.lineTo(gx + 8, trackY - 54);
-      ctx.stroke();
+      // Emitter & Receiver Optical Lens Mounts
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(gx - 11, trackY - 58, 4, 8);
+      ctx.fillRect(gx + 7, trackY - 58, 4, 8);
 
-      // Optical Sensor indicator LED
-      ctx.fillStyle = gate.beamBroken ? "#ef4444" : "#22c55e";
+      // Laser Beam (infrared optical detection line with realistic bloom)
+      if (gate.beamBroken) {
+        ctx.save();
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 2.8;
+        ctx.shadowColor = "#ef4444";
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(gx - 8, trackY - 54);
+        ctx.lineTo(gx + 8, trackY - 54);
+        ctx.stroke();
+        ctx.restore();
+      } else {
+        ctx.strokeStyle = "rgba(239, 68, 68, 0.45)";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(gx - 8, trackY - 54);
+        ctx.lineTo(gx + 8, trackY - 54);
+        ctx.stroke();
+      }
+
+      // Optical Sensor indicator LED with glowing aura
+      ctx.save();
+      const ledColor = gate.beamBroken ? "#ef4444" : "#22c55e";
+      ctx.fillStyle = ledColor;
+      ctx.shadowColor = ledColor;
+      ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(gx, trackY - 82, 3.5, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
 
-      // Label
+      // Label Plaque
       ctx.fillStyle = color;
       ctx.font = "bold 10px monospace";
       ctx.textAlign = "center";
@@ -544,10 +706,24 @@ export function initCollisionsLab(containerId) {
       const topY = trackY - 32;
       const height = 30;
 
-      // Cart Body (aerodynamic inverted V-shaped slider)
+      // Air cushion levitation micro-particles beneath glider skirt
+      if (airBlowerOn && isRunning) {
+        ctx.fillStyle = "rgba(56, 189, 248, 0.35)";
+        for (let i = 0; i < 4; i++) {
+          const px = gx - gw / 2 + Math.random() * gw;
+          const py = topY + height + Math.random() * 2;
+          ctx.beginPath();
+          ctx.arc(px, py, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Cart Body (aerodynamic extruded aluminum slider with 3D bevels)
       const cartGrad = ctx.createLinearGradient(gx - gw / 2, topY, gx + gw / 2, topY + height);
       cartGrad.addColorStop(0, color);
-      cartGrad.addColorStop(0.7, "#0f172a");
+      cartGrad.addColorStop(0.3, "#475569");
+      cartGrad.addColorStop(0.7, "#1e293b");
+      cartGrad.addColorStop(1, "#0f172a");
 
       ctx.fillStyle = cartGrad;
       ctx.strokeStyle = color;
@@ -557,30 +733,56 @@ export function initCollisionsLab(containerId) {
       ctx.fill();
       ctx.stroke();
 
-      // Optical Timer Flag (black aluminium fin on top)
-      ctx.fillStyle = "#0f172a";
+      // Metallic Ridge Highlight along top of cart
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(gx - gw / 2 + 3, topY + 2);
+      ctx.lineTo(gx + gw / 2 - 3, topY + 2);
+      ctx.stroke();
+
+      // Optical Timer Flag (black anodized precision fin on top)
+      ctx.fillStyle = "#090d16";
       ctx.fillRect(gx - 15, topY - 32, 30, 32);
       ctx.strokeStyle = "#94a3b8";
       ctx.lineWidth = 1;
       ctx.strokeRect(gx - 15, topY - 32, 30, 32);
+      // Optical flag calibration slit
+      ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+      ctx.fillRect(gx - 4, topY - 26, 8, 20);
 
-      // Mass weights plates loaded on cart
+      // Mass weights plates loaded on cart (machined discs with retaining pins)
       const plates = Math.round(mass / 0.1);
       ctx.fillStyle = "#e2e8f0";
       for (let p = 0; p < Math.min(plates, 5); p++) {
-        ctx.fillRect(gx - gw / 2 + 8 + p * 8, topY + 6, 5, 18);
+        const px = gx - gw / 2 + 8 + p * 8;
+        ctx.fillRect(px, topY + 6, 5, 18);
+        ctx.strokeStyle = "#94a3b8";
+        ctx.lineWidth = 0.8;
+        ctx.strokeRect(px, topY + 6, 5, 18);
       }
 
-      // Glider Bumper Springs / Velcro
-      ctx.strokeStyle = elasticity > 0.5 ? "#facc15" : "#64748b";
-      ctx.lineWidth = 2;
-      // Front & rear bumper loops
-      ctx.beginPath();
-      ctx.arc(gx + gw / 2 + 4, topY + 16, 5, -Math.PI / 2, Math.PI / 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(gx - gw / 2 - 4, topY + 16, 5, Math.PI / 2, (3 * Math.PI) / 2);
-      ctx.stroke();
+      // Glider Bumper Attachments (Spring loop vs Velcro pad)
+      if (elasticity > 0.5) {
+        // Elastic Coiled Spring Loop Bumpers
+        ctx.strokeStyle = "#facc15";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(gx + gw / 2 + 4, topY + 16, 5, -Math.PI / 2, Math.PI / 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(gx - gw / 2 - 4, topY + 16, 5, Math.PI / 2, (3 * Math.PI) / 2);
+        ctx.stroke();
+      } else {
+        // Inelastic Hook-and-Loop Velcro Contact Pad
+        ctx.fillStyle = "#475569";
+        ctx.fillRect(gx + gw / 2, topY + 8, 4, 16);
+        ctx.fillRect(gx - gw / 2 - 4, topY + 8, 4, 16);
+        ctx.strokeStyle = "#f43f5e";
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(gx + gw / 2, topY + 8, 4, 16);
+        ctx.strokeRect(gx - gw / 2 - 4, topY + 8, 4, 16);
+      }
 
       // Velocity Vector Arrow
       if (Math.abs(vel) > 0.05) {
@@ -616,6 +818,47 @@ export function initCollisionsLab(containerId) {
 
     renderGlider(g1_pixel_x, g1_pixel_w, m1, g1_v, "#38bdf8", "m₁");
     renderGlider(g2_pixel_x, g2_pixel_w, m2, g2_v, "#f43f5e", "m₂");
+
+    // Dynamic Collision Shockwaves & Contact Sparks
+    for (let i = collisionEffects.length - 1; i >= 0; i--) {
+      const fx = collisionEffects[i];
+      fx.radius += 1.8;
+      fx.alpha -= 0.04;
+      if (fx.alpha <= 0) {
+        collisionEffects.splice(i, 1);
+        continue;
+      }
+      ctx.save();
+      // Outer Shockwave Ring
+      ctx.strokeStyle = `rgba(250, 204, 21, ${fx.alpha})`;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.arc(fx.x, fx.y, fx.radius, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Inner Core Ring
+      ctx.strokeStyle = `rgba(56, 189, 248, ${fx.alpha * 0.7})`;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(fx.x, fx.y, fx.radius * 0.6, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Sparks
+      if (fx.sparks) {
+        for (const sp of fx.sparks) {
+          sp.x += sp.vx;
+          sp.y += sp.vy;
+          sp.vy += 0.15; // gravity
+          sp.life -= 0.05;
+          if (sp.life > 0) {
+            ctx.fillStyle = sp.color;
+            ctx.globalAlpha = sp.life * fx.alpha;
+            ctx.fillRect(sp.x, sp.y, 2, 2);
+          }
+        }
+      }
+      ctx.restore();
+    }
 
     // 4. Vector Momentum & Kinetic Energy HUD Bar Charts
     const hudY = 360;
@@ -679,7 +922,7 @@ export function initCollisionsLab(containerId) {
   }
 
   function checkPhotogates(dt) {
-    const trackWidth = canvas.width - 100;
+    const trackWidth = logicalW - 100;
     const flagWidthNorm = FLAG_WIDTH_M / TRACK_LENGTH_M;
 
     // Check Gate 1
@@ -963,6 +1206,7 @@ export function initCollisionsLab(containerId) {
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("resize", setupHiDPICanvas);
     window.removeEventListener("keydown", handleKeyDown);
   };
 }

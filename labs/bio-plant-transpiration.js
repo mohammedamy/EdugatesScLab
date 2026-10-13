@@ -273,6 +273,26 @@ export function initPlantTranspirationLab(containerId) {
   const chartCanvas = document.getElementById("transp-chart-canvas");
   const chartCtx = chartCanvas.getContext("2d");
 
+  // HiDPI Scaling for Apparatus and Telemetry Chart
+  const logicalW = 580;
+  const logicalH = 530;
+  const chartLogicalW = 400;
+  const chartLogicalH = 90;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+    if (chartCanvas) {
+      chartCanvas.width = Math.round(chartLogicalW * dpr);
+      chartCanvas.height = Math.round(chartLogicalH * dpr);
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   const viewSimBtn = document.getElementById("view-mode-transp-sim");
   const viewPhotoBtn = document.getElementById("view-mode-transp-photo");
   const photoOverlay = document.getElementById("transp-photo-overlay");
@@ -307,33 +327,38 @@ export function initPlantTranspirationLab(containerId) {
 
   // Draw Real-Time Telemetry Graph
   function renderChart() {
-    const w = chartCanvas.width;
-    const h = chartCanvas.height;
-    chartCtx.clearRect(0, 0, w, h);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    chartCtx.save();
+    chartCtx.resetTransform();
+    chartCtx.scale(dpr, dpr);
+    chartCtx.clearRect(0, 0, chartLogicalW, chartLogicalH);
 
     chartCtx.fillStyle = "#09090b";
-    chartCtx.fillRect(0, 0, w, h);
+    chartCtx.fillRect(0, 0, chartLogicalW, chartLogicalH);
 
     // Grid lines
     chartCtx.strokeStyle = "#1e293b";
     chartCtx.lineWidth = 1;
-    for (let y = 20; y < h; y += 25) {
+    for (let y = 18; y < chartLogicalH; y += 22) {
       chartCtx.beginPath();
       chartCtx.moveTo(0, y);
-      chartCtx.lineTo(w, y);
+      chartCtx.lineTo(chartLogicalW, y);
       chartCtx.stroke();
     }
 
-    if (timeSeries.length < 2) return;
+    if (timeSeries.length < 2) {
+      chartCtx.restore();
+      return;
+    }
 
-    // Plot Transpiration Curve (Green)
+    // Plot Transpiration Curve (Emerald Gradient)
     chartCtx.strokeStyle = "#10b981";
-    chartCtx.lineWidth = 2;
+    chartCtx.lineWidth = 2.2;
     chartCtx.beginPath();
     const maxRate = 8.0;
     timeSeries.forEach((pt, idx) => {
-      const px = (idx / (timeSeries.length - 1)) * (w - 20) + 10;
-      const py = h - 10 - (pt.transpiration / maxRate) * (h - 20);
+      const px = (idx / (timeSeries.length - 1)) * (chartLogicalW - 24) + 12;
+      const py = chartLogicalH - 12 - (pt.transpiration / maxRate) * (chartLogicalH - 24);
       if (idx === 0) chartCtx.moveTo(px, py);
       else chartCtx.lineTo(px, py);
     });
@@ -344,18 +369,17 @@ export function initPlantTranspirationLab(containerId) {
     chartCtx.fillStyle = "#34d399";
     chartCtx.font = "bold 9px 'JetBrains Mono', monospace";
     chartCtx.textAlign = "right";
-    chartCtx.fillText(`Water Uptake: ${last.transpiration} µL/min`, w - 10, 16);
+    chartCtx.fillText(`Rate: ${last.transpiration} µL/min`, chartLogicalW - 10, 16);
+
+    chartCtx.restore();
   }
 
   // 60 FPS Canvas Render Loop
   function renderPotometerCanvas() {
     if (!container || !container.isConnected) return;
     timeTick += 0.035;
-    const cw = canvas.width;
-    const ch = canvas.height;
-    ctx.clearRect(0, 0, cw, ch);
 
-    const { bubbleVelocityMmSec, stomatalOpenFrac } = calculateTranspiration();
+    const { bubbleVelocityMmSec, stomatalOpenFrac, transpirationRateUlMin } = calculateTranspiration();
 
     // Advance bubble along capillary
     bubblePositionMm += bubbleVelocityMmSec * 0.035;
@@ -365,133 +389,331 @@ export function initPlantTranspirationLab(containerId) {
       recordTelemetry();
     }
 
-    // 1. Lab Workbench
-    const benchY = 440;
-    const benchGrad = ctx.createLinearGradient(0, benchY, 0, ch);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
+
+    // 1. Environmental Growth Chamber Backdrop
+    const floorY = 440;
+    
+    // Ambient Chamber Wall
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, floorY);
+    bgGrad.addColorStop(0, "#022c22");
+    bgGrad.addColorStop(0.6, "#064e3b");
+    bgGrad.addColorStop(1, "#021f17");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, logicalW, floorY);
+
+    // Chamber Wall Depth Panels
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.08)";
+    ctx.lineWidth = 1;
+    for (let gx = 40; gx < logicalW; gx += 50) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 0);
+      ctx.lineTo(gx, floorY);
+      ctx.stroke();
+    }
+
+    // Overhead PAR Grow Lamp Illumination Beams
+    if (lightPAR > 100) {
+      const lampX = 140;
+      const lampAlpha = Math.min(0.45, 0.08 + (lightPAR / 2000) * 0.35);
+      const lightBeamGrad = ctx.createRadialGradient(lampX, 20, 10, lampX, 240, 220);
+      lightBeamGrad.addColorStop(0, `rgba(253, 224, 71, ${lampAlpha})`);
+      lightBeamGrad.addColorStop(0.7, `rgba(250, 204, 21, ${lampAlpha * 0.4})`);
+      lightBeamGrad.addColorStop(1, "rgba(250, 204, 21, 0)");
+
+      ctx.fillStyle = lightBeamGrad;
+      ctx.beginPath();
+      ctx.moveTo(lampX - 50, 20);
+      ctx.lineTo(lampX + 50, 20);
+      ctx.lineTo(lampX + 160, 360);
+      ctx.lineTo(lampX - 160, 360);
+      ctx.closePath();
+      ctx.fill();
+
+      // Lamp housing fixture at top
+      ctx.fillStyle = "#1e293b";
+      ctx.strokeStyle = "#fbbf24";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(lampX - 60, 8, 120, 16, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#fef08a";
+      ctx.font = "bold 8px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`PAR ${lightPAR} µmol/(m²·s)`, lampX, 20);
+    }
+
+    // Lab Workbench Floor
+    const benchGrad = ctx.createLinearGradient(0, floorY, 0, logicalH);
     benchGrad.addColorStop(0, "#1e293b");
+    benchGrad.addColorStop(0.4, "#0f172a");
     benchGrad.addColorStop(1, "#020617");
     ctx.fillStyle = benchGrad;
-    ctx.fillRect(0, benchY, cw, ch - benchY);
+    ctx.fillRect(0, floorY, logicalW, logicalH - floorY);
 
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(0, floorY);
+    ctx.lineTo(logicalW, floorY);
+    ctx.stroke();
+
+    // 2. Heavy Cast Iron Stand Base & Chrome Rods
+    ctx.fillStyle = "#0f172a";
     ctx.strokeStyle = "#334155";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(0, benchY);
-    ctx.lineTo(cw, benchY);
+    ctx.roundRect(80, floorY - 14, 160, 14, 3);
+    ctx.fill();
     ctx.stroke();
 
-    // 2. Ganong Potometer Apparatus
-    // Vertical water reservoir tube holding leafy shoot
-    const tubeX = 140;
+    // Chrome Upright Rod
+    const rodGrad = ctx.createLinearGradient(116, 80, 124, 80);
+    rodGrad.addColorStop(0, "#475569");
+    rodGrad.addColorStop(0.5, "#94a3b8");
+    rodGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = rodGrad;
+    ctx.fillRect(117, 100, 7, floorY - 114);
+
+    // Finger Clamp with Rubber Jaws gripping tube
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 1.2;
+    ctx.fillRect(113, 260, 15, 12);
+    ctx.strokeRect(113, 260, 15, 12);
+
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(128, 266);
+    ctx.lineTo(140, 266);
+    ctx.stroke();
+
+    // Red silicone clamp collar
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(138, 262, 5, 8);
+
+    // 3. Ganong Potometer Apparatus
+    // Main vertical glass reservoir holding shoot
+    const tubeX = 142;
     const tubeY = 220;
-    const tubeW = 32;
+    const tubeW = 30;
     const tubeH = 180;
 
-    // Glass Vertical Tube
-    ctx.save();
-    ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
-    ctx.fillRect(tubeX - tubeW / 2, tubeY, tubeW, tubeH);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.lineWidth = 2;
+    // Liquid column in vertical tube
+    const liqGrad = ctx.createLinearGradient(tubeX - tubeW / 2, 0, tubeX + tubeW / 2, 0);
+    liqGrad.addColorStop(0, "rgba(56, 189, 248, 0.45)");
+    liqGrad.addColorStop(0.5, "rgba(14, 165, 233, 0.65)");
+    liqGrad.addColorStop(1, "rgba(2, 132, 199, 0.45)");
+    ctx.fillStyle = liqGrad;
+    ctx.fillRect(tubeX - tubeW / 2 + 2, tubeY + 10, tubeW - 4, tubeH - 12);
+
+    // Glass tube walls & highlights
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.lineWidth = 2.5;
     ctx.strokeRect(tubeX - tubeW / 2, tubeY, tubeW, tubeH);
 
-    // Rubber Bung Seal at Top
+    // Specular highlight along glass edge
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(tubeX - tubeW / 2 + 3, tubeY + 4);
+    ctx.lineTo(tubeX - tubeW / 2 + 3, tubeY + tubeH - 4);
+    ctx.stroke();
+
+    // Watertight Rubber Bung Seal at Top
     ctx.fillStyle = "#334155";
     ctx.beginPath();
-    ctx.ellipse(tubeX, tubeY, tubeW / 2 + 2, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(tubeX, tubeY, tubeW / 2 + 3, 7, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // 3. Cut Leafy Shoot Stem emerging from bung
-    ctx.strokeStyle = "#16a34a";
-    ctx.lineWidth = 6;
+    // 4. Cut Leafy Shoot Stem emerging from bung
+    // Wind oscillation displacement
+    const windFlutter = Math.sin(timeTick * (4 + windSpeedMs * 2)) * (windSpeedMs * 1.5);
+    
+    ctx.strokeStyle = "#15803d";
+    ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.moveTo(tubeX, tubeY + 40);
-    ctx.bezierCurveTo(tubeX - 5, tubeY - 40, tubeX + 15, tubeY - 90, tubeX + 10, tubeY - 150);
+    ctx.moveTo(tubeX, tubeY + 50);
+    ctx.bezierCurveTo(tubeX - 4, tubeY - 30, tubeX + 10 + windFlutter * 0.5, tubeY - 80, tubeX + 8 + windFlutter, tubeY - 140);
     ctx.stroke();
 
-    // Foliage Leaves
+    // Water tension xylem pull upward arrows inside stem
+    if (transpirationRateUlMin > 0.5) {
+      const tensionPulse = (timeTick * 30) % 30;
+      ctx.fillStyle = "#38bdf8";
+      ctx.beginPath();
+      ctx.arc(tubeX, tubeY + 30 - tensionPulse, 2.5, 0, Math.PI * 2);
+      ctx.arc(tubeX + 3, tubeY - 20 - tensionPulse, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Foliage Leaves with Photorealistic Venation & Wind Sway
     const leafCount = 7;
     for (let l = 0; l < leafCount; l++) {
-      const lx = tubeX + (l % 2 === 0 ? -30 : 35);
-      const ly = tubeY - 60 - l * 15;
+      const isLeft = l % 2 === 0;
+      const leafSway = windFlutter * (0.8 + l * 0.2);
+      const lx = tubeX + (isLeft ? -36 : 38) + leafSway;
+      const ly = tubeY - 50 - l * 14;
+      const rot = (isLeft ? -0.45 : 0.45) + (windFlutter * 0.03);
+
       ctx.save();
-      ctx.fillStyle = "#22c55e";
-      ctx.beginPath();
-      ctx.ellipse(lx, ly, 22, 10, (l % 2 === 0 ? -0.5 : 0.5), 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "#15803d";
+      ctx.translate(lx, ly);
+      ctx.rotate(rot);
+
+      // Leaf blade with green gradient
+      const leafGrad = ctx.createRadialGradient(-5, 0, 2, 0, 0, 24);
+      leafGrad.addColorStop(0, "#4ade80");
+      leafGrad.addColorStop(0.6, "#22c55e");
+      leafGrad.addColorStop(1, "#15803d");
+      ctx.fillStyle = leafGrad;
+      ctx.strokeStyle = "#166534";
       ctx.lineWidth = 1.5;
+
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 24, 11, 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.stroke();
+
+      // Central Midrib Vein
+      ctx.strokeStyle = "#86efac";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-22, 0);
+      ctx.lineTo(22, 0);
+      ctx.stroke();
+
+      // Transpiration vapor puffs escaping leaf surface
+      if (stomatalOpenFrac > 0.2 && Math.random() < 0.2) {
+        ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+        ctx.beginPath();
+        ctx.arc((Math.random() - 0.5) * 20, -14 - Math.random() * 8, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
       ctx.restore();
     }
 
-    // 4. Horizontal Graduated Capillary Tube with Moving Air Bubble
-    const capX = tubeX + tubeW / 2;
-    const capY = tubeY + tubeH - 20;
-    const capLen = 340;
-    const capH = 10;
+    // 5. Water Reservoir Bulb & Stopcock (for introducing air bubble)
+    const bulbX = tubeX + 50;
+    const bulbY = tubeY + tubeH - 45;
+    
+    // Connecting glass elbow
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(tubeX + tubeW / 2, bulbY);
+    ctx.lineTo(bulbX, bulbY);
+    ctx.stroke();
 
-    // Water column in capillary
-    ctx.fillStyle = "rgba(56, 189, 248, 0.35)";
-    ctx.fillRect(capX, capY, capLen, capH);
-
-    // Glass Capillary Walls
+    // Reservoir Bulb Flask
+    const resGrad = ctx.createRadialGradient(bulbX, bulbY - 30, 4, bulbX, bulbY - 30, 22);
+    resGrad.addColorStop(0, "rgba(56, 189, 248, 0.65)");
+    resGrad.addColorStop(0.7, "rgba(14, 165, 233, 0.7)");
+    resGrad.addColorStop(1, "rgba(2, 132, 199, 0.5)");
+    ctx.fillStyle = resGrad;
     ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
     ctx.lineWidth = 2;
-    ctx.strokeRect(capX, capY, capLen, capH);
-
-    // Millimeter Calibration Marks
-    ctx.strokeStyle = "#94a3b8";
-    ctx.lineWidth = 1;
-    ctx.fillStyle = "#64748b";
-    ctx.font = "8px 'JetBrains Mono', monospace";
-    for (let mm = 0; mm <= 100; mm += 10) {
-      const markX = capX + (mm / 100) * capLen;
-      ctx.beginPath();
-      ctx.moveTo(markX, capY + capH);
-      ctx.lineTo(markX, capY + capH + (mm % 20 === 0 ? 8 : 4));
-      ctx.stroke();
-      if (mm % 20 === 0) {
-        ctx.fillText(`${mm}`, markX - 5, capY + capH + 18);
-      }
-    }
-
-    // Meniscus Air Bubble
-    const bubblePx = capX + (bubblePositionMm / 100) * capLen;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
-    ctx.strokeStyle = "#0284c7";
-    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.ellipse(bubblePx, capY + capH / 2, 7, capH / 2 - 1, 0, 0, Math.PI * 2);
+    ctx.arc(bulbX, bulbY - 30, 22, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    // Bubble Tracking Pointer Tag
-    ctx.fillStyle = "#facc15";
-    ctx.font = "bold 9px 'JetBrains Mono', monospace";
+    // PTFE Stopcock valve
+    ctx.fillStyle = "#ef4444";
+    ctx.fillRect(bulbX - 4, bulbY - 6, 8, 12);
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "8px monospace";
     ctx.textAlign = "center";
-    ctx.fillText(`▼ Meniscus (${bubblePositionMm.toFixed(1)} mm)`, bubblePx, capY - 6);
-    ctx.restore();
+    ctx.fillText("VALVE", bulbX, bulbY - 10);
 
-    // 5. Microscopic Inset: Stomatal Pore & Guard Cell Anatomy
-    const stomaX = cw - 120;
-    const stomaY = 120;
-    const stomaR = 65;
+    // 6. Horizontal Graduated Capillary Tube with Moving Air Bubble
+    const capX = bulbX + 15;
+    const capY = tubeY + tubeH - 25;
+    const capLen = logicalW - capX - 30;
+    const capH = 12;
 
-    ctx.save();
-    // Microscope circular lens bezel
+    // Water column in capillary
+    ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.fillRect(capX, capY, capLen, capH);
+
+    // Glass Capillary Walls & Reflections
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+    ctx.lineWidth = 2.2;
+    ctx.strokeRect(capX, capY, capLen, capH);
+
+    // Fine Millimeter Calibration Scale
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "8px monospace";
+    ctx.textAlign = "center";
+    for (let mm = 0; mm <= 100; mm += 5) {
+      const markX = capX + (mm / 100) * capLen;
+      const isMajor = mm % 20 === 0;
+      const isMid = mm % 10 === 0;
+      const tickH = isMajor ? 8 : (isMid ? 5 : 3);
+
+      ctx.beginPath();
+      ctx.moveTo(markX, capY + capH);
+      ctx.lineTo(markX, capY + capH + tickH);
+      ctx.stroke();
+
+      if (isMajor) {
+        ctx.fillText(`${mm}`, markX, capY + capH + 18);
+      }
+    }
+
+    // Meniscus Air Bubble with Authentic Double Concave Faces
+    const bubblePx = capX + (bubblePositionMm / 100) * capLen;
+    const bW = 10;
+    
+    // Clear air gap inside bubble
+    ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+    ctx.fillRect(bubblePx - bW / 2, capY + 1.5, bW, capH - 3);
+
+    // Meniscus borders (curved dark meniscus lines)
+    ctx.strokeStyle = "#0284c7";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(bubblePx - bW / 2, capY + capH / 2, capH / 2 - 1.5, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(bubblePx + bW / 2, capY + capH / 2, capH / 2 - 1.5, Math.PI * 1.5, Math.PI * 0.5);
+    ctx.stroke();
+
+    // Bubble Tracking Pointer Tag & Telemetry
+    ctx.fillStyle = "#facc15";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`▲ Air Bubble (${bubblePositionMm.toFixed(1)} mm)`, bubblePx, capY - 7);
+
+    // 7. Microscopic Inset: Stomatal Pore & Guard Cell Anatomy (400×)
+    const stomaX = logicalW - 100;
+    const stomaY = 110;
+    const stomaR = 60;
+
+    // Optical microscope lens bezel
     ctx.beginPath();
     ctx.arc(stomaX, stomaY, stomaR, 0, Math.PI * 2);
     ctx.fillStyle = "#022c22";
     ctx.fill();
     ctx.strokeStyle = "#10b981";
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 3.5;
     ctx.stroke();
 
-    // Lens reticle grid
-    ctx.strokeStyle = "rgba(16, 185, 129, 0.2)";
+    // Lens reticle crosshair
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.25)";
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(stomaX - stomaR, stomaY);
@@ -500,35 +722,86 @@ export function initPlantTranspirationLab(containerId) {
     ctx.lineTo(stomaX, stomaY + stomaR);
     ctx.stroke();
 
-    // Two Kidney-Shaped Guard Cells bowing open
-    const apertureW = 2 + stomatalOpenFrac * 16;
-    ctx.fillStyle = "#22c55e";
-    ctx.strokeStyle = "#15803d";
-    ctx.lineWidth = 2;
+    // Two Kidney-Shaped Guard Cells bowing open under turgor pressure
+    const apertureW = 2 + stomatalOpenFrac * 18;
+    
+    // Guard Cell radial micellation bands
+    [-1, 1].forEach(dir => {
+      const gcx = stomaX + dir * (apertureW / 2 + 9);
+      const gcGrad = ctx.createRadialGradient(gcx, stomaY, 4, gcx, stomaY, 18);
+      gcGrad.addColorStop(0, "#86efac");
+      gcGrad.addColorStop(0.6, "#22c55e");
+      gcGrad.addColorStop(1, "#15803d");
 
-    // Left Guard Cell
-    ctx.beginPath();
-    ctx.ellipse(stomaX - apertureW / 2 - 8, stomaY, 12, 32, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
+      ctx.fillStyle = gcGrad;
+      ctx.strokeStyle = "#14532d";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(gcx, stomaY, 11, 28, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
 
-    // Right Guard Cell
-    ctx.beginPath();
-    ctx.ellipse(stomaX + apertureW / 2 + 8, stomaY, 12, 32, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
+      // Guard cell chloroplasts
+      ctx.fillStyle = "#166534";
+      for (let cp = -2; cp <= 2; cp++) {
+        ctx.beginPath();
+        ctx.arc(gcx, stomaY + cp * 9, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
 
-    // Stomatal Aperture Hole (Dark opening)
+    // Stomatal Aperture Hole (Dark pore cavity)
     ctx.fillStyle = "#020617";
     ctx.beginPath();
-    ctx.ellipse(stomaX, stomaY, apertureW / 2, 22, 0, 0, Math.PI * 2);
+    ctx.ellipse(stomaX, stomaY, apertureW / 2, 20, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Microscope Label
+    // Stomata Inset Label
     ctx.fillStyle = "#34d399";
-    ctx.font = "bold 8px 'JetBrains Mono', monospace";
+    ctx.font = "bold 8px monospace";
     ctx.textAlign = "center";
-    ctx.fillText("STOMATA 400×", stomaX, stomaY + stomaR - 10);
+    ctx.fillText("STOMATA 400×", stomaX, stomaY + stomaR - 8);
+
+    // 8. Wind Airflow Streamlines if Fan is Active
+    if (windSpeedMs > 0.5) {
+      const fanX = 20;
+      const fanY = 220;
+
+      // Small Fan Graphic
+      ctx.fillStyle = "#1e293b";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(fanX, fanY, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Spinning blades
+      const bladeAng = timeTick * windSpeedMs * 4;
+      for (let b = 0; b < 3; b++) {
+        const a = bladeAng + (b / 3) * Math.PI * 2;
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(fanX, fanY);
+        ctx.lineTo(fanX + Math.cos(a) * 12, fanY + Math.sin(a) * 12);
+        ctx.stroke();
+      }
+
+      // Streamlines
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([8, 8]);
+      for (let s = -2; s <= 2; s++) {
+        const sy = fanY + s * 14;
+        ctx.beginPath();
+        ctx.moveTo(fanX + 22, sy);
+        ctx.lineTo(fanX + 80 + Math.sin(timeTick * 4 + s) * 10, sy + s * 2);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+    }
+
     ctx.restore();
 
     renderChart();
@@ -538,7 +811,7 @@ export function initPlantTranspirationLab(containerId) {
   // Event Listeners
   selectPlant.addEventListener("change", (e) => {
     currentPlantKey = e.target.value;
-    SoundFX.droplet();
+    SoundFX.droplet?.() || SoundFX.playClick?.();
     updateHUD();
   });
 
@@ -568,7 +841,7 @@ export function initPlantTranspirationLab(containerId) {
 
   btnResetBubble.addEventListener("click", () => {
     bubblePositionMm = 5;
-    SoundFX.snap();
+    SoundFX.snap?.() || SoundFX.playBeep?.();
   });
 
   // View Switcher (Sim vs 4K Photo)
@@ -580,7 +853,7 @@ export function initPlantTranspirationLab(containerId) {
     viewPhotoBtn.style.background = "transparent";
     photoOverlay.style.display = "none";
     canvas.style.display = "block";
-    SoundFX.click();
+    SoundFX.click?.() || SoundFX.playClick?.();
   });
 
   viewPhotoBtn.addEventListener("click", () => {
@@ -591,7 +864,7 @@ export function initPlantTranspirationLab(containerId) {
     viewSimBtn.style.background = "transparent";
     photoOverlay.style.display = "block";
     canvas.style.display = "none";
-    SoundFX.click();
+    SoundFX.click?.() || SoundFX.playClick?.();
   });
 
   // Telemetry CSV Export
@@ -621,7 +894,7 @@ export function initPlantTranspirationLab(containerId) {
         pt.vpd
       ])
     });
-    SoundFX.success();
+    SoundFX.success?.() || SoundFX.playBeep?.();
   });
 
   // Standardized Hotkey: 'e' or 'E' triggers CSV telemetry export
@@ -640,7 +913,9 @@ export function initPlantTranspirationLab(containerId) {
   return function cleanupPlantTranspirationLab() {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }
 
 export const initTranspirationLab = initPlantTranspirationLab;
+

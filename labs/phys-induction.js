@@ -289,6 +289,27 @@ export function initInductionLab(containerId) {
   // Canvas & Control Bindings
   const canvas = document.getElementById("induction-canvas");
   const ctx = canvas?.getContext("2d");
+
+  // HiDPI / Retina Canvas Setup
+  const logicalW = 940;
+  const logicalH = 500;
+
+  function setupHiDPICanvas() {
+    if (!canvas) return;
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    if (ctx) {
+      ctx.resetTransform();
+      ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   const viewSim = document.getElementById("btn-view-sim");
   const viewPhoto = document.getElementById("btn-view-photo");
   const photoOverlay = document.getElementById("photo-overlay");
@@ -408,10 +429,10 @@ export function initInductionLab(containerId) {
 
   function drawApparatus(data) {
     if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
     // Apparatus dimensions
-    const midX = canvas.width * 0.44; // Solenoid center
+    const midX = logicalW * 0.44; // Solenoid center
     const midY = 190;
     const coilW = 160;
     const coilH = 130;
@@ -419,10 +440,10 @@ export function initInductionLab(containerId) {
     // 1. Background Grid & Magnetic Flux Lines
     ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
     ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 40) {
+    for (let x = 0; x < logicalW; x += 40) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
+      ctx.lineTo(x, logicalH);
       ctx.stroke();
     }
 
@@ -607,7 +628,7 @@ export function initInductionLab(containerId) {
     // 6. Digital Storage Oscilloscope (DSO Screen on Bottom Right)
     const dsoX = 340;
     const dsoY = 340;
-    const dsoW = canvas.width - dsoX - 30;
+    const dsoW = logicalW - dsoX - 30;
     const dsoH = 140;
 
     // DSO Bezel
@@ -858,6 +879,7 @@ export function initInductionLab(containerId) {
 
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("resize", setupHiDPICanvas);
     window.removeEventListener("mousemove", onMouseMove);
     window.removeEventListener("mouseup", onMouseUp);
     window.removeEventListener("touchmove", onTouchMove);

@@ -251,6 +251,26 @@ export function initCalorimetryLab(containerId) {
   const graphCanvas = container.querySelector("#cal-graph-canvas");
   const graphCtx = graphCanvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+  const graphLogicalW = 420;
+  const graphLogicalH = 150;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+    if (graphCanvas) {
+      graphCanvas.width = Math.round(graphLogicalW * dpr);
+      graphCanvas.height = Math.round(graphLogicalH * dpr);
+    }
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   // Telemetry DOM elements
   const dispTemp = container.querySelector("#disp-temp-val");
   const dispDeltaT = container.querySelector("#disp-delta-t");
@@ -306,23 +326,29 @@ export function initCalorimetryLab(containerId) {
 
   // Render 60 FPS HTML5 Canvas Simulation
   function renderApparatus() {
-    const W = canvas.width;
-    const H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
     // Bench Surface
     const benchY = 460;
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(0, benchY, W, H - benchY);
-    ctx.strokeStyle = "#475569";
+    const benchGrad = ctx.createLinearGradient(0, benchY, 0, logicalH);
+    benchGrad.addColorStop(0, "#334155");
+    benchGrad.addColorStop(0.1, "#1e293b");
+    benchGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = benchGrad;
+    ctx.fillRect(0, benchY, logicalW, logicalH - benchY);
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, benchY);
-    ctx.lineTo(W, benchY);
+    ctx.lineTo(logicalW, benchY);
     ctx.stroke();
 
     // Center Calorimeter Base at (CX, CY)
-    const CX = W * 0.48;
+    const CX = logicalW * 0.48;
     const CY = 290;
     const dewarW = 210;
     const dewarH = 260;
@@ -334,10 +360,16 @@ export function initCalorimetryLab(containerId) {
     shellGrad.addColorStop(0.7, "#64748b");
     shellGrad.addColorStop(1, "#1e293b");
 
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.65)";
+    ctx.shadowBlur = 18;
+    ctx.shadowOffsetY = 8;
     ctx.fillStyle = shellGrad;
     ctx.beginPath();
     ctx.roundRect(CX - dewarW/2, CY - dewarH/2 + 20, dewarW, dewarH, 16);
     ctx.fill();
+    ctx.restore();
+
     ctx.strokeStyle = "#94a3b8";
     ctx.lineWidth = 2;
     ctx.stroke();
@@ -374,6 +406,62 @@ export function initCalorimetryLab(containerId) {
     ctx.beginPath();
     ctx.roundRect(innerX, innerY + 30, innerW, innerH - 30, 8);
     ctx.fill();
+
+    // Parr High-Pressure Oxygen Bomb Reactor Vessel (if in bomb mode)
+    if (activeSystem.type === "bomb") {
+      const bombW = 86;
+      const bombH = 120;
+      const bombX = CX - bombW / 2;
+      const bombY = CY + 10;
+
+      const steelGrad = ctx.createLinearGradient(bombX, 0, bombX + bombW, 0);
+      steelGrad.addColorStop(0, "#475569");
+      steelGrad.addColorStop(0.3, "#e2e8f0");
+      steelGrad.addColorStop(0.7, "#94a3b8");
+      steelGrad.addColorStop(1, "#334155");
+
+      ctx.fillStyle = steelGrad;
+      ctx.beginPath();
+      ctx.roundRect(bombX, bombY, bombW, bombH, 8);
+      ctx.fill();
+      ctx.strokeStyle = "#f8fafc";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Flanged closure collar
+      ctx.fillStyle = "#1e293b";
+      ctx.fillRect(bombX - 3, bombY + 10, bombW + 6, 12);
+
+      ctx.fillStyle = "#facc15";
+      ctx.font = "bold 8px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("PARR 30 ATM BOMB", CX, bombY + 36);
+
+      // Ignition wires
+      ctx.strokeStyle = "#ef4444";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(bombX + 18, bombY);
+      ctx.lineTo(bombX + 18, CY - dewarH / 2 + 10);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#38bdf8";
+      ctx.beginPath();
+      ctx.moveTo(bombX + bombW - 18, bombY);
+      ctx.lineTo(bombX + bombW - 18, CY - dewarH / 2 + 10);
+      ctx.stroke();
+
+      if (reactionTriggered && reactionProgress < 0.3) {
+        ctx.save();
+        ctx.fillStyle = "rgba(239, 68, 68, 0.9)";
+        ctx.shadowColor = "#f59e0b";
+        ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.arc(CX, bombY + 65, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
 
     // Stirrer Vortex Depression
     if (stirrerSpeed > 0) {
@@ -462,31 +550,38 @@ export function initCalorimetryLab(containerId) {
         ctx.fill();
       }
     }
+
+    ctx.restore();
   }
 
   // Render Time-Series Chart
   function renderChart() {
-    const W = graphCanvas.width;
-    const H = graphCanvas.height;
-    graphCtx.clearRect(0, 0, W, H);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    graphCtx.save();
+    graphCtx.resetTransform();
+    graphCtx.scale(dpr, dpr);
+    graphCtx.clearRect(0, 0, graphLogicalW, graphLogicalH);
 
     // Grid lines
     graphCtx.strokeStyle = "rgba(255,255,255,0.06)";
     graphCtx.lineWidth = 1;
-    for (let x = 30; x < W; x += 50) {
+    for (let x = 30; x < graphLogicalW; x += 50) {
       graphCtx.beginPath();
       graphCtx.moveTo(x, 10);
-      graphCtx.lineTo(x, H - 25);
+      graphCtx.lineTo(x, graphLogicalH - 25);
       graphCtx.stroke();
     }
-    for (let y = 15; y < H - 25; y += 30) {
+    for (let y = 15; y < graphLogicalH - 25; y += 30) {
       graphCtx.beginPath();
       graphCtx.moveTo(30, y);
-      graphCtx.lineTo(W - 10, y);
+      graphCtx.lineTo(graphLogicalW - 10, y);
       graphCtx.stroke();
     }
 
-    if (timeSeries.length < 2) return;
+    if (timeSeries.length < 2) {
+      graphCtx.restore();
+      return;
+    }
 
     // Y Axis scaling (auto-range)
     const temps = timeSeries.map(p => p.temp);
@@ -497,8 +592,25 @@ export function initCalorimetryLab(containerId) {
     const padR = 15;
     const padT = 15;
     const padB = 25;
-    const plotW = W - padL - padR;
-    const plotH = H - padT - padB;
+    const plotW = graphLogicalW - padL - padR;
+    const plotH = graphLogicalH - padT - padB;
+
+    // Gradient fill under curve
+    const fillGrad = graphCtx.createLinearGradient(0, padT, 0, graphLogicalH - padB);
+    fillGrad.addColorStop(0, "rgba(244, 63, 94, 0.25)");
+    fillGrad.addColorStop(1, "rgba(244, 63, 94, 0.0)");
+
+    graphCtx.beginPath();
+    graphCtx.moveTo(padL, graphLogicalH - padB);
+    timeSeries.forEach((pt, idx) => {
+      const px = padL + (idx / Math.max(1, timeSeries.length - 1)) * plotW;
+      const py = padT + (1 - (pt.temp - minT) / (maxT - minT)) * plotH;
+      graphCtx.lineTo(px, py);
+    });
+    graphCtx.lineTo(padL + plotW, graphLogicalH - padB);
+    graphCtx.closePath();
+    graphCtx.fillStyle = fillGrad;
+    graphCtx.fill();
 
     // Plot Data Line
     graphCtx.strokeStyle = "#fb7185";
@@ -518,10 +630,12 @@ export function initCalorimetryLab(containerId) {
     graphCtx.font = "9px monospace";
     graphCtx.textAlign = "right";
     graphCtx.fillText(`${maxT.toFixed(1)}°`, padL - 4, padT + 10);
-    graphCtx.fillText(`${minT.toFixed(1)}°`, padL - 4, H - padB);
+    graphCtx.fillText(`${minT.toFixed(1)}°`, padL - 4, graphLogicalH - padB);
 
     graphCtx.textAlign = "center";
-    graphCtx.fillText("Time (s) ➔", W / 2, H - 8);
+    graphCtx.fillText("Time (s) ➔", graphLogicalW / 2, graphLogicalH - 8);
+
+    graphCtx.restore();
   }
 
   // Physics Simulation Step
@@ -713,5 +827,6 @@ export function initCalorimetryLab(containerId) {
   return () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }

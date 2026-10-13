@@ -224,6 +224,29 @@ export function initColligativeLab(containerId) {
   const chartCanvas = container.querySelector("#collig-chart-canvas");
   const chartCtx = chartCanvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+  const chartLogicalW = 460;
+  const chartLogicalH = 180;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+
+    const cRect = chartCanvas.getBoundingClientRect();
+    const cw = cRect.width > 0 ? cRect.width : chartLogicalW;
+    const ch = cRect.height > 0 ? cRect.height : chartLogicalH;
+    chartCanvas.width = Math.round(cw * dpr);
+    chartCanvas.height = Math.round(ch * dpr);
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   // Calculations
   function getParameters() {
     const s = SOLVENTS[solventKey];
@@ -253,96 +276,274 @@ export function initColligativeLab(containerId) {
 
   // Render Simulation Viewport
   function drawBeakerAndApparatus() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    ctx.clearRect(0, 0, logicalW, logicalH);
     const { s, sol, tf } = getParameters();
 
-    // Background Laboratory Bench
-    ctx.fillStyle = "#0a0f1d";
-    ctx.fillRect(0, 470, canvas.width, 60);
-    ctx.strokeStyle = "#1e293b";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0, 470, canvas.width, 60);
+    // 1. Background Laboratory Bench
+    const benchY = 460;
+    const benchGrad = ctx.createLinearGradient(0, benchY, 0, logicalH);
+    benchGrad.addColorStop(0, "#1e293b");
+    benchGrad.addColorStop(0.04, "#0f172a");
+    benchGrad.addColorStop(1, "#020617");
+    ctx.fillStyle = benchGrad;
+    ctx.fillRect(0, benchY, logicalW, logicalH - benchY);
 
-    // Thermal Bath Chamber (Outer Insulated Cryostat)
-    ctx.fillStyle = "rgba(30, 41, 59, 0.7)";
-    ctx.strokeStyle = "#38bdf8";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY);
+    ctx.lineTo(logicalW, benchY);
+    ctx.stroke();
+
+    // Contact shadow under the cryostat
+    const cryoShadow = ctx.createRadialGradient(logicalW / 2, benchY, 40, logicalW / 2, benchY, 210);
+    cryoShadow.addColorStop(0, "rgba(0,0,0,0.65)");
+    cryoShadow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = cryoShadow;
+    ctx.fillRect(60, benchY - 4, 460, 20);
+
+    // 2. Thermal Bath Chamber (Outer Insulated Cryostat / Dewar Flask)
+    const cryoX = 80;
+    const cryoY = 140;
+    const cryoW = 420;
+    const cryoH = 315;
+
+    ctx.save();
+    // Double-walled vacuum Dewar outer body
+    const dewarGrad = ctx.createLinearGradient(cryoX, 0, cryoX + cryoW, 0);
+    dewarGrad.addColorStop(0, "#1e293b");
+    dewarGrad.addColorStop(0.2, "#334155");
+    dewarGrad.addColorStop(0.5, "#1e293b");
+    dewarGrad.addColorStop(0.8, "#334155");
+    dewarGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = dewarGrad;
+    ctx.strokeStyle = "#475569";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(80, 140, 420, 320, [0, 0, 16, 16]);
+    ctx.roundRect(cryoX, cryoY, cryoW, cryoH, [8, 8, 18, 18]);
     ctx.fill();
     ctx.stroke();
 
-    // Cooling bath liquid
-    const bathGrad = ctx.createLinearGradient(80, 180, 80, 460);
-    bathGrad.addColorStop(0, "rgba(56, 189, 248, 0.15)");
-    bathGrad.addColorStop(1, "rgba(14, 165, 233, 0.45)");
+    // Brushed stainless steel rim collar at top
+    const rimGrad = ctx.createLinearGradient(cryoX, 0, cryoX + cryoW, 0);
+    rimGrad.addColorStop(0, "#64748b");
+    rimGrad.addColorStop(0.5, "#cbd5e1");
+    rimGrad.addColorStop(1, "#475569");
+    ctx.fillStyle = rimGrad;
+    ctx.fillRect(cryoX, cryoY - 6, cryoW, 14);
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(cryoX, cryoY - 6, cryoW, 14);
+
+    // Acrylic Inspection Window
+    const winX = cryoX + 16;
+    const winY = cryoY + 20;
+    const winW = cryoW - 32;
+    const winH = cryoH - 32;
+
+    ctx.fillStyle = "#030712";
+    ctx.fillRect(winX, winY, winW, winH);
+
+    // Cryogenic bath liquid (slush ice/water or heating oil)
+    const bathGrad = ctx.createLinearGradient(winX, winY + 20, winX, winY + winH);
+    if (bathMode === "cooling") {
+      bathGrad.addColorStop(0, "rgba(56, 189, 248, 0.25)");
+      bathGrad.addColorStop(0.6, "rgba(14, 165, 233, 0.45)");
+      bathGrad.addColorStop(1, "rgba(2, 132, 199, 0.7)");
+    } else {
+      bathGrad.addColorStop(0, "rgba(245, 158, 11, 0.25)");
+      bathGrad.addColorStop(0.6, "rgba(217, 119, 6, 0.45)");
+      bathGrad.addColorStop(1, "rgba(180, 83, 9, 0.7)");
+    }
     ctx.fillStyle = bathGrad;
-    ctx.fillRect(85, 200, 410, 255);
+    ctx.fillRect(winX, winY + 30, winW, winH - 30);
 
-    // Beaker (Inner Vessel)
-    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.roundRect(160, 170, 260, 270, [0, 0, 18, 18]);
-    ctx.fill();
-    ctx.stroke();
+    // Floating micro ice chunks in cryo bath when cold
+    if (bathTemp < 2) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      for (let ic = 0; ic < 16; ic++) {
+        const ix = winX + 15 + (ic * 23) % (winW - 30);
+        const iy = winY + 35 + ((ic * 37) % (winH - 55));
+        ctx.fillRect(ix, iy, 8, 5);
+      }
+    }
 
+    // Outer acrylic window frame & frost condensation mist
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(winX, winY, winW, winH);
+
+    if (solutionTemp < 5) {
+      // Frost vignette
+      const frostGrad = ctx.createLinearGradient(winX, 0, winX + 30, 0);
+      frostGrad.addColorStop(0, "rgba(224, 242, 254, 0.4)");
+      frostGrad.addColorStop(1, "rgba(224, 242, 254, 0)");
+      ctx.fillStyle = frostGrad;
+      ctx.fillRect(winX, winY, 30, winH);
+
+      const rFrost = ctx.createLinearGradient(winX + winW - 30, 0, winX + winW, 0);
+      rFrost.addColorStop(0, "rgba(224, 242, 254, 0)");
+      rFrost.addColorStop(1, "rgba(224, 242, 254, 0.4)");
+      ctx.fillStyle = rFrost;
+      ctx.fillRect(winX + winW - 30, winY, 30, winH);
+    }
+    ctx.restore();
+
+    // 3. Inner Borosilicate Reaction Beaker (Griffin Beaker)
+    const beakerX = 160;
+    const beakerY = 175;
+    const beakerW = 260;
+    const beakerH = 265;
+    const liquidMeniscusY = beakerY + 45;
+
+    ctx.save();
     // Solution Liquid in Beaker
-    const liquidGrad = ctx.createLinearGradient(165, 210, 165, 435);
+    const liquidGrad = ctx.createLinearGradient(beakerX, liquidMeniscusY, beakerX, beakerY + beakerH);
     liquidGrad.addColorStop(0, s.color);
-    liquidGrad.addColorStop(1, s.liquidColor);
+    liquidGrad.addColorStop(0.7, s.liquidColor);
+    liquidGrad.addColorStop(1, "rgba(2, 6, 23, 0.7)");
     ctx.fillStyle = liquidGrad;
     ctx.beginPath();
-    ctx.roundRect(165, 220, 250, 215, [0, 0, 14, 14]);
+    ctx.roundRect(beakerX + 5, liquidMeniscusY, beakerW - 10, beakerH - 50, [0, 0, 16, 16]);
     ctx.fill();
 
-    // Draw Ice Crystal lattice if solution temperature is at or below freezing point
+    // Liquid Meniscus Surface
+    ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.beginPath();
+    ctx.ellipse(beakerX + beakerW / 2, liquidMeniscusY, beakerW / 2 - 8, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Borosilicate Glass Outer Outline
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    // Lip spout at left
+    ctx.moveTo(beakerX - 8, beakerY - 3);
+    ctx.quadraticCurveTo(beakerX - 2, beakerY, beakerX, beakerY);
+    ctx.lineTo(beakerX, beakerY + beakerH - 14);
+    ctx.arcTo(beakerX, beakerY + beakerH, beakerX + 16, beakerY + beakerH, 16);
+    ctx.lineTo(beakerX + beakerW - 16, beakerY + beakerH);
+    ctx.arcTo(beakerX + beakerW, beakerY + beakerH, beakerX + beakerW, beakerY + beakerH - 14, 16);
+    ctx.lineTo(beakerX + beakerW, beakerY);
+    ctx.stroke();
+
+    // Dual Cylinder Specular Reflections
+    const leftSpec = ctx.createLinearGradient(beakerX + 6, 0, beakerX + 22, 0);
+    leftSpec.addColorStop(0, "rgba(255, 255, 255, 0.35)");
+    leftSpec.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = leftSpec;
+    ctx.fillRect(beakerX + 6, beakerY + 6, 16, beakerH - 16);
+
+    const rightSpec = ctx.createLinearGradient(beakerX + beakerW - 22, 0, beakerX + beakerW - 6, 0);
+    rightSpec.addColorStop(0, "rgba(255, 255, 255, 0)");
+    rightSpec.addColorStop(1, "rgba(255, 255, 255, 0.25)");
+    ctx.fillStyle = rightSpec;
+    ctx.fillRect(beakerX + beakerW - 22, beakerY + 6, 16, beakerH - 16);
+
+    // Beaker volume graduations (50, 100, 150, 200 mL)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.font = "8px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+    [
+      { yOff: 40, ml: "50" },
+      { yOff: 80, ml: "100" },
+      { yOff: 120, ml: "150" },
+      { yOff: 160, ml: "200" }
+    ].forEach(g => {
+      const markY = beakerY + beakerH - g.yOff;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(beakerX + 6, markY);
+      ctx.lineTo(beakerX + 26, markY);
+      ctx.stroke();
+      ctx.fillText(`${g.ml} mL`, beakerX + 30, markY + 2.5);
+    });
+    ctx.restore();
+
+    // 4. Dendritic Ice Crystal Nucleation Lattice (When T <= Tf)
     const isFrozen = solutionTemp <= tf;
     if (isFrozen) {
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-      ctx.lineWidth = 2;
-      for (let x = 180; x < 400; x += 40) {
-        for (let y = 240; y < 420; y += 40) {
+      ctx.save();
+      // Frosting glow overlay
+      ctx.fillStyle = "rgba(224, 242, 254, 0.2)";
+      ctx.fillRect(beakerX + 6, liquidMeniscusY, beakerW - 12, beakerH - 52);
+
+      // Branching Ice Dendrite Needles
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+      ctx.lineWidth = 1.8;
+      for (let x = beakerX + 25; x < beakerX + beakerW - 20; x += 38) {
+        for (let y = liquidMeniscusY + 25; y < beakerY + beakerH - 25; y += 38) {
           ctx.beginPath();
-          ctx.moveTo(x - 8, y);
-          ctx.lineTo(x + 8, y);
-          ctx.moveTo(x, y - 8);
-          ctx.lineTo(x, y + 8);
+          // Hexagonal 6-point ice snowflake platelet
+          for (let arm = 0; arm < 6; arm++) {
+            const rad = (arm * Math.PI) / 3;
+            const ax = x + Math.cos(rad) * 11;
+            const ay = y + Math.sin(rad) * 11;
+            ctx.moveTo(x, y);
+            ctx.lineTo(ax, ay);
+
+            // Sub-twigs
+            const tax = x + Math.cos(rad) * 7;
+            const tay = y + Math.sin(rad) * 7;
+            ctx.moveTo(tax, tay);
+            ctx.lineTo(tax + Math.cos(rad + 0.6) * 4, tay + Math.sin(rad + 0.6) * 4);
+            ctx.moveTo(tax, tay);
+            ctx.lineTo(tax + Math.cos(rad - 0.6) * 4, tay + Math.sin(rad - 0.6) * 4);
+          }
           ctx.stroke();
         }
       }
-      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-      ctx.font = "bold 13px system-ui";
-      ctx.fillText("❄️ Solid Crystal Lattice Forming", 195, 330);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 12px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 8;
+      ctx.fillText("❄️ SOLID CRYSTALLINE LATTICE (PHASE EQUILIBRIUM)", beakerX + beakerW / 2, liquidMeniscusY + 85);
+      ctx.shadowBlur = 0;
+      ctx.restore();
     }
 
-    // Draw Particles (Solvent + Dissociated Ions) strictly clipped inside beaker
+    // 5. Draw Particles (Solvent Molecules & Dissociated Solute Ions)
     ctx.save();
     ctx.beginPath();
-    ctx.roundRect(166, 221, 248, 213, [0, 0, 13, 13]);
+    ctx.roundRect(beakerX + 6, liquidMeniscusY + 5, beakerW - 12, beakerH - 56, [0, 0, 14, 14]);
     ctx.clip();
 
+    // Solvent particles
+    const particleMobility = solutionTemp > tf ? 1.0 : 0.15;
     particles.forEach(p => {
-      p.x += p.vx * (solutionTemp > tf ? 1 : 0.15);
-      p.y += p.vy * (solutionTemp > tf ? 1 : 0.15);
-      if (p.x <= 178) { p.x = 178; p.vx = Math.abs(p.vx); }
-      if (p.x >= 402) { p.x = 402; p.vx = -Math.abs(p.vx); }
-      if (p.y <= 232) { p.y = 232; p.vy = Math.abs(p.vy); }
-      if (p.y >= 422) { p.y = 422; p.vy = -Math.abs(p.vy); }
+      p.x += p.vx * particleMobility;
+      p.y += p.vy * particleMobility;
+      if (p.x <= beakerX + 16) { p.x = beakerX + 16; p.vx = Math.abs(p.vx); }
+      if (p.x >= beakerX + beakerW - 16) { p.x = beakerX + beakerW - 16; p.vx = -Math.abs(p.vx); }
+      if (p.y <= liquidMeniscusY + 12) { p.y = liquidMeniscusY + 12; p.vy = Math.abs(p.vy); }
+      if (p.y >= beakerY + beakerH - 16) { p.y = beakerY + beakerH - 16; p.vy = -Math.abs(p.vy); }
 
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
       ctx.fill();
     });
 
-    // Draw Solute Dissociated Ions based on molality
-    const numSoluteIons = Math.min(60, Math.floor(molality * 18));
+    // Dissociated Solute Ions (van 't Hoff particles i · m)
+    const numSoluteIons = Math.min(65, Math.floor(molality * 18));
     for (let i = 0; i < numSoluteIons; i++) {
       const angle = (simTime * 0.05 + i * 1.618) % (Math.PI * 2);
-      const px = 290 + Math.cos(angle + i) * (60 + (i % 5) * 16);
-      const py = 325 + Math.sin(angle * 1.5 + i) * (40 + (i % 4) * 14);
+      const px = beakerX + beakerW / 2 + Math.cos(angle + i) * (65 + (i % 5) * 15);
+      const py = liquidMeniscusY + 100 + Math.sin(angle * 1.5 + i) * (45 + (i % 4) * 14);
 
       const isCation = i % 2 === 0;
       ctx.beginPath();
@@ -355,65 +556,120 @@ export function initColligativeLab(containerId) {
 
       // Symbol
       ctx.fillStyle = "#ffffff";
-      ctx.font = "8px sans-serif";
+      ctx.font = "bold 7.5px sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(isCation ? sol.cation.substring(0, 3) : (sol.anion.substring(0, 3) || "Sol"), px, py);
     }
     ctx.restore();
 
-    // Digital Immersion Thermometer
-    ctx.fillStyle = "#334155";
-    ctx.fillRect(280, 60, 16, 260);
-    ctx.fillStyle = "#ef4444";
+    // 6. Precision Digital Immersion RTD Thermometer Probe
+    const probeX = beakerX + beakerW / 2;
+    const probeY = 50;
+    const probeLen = 270;
+
+    ctx.save();
+    // Stainless steel probe shaft
+    const shaftGrad = ctx.createLinearGradient(probeX - 5, 0, probeX + 5, 0);
+    shaftGrad.addColorStop(0, "#64748b");
+    shaftGrad.addColorStop(0.4, "#f8fafc");
+    shaftGrad.addColorStop(0.8, "#94a3b8");
+    shaftGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = shaftGrad;
+    ctx.fillRect(probeX - 5, probeY + 45, 10, probeLen);
+
+    // Platinum RTD sensor tip
+    ctx.fillStyle = "#cbd5e1";
     ctx.beginPath();
-    ctx.arc(288, 320, 12, 0, Math.PI * 2);
+    ctx.arc(probeX, probeY + 45 + probeLen, 6, 0, Math.PI * 2);
     ctx.fill();
 
-    // Thermometer mercury column
-    const mercuryHeight = Math.max(10, Math.min(220, (solutionTemp + 30) * 3));
-    ctx.fillStyle = "#f43f5e";
-    ctx.fillRect(284, 320 - mercuryHeight, 8, mercuryHeight);
+    // Digital Display Head at top of probe
+    const headW = 90;
+    const headH = 46;
+    ctx.fillStyle = "#0f172a";
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(probeX - headW / 2, probeY, headW, headH, 6);
+    ctx.fill();
+    ctx.stroke();
 
-    // Magnetic Stirrer in beaker bottom
+    // Backlit OLED Screen
+    ctx.fillStyle = "#020617";
+    ctx.fillRect(probeX - headW / 2 + 6, probeY + 6, headW - 12, headH - 12);
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "800 13px 'JetBrains Mono', monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "alphabetic";
+    ctx.fillText(`${solutionTemp.toFixed(2)} °C`, probeX, probeY + 26);
+    ctx.font = "bold 6.5px 'JetBrains Mono', monospace";
+    ctx.fillStyle = "#34d399";
+    ctx.fillText("RTD PT100 CALIBRATED", probeX, probeY + 36);
+    ctx.restore();
+
+    // 7. Magnetic Stirrer & Rotating PTFE Stir Bar
     const stirAngle = simTime * 0.2;
     ctx.save();
-    ctx.translate(290, 420);
+    ctx.translate(beakerX + beakerW / 2, beakerY + beakerH - 20);
     ctx.rotate(stirAngle);
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(-22, -4, 44, 8);
+    // PTFE white magnetic flea with center pivot ring
+    ctx.fillStyle = "#f8fafc";
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(-24, -5, 48, 10, 4);
+    ctx.fill();
+    ctx.stroke();
+    // Center ring
+    ctx.fillStyle = "#cbd5e1";
+    ctx.fillRect(-3, -6, 6, 12);
     ctx.restore();
 
     // Labels
     ctx.fillStyle = "#94a3b8";
-    ctx.font = "11px system-ui";
+    ctx.font = "10px Inter, sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("Insulated Thermal Bath", 90, 160);
-    ctx.fillText(`Bath Temp: ${bathTemp.toFixed(1)} °C`, 90, 175);
-    ctx.fillText(`Solvent: ${s.name}`, 175, 205);
+    ctx.fillText("Insulated Thermal Bath Chamber", cryoX + 12, cryoY + 16);
+    ctx.fillText(`Bath Temp: ${bathTemp.toFixed(1)} °C`, cryoX + 12, cryoY + 30);
+    ctx.fillText(`Solvent: ${s.name}`, beakerX + 12, beakerY + 18);
+
+    ctx.restore();
   }
 
   // Draw Real-time Chart
   function drawChart() {
-    chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const cRect = chartCanvas.getBoundingClientRect();
+    const cw = cRect.width > 0 ? cRect.width : chartLogicalW;
+    const ch = cRect.height > 0 ? cRect.height : chartLogicalH;
+
+    chartCtx.save();
+    chartCtx.resetTransform();
+    chartCtx.scale(dpr * (cw / chartLogicalW), dpr * (ch / chartLogicalH));
+    chartCtx.clearRect(0, 0, chartLogicalW, chartLogicalH);
+
+    const W = chartLogicalW;
+    const H = chartLogicalH;
     const { s, tf } = getParameters();
 
     // Background Grid
     chartCtx.fillStyle = "#030712";
-    chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+    chartCtx.fillRect(0, 0, W, H);
     chartCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     chartCtx.lineWidth = 1;
 
-    for (let x = 40; x < chartCanvas.width; x += 40) {
+    for (let x = 40; x < W; x += 40) {
       chartCtx.beginPath();
       chartCtx.moveTo(x, 10);
-      chartCtx.lineTo(x, chartCanvas.height - 25);
+      chartCtx.lineTo(x, H - 25);
       chartCtx.stroke();
     }
-    for (let y = 15; y < chartCanvas.height - 25; y += 30) {
+    for (let y = 15; y < H - 25; y += 30) {
       chartCtx.beginPath();
       chartCtx.moveTo(40, y);
-      chartCtx.lineTo(chartCanvas.width - 15, y);
+      chartCtx.lineTo(W - 15, y);
       chartCtx.stroke();
     }
 
@@ -422,33 +678,33 @@ export function initColligativeLab(containerId) {
     chartCtx.lineWidth = 1.5;
     chartCtx.beginPath();
     chartCtx.moveTo(40, 10);
-    chartCtx.lineTo(40, chartCanvas.height - 25);
-    chartCtx.lineTo(chartCanvas.width - 15, chartCanvas.height - 25);
+    chartCtx.lineTo(40, H - 25);
+    chartCtx.lineTo(W - 15, H - 25);
     chartCtx.stroke();
 
     // Axis Labels
     chartCtx.fillStyle = "#94a3b8";
-    chartCtx.font = "10px var(--font-mono, monospace)";
+    chartCtx.font = "9.5px 'JetBrains Mono', monospace";
     chartCtx.textAlign = "right";
     chartCtx.fillText("25°C", 35, 25);
     chartCtx.fillText("0°C", 35, 95);
     chartCtx.fillText("-20°C", 35, 145);
 
     chartCtx.textAlign = "center";
-    chartCtx.fillText("Time elapsed (s)", chartCanvas.width / 2, chartCanvas.height - 6);
+    chartCtx.fillText("Time elapsed (s) ➔", W / 2, H - 6);
 
-    // Draw Freezing Point Reference Line
+    // Draw Freezing Point Reference Line (Plateau)
     const yTf = 95 - (tf / 25) * 55;
-    chartCtx.strokeStyle = "rgba(192, 132, 252, 0.6)";
+    chartCtx.strokeStyle = "rgba(192, 132, 252, 0.75)";
     chartCtx.setLineDash([4, 4]);
     chartCtx.beginPath();
     chartCtx.moveTo(40, yTf);
-    chartCtx.lineTo(chartCanvas.width - 15, yTf);
+    chartCtx.lineTo(W - 15, yTf);
     chartCtx.stroke();
     chartCtx.setLineDash([]);
     chartCtx.fillStyle = "#c084fc";
     chartCtx.textAlign = "left";
-    chartCtx.fillText(`T_f = ${tf.toFixed(1)}°C`, 45, yTf - 4);
+    chartCtx.fillText(`T_f = ${tf.toFixed(2)} °C (Plateau)`, 45, yTf - 4);
 
     // Plot Temperature Curve
     if (coolingHistory.length > 1) {
@@ -457,13 +713,26 @@ export function initColligativeLab(containerId) {
       chartCtx.beginPath();
 
       coolingHistory.forEach((pt, idx) => {
-        const px = 40 + (pt.time / Math.max(60, simTime)) * (chartCanvas.width - 60);
+        const px = 40 + (pt.time / Math.max(60, simTime)) * (W - 60);
         const py = 95 - (pt.temp / 25) * 55;
         if (idx === 0) chartCtx.moveTo(px, py);
         else chartCtx.lineTo(px, py);
       });
       chartCtx.stroke();
+
+      // Current operating point on curve
+      const lastPt = coolingHistory[coolingHistory.length - 1];
+      const curX = 40 + (lastPt.time / Math.max(60, simTime)) * (W - 60);
+      const curY = 95 - (lastPt.temp / 25) * 55;
+      chartCtx.fillStyle = "#facc15";
+      chartCtx.shadowColor = "#facc15";
+      chartCtx.shadowBlur = 6;
+      chartCtx.beginPath();
+      chartCtx.arc(curX, curY, 4.5, 0, Math.PI * 2);
+      chartCtx.fill();
+      chartCtx.shadowBlur = 0;
     }
+    chartCtx.restore();
   }
 
   // Physics Step
@@ -646,5 +915,6 @@ export function initColligativeLab(containerId) {
     isRunning = false;
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }

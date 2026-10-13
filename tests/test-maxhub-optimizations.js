@@ -218,8 +218,8 @@ console.log("  ✅ PASS: Search input debounced against layout thrashing; smartb
 // ----------------------------------------------------
 console.log("\n🔬 Test 11: All Virtual Lab Workbenches Disconnect Guards");
 const labFiles = fs.readdirSync(path.join(rootDir, "labs"))
-  .filter(f => f.startsWith("bio-") || f.startsWith("chem-") || f.startsWith("phys-"));
-assert(labFiles.length >= 44, `Expected at least 44 virtual lab modules, found ${labFiles.length}`);
+  .filter(f => f.startsWith("bio-") || f.startsWith("chem-") || f.startsWith("phys-") || f === "anatomy-atlas.js");
+assert(labFiles.length === 46, `Expected exactly 46 virtual lab modules, found ${labFiles.length}`);
 for (const f of labFiles) {
   const code = fs.readFileSync(path.join(rootDir, "labs", f), "utf-8");
   assert(
@@ -242,7 +242,7 @@ for (const f of labFiles) {
     }
   });
 }
-console.log("  ✅ PASS: Zero unshielded window.devicePixelRatio allocations; all 35 labs route through getLabDPR()");
+console.log(`  ✅ PASS: Zero unshielded window.devicePixelRatio allocations; all ${labFiles.length} labs route through getLabDPR()`);
 
 // ----------------------------------------------------
 // Test 13: Classroom Stopwatch & Exam Timer Lifecycle Protections

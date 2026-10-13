@@ -210,6 +210,26 @@ export function initPhotosynthesisLab(containerId) {
   const spectrumCanvas = document.getElementById("spectrum-canvas");
   const sctx = spectrumCanvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+  const spectrumLogicalW = 460;
+  const spectrumLogicalH = 135;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+    if (spectrumCanvas) {
+      spectrumCanvas.width = Math.round(spectrumLogicalW * dpr);
+      spectrumCanvas.height = Math.round(spectrumLogicalH * dpr);
+    }
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   // Calculate Photosynthetic Rate
   function calculateRates() {
     if (apparatusMode === "photosynthesis") {
@@ -250,10 +270,14 @@ export function initPhotosynthesisLab(containerId) {
   }
 
   function renderPhotosynthesisChamber() {
-    const w = canvas.width;
-    const h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
+    const w = logicalW;
+    const h = logicalH;
     const cx = w / 2 - 20;
 
     // 1. Lamp illumination cone on the left
@@ -379,13 +403,18 @@ export function initPhotosynthesisLab(containerId) {
       }
     }
     ctx.restore();
+    ctx.restore();
   }
 
   function renderRespirationChamber() {
-    const w = canvas.width;
-    const h = canvas.height;
-    ctx.clearRect(0, 0, w, h);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
+    const w = logicalW;
+    const h = logicalH;
     const cx = w / 2;
 
     // Respirometer Vials & Manometer Tube
@@ -452,12 +481,18 @@ export function initPhotosynthesisLab(containerId) {
     ctx.font = "bold 11px var(--font-mono, monospace)";
     ctx.fillText(`Δh = ${displacement.toFixed(1)} mm`, cx + 160, 260);
     ctx.restore();
+    ctx.restore();
   }
 
   function renderSpectrumGraph() {
-    const sw = spectrumCanvas.width;
-    const sh = spectrumCanvas.height;
-    sctx.clearRect(0, 0, sw, sh);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    sctx.save();
+    sctx.resetTransform();
+    sctx.scale(dpr, dpr);
+    sctx.clearRect(0, 0, spectrumLogicalW, spectrumLogicalH);
+
+    const sw = spectrumLogicalW;
+    const sh = spectrumLogicalH;
 
     // Spectrum Color Gradient along the bottom axis
     const grad = sctx.createLinearGradient(40, 0, sw - 10, 0);
@@ -534,6 +569,8 @@ export function initPhotosynthesisLab(containerId) {
     sctx.fillText("— Chl a", 55, 26);
     sctx.fillStyle = "#4ade80";
     sctx.fillText("-- Chl b", 125, 26);
+
+    sctx.restore();
   }
 
   function updateHUD() {
@@ -768,6 +805,7 @@ export function initPhotosynthesisLab(containerId) {
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
   activePhotosynthesisCleanup = cleanup;
   return cleanup;

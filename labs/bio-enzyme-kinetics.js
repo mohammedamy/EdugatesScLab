@@ -56,16 +56,20 @@ export function initEnzymeLab(containerId) {
   let animId = null;
   let elapsedSeconds = 0;
 
-  // Visual active site enzyme particles - strict physical containment
+  // Visual active site enzyme particles & catalytic products
   const substrateParticles = [];
+  const productParticles = [];
   function initSubstrateParticles() {
     substrateParticles.length = 0;
-    for (let i = 0; i < 28; i++) {
+    productParticles.length = 0;
+    for (let i = 0; i < 32; i++) {
       substrateParticles.push({
         x: 60 + Math.random() * 460,
         y: 60 + Math.random() * 320,
-        vx: (Math.random() - 0.5) * 2,
-        vy: (Math.random() - 0.5) * 2,
+        vx: (Math.random() - 0.5) * 1.8,
+        vy: (Math.random() - 0.5) * 1.8,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.08,
         isBound: false
       });
     }
@@ -293,6 +297,31 @@ export function initEnzymeLab(containerId) {
   const graphCanvas = container.querySelector("#enz-graph-canvas");
   const graphCtx = graphCanvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+  const graphLogicalW = 420;
+  const graphLogicalH = 120;
+  let graphNeedsRedraw = true;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+
+    const gRect = graphCanvas.getBoundingClientRect();
+    const gw = gRect.width > 0 ? gRect.width : graphLogicalW;
+    const gh = gRect.height > 0 ? gRect.height : graphLogicalH;
+    graphCanvas.width = Math.round(gw * dpr);
+    graphCanvas.height = Math.round(gh * dpr);
+    graphNeedsRedraw = true;
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   // DOM Elements
   const dispV0 = container.querySelector("#disp-enz-v0");
   const dispVmax = container.querySelector("#disp-enz-vmax");
@@ -329,122 +358,359 @@ export function initEnzymeLab(containerId) {
 
   // 60 FPS HTML5 Simulation of Globular Enzyme with Active Site Cleft
   function renderApparatus() {
-    const W = canvas.width;
-    const H = canvas.height;
-    ctx.clearRect(0, 0, W, H);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width > 0 ? rect.width : logicalW;
+    const h = rect.height > 0 ? rect.height : logicalH;
 
-    const CX = W * 0.48;
-    const CY = 260;
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
-    // Outer Cytoplasmic Solution Glow
-    const bgGrad = ctx.createRadialGradient(CX, CY, 40, CX, CY, 220);
-    bgGrad.addColorStop(0, "rgba(99, 102, 241, 0.15)");
-    bgGrad.addColorStop(1, "transparent");
-    ctx.fillStyle = bgGrad;
-    ctx.fillRect(0, 0, W, H);
-
-    // Large Globular Enzyme Protein
+    const CX = logicalW * 0.48;
+    const CY = 265;
     const isDenatured = temperature > 55;
-    ctx.fillStyle = isDenatured ? "#475569" : "#4f46e5";
-    ctx.strokeStyle = isDenatured ? "#64748b" : "#818cf8";
-    ctx.lineWidth = 3;
+    const { V0 } = getKineticParameters();
 
+    // 1. Outer Cytoplasmic Solution Environment
+    const bgGrad = ctx.createRadialGradient(CX, CY, 40, CX, CY, 260);
+    bgGrad.addColorStop(0, "rgba(99, 102, 241, 0.18)");
+    bgGrad.addColorStop(0.65, "rgba(49, 46, 129, 0.08)");
+    bgGrad.addColorStop(1, "rgba(2, 6, 23, 0)");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, logicalW, logicalH);
+
+    // Organelle boundary contour lines in background
+    ctx.strokeStyle = "rgba(99, 102, 241, 0.08)";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    if (!isDenatured) {
-      // Intact globular structure with active site cleft at top-center
-      ctx.moveTo(CX - 120, CY);
-      ctx.bezierCurveTo(CX - 130, CY - 90, CX - 60, CY - 110, CX - 30, CY - 80);
-      // Active Site Cleft Indentation
-      ctx.bezierCurveTo(CX - 25, CY - 40, CX - 15, CY - 20, CX, CY - 20);
-      ctx.bezierCurveTo(CX + 15, CY - 20, CX + 25, CY - 40, CX + 30, CY - 80);
-      // Right Lobe
-      ctx.bezierCurveTo(CX + 60, CY - 110, CX + 130, CY - 90, CX + 120, CY);
-      // Bottom Curve
-      ctx.bezierCurveTo(CX + 110, CY + 100, CX - 110, CY + 100, CX - 120, CY);
-    } else {
-      // Unfolded denatured tangled polypeptide strand
-      ctx.moveTo(CX - 120, CY);
-      ctx.lineTo(CX - 80, CY - 60);
-      ctx.lineTo(CX - 30, CY + 40);
-      ctx.lineTo(CX + 40, CY - 70);
-      ctx.lineTo(CX + 110, CY + 20);
-    }
-    ctx.closePath();
-    ctx.fill();
+    ctx.arc(CX - 180, CY - 120, 160, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(CX + 200, CY + 140, 180, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Enzyme Name Label
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 13px system-ui";
-    ctx.textAlign = "center";
-    ctx.fillText(activeEnzyme.name, CX, CY + 40);
-    ctx.font = "10px monospace";
-    ctx.fillStyle = "#cbd5e1";
-    ctx.fillText(isDenatured ? "DENATURED POLYPEPTIDE" : "ACTIVE SITE CLEFT (Top)", CX, CY + 58);
+    // 2. 3D Globular Enzyme Protein Architecture
+    ctx.save();
+    // Drop shadow under enzyme
+    const shadowGrad = ctx.createRadialGradient(CX, CY + 30, 40, CX, CY + 30, 150);
+    shadowGrad.addColorStop(0, "rgba(0, 0, 0, 0.55)");
+    shadowGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+    ctx.fillStyle = shadowGrad;
+    ctx.fillRect(CX - 170, CY - 100, 340, 260);
 
-    // Substrate Particles [S] Floating & Colliding
-    const { V0 } = getKineticParameters();
-    const particleSpeed = Math.min(4, 0.8 + V0 * 0.05);
+    if (!isDenatured) {
+      // Intact folded tertiary globular enzyme with catalytic domain and allosteric pocket
+      const cleftPinch = (inhibitorType === "noncompetitive" && inhibitorConc > 0) ? 14 : (substrateConc > 0.5 ? -4 : 0);
 
-    // Triple-layer substrate particle containment: Canvas clip + physical clamping + directional reflection
+      // 3D Spherical protein surface gradient
+      const enzGrad = ctx.createRadialGradient(CX - 40, CY - 30, 20, CX, CY, 160);
+      enzGrad.addColorStop(0, "#818cf8"); // Specular highlight lobe
+      enzGrad.addColorStop(0.35, "#6366f1"); // Primary protein mantle
+      enzGrad.addColorStop(0.75, "#4338ca");
+      enzGrad.addColorStop(1, "#312e81"); // Deep shadow contour
+
+      ctx.fillStyle = enzGrad;
+      ctx.strokeStyle = "#a5b4fc";
+      ctx.lineWidth = 2.5;
+
+      ctx.beginPath();
+      // Left Catalytic Lobe
+      ctx.moveTo(CX - 130, CY);
+      ctx.bezierCurveTo(CX - 145, CY - 90, CX - 70, CY - 125, CX - 35, CY - 90);
+
+      // Active Site Catalytic Cleft (Top Center)
+      ctx.bezierCurveTo(
+        CX - 30 + cleftPinch, CY - 45,
+        CX - 18 + cleftPinch, CY - 22,
+        CX, CY - 20
+      );
+      ctx.bezierCurveTo(
+        CX + 18 - cleftPinch, CY - 22,
+        CX + 30 - cleftPinch, CY - 45,
+        CX + 35, CY - 90
+      );
+
+      // Right Catalytic Lobe
+      ctx.bezierCurveTo(CX + 70, CY - 125, CX + 145, CY - 90, CX + 130, CY);
+
+      // Allosteric Regulatory Pocket (Right Side Inset)
+      ctx.bezierCurveTo(CX + 135, CY + 30, CX + 110, CY + 55, CX + 85, CY + 50);
+      ctx.bezierCurveTo(CX + 70, CY + 48, CX + 70, CY + 75, CX + 85, CY + 80);
+
+      // Bottom Base
+      ctx.bezierCurveTo(CX + 110, CY + 110, CX - 110, CY + 110, CX - 130, CY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Secondary structural Alpha-Helix ribbon contours across the surface
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(CX - 100, CY - 30);
+      ctx.bezierCurveTo(CX - 75, CY - 60, CX - 50, CY - 15, CX - 25, CY - 50);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(CX + 30, CY - 50);
+      ctx.bezierCurveTo(CX + 55, CY - 15, CX + 80, CY - 60, CX + 105, CY - 30);
+      ctx.stroke();
+
+      // Catalytic Triad Amino Acid Side Chains lining the active site cleft
+      const residues = [
+        { label: "Ser195", x: CX - 14, y: CY - 30, color: "#38bdf8" },
+        { label: "His57", x: CX, y: CY - 26, color: "#34d399" },
+        { label: "Asp102", x: CX + 14, y: CY - 30, color: "#f59e0b" }
+      ];
+      residues.forEach(r => {
+        ctx.fillStyle = r.color;
+        ctx.shadowColor = r.color;
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      // Allosteric Regulatory Site Indicator
+      ctx.fillStyle = "#c084fc";
+      ctx.font = "bold 7.5px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("ALLOSTERIC SITE", CX + 82, CY + 68);
+
+      // Enzyme Label & Status
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 13px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(activeEnzyme.name, CX, CY + 25);
+
+      ctx.fillStyle = "#cbd5e1";
+      ctx.font = "9px 'JetBrains Mono', monospace";
+      ctx.fillText("ACTIVE SITE CATALYTIC TRIAD", CX, CY + 42);
+      ctx.fillText(`SUBSTRATE: ${activeEnzyme.substrate}`, CX, CY + 56);
+    } else {
+      // Unfolded denatured tangled polypeptide strand
+      ctx.strokeStyle = "#f43f5e";
+      ctx.lineWidth = 3.5;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      ctx.beginPath();
+      ctx.moveTo(CX - 140, CY + 20);
+      ctx.bezierCurveTo(CX - 110, CY - 80, CX - 60, CY + 60, CX - 20, CY - 50);
+      ctx.bezierCurveTo(CX + 20, CY + 50, CX + 60, CY - 70, CX + 110, CY + 30);
+      ctx.bezierCurveTo(CX + 130, CY + 80, CX + 160, CY - 20, CX + 140, CY - 60);
+      ctx.stroke();
+
+      // Denaturation sparks
+      for (let s = 0; s < 8; s++) {
+        const sx = CX - 100 + s * 28 + Math.sin(elapsedSeconds * 4 + s) * 6;
+        const sy = CY + Math.cos(elapsedSeconds * 4 + s) * 35;
+        ctx.fillStyle = "#fb7185";
+        ctx.beginPath();
+        ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.fillStyle = "#fb7185";
+      ctx.font = "bold 13px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("DENATURED POLYPEPTIDE CHAIN", CX, CY + 65);
+      ctx.font = "9px 'JetBrains Mono', monospace";
+      ctx.fillText("Tertiary & Secondary Folding Destroyed", CX, CY + 82);
+    }
+    ctx.restore();
+
+    // 3. Substrate Particles [S] Floating & Colliding in Cytosol
+    const particleSpeed = Math.min(4.5, 0.9 + V0 * 0.05);
+
     ctx.save();
     ctx.beginPath();
-    ctx.rect(20, 20, W - 40, H - 40);
+    ctx.rect(20, 20, logicalW - 40, logicalH - 40);
     ctx.clip();
 
-    ctx.fillStyle = "#facc15"; // Substrate yellow
     substrateParticles.forEach(p => {
       p.x += p.vx * particleSpeed;
       p.y += p.vy * particleSpeed;
+      p.rot += p.rotSpeed;
 
-      // Absolute physical clamping inside reaction vessel
-      const minX = 28;
-      const maxX = W - 28;
-      const minY = 28;
-      const maxY = H - 28;
+      // Absolute physical clamping inside vessel
+      const minX = 30;
+      const maxX = logicalW - 30;
+      const minY = 30;
+      const maxY = logicalH - 30;
 
-      if (p.x <= minX) {
-        p.x = minX;
-        p.vx = Math.abs(p.vx);
-      } else if (p.x >= maxX) {
-        p.x = maxX;
-        p.vx = -Math.abs(p.vx);
+      if (p.x <= minX) { p.x = minX; p.vx = Math.abs(p.vx); }
+      else if (p.x >= maxX) { p.x = maxX; p.vx = -Math.abs(p.vx); }
+      if (p.y <= minY) { p.y = minY; p.vy = Math.abs(p.vy); }
+      else if (p.y >= maxY) { p.y = maxY; p.vy = -Math.abs(p.vy); }
+
+      // Electrostatic steering toward active site cleft if nearby
+      if (!isDenatured && inhibitorType !== "competitive") {
+        const dx = CX - p.x;
+        const dy = (CY - 30) - p.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 80 && dist > 15) {
+          p.vx += (dx / dist) * 0.25;
+          p.vy += (dy / dist) * 0.25;
+        }
       }
 
-      if (p.y <= minY) {
-        p.y = minY;
-        p.vy = Math.abs(p.vy);
-      } else if (p.y >= maxY) {
-        p.y = maxY;
-        p.vy = -Math.abs(p.vy);
-      }
+      // Draw Molecular Chemical Model of Substrate
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
 
-      // Draw Substrate Key
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 4.5, 0, Math.PI * 2);
-      ctx.fill();
+      if (currentEnzymeKey === "catalase") {
+        // H2O2: Dual Red Oxygen Spheres with Covalent Bond and White Hydrogens
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-5, 0);
+        ctx.lineTo(5, 0);
+        ctx.stroke();
+
+        ctx.fillStyle = "#ef4444";
+        ctx.beginPath();
+        ctx.arc(-5, 0, 4, 0, Math.PI * 2);
+        ctx.arc(5, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#f8fafc";
+        ctx.beginPath();
+        ctx.arc(-9, -4, 2.2, 0, Math.PI * 2);
+        ctx.arc(9, 4, 2.2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Sugar Hexagonal Ring Molecule
+        ctx.fillStyle = "#facc15";
+        ctx.strokeStyle = "#ca8a04";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        for (let a = 0; a < 6; a++) {
+          const ang = (a * Math.PI) / 3;
+          const hx = Math.cos(ang) * 5.5;
+          const hy = Math.sin(ang) * 5.5;
+          if (a === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
+      ctx.restore();
     });
     ctx.restore();
 
-    // Bound Substrate in Active Site
-    if (!isDenatured && substrateConc > 0.5) {
-      ctx.fillStyle = "#facc15";
+    // 4. Bound State, Transition State, and Product Generation
+    if (!isDenatured) {
+      if (inhibitorType === "competitive") {
+        // Competitive inhibitor docked directly in the active site cleft!
+        ctx.save();
+        ctx.fillStyle = "#ef4444";
+        ctx.strokeStyle = "#b91c1c";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.rect(CX - 12, CY - 40, 24, 16);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 7.5px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("BLOCKED", CX, CY - 30);
+        ctx.restore();
+      } else if (substrateConc > 0.5) {
+        // Substrate bound in active site: Induced Fit Complex (ES)
+        ctx.save();
+        const complexGrad = ctx.createRadialGradient(CX, CY - 30, 2, CX, CY - 30, 16);
+        complexGrad.addColorStop(0, "#fde047");
+        complexGrad.addColorStop(0.7, "#eab308");
+        complexGrad.addColorStop(1, "rgba(234, 179, 8, 0)");
+        ctx.fillStyle = complexGrad;
+        ctx.beginPath();
+        ctx.arc(CX, CY - 30, 14, 0, Math.PI * 2);
+        ctx.fill();
+
+        // High-energy transition state aura
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(CX, CY - 30, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Spawn catalytic products
+        if (V0 > 5 && Math.random() > 0.4) {
+          productParticles.push({
+            x: CX + (Math.random() - 0.5) * 10,
+            y: CY - 38,
+            vx: (Math.random() - 0.5) * 3,
+            vy: -2 - Math.random() * 2.5,
+            alpha: 1.0,
+            color: "#22c55e"
+          });
+        }
+        ctx.restore();
+      }
+
+      // Non-Competitive Inhibitor in Allosteric Pocket
+      if (inhibitorType === "noncompetitive" && inhibitorConc > 0) {
+        ctx.save();
+        ctx.fillStyle = "#ec4899";
+        ctx.strokeStyle = "#be185d";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(CX + 80, CY + 60, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 6.5px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("ALLOST", CX + 80, CY + 62);
+        ctx.restore();
+      }
+    }
+
+    // 5. Render Flying Product Particles
+    ctx.save();
+    for (let p = productParticles.length - 1; p >= 0; p--) {
+      const prod = productParticles[p];
+      prod.x += prod.vx;
+      prod.y += prod.vy;
+      prod.alpha *= 0.94;
+
+      ctx.fillStyle = `rgba(34, 197, 94, ${prod.alpha.toFixed(2)})`;
+      ctx.shadowColor = "#22c55e";
+      ctx.shadowBlur = 6;
       ctx.beginPath();
-      ctx.arc(CX, CY - 30, 8, 0, Math.PI * 2);
+      ctx.arc(prod.x, prod.y, 3, 0, Math.PI * 2);
       ctx.fill();
 
-      // Product Formation Sparkles
-      ctx.fillStyle = "#22c55e";
-      ctx.font = "bold 11px system-ui";
-      ctx.fillText("+ PRODUCT", CX, CY - 50);
+      if (prod.alpha < 0.05) {
+        productParticles.splice(p, 1);
+      }
     }
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    ctx.restore();
   }
 
   // Render Kinetic Graph (Michaelis-Menten or Lineweaver-Burk)
   function renderGraph() {
-    const W = graphCanvas.width;
-    const H = graphCanvas.height;
-    graphCtx.clearRect(0, 0, W, H);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    const gRect = graphCanvas.getBoundingClientRect();
+    const gw = gRect.width > 0 ? gRect.width : graphLogicalW;
+    const gh = gRect.height > 0 ? gRect.height : graphLogicalH;
+
+    graphCtx.save();
+    graphCtx.resetTransform();
+    graphCtx.scale(dpr * (gw / graphLogicalW), dpr * (gh / graphLogicalH));
+    graphCtx.clearRect(0, 0, graphLogicalW, graphLogicalH);
+
+    const W = graphLogicalW;
+    const H = graphLogicalH;
 
     const padL = 40;
     const padB = 25;
@@ -495,9 +761,12 @@ export function initEnzymeLab(containerId) {
       const curX = padL + (substrateConc / maxS) * plotW;
       const curY = (H - padB) - (V0 / maxV) * plotH;
       graphCtx.fillStyle = "#facc15";
+      graphCtx.shadowColor = "#facc15";
+      graphCtx.shadowBlur = 6;
       graphCtx.beginPath();
-      graphCtx.arc(curX, curY, 5, 0, Math.PI * 2);
+      graphCtx.arc(curX, curY, 4.5, 0, Math.PI * 2);
       graphCtx.fill();
+      graphCtx.shadowBlur = 0;
 
       // Labels
       graphCtx.fillStyle = "#94a3b8";
@@ -509,7 +778,6 @@ export function initEnzymeLab(containerId) {
       graphCtx.fillText("Substrate [S] (mM) ➔", W / 2, H - 6);
     } else {
       // Lineweaver-Burk Double Reciprocal: 1/V vs 1/[S]
-      // 1/V = (Km/Vmax) * (1/S) + (1/Vmax)
       const invV_intercept = 1 / Math.max(0.1, Vmax);
       const invS_max = 2.5; // (1 / 0.4 mM)
       const invV_max = invV_intercept + (Km / Vmax) * invS_max;
@@ -534,12 +802,13 @@ export function initEnzymeLab(containerId) {
       graphCtx.textAlign = "center";
       graphCtx.fillText("1 / [S] (mM⁻¹) ➔", W / 2, H - 6);
     }
+    graphCtx.restore();
   }
 
   // Animation Loop
   let lastTime = performance.now();
   let lastFrameTime = 0;
-  let graphNeedsRedraw = true;
+  graphNeedsRedraw = true;
 
   function loop(currentTime) {
     if (!container || !container.isConnected) {
@@ -741,6 +1010,7 @@ export function initEnzymeLab(containerId) {
   const cleanup = () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
   activeEnzymeCleanup = cleanup;
   return cleanup;

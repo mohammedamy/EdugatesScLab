@@ -381,6 +381,19 @@ export function initOsmosisLab(containerId) {
   const photoTonicity = document.getElementById("photo-tonicity");
   const tableBody = document.getElementById("telemetry-table-body");
 
+  // Canvas Setup & HiDPI Scaling
+  const logicalW = 940;
+  const logicalH = 500;
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   function logTrial() {
     const data = calculateWaterPotentials();
     trialLogs.unshift({
@@ -420,41 +433,112 @@ export function initOsmosisLab(containerId) {
   function drawUtube(data) {
     if (!ctx) return;
 
-    const uLeftX = 220;
-    const uRightX = 420;
+    // Workbench Stand & Floor Background
+    const floorY = 460;
+    ctx.fillStyle = "#0c1322";
+    ctx.fillRect(40, 40, 520, 420);
+
+    // Grid lines on bench backing
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.04)";
+    ctx.lineWidth = 1;
+    for (let gx = 60; gx <= 540; gx += 30) {
+      ctx.beginPath();
+      ctx.moveTo(gx, 50);
+      ctx.lineTo(gx, floorY);
+      ctx.stroke();
+    }
+    for (let gy = 60; gy <= floorY; gy += 30) {
+      ctx.beginPath();
+      ctx.moveTo(50, gy);
+      ctx.lineTo(550, gy);
+      ctx.stroke();
+    }
+
+    // Cast Iron Stand Base & Rod
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#334155";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(140, floorY - 14, 300, 16, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // Chrome upright support rod behind center
+    const rodGrad = ctx.createLinearGradient(285, 60, 295, 60);
+    rodGrad.addColorStop(0, "#475569");
+    rodGrad.addColorStop(0.5, "#94a3b8");
+    rodGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = rodGrad;
+    ctx.fillRect(286, 60, 8, floorY - 74);
+
+    // Clamps holding the U-tube
+    [160, 310].forEach(clampY => {
+      ctx.fillStyle = "#0f172a";
+      ctx.strokeStyle = "#38bdf8";
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(282, clampY, 16, 12);
+      ctx.strokeRect(282, clampY, 16, 12);
+
+      // Clamp arms reaching out
+      ctx.strokeStyle = "#64748b";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(282, clampY + 6);
+      ctx.lineTo(210, clampY + 6);
+      ctx.moveTo(298, clampY + 6);
+      ctx.lineTo(370, clampY + 6);
+      ctx.stroke();
+
+      // Red rubber jaws
+      ctx.fillStyle = "#ef4444";
+      ctx.fillRect(206, clampY + 1, 6, 10);
+      ctx.fillRect(368, clampY + 1, 6, 10);
+    });
+
+    const uLeftX = 140;
+    const uRightX = 360;
     const uWidth = 80;
-    const uBottomY = 380;
-    const uTopY = 80;
-    const baseHeight = 220;
+    const uBottomY = 410;
+    const uTopY = 90;
+    const baseHeight = 250;
 
     // Smooth approach to targetDeltaH
     currentDeltaH += (targetDeltaH - currentDeltaH) * 0.05;
 
-    const leftLevelY = baseHeight - currentDeltaH / 2;
-    const rightLevelY = baseHeight + currentDeltaH / 2;
+    const leftLevelY = Math.max(uTopY + 20, Math.min(uBottomY - 70, baseHeight - currentDeltaH / 2));
+    const rightLevelY = Math.max(uTopY + 20, Math.min(uBottomY - 70, baseHeight + currentDeltaH / 2));
 
     // 1. Draw Liquid in U-Tube
-    // Left arm liquid
-    const leftLiqGrad = ctx.createLinearGradient(0, leftLevelY, 0, uBottomY);
-    leftLiqGrad.addColorStop(0, "rgba(56, 189, 248, 0.4)");
-    leftLiqGrad.addColorStop(1, "rgba(14, 165, 233, 0.65)");
+    // Left arm liquid (dilute, tranquil cyan)
+    const leftLiqGrad = ctx.createLinearGradient(uLeftX, 0, uLeftX + uWidth, 0);
+    leftLiqGrad.addColorStop(0, "rgba(56, 189, 248, 0.45)");
+    leftLiqGrad.addColorStop(0.2, "rgba(56, 189, 248, 0.65)");
+    leftLiqGrad.addColorStop(0.8, "rgba(14, 165, 233, 0.7)");
+    leftLiqGrad.addColorStop(1, "rgba(2, 132, 199, 0.5)");
     ctx.fillStyle = leftLiqGrad;
     ctx.fillRect(uLeftX, leftLevelY, uWidth, uBottomY - leftLevelY);
 
-    // Right arm liquid
-    const rightLiqGrad = ctx.createLinearGradient(0, rightLevelY, 0, uBottomY);
-    rightLiqGrad.addColorStop(0, "rgba(244, 63, 94, 0.4)");
-    rightLiqGrad.addColorStop(1, "rgba(225, 29, 72, 0.65)");
+    // Right arm liquid (solute-tinted rose/magenta)
+    const rightLiqGrad = ctx.createLinearGradient(uRightX, 0, uRightX + uWidth, 0);
+    rightLiqGrad.addColorStop(0, "rgba(244, 63, 94, 0.45)");
+    rightLiqGrad.addColorStop(0.2, "rgba(244, 63, 94, 0.65)");
+    rightLiqGrad.addColorStop(0.8, "rgba(225, 29, 72, 0.7)");
+    rightLiqGrad.addColorStop(1, "rgba(190, 18, 60, 0.5)");
     ctx.fillStyle = rightLiqGrad;
     ctx.fillRect(uRightX, rightLevelY, uWidth, uBottomY - rightLevelY);
 
     // Horizontal bottom connecting channel liquid
-    ctx.fillStyle = "rgba(14, 165, 233, 0.65)";
-    ctx.fillRect(uLeftX, uBottomY - 50, uRightX - uLeftX + uWidth, 50);
+    const horizGrad = ctx.createLinearGradient(uLeftX, 0, uRightX + uWidth, 0);
+    horizGrad.addColorStop(0, "rgba(14, 165, 233, 0.7)");
+    horizGrad.addColorStop(0.48, "rgba(56, 189, 248, 0.65)");
+    horizGrad.addColorStop(0.52, "rgba(244, 63, 94, 0.65)");
+    horizGrad.addColorStop(1, "rgba(225, 29, 72, 0.7)");
+    ctx.fillStyle = horizGrad;
+    ctx.fillRect(uLeftX, uBottomY - 54, uRightX - uLeftX + uWidth, 54);
 
-    // 2. Glass Tube Walls
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
-    ctx.lineWidth = 4;
+    // 2. Glass Tube Walls & Specular Highlights
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.38)";
+    ctx.lineWidth = 3.5;
     ctx.beginPath();
     // Outer glass boundary
     ctx.moveTo(uLeftX, uTopY);
@@ -463,41 +547,102 @@ export function initOsmosisLab(containerId) {
     ctx.lineTo(uRightX + uWidth, uTopY);
     // Inner glass boundary
     ctx.moveTo(uLeftX + uWidth, uTopY);
-    ctx.lineTo(uLeftX + uWidth, uBottomY - 50);
-    ctx.lineTo(uRightX, uBottomY - 50);
+    ctx.lineTo(uLeftX + uWidth, uBottomY - 54);
+    ctx.lineTo(uRightX, uBottomY - 54);
     ctx.lineTo(uRightX, uTopY);
     ctx.stroke();
 
-    // 3. Semipermeable Dialysis Membrane Disc in Center Channel
-    const memX = (uLeftX + uWidth + uRightX) / 2;
-    ctx.strokeStyle = "#fbbf24";
-    ctx.lineWidth = 6;
-    ctx.setLineDash([4, 4]); // dashed line representing pores
+    // Specular reflections along glass walls
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(memX, uBottomY - 50);
+    ctx.moveTo(uLeftX + 5, uTopY + 10);
+    ctx.lineTo(uLeftX + 5, uBottomY - 5);
+    ctx.lineTo(uRightX + uWidth - 5, uBottomY - 5);
+    ctx.lineTo(uRightX + uWidth - 5, uTopY + 10);
+    ctx.stroke();
+
+    // 3. Precision Graduated Capillary Tick Marks (-10 to +10 cm)
+    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+    ctx.font = "8px monospace";
+    ctx.textAlign = "right";
+    for (let cm = -10; cm <= 10; cm += 2) {
+      const markY = baseHeight - cm * 10;
+      if (markY >= uTopY + 15 && markY <= uBottomY - 65) {
+        // Left arm ticks
+        ctx.strokeStyle = cm === 0 ? "#38bdf8" : "rgba(255, 255, 255, 0.4)";
+        ctx.lineWidth = cm === 0 ? 2 : 1;
+        ctx.beginPath();
+        ctx.moveTo(uLeftX, markY);
+        ctx.lineTo(uLeftX + (cm % 5 === 0 ? 12 : 7), markY);
+        ctx.stroke();
+        if (cm % 5 === 0) {
+          ctx.fillText(`${cm > 0 ? "+" : ""}${cm}`, uLeftX - 3, markY + 3);
+        }
+
+        // Right arm ticks
+        ctx.textAlign = "left";
+        ctx.strokeStyle = cm === 0 ? "#f43f5e" : "rgba(255, 255, 255, 0.4)";
+        ctx.beginPath();
+        ctx.moveTo(uRightX + uWidth, markY);
+        ctx.lineTo(uRightX + uWidth - (cm % 5 === 0 ? 12 : 7), markY);
+        ctx.stroke();
+        if (cm % 5 === 0) {
+          ctx.fillText(`${cm > 0 ? "+" : ""}${cm}`, uRightX + uWidth + 4, markY + 3);
+        }
+        ctx.textAlign = "right";
+      }
+    }
+
+    // 4. Semipermeable Dialysis Membrane Joint in Center Channel
+    const memX = (uLeftX + uWidth + uRightX) / 2;
+    
+    // Metal/PTFE Flange Joint Collar
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#f59e0b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(memX - 8, uBottomY - 58, 16, 62, 3);
+    ctx.fill();
+    ctx.stroke();
+
+    // Semipermeable Membrane Porous Core
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 5;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(memX, uBottomY - 54);
     ctx.lineTo(memX, uBottomY);
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // Dialysis Membrane Callout
     ctx.fillStyle = "#fbbf24";
     ctx.font = "bold 9px monospace";
     ctx.textAlign = "center";
-    ctx.fillText("SEMIPERMEABLE", memX, uBottomY - 56);
-    ctx.fillText("MEMBRANE", memX, uBottomY + 16);
+    ctx.fillText("DIALYSIS MEMBRANE", memX, uBottomY - 64);
+    ctx.font = "8px sans-serif";
+    ctx.fillStyle = "#fde68a";
+    ctx.fillText("Pores: 2.0 nm (MWCO 3.5 kDa)", memX, uBottomY + 18);
 
-    // 4. Liquid Meniscus Lines & Height Measurement Guideline
+    // 5. Liquid Meniscus Curves with High-Luster Ellipse
+    // Left meniscus
+    ctx.fillStyle = "rgba(56, 189, 248, 0.85)";
     ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.ellipse(uLeftX + uWidth / 2, leftLevelY, uWidth / 2, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(uLeftX + uWidth / 2, leftLevelY, uWidth / 2, 7, 0, 0, Math.PI * 2);
     ctx.stroke();
 
+    // Right meniscus
+    ctx.fillStyle = "rgba(244, 63, 94, 0.85)";
     ctx.strokeStyle = "#f43f5e";
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.ellipse(uRightX + uWidth / 2, rightLevelY, uWidth / 2, 8, 0, 0, Math.PI * 2);
+    ctx.ellipse(uRightX + uWidth / 2, rightLevelY, uWidth / 2, 7, 0, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Water level height difference guideline (Δh)
+    // Height differential (Δh) guidelines & Bracket
     ctx.strokeStyle = "#facc15";
     ctx.lineWidth = 1.2;
     ctx.setLineDash([3, 3]);
@@ -508,19 +653,27 @@ export function initOsmosisLab(containerId) {
 
     ctx.beginPath();
     ctx.moveTo(uRightX, rightLevelY);
-    ctx.lineTo(uRightX + uWidth + 30, rightLevelY);
+    ctx.lineTo(uRightX + uWidth + 36, rightLevelY);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Δh arrow indicator
+    // Δh arrow & value indicator
     const dhPx = Math.abs(rightLevelY - leftLevelY);
-    if (dhPx > 8) {
-      const arrowX = uRightX + uWidth + 24;
+    if (dhPx > 4) {
+      const arrowX = uRightX + uWidth + 28;
       ctx.strokeStyle = "#facc15";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2.2;
       ctx.beginPath();
       ctx.moveTo(arrowX, leftLevelY);
       ctx.lineTo(arrowX, rightLevelY);
+      ctx.stroke();
+
+      // Top & bottom ticks on arrow
+      ctx.beginPath();
+      ctx.moveTo(arrowX - 5, leftLevelY);
+      ctx.lineTo(arrowX + 5, leftLevelY);
+      ctx.moveTo(arrowX - 5, rightLevelY);
+      ctx.lineTo(arrowX + 5, rightLevelY);
       ctx.stroke();
 
       ctx.fillStyle = "#facc15";
@@ -529,7 +682,33 @@ export function initOsmosisLab(containerId) {
       ctx.fillText(`Δh = ${(currentDeltaH * 0.1).toFixed(1)} cm`, arrowX + 8, (leftLevelY + rightLevelY) / 2 + 4);
     }
 
-    // 5. Render Animated Particles with Rigid U-Tube Liquid Clipping
+    // 6. Net Osmotic Flux Vector Across Membrane
+    if (Math.abs(data.deltaPsi_s) > 0.2) {
+      const arrowDir = data.deltaPsi_s < 0 ? 1 : -1;
+      const arrowY = uBottomY - 27;
+      const flowPulse = Math.sin(simTime * 6) * 4;
+      ctx.strokeStyle = "#38bdf8";
+      ctx.fillStyle = "#38bdf8";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(memX - 25 * arrowDir, arrowY);
+      ctx.lineTo(memX + (25 + flowPulse) * arrowDir, arrowY);
+      ctx.stroke();
+
+      // Arrow head
+      ctx.beginPath();
+      ctx.moveTo(memX + (25 + flowPulse) * arrowDir, arrowY);
+      ctx.lineTo(memX + (17 + flowPulse) * arrowDir, arrowY - 5);
+      ctx.lineTo(memX + (17 + flowPulse) * arrowDir, arrowY + 5);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = "bold 8px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("NET H₂O FLUX", memX, arrowY - 9);
+    }
+
+    // 7. Render Animated Particles with Rigid U-Tube Liquid Clipping
     ctx.save();
     ctx.beginPath();
     // Left arm fluid
@@ -537,27 +716,29 @@ export function initOsmosisLab(containerId) {
     // Right arm fluid
     ctx.rect(uRightX + 2, rightLevelY, uWidth - 4, uBottomY - rightLevelY);
     // Bottom connecting channel
-    ctx.rect(uLeftX + 2, uBottomY - 50, uRightX - uLeftX + uWidth - 4, 48);
+    ctx.rect(uLeftX + 2, uBottomY - 54, uRightX - uLeftX + uWidth - 4, 52);
     ctx.clip();
 
-    // Water molecules (cyan dots)
+    // Water molecules (cyan dots with micro-dipole aura)
     ctx.fillStyle = "#38bdf8";
     waterParticles.forEach(p => {
-      p.x += p.vx;
+      // Net osmotic drift bias toward right arm if deltaPsi_s < 0
+      const drift = (data.deltaPsi_s < 0 ? 0.35 : -0.35) * Math.min(1, Math.abs(data.deltaPsi_s) / 5);
+      p.x += p.vx + drift;
       p.y += p.vy;
 
       // Bounce within outer liquid boundary
-      if (p.x < uLeftX + 6) p.x = uLeftX + 6, p.vx = Math.abs(p.vx);
-      if (p.x > uRightX + uWidth - 6) p.x = uRightX + uWidth - 6, p.vx = -Math.abs(p.vx);
-      if (p.y > uBottomY - 6) p.y = uBottomY - 6, p.vy = -Math.abs(p.vy);
-      if (p.y < (p.x < uLeftX + uWidth ? leftLevelY : rightLevelY)) {
+      if (p.x < uLeftX + 6) { p.x = uLeftX + 6; p.vx = Math.abs(p.vx); }
+      if (p.x > uRightX + uWidth - 6) { p.x = uRightX + uWidth - 6; p.vx = -Math.abs(p.vx); }
+      if (p.y > uBottomY - 6) { p.y = uBottomY - 6; p.vy = -Math.abs(p.vy); }
+      if (p.y < (p.x < uLeftX + uWidth ? leftLevelY : rightLevelY) + 6) {
         p.vy = Math.abs(p.vy);
       }
 
       // Keep within the U-tube arms or bottom channel (prevent floating in inner air gap)
       if (p.x > uLeftX + uWidth - 6 && p.x < uRightX + 6) {
-        if (p.y < uBottomY - 50 + 6) {
-          p.y = uBottomY - 50 + 6;
+        if (p.y < uBottomY - 54 + 6) {
+          p.y = uBottomY - 54 + 6;
           p.vy = Math.abs(p.vy);
         }
       }
@@ -565,157 +746,294 @@ export function initOsmosisLab(containerId) {
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
+
+      // Hydrogen lobes (dipole appearance)
+      ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+      ctx.beginPath();
+      ctx.arc(p.x - 2, p.y - 1.5, 1.2, 0, Math.PI * 2);
+      ctx.arc(p.x + 2, p.y - 1.5, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#38bdf8";
     });
 
     // Solute molecules (large purple/pink discs blocked by membrane)
-    ctx.fillStyle = "#e879f9";
     soluteParticles.forEach(p => {
       p.x += p.vx;
       p.y += p.vy;
 
       // Solute cannot cross membrane at memX!
       if (p.chamber === "left") {
-        if (p.x > memX - 10) p.x = memX - 10, p.vx = -Math.abs(p.vx);
-        if (p.x < uLeftX + 10) p.x = uLeftX + 10, p.vx = Math.abs(p.vx);
-        if (p.y < leftLevelY + 10) p.y = leftLevelY + 10, p.vy = Math.abs(p.vy);
-        if (p.y > uBottomY - 10) p.y = uBottomY - 10, p.vy = -Math.abs(p.vy);
+        if (p.x > memX - 12) { p.x = memX - 12; p.vx = -Math.abs(p.vx); }
+        if (p.x < uLeftX + 10) { p.x = uLeftX + 10; p.vx = Math.abs(p.vx); }
+        if (p.y < leftLevelY + 10) { p.y = leftLevelY + 10; p.vy = Math.abs(p.vy); }
+        if (p.y > uBottomY - 10) { p.y = uBottomY - 10; p.vy = -Math.abs(p.vy); }
       } else {
-        if (p.x < memX + 10) p.x = memX + 10, p.vx = Math.abs(p.vx);
-        if (p.x > uRightX + uWidth - 10) p.x = uRightX + uWidth - 10, p.vx = -Math.abs(p.vx);
-        if (p.y < rightLevelY + 10) p.y = rightLevelY + 10, p.vy = Math.abs(p.vy);
-        if (p.y > uBottomY - 10) p.y = uBottomY - 10, p.vy = -Math.abs(p.vy);
+        if (p.x < memX + 12) { p.x = memX + 12; p.vx = Math.abs(p.vx); }
+        if (p.x > uRightX + uWidth - 10) { p.x = uRightX + uWidth - 10; p.vx = -Math.abs(p.vx); }
+        if (p.y < rightLevelY + 10) { p.y = rightLevelY + 10; p.vy = Math.abs(p.vy); }
+        if (p.y > uBottomY - 10) { p.y = uBottomY - 10; p.vy = -Math.abs(p.vy); }
       }
 
+      // Solute sphere with 3D radial gradient
+      const solGrad = ctx.createRadialGradient(p.x - 2, p.y - 2, 1, p.x, p.y, p.size);
+      if (selectedSolute === "sucrose") {
+        solGrad.addColorStop(0, "#f5d0fe");
+        solGrad.addColorStop(0.6, "#c084fc");
+        solGrad.addColorStop(1, "#7e22ce");
+      } else {
+        solGrad.addColorStop(0, "#fed7aa");
+        solGrad.addColorStop(0.6, "#f97316");
+        solGrad.addColorStop(1, "#c2410c");
+      }
+      ctx.fillStyle = solGrad;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
+
+      // Hydration shell ring
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
     });
     ctx.restore();
 
-    // 6. Right Side Thermodynamic HUD
-    const hudX = 580;
-    const hudY = 70;
-    const hudW = 330;
-    const hudH = 390;
+    // 8. Right Side Thermodynamic HUD
+    const hudX = 590;
+    const hudY = 50;
+    const hudW = 320;
+    const hudH = 410;
 
     ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.roundRect(hudX, hudY, hudW, hudH, 8);
+    ctx.roundRect(hudX, hudY, hudW, hudH, 10);
     ctx.fill();
     ctx.stroke();
 
+    // HUD Header
     ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 13px sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("WATER POTENTIAL DYNAMICS (Ψ)", hudX + 18, hudY + 30);
+    ctx.fillText("WATER POTENTIAL DYNAMICS (Ψ)", hudX + 18, hudY + 28);
 
     ctx.fillStyle = "#94a3b8";
-    ctx.font = "11px sans-serif";
-    ctx.fillText("Ψ = Ψ_s (Solute) + Ψ_p (Pressure)", hudX + 18, hudY + 50);
+    ctx.font = "10px sans-serif";
+    ctx.fillText("van 't Hoff: Ψ_s = -i·C·R·T | Hydrostatic: ΔP = ρgΔh", hudX + 18, hudY + 46);
 
-    // Left Arm Breakdown
+    // Left Arm Breakdown Box
+    ctx.fillStyle = "rgba(168, 85, 247, 0.08)";
+    ctx.strokeStyle = "rgba(168, 85, 247, 0.3)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(hudX + 14, hudY + 60, hudW - 28, 64, 6);
+    ctx.fill();
+    ctx.stroke();
+
     ctx.fillStyle = "#c084fc";
     ctx.font = "bold 11px monospace";
-    ctx.fillText(`LEFT ARM (C₁ = ${soluteLeft.toFixed(2)} M):`, hudX + 18, hudY + 85);
+    ctx.fillText(`LEFT ARM (C₁ = ${soluteLeft.toFixed(2)} M):`, hudX + 24, hudY + 80);
     ctx.fillStyle = "#f8fafc";
     ctx.font = "11px monospace";
-    ctx.fillText(`Ψ_s = -iCRT = ${data.psi_s_left.toFixed(2)} bar`, hudX + 18, hudY + 105);
+    ctx.fillText(`Ψ_s = -iCRT = ${data.psi_s_left.toFixed(2)} bar`, hudX + 24, hudY + 100);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "10px sans-serif";
+    ctx.fillText(`Solute Particles: ~${Math.round(soluteLeft * 30)} | High Free H₂O Energy`, hudX + 24, hudY + 116);
 
-    // Right Arm Breakdown
+    // Right Arm Breakdown Box
+    ctx.fillStyle = "rgba(244, 63, 94, 0.08)";
+    ctx.strokeStyle = "rgba(244, 63, 94, 0.3)";
+    ctx.beginPath();
+    ctx.roundRect(hudX + 14, hudY + 134, hudW - 28, 64, 6);
+    ctx.fill();
+    ctx.stroke();
+
     ctx.fillStyle = "#f43f5e";
     ctx.font = "bold 11px monospace";
-    ctx.fillText(`RIGHT ARM (C₂ = ${soluteRight.toFixed(2)} M):`, hudX + 18, hudY + 140);
+    ctx.fillText(`RIGHT ARM (C₂ = ${soluteRight.toFixed(2)} M):`, hudX + 24, hudY + 154);
     ctx.fillStyle = "#f8fafc";
     ctx.font = "11px monospace";
-    ctx.fillText(`Ψ_s = -iCRT = ${data.psi_s_right.toFixed(2)} bar`, hudX + 18, hudY + 160);
+    ctx.fillText(`Ψ_s = -iCRT = ${data.psi_s_right.toFixed(2)} bar`, hudX + 24, hudY + 174);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "10px sans-serif";
+    ctx.fillText(`Solute Particles: ~${Math.round(soluteRight * 30)} | Lower Free H₂O Energy`, hudX + 24, hudY + 190);
 
-    // Net Potential Difference
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    // Net Potential Difference Card
+    ctx.fillStyle = "rgba(250, 204, 21, 0.08)";
+    ctx.strokeStyle = "rgba(250, 204, 21, 0.3)";
     ctx.beginPath();
-    ctx.moveTo(hudX + 18, hudY + 185);
-    ctx.lineTo(hudX + hudW - 18, hudY + 185);
+    ctx.roundRect(hudX + 14, hudY + 208, hudW - 28, 86, 6);
+    ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = "#facc15";
     ctx.font = "bold 12px monospace";
-    ctx.fillText(`ΔΨ = Ψ_right - Ψ_left = ${data.deltaPsi_s.toFixed(2)} bar`, hudX + 18, hudY + 210);
+    ctx.fillText(`ΔΨ = Ψ_right - Ψ_left`, hudX + 24, hudY + 230);
+    ctx.font = "bold 14px monospace";
+    ctx.fillText(`= ${data.deltaPsi_s.toFixed(2)} bar`, hudX + 24, hudY + 252);
 
     ctx.fillStyle = "#10b981";
-    ctx.font = "11px sans-serif";
-    const netFlowDir = data.deltaPsi_s < 0 ? "LEFT ➔ RIGHT (Right rises)" : (data.deltaPsi_s > 0 ? "RIGHT ➔ LEFT (Left rises)" : "EQUILIBRIUM (Δh = 0)");
-    ctx.fillText(`Osmotic Driving Force: ${netFlowDir}`, hudX + 18, hudY + 235);
+    ctx.font = "bold 11px sans-serif";
+    const netFlowDir = data.deltaPsi_s < -0.05 ? "LEFT ➔ RIGHT (Right arm rises)" : (data.deltaPsi_s > 0.05 ? "RIGHT ➔ LEFT (Left arm rises)" : "EQUILIBRIUM (Δh = 0)");
+    ctx.fillText(`Net Flux: ${netFlowDir}`, hudX + 24, hudY + 276);
 
-    // Hydrostatic Balancing Equation
+    // Dynamic Osmotic vs Hydrostatic Bar
+    ctx.fillStyle = "#cbd5e1";
+    ctx.font = "10px sans-serif";
+    ctx.fillText("EQUILIBRIUM BALANCE:", hudX + 18, hudY + 316);
+
+    const barW = hudW - 36;
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(hudX + 18, hudY + 326, barW, 14);
+
+    // Fill ratio
+    const eqRatio = Math.min(1, Math.abs(currentDeltaH) / (Math.abs(targetDeltaH) + 0.001));
+    ctx.fillStyle = eqRatio > 0.95 ? "#10b981" : "#38bdf8";
+    ctx.fillRect(hudX + 18, hudY + 326, barW * eqRatio, 14);
+
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`${(eqRatio * 100).toFixed(0)}% Osmotic Head Equilibrated`, hudX + 18 + barW / 2, hudY + 337);
+
+    // Hydrostatic Balancing Note
     ctx.fillStyle = "#94a3b8";
-    ctx.fillText(`Hydrostatic Head: ΔP = ρ·g·Δh`, hudX + 18, hudY + 270);
-    ctx.fillText(`At equilibrium, ΔP exactly balances ΔΠ.`, hudX + 18, hudY + 290);
+    ctx.font = "10px sans-serif";
+    ctx.textAlign = "left";
+    ctx.fillText("At equilibrium: ΔP_hydrostatic = ΔΠ_osmotic", hudX + 18, hudY + 365);
+    ctx.fillText("Δh = ΔΠ / (ρ · g) = (target reached)", hudX + 18, hudY + 382);
   }
 
   function drawCellTonicity(data) {
     if (!ctx) return;
 
+    // Viewport Center
     const cellX = 300;
     const cellY = 250;
 
-    // 1. Petri Dish / Microscope Stage Ring
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.3)";
-    ctx.lineWidth = 4;
-    ctx.fillStyle = "rgba(8, 20, 36, 0.7)";
+    // 1. Photorealistic Microscope Stage & Brass Bezel
+    const scopeR = 195;
+    
+    // Outer dark stage plate
+    ctx.fillStyle = "#030712";
+    ctx.fillRect(30, 30, 540, 440);
+
+    // Concentric knurled brass / metallic ring
+    const brassGrad = ctx.createRadialGradient(cellX, cellY, scopeR - 15, cellX, cellY, scopeR + 10);
+    brassGrad.addColorStop(0, "#475569");
+    brassGrad.addColorStop(0.3, "#94a3b8");
+    brassGrad.addColorStop(0.7, "#334155");
+    brassGrad.addColorStop(1, "#0f172a");
+    ctx.strokeStyle = brassGrad;
+    ctx.lineWidth = 14;
     ctx.beginPath();
-    ctx.arc(cellX, cellY, 180, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.arc(cellX, cellY, scopeR, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Extracellular fluid tint based on osmolarity
-    const fluidAlpha = Math.min(0.45, 0.1 + extOsmolarity * 0.6);
-    ctx.fillStyle = `rgba(168, 85, 247, ${fluidAlpha})`;
+    // Microscope illumination field
+    const fieldGrad = ctx.createRadialGradient(cellX, cellY, 20, cellX, cellY, scopeR - 8);
+    const fluidHue = extOsmolarity < 0.12 ? "rgba(14, 165, 233, 0.25)" : (extOsmolarity > 0.18 ? "rgba(244, 63, 94, 0.22)" : "rgba(16, 185, 129, 0.2)");
+    fieldGrad.addColorStop(0, "#1e293b");
+    fieldGrad.addColorStop(0.7, "#0f172a");
+    fieldGrad.addColorStop(1, "#020617");
+    ctx.fillStyle = fieldGrad;
     ctx.beginPath();
-    ctx.arc(cellX, cellY, 178, 0, Math.PI * 2);
+    ctx.arc(cellX, cellY, scopeR - 8, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Render Cell Specimen
+    // Extracellular fluid tint
+    ctx.fillStyle = fluidHue;
+    ctx.beginPath();
+    ctx.arc(cellX, cellY, scopeR - 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Reticle crosshair & micrometer scale
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cellX - scopeR + 12, cellY);
+    ctx.lineTo(cellX + scopeR - 12, cellY);
+    ctx.moveTo(cellX, cellY - scopeR + 12);
+    ctx.lineTo(cellX, cellY + scopeR - 12);
+    ctx.stroke();
+
+    // Calibrated concentric circles
+    [50, 100, 150].forEach(r => {
+      ctx.beginPath();
+      ctx.arc(cellX, cellY, r, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    // 2. Render Cell Specimen with High-Fidelity Cytology
     if (cellType === "rbc") {
       // Animal Erythrocyte (Red Blood Cell)
       if (extOsmolarity < 0.10) {
-        // Hypotonic Lysis (Ghost Cell)
-        ctx.strokeStyle = "rgba(239, 68, 68, 0.4)";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([4, 4]);
+        // Hypotonic Lysis (Ghost Membrane & Hemoglobin Leakage)
+        const pulse = Math.sin(simTime * 4) * 2;
+        
+        // Dissipated Hemoglobin Cloud
+        const hemoGrad = ctx.createRadialGradient(cellX, cellY, 30, cellX, cellY, 150);
+        hemoGrad.addColorStop(0, "rgba(239, 68, 68, 0.45)");
+        hemoGrad.addColorStop(0.5, "rgba(220, 38, 38, 0.2)");
+        hemoGrad.addColorStop(1, "rgba(185, 28, 28, 0)");
+        ctx.fillStyle = hemoGrad;
         ctx.beginPath();
-        ctx.arc(cellX, cellY, 110, 0, Math.PI * 2);
+        ctx.arc(cellX, cellY, 150, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Escaped Hemoglobin clusters
+        for (let i = 0; i < 28; i++) {
+          const ang = (i / 28) * Math.PI * 2 + simTime * 0.1;
+          const rDist = 90 + ((i * 19) % 65);
+          ctx.fillStyle = "rgba(239, 68, 68, 0.55)";
+          ctx.beginPath();
+          ctx.arc(cellX + Math.cos(ang) * rDist, cellY + Math.sin(ang) * rDist, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Ruptured Ghost Membrane (Transparent pale lipid bilayer with gaps)
+        ctx.strokeStyle = "rgba(252, 165, 165, 0.45)";
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([12, 8]);
+        ctx.beginPath();
+        ctx.arc(cellX, cellY, 105 + pulse, 0, Math.PI * 2);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Ruptured hemoglobin leakage
-        ctx.fillStyle = "rgba(239, 68, 68, 0.2)";
-        for (let i = 0; i < 16; i++) {
-          const ang = (i / 16) * Math.PI * 2;
-          const r = 110 + Math.random() * 30;
-          ctx.beginPath();
-          ctx.arc(cellX + Math.cos(ang) * r, cellY + Math.sin(ang) * r, 4, 0, Math.PI * 2);
-          ctx.fill();
-        }
+        // Rupture site tear
+        ctx.strokeStyle = "#ef4444";
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.arc(cellX, cellY, 105 + pulse, 0.2, 0.8);
+        ctx.stroke();
 
         ctx.fillStyle = "#ef4444";
         ctx.font = "bold 13px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("HEMOLYSIS (CELL LYSIS)", cellX, cellY);
+        ctx.fillText("HEMOLYTIC LYSIS (ERYTHROCYTE GHOST)", cellX, cellY - 10);
+        ctx.fillStyle = "#fca5a5";
         ctx.font = "10px sans-serif";
-        ctx.fillText("Plasma membrane ruptured under extreme osmotic influx", cellX, cellY + 20);
+        ctx.fillText("Critical hydrostatic turgor exceeded membrane yield limit", cellX, cellY + 12);
+        ctx.fillText("Hemoglobin completely released into extracellular supernatant", cellX, cellY + 28);
 
-      } else if (extOsmolarity > 0.22) {
-        // Hypertonic Crenation (Spiculated / Shrivelled)
-        ctx.fillStyle = "#dc2626";
-        ctx.strokeStyle = "#991b1b";
+      } else if (extOsmolarity > 0.20) {
+        // Hypertonic Crenation (Echinocyte Spiculated Morphology)
+        const spikes = 16;
+        ctx.fillStyle = "#991b1b";
+        ctx.strokeStyle = "#dc2626";
         ctx.lineWidth = 2.5;
+
+        // 3D Shaded Echinocyte Body
+        const crenGrad = ctx.createRadialGradient(cellX - 10, cellY - 10, 8, cellX, cellY, 62);
+        crenGrad.addColorStop(0, "#ef4444");
+        crenGrad.addColorStop(0.5, "#991b1b");
+        crenGrad.addColorStop(1, "#450a0a");
+        ctx.fillStyle = crenGrad;
+
         ctx.beginPath();
-        // Star-like notched boundary
-        const spikes = 14;
         for (let s = 0; s < spikes; s++) {
           const a = (s / spikes) * Math.PI * 2;
-          const rOuter = 58;
+          const rOuter = 58 + Math.sin(s * 3) * 4;
           const rInner = 40;
           ctx.lineTo(cellX + Math.cos(a) * rOuter, cellY + Math.sin(a) * rOuter);
           const aMid = a + Math.PI / spikes;
@@ -725,159 +1043,313 @@ export function initOsmosisLab(containerId) {
         ctx.fill();
         ctx.stroke();
 
+        // 3D Spicule bumps shading
+        for (let s = 0; s < spikes; s++) {
+          const a = (s / spikes) * Math.PI * 2;
+          const rOuter = 58 + Math.sin(s * 3) * 4;
+          ctx.fillStyle = "rgba(254, 202, 202, 0.4)";
+          ctx.beginPath();
+          ctx.arc(cellX + Math.cos(a) * (rOuter - 4), cellY + Math.sin(a) * (rOuter - 4), 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 12px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("CRENATED RBC", cellX, cellY + 80);
+        ctx.fillText("CRENATED RBC (ECHINOCYTE)", cellX, cellY + 95);
+        ctx.font = "10px sans-serif";
+        ctx.fillStyle = "#f87171";
+        ctx.fillText("Osmotic water efflux -> Dehydrated condensed stroma", cellX, cellY + 112);
+
       } else {
-        // Isotonic (Normal Biconcave Disc)
-        const rbcGrad = ctx.createRadialGradient(cellX, cellY, 15, cellX, cellY, 75);
-        rbcGrad.addColorStop(0, "#fca5a5");
-        rbcGrad.addColorStop(0.5, "#ef4444");
-        rbcGrad.addColorStop(1, "#b91c1c");
+        // Isotonic (Normal Biconcave Disc with 3D Spherical/Toroid Lighting)
+        const rbcGrad = ctx.createRadialGradient(cellX - 18, cellY - 18, 12, cellX, cellY, 78);
+        rbcGrad.addColorStop(0, "#f87171");
+        rbcGrad.addColorStop(0.3, "#dc2626");
+        rbcGrad.addColorStop(0.8, "#991b1b");
+        rbcGrad.addColorStop(1, "#450a0a");
 
         ctx.fillStyle = rbcGrad;
-        ctx.strokeStyle = "#991b1b";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#7f1d1d";
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.arc(cellX, cellY, 75, 0, Math.PI * 2);
+        ctx.arc(cellX, cellY, 76, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        // Central Biconcave indentation
-        ctx.fillStyle = "rgba(185, 28, 28, 0.4)";
+        // Central Biconcave Indentation with Dimple Radial Gradient
+        const dimpleGrad = ctx.createRadialGradient(cellX, cellY, 5, cellX, cellY, 34);
+        dimpleGrad.addColorStop(0, "#450a0a");
+        dimpleGrad.addColorStop(0.7, "#7f1d1d");
+        dimpleGrad.addColorStop(1, "rgba(220, 38, 38, 0)");
+        ctx.fillStyle = dimpleGrad;
         ctx.beginPath();
-        ctx.arc(cellX, cellY, 32, 0, Math.PI * 2);
+        ctx.arc(cellX, cellY, 34, 0, Math.PI * 2);
         ctx.fill();
+
+        // Specular Torus Arc Highlight
+        ctx.strokeStyle = "rgba(254, 202, 202, 0.4)";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cellX, cellY, 52, Math.PI * 0.8, Math.PI * 1.5);
+        ctx.stroke();
 
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 12px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("ISOTONIC RBC", cellX, cellY + 100);
+        ctx.fillText("ISOTONIC ERYTHROCYTE", cellX, cellY + 105);
+        ctx.font = "10px sans-serif";
+        ctx.fillStyle = "#86efac";
+        ctx.fillText("Physiological Equilibrium (Dynamic 1:1 H₂O flux)", cellX, cellY + 122);
       }
 
     } else {
-      // Plant Cell (Elodea with Cellulose Cell Wall)
-      const boxW = 200;
-      const boxH = 140;
+      // Plant Cell (Elodea Epidermal Cell with Rigid Cellulose Wall)
+      const boxW = 220;
+      const boxH = 150;
 
-      // 1. Rigid Cellulose Cell Wall (Green rectangular perimeter)
-      ctx.strokeStyle = "#22c55e";
-      ctx.lineWidth = 7;
+      // 1. Rigid Cellulose Cell Wall (Green thick rectangular framework)
+      ctx.fillStyle = "#064e3b";
+      ctx.fillRect(cellX - boxW / 2 - 4, cellY - boxH / 2 - 4, boxW + 8, boxH + 8);
+
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 8;
       ctx.strokeRect(cellX - boxW / 2, cellY - boxH / 2, boxW, boxH);
 
-      // 2. Plasma membrane & Central Vacuole
-      if (extOsmolarity < 0.12) {
-        // Turgid: Membrane firmly pressed against cell wall
-        ctx.fillStyle = "rgba(34, 197, 94, 0.35)";
-        ctx.fillRect(cellX - boxW / 2 + 5, cellY - boxH / 2 + 5, boxW - 10, boxH - 10);
+      // Pectin Middle Lamella & Corner pits
+      ctx.strokeStyle = "#047857";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cellX - boxW / 2 + 5, cellY - boxH / 2 + 5, boxW - 10, boxH - 10);
 
-        // Huge Central Vacuole
-        ctx.fillStyle = "rgba(56, 189, 248, 0.5)";
+      // 2. Plasma Membrane, Vacuole & Chloroplasts
+      if (extOsmolarity < 0.12) {
+        // Turgid Plant Cell: Plasma membrane firmly pressed against wall
+        ctx.fillStyle = "rgba(16, 185, 129, 0.4)";
+        ctx.fillRect(cellX - boxW / 2 + 6, cellY - boxH / 2 + 6, boxW - 12, boxH - 12);
+
+        // Huge Central Vacuole (Crystalline blue-green hydrostatic reservoir)
+        const vacGrad = ctx.createLinearGradient(cellX - boxW / 2 + 20, 0, cellX + boxW / 2 - 20, 0);
+        vacGrad.addColorStop(0, "rgba(56, 189, 248, 0.6)");
+        vacGrad.addColorStop(0.5, "rgba(14, 165, 233, 0.75)");
+        vacGrad.addColorStop(1, "rgba(2, 132, 199, 0.6)");
+        ctx.fillStyle = vacGrad;
         ctx.strokeStyle = "#38bdf8";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(cellX - boxW / 2 + 18, cellY - boxH / 2 + 18, boxW - 36, boxH - 36, 10);
+        ctx.roundRect(cellX - boxW / 2 + 20, cellY - boxH / 2 + 20, boxW - 40, boxH - 40, 12);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 11px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("TURGID PLANT CELL", cellX, cellY);
-        ctx.fillText("(High Turgor Pressure Ψ_p)", cellX, cellY + 16);
+        // Chloroplasts squeezed along periphery (cyclosis streaming)
+        const numChloroplasts = 14;
+        for (let c = 0; c < numChloroplasts; c++) {
+          const ang = (c / numChloroplasts) * Math.PI * 2 + simTime * 0.2;
+          const cx = cellX + Math.cos(ang) * (boxW / 2 - 14);
+          const cy = cellY + Math.sin(ang) * (boxH / 2 - 14);
+          ctx.fillStyle = "#15803d";
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, 7, 4, ang, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = "#86efac";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
 
-      } else if (extOsmolarity > 0.20) {
-        // Plasmolysis: Protoplast shrivels away from wall!
-        ctx.fillStyle = "rgba(100, 116, 139, 0.15)";
-        ctx.fillRect(cellX - boxW / 2 + 5, cellY - boxH / 2 + 5, boxW - 10, boxH - 10);
+        // Turgor Pressure outward vector arrows
+        ctx.strokeStyle = "#facc15";
+        ctx.lineWidth = 2;
+        [
+          [cellX, cellY - boxH / 2 + 24, cellX, cellY - boxH / 2 + 8],
+          [cellX, cellY + boxH / 2 - 24, cellX, cellY + boxH / 2 - 8],
+          [cellX - boxW / 2 + 24, cellY, cellX - boxW / 2 + 8, cellY],
+          [cellX + boxW / 2 - 24, cellY, cellX + boxW / 2 - 8, cellY]
+        ].forEach(([x1, y1, x2, y2]) => {
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        });
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("TURGID PLANT CELL", cellX, cellY - 4);
+        ctx.fillStyle = "#facc15";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText(`High Wall Turgor Pressure (Ψ_p = ${data.turgorPsi_p.toFixed(2)} bar)`, cellX, cellY + 12);
+
+      } else if (extOsmolarity > 0.18) {
+        // Plasmolysis: Protoplast violently shrivelled away from wall
+        // Hypertonic saline filling periplasmic space
+        ctx.fillStyle = "rgba(244, 63, 94, 0.18)";
+        ctx.fillRect(cellX - boxW / 2 + 6, cellY - boxH / 2 + 6, boxW - 12, boxH - 12);
+
+        // Hechtian strands (thin membranous threads anchoring to cell wall corners)
+        ctx.strokeStyle = "#10b981";
+        ctx.lineWidth = 1.5;
+        const shrivelW = boxW * 0.52;
+        const shrivelH = boxH * 0.52;
+        [
+          [cellX - shrivelW / 2, cellY - shrivelH / 2, cellX - boxW / 2 + 6, cellY - boxH / 2 + 6],
+          [cellX + shrivelW / 2, cellY - shrivelH / 2, cellX + boxW / 2 - 6, cellY - boxH / 2 + 6],
+          [cellX - shrivelW / 2, cellY + shrivelH / 2, cellX - boxW / 2 + 6, cellY + boxH / 2 - 6],
+          [cellX + shrivelW / 2, cellY + shrivelH / 2, cellX + boxW / 2 - 6, cellY + boxH / 2 - 6]
+        ].forEach(([x1, y1, x2, y2]) => {
+          ctx.beginPath();
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        });
 
         // Shrivelled protoplast inside
-        const shrivelW = boxW * 0.55;
-        const shrivelH = boxH * 0.55;
-        ctx.fillStyle = "rgba(34, 197, 94, 0.6)";
-        ctx.strokeStyle = "#15803d";
+        const protoGrad = ctx.createLinearGradient(cellX - shrivelW / 2, 0, cellX + shrivelW / 2, 0);
+        protoGrad.addColorStop(0, "rgba(21, 128, 61, 0.9)");
+        protoGrad.addColorStop(1, "rgba(22, 101, 52, 0.95)");
+        ctx.fillStyle = protoGrad;
+        ctx.strokeStyle = "#86efac";
         ctx.lineWidth = 2.5;
         ctx.beginPath();
         ctx.roundRect(cellX - shrivelW / 2, cellY - shrivelH / 2, shrivelW, shrivelH, 16);
         ctx.fill();
         ctx.stroke();
 
+        // Shrunken internal vacuole
+        ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+        ctx.beginPath();
+        ctx.roundRect(cellX - 25, cellY - 18, 50, 36, 6);
+        ctx.fill();
+
         ctx.fillStyle = "#facc15";
-        ctx.font = "bold 11px sans-serif";
+        ctx.font = "bold 12px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("PLASMOLYSIS", cellX, cellY - 6);
+        ctx.fillText("SEVERE PLASMOLYSIS", cellX, cellY - 4);
         ctx.font = "9px sans-serif";
-        ctx.fillText("Plasma membrane detached from cell wall", cellX, cellY + 12);
+        ctx.fillStyle = "#f8fafc";
+        ctx.fillText("Protoplast detached from rigid cell wall", cellX, cellY + 12);
+        ctx.fillStyle = "#fca5a5";
+        ctx.fillText("Periplasmic space filled with hypertonic fluid", cellX, cellY + 24);
 
       } else {
-        // Isotonic (Flaccid)
-        ctx.fillStyle = "rgba(34, 197, 94, 0.25)";
-        ctx.fillRect(cellX - boxW / 2 + 5, cellY - boxH / 2 + 5, boxW - 10, boxH - 10);
+        // Isotonic (Flaccid Equilibrium, Ψ_p = 0)
+        ctx.fillStyle = "rgba(16, 185, 129, 0.3)";
+        ctx.fillRect(cellX - boxW / 2 + 6, cellY - boxH / 2 + 6, boxW - 12, boxH - 12);
+
+        // Moderate resting vacuole
+        ctx.fillStyle = "rgba(56, 189, 248, 0.45)";
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.roundRect(cellX - boxW / 2 + 28, cellY - boxH / 2 + 24, boxW - 56, boxH - 48, 10);
+        ctx.fill();
+        ctx.stroke();
 
         ctx.fillStyle = "#ffffff";
-        ctx.font = "bold 11px sans-serif";
+        ctx.font = "bold 12px sans-serif";
         ctx.textAlign = "center";
         ctx.fillText("FLACCID PLANT CELL (Ψ_p = 0)", cellX, cellY);
+        ctx.font = "10px sans-serif";
+        ctx.fillStyle = "#86efac";
+        ctx.fillText("Zero wall turgor pressure; plant wilts without support", cellX, cellY + 16);
       }
     }
 
     // 3. Right Side Cytology HUD
-    const hudX = 580;
-    const hudY = 70;
-    const hudW = 330;
-    const hudH = 390;
+    const hudX = 590;
+    const hudY = 50;
+    const hudW = 320;
+    const hudH = 410;
 
     ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.roundRect(hudX, hudY, hudW, hudH, 8);
+    ctx.roundRect(hudX, hudY, hudW, hudH, 10);
     ctx.fill();
     ctx.stroke();
 
     ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 13px sans-serif";
     ctx.textAlign = "left";
-    ctx.fillText("CYTOLOGICAL TONICITY HUD", hudX + 18, hudY + 30);
+    ctx.fillText("CYTOLOGICAL TONICITY HUD", hudX + 18, hudY + 28);
 
     ctx.fillStyle = "#94a3b8";
-    ctx.font = "11px sans-serif";
-    ctx.fillText(`Specimen: ${cellType === "rbc" ? "Human Erythrocyte" : "Elodea Epidermal Cell"}`, hudX + 18, hudY + 50);
+    ctx.font = "10px sans-serif";
+    ctx.fillText(`Specimen: ${cellType === "rbc" ? "Mammalian Erythrocyte (No Wall)" : "Elodea Epidermal (Rigid Wall)"}`, hudX + 18, hudY + 46);
 
-    // Status Pill
+    // Status Banner Box
     const pillColor = data.tonicityLabel === "Isotonic" ? "#10b981" : (data.tonicityLabel === "Hypotonic" ? "#38bdf8" : "#f43f5e");
+    ctx.fillStyle = "rgba(15, 23, 42, 0.8)";
+    ctx.strokeStyle = pillColor;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(hudX + 14, hudY + 60, hudW - 28, 54, 6);
+    ctx.fill();
+    ctx.stroke();
+
     ctx.fillStyle = pillColor;
-    ctx.font = "bold 14px monospace";
-    ctx.fillText(`TONICITY: ${data.tonicityLabel.toUpperCase()}`, hudX + 18, hudY + 85);
+    ctx.font = "bold 13px monospace";
+    ctx.fillText(`TONICITY: ${data.tonicityLabel.toUpperCase()}`, hudX + 24, hudY + 82);
 
     ctx.fillStyle = "#f8fafc";
     ctx.font = "11px sans-serif";
-    ctx.fillText(`External Solution: ${extOsmolarity.toFixed(2)} M`, hudX + 18, hudY + 115);
-    ctx.fillText(`Intracellular Fluid: 0.15 M`, hudX + 18, hudY + 135);
+    ctx.fillText(`Extracellular: ${extOsmolarity.toFixed(2)} M | Cytosol: 0.15 M`, hudX + 24, hudY + 101);
 
+    // Water Potential Analysis
+    ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
     ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(hudX + 18, hudY + 155);
-    ctx.lineTo(hudX + hudW - 18, hudY + 155);
+    ctx.roundRect(hudX + 14, hudY + 124, hudW - 28, 140, 6);
+    ctx.fill();
     ctx.stroke();
 
-    // Water Potential Values
-    ctx.fillStyle = "#c084fc";
+    ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 11px monospace";
-    ctx.fillText(`Ψ_external = ${data.psi_ext.toFixed(2)} bar`, hudX + 18, hudY + 180);
-    ctx.fillText(`Ψ_internal = ${data.psi_cell_internal.toFixed(2)} bar`, hudX + 18, hudY + 200);
+    ctx.fillText("WATER POTENTIAL ANALYSIS (Ψ = Ψs + Ψp):", hudX + 24, hudY + 144);
+
+    ctx.fillStyle = "#c084fc";
+    ctx.font = "11px monospace";
+    ctx.fillText(`Ψ_ext = ${data.psi_ext.toFixed(2)} bar`, hudX + 24, hudY + 168);
+    ctx.fillText(`Ψ_cell = ${data.psi_cell_internal.toFixed(2)} bar`, hudX + 24, hudY + 188);
 
     ctx.fillStyle = "#fbbf24";
-    ctx.fillText(`Turgor Pressure Ψ_p = ${data.turgorPsi_p.toFixed(2)} bar`, hudX + 18, hudY + 225);
+    ctx.font = "bold 11px monospace";
+    ctx.fillText(`Turgor Pressure Ψ_p = ${data.turgorPsi_p.toFixed(2)} bar`, hudX + 24, hudY + 212);
 
-    // Physiological Outcome Summary
+    ctx.fillStyle = "#facc15";
+    ctx.font = "10px sans-serif";
+    ctx.fillText(`Gradient ΔΨ = ${(data.psi_ext - data.psi_cell_internal).toFixed(2)} bar`, hudX + 24, hudY + 234);
+
+    const fluxDesc = data.deltaPsiCell < -0.1 ? "Efflux: Water leaves cell -> Shrivels" : (data.deltaPsiCell > 0.1 ? "Influx: Water enters cell -> Swells" : "Equilibrium: Equal bidirectional flux");
+    ctx.fillStyle = pillColor;
+    ctx.font = "bold 10px sans-serif";
+    ctx.fillText(fluxDesc, hudX + 24, hudY + 252);
+
+    // Physiological Outcome Card
+    ctx.fillStyle = "rgba(56, 189, 248, 0.06)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.25)";
+    ctx.beginPath();
+    ctx.roundRect(hudX + 14, hudY + 274, hudW - 28, 116, 6);
+    ctx.fill();
+    ctx.stroke();
+
     ctx.fillStyle = "#e2e8f0";
-    ctx.font = "11px sans-serif";
-    ctx.fillText("Physiological Response:", hudX + 18, hudY + 265);
+    ctx.font = "bold 11px sans-serif";
+    ctx.fillText("Physiological Cytopathology:", hudX + 24, hudY + 296);
+
     ctx.fillStyle = pillColor;
     ctx.font = "bold 11px sans-serif";
-    ctx.fillText(data.cellStatus, hudX + 18, hudY + 285);
+    ctx.fillText(data.cellStatus, hudX + 24, hudY + 318);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "10px sans-serif";
+    if (cellType === "rbc") {
+      ctx.fillText("Animal cells lack rigid peptidoglycan/cellulose walls", hudX + 24, hudY + 342);
+      ctx.fillText("making them vulnerable to osmotic hemolysis in pure water.", hudX + 24, hudY + 358);
+    } else {
+      ctx.fillText("Plant cell walls resist internal turgor up to ~15 bar,", hudX + 24, hudY + 342);
+      ctx.fillText("enabling mechanical rigidity and standing upright.", hudX + 24, hudY + 358);
+    }
   }
 
   function loop(timestamp) {
@@ -893,15 +1365,19 @@ export function initOsmosisLab(containerId) {
       simTime += dt;
       const data = calculateWaterPotentials();
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+      ctx.save();
+      ctx.resetTransform();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, logicalW, logicalH);
 
-      // Grid background
+      // Deep space grid background
       ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
       ctx.lineWidth = 1;
-      for (let x = 0; x < canvas.width; x += 40) {
+      for (let x = 0; x < logicalW; x += 40) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, logicalH);
         ctx.stroke();
       }
 
@@ -910,6 +1386,8 @@ export function initOsmosisLab(containerId) {
       } else {
         drawCellTonicity(data);
       }
+
+      ctx.restore();
 
       // Update Real Bench Photo HUD
       if (photoDh) photoDh.textContent = `${currentDeltaH > 0 ? "+" : ""}${(currentDeltaH * 0.1).toFixed(1)} cm`;
@@ -1051,6 +1529,7 @@ export function initOsmosisLab(containerId) {
 
   exportBtn?.addEventListener("click", () => {
     if (trialLogs.length === 0) logTrial();
+    const tempC = (TEMP_K - 273.15).toFixed(1);
     exportLabDataCsv({
       title: "Cell Membrane Osmosis & Tonicity Water Potential Telemetry",
       labId: "osmosis",
@@ -1102,5 +1581,7 @@ export function initOsmosisLab(containerId) {
   return () => {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }
+

@@ -321,11 +321,41 @@ export function initReactionKineticsLab(containerId) {
   const chartCanvas = document.getElementById("kinetics-chart-canvas");
   const chartCtx = chartCanvas.getContext("2d");
 
+  // HiDPI / Retina Canvas Setup
+  const logicalW = 580;
+  const logicalH = 530;
+  const chartLogicalW = 460;
+  const chartLogicalH = 150;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    if (mainCanvas && ctx) {
+      const rect = mainCanvas.getBoundingClientRect();
+      const w = rect.width > 0 ? rect.width : logicalW;
+      const h = rect.height > 0 ? rect.height : logicalH;
+      mainCanvas.width = Math.round(w * dpr);
+      mainCanvas.height = Math.round(h * dpr);
+      ctx.resetTransform();
+      ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    }
+    if (chartCanvas && chartCtx) {
+      const crect = chartCanvas.getBoundingClientRect();
+      const cw = crect.width > 0 ? crect.width : chartLogicalW;
+      const ch = crect.height > 0 ? crect.height : chartLogicalH;
+      chartCanvas.width = Math.round(cw * dpr);
+      chartCanvas.height = Math.round(ch * dpr);
+      chartCtx.resetTransform();
+      chartCtx.scale(dpr * (cw / chartLogicalW), dpr * (ch / chartLogicalH));
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   initParticles();
 
   // Draw Simulation Frame
   function renderSim() {
-    ctx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+    ctx.clearRect(0, 0, logicalW, logicalH);
     const kin = calculateKinetics();
     const sys = REACTION_SYSTEMS[currentSystemKey];
 
@@ -545,9 +575,9 @@ export function initReactionKineticsLab(containerId) {
   }
 
   function renderChart() {
-    chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
-    const w = chartCanvas.width;
-    const h = chartCanvas.height;
+    chartCtx.clearRect(0, 0, chartLogicalW, chartLogicalH);
+    const w = chartLogicalW;
+    const h = chartLogicalH;
 
     // Grid lines
     chartCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
@@ -791,6 +821,7 @@ export function initReactionKineticsLab(containerId) {
   // Return Cleanup function
   return () => {
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("resize", setupHiDPICanvas);
     window.removeEventListener("keydown", handleKeyDown);
   };
 }

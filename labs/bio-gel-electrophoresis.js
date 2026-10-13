@@ -203,6 +203,36 @@ export function initGelElectrophoresisLab(containerId) {
   const chartCanvas = container.querySelector("#gel-chart-canvas");
   const chartCtx = chartCanvas.getContext("2d");
 
+  // HiDPI / Retina Canvas Setup
+  const logicalW = 580;
+  const logicalH = 530;
+  const chartLogicalW = 460;
+  const chartLogicalH = 180;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    if (canvas && ctx) {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width > 0 ? rect.width : logicalW;
+      const h = rect.height > 0 ? rect.height : logicalH;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.resetTransform();
+      ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    }
+    if (chartCanvas && chartCtx) {
+      const crect = chartCanvas.getBoundingClientRect();
+      const cw = crect.width > 0 ? crect.width : chartLogicalW;
+      const ch = crect.height > 0 ? crect.height : chartLogicalH;
+      chartCanvas.width = Math.round(cw * dpr);
+      chartCanvas.height = Math.round(ch * dpr);
+      chartCtx.resetTransform();
+      chartCtx.scale(dpr * (cw / chartLogicalW), dpr * (ch / chartLogicalH));
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   // Calculate migration distance for a given base pair size
   function getBandDistance(bp) {
     // Distance inversely proportional to log10(bp), scaled by voltage, time, and agarose pore size
@@ -214,21 +244,21 @@ export function initGelElectrophoresisLab(containerId) {
   }
 
   function drawElectrophoresisRig() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, logicalW, logicalH);
 
     if (uvLightEnabled) {
       // Dark UV transilluminator background
       ctx.fillStyle = "#020617";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, logicalW, logicalH);
       const uvGlow = ctx.createRadialGradient(290, 270, 50, 290, 270, 260);
       uvGlow.addColorStop(0, "rgba(168, 85, 247, 0.22)");
       uvGlow.addColorStop(1, "rgba(2, 6, 23, 0.95)");
       ctx.fillStyle = uvGlow;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, logicalW, logicalH);
     } else {
       // Normal laboratory rig with buffer tank
       ctx.fillStyle = "#090d16";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(0, 0, logicalW, logicalH);
 
       // Buffer Tank Body
       ctx.fillStyle = "rgba(30, 41, 59, 0.6)";
@@ -364,31 +394,31 @@ export function initGelElectrophoresisLab(containerId) {
     ctx.fillStyle = "#f43f5e";
     ctx.font = "bold 13px system-ui";
     ctx.textAlign = "center";
-    ctx.fillText("(-) Cathode", canvas.width / 2, 60);
+    ctx.fillText("(-) Cathode", logicalW / 2, 60);
 
     ctx.fillStyle = "#10b981";
-    ctx.fillText("(+) Anode", canvas.width / 2, 510);
+    ctx.fillText("(+) Anode", logicalW / 2, 510);
   }
 
   function drawSemilogChart() {
-    chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+    chartCtx.clearRect(0, 0, chartLogicalW, chartLogicalH);
 
     // Background
     chartCtx.fillStyle = "#030712";
-    chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+    chartCtx.fillRect(0, 0, chartLogicalW, chartLogicalH);
     chartCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     chartCtx.lineWidth = 1;
 
-    for (let x = 40; x < chartCanvas.width; x += 40) {
+    for (let x = 40; x < chartLogicalW; x += 40) {
       chartCtx.beginPath();
       chartCtx.moveTo(x, 10);
-      chartCtx.lineTo(x, chartCanvas.height - 25);
+      chartCtx.lineTo(x, chartLogicalH - 25);
       chartCtx.stroke();
     }
-    for (let y = 15; y < chartCanvas.height - 25; y += 30) {
+    for (let y = 15; y < chartLogicalH - 25; y += 30) {
       chartCtx.beginPath();
       chartCtx.moveTo(40, y);
-      chartCtx.lineTo(chartCanvas.width - 15, y);
+      chartCtx.lineTo(chartLogicalW - 15, y);
       chartCtx.stroke();
     }
 
@@ -397,18 +427,18 @@ export function initGelElectrophoresisLab(containerId) {
     chartCtx.lineWidth = 1.5;
     chartCtx.beginPath();
     chartCtx.moveTo(40, 10);
-    chartCtx.lineTo(40, chartCanvas.height - 25);
-    chartCtx.lineTo(chartCanvas.width - 15, chartCanvas.height - 25);
+    chartCtx.lineTo(40, chartLogicalH - 25);
+    chartCtx.lineTo(chartLogicalW - 15, chartLogicalH - 25);
     chartCtx.stroke();
 
     // Axis Labels
     chartCtx.fillStyle = "#94a3b8";
     chartCtx.font = "10px var(--font-mono, monospace)";
     chartCtx.textAlign = "center";
-    chartCtx.fillText("Migration Distance (mm)", chartCanvas.width / 2, chartCanvas.height - 6);
+    chartCtx.fillText("Migration Distance (mm)", chartLogicalW / 2, chartLogicalH - 6);
 
     chartCtx.save();
-    chartCtx.translate(18, chartCanvas.height / 2);
+    chartCtx.translate(18, chartLogicalH / 2);
     chartCtx.rotate(-Math.PI / 2);
     chartCtx.fillText("log₁₀(bp)", 0, 0);
     chartCtx.restore();
@@ -422,10 +452,10 @@ export function initGelElectrophoresisLab(containerId) {
     const points = ladderLane.bands.map(bp => {
       const dist = getBandDistance(bp);
       const logBp = Math.log10(bp);
-      // Map dist (0 to 280) to x (50 to chartCanvas.width - 30)
-      const px = 50 + (dist / 280) * (chartCanvas.width - 80);
-      // Map logBp (2.3 to 4.1) to y (chartCanvas.height - 35 to 20)
-      const py = (chartCanvas.height - 35) - ((logBp - 2.2) / 2.0) * (chartCanvas.height - 60);
+      // Map dist (0 to 280) to x (50 to chartLogicalW - 30)
+      const px = 50 + (dist / 280) * (chartLogicalW - 80);
+      // Map logBp (2.3 to 4.1) to y (chartLogicalH - 35 to 20)
+      const py = (chartLogicalH - 35) - ((logBp - 2.2) / 2.0) * (chartLogicalH - 60);
       return { px, py, bp, dist };
     });
 
@@ -607,6 +637,7 @@ export function initGelElectrophoresisLab(containerId) {
   return () => {
     isRunning = false;
     if (animId) cancelAnimationFrame(animId);
+    window.removeEventListener("resize", setupHiDPICanvas);
     window.removeEventListener("keydown", handleKeyDown);
   };
 }

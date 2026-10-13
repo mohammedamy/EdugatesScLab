@@ -446,6 +446,25 @@ export function initPrecipitationLab(containerId) {
   const canvas = document.getElementById("precip-canvas");
   const ctx = canvas.getContext("2d");
 
+  // HiDPI / Retina DPR Scaling Setup
+  const logicalW = 580;
+  const logicalH = 530;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    if (canvas && ctx) {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width > 0 ? rect.width : logicalW;
+      const h = rect.height > 0 ? rect.height : logicalH;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.resetTransform();
+      ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   const viewSimBtn = document.getElementById("view-mode-precip-sim");
   const viewPhotoBtn = document.getElementById("view-mode-precip-photo");
   const photoOverlay = document.getElementById("precip-photo-overlay");
@@ -506,11 +525,24 @@ export function initPrecipitationLab(containerId) {
   }
 
   // Canvas 60 FPS Render Loop
-  function renderPrecipCanvas() {
+  let lastFrameTime = 0;
+  function renderPrecipCanvas(currentTime) {
     if (!container || !container.isConnected) return;
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    if (currentTime && currentTime - lastFrameTime < interval) {
+      animId = requestAnimationFrame(renderPrecipCanvas);
+      return;
+    }
+    lastFrameTime = currentTime || performance.now();
+
     timeTick += 0.03;
-    const cw = canvas.width;
-    const ch = canvas.height;
+    const cw = logicalW;
+    const ch = logicalH;
     ctx.clearRect(0, 0, cw, ch);
 
     const rxn = getReactionData();
@@ -519,110 +551,204 @@ export function initPrecipitationLab(containerId) {
 
     // Handle Centrifugation settling
     if (isCentrifuging) {
-      if (sedimentLevel < 0.9) sedimentLevel += 0.015;
-      if (turbidityProgress > 0.15) turbidityProgress -= 0.015;
+      if (sedimentLevel < 0.95) sedimentLevel += 0.012;
+      if (turbidityProgress > 0.12) turbidityProgress -= 0.014;
     }
 
-    // 1. Lab Workbench
+    // 1. Lab Workbench Base with Specular Bevel
     const benchY = 440;
     const benchGrad = ctx.createLinearGradient(0, benchY, 0, ch);
     benchGrad.addColorStop(0, "#1e293b");
+    benchGrad.addColorStop(0.2, "#0f172a");
     benchGrad.addColorStop(1, "#020617");
     ctx.fillStyle = benchGrad;
     ctx.fillRect(0, benchY, cw, ch - benchY);
 
-    ctx.strokeStyle = "#334155";
+    ctx.strokeStyle = "#475569";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, benchY);
     ctx.lineTo(cw, benchY);
     ctx.stroke();
 
-    // 2. Test Tube Rack
-    const rackX = cw * 0.5 - 120;
-    const rackW = 240;
-    ctx.fillStyle = "#334155";
-    ctx.fillRect(rackX, benchY - 80, rackW, 14); // Upper shelf
-    ctx.fillRect(rackX, benchY - 10, rackW, 14); // Lower base
-    ctx.fillRect(rackX + 10, benchY - 80, 16, 70); // Left pillar
-    ctx.fillRect(rackX + rackW - 26, benchY - 80, 16, 70); // Right pillar
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY + 2);
+    ctx.lineTo(cw, benchY + 2);
+    ctx.stroke();
 
-    // 3. Central Test Tube
+    // 2. Heavy Hardwood / Anodized Test Tube Rack
+    const rackX = cw * 0.5 - 130;
+    const rackW = 260;
+    
+    // Rack rear shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+    ctx.fillRect(rackX + 4, benchY - 84, rackW, 88);
+
+    // Rack upper support bar with circular cutouts
+    const woodGrad = ctx.createLinearGradient(rackX, 0, rackX + rackW, 0);
+    woodGrad.addColorStop(0, "#334155");
+    woodGrad.addColorStop(0.3, "#475569");
+    woodGrad.addColorStop(0.7, "#64748b");
+    woodGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = woodGrad;
+    ctx.fillRect(rackX, benchY - 82, rackW, 16);
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(rackX, benchY - 82, rackW, 16);
+
+    // Rack lower baseplate
+    ctx.fillStyle = woodGrad;
+    ctx.fillRect(rackX, benchY - 12, rackW, 14);
+    ctx.strokeRect(rackX, benchY - 12, rackW, 14);
+
+    // Left & right turned pillars with bevels
+    ctx.fillStyle = "#1e293b";
+    ctx.fillRect(rackX + 12, benchY - 82, 18, 70);
+    ctx.fillRect(rackX + rackW - 30, benchY - 82, 18, 70);
+    ctx.strokeStyle = "#475569";
+    ctx.strokeRect(rackX + 12, benchY - 82, 18, 70);
+    ctx.strokeRect(rackX + rackW - 30, benchY - 82, 18, 70);
+
+    // 3. Central Borosilicate Test Tube
     const tubeX = cw * 0.5;
-    const tubeTopY = 130;
-    const tubeH = 290;
-    const tubeW = 60;
+    const tubeTopY = 125;
+    const tubeH = 295;
+    const tubeW = 64;
     const tubeBottomY = tubeTopY + tubeH;
     const meniscusY = tubeTopY + 110;
+
+    // Tube background shadow
+    ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+    ctx.beginPath();
+    ctx.ellipse(tubeX + 8, benchY + 6, tubeW / 2, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
 
     // Fluid inside test tube
     const cation = CATIONS[currentCationKey];
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(tubeX - tubeW / 2 + 3, meniscusY);
-    ctx.lineTo(tubeX - tubeW / 2 + 3, tubeBottomY - tubeW / 2);
-    ctx.arc(tubeX, tubeBottomY - tubeW / 2, tubeW / 2 - 3, Math.PI, 0, true);
-    ctx.lineTo(tubeX + tubeW / 2 - 3, meniscusY);
+    ctx.moveTo(tubeX - tubeW / 2 + 3.5, meniscusY);
+    ctx.lineTo(tubeX - tubeW / 2 + 3.5, tubeBottomY - tubeW / 2);
+    ctx.arc(tubeX, tubeBottomY - tubeW / 2, tubeW / 2 - 3.5, Math.PI, 0, true);
+    ctx.lineTo(tubeX + tubeW / 2 - 3.5, meniscusY);
     ctx.closePath();
 
-    // Base solution color
-    ctx.fillStyle = cation.baseColor;
+    // Base solution color with volumetric gradient
+    const solGrad = ctx.createLinearGradient(tubeX - tubeW / 2, 0, tubeX + tubeW / 2, 0);
+    solGrad.addColorStop(0, cation.baseColor);
+    solGrad.addColorStop(0.5, cation.baseColor.replace(/[\d\.]+\)$/, "0.55)"));
+    solGrad.addColorStop(1, cation.baseColor);
+    ctx.fillStyle = solGrad;
     ctx.fill();
     ctx.clip();
 
-    // Dynamic Precipitate Cloud (Turbidity)
+    // Dynamic Precipitate Colloid Cloud (Tyndall Nucleation)
     if (willPrecipitate && turbidityProgress > 0.05) {
-      const cloudGrad = ctx.createRadialGradient(tubeX, meniscusY + 80, 10, tubeX, meniscusY + 80, 75);
+      const cloudGrad = ctx.createRadialGradient(tubeX, meniscusY + 90, 8, tubeX, meniscusY + 90, 80);
       cloudGrad.addColorStop(0, rxn.color);
+      cloudGrad.addColorStop(0.7, rxn.color);
       cloudGrad.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = cloudGrad;
-      ctx.globalAlpha = turbidityProgress * 0.85;
+      ctx.globalAlpha = Math.min(0.92, turbidityProgress * 0.95);
       ctx.fill();
 
-      // Golden Rain Sparkling Platelets / Settling Particles
-      particles.forEach(p => {
-        p.y += p.vy * (isCentrifuging ? 3.0 : 1.0);
-        p.x += Math.sin(timeTick * 4 + p.y * 0.1) * 0.4;
+      // Secondary diffuse cloud near surface
+      const topCloud = ctx.createRadialGradient(tubeX, meniscusY + 25, 4, tubeX, meniscusY + 25, 45);
+      topCloud.addColorStop(0, rxn.color);
+      topCloud.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = topCloud;
+      ctx.globalAlpha = Math.min(0.85, turbidityProgress * 0.7);
+      ctx.fill();
+
+      // Sparkling Crystalline Platelets (Golden Rain PbI2 or micro-crystals)
+      particles.forEach((p, idx) => {
+        p.y += p.vy * (isCentrifuging ? 3.5 : 1.0);
+        p.x += Math.sin(timeTick * 3.5 + p.y * 0.08) * 0.45;
         const minTx = tubeX - tubeW / 2 + 7 + p.radius;
         const maxTx = tubeX + tubeW / 2 - 7 - p.radius;
         if (p.x < minTx) p.x = minTx;
         if (p.x > maxTx) p.x = maxTx;
-        if (p.y > tubeBottomY - 15) {
-          p.y = meniscusY + 10;
-          p.x = tubeX - 20 + Math.random() * 40;
+        if (p.y > tubeBottomY - 14) {
+          p.y = meniscusY + 12;
+          p.x = tubeX - 22 + Math.random() * 44;
         }
 
+        const isSparkling = p.sparkle && rxn.isGoldenRain && (idx % 3 === 0);
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.sparkle && rxn.isGoldenRain ? "#ffffff" : rxn.color;
-        ctx.globalAlpha = turbidityProgress * (p.sparkle ? 0.95 : 0.7);
-        ctx.fill();
+        if (rxn.isGoldenRain && isSparkling) {
+          // Hexagonal platelet sparkle
+          const r = p.radius * 1.5;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(timeTick * 2 + idx);
+          ctx.moveTo(r, 0);
+          for (let a = 1; a < 6; a++) {
+            ctx.lineTo(r * Math.cos(a * Math.PI / 3), r * Math.sin(a * Math.PI / 3));
+          }
+          ctx.closePath();
+          ctx.fillStyle = "#ffffff";
+          ctx.globalAlpha = 0.95;
+          ctx.fill();
+          ctx.restore();
+        } else {
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fillStyle = isSparkling ? "#ffffff" : rxn.color;
+          ctx.globalAlpha = turbidityProgress * (p.sparkle ? 0.92 : 0.72);
+          ctx.fill();
+        }
       });
     }
 
-    // Settled Sediment Layer at Bottom
+    // Settled Sediment Cake Layer at Bottom
     if (willPrecipitate && sedimentLevel > 0.05) {
-      const sedH = 30 * sedimentLevel;
+      const sedH = 34 * sedimentLevel;
       ctx.beginPath();
       ctx.moveTo(tubeX - tubeW / 2 + 4, tubeBottomY - sedH);
       ctx.arc(tubeX, tubeBottomY - tubeW / 2, tubeW / 2 - 4, Math.PI * 0.8, Math.PI * 0.2, true);
       ctx.closePath();
-      ctx.fillStyle = rxn.sedimentColor;
-      ctx.globalAlpha = 0.95;
+
+      const sedGrad = ctx.createLinearGradient(0, tubeBottomY - sedH, 0, tubeBottomY);
+      sedGrad.addColorStop(0, rxn.sedimentColor);
+      sedGrad.addColorStop(1, rxn.color);
+      ctx.fillStyle = sedGrad;
+      ctx.globalAlpha = 0.98;
       ctx.fill();
+
+      // Top compaction line of sediment
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.ellipse(tubeX, tubeBottomY - sedH, tubeW / 2 - 6, 3, 0, 0, Math.PI * 2);
+      ctx.stroke();
     }
     ctx.restore();
 
-    // Glass Tube Walls & Highlights
+    // Curved Liquid Meniscus Surface
     ctx.save();
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.ellipse(tubeX, meniscusY, tubeW / 2 - 4, 5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.fill();
+    ctx.restore();
+
+    // Glass Tube Walls, Graduation Marks & Specular Reflections
+    ctx.save();
+    // Outturned ground-glass lip
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
     ctx.lineWidth = 3;
     ctx.beginPath();
-    // Outturned lip
     ctx.ellipse(tubeX, tubeTopY, tubeW / 2 + 5, 6, 0, 0, Math.PI * 2);
     ctx.stroke();
 
     // Tube cylindrical body & hemispherical bottom
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.moveTo(tubeX - tubeW / 2, tubeTopY);
     ctx.lineTo(tubeX - tubeW / 2, tubeBottomY - tubeW / 2);
@@ -630,61 +756,108 @@ export function initPrecipitationLab(containerId) {
     ctx.lineTo(tubeX + tubeW / 2, tubeTopY);
     ctx.stroke();
 
-    // Glass specular reflection stripe
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    // Metric Graduation Lines (5, 10, 15, 20, 25 mL)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.font = "7px 'JetBrains Mono', monospace";
+    ctx.textAlign = "right";
+
+    const gradMarks = [
+      { y: tubeBottomY - 60, ml: "5" },
+      { y: tubeBottomY - 110, ml: "10" },
+      { y: tubeBottomY - 160, ml: "15" },
+      { y: tubeBottomY - 210, ml: "20" },
+      { y: tubeBottomY - 250, ml: "25" }
+    ];
+    gradMarks.forEach(m => {
+      ctx.beginPath();
+      ctx.moveTo(tubeX + tubeW / 2 - 12, m.y);
+      ctx.lineTo(tubeX + tubeW / 2 - 3, m.y);
+      ctx.stroke();
+      ctx.fillText(`${m.ml}`, tubeX + tubeW / 2 - 14, m.y + 2.5);
+    });
+
+    // Glass specular reflection stripe (Left primary reflection)
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(tubeX - tubeW / 2 + 7, tubeTopY + 15);
+    ctx.moveTo(tubeX - tubeW / 2 + 7, tubeTopY + 12);
     ctx.lineTo(tubeX - tubeW / 2 + 7, tubeBottomY - tubeW / 2);
+    ctx.stroke();
+
+    // Subtle right secondary reflection
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(tubeX + tubeW / 2 - 6, tubeTopY + 14);
+    ctx.lineTo(tubeX + tubeW / 2 - 6, tubeBottomY - tubeW / 2);
     ctx.stroke();
     ctx.restore();
 
-    // 4. Pipette Dropper Animation
+    // 4. Precision Pasteur Pipette Dropper Animation
     const dropperX = tubeX;
-    const dropperY = 30;
+    const dropperY = 24;
     ctx.save();
-    // Rubber bulb
-    ctx.fillStyle = "#ef4444";
+
+    // Rubber bulb with radial lighting
+    const bulbGrad = ctx.createRadialGradient(dropperX - 4, dropperY + 10, 2, dropperX, dropperY + 12, 16);
+    bulbGrad.addColorStop(0, "#f87171");
+    bulbGrad.addColorStop(0.6, "#ef4444");
+    bulbGrad.addColorStop(1, "#991b1b");
+    ctx.fillStyle = bulbGrad;
     ctx.beginPath();
-    ctx.arc(dropperX, dropperY + 12, 14, 0, Math.PI * 2);
+    ctx.arc(dropperX, dropperY + 14, 15, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "#991b1b";
+    ctx.strokeStyle = "#7f1d1d";
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Glass pipette stem
-    ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-    ctx.lineWidth = 2;
+    // Glass pipette tapered stem
+    const glassGrad = ctx.createLinearGradient(dropperX - 5, 0, dropperX + 5, 0);
+    glassGrad.addColorStop(0, "rgba(255, 255, 255, 0.25)");
+    glassGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.45)");
+    glassGrad.addColorStop(1, "rgba(255, 255, 255, 0.2)");
+    ctx.fillStyle = glassGrad;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(dropperX - 5, dropperY + 26);
-    ctx.lineTo(dropperX - 3, dropperY + 70);
-    ctx.lineTo(dropperX - 1.5, dropperY + 85);
-    ctx.lineTo(dropperX + 1.5, dropperY + 85);
-    ctx.lineTo(dropperX + 3, dropperY + 70);
-    ctx.lineTo(dropperX + 5, dropperY + 26);
+    ctx.moveTo(dropperX - 6, dropperY + 28);
+    ctx.lineTo(dropperX - 3.5, dropperY + 72);
+    ctx.lineTo(dropperX - 1.8, dropperY + 92);
+    ctx.lineTo(dropperX + 1.8, dropperY + 92);
+    ctx.lineTo(dropperX + 3.5, dropperY + 72);
+    ctx.lineTo(dropperX + 6, dropperY + 28);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // Reagent fluid inside pipette tip
-    ctx.fillStyle = "#38bdf8";
-    ctx.fillRect(dropperX - 2, dropperY + 50, 4, 34);
+    // Reagent fluid column inside pipette stem
+    const anion = ANIONS[currentAnionKey];
+    ctx.fillStyle = anion.color || "rgba(56, 189, 248, 0.65)";
+    ctx.fillRect(dropperX - 2.5, dropperY + 52, 5, 38);
 
-    // Falling Drop Animation
+    // Falling Droplet Animation with Surface Tension Teardrop
     if (isDropping) {
-      dropY += 8;
+      dropY += 9;
       ctx.beginPath();
-      ctx.arc(dropperX, dropY, 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = "#38bdf8";
+      ctx.moveTo(dropperX, dropY - 5);
+      ctx.quadraticCurveTo(dropperX + 3.5, dropY, dropperX + 3.5, dropY + 2);
+      ctx.arc(dropperX, dropY + 2, 3.5, 0, Math.PI);
+      ctx.quadraticCurveTo(dropperX - 3.5, dropY, dropperX, dropY - 5);
+      ctx.closePath();
+      ctx.fillStyle = anion.color || "#38bdf8";
       ctx.fill();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
       if (dropY >= meniscusY) {
         isDropping = false;
-        dropY = dropperY + 86;
+        dropY = dropperY + 94;
         if (willPrecipitate) {
-          turbidityProgress = Math.min(1.0, turbidityProgress + 0.35);
-          initPrecipitateParticles(rxn.color, 70);
+          turbidityProgress = Math.min(1.0, turbidityProgress + 0.38);
+          initPrecipitateParticles(rxn.color, 75);
         }
       }
     }
@@ -833,5 +1006,6 @@ export function initPrecipitationLab(containerId) {
   return function cleanupPrecipitationLab() {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }

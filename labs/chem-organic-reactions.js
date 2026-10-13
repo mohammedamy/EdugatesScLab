@@ -144,7 +144,7 @@ export function initOrganicReactionsLab(containerId) {
         y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        radius: 5,
+        radius: 4.5,
         type: i % 2 === 0 ? "substrate" : "nucleophile",
         phase: Math.random() * Math.PI * 2
       });
@@ -306,11 +306,42 @@ export function initOrganicReactionsLab(containerId) {
   const chartCanvas = container.querySelector("#org-chart-canvas");
   const chartCtx = chartCanvas.getContext("2d");
 
+  const logicalW = 580;
+  const logicalH = 530;
+  const chartLogicalW = 460;
+  const chartLogicalH = 180;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    if (canvas) {
+      canvas.width = Math.round(logicalW * dpr);
+      canvas.height = Math.round(logicalH * dpr);
+    }
+    if (chartCanvas) {
+      chartCanvas.width = Math.round(chartLogicalW * dpr);
+      chartCanvas.height = Math.round(chartLogicalH * dpr);
+    }
+  }
+
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   function renderMolecularApparatus() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    ctx.save();
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, logicalW, logicalH);
+
     const mech = MECHANISMS[activeMechKey];
 
-    // 1. Background Reaction Flask Glassware Body
+    // 1. Heavy Retort Stand & Clamp Assembly
+    drawRetortStandAndHeatingMantle(ctx);
+
+    // 2. Reflux Liebig Condenser on Flask Neck
+    drawRefluxCondenser(ctx);
+
+    // 3. Background Reaction Flask Glassware Body
     drawFlaskPath(ctx, 0);
     ctx.fillStyle = "rgba(15, 23, 42, 0.90)";
     ctx.fill();
@@ -325,9 +356,10 @@ export function initOrganicReactionsLab(containerId) {
       ctx.stroke();
     }
 
-    // 2. Liquid in Flask (Aqueous / Organic Reaction Medium)
+    // 4. Liquid in Flask (Aqueous / Organic Reaction Medium)
+    const isHot = tempKelvin > 320;
     const flaskGrad = ctx.createRadialGradient(FLASK.cx, FLASK.cy + 20, 25, FLASK.cx, FLASK.cy + 30, FLASK.radius);
-    flaskGrad.addColorStop(0, "rgba(168, 85, 247, 0.38)");
+    flaskGrad.addColorStop(0, isHot ? "rgba(192, 132, 252, 0.42)" : "rgba(168, 85, 247, 0.38)");
     flaskGrad.addColorStop(0.65, "rgba(88, 28, 135, 0.58)");
     flaskGrad.addColorStop(1, "rgba(30, 27, 75, 0.85)");
     drawLiquidPath(ctx, 3);
@@ -357,25 +389,22 @@ export function initOrganicReactionsLab(containerId) {
     ctx.shadowBlur = 0;
     ctx.restore();
 
-    // 3. Dynamic Microscopic Colliding Molecules (Strict Physical Reflection & Canvas Clipping)
+    // 5. Dynamic Microscopic Colliding Molecules (Strict Physical Reflection & Canvas Clipping)
     ctx.save();
     drawLiquidPath(ctx, 4);
-    ctx.clip(); // <--- RIGID CANVAS CLIPPING MASK: ZERO PARTICLES CAN ESCAPE
+    ctx.clip(); // Canvas clipping mask strictly bounds molecules inside fluid
 
     molecules.forEach(m => {
-      // Thermal velocity scaling
       const tempMult = Math.sqrt(tempKelvin / 298.15);
       m.x += m.vx * tempMult;
       m.y += m.vy * tempMult;
 
-      // Top liquid meniscus boundary
       const topLimit = FLASK.meniscusY + m.radius + 3;
       if (m.y < topLimit) {
         m.y = topLimit;
         m.vy = Math.abs(m.vy);
       }
 
-      // Spherical glass wall elastic vector reflection
       const dx = m.x - FLASK.cx;
       const dy = m.y - FLASK.cy;
       const dist = Math.hypot(dx, dy);
@@ -394,7 +423,6 @@ export function initOrganicReactionsLab(containerId) {
         }
       }
 
-      // Bottom glass boundary
       const bottomLimit = FLASK.bottomY - m.radius - 6;
       if (m.y > bottomLimit) {
         m.y = bottomLimit;
@@ -415,18 +443,180 @@ export function initOrganicReactionsLab(containerId) {
       ctx.fill();
       ctx.shadowBlur = 0;
     });
-    ctx.restore(); // Restore liquid clip
+    ctx.restore();
 
-    // Molecular Mechanism Center Stage: Render the Central Reaction Complexes
-    // Coordinate progression: 0.0 -> 0.5 (Transition State) -> 1.0 (Products)
+    // 6. Center Stage Molecular Reaction Mechanisms
+    renderCenterStageMechanism(ctx, mech);
+
+    // 7. Outer Glass Walls, Quickfit Joint Details, & Refraction Sheen
+    drawFlaskPath(ctx, 0);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Sleek curved reflection sheen on upper-left bulb
+    ctx.beginPath();
+    ctx.arc(FLASK.cx, FLASK.cy, FLASK.radius - 8, Math.PI * 0.95, Math.PI * 1.35, false);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Quickfit joint specification text
+    ctx.fillStyle = "rgba(148, 163, 184, 0.65)";
+    ctx.font = "bold 8px var(--font-mono, monospace)";
+    ctx.textAlign = "center";
+    ctx.fillText("24/40 Quickfit", FLASK.cx, FLASK.neckTopY + 22);
+
+    // Etched volume calibrations on flask wall
+    ctx.fillStyle = "rgba(148, 163, 184, 0.45)";
+    ctx.font = "bold 9px var(--font-mono, monospace)";
+    ctx.textAlign = "left";
+    ctx.fillText("— 500 mL", FLASK.cx + 70, 240);
+    ctx.fillText("— 250 mL", FLASK.cx + 90, 315);
+    ctx.fillText("— 100 mL", FLASK.cx + 70, 395);
+
+    // Subtitle & Stage description (positioned cleanly above flask rim at y: 112)
+    ctx.fillStyle = "#e2e8f0";
+    ctx.font = "bold 14px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText(mech.name, logicalW / 2, 60);
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "11px system-ui";
+    ctx.fillText(mech.subtitle, logicalW / 2, 78);
+
+    ctx.restore();
+  }
+
+  function drawRetortStandAndHeatingMantle(ctx) {
+    // Retort rod on left side
+    const rodX = 145;
+    const rodGrad = ctx.createLinearGradient(rodX - 4, 0, rodX + 4, 0);
+    rodGrad.addColorStop(0, "#475569");
+    rodGrad.addColorStop(0.5, "#cbd5e1");
+    rodGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = rodGrad;
+    ctx.fillRect(rodX - 4, 25, 8, 480);
+
+    // Retort clamp holding neck of flask at (FLASK.cx - 34, FLASK.neckTopY + 16)
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#64748b";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(rodX - 8, FLASK.neckTopY + 10, 22, 18, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // Clamp arm extending to flask neck
+    ctx.fillStyle = "#475569";
+    ctx.fillRect(rodX + 14, FLASK.neckTopY + 15, FLASK.cx - 34 - (rodX + 14), 8);
+
+    // Clamp red silicone jaws around neck
+    ctx.fillStyle = "#ef4444";
+    ctx.beginPath();
+    ctx.roundRect(FLASK.cx - 38, FLASK.neckTopY + 11, 8, 16, 3);
+    ctx.fill();
+
+    // Digital Magnetic Stirrer / Heating Mantle Base underneath flask
+    const mantleY = 472;
+    const mantleGrad = ctx.createLinearGradient(0, mantleY, 0, mantleY + 50);
+    mantleGrad.addColorStop(0, "#334155");
+    mantleGrad.addColorStop(0.2, "#1e293b");
+    mantleGrad.addColorStop(1, "#0f172a");
+
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = mantleGrad;
+    ctx.beginPath();
+    ctx.roundRect(FLASK.cx - 105, mantleY, 210, 48, 8);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(FLASK.cx - 105, mantleY, 210, 48);
+
+    // Digital display on stirrer
+    ctx.fillStyle = "#020617";
+    ctx.fillRect(FLASK.cx - 85, mantleY + 12, 70, 24);
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(FLASK.cx - 85, mantleY + 12, 70, 24);
+
+    ctx.fillStyle = "#34d399";
+    ctx.font = "bold 10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`${tempKelvin} K`, FLASK.cx - 50, mantleY + 28);
+
+    // Stirrer control knob
+    ctx.beginPath();
+    ctx.arc(FLASK.cx + 50, mantleY + 24, 12, 0, Math.PI * 2);
+    ctx.fillStyle = "#475569";
+    ctx.fill();
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Heating thermal glow if hot
+    if (tempKelvin > 310) {
+      const glowAlpha = Math.min(0.5, (tempKelvin - 310) / 100);
+      ctx.save();
+      ctx.fillStyle = `rgba(239, 68, 68, ${glowAlpha})`;
+      ctx.shadowColor = "#ef4444";
+      ctx.shadowBlur = 16;
+      ctx.beginPath();
+      ctx.arc(FLASK.cx, FLASK.bottomY - 5, 45, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawRefluxCondenser(ctx) {
+    const topY = 20;
+    const colW = 38;
+    const colX = FLASK.cx - colW / 2;
+    const colH = FLASK.neckTopY - topY;
+
+    // Outer cooling water jacket
+    const jackGrad = ctx.createLinearGradient(colX, 0, colX + colW, 0);
+    jackGrad.addColorStop(0, "rgba(56, 189, 248, 0.15)");
+    jackGrad.addColorStop(0.5, "rgba(56, 189, 248, 0.35)");
+    jackGrad.addColorStop(1, "rgba(56, 189, 248, 0.15)");
+
+    ctx.fillStyle = jackGrad;
+    ctx.fillRect(colX, topY, colW, colH);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(colX, topY, colW, colH);
+
+    // Inner vapor tube
+    ctx.fillStyle = "rgba(15, 23, 42, 0.4)";
+    ctx.fillRect(colX + 11, topY, colW - 22, colH);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.strokeRect(colX + 11, topY, colW - 22, colH);
+
+    // Water coolant nipples (left in, right out)
+    ctx.fillStyle = "rgba(56, 189, 248, 0.4)";
+    ctx.fillRect(colX - 12, topY + colH - 25, 12, 8);
+    ctx.fillRect(colX + colW, topY + 15, 12, 8);
+
+    // Condensed droplets returning down condenser
+    const dropY = topY + 20 + ((simClock * 45) % (colH - 30));
+    ctx.beginPath();
+    ctx.arc(FLASK.cx, dropY, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+    ctx.fill();
+  }
+
+  function renderCenterStageMechanism(ctx, mech) {
     const cx = 290;
     const cy = 300;
 
     if (activeMechKey === "sn2") {
       // SN2: Nucleophile OH attacks from Left, Br leaves to Right.
       // At TS (0.5), central C is pentacoordinate with planar hydrogens.
-      const nuDist = 120 * (1.0 - reactionProgress); // Nu distance from C
-      const lgDist = 30 + 100 * reactionProgress; // LG distance from C
+      const nuDist = 120 * (1.0 - reactionProgress);
+      const lgDist = 30 + 100 * reactionProgress;
 
       // Central Carbon
       ctx.beginPath();
@@ -537,88 +727,222 @@ export function initOrganicReactionsLab(containerId) {
         ctx.font = "bold 20px system-ui";
         ctx.fillText("‡", cx + 96, cy - 60);
       }
-    } else {
-      // SN1 / E2 / Esterification generic multi-state representation
+    } else if (activeMechKey === "sn1") {
+      // SN1: Two-step mechanism via Planar Carbocation Intermediate
+      // Phase 1 (0 to 0.4): C-Cl bond heterolysis leaving group departs
+      // Phase 2 (0.4 to 0.65): Planar sp2 Carbocation Intermediate (with unhybridized p orbital lobes)
+      // Phase 3 (0.65 to 1.0): H2O nucleophilic attack forming tert-butanol
+      const clDist = reactionProgress < 0.4 ? 40 + reactionProgress * 150 : 100 + reactionProgress * 60;
+      const isCarbocation = reactionProgress >= 0.35 && reactionProgress <= 0.70;
+
+      // Central Carbon
       ctx.beginPath();
-      ctx.arc(cx, cy, 26, 0, Math.PI * 2);
-      ctx.fillStyle = mech.color;
-      ctx.shadowColor = mech.color;
-      ctx.shadowBlur = 12;
+      ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+      ctx.fillStyle = isCarbocation ? "#7c3aed" : "#334155";
+      ctx.strokeStyle = isCarbocation ? "#c084fc" : "#94a3b8";
+      ctx.lineWidth = 2;
       ctx.fill();
-      ctx.shadowBlur = 0;
+      ctx.stroke();
+
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 13px system-ui";
+      ctx.font = "bold 12px system-ui";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(reactionProgress < 0.4 ? "Substrate" : (reactionProgress < 0.7 ? "Carbocation C⁺" : "Product"), cx, cy);
+      ctx.fillText(isCarbocation ? "C⁺" : "C", cx, cy);
 
-      // Surrounding ligand spheres
+      // 3 Methyl Groups (CH3)
       for (let i = 0; i < 3; i++) {
-        const theta = (i * 2 * Math.PI) / 3 + simClock * 0.5;
-        const dist = 60 + Math.sin(simClock + i) * 8;
-        const lx = cx + Math.cos(theta) * dist;
-        const ly = cy + Math.sin(theta) * dist;
+        const baseAngle = (i * 2 * Math.PI) / 3 - Math.PI / 2;
+        const spread = isCarbocation ? 1.0 : (1.0 - reactionProgress * 0.2);
+        const theta = baseAngle * spread;
+        const mx = cx + Math.cos(theta) * 55;
+        const my = cy + Math.sin(theta) * 55;
+
+        ctx.strokeStyle = "#cbd5e1";
+        ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(lx, ly, 14, 0, Math.PI * 2);
-        ctx.fillStyle = "#64748b";
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(mx, my);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(mx, my, 14, 0, Math.PI * 2);
+        ctx.fillStyle = "#475569";
         ctx.fill();
         ctx.fillStyle = "#ffffff";
-        ctx.font = "10px system-ui";
-        ctx.fillText(i === 0 ? "CH₃" : (i === 1 ? "CH₃" : (reactionProgress > 0.6 ? "OH" : "LG")), lx, ly);
+        ctx.font = "bold 9px system-ui";
+        ctx.fillText("CH₃", mx, my);
+      }
+
+      // Empty unhybridized p-orbital lobes on planar carbocation
+      if (isCarbocation) {
+        ctx.fillStyle = "rgba(192, 132, 252, 0.35)";
+        ctx.strokeStyle = "#c084fc";
+        ctx.lineWidth = 1.5;
+        // Upper lobe
+        ctx.beginPath();
+        ctx.ellipse(cx, cy - 35, 12, 20, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Lower lobe
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + 35, 12, 20, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = "#facc15";
+        ctx.font = "bold 10px monospace";
+        ctx.fillText("2p empty", cx + 38, cy - 35);
+      }
+
+      // Departing Cl⁻
+      const clX = cx + clDist;
+      ctx.beginPath();
+      ctx.arc(clX, cy, 18, 0, Math.PI * 2);
+      ctx.fillStyle = "#10b981";
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px system-ui";
+      ctx.fillText("Cl⁻", clX, cy);
+
+      // Incoming Water Nucleophile (attacking from left)
+      if (reactionProgress > 0.45) {
+        const h2oDist = Math.max(30, 120 * (1.0 - reactionProgress));
+        const nuX = cx - h2oDist;
+        ctx.beginPath();
+        ctx.arc(nuX, cy, 18, 0, Math.PI * 2);
+        ctx.fillStyle = "#06b6d4";
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 10px system-ui";
+        ctx.fillText(reactionProgress > 0.8 ? "OH" : "H₂O", nuX, cy);
+      }
+    } else if (activeMechKey === "e2") {
+      // E2 Elimination: Anti-coplanar conformation, Base abstracts beta-H, C=C double bond forms
+      const c1x = cx - 28;
+      const c2x = cx + 28;
+      const doubleBondForming = reactionProgress > 0.3;
+
+      // C1 (beta) and C2 (alpha)
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = doubleBondForming ? 5 : 3;
+      ctx.beginPath();
+      ctx.moveTo(c1x, cy);
+      ctx.lineTo(c2x, cy);
+      ctx.stroke();
+
+      if (reactionProgress >= 0.5) {
+        // Second line for alkene double bond
+        ctx.strokeStyle = "#f59e0b";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(c1x, cy - 8);
+        ctx.lineTo(c2x, cy - 8);
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.arc(c1x, cy, 16, 0, Math.PI * 2);
+      ctx.arc(c2x, cy, 16, 0, Math.PI * 2);
+      ctx.fillStyle = "#334155";
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 11px system-ui";
+      ctx.fillText("C_β", c1x, cy);
+      ctx.fillText("C_α", c2x, cy);
+
+      // Beta-H pointing UP
+      const hY = cy - 40 - reactionProgress * 30;
+      ctx.beginPath();
+      ctx.arc(c1x, hY, 10, 0, Math.PI * 2);
+      ctx.fillStyle = "#f8fafc";
+      ctx.fill();
+      ctx.fillStyle = "#0f172a";
+      ctx.font = "bold 9px system-ui";
+      ctx.fillText("H", c1x, hY);
+
+      // Base (EtO⁻) approaching beta-H from above
+      const baseY = Math.max(cy - 65, cy - 110 + reactionProgress * 50);
+      ctx.beginPath();
+      ctx.arc(c1x, baseY, 16, 0, Math.PI * 2);
+      ctx.fillStyle = "#f59e0b";
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 9px system-ui";
+      ctx.fillText("Base⁻", c1x, baseY);
+
+      // Leaving Group Br pointing DOWN (anti-periplanar!)
+      const brY = cy + 40 + reactionProgress * 40;
+      ctx.beginPath();
+      ctx.arc(c2x, brY, 18, 0, Math.PI * 2);
+      ctx.fillStyle = "#f43f5e";
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 10px system-ui";
+      ctx.fillText("Br⁻", c2x, brY);
+    } else {
+      // Fischer Esterification: Nucleophilic acyl substitution via tetrahedral intermediate
+      ctx.beginPath();
+      ctx.arc(cx, cy, 22, 0, Math.PI * 2);
+      ctx.fillStyle = "#10b981";
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 12px system-ui";
+      ctx.fillText("C", cx, cy);
+
+      // Carbonyl Oxygen top
+      const oxY = cy - 45;
+      ctx.beginPath();
+      ctx.arc(cx, oxY, 16, 0, Math.PI * 2);
+      ctx.fillStyle = "#ef4444";
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 10px system-ui";
+      ctx.fillText(reactionProgress > 0.4 && reactionProgress < 0.7 ? "OH" : "O", cx, oxY);
+
+      // Ethanol nucleophile attacking from left
+      const ethX = cx - Math.max(30, 90 * (1.0 - reactionProgress));
+      ctx.beginPath();
+      ctx.arc(ethX, cy + 25, 16, 0, Math.PI * 2);
+      ctx.fillStyle = "#06b6d4";
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 9px system-ui";
+      ctx.fillText("OEt", ethX, cy + 25);
+
+      // Water leaving group leaving to right
+      if (reactionProgress > 0.5) {
+        const wX = cx + 40 + (reactionProgress - 0.5) * 80;
+        ctx.beginPath();
+        ctx.arc(wX, cy + 20, 14, 0, Math.PI * 2);
+        ctx.fillStyle = "#38bdf8";
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 8px system-ui";
+        ctx.fillText("H₂O", wX, cy + 20);
       }
     }
-
-    // 5. Outer Glass Walls, Quickfit Joint Details, & Refraction Sheen
-    drawFlaskPath(ctx, 0);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Sleek curved reflection sheen on upper-left bulb
-    ctx.beginPath();
-    ctx.arc(FLASK.cx, FLASK.cy, FLASK.radius - 8, Math.PI * 0.95, Math.PI * 1.35, false);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.22)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Quickfit joint specification text
-    ctx.fillStyle = "rgba(148, 163, 184, 0.65)";
-    ctx.font = "bold 8px var(--font-mono, monospace)";
-    ctx.textAlign = "center";
-    ctx.fillText("24/40 Quickfit", FLASK.cx, FLASK.neckTopY + 22);
-
-    // Etched volume calibrations on flask wall
-    ctx.fillStyle = "rgba(148, 163, 184, 0.45)";
-    ctx.font = "bold 9px var(--font-mono, monospace)";
-    ctx.textAlign = "left";
-    ctx.fillText("— 500 mL", FLASK.cx + 70, 240);
-    ctx.fillText("— 250 mL", FLASK.cx + 90, 315);
-    ctx.fillText("— 100 mL", FLASK.cx + 70, 395);
-
-    // Subtitle & Stage description (positioned cleanly above flask rim at y: 112)
-    ctx.fillStyle = "#e2e8f0";
-    ctx.font = "bold 14px system-ui";
-    ctx.textAlign = "center";
-    ctx.fillText(mech.name, canvas.width / 2, 70);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "11px system-ui";
-    ctx.fillText(mech.subtitle, canvas.width / 2, 90);
   }
 
   function renderEnergyChart() {
-    chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
+    chartCtx.save();
+    chartCtx.resetTransform();
+    chartCtx.scale(dpr, dpr);
+    chartCtx.clearRect(0, 0, chartLogicalW, chartLogicalH);
+
     const mech = MECHANISMS[activeMechKey];
 
     // Background
     chartCtx.fillStyle = "#030712";
-    chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+    chartCtx.fillRect(0, 0, chartLogicalW, chartLogicalH);
     chartCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
     chartCtx.lineWidth = 1;
 
-    for (let x = 40; x < chartCanvas.width; x += 40) {
+    for (let x = 40; x < chartLogicalW; x += 40) {
       chartCtx.beginPath();
       chartCtx.moveTo(x, 10);
-      chartCtx.lineTo(x, chartCanvas.height - 25);
+      chartCtx.lineTo(x, chartLogicalH - 25);
       chartCtx.stroke();
     }
 
@@ -627,49 +951,79 @@ export function initOrganicReactionsLab(containerId) {
     chartCtx.lineWidth = 1.5;
     chartCtx.beginPath();
     chartCtx.moveTo(40, 15);
-    chartCtx.lineTo(40, chartCanvas.height - 25);
-    chartCtx.lineTo(chartCanvas.width - 15, chartCanvas.height - 25);
+    chartCtx.lineTo(40, chartLogicalH - 25);
+    chartCtx.lineTo(chartLogicalW - 15, chartLogicalH - 25);
     chartCtx.stroke();
 
     // Axis Labels
     chartCtx.fillStyle = "#94a3b8";
     chartCtx.font = "10px var(--font-mono, monospace)";
     chartCtx.textAlign = "center";
-    chartCtx.fillText("Reaction Coordinate ξ", chartCanvas.width / 2, chartCanvas.height - 8);
+    chartCtx.fillText("Reaction Coordinate ξ", chartLogicalW / 2, chartLogicalH - 8);
 
     chartCtx.save();
-    chartCtx.translate(18, chartCanvas.height / 2);
+    chartCtx.translate(18, chartLogicalH / 2);
     chartCtx.rotate(-Math.PI / 2);
     chartCtx.fillText("Gibbs Energy ΔG (kJ/mol)", 0, 0);
     chartCtx.restore();
 
-    // Energy Curve
-    chartCtx.beginPath();
-    chartCtx.strokeStyle = mech.color;
-    chartCtx.lineWidth = 2.5;
-
     const startX = 50;
-    const endX = chartCanvas.width - 30;
+    const endX = chartLogicalW - 30;
     const baseEnergyY = 120; // Reactants
 
     let currentCoordX = startX + reactionProgress * (endX - startX);
     let currentEnergyY = baseEnergyY;
 
+    // Fill under energy curve
+    const fillGrad = chartCtx.createLinearGradient(0, 20, 0, baseEnergyY);
+    fillGrad.addColorStop(0, "rgba(168, 85, 247, 0.25)");
+    fillGrad.addColorStop(1, "rgba(168, 85, 247, 0.0)");
+
+    chartCtx.beginPath();
+    chartCtx.moveTo(startX, chartLogicalH - 25);
+
     if (!mech.hasIntermediate) {
-      // Single Activation Barrier TS (SN2, E2)
       for (let x = startX; x <= endX; x += 2) {
         const normX = (x - startX) / (endX - startX);
-        // Gaussian bump for Ea, downward slope for exothermic
+        const bump = Math.exp(-Math.pow((normX - 0.5) / 0.18, 2)) * (mech.ea * 0.9);
+        const delta = normX * (mech.deltaH * 0.7);
+        const y = baseEnergyY - bump - delta;
+        chartCtx.lineTo(x, y);
+        if (Math.abs(x - currentCoordX) < 2) currentEnergyY = y;
+      }
+    } else {
+      for (let x = startX; x <= endX; x += 2) {
+        const normX = (x - startX) / (endX - startX);
+        const bump1 = Math.exp(-Math.pow((normX - 0.35) / 0.12, 2)) * (mech.ea * 0.95);
+        const bump2 = Math.exp(-Math.pow((normX - 0.72) / 0.14, 2)) * (mech.ea * 0.55);
+        const well = -Math.exp(-Math.pow((normX - 0.52) / 0.08, 2)) * 25;
+        const delta = normX * (mech.deltaH * 0.7);
+        const y = baseEnergyY - bump1 - bump2 - well - delta;
+        chartCtx.lineTo(x, y);
+        if (Math.abs(x - currentCoordX) < 2) currentEnergyY = y;
+      }
+    }
+
+    chartCtx.lineTo(endX, chartLogicalH - 25);
+    chartCtx.closePath();
+    chartCtx.fillStyle = fillGrad;
+    chartCtx.fill();
+
+    // Stroke the actual potential energy surface
+    chartCtx.beginPath();
+    chartCtx.strokeStyle = mech.color;
+    chartCtx.lineWidth = 2.5;
+
+    if (!mech.hasIntermediate) {
+      for (let x = startX; x <= endX; x += 2) {
+        const normX = (x - startX) / (endX - startX);
         const bump = Math.exp(-Math.pow((normX - 0.5) / 0.18, 2)) * (mech.ea * 0.9);
         const delta = normX * (mech.deltaH * 0.7);
         const y = baseEnergyY - bump - delta;
         if (x === startX) chartCtx.moveTo(x, y);
         else chartCtx.lineTo(x, y);
-
-        if (Math.abs(x - currentCoordX) < 2) currentEnergyY = y;
       }
     } else {
-      // Two-step with Intermediate Well (SN1, Esterification)
       for (let x = startX; x <= endX; x += 2) {
         const normX = (x - startX) / (endX - startX);
         const bump1 = Math.exp(-Math.pow((normX - 0.35) / 0.12, 2)) * (mech.ea * 0.95);
@@ -679,28 +1033,18 @@ export function initOrganicReactionsLab(containerId) {
         const y = baseEnergyY - bump1 - bump2 - well - delta;
         if (x === startX) chartCtx.moveTo(x, y);
         else chartCtx.lineTo(x, y);
-
-        if (Math.abs(x - currentCoordX) < 2) currentEnergyY = y;
       }
     }
     chartCtx.stroke();
-
-    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
-                    document.documentElement.classList.contains("fast-smartboard-mode") ||
-                    /Android|MAXHUB/i.test(navigator.userAgent);
 
     // Draw active reaction progress ball on curve
     chartCtx.beginPath();
     chartCtx.arc(currentCoordX, currentEnergyY, 6, 0, Math.PI * 2);
     chartCtx.fillStyle = "#facc15";
-    if (!isSmart) {
-      chartCtx.shadowColor = "#facc15";
-      chartCtx.shadowBlur = 8;
-    }
+    chartCtx.shadowColor = "#facc15";
+    chartCtx.shadowBlur = 8;
     chartCtx.fill();
-    if (!isSmart) {
-      chartCtx.shadowBlur = 0;
-    }
+    chartCtx.shadowBlur = 0;
 
     // Transition State Annotations
     chartCtx.fillStyle = "#ffffff";
@@ -708,6 +1052,8 @@ export function initOrganicReactionsLab(containerId) {
     chartCtx.textAlign = "center";
     chartCtx.fillText("Reactants", 65, baseEnergyY + 15);
     chartCtx.fillText("Products", endX - 15, baseEnergyY - (mech.deltaH * 0.7) + 15);
+
+    chartCtx.restore();
   }
 
   function step() {
@@ -878,5 +1224,6 @@ export function initOrganicReactionsLab(containerId) {
     isRunning = false;
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }

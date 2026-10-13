@@ -313,6 +313,36 @@ export function initFlameTestLab(containerId) {
   const spectroCanvas = document.getElementById("flame-spectro-canvas");
   const spectroCtx = spectroCanvas.getContext("2d");
 
+  // HiDPI / Retina DPR Scaling Setup
+  const logicalW = 580;
+  const logicalH = 530;
+  const spectroLogicalW = 400;
+  const spectroLogicalH = 90;
+
+  function setupHiDPICanvas() {
+    const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
+    if (canvas && ctx) {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width > 0 ? rect.width : logicalW;
+      const h = rect.height > 0 ? rect.height : logicalH;
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+      ctx.resetTransform();
+      ctx.scale(dpr * (w / logicalW), dpr * (h / logicalH));
+    }
+    if (spectroCanvas && spectroCtx) {
+      const crect = spectroCanvas.getBoundingClientRect();
+      const cw = crect.width > 0 ? crect.width : spectroLogicalW;
+      const ch = crect.height > 0 ? crect.height : spectroLogicalH;
+      spectroCanvas.width = Math.round(cw * dpr);
+      spectroCanvas.height = Math.round(ch * dpr);
+      spectroCtx.resetTransform();
+      spectroCtx.scale(dpr * (cw / spectroLogicalW), dpr * (ch / spectroLogicalH));
+    }
+  }
+  setupHiDPICanvas();
+  window.addEventListener("resize", setupHiDPICanvas);
+
   const viewSimBtn = document.getElementById("view-mode-flame-sim");
   const viewPhotoBtn = document.getElementById("view-mode-flame-photo");
   const photoOverlay = document.getElementById("flame-photo-overlay");
@@ -340,6 +370,9 @@ export function initFlameTestLab(containerId) {
   let targetWireX = 180;
   let targetWireY = 240;
 
+  // Ion convection sparks pool
+  const sparks = [];
+
   function updateHUD() {
     const salt = METAL_SALTS[currentSaltKey];
     const { energyEv, frequencyThz } = calculatePhotonEnergy(salt.wavelength);
@@ -352,20 +385,17 @@ export function initFlameTestLab(containerId) {
     infoPhenom.textContent = salt.description;
   }
 
-  // Draw Optical Emission Spectrum
+  // Draw Calibrated Optical Emission Spectrum with Graticule
   function renderSpectrogram() {
-    const w = spectroCanvas.width;
-    const h = spectroCanvas.height;
+    const w = spectroLogicalW;
+    const h = spectroLogicalH;
     spectroCtx.clearRect(0, 0, w, h);
 
-    // Draw background continuum dark or faint thermal blackbody
-    const bgGrad = spectroCtx.createLinearGradient(0, 0, w, 0);
-    bgGrad.addColorStop(0, "#09090b");
-    bgGrad.addColorStop(1, "#09090b");
-    spectroCtx.fillStyle = bgGrad;
+    // Dark spectrometer cavity
+    spectroCtx.fillStyle = "#030712";
     spectroCtx.fillRect(0, 0, w, h);
 
-    // If air collar is luminous yellow, draw faint continuous blackbody background
+    // If air collar is luminous yellow, draw continuous thermal blackbody continuum
     if (airVentRatio < 0.4 && isWireInFlame) {
       const contGrad = spectroCtx.createLinearGradient(0, 0, w, 0);
       contGrad.addColorStop(0.3, "rgba(56, 189, 248, 0.04)");
@@ -375,19 +405,36 @@ export function initFlameTestLab(containerId) {
       spectroCtx.fillRect(0, 0, w, h);
     }
 
+    // Wavelength Graticule Calibration Scale (380 nm to 750 nm)
+    const minLambda = 380;
+    const maxLambda = 750;
+    spectroCtx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    spectroCtx.lineWidth = 1;
+    spectroCtx.setLineDash([2, 4]);
+
+    for (let lam = 400; lam <= 700; lam += 50) {
+      const gx = ((lam - minLambda) / (maxLambda - minLambda)) * w;
+      spectroCtx.beginPath();
+      spectroCtx.moveTo(gx, 0);
+      spectroCtx.lineTo(gx, h - 16);
+      spectroCtx.stroke();
+
+      spectroCtx.fillStyle = "rgba(148, 163, 184, 0.6)";
+      spectroCtx.font = "8px 'JetBrains Mono', monospace";
+      spectroCtx.textAlign = "center";
+      spectroCtx.fillText(`${lam}`, gx, h - 4);
+    }
+    spectroCtx.setLineDash([]);
+
     if (!isWireInFlame) {
       spectroCtx.fillStyle = "#64748b";
       spectroCtx.font = "11px Inter, sans-serif";
       spectroCtx.textAlign = "center";
-      spectroCtx.fillText("Insert wire loop into flame to measure spectral emission lines", w / 2, h / 2 + 4);
+      spectroCtx.fillText("Insert wire loop into flame to measure spectral emission lines", w / 2, h / 2 - 2);
       return;
     }
 
     const salt = METAL_SALTS[currentSaltKey];
-    
-    // Map 380nm - 750nm to canvas width
-    const minLambda = 380;
-    const maxLambda = 750;
 
     salt.spectrumLines.forEach(line => {
       let activeColor = line.color;
@@ -403,13 +450,13 @@ export function initFlameTestLab(containerId) {
       const normX = (line.lambda - minLambda) / (maxLambda - minLambda);
       const px = normX * w;
 
-      // Draw spectral glow
-      const glow = spectroCtx.createRadialGradient(px, h / 2, 1, px, h / 2, 18);
+      // Draw outer Gaussian glow aura
+      const glow = spectroCtx.createRadialGradient(px, h / 2 - 8, 1, px, h / 2 - 8, 18);
       glow.addColorStop(0, activeColor);
       glow.addColorStop(1, "rgba(0,0,0,0)");
       spectroCtx.fillStyle = glow;
       spectroCtx.globalAlpha = activeIntensity * 0.8;
-      spectroCtx.fillRect(px - 18, 0, 36, h);
+      spectroCtx.fillRect(px - 18, 0, 36, h - 16);
 
       // Draw sharp spectral line
       spectroCtx.globalAlpha = activeIntensity;
@@ -417,12 +464,12 @@ export function initFlameTestLab(containerId) {
       spectroCtx.lineWidth = 2.5;
       spectroCtx.beginPath();
       spectroCtx.moveTo(px, 4);
-      spectroCtx.lineTo(px, h - 4);
+      spectroCtx.lineTo(px, h - 18);
       spectroCtx.stroke();
 
-      // Peak label
+      // Peak label marker
       spectroCtx.fillStyle = "#f8fafc";
-      spectroCtx.font = "9px 'JetBrains Mono', monospace";
+      spectroCtx.font = "bold 9px 'JetBrains Mono', monospace";
       spectroCtx.textAlign = "center";
       spectroCtx.fillText(line.label, px, 14);
     });
@@ -431,11 +478,24 @@ export function initFlameTestLab(containerId) {
   }
 
   // Main 60 FPS Canvas Animation
-  function renderFlameCanvas() {
+  let lastFrameTime = 0;
+  function renderFlameCanvas(currentTime) {
     if (!container || !container.isConnected) return;
+
+    const isSmart = (document.documentElement.getAttribute("data-mode") === "smartboard") ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    /Android|MAXHUB/i.test(navigator.userAgent);
+    const interval = isSmart ? 33.3 : 16.0;
+
+    if (currentTime && currentTime - lastFrameTime < interval) {
+      animId = requestAnimationFrame(renderFlameCanvas);
+      return;
+    }
+    lastFrameTime = currentTime || performance.now();
+
     timeTick += 0.04;
-    const cw = canvas.width;
-    const ch = canvas.height;
+    const cw = logicalW;
+    const ch = logicalH;
     ctx.clearRect(0, 0, cw, ch);
 
     // Smooth wire transition
@@ -447,7 +507,7 @@ export function initFlameTestLab(containerId) {
       wireCleanliness -= 0.0006;
     }
 
-    // 1. Draw Lab Workbench Base
+    // 1. Draw Lab Workbench Base with Specular Edge
     const benchY = 440;
     const tableGrad = ctx.createLinearGradient(0, benchY, 0, ch);
     tableGrad.addColorStop(0, "#1e293b");
@@ -456,11 +516,18 @@ export function initFlameTestLab(containerId) {
     ctx.fillStyle = tableGrad;
     ctx.fillRect(0, benchY, cw, ch - benchY);
 
-    ctx.strokeStyle = "#334155";
+    ctx.strokeStyle = "#475569";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, benchY);
     ctx.lineTo(cw, benchY);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, benchY + 2);
+    ctx.lineTo(cw, benchY + 2);
     ctx.stroke();
 
     // 2. Draw Bunsen Burner Apparatus
@@ -471,71 +538,118 @@ export function initFlameTestLab(containerId) {
     const barrelTopY = burnerBaseY - barrelH;
 
     // Heavy Metal Cast Iron Base
-    ctx.fillStyle = "#334155";
+    ctx.fillStyle = "#1e293b";
     ctx.beginPath();
-    ctx.ellipse(burnerX, burnerBaseY, 65, 14, 0, 0, Math.PI * 2);
+    ctx.ellipse(burnerX, burnerBaseY, 70, 16, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.strokeStyle = "#475569";
-    ctx.lineWidth = 2;
+
+    const baseGrad = ctx.createLinearGradient(burnerX - 60, burnerBaseY - 14, burnerX + 60, burnerBaseY + 6);
+    baseGrad.addColorStop(0, "#475569");
+    baseGrad.addColorStop(0.5, "#64748b");
+    baseGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = baseGrad;
+    ctx.beginPath();
+    ctx.ellipse(burnerX, burnerBaseY - 4, 62, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Natural Gas Rubber Inlet Tubing
+    // Natural Gas Rubber Inlet Tubing & Brass Nozzle
+    ctx.fillStyle = "#d97706";
+    ctx.fillRect(burnerX + 20, burnerBaseY - 12, 14, 8);
+
     ctx.strokeStyle = "#ea580c";
     ctx.lineWidth = 10;
     ctx.beginPath();
-    ctx.moveTo(burnerX + 25, burnerBaseY - 6);
-    ctx.bezierCurveTo(burnerX + 90, burnerBaseY - 2, burnerX + 150, burnerBaseY + 30, cw, burnerBaseY + 30);
+    ctx.moveTo(burnerX + 28, burnerBaseY - 8);
+    ctx.bezierCurveTo(burnerX + 90, burnerBaseY - 2, burnerX + 160, burnerBaseY + 32, cw, burnerBaseY + 32);
     ctx.stroke();
 
-    // Chrome Burner Barrel
+    // Ribbed texture on rubber hose
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.25)";
+    ctx.lineWidth = 1.5;
+    for (let hx = burnerX + 40; hx < cw; hx += 16) {
+      ctx.beginPath();
+      ctx.moveTo(hx, burnerBaseY + 6);
+      ctx.lineTo(hx + 2, burnerBaseY + 16);
+      ctx.stroke();
+    }
+
+    // Chrome Burner Barrel with Specular Reflections
     const barrelGrad = ctx.createLinearGradient(burnerX - barrelW / 2, 0, burnerX + barrelW / 2, 0);
-    barrelGrad.addColorStop(0, "#475569");
-    barrelGrad.addColorStop(0.3, "#94a3b8");
-    barrelGrad.addColorStop(0.7, "#cbd5e1");
-    barrelGrad.addColorStop(1, "#334155");
+    barrelGrad.addColorStop(0, "#334155");
+    barrelGrad.addColorStop(0.2, "#94a3b8");
+    barrelGrad.addColorStop(0.5, "#f1f5f9");
+    barrelGrad.addColorStop(0.8, "#64748b");
+    barrelGrad.addColorStop(1, "#1e293b");
     ctx.fillStyle = barrelGrad;
     ctx.fillRect(burnerX - barrelW / 2, barrelTopY, barrelW, barrelH);
 
-    // Air Collar Ring
+    // Barrel top rim bevel
+    ctx.fillStyle = "#cbd5e1";
+    ctx.beginPath();
+    ctx.ellipse(burnerX, barrelTopY, barrelW / 2, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Air Collar Ring (Brass/Knurled finish)
     const collarY = burnerBaseY - 35;
     const collarH = 22;
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(burnerX - barrelW / 2 - 2, collarY, barrelW + 4, collarH);
-    ctx.strokeStyle = "#64748b";
-    ctx.strokeRect(burnerX - barrelW / 2 - 2, collarY, barrelW + 4, collarH);
+    const collarGrad = ctx.createLinearGradient(burnerX - barrelW / 2 - 2, 0, burnerX + barrelW / 2 + 2, 0);
+    collarGrad.addColorStop(0, "#78350f");
+    collarGrad.addColorStop(0.3, "#f59e0b");
+    collarGrad.addColorStop(0.6, "#fef3c7");
+    collarGrad.addColorStop(1, "#92400e");
+    ctx.fillStyle = collarGrad;
+    ctx.fillRect(burnerX - barrelW / 2 - 3, collarY, barrelW + 6, collarH);
+    ctx.strokeStyle = "#d97706";
+    ctx.strokeRect(burnerX - barrelW / 2 - 3, collarY, barrelW + 6, collarH);
 
     // Collar Vent Hole (shows open ratio)
     const holeW = (barrelW - 4) * airVentRatio;
     ctx.fillStyle = "#020617";
     ctx.fillRect(burnerX - holeW / 2, collarY + 4, holeW, collarH - 8);
 
-    // 3. Draw Realistic Procedural Flame
+    // 3. Draw Realistic Volumetric Procedural Flame
     const flameBaseX = burnerX;
     const flameBaseY = barrelTopY + 2;
     const salt = METAL_SALTS[currentSaltKey];
 
-    // Flicker physics
-    const flicker1 = Math.sin(timeTick * 12) * 4;
-    const flicker2 = Math.cos(timeTick * 18) * 3;
-    const flameH = (airVentRatio > 0.5 ? 140 : 180) + flicker1;
+    // Multi-frequency flicker physics
+    const flicker1 = Math.sin(timeTick * 11) * 3.5 + Math.cos(timeTick * 23) * 1.5;
+    const flicker2 = Math.cos(timeTick * 17) * 2.8 + Math.sin(timeTick * 31) * 1.2;
+    const flameH = (airVentRatio > 0.5 ? 145 : 185) + flicker1;
 
-    // Ambient Flame Glow
-    let flameGlowColor = airVentRatio > 0.5 ? "rgba(56, 189, 248, 0.25)" : "rgba(245, 158, 11, 0.35)";
+    // Ambient Radiant Flame Glow
+    let flameGlowColor = airVentRatio > 0.5 ? "rgba(56, 189, 248, 0.28)" : "rgba(245, 158, 11, 0.38)";
     if (isWireInFlame && wireCleanliness > 0.05) {
       flameGlowColor = salt.glowColor;
       if (useCobaltGlass && currentSaltKey === "potassium") {
-        flameGlowColor = "rgba(168, 85, 247, 0.8)";
+        flameGlowColor = "rgba(168, 85, 247, 0.85)";
       } else if (useCobaltGlass && currentSaltKey === "sodium") {
-        flameGlowColor = "rgba(71, 85, 105, 0.2)";
+        flameGlowColor = "rgba(71, 85, 105, 0.15)";
       }
     }
 
-    const radGlow = ctx.createRadialGradient(flameBaseX, flameBaseY - flameH * 0.5, 10, flameBaseX, flameBaseY - flameH * 0.5, flameH * 1.3);
+    const radGlow = ctx.createRadialGradient(flameBaseX, flameBaseY - flameH * 0.5, 10, flameBaseX, flameBaseY - flameH * 0.5, flameH * 1.4);
     radGlow.addColorStop(0, flameGlowColor);
+    radGlow.addColorStop(0.5, flameGlowColor.replace(/[\d\.]+\)$/, "0.15)"));
     radGlow.addColorStop(1, "rgba(0,0,0,0)");
     ctx.fillStyle = radGlow;
     ctx.beginPath();
-    ctx.arc(flameBaseX, flameBaseY - flameH * 0.5, flameH * 1.3, 0, Math.PI * 2);
+    ctx.arc(flameBaseX, flameBaseY - flameH * 0.5, flameH * 1.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tabletop flame reflection
+    const tableReflGrad = ctx.createRadialGradient(flameBaseX, benchY + 6, 5, flameBaseX, benchY + 6, 80);
+    tableReflGrad.addColorStop(0, flameGlowColor.replace(/[\d\.]+\)$/, "0.35)"));
+    tableReflGrad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = tableReflGrad;
+    ctx.beginPath();
+    ctx.ellipse(flameBaseX, benchY + 6, 80, 14, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Base Outer Flame Envelope
@@ -549,24 +663,25 @@ export function initFlameTestLab(containerId) {
     if (airVentRatio < 0.35) {
       // Safety / Luminous cool yellow flame
       const yellowGrad = ctx.createLinearGradient(0, flameBaseY, 0, flameBaseY - flameH);
-      yellowGrad.addColorStop(0, "rgba(245, 158, 11, 0.8)");
-      yellowGrad.addColorStop(0.5, "rgba(251, 191, 36, 0.9)");
-      yellowGrad.addColorStop(1, "rgba(254, 240, 138, 0.4)");
+      yellowGrad.addColorStop(0, "rgba(245, 158, 11, 0.85)");
+      yellowGrad.addColorStop(0.5, "rgba(251, 191, 36, 0.95)");
+      yellowGrad.addColorStop(0.85, "rgba(254, 240, 138, 0.6)");
+      yellowGrad.addColorStop(1, "rgba(255, 255, 255, 0.15)");
       ctx.fillStyle = yellowGrad;
     } else {
       // Non-luminous roaring blue flame
       const blueGrad = ctx.createLinearGradient(0, flameBaseY, 0, flameBaseY - flameH);
-      blueGrad.addColorStop(0, "rgba(30, 58, 138, 0.9)");
-      blueGrad.addColorStop(0.3, "rgba(56, 189, 248, 0.8)");
-      blueGrad.addColorStop(0.8, "rgba(125, 211, 252, 0.35)");
+      blueGrad.addColorStop(0, "rgba(30, 58, 138, 0.95)");
+      blueGrad.addColorStop(0.3, "rgba(56, 189, 248, 0.85)");
+      blueGrad.addColorStop(0.8, "rgba(125, 211, 252, 0.4)");
       blueGrad.addColorStop(1, "rgba(224, 242, 254, 0.1)");
       ctx.fillStyle = blueGrad;
     }
     ctx.fill();
 
-    // Inner Cone (Hottest zone ~1500°C)
+    // Inner Cone (Hottest combustion zone ~1500°C)
     if (airVentRatio > 0.4) {
-      const coneH = 65 + flicker1 * 0.4;
+      const coneH = 68 + flicker1 * 0.4;
       ctx.beginPath();
       ctx.moveTo(flameBaseX - barrelW / 2 + 4, flameBaseY);
       ctx.quadraticCurveTo(flameBaseX - 16, flameBaseY - coneH * 0.5, flameBaseX, flameBaseY - coneH);
@@ -574,8 +689,8 @@ export function initFlameTestLab(containerId) {
       ctx.closePath();
       const innerGrad = ctx.createLinearGradient(0, flameBaseY, 0, flameBaseY - coneH);
       innerGrad.addColorStop(0, "rgba(6, 182, 212, 0.95)");
-      innerGrad.addColorStop(0.8, "rgba(103, 232, 249, 0.85)");
-      innerGrad.addColorStop(1, "rgba(255, 255, 255, 0.95)");
+      innerGrad.addColorStop(0.7, "rgba(103, 232, 249, 0.9)");
+      innerGrad.addColorStop(1, "rgba(255, 255, 255, 0.98)");
       ctx.fillStyle = innerGrad;
       ctx.fill();
     }
@@ -583,7 +698,7 @@ export function initFlameTestLab(containerId) {
     // Metal Emission Color Flare (When wire is immersed)
     if (isWireInFlame && wireCleanliness > 0.05) {
       let flareColor = salt.flameColor;
-      let alpha = wireCleanliness * 0.85;
+      let alpha = wireCleanliness * 0.88;
 
       if (useCobaltGlass) {
         if (currentSaltKey === "sodium") {
@@ -596,26 +711,61 @@ export function initFlameTestLab(containerId) {
       }
 
       ctx.beginPath();
-      ctx.moveTo(flameBaseX - 10, flameBaseY - 30);
-      ctx.quadraticCurveTo(flameBaseX - 45 + flicker1, flameBaseY - flameH * 0.6, flameBaseX + flicker2, flameBaseY - flameH * 1.15);
-      ctx.quadraticCurveTo(flameBaseX + 45 - flicker1, flameBaseY - flameH * 0.6, flameBaseX + 10, flameBaseY - 30);
+      ctx.moveTo(flameBaseX - 12, flameBaseY - 25);
+      ctx.quadraticCurveTo(flameBaseX - 48 + flicker1, flameBaseY - flameH * 0.62, flameBaseX + flicker2, flameBaseY - flameH * 1.18);
+      ctx.quadraticCurveTo(flameBaseX + 48 - flicker1, flameBaseY - flameH * 0.62, flameBaseX + 12, flameBaseY - 25);
       ctx.closePath();
 
-      const flareGrad = ctx.createRadialGradient(flameBaseX, flameBaseY - flameH * 0.7, 5, flameBaseX, flameBaseY - flameH * 0.7, flameH * 0.8);
+      const flareGrad = ctx.createRadialGradient(flameBaseX, flameBaseY - flameH * 0.72, 6, flameBaseX, flameBaseY - flameH * 0.72, flameH * 0.85);
       flareGrad.addColorStop(0, flareColor);
-      flareGrad.addColorStop(0.7, flareColor);
+      flareGrad.addColorStop(0.65, flareColor);
       flareGrad.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = flareGrad;
       ctx.globalAlpha = alpha;
       ctx.fill();
       ctx.globalAlpha = 1.0;
+
+      // Spawn ion convection sparks
+      if (Math.random() < 0.45) {
+        sparks.push({
+          x: flameBaseX + (Math.random() - 0.5) * 24,
+          y: flameBaseY - 40 - Math.random() * 30,
+          vx: (Math.random() - 0.5) * 1.6,
+          vy: -2.2 - Math.random() * 2.8,
+          alpha: 0.9,
+          size: 1.2 + Math.random() * 2.2,
+          color: flareColor
+        });
+      }
     }
     ctx.restore();
 
+    // Render & Update Spark Particles
+    for (let i = sparks.length - 1; i >= 0; i--) {
+      const sp = sparks[i];
+      sp.x += sp.vx;
+      sp.y += sp.vy;
+      sp.alpha -= 0.024;
+      if (sp.alpha <= 0) {
+        sparks.splice(i, 1);
+        continue;
+      }
+      ctx.fillStyle = sp.color;
+      ctx.globalAlpha = sp.alpha;
+      ctx.beginPath();
+      ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1.0;
+    }
+
     // 4. Draw Nichrome / Platinum Wire Loop Apparatus
     ctx.save();
-    // Glass handle rod
-    ctx.strokeStyle = "rgba(148, 163, 184, 0.85)";
+    // Glass handle rod with bevel & highlight
+    const handleGrad = ctx.createLinearGradient(wireX - 140, wireY + 70, wireX - 60, wireY + 30);
+    handleGrad.addColorStop(0, "rgba(100, 116, 139, 0.9)");
+    handleGrad.addColorStop(0.5, "rgba(226, 232, 240, 0.95)");
+    handleGrad.addColorStop(1, "rgba(71, 85, 105, 0.9)");
+    ctx.strokeStyle = handleGrad;
     ctx.lineWidth = 6;
     ctx.beginPath();
     ctx.moveTo(wireX - 140, wireY + 70);
@@ -628,7 +778,7 @@ export function initFlameTestLab(containerId) {
 
     // Platinum needle wire
     ctx.strokeStyle = isWireInFlame ? "#fed7aa" : "#cbd5e1";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.2;
     ctx.beginPath();
     ctx.moveTo(wireX - 54, wireY + 30);
     ctx.lineTo(wireX, wireY);
@@ -638,13 +788,13 @@ export function initFlameTestLab(containerId) {
     ctx.beginPath();
     ctx.arc(wireX + 5, wireY - 2, 5, 0, Math.PI * 2);
     ctx.strokeStyle = isWireInFlame ? "#ffedd5" : "#94a3b8";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.2;
     ctx.stroke();
 
     // Chemical Salt Crystal bead inside loop
     if (wireCleanliness > 0.05) {
       ctx.beginPath();
-      ctx.arc(wireX + 5, wireY - 2, 3.5, 0, Math.PI * 2);
+      ctx.arc(wireX + 5, wireY - 2, 3.8, 0, Math.PI * 2);
       ctx.fillStyle = isWireInFlame ? salt.flameColor : "#f8fafc";
       ctx.fill();
     }
@@ -652,16 +802,16 @@ export function initFlameTestLab(containerId) {
 
     // 5. Cobalt Glass Filter Overlay (If Active)
     if (useCobaltGlass) {
-      ctx.fillStyle = "rgba(30, 27, 75, 0.55)";
+      ctx.fillStyle = "rgba(30, 27, 75, 0.58)";
       ctx.fillRect(0, 0, cw, ch);
       
-      // Glass border frame
-      ctx.strokeStyle = "rgba(99, 102, 241, 0.7)";
-      ctx.lineWidth = 6;
-      ctx.strokeRect(6, 6, cw - 12, ch - 12);
+      // Glass border frame with chamfer
+      ctx.strokeStyle = "rgba(99, 102, 241, 0.8)";
+      ctx.lineWidth = 8;
+      ctx.strokeRect(4, 4, cw - 8, ch - 8);
 
       ctx.fillStyle = "#a5b4fc";
-      ctx.font = "bold 11px Inter, sans-serif";
+      ctx.font = "bold 11px Inter, system-ui, sans-serif";
       ctx.fillText("COBALT BLUE GLASS FILTER ACTIVE (λ 589 nm ATTENUATED)", 20, ch - 20);
     }
 
@@ -694,7 +844,7 @@ export function initFlameTestLab(containerId) {
   btnInsert.addEventListener("click", () => {
     isWireInFlame = !isWireInFlame;
     if (isWireInFlame) {
-      targetWireX = canvas.width * 0.5 - 10;
+      targetWireX = logicalW * 0.5 - 10;
       targetWireY = 240;
       btnInsert.textContent = "↩ Retract Wire Loop";
       btnInsert.classList.replace("btn-primary", "btn-secondary");
@@ -745,7 +895,7 @@ export function initFlameTestLab(containerId) {
     viewPhotoBtn.classList.add("active");
     viewSimBtn.classList.remove("active");
     viewPhotoBtn.style.background = "#0284c7";
-    viewSimBtn.style.background = "transparent";
+    viewPhotoBtn.style.background = "transparent";
     photoOverlay.style.display = "block";
     canvas.style.display = "none";
     SoundFX.click();
@@ -797,5 +947,6 @@ export function initFlameTestLab(containerId) {
   return function cleanupFlameTestLab() {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }
