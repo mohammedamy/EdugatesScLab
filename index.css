@@ -7615,8 +7615,55 @@ body[data-theme="day"] .leitner-status-badge.box3 {
   border-radius: var(--radius-md);
 }
 .lab-view-switcher {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 2px;
+  gap: 2px;
+}
+.lab-view-switcher button,
+.lab-view-switcher .btn {
+  background: transparent;
+  color: #cbd5e1 !important;
+  font-weight: 600 !important;
+  border: none !important;
+  border-radius: 4px;
+  padding: 5px 14px;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+.lab-view-switcher button:hover,
+.lab-view-switcher .btn:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.08);
+}
+.lab-view-switcher button.active,
+.lab-view-switcher .btn.active {
+  background: #10b981 !important;
+  color: #022c22 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+.lab-view-switcher.blue-switcher button.active,
+.lab-view-switcher.blue-switcher .btn.active,
+.theme-phys .lab-view-switcher button.active,
+.theme-phys .lab-view-switcher .btn.active,
+.theme-chem .lab-view-switcher button.active,
+.theme-chem .lab-view-switcher .btn.active {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+}
+
+/* 4K Real Lab Bench Photo Overlays - must always sit cleanly on top of simulation canvas and viewport ribbons */
+#photo-overlay,
+[id*="photo-overlay"],
+[id$="-photo-overlay"] {
+  z-index: 50 !important;
 }
 .lab-checkbox-label {
   color: #cbd5e1;
@@ -11167,20 +11214,30 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   border: 1px solid #cbd5e1 !important;
 }
 
-[data-theme="day"] .lab-view-switcher button {
+[data-theme="day"] .lab-view-switcher button,
+[data-theme="day"] .lab-view-switcher .btn {
   background: transparent !important;
   color: #475569 !important;
 }
 
-[data-theme="day"] .lab-view-switcher button:hover {
+[data-theme="day"] .lab-view-switcher button:hover,
+[data-theme="day"] .lab-view-switcher .btn:hover {
   color: #0f172a !important;
 }
 
-[data-theme="day"] .lab-view-switcher button.active {
+[data-theme="day"] .lab-view-switcher button.active,
+[data-theme="day"] .lab-view-switcher .btn.active {
   background: #0284c7 !important;
   color: #ffffff !important;
   font-weight: 700 !important;
   box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25) !important;
+}
+
+[data-theme="day"] .lab-view-switcher.bio-switcher button.active,
+[data-theme="day"] .lab-view-switcher.bio-switcher .btn.active {
+  background: #059669 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25) !important;
 }
 
 [data-theme="day"] .lab-checkbox-label {

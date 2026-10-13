@@ -126,9 +126,9 @@ export function initMitosisLab(containerId) {
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <div class="btn-group" style="display: flex; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; padding: 2px;">
-            <button id="btn-view-sim" class="btn btn-sm active" style="padding: 5px 14px; font-size: 0.8rem; border: none; border-radius: 4px; background: #10b981; color: #022c22; font-weight: 700; transition: all 0.2s;">🔬 Mitosis Simulator</button>
-            <button id="btn-view-photo" class="btn btn-sm" style="padding: 5px 14px; font-size: 0.8rem; border: none; border-radius: 4px; background: transparent; color: #cbd5e1; font-weight: 600; transition: all 0.2s;">📸 4K Real Bench</button>
+          <div class="lab-view-switcher bio-switcher">
+            <button id="btn-view-sim" class="btn btn-sm active">🔬 Mitosis Simulator</button>
+            <button id="btn-view-photo" class="btn btn-sm">📸 4K Real Bench</button>
           </div>
           <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem; color: #f8fafc; font-weight: 600;">📥 Export CSV (E)</button>
         </div>
@@ -218,7 +218,7 @@ export function initMitosisLab(containerId) {
             </div>
 
             <!-- Mode Switcher Tabs inside Viewport Top Left -->
-            <div style="position: absolute; top: 12px; left: 16px; display: flex; gap: 8px; z-index: 10;">
+            <div id="viewport-mode-tabs" style="position: absolute; top: 12px; left: 16px; display: flex; gap: 8px; z-index: 10;">
               <button id="btn-tab-anim" class="btn btn-sm active" style="font-size: 0.75rem; background: rgba(15, 23, 42, 0.9); border: 1px solid #10b981; color: #10b981; padding: 5px 12px; border-radius: 6px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                 🧬 Mitosis Phase Animator
               </button>
@@ -433,6 +433,8 @@ export function initMitosisLab(containerId) {
   const btnStainAceto = document.getElementById("btn-stain-aceto");
   const bioStatusText = document.getElementById("bio-status-text");
 
+  const viewportModeTabs = document.getElementById("viewport-mode-tabs");
+  const livePhaseBadge = document.getElementById("live-phase-badge");
   const btnTabAnim = document.getElementById("btn-tab-anim");
   const btnTabHisto = document.getElementById("btn-tab-histo");
   const histoToolbar = document.getElementById("histo-toolbar");
@@ -1377,21 +1379,38 @@ export function initMitosisLab(containerId) {
 
     ctx.restore(); // Restore clip
 
-    // 8. Optical Scale Bar & Microscope Specification (Bottom Left of Canvas)
-    ctx.strokeStyle = "#94a3b8";
-    ctx.lineWidth = 2;
+    // 8. Optical Scale Bar & Microscope Specification (Left Stage HUD - Unobstructed by Inspector)
+    const hudX = 24;
+    const hudY = 370;
+    ctx.save();
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(35, 465); ctx.lineTo(85, 465);
-    ctx.moveTo(35, 461); ctx.lineTo(35, 469);
-    ctx.moveTo(85, 461); ctx.lineTo(85, 469);
+    ctx.roundRect(hudX, hudY, 192, 58, 6);
+    ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = "#94a3b8";
+    // Scale bar (10 µm)
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(hudX + 12, hudY + 18); ctx.lineTo(hudX + 52, hudY + 18);
+    ctx.moveTo(hudX + 12, hudY + 14); ctx.lineTo(hudX + 12, hudY + 22);
+    ctx.moveTo(hudX + 52, hudY + 14); ctx.lineTo(hudX + 52, hudY + 22);
+    ctx.stroke();
+
+    ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 9px monospace";
     ctx.textAlign = "left";
-    ctx.fillText("10 µm", 45, 458);
-    ctx.fillText("100× Plan-Apo (N.A. 1.40 Oil)", 35, 480);
-    ctx.fillText(`Focus: ${fineFocus.toFixed(1)} µm`, 35, 492);
+    ctx.fillText("10 µm", hudX + 60, hudY + 21);
+
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "9px monospace";
+    ctx.fillText("100× Plan-Apo (N.A. 1.40 Oil)", hudX + 12, hudY + 36);
+    ctx.fillStyle = fineFocus === 0 ? "#34d399" : "#fbbf24";
+    ctx.fillText(`Z-Plane: ${fineFocus >= 0 ? "+" : ""}${fineFocus.toFixed(1)} µm ${fineFocus === 0 ? "(In Focus)" : ""}`, hudX + 12, hudY + 49);
+    ctx.restore();
   }
 
   // Draw 60 FPS Authentic Allium Cepa Meristem Histology Grid
@@ -1718,6 +1737,7 @@ export function initMitosisLab(containerId) {
     btnTabHisto.style.border = "1px solid var(--border-color)";
     btnTabHisto.style.color = "#cbd5e1";
 
+    if (livePhaseBadge) livePhaseBadge.style.display = "flex";
     if (histoToolbar) histoToolbar.style.display = "none";
     if (histoChallengeCard) histoChallengeCard.style.display = "none";
     if (organelleInspectorBox) organelleInspectorBox.style.display = "flex";
@@ -1733,6 +1753,7 @@ export function initMitosisLab(containerId) {
     btnTabAnim.style.border = "1px solid var(--border-color)";
     btnTabAnim.style.color = "#cbd5e1";
 
+    if (livePhaseBadge) livePhaseBadge.style.display = "none";
     if (histoToolbar) histoToolbar.style.display = "flex";
     if (histoChallengeCard) histoChallengeCard.style.display = "block";
     if (organelleInspectorBox) organelleInspectorBox.style.display = "none";
@@ -1804,12 +1825,23 @@ export function initMitosisLab(containerId) {
   });
 
   // Histology Filter Toolbar Buttons
+  const histoFilterColors = {
+    all: "#10b981",
+    interphase: "#94a3b8",
+    prophase: "#f59e0b",
+    metaphase: "#818cf8",
+    anaphase: "#f43f5e",
+    telophase: "#10b981"
+  };
+
   document.querySelectorAll(".histo-filter-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       document.querySelectorAll(".histo-filter-btn").forEach(b => {
         b.classList.remove("active");
         b.style.background = "transparent";
         b.style.fontWeight = "normal";
+        const filterKey = b.getAttribute("data-filter") || "all";
+        b.style.color = filterKey === "all" ? "#cbd5e1" : (histoFilterColors[filterKey] || "#cbd5e1");
       });
       btn.classList.add("active");
       btn.style.background = "#10b981";
@@ -1951,31 +1983,39 @@ export function initMitosisLab(containerId) {
   // View Switcher (Simulator vs 4K Bench Photo)
   viewSim?.addEventListener("click", () => {
     viewSim.classList.add("active");
-    viewSim.style.background = "#10b981";
-    viewSim.style.color = "#022c22";
-    viewSim.style.fontWeight = "700";
-
     viewPhoto.classList.remove("active");
-    viewPhoto.style.background = "transparent";
-    viewPhoto.style.color = "#cbd5e1";
-    viewPhoto.style.fontWeight = "600";
+    viewSim.style.background = "";
+    viewSim.style.color = "";
+    viewPhoto.style.background = "";
+    viewPhoto.style.color = "";
 
     if (photoOverlay) photoOverlay.style.display = "none";
+    if (viewportModeTabs) viewportModeTabs.style.display = "flex";
+    if (activeTab === "animator") {
+      if (livePhaseBadge) livePhaseBadge.style.display = "flex";
+      if (organelleInspectorBox) organelleInspectorBox.style.display = "flex";
+      if (histoToolbar) histoToolbar.style.display = "none";
+    } else {
+      if (livePhaseBadge) livePhaseBadge.style.display = "none";
+      if (organelleInspectorBox) organelleInspectorBox.style.display = "none";
+      if (histoToolbar) histoToolbar.style.display = "flex";
+    }
     SoundFX.playClick();
   });
 
   viewPhoto?.addEventListener("click", () => {
     viewPhoto.classList.add("active");
-    viewPhoto.style.background = "#10b981";
-    viewPhoto.style.color = "#022c22";
-    viewPhoto.style.fontWeight = "700";
-
     viewSim.classList.remove("active");
-    viewSim.style.background = "transparent";
-    viewSim.style.color = "#cbd5e1";
-    viewSim.style.fontWeight = "600";
+    viewPhoto.style.background = "";
+    viewPhoto.style.color = "";
+    viewSim.style.background = "";
+    viewSim.style.color = "";
 
     if (photoOverlay) photoOverlay.style.display = "block";
+    if (viewportModeTabs) viewportModeTabs.style.display = "none";
+    if (livePhaseBadge) livePhaseBadge.style.display = "none";
+    if (organelleInspectorBox) organelleInspectorBox.style.display = "none";
+    if (histoToolbar) histoToolbar.style.display = "none";
     SoundFX.playClick();
   });
 
