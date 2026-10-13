@@ -145,20 +145,28 @@ export function initMitosisLab(containerId) {
   // All frames share the same cell framing so phases can crossfade in place.
   const MICROGRAPH_KEYS = ["interphase", "prophase", "metaphase", "anaphase", "telophase", "c_metaphase"];
   const micrographs = {};
-  if (typeof Image !== "undefined") {
-    MICROGRAPH_KEYS.forEach((k) => {
+  function loadMicrograph(name) {
+    if (!micrographs[name] && typeof Image !== "undefined") {
       const img = new Image();
       img.decoding = "async";
-      img.src = `assets/labs/mitosis/${k}.jpg`;
-      micrographs[k] = img;
-    });
+      img.src = `assets/labs/mitosis/${name}.jpg`;
+      micrographs[name] = img;
+    }
+    return micrographs[name];
   }
+  // Plant (Allium cepa) set is needed immediately; animal (whitefish blastula) set loads shortly after.
+  MICROGRAPH_KEYS.forEach((k) => loadMicrograph(k));
+  setTimeout(() => MICROGRAPH_KEYS.forEach((k) => loadMicrograph(`animal_${k}`)), 1200);
 
-  function getPhaseImage(phaseKey) {
-    const k = phaseKey === "metaphase" && hasColchicine ? "c_metaphase" : phaseKey;
-    const img = micrographs[k];
+  // spec: "plant" (Allium cepa root tip, aceto-orcein) or "animal" (whitefish blastula, haematoxylin & eosin)
+  function getPhaseImage(phaseKey, spec = specimenType) {
+    const base = phaseKey === "metaphase" && hasColchicine ? "c_metaphase" : phaseKey;
+    const img = loadMicrograph(spec === "animal" ? `animal_${base}` : base);
     return img && img.complete && img.naturalWidth > 0 ? img : null;
   }
+
+  // Calibration of the real micrographs: a ~9 µm nucleus spans ~180 screen px  =>  20 px per µm.
+  const PX_PER_UM = 20;
 
   function smoothstep(e0, e1, x) {
     const t = Math.min(Math.max((x - e0) / (e1 - e0), 0), 1);
@@ -234,7 +242,7 @@ export function initMitosisLab(containerId) {
             📏 Ocular Micrometer
           </button>
           <button id="btn-toggle-profile" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.74rem;" title="Toggle real-time confocal laser line intensity scan">
-            📊 Laser Line Scan
+            📊 Line Scan (Densitometry)
           </button>
         </div>
 
@@ -832,7 +840,7 @@ export function initMitosisLab(containerId) {
     }
 
     // Real photomicrograph path (brightfield plant slide)
-    if (!isFluor && specimenType === "plant" && getPhaseImage("interphase")) {
+    if (!isFluor && getPhaseImage("interphase")) {
       drawMicrographView(cx, cy, ocularR, focusBlur);
       drawMicrographInspector(cx, cy, ocularR);
       ctx.restore(); // Restore clip
@@ -1616,25 +1624,60 @@ export function initMitosisLab(containerId) {
     const dy = Math.abs(my - cy);
     if (Math.hypot(mx - cx, my - cy) > ocularR) return;
     const key = PHASES[currentPhaseIdx].key;
+    const sx = mx - cx;
+    const sy = my - cy;
     let hit = null;
 
-    if (key === "telophase" && dx < 10 && dy < 190) {
-      hit = { title: "Cell Plate", desc: "Golgi vesicles fuse in the middle of the cell to build a new wall. Plant cells can't pinch in like animal cells because of the rigid wall.", tag: "Plant Cytokinesis" };
-    } else if (Math.abs(dx - 191) < 11 || Math.abs(dy - 205) < 11) {
-      hit = { title: "Cellulose Cell Wall", desc: "Rigid wall shared with the neighbouring meristem cells. It barely takes up the orcein stain, so it looks pale tan.", tag: "Cell Wall" };
-    } else if (dx < 110 && dy < 110) {
-      const info = {
-        interphase: ["Interphase Nucleus", "Intact nuclear envelope with loose, granular chromatin. The dark spot is the nucleolus. DNA is copied during S phase.", "G₁ / S / G₂"],
-        prophase: ["Condensing Chromosomes", "Chromatin coils into visible threads; the nucleolus fades and the nuclear envelope is about to break down.", "Prophase"],
-        metaphase: hasColchicine
-          ? ["C-metaphase Chromosomes", "Colchicine stops spindle formation, so chromosomes scatter instead of lining up. Sister chromatids splay into X shapes but stay joined at the centromere. Count them: 2n = 16.", "Colchicine Arrest"]
-          : ["Metaphase Plate", "Chromosomes line up across the middle of the cell, each attached to spindle fibres from both poles.", "Metaphase"],
-        anaphase: ["Separating Chromatids", "Sister chromatids are pulled to opposite poles. They form V shapes because the centromere leads and the arms trail behind.", "Anaphase"],
-        telophase: ["Daughter Nuclei", "Chromosomes decondense at each pole and new nuclear envelopes form.", "Telophase"]
-      }[key];
-      hit = { title: info[0], desc: info[1], tag: info[2] };
+    if (specimenType === "plant") {
+      if (key === "telophase" && dx < 10 && dy < 190) {
+        hit = { title: "Cell Plate", desc: "Golgi vesicles fuse in the middle of the cell to build a new wall. Plant cells can't pinch in like animal cells because of the rigid wall.", tag: "Plant Cytokinesis" };
+      } else if ((dx > 160 && dx < 192) || (dy > 198 && dy < 216)) {
+        hit = { title: "Cellulose Cell Wall", desc: "Rigid wall shared with the neighbouring meristem cells. It barely takes up the orcein stain, so it looks pale tan.", tag: "Cell Wall" };
+      } else if (dx < 110 && dy < 110) {
+        const info = {
+          interphase: ["Interphase Nucleus", "Intact nuclear envelope with loose, granular chromatin. The dark spot is the nucleolus. DNA is copied during S phase.", "G₁ / S / G₂"],
+          prophase: ["Condensing Chromosomes", "Chromatin coils into visible threads; the nucleolus fades and the nuclear envelope is about to break down.", "Prophase"],
+          metaphase: hasColchicine
+            ? ["C-metaphase Chromosomes", "Colchicine stops spindle formation, so chromosomes scatter instead of lining up. Sister chromatids splay into X shapes but stay joined at the centromere. Count them: 2n = 16.", "Colchicine Arrest"]
+            : ["Metaphase Plate", "Chromosomes line up across the middle of the cell, each attached to spindle fibres from both poles.", "Metaphase"],
+          anaphase: ["Separating Chromatids", "Sister chromatids are pulled to opposite poles. They form V shapes because the centromere leads and the arms trail behind.", "Anaphase"],
+          telophase: ["Daughter Nuclei", "Chromosomes decondense at each pole and new nuclear envelopes form.", "Telophase"]
+        }[key];
+        hit = { title: info[0], desc: info[1], tag: info[2] };
+      } else {
+        hit = { title: "Cytoplasm", desc: "Dense meristem cytoplasm. Small vacuoles, no chloroplasts (root tip cells are non-photosynthetic).", tag: "Cytoplasm" };
+      }
     } else {
-      hit = { title: "Cytoplasm", desc: "Dense meristem cytoplasm. Small vacuoles, no chloroplasts (root tip cells are non-photosynthetic).", tag: "Cytoplasm" };
+      // Animal blastomere: centrosome positions (relative to field centre) differ by phase in the photos
+      const CENTRO = {
+        interphase: [[-101, 5]],
+        prophase: [[0, -109], [0, 110]],
+        metaphase: [[-109, -2], [112, 6]],
+        anaphase: [[-126, -2], [125, 2]],
+        telophase: [[-137, -6], [135, -10]]
+      };
+      const centros = key === "metaphase" && hasColchicine ? [[-101, 5], [99, -22]] : CENTRO[key];
+      const onCentro = centros.some(([ox, oy]) => Math.hypot(sx - ox, sy - oy) < 22);
+      if (key === "telophase" && dx < 16 && dy < 45) {
+        hit = { title: "Cleavage Furrow", desc: "A contractile ring of actin and myosin II pinches the membrane inward until the cell splits. Animal cells have no wall, so they divide by pinching, not by building a cell plate.", tag: "Animal Cytokinesis" };
+      } else if (onCentro) {
+        hit = { title: "Centrosome", desc: "A pair of centrioles surrounded by material that nucleates microtubules. The starburst of fibres around it is the aster. Plant cells have no centrioles.", tag: "Spindle Pole" };
+      } else if (key !== "telophase" && Math.abs(Math.hypot(sx, sy) - 187) < 9) {
+        hit = { title: "Plasma Membrane", desc: "Only a thin membrane surrounds the cell: no cellulose wall, so the cell stays round and can pinch in two at the end of mitosis.", tag: "Cell Boundary" };
+      } else if (dx < 115 && dy < 115) {
+        const info = {
+          interphase: ["Interphase Nucleus", "Intact nucleus with a nucleolus. The small dark pink dot beside it is the centrosome, duplicated during S phase.", "G₁ / S / G₂"],
+          prophase: ["Condensing Chromosomes", "Chromatin coils into threads while the two centrosomes move to opposite sides of the nucleus, each growing an aster of microtubules.", "Prophase"],
+          metaphase: hasColchicine
+            ? ["C-metaphase Chromosomes", "Colchicine blocks tubulin from polymerising, so no spindle forms and the spindle checkpoint stays on. Chromosomes scatter; each X is one chromosome made of two sister chromatids.", "Colchicine Arrest"]
+            : ["Metaphase Plate & Spindle", "Chromosomes align at the cell's equator. Spindle fibres from each centrosome attach to the kinetochores.", "Metaphase"],
+          anaphase: ["Separating Chromatids", "Sister chromatids are pulled toward the poles as kinetochore fibres shorten, and the spindle poles move further apart.", "Anaphase"],
+          telophase: ["Daughter Nuclei", "Chromosomes decondense and new nuclear envelopes form around each group while the furrow deepens.", "Telophase"]
+        }[key];
+        hit = { title: info[0], desc: info[1], tag: info[2] };
+      } else {
+        hit = { title: "Cytoplasm", desc: "Granular cytosol packed with mitochondria, ribosomes and membrane-bound organelles.", tag: "Cytoplasm" };
+      }
     }
 
     if (hit && inspectTitle && inspectDesc && inspectTag) {
@@ -1666,7 +1709,7 @@ export function initMitosisLab(containerId) {
 
     // 10. Optical Scale Bar & Microscope Specification (Left Stage HUD - Unobstructed by Inspector)
     const hudX = 24;
-    const hudY = 370;
+    const hudY = 336;
     ctx.save();
     ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
     ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
@@ -1676,19 +1719,21 @@ export function initMitosisLab(containerId) {
     ctx.fill();
     ctx.stroke();
 
-    // Scale bar (10 µm)
+    // Scale bar: real-slide mode is calibrated to the micrograph (20 px/µm), vector models keep the schematic bar
+    const realScale = isRealSlide();
+    const barPx = realScale ? 5 * PX_PER_UM : 40;
     ctx.strokeStyle = "#38bdf8";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(hudX + 12, hudY + 18); ctx.lineTo(hudX + 52, hudY + 18);
+    ctx.moveTo(hudX + 12, hudY + 18); ctx.lineTo(hudX + 12 + barPx, hudY + 18);
     ctx.moveTo(hudX + 12, hudY + 14); ctx.lineTo(hudX + 12, hudY + 22);
-    ctx.moveTo(hudX + 52, hudY + 14); ctx.lineTo(hudX + 52, hudY + 22);
+    ctx.moveTo(hudX + 12 + barPx, hudY + 14); ctx.lineTo(hudX + 12 + barPx, hudY + 22);
     ctx.stroke();
 
     ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 9px monospace";
     ctx.textAlign = "left";
-    ctx.fillText("10 µm", hudX + 60, hudY + 21);
+    ctx.fillText(realScale ? "5 µm" : "10 µm", hudX + 20 + barPx, hudY + 21);
 
     ctx.fillStyle = "#94a3b8";
     ctx.font = "9px monospace";
@@ -1701,7 +1746,8 @@ export function initMitosisLab(containerId) {
   // Draw Draggable Calibrated Ocular Micrometer (Graticule Ruler)
   function drawOcularGraticule(ctx, gx, gy) {
     ctx.save();
-    const rulerW = 240;
+    const real = isRealSlide();
+    const rulerW = real ? 10 * PX_PER_UM + 30 : 240;
     const rulerH = 34;
 
     // Glass body
@@ -1719,13 +1765,15 @@ export function initMitosisLab(containerId) {
     ctx.font = "8px monospace";
     ctx.textAlign = "center";
 
-    const totalMicrons = 50;
+    const totalMicrons = real ? 10 : 50;
     const pxPerMicron = (rulerW - 30) / totalMicrons;
     const startX = gx - rulerW / 2 + 15;
+    const tickStep = real ? 1 : 2;
+    const majorEvery = real ? 5 : 10;
 
-    for (let u = 0; u <= totalMicrons; u += 2) {
+    for (let u = 0; u <= totalMicrons; u += tickStep) {
       const tx = startX + u * pxPerMicron;
-      const isMajor = (u % 10 === 0);
+      const isMajor = (u % majorEvery === 0);
       const isMedium = (u % 5 === 0);
       const tickH = isMajor ? 12 : (isMedium ? 8 : 5);
 
@@ -1746,8 +1794,181 @@ export function initMitosisLab(containerId) {
     ctx.restore();
   }
 
-  // Draw Real-Time Laser Line Profile Scanner (Confocal Telemetry)
+  // True when the brightfield micrograph view is on screen (calibration + densitometry apply)
+  function isRealSlide() {
+    return stainingMode !== "fluorescence" && activeTab === "animator" && !!getPhaseImage("interphase");
+  }
+
+  // Read the actual pixels of the displayed micrograph along a horizontal line and convert them to
+  // stain absorbance: A = -log10(I / I0). Orcein (purple) absorbs green; haematoxylin (blue) absorbs red.
+  let scanCanvas = null;
+  let scanCtx = null;
+  let scanBlocked = false;
+  function sampleStainProfile(scanY, x0, x1, n) {
+    if (scanBlocked) return null;
+    const blend = getMicrographBlend();
+    if (!blend.a) return null;
+    const size = Math.round(218 * 2 * 1.18);
+    const top = 245 - size / 2;
+    const left = 470 - size / 2;
+    try {
+      if (!scanCanvas) {
+        scanCanvas = document.createElement("canvas");
+        scanCanvas.width = size;
+        scanCanvas.height = size;
+        scanCtx = scanCanvas.getContext("2d", { willReadFrequently: true });
+      }
+      const fb = Math.abs(fineFocus);
+      scanCtx.filter = fb > 0.15 ? `blur(${Math.min(fb * 1.7, 5.5).toFixed(1)}px)` : "none";
+      scanCtx.globalAlpha = 1;
+      scanCtx.clearRect(0, 0, size, size);
+      scanCtx.drawImage(blend.a, 0, 0, size, size);
+      if (blend.b && blend.b !== blend.a && blend.t > 0) {
+        scanCtx.globalAlpha = blend.t;
+        scanCtx.drawImage(blend.b, 0, 0, size, size);
+        scanCtx.globalAlpha = 1;
+      }
+      scanCtx.filter = "none";
+      const row = Math.min(size - 2, Math.max(1, Math.round(scanY - top)));
+      const sx0 = Math.max(0, Math.round(x0 - left));
+      const w = Math.min(size - sx0, Math.round(x1 - x0));
+      if (w < 10) return null;
+      const d = scanCtx.getImageData(sx0, row - 1, w, 3).data;
+      const ch = specimenType === "animal" ? 0 : 1;
+      const out = [];
+      for (let k = 0; k < n; k++) {
+        const i = Math.round((k / (n - 1)) * (w - 1));
+        let sum = 0;
+        let cnt = 0;
+        for (let r = 0; r < 3; r++) {
+          for (let o = -1; o <= 1; o++) {
+            const xi = Math.min(w - 1, Math.max(0, i + o));
+            sum += d[(r * w + xi) * 4 + ch];
+            cnt++;
+          }
+        }
+        const v = Math.max(sum / cnt, 8);
+        out.push(Math.min(Math.max(-Math.log10(v / 238), 0), 1.4));
+      }
+      return { od: out, widthPx: x1 - x0 };
+    } catch (e) {
+      scanBlocked = true; // e.g. opened from file:// (tainted canvas): fall back to the schematic profile
+      return null;
+    }
+  }
+
+  // Densitometry line scan on the real micrograph. The scan line follows the cursor.
   function drawLaserLineProfile(ctx) {
+    if (!isRealSlide()) { drawLaserLineProfileSchematic(ctx); return; }
+    const cx = 470;
+    const cy = 245;
+    const ocularR = 218;
+    const over = canvasMouse.isOver && Math.hypot(canvasMouse.x - cx, canvasMouse.y - cy) < ocularR - 14;
+    const scanY = over ? canvasMouse.y : cy;
+    const half = Math.sqrt(Math.max(0, ocularR * ocularR - (scanY - cy) * (scanY - cy))) - 10;
+    const x0 = cx - half;
+    const x1 = cx + half;
+    const N = 60;
+    const res = sampleStainProfile(scanY, x0, x1, N);
+    if (!res) { drawLaserLineProfileSchematic(ctx); return; }
+    const od = res.od;
+    const isAnimal = specimenType === "animal";
+    const col = isAnimal ? "#60a5fa" : "#e879f9";
+    const peak = Math.max(...od);
+
+    ctx.save();
+    const boxX = 705;
+    const boxY = 55;
+    const boxW = 215;
+    const boxH = 128;
+    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("📊 STAIN DENSITOMETRY LINE SCAN", boxX + 10, boxY + 16);
+
+    // Plot area
+    const px0 = boxX + 30;
+    const py0 = boxY + 98;
+    const pw = boxW - 44;
+    const ph = 62;
+    const AMAX = 1.5;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1;
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "7px monospace";
+    ctx.textAlign = "right";
+    [0, 0.5, 1.0, 1.5].forEach((a) => {
+      const yy = py0 - (a / AMAX) * ph;
+      ctx.beginPath();
+      ctx.moveTo(px0, yy);
+      ctx.lineTo(px0 + pw, yy);
+      ctx.stroke();
+      ctx.fillText(a.toFixed(1), px0 - 3, yy + 2);
+    });
+
+    // Absorbance curve with soft fill
+    ctx.beginPath();
+    od.forEach((v, i) => {
+      const x = px0 + (i / (N - 1)) * pw;
+      const y = py0 - (Math.min(v, AMAX) / AMAX) * ph;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(px0 + pw, py0);
+    ctx.lineTo(px0, py0);
+    ctx.closePath();
+    ctx.fillStyle = isAnimal ? "rgba(96, 165, 250, 0.18)" : "rgba(232, 121, 249, 0.18)";
+    ctx.fill();
+    ctx.beginPath();
+    od.forEach((v, i) => {
+      const x = px0 + (i / (N - 1)) * pw;
+      const y = py0 - (Math.min(v, AMAX) / AMAX) * ph;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+
+    // Axes labels
+    const lenUm = res.widthPx / PX_PER_UM;
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "7px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("0 µm", px0, py0 + 10);
+    ctx.textAlign = "right";
+    ctx.fillText(`${lenUm.toFixed(1)} µm`, px0 + pw, py0 + 10);
+    ctx.textAlign = "left";
+    ctx.fillStyle = col;
+    ctx.font = "8px monospace";
+    ctx.fillText(`A(${isAnimal ? "red" : "green"}) max ${peak.toFixed(2)} · follows cursor`, boxX + 10, boxY + 121);
+
+    // Scan line across the slide in the main viewport
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.8)";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(x0, scanY);
+    ctx.lineTo(x1, scanY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(x0, scanY - 5); ctx.lineTo(x0, scanY + 5);
+    ctx.moveTo(x1, scanY - 5); ctx.lineTo(x1, scanY + 5);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Schematic profile used by the confocal model (not derived from an image)
+  function drawLaserLineProfileSchematic(ctx) {
     ctx.save();
     const boxX = 705;
     const boxY = 55;
@@ -1864,7 +2085,7 @@ export function initMitosisLab(containerId) {
       }
 
       // Real micrograph tile (same photo set as the animator, so each cell's true phase is correct)
-      const tileImg = !isFluor && specimenType === "plant" ? getPhaseImage(c.actualPhase) : null;
+      const tileImg = !isFluor ? getPhaseImage(c.actualPhase, "plant") : null;
       if (tileImg) {
         const tx = gx + 1 + c.wallJitterX * 0.5;
         const ty = gy + 1 + c.wallJitterY * 0.5;
@@ -1883,9 +2104,12 @@ export function initMitosisLab(containerId) {
         ctx.filter = `brightness(${tone.toFixed(2)}) saturate(${sat.toFixed(2)})`;
         const sw = tileImg.naturalWidth;
         const sh = tileImg.naturalHeight;
-        const cropW = sw * 0.65;
+        const zoom = 0.62 + ((c.id * 29) % 19) / 100; // 62-80% of the photo width; keeps all chromosomes in frame
+        const cropW = sw * zoom;
         const cropH = cropW * (th / tw);
-        ctx.drawImage(tileImg, (sw - cropW) / 2, (sh - cropH) / 2, cropW, cropH, -tw / 2, -th / 2, tw, th);
+        const jx = ((((c.id * 53) % 21) - 10) / 10) * Math.min(60, (sw - cropW) / 2);
+        const jy = ((((c.id * 31) % 21) - 10) / 10) * 15;
+        ctx.drawImage(tileImg, (sw - cropW) / 2 + jx, (sh - cropH) / 2 + jy, cropW, cropH, -tw / 2, -th / 2, tw, th);
         ctx.restore();
         ctx.strokeStyle = "rgba(176, 120, 96, 0.9)";
         ctx.lineWidth = 2;
@@ -2008,7 +2232,7 @@ export function initMitosisLab(containerId) {
         ctx.translate(-lx, -ly);
 
         // Render high-mag cell detail
-        const loupeImg = !isFluor && specimenType === "plant" ? getPhaseImage(hCell.actualPhase) : null;
+        const loupeImg = !isFluor ? getPhaseImage(hCell.actualPhase, "plant") : null;
         if (loupeImg) {
           ctx.drawImage(loupeImg, lx - 30, ly - 30, 60, 60);
         } else {
