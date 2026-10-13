@@ -2987,6 +2987,7 @@ body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  color: var(--text-main, #f8fafc);
 }
 .btn:active {
   transform: scale(0.97) !important;

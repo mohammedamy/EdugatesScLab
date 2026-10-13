@@ -126,11 +126,11 @@ export function initMitosisLab(containerId) {
           </span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <div class="btn-group" style="display: flex; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden;">
-            <button id="btn-view-sim" class="btn btn-sm active" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0;">🔬 Mitosis Simulator</button>
-            <button id="btn-view-photo" class="btn btn-sm" style="padding: 5px 12px; font-size: 0.8rem; border: none; border-radius: 0; background: transparent;">📸 4K Real Bench</button>
+          <div class="btn-group" style="display: flex; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; padding: 2px;">
+            <button id="btn-view-sim" class="btn btn-sm active" style="padding: 5px 14px; font-size: 0.8rem; border: none; border-radius: 4px; background: #10b981; color: #022c22; font-weight: 700; transition: all 0.2s;">🔬 Mitosis Simulator</button>
+            <button id="btn-view-photo" class="btn btn-sm" style="padding: 5px 14px; font-size: 0.8rem; border: none; border-radius: 4px; background: transparent; color: #cbd5e1; font-weight: 600; transition: all 0.2s;">📸 4K Real Bench</button>
           </div>
-          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem;">📥 Export CSV (E)</button>
+          <button id="btn-export-csv" class="btn btn-secondary btn-sm" style="padding: 5px 12px; font-size: 0.8rem; color: #f8fafc; font-weight: 600;">📥 Export CSV (E)</button>
         </div>
       </div>
 
@@ -138,12 +138,12 @@ export function initMitosisLab(containerId) {
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 14px; flex-wrap: wrap; gap: 10px;">
         <!-- Specimen Architecture Switcher -->
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Specimen Model:</span>
+          <span style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">Specimen Model:</span>
           <div class="btn-group" style="display: flex; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 6px; padding: 2px;">
             <button id="btn-specimen-plant" class="btn btn-sm active" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: #10b981; color: #022c22; font-weight: 700;">
               🌱 Plant Cell (Allium cepa)
             </button>
-            <button id="btn-specimen-animal" class="btn btn-sm" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: transparent; color: #94a3b8;">
+            <button id="btn-specimen-animal" class="btn btn-sm" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: transparent; color: #cbd5e1; font-weight: 600;">
               🐾 Animal Cell (Mammalian)
             </button>
           </div>
@@ -151,12 +151,12 @@ export function initMitosisLab(containerId) {
 
         <!-- Optical Staining Filter Switcher -->
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase;">Microscopy Stain:</span>
+          <span style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">Microscopy Stain:</span>
           <div class="btn-group" style="display: flex; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 6px; padding: 2px;">
             <button id="btn-stain-fluor" class="btn btn-sm active" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: #38bdf8; color: #082f49; font-weight: 700;">
               ✨ Confocal (DAPI / GFP)
             </button>
-            <button id="btn-stain-aceto" class="btn btn-sm" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: transparent; color: #94a3b8;">
+            <button id="btn-stain-aceto" class="btn btn-sm" style="padding: 3px 10px; font-size: 0.75rem; border: none; border-radius: 4px; background: transparent; color: #cbd5e1; font-weight: 600;">
               🧪 Acetocarmine / Feulgen
             </button>
           </div>
@@ -1649,12 +1649,16 @@ export function initMitosisLab(containerId) {
       const idx = parseInt(btn.getAttribute("data-phase"), 10);
       if (idx === currentPhaseIdx) {
         btn.classList.add("active");
-        btn.style.background = "rgba(56, 189, 248, 0.2)";
+        btn.style.background = "rgba(56, 189, 248, 0.25)";
         btn.style.borderColor = "#38bdf8";
+        btn.style.color = "#ffffff";
+        btn.style.fontWeight = "700";
       } else {
         btn.classList.remove("active");
-        btn.style.background = "transparent";
-        btn.style.borderColor = "var(--border-color)";
+        btn.style.background = "rgba(30, 41, 59, 0.6)";
+        btn.style.borderColor = "rgba(255, 255, 255, 0.12)";
+        btn.style.color = "#cbd5e1";
+        btn.style.fontWeight = "600";
       }
     });
 
@@ -1712,7 +1716,7 @@ export function initMitosisLab(containerId) {
     btnTabAnim.style.color = "#10b981";
     btnTabHisto.classList.remove("active");
     btnTabHisto.style.border = "1px solid var(--border-color)";
-    btnTabHisto.style.color = "#94a3b8";
+    btnTabHisto.style.color = "#cbd5e1";
 
     if (histoToolbar) histoToolbar.style.display = "none";
     if (histoChallengeCard) histoChallengeCard.style.display = "none";
@@ -1727,7 +1731,7 @@ export function initMitosisLab(containerId) {
     btnTabHisto.style.color = "#10b981";
     btnTabAnim.classList.remove("active");
     btnTabAnim.style.border = "1px solid var(--border-color)";
-    btnTabAnim.style.color = "#94a3b8";
+    btnTabAnim.style.color = "#cbd5e1";
 
     if (histoToolbar) histoToolbar.style.display = "flex";
     if (histoChallengeCard) histoChallengeCard.style.display = "block";
@@ -1745,8 +1749,8 @@ export function initMitosisLab(containerId) {
 
     btnSpecimenAnimal.classList.remove("active");
     btnSpecimenAnimal.style.background = "transparent";
-    btnSpecimenAnimal.style.color = "#94a3b8";
-    btnSpecimenAnimal.style.fontWeight = "normal";
+    btnSpecimenAnimal.style.color = "#cbd5e1";
+    btnSpecimenAnimal.style.fontWeight = "600";
 
     if (bioStatusText) bioStatusText.textContent = "Anastral Spindle • Phragmoplast Active";
     updateEventsCard();
@@ -1762,8 +1766,8 @@ export function initMitosisLab(containerId) {
 
     btnSpecimenPlant.classList.remove("active");
     btnSpecimenPlant.style.background = "transparent";
-    btnSpecimenPlant.style.color = "#94a3b8";
-    btnSpecimenPlant.style.fontWeight = "normal";
+    btnSpecimenPlant.style.color = "#cbd5e1";
+    btnSpecimenPlant.style.fontWeight = "600";
 
     if (bioStatusText) bioStatusText.textContent = "Amphiastral Spindle • Cleavage Furrow Active";
     updateEventsCard();
@@ -1780,8 +1784,8 @@ export function initMitosisLab(containerId) {
 
     btnStainAceto.classList.remove("active");
     btnStainAceto.style.background = "transparent";
-    btnStainAceto.style.color = "#94a3b8";
-    btnStainAceto.style.fontWeight = "normal";
+    btnStainAceto.style.color = "#cbd5e1";
+    btnStainAceto.style.fontWeight = "600";
     SoundFX.playClick();
   });
 
@@ -1794,8 +1798,8 @@ export function initMitosisLab(containerId) {
 
     btnStainFluor.classList.remove("active");
     btnStainFluor.style.background = "transparent";
-    btnStainFluor.style.color = "#94a3b8";
-    btnStainFluor.style.fontWeight = "normal";
+    btnStainFluor.style.color = "#cbd5e1";
+    btnStainFluor.style.fontWeight = "600";
     SoundFX.playClick();
   });
 
@@ -1947,18 +1951,30 @@ export function initMitosisLab(containerId) {
   // View Switcher (Simulator vs 4K Bench Photo)
   viewSim?.addEventListener("click", () => {
     viewSim.classList.add("active");
-    viewSim.style.background = "var(--primary-color)";
+    viewSim.style.background = "#10b981";
+    viewSim.style.color = "#022c22";
+    viewSim.style.fontWeight = "700";
+
     viewPhoto.classList.remove("active");
     viewPhoto.style.background = "transparent";
+    viewPhoto.style.color = "#cbd5e1";
+    viewPhoto.style.fontWeight = "600";
+
     if (photoOverlay) photoOverlay.style.display = "none";
     SoundFX.playClick();
   });
 
   viewPhoto?.addEventListener("click", () => {
     viewPhoto.classList.add("active");
-    viewPhoto.style.background = "var(--primary-color)";
+    viewPhoto.style.background = "#10b981";
+    viewPhoto.style.color = "#022c22";
+    viewPhoto.style.fontWeight = "700";
+
     viewSim.classList.remove("active");
     viewSim.style.background = "transparent";
+    viewSim.style.color = "#cbd5e1";
+    viewSim.style.fontWeight = "600";
+
     if (photoOverlay) photoOverlay.style.display = "block";
     SoundFX.playClick();
   });
