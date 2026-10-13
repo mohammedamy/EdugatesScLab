@@ -410,11 +410,11 @@ export function initMitosisLab(containerId) {
             <div id="histo-feedback-banner" style="display: none; margin-top: 8px; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; line-height: 1.3;"></div>
           </div>
 
-          <!-- Checkpoint Quiz Mount -->
-          <div id="mitosis-checkpoint-mount" style="margin-top: 4px;"></div>
-
         </div>
       </div>
+
+      <!-- Post-Lab Inquiry Checkpoint Assessment (Full Screen Width) -->
+      <div id="mitosis-checkpoint-mount" style="margin-top: 24px; width: 100%;"></div>
     </div>
   `;
 

@@ -627,10 +627,11 @@ export function initAnatomyAtlasLab(containerId) {
             </div>
           </div>
 
-          <!-- CHECKPOINT ASSESSMENT PROMPT -->
-          <div id="atlas-checkpoint-mount" style="margin-top: 4px;"></div>
         </div>
       </div>
+
+      <!-- CHECKPOINT ASSESSMENT PROMPT (Full Screen Width) -->
+      <div id="atlas-checkpoint-mount" style="margin-top: 24px; width: 100%;"></div>
     </div>
   `;
 

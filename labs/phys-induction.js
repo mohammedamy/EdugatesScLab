@@ -278,11 +278,11 @@ export function initInductionLab(containerId) {
             </div>
           </div>
 
-          <!-- Checkpoint Quiz Mount -->
-          <div id="induction-checkpoint-mount" style="margin-top: 6px;"></div>
-
         </div>
       </div>
+
+      <!-- Checkpoint Quiz Mount (Full Screen Width) -->
+      <div id="induction-checkpoint-mount" style="margin-top: 24px; width: 100%;"></div>
     </div>
   `;
 

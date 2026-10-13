@@ -337,11 +337,11 @@ export function initOsmosisLab(containerId) {
             🔄 Reset &amp; Equalize Chambers
           </button>
 
-          <!-- Checkpoint Quiz Mount -->
-          <div id="osmosis-checkpoint-mount" style="margin-top: 6px;"></div>
-
         </div>
       </div>
+
+      <!-- Post-Lab Inquiry Checkpoint Assessment (Full Screen Width) -->
+      <div id="osmosis-checkpoint-mount" style="margin-top: 24px; width: 100%;"></div>
     </div>
   `;
 

@@ -12958,8 +12958,22 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   gap: 8px;
 }
 
+/* Checkpoint Mount Containers & Root Full-Width Guard */
+[id*="checkpoint-mount"],
+[id*="checkpoint-container"],
+[id*="-checkpoint"] {
+  width: 100% !important;
+  max-width: 100% !important;
+  grid-column: 1 / -1 !important;
+  box-sizing: border-box !important;
+}
+
 /* Post-Lab Checkpoint Assessment Card */
 .lab-checkpoint-section {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  grid-column: 1 / -1 !important;
   margin-top: 24px;
   background: var(--bg-surface-elevated, rgba(15, 23, 42, 0.92));
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
@@ -13015,8 +13029,25 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
 
 .lab-checkpoint-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+@media (min-width: 1200px) {
+  .lab-checkpoint-grid {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .lab-checkpoint-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+  }
 }
 
 .lab-question-card {
@@ -13026,7 +13057,10 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   padding: 18px;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   gap: 12px;
+  height: 100%;
+  box-sizing: border-box;
   transition: all 0.2s ease;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
 }
@@ -13084,6 +13118,7 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex: 1;
 }
 
 .lab-option-btn {
@@ -13100,6 +13135,7 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   cursor: pointer;
   transition: all 0.15s ease;
   line-height: 1.4;
+  word-break: break-word;
 }
 
 .lab-option-btn:hover:not(:disabled) {

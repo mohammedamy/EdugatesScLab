@@ -702,10 +702,11 @@ export function initOrbitalMechanicsLab(containerId) {
             </div>
           </div>
 
-          <!-- Post-Lab Checkpoint Assessment Mount -->
-          <div id="orbital-checkpoint-container"></div>
         </div>
       </div>
+
+      <!-- Post-Lab Checkpoint Assessment Mount (Full Screen Width) -->
+      <div id="orbital-checkpoint-container" style="margin-top: 24px; width: 100%;"></div>
     </div>
   `;
 

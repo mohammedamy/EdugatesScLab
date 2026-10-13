@@ -353,11 +353,11 @@ export function initCollisionsLab(containerId) {
             </label>
           </div>
 
-          <!-- Lab Assessment Checkpoint Mount -->
-          <div id="collisions-checkpoint-mount" style="margin-top: 6px;"></div>
-
         </div>
       </div>
+
+      <!-- Lab Assessment Checkpoint Mount (Full Screen Width) -->
+      <div id="collisions-checkpoint-mount" style="margin-top: 24px; width: 100%;"></div>
     </div>
   `;
 

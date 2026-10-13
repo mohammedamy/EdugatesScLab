@@ -308,10 +308,11 @@ export function initReactionKineticsLab(containerId) {
             <canvas id="kinetics-chart-canvas" width="460" height="150" style="width: 100%; height: 150px; background: rgba(0,0,0,0.3); border-radius: 8px;"></canvas>
           </div>
 
-          <!-- Checkpoint Question Integration Mount -->
-          <div id="kinetics-checkpoint-mount"></div>
         </div>
       </div>
+
+      <!-- Checkpoint Question Integration Mount (Full Screen Width) -->
+      <div id="kinetics-checkpoint-mount" style="margin-top: 24px; width: 100%;"></div>
     </div>
   `;
 

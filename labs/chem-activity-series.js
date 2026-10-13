@@ -335,10 +335,11 @@ export function initActivitySeriesLab(containerId) {
             </div>
           </div>
 
-          <!-- Post-Lab Checkpoint Container -->
-          <div id="activity-checkpoint-container"></div>
         </div>
       </div>
+
+      <!-- Post-Lab Checkpoint Container (Full Screen Width) -->
+      <div id="activity-checkpoint-container" style="margin-top: 24px; width: 100%;"></div>
     </div>
   `;
 
