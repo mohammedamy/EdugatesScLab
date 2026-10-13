@@ -17161,3 +17161,41 @@ body.mode-smartboard .app-navbar .device-btn .device-btn-short,
   }
 }
 
+/* ==========================================================================
+   Mitosis Cytogenetics & Confocal Microscopy Workbench Styles
+   ========================================================================== */
+.channel-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.channel-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+.drug-pill-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.drug-pill-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+.histo-filter-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+.histo-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+.btn-classify {
+  transition: all 0.18s ease;
+  cursor: pointer;
+}
+.btn-classify:hover {
+  filter: brightness(1.2);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+.btn-classify:active {
+  transform: translateY(0);
+}

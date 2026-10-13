@@ -5,7 +5,9 @@
 // Allium cepa (Onion Root Tip) Meristem Histological Cell-Counting Grid,
 // Mitotic Index: MI = (Mitotic Cells / Total Cells) × 100%,
 // Phase Duration Calculation: t_phase = (N_phase / N_total) × 1440 min (24-hr cycle),
-// Spindle Poison Chemotherapy Treatment (Colchicine Metaphase Arrest).
+// Spindle Poison Chemotherapy Treatment (Colchicine Metaphase Arrest & Taxol Microtubule Freeze),
+// Confocal Laser Scanning Multi-Channel Splitter (DAPI / GFP / CENP),
+// Draggable Calibrated Ocular Micrometer (Graticule) & Real-Time Laser Line Profile Scanner.
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
@@ -19,7 +21,7 @@ export function initMitosisLab(containerId) {
   const PHASES = [
     { key: "interphase", name: "Interphase (G₁, S, G₂)", shortName: "Interphase", color: "#38bdf8", durationPct: 75 },
     { key: "prophase", name: "Prophase & Prometaphase", shortName: "Prophase", color: "#f59e0b", durationPct: 12 },
-    { key: "metaphase", name: "Metaphase (Equator)", shortName: "Metaphase", color: "#818cf8", durationPct: 6 },
+    { key: "metaphase", name: "Metaphase (Equatorial Plate)", shortName: "Metaphase", color: "#818cf8", durationPct: 6 },
     { key: "anaphase", name: "Anaphase (A & B Disjunction)", shortName: "Anaphase", color: "#f43f5e", durationPct: 4 },
     { key: "telophase", name: "Telophase & Cytokinesis", shortName: "Telophase", color: "#10b981", durationPct: 3 }
   ];
@@ -28,20 +30,45 @@ export function initMitosisLab(containerId) {
   let activeTab = "animator"; // "animator" or "histology"
   let specimenType = "plant"; // "plant" (Allium cepa) or "animal" (Mammalian somatic)
   let stainingMode = "fluorescence"; // "fluorescence" (Confocal DAPI/GFP) or "acetocarmine" (Brightfield Feulgen)
+  let activeChannel = "all"; // "all", "dapi", "gfp", "kineto"
   let currentPhaseIdx = 0; // 0..4
   let phaseProgress = 0.0; // 0.0 to 1.0 within phase
   let simTime = 0.0;
   let isPlaying = false; // STARTS PAUSED BY DEFAULT: Solves auto-mode confusion, enabling interactive manual study!
   let playMode = "step"; // "step" (pauses at ends of stages) or "cycle" (continuous loop)
   let animSpeed = 1.0;
-  let fineFocus = 0.0; // Z-axis focal depth in µm (-2.0 to +2.0 µm, 0 is sharp)
+  let fineFocus = 0.0; // Z-axis focal depth in µm (-3.0 to +3.0 µm, 0 is sharp)
+  
+  // Pharmacological Spindle Assay
+  let drugCondition = "control"; // "control", "colchicine", "taxol"
   let hasColchicine = false; // Spindle poison halts at Metaphase SAC!
+  let hasTaxol = false; // Spindle stabilizer freezes microtubule depolymerization!
+
+  // Interactive Microscopy Tools
+  let showGraticule = false;
+  let graticulePos = { x: 340, y: 160, isDragging: false, dragStartX: 0, dragStartY: 0 };
+  let showIntensityScan = false;
 
   // Interactive Inspection & Histology Diagnostics
   let canvasMouse = { x: -1, y: -1, isOver: false };
   let selectedHistoCell = null;
   let histoFilter = "all"; // "all" or phase key
   let studentScore = { correct: 0, total: 0 };
+  let tallyCounts = { interphase: 0, prophase: 0, metaphase: 0, anaphase: 0, telophase: 0 };
+  let tallyTotal = 0;
+
+  // Cytoplasmic Streaming (Cyclosis) in Meristematic Cytoplasm
+  const cyclosisGranules = [];
+  for (let i = 0; i < 40; i++) {
+    cyclosisGranules.push({
+      ang: Math.random() * Math.PI * 2,
+      radX: 110 + Math.random() * 50,
+      radY: 80 + Math.random() * 40,
+      speed: 0.35 + Math.random() * 0.5,
+      size: 1.5 + Math.random() * 2,
+      phaseOffset: Math.random() * Math.PI * 2
+    });
+  }
 
   // Histology Grid (Allium cepa meristem sample: 48 interactive histological cells)
   const histologyCells = [];
@@ -51,11 +78,11 @@ export function initMitosisLab(containerId) {
     histologyCells.length = 0;
     // Representative biological distribution in onion root tip apical meristem
     const phaseDist = [
-      { phase: "interphase", count: hasColchicine ? 14 : 31 },
-      { phase: "prophase", count: hasColchicine ? 4 : 7 },
-      { phase: "metaphase", count: hasColchicine ? 28 : 5 }, // Colchicine blocks at metaphase!
-      { phase: "anaphase", count: hasColchicine ? 1 : 3 },
-      { phase: "telophase", count: hasColchicine ? 1 : 2 }
+      { phase: "interphase", count: hasColchicine ? 14 : (hasTaxol ? 16 : 31) },
+      { phase: "prophase", count: hasColchicine ? 4 : (hasTaxol ? 5 : 7) },
+      { phase: "metaphase", count: hasColchicine ? 28 : (hasTaxol ? 24 : 5) },
+      { phase: "anaphase", count: hasColchicine ? 1 : (hasTaxol ? 1 : 3) },
+      { phase: "telophase", count: hasColchicine ? 1 : (hasTaxol ? 2 : 2) }
     ];
 
     let cellList = [];
@@ -80,7 +107,9 @@ export function initMitosisLab(containerId) {
         row: Math.floor(i / 8),
         wallJitterX: ((i * 17) % 5) - 2,
         wallJitterY: ((i * 23) % 5) - 2,
-        nucleolusOffset: ((i * 7) % 6) - 3
+        nucleolusOffset: ((i * 7) % 6) - 3,
+        cellWidthJitter: 98 + ((i * 13) % 15),
+        chromatinSeed: ((i * 31) % 100) / 100
       });
     }
   }
@@ -112,6 +141,8 @@ export function initMitosisLab(containerId) {
   let animId = null;
   let lastTime = performance.now();
 
+  initHistologyCells();
+
   container.innerHTML = `
     <div class="lab-container" style="max-width: 1400px; margin: 0 auto; padding: 12px 16px;">
       <!-- Header Bar -->
@@ -134,7 +165,7 @@ export function initMitosisLab(containerId) {
         </div>
       </div>
 
-      <!-- Secondary Biological Controls Toolbar -->
+      <!-- Secondary Biological Controls & Microscopy Optical Toolbar -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 14px; flex-wrap: wrap; gap: 10px;">
         <!-- Specimen Architecture Switcher -->
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -160,6 +191,27 @@ export function initMitosisLab(containerId) {
               🧪 Acetocarmine / Feulgen
             </button>
           </div>
+        </div>
+
+        <!-- Confocal Laser Channel Splitter (Visible when Confocal is selected) -->
+        <div id="confocal-channels-wrapper" style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">Channels:</span>
+          <div class="btn-group" style="display: flex; background: rgba(15, 23, 42, 0.8); border: 1px solid var(--border-color); border-radius: 6px; padding: 2px;">
+            <button class="btn btn-sm channel-btn active" data-chan="all" style="padding: 3px 8px; font-size: 0.72rem; border: none; border-radius: 4px; background: rgba(56, 189, 248, 0.25); color: #38bdf8; font-weight: 700;">Merged RGB</button>
+            <button class="btn btn-sm channel-btn" data-chan="dapi" style="padding: 3px 8px; font-size: 0.72rem; border: none; border-radius: 4px; background: transparent; color: #7dd3fc; font-weight: 600;">DAPI (DNA)</button>
+            <button class="btn btn-sm channel-btn" data-chan="gfp" style="padding: 3px 8px; font-size: 0.72rem; border: none; border-radius: 4px; background: transparent; color: #34d399; font-weight: 600;">GFP (Tubulin)</button>
+            <button class="btn btn-sm channel-btn" data-chan="kineto" style="padding: 3px 8px; font-size: 0.72rem; border: none; border-radius: 4px; background: transparent; color: #f43f5e; font-weight: 600;">CENP (Kineto)</button>
+          </div>
+        </div>
+
+        <!-- Stage Measurement & Line Scan Tools -->
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button id="btn-toggle-graticule" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.74rem;" title="Toggle draggable calibrated ocular micrometer ruler">
+            📏 Ocular Micrometer
+          </button>
+          <button id="btn-toggle-profile" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.74rem;" title="Toggle real-time confocal laser line intensity scan">
+            📊 Laser Line Scan
+          </button>
         </div>
 
         <!-- Mode Indicator / Live Biological Status -->
@@ -222,7 +274,7 @@ export function initMitosisLab(containerId) {
               <button id="btn-tab-anim" class="btn btn-sm active" style="font-size: 0.75rem; background: rgba(15, 23, 42, 0.9); border: 1px solid #10b981; color: #10b981; padding: 5px 12px; border-radius: 6px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                 🧬 Mitosis Phase Animator
               </button>
-              <button id="btn-tab-histo" class="btn btn-sm" style="font-size: 0.75rem; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-color); color: #94a3b8; padding: 5px 12px; border-radius: 6px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+              <button id="btn-tab-histo" class="btn btn-sm" style="font-size: 0.75rem; background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-color); color: #cbd5e1; padding: 5px 12px; border-radius: 6px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                 🔬 Onion Root Tip Histology Grid
               </button>
             </div>
@@ -340,7 +392,7 @@ export function initMitosisLab(containerId) {
                 <span>🔬 Fine Focus (Z-Stack Plane):</span>
                 <span id="lbl-fine-focus" style="color: #10b981; font-weight: 700; font-family: monospace;">0.0 µm (In Focus)</span>
               </div>
-              <input type="range" id="slider-fine-focus" min="-2.0" max="2.0" step="0.1" value="0.0" style="width: 100%; accent-color: #10b981; cursor: ew-resize;" title="Adjust focal depth to simulate true microscope depth of field" />
+              <input type="range" id="slider-fine-focus" min="-3.0" max="3.0" step="0.1" value="0.0" style="width: 100%; accent-color: #10b981; cursor: ew-resize;" title="Adjust focal depth to simulate true microscope depth of field" />
             </div>
 
             <!-- Cycle Speed Slider -->
@@ -353,20 +405,33 @@ export function initMitosisLab(containerId) {
             </div>
           </div>
 
-          <!-- Chemotherapy / Spindle Poison (Colchicine Treatment) -->
+          <!-- Pharmacological Spindle Poison & Chemotherapy Assay -->
           <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <div style="font-size: 0.8rem; font-weight: 600; color: #f8fafc; display: flex; align-items: center; gap: 6px;">
-                  <span>🧪 Colchicine Treatment</span>
-                </div>
-                <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Depolymerizes tubulin (Arrests at Metaphase SAC)</div>
-              </div>
-              <label style="position: relative; display: inline-block; width: 40px; height: 22px; margin-left: 8px;">
-                <input type="checkbox" id="check-colchicine" style="opacity: 0; width: 0; height: 0;" />
-                <span id="colchicine-toggle-span" style="position: absolute; cursor: pointer; inset: 0; background: #475569; border-radius: 22px; transition: 0.2s;"></span>
-              </label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase;">
+                💊 Pharmacological Spindle Assay
+              </span>
+              <span id="drug-status-badge" class="badge" style="font-size: 0.68rem; background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                Untreated Control
+              </span>
             </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+              <button class="btn btn-secondary btn-sm drug-pill-btn active" data-drug="control" style="font-size: 0.72rem; padding: 5px 6px; border: 1px solid #10b981; color: #10b981; font-weight: 700;">
+                🟢 Control
+              </button>
+              <button class="btn btn-secondary btn-sm drug-pill-btn" data-drug="colchicine" style="font-size: 0.72rem; padding: 5px 6px; border: 1px solid var(--border-color); color: #cbd5e1; font-weight: 600;">
+                🔴 Colchicine
+              </button>
+              <button class="btn btn-secondary btn-sm drug-pill-btn" data-drug="taxol" style="font-size: 0.72rem; padding: 5px 6px; border: 1px solid var(--border-color); color: #cbd5e1; font-weight: 600;">
+                🟣 Taxol
+              </button>
+            </div>
+            <div id="drug-mechanism-text" style="font-size: 0.72rem; color: #94a3b8; line-height: 1.4;">
+              Normal microtubule dynamic instability; bi-oriented tension satisfies SAC and permits Anaphase APC/C activation.
+            </div>
+            <!-- Hidden compatibility checkbox for existing selectors and test scripts -->
+            <input type="checkbox" id="check-colchicine" style="display: none;" />
+            <span id="colchicine-toggle-span" style="display: none;"></span>
           </div>
 
           <!-- Mitotic Index Summary Metric Card -->
@@ -391,21 +456,36 @@ export function initMitosisLab(containerId) {
             </div>
           </div>
 
-          <!-- Histology Identification Challenge (Shown in Histology Mode) -->
+          <!-- Histology Identification Challenge & Clinical Tally Keypad -->
           <div id="histo-challenge-card" style="display: none; background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 12px;">
-            <div style="font-size: 0.75rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between;">
-              <span>🔬 Histology Diagnostic Quiz</span>
-              <span id="histo-score-badge" style="color: #fbbf24; font-family: monospace;">Score: 0/0 (0%)</span>
+            <div style="font-size: 0.75rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+              <span>🔬 Clinical Cytology Tally Keypad</span>
+              <span id="histo-score-badge" style="color: #fbbf24; font-family: monospace; font-size: 0.72rem;">Score: 0/0 (0%)</span>
             </div>
-            <div id="histo-prompt-text" style="font-size: 0.78rem; color: #e2e8f0; margin-bottom: 8px;">
-              Click any cell in the 48-cell meristem grid to diagnose its mitotic phase:
+            <div id="histo-prompt-text" style="font-size: 0.76rem; color: #e2e8f0; margin-bottom: 8px;">
+              Click cells on the 48-cell meristem slide to classify or tally:
             </div>
             <div id="histo-classify-buttons" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-              <button class="btn btn-sm btn-secondary btn-classify" data-phase="interphase" style="font-size: 0.7rem;">Interphase</button>
-              <button class="btn btn-sm btn-secondary btn-classify" data-phase="prophase" style="font-size: 0.7rem;">Prophase</button>
-              <button class="btn btn-sm btn-secondary btn-classify" data-phase="metaphase" style="font-size: 0.7rem;">Metaphase</button>
-              <button class="btn btn-sm btn-secondary btn-classify" data-phase="anaphase" style="font-size: 0.7rem;">Anaphase</button>
-              <button class="btn btn-sm btn-secondary btn-classify" data-phase="telophase" style="grid-column: span 2; font-size: 0.7rem;">Telophase &amp; Cytokinesis</button>
+              <button class="btn btn-sm btn-secondary btn-classify" data-phase="interphase" style="font-size: 0.7rem; justify-content: space-between;">
+                <span>⚪ Interphase (1)</span> <span id="tally-interphase" style="color: #38bdf8; font-weight: 700;">0</span>
+              </button>
+              <button class="btn btn-sm btn-secondary btn-classify" data-phase="prophase" style="font-size: 0.7rem; justify-content: space-between;">
+                <span>🟡 Prophase (2)</span> <span id="tally-prophase" style="color: #f59e0b; font-weight: 700;">0</span>
+              </button>
+              <button class="btn btn-sm btn-secondary btn-classify" data-phase="metaphase" style="font-size: 0.7rem; justify-content: space-between;">
+                <span>🔵 Metaphase (3)</span> <span id="tally-metaphase" style="color: #818cf8; font-weight: 700;">0</span>
+              </button>
+              <button class="btn btn-sm btn-secondary btn-classify" data-phase="anaphase" style="font-size: 0.7rem; justify-content: space-between;">
+                <span>🔴 Anaphase (4)</span> <span id="tally-anaphase" style="color: #f43f5e; font-weight: 700;">0</span>
+              </button>
+              <button class="btn btn-sm btn-secondary btn-classify" data-phase="telophase" style="grid-column: span 2; font-size: 0.7rem; justify-content: space-between;">
+                <span>🟢 Telophase &amp; Cytokinesis (5)</span> <span id="tally-telophase" style="color: #10b981; font-weight: 700;">0</span>
+              </button>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 0.72rem;">
+              <span style="color: #94a3b8;">Total Counted: <b id="tally-total-display" style="color: #f8fafc;">0</b>/48</span>
+              <span style="color: #94a3b8;">Student MI: <b id="student-mi-display" style="color: #10b981;">0.0%</b></span>
+              <button id="btn-reset-tally" class="btn btn-secondary btn-sm" style="font-size: 0.68rem; padding: 2px 6px;">⟲ Reset Tally</button>
             </div>
             <div id="histo-feedback-banner" style="display: none; margin-top: 8px; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; line-height: 1.3;"></div>
           </div>
@@ -432,6 +512,9 @@ export function initMitosisLab(containerId) {
   const btnStainFluor = document.getElementById("btn-stain-fluor");
   const btnStainAceto = document.getElementById("btn-stain-aceto");
   const bioStatusText = document.getElementById("bio-status-text");
+  const confocalChannelsWrapper = document.getElementById("confocal-channels-wrapper");
+  const btnToggleGraticule = document.getElementById("btn-toggle-graticule");
+  const btnToggleProfile = document.getElementById("btn-toggle-profile");
 
   const viewportModeTabs = document.getElementById("viewport-mode-tabs");
   const livePhaseBadge = document.getElementById("live-phase-badge");
@@ -454,6 +537,8 @@ export function initMitosisLab(containerId) {
   const lblFineFocus = document.getElementById("lbl-fine-focus");
   const checkColchicine = document.getElementById("check-colchicine");
   const colchicineToggleSpan = document.getElementById("colchicine-toggle-span");
+  const drugStatusBadge = document.getElementById("drug-status-badge");
+  const drugMechanismText = document.getElementById("drug-mechanism-text");
 
   const badgePhaseDot = document.getElementById("badge-phase-dot");
   const badgePhaseText = document.getElementById("badge-phase-text");
@@ -472,6 +557,14 @@ export function initMitosisLab(containerId) {
   const histoScoreBadge = document.getElementById("histo-score-badge");
   const histoPromptText = document.getElementById("histo-prompt-text");
   const histoFeedbackBanner = document.getElementById("histo-feedback-banner");
+  const tallyInterphase = document.getElementById("tally-interphase");
+  const tallyProphase = document.getElementById("tally-prophase");
+  const tallyMetaphase = document.getElementById("tally-metaphase");
+  const tallyAnaphase = document.getElementById("tally-anaphase");
+  const tallyTelophase = document.getElementById("tally-telophase");
+  const tallyTotalDisplay = document.getElementById("tally-total-display");
+  const studentMiDisplay = document.getElementById("student-mi-display");
+  const btnResetTally = document.getElementById("btn-reset-tally");
 
   // Canvas Setup & HiDPI Scaling
   const logicalW = 940;
@@ -491,11 +584,11 @@ export function initMitosisLab(containerId) {
     const { mitoticCount, mi, phaseCounts, phaseTimes } = calculateMitoticIndex();
 
     const descriptions = {
-      interphase: "Relaxed diffuse chromatin; nucleolus visible; centrosome / MTOC duplicated",
-      prophase: "Chromosomes condense into sister chromatids; nuclear envelope breakdown; spindle begins",
-      metaphase: "Chromosomes aligned single-file at equatorial plate; kinetochores attached under SAC tension",
-      anaphase: "Cohesin cleaved; sister chromatids disjoin and migrate toward opposite spindle poles",
-      telophase: "Daughter nuclei reform; chromosomes decondense; cell plate (plant) or cleavage furrow (animal)"
+      interphase: "Relaxed diffuse euchromatin network; nucleolus active; centrosome/polar MTOCs duplicate",
+      prophase: "Condensin helical coiling into sister chromatids; phosphorylated lamin envelope vesiculation; spindle forms",
+      metaphase: "8 bi-oriented paired chromosomes congressed at equator; K-fibers experience ~35 pN bipolar SAC tension",
+      anaphase: "Separase cleaves cohesin rings; sister chromatids disjoin poleward (Anaphase A/B)",
+      telophase: "Daughter nuclei reform from coalescing vesicles; chromatin decondenses; phragmoplast/cleavage furrow"
     };
 
     tableBody.innerHTML = PHASES.map(p => {
@@ -518,8 +611,10 @@ export function initMitosisLab(containerId) {
       if (photoMi) photoMi.textContent = `${mi.toFixed(1)}%`;
     }
     if (metricMiDesc) {
-      if (hasColchicine) {
+      if (drugCondition === "colchicine") {
         metricMiDesc.innerHTML = `<span style="color: #f43f5e; font-weight: 700;">Colchicine Metaphase Arrest:</span> Mitotic index spiked to ${mi.toFixed(1)}% due to irreversible spindle failure at the Spindle Assembly Checkpoint (SAC).`;
+      } else if (drugCondition === "taxol") {
+        metricMiDesc.innerHTML = `<span style="color: #c084fc; font-weight: 700;">Taxol (Paclitaxel) Freeze:</span> Mitotic index increased to ${mi.toFixed(1)}% due to hyper-stabilized microtubules blocking Anaphase A.`;
       } else {
         metricMiDesc.textContent = "Active mitotic proliferation in onion apical meristem. High index indicates rapid root tip elongation.";
       }
@@ -535,25 +630,30 @@ export function initMitosisLab(containerId) {
     const eventsByPhase = {
       0: [
         "• DNA replication completes during S-phase (2n → 4C genome)",
-        specimenType === "plant" ? "• Polar organizer MTOCs prepare spindle assembly" : "• Centrosome duplicates with orthogonal centriole pairs",
-        "• Intact double nuclear envelope with 8-fold nuclear pore complexes",
-        "• Active dense nucleolus transcribing 40S & 60S pre-ribosomes"
+        specimenType === "plant" ? "• Polar organizer MTOCs prepare anastral spindle" : "• Centrosome duplicates with orthogonal centriole pairs",
+        "• Intact double nuclear envelope with 24 octagonal nuclear pore complexes",
+        "• Active spherical nucleolus transcribing 40S & 60S pre-ribosomes",
+        "• Cyclosis cytoplasmic streaming circulates metabolic granules around nucleus"
       ],
       1: [
-        "• Condensin coils diffuse chromatin into distinct sister chromatids",
-        "• Lamin phosphorylation causes nuclear envelope vesiculation",
-        "• Nucleolus disperses into karyolymph",
+        "• Condensin I/II complexes coil diffuse chromatin into 8 thick chromosomes",
+        "• CDK1-cyclin B phosphorylation triggers nuclear envelope vesiculation",
+        "• Dense nucleolus disperses into karyolymph",
         specimenType === "plant" ? "• Anastral bipolar spindle assembles from polar organizer caps" : "• Centrosomes separate toward opposite poles nucleating asters"
       ],
       2: [
         "• Chromosomes congress along the equatorial Metaphase Plate",
         "• Bi-oriented sister kinetochores face opposite spindle poles",
         "• K-fibers establish ~35 pN mechanical tension at centromeres",
-        hasColchicine ? "⚠️ SAC ACTIVE: Colchicine depolymerizes tubulin -> Mitotic arrest!" : "• Spindle Assembly Checkpoint (SAC) tension satisfied"
+        drugCondition === "colchicine" 
+          ? "⚠️ SAC ACTIVE: Colchicine depolymerizes tubulin -> Mad2/BubR1 recruitment!" 
+          : (drugCondition === "taxol" 
+              ? "⚠️ TAXOL ARREST: Microtubules hyper-stabilized; depolymerization blocked!"
+              : "• Spindle Assembly Checkpoint (SAC) tension satisfied; APC/C poised")
       ],
       3: [
         "• APC/C activates separase protease, cleaving cohesin Scc1 rings",
-        "• Sister chromatids disjoin into V/J-shaped daughter chromosomes",
+        "• 16 daughter chromosomes disjoin poleward with leading kinetochore apexes",
         "• Kinetochore microtubules depolymerize poleward (Anaphase A)",
         "• Interpolar non-kinetochore microtubules slide apart (Anaphase B)"
       ],
@@ -569,7 +669,7 @@ export function initMitosisLab(containerId) {
   }
 
   // Draw Realistic Multi-Strand Coiled Chromosome
-  function drawAnatomicalChromosome(ctx, cx, cy, angle, len, armWidth, bend, colPrimary, colHighlight, kinetoColor, tensionOffset = 0) {
+  function drawAnatomicalChromosome(ctx, cx, cy, angle, len, armWidth, bend, colPrimary, colHighlight, kinetoColor, tensionOffset = 0, isColchicine = false) {
     ctx.save();
     ctx.translate(cx, cy);
     ctx.rotate(angle);
@@ -577,11 +677,11 @@ export function initMitosisLab(containerId) {
     // Apply focal depth blur / alpha
     const focusBlur = Math.abs(fineFocus);
     if (focusBlur > 0.3) {
-      ctx.globalAlpha = Math.max(0.45, 1.0 - focusBlur * 0.28);
+      ctx.globalAlpha = Math.max(0.4, 1.0 - focusBlur * 0.25);
     }
 
     // Two parallel sister chromatids with coiled chromatin texture
-    [-3.8, 3.8].forEach(offsetY => {
+    [-4.2, 4.2].forEach(offsetY => {
       // Chromatid backbone
       ctx.beginPath();
       ctx.moveTo(-len / 2, offsetY);
@@ -592,48 +692,50 @@ export function initMitosisLab(containerId) {
       ctx.lineJoin = "round";
       ctx.stroke();
 
-      // Inner coil striations (simulating condensin helical coiling)
+      // Inner coil striations (condensin helical coiling)
       ctx.strokeStyle = colHighlight;
-      ctx.lineWidth = armWidth * 0.38;
+      ctx.lineWidth = armWidth * 0.42;
       ctx.beginPath();
       ctx.moveTo(-len / 2 + 2, offsetY);
       ctx.quadraticCurveTo(0, offsetY + bend, len / 2 - 2, offsetY);
       ctx.stroke();
 
       // Helical chromatin bead highlights
-      const steps = 6;
+      const steps = 7;
       for (let s = 1; s < steps; s++) {
         const t = (s / steps) - 0.5;
         const px = t * len;
         const py = offsetY + bend * (1 - 4 * t * t);
         ctx.fillStyle = colHighlight;
         ctx.beginPath();
-        ctx.arc(px, py, armWidth * 0.22, 0, Math.PI * 2);
+        ctx.arc(px, py, armWidth * 0.24, 0, Math.PI * 2);
         ctx.fill();
       }
     });
 
     // Primary Constriction (Centromeric Waist)
-    ctx.fillStyle = "#0f172a";
+    ctx.fillStyle = "#020617";
     ctx.beginPath();
     ctx.arc(0, bend * 0.5, 4.5, 0, Math.PI * 2);
     ctx.fill();
 
     // Trilaminar Kinetochores on both lateral faces
-    const kDist = 5.2 + tensionOffset;
-    [-kDist, kDist].forEach(ky => {
-      // Outer kinetochore corona glow
-      ctx.fillStyle = kinetoColor;
-      ctx.beginPath();
-      ctx.arc(0, bend * 0.5 + ky, 3.2, 0, Math.PI * 2);
-      ctx.fill();
+    if (activeChannel === "all" || activeChannel === "kineto") {
+      const kDist = 5.5 + tensionOffset;
+      [-kDist, kDist].forEach(ky => {
+        // Outer kinetochore corona glow
+        ctx.fillStyle = isColchicine ? "#ef4444" : kinetoColor;
+        ctx.beginPath();
+        ctx.arc(0, bend * 0.5 + ky, isColchicine ? 4.2 : 3.5, 0, Math.PI * 2);
+        ctx.fill();
 
-      // Inner kinetochore CENP-A anchor core
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(0, bend * 0.5 + ky, 1.2, 0, Math.PI * 2);
-      ctx.fill();
-    });
+        // Inner kinetochore CENP-A anchor core
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(0, bend * 0.5 + ky, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
 
     ctx.restore();
   }
@@ -646,7 +748,7 @@ export function initMitosisLab(containerId) {
     // True Center of Canvas Viewport
     const cx = 470;
     const cy = 245;
-    const ocularR = 215;
+    const ocularR = 218;
 
     // Palette depending on Staining Mode
     const isFluor = stainingMode === "fluorescence";
@@ -674,7 +776,7 @@ export function initMitosisLab(containerId) {
     ctx.stroke();
 
     // Specular lens reflection highlight arc
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.14)";
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(cx, cy, ocularR + 2, Math.PI * 1.15, Math.PI * 1.6);
@@ -692,9 +794,9 @@ export function initMitosisLab(containerId) {
       illumGrad.addColorStop(0.7, "#030c18");
       illumGrad.addColorStop(1, "#01040a");
     } else {
-      illumGrad.addColorStop(0, "#fffbeb");
-      illumGrad.addColorStop(0.7, "#fef3c7");
-      illumGrad.addColorStop(1, "#f1f5f9");
+      illumGrad.addColorStop(0, "#fffef5");
+      illumGrad.addColorStop(0.7, "#fdf6e2");
+      illumGrad.addColorStop(1, "#f3ecd8");
     }
     ctx.fillStyle = illumGrad;
     ctx.fillRect(cx - ocularR, cy - ocularR, ocularR * 2, ocularR * 2);
@@ -702,13 +804,13 @@ export function initMitosisLab(containerId) {
     // Apply Fine Focus optical blur / sharpness
     const focusBlur = Math.abs(fineFocus);
     if (focusBlur > 0.2) {
-      ctx.filter = `blur(${Math.min(focusBlur * 1.5, 3.5).toFixed(1)}px)`;
+      ctx.filter = `blur(${Math.min(focusBlur * 1.4, 4.0).toFixed(1)}px)`;
     }
 
     // 3. Meristematic Tissue Layer & Cell Boundary: Plant vs Animal Architecture
     if (specimenType === "plant") {
       // Plant Cell (Allium cepa apical meristem file)
-      const pw = 340;
+      const pw = 350;
       const ph = 270;
       const rx = cx - pw / 2;
       const ry = cy - ph / 2;
@@ -716,11 +818,8 @@ export function initMitosisLab(containerId) {
       // Adjacent neighboring cells in the meristem file (subtle context walls)
       ctx.strokeStyle = isFluor ? "rgba(16, 185, 129, 0.25)" : "rgba(180, 83, 9, 0.25)";
       ctx.lineWidth = 3;
-      // Top neighboring wall
       ctx.beginPath(); ctx.moveTo(rx - 80, ry - 50); ctx.lineTo(rx + pw + 80, ry - 50); ctx.stroke();
-      // Bottom neighboring wall
       ctx.beginPath(); ctx.moveTo(rx - 80, ry + ph + 50); ctx.lineTo(rx + pw + 80, ry + ph + 50); ctx.stroke();
-      // Left/Right longitudinal walls
       ctx.beginPath(); ctx.moveTo(rx - 50, cy - ocularR); ctx.lineTo(rx - 50, cy + ocularR); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(rx + pw + 50, cy - ocularR); ctx.lineTo(rx + pw + 50, cy + ocularR); ctx.stroke();
 
@@ -770,23 +869,33 @@ export function initMitosisLab(containerId) {
       ctx.arc(rx + pw - 40, ry + ph - 40, 28, 0, Math.PI * 2);
       ctx.stroke();
 
+      // Dynamic Cytoplasmic Streaming (Cyclosis)
+      ctx.fillStyle = isFluor ? "rgba(52, 211, 153, 0.45)" : "rgba(217, 119, 6, 0.45)";
+      cyclosisGranules.forEach(g => {
+        const curAng = g.ang + simTime * g.speed * 0.35;
+        const gx = cx + Math.cos(curAng) * g.radX;
+        const gy = cy + Math.sin(curAng) * g.radY;
+        ctx.beginPath();
+        ctx.arc(gx, gy, g.size, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
     } else {
       // Animal Cell: Flexible Plasma Membrane with Cortical Actin Cytoskeleton
       let rX = 155;
       let rY = 155;
 
-      // Cell elongation in Anaphase/Telophase
       if (currentPhaseIdx === 3) {
-        rX = 155 + phaseProgress * 22;
-        rY = 155 - phaseProgress * 15;
+        rX = 155 + phaseProgress * 25;
+        rY = 155 - phaseProgress * 18;
       } else if (currentPhaseIdx === 4) {
-        rX = 175;
-        rY = 140;
+        rX = 180;
+        rY = 138;
       }
 
       if (currentPhaseIdx === 4) {
         // Animal Telophase: Deep Actin-Myosin Cleavage Furrow pinching inward
-        const pinch = 30 + phaseProgress * 45;
+        const pinch = 30 + phaseProgress * 48;
         ctx.fillStyle = cytosolColor;
         ctx.strokeStyle = isFluor ? "#38bdf8" : "#ec4899";
         ctx.lineWidth = 4;
@@ -829,480 +938,507 @@ export function initMitosisLab(containerId) {
       }
     }
 
-    // 4. Cytoplasmic Inclusions: Mitochondria & Dictyosomes (Ultra-realism)
-    const mitoCoords = [
-      { x: cx - 115, y: cy - 90, ang: 0.4 },
-      { x: cx + 115, y: cy - 80, ang: -0.5 },
-      { x: cx - 105, y: cy + 85, ang: -0.3 },
-      { x: cx + 110, y: cy + 85, ang: 0.6 }
-    ];
-    mitoCoords.forEach(m => {
-      ctx.save();
-      ctx.translate(m.x, m.y);
-      ctx.rotate(m.ang);
-      ctx.fillStyle = isFluor ? "rgba(245, 158, 11, 0.45)" : "rgba(217, 119, 6, 0.35)";
-      ctx.strokeStyle = isFluor ? "#fbbf24" : "#d97706";
-      ctx.lineWidth = 1.2;
-      ctx.beginPath();
-      ctx.roundRect(-10, -5, 20, 10, 5);
-      ctx.fill();
-      ctx.stroke();
-      // Inner cristae folds
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(-5, -3); ctx.lineTo(-5, 3);
-      ctx.moveTo(0, -3); ctx.lineTo(0, 3);
-      ctx.moveTo(5, -3); ctx.lineTo(5, 3);
-      ctx.stroke();
-      ctx.restore();
-    });
+    // 4. Cytoplasmic Inclusions: Mitochondria
+    if (activeChannel === "all" || activeChannel === "kineto") {
+      const mitoCoords = [
+        { x: cx - 120, y: cy - 95, ang: 0.4 },
+        { x: cx + 120, y: cy - 85, ang: -0.5 },
+        { x: cx - 115, y: cy + 90, ang: -0.3 },
+        { x: cx + 115, y: cy + 90, ang: 0.6 }
+      ];
+      mitoCoords.forEach(m => {
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        ctx.rotate(m.ang);
+        ctx.fillStyle = isFluor ? "rgba(245, 158, 11, 0.45)" : "rgba(217, 119, 6, 0.35)";
+        ctx.strokeStyle = isFluor ? "#fbbf24" : "#d97706";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.roundRect(-11, -6, 22, 12, 5);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
 
     // 5. Centrosomes / MTOCs & Spindle Apparatus
-    const leftPoleX = cx - 130;
-    const rightPoleX = cx + 130;
+    const leftPoleX = cx - 135;
+    const rightPoleX = cx + 135;
 
     if (currentPhaseIdx >= 1 && currentPhaseIdx <= 3) {
-      if (specimenType === "animal") {
-        // Animal Cell: Amphiastral Spindle with Centrosomes & Orthogonal Centriole Pairs
-        [leftPoleX, rightPoleX].forEach(posX => {
-          // PCM Pericentriolar Material Glow
-          const pcmGrad = ctx.createRadialGradient(posX, cy, 2, posX, cy, 16);
-          pcmGrad.addColorStop(0, "rgba(250, 204, 21, 0.85)");
-          pcmGrad.addColorStop(0.5, "rgba(245, 158, 11, 0.35)");
-          pcmGrad.addColorStop(1, "transparent");
-          ctx.fillStyle = pcmGrad;
-          ctx.beginPath();
-          ctx.arc(posX, cy, 16, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Centriole pair (vertical mother, horizontal daughter)
-          ctx.strokeStyle = "#fef08a";
-          ctx.lineWidth = 3;
-          ctx.beginPath();
-          ctx.moveTo(posX - 2, cy - 7); ctx.lineTo(posX - 2, cy + 7);
-          ctx.moveTo(posX - 7, cy + 2); ctx.lineTo(posX + 7, cy + 2);
-          ctx.stroke();
-
-          // Astral Microtubules radiating outward
-          ctx.strokeStyle = isFluor ? "rgba(52, 211, 153, 0.45)" : "rgba(245, 158, 11, 0.35)";
-          ctx.lineWidth = 1;
-          for (let a = 0; a < 8; a++) {
-            const ang = (a / 8) * Math.PI * 2;
+      if (activeChannel === "all" || activeChannel === "gfp") {
+        if (specimenType === "animal") {
+          // Animal Cell: Amphiastral Spindle with Centrosomes & Orthogonal Centrioles
+          [leftPoleX, rightPoleX].forEach(posX => {
+            const pcmGrad = ctx.createRadialGradient(posX, cy, 2, posX, cy, 18);
+            pcmGrad.addColorStop(0, "rgba(250, 204, 21, 0.85)");
+            pcmGrad.addColorStop(0.5, "rgba(245, 158, 11, 0.35)");
+            pcmGrad.addColorStop(1, "transparent");
+            ctx.fillStyle = pcmGrad;
             ctx.beginPath();
-            ctx.moveTo(posX, cy);
-            ctx.lineTo(posX + Math.cos(ang) * 26, cy + Math.sin(ang) * 26);
+            ctx.arc(posX, cy, 18, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Centriole pair
+            ctx.strokeStyle = "#fef08a";
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(posX - 2, cy - 7); ctx.lineTo(posX - 2, cy + 7);
+            ctx.moveTo(posX - 7, cy + 2); ctx.lineTo(posX + 7, cy + 2);
+            ctx.stroke();
+
+            // Astral Microtubules radiating outward
+            ctx.strokeStyle = isFluor ? "rgba(52, 211, 153, 0.45)" : "rgba(245, 158, 11, 0.35)";
+            ctx.lineWidth = 1;
+            for (let a = 0; a < 10; a++) {
+              const ang = (a / 10) * Math.PI * 2;
+              ctx.beginPath();
+              ctx.moveTo(posX, cy);
+              ctx.lineTo(posX + Math.cos(ang) * 28, cy + Math.sin(ang) * 28);
+              ctx.stroke();
+            }
+          });
+        } else {
+          // Plant Cell (Allium cepa): Anastral Spindle! NO Centrioles!
+          // Broad polar organizer caps (MTOCs) with gamma-tubulin ring complexes
+          [leftPoleX, rightPoleX].forEach(posX => {
+            ctx.strokeStyle = isFluor ? "rgba(52, 211, 153, 0.8)" : "rgba(217, 119, 6, 0.75)";
+            ctx.lineWidth = 4.0;
+            ctx.beginPath();
+            ctx.arc(posX, cy, 22, posX < cx ? -Math.PI / 2 : Math.PI / 2, posX < cx ? Math.PI / 2 : 3 * Math.PI / 2);
+            ctx.stroke();
+
+            // Polar Organizer gamma-TuRC nucleating centers
+            ctx.fillStyle = "#34d399";
+            for (let g = -3; g <= 3; g++) {
+              ctx.beginPath();
+              ctx.arc(posX, cy + g * 7, 2.8, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          });
+        }
+
+        // Spindle Microtubules: Pharmacological Response
+        if (drugCondition === "colchicine") {
+          // Colchicine depolymerizes tubulin into diffuse heterodimers!
+          ctx.fillStyle = isFluor ? "rgba(52, 211, 153, 0.75)" : "rgba(239, 68, 68, 0.75)";
+          for (let t = 0; t < 65; t++) {
+            const tx = cx - 130 + ((t * 31 + Math.sin(simTime * 2 + t) * 10) % 260);
+            const ty = cy - 90 + ((t * 27 + Math.cos(simTime * 2 + t) * 10) % 180);
+            ctx.fillRect(tx, ty, 3.5, 3.5);
+          }
+        } else if (drugCondition === "taxol") {
+          // Taxol hyper-stabilizes microtubules into rigid, dense bundles!
+          ctx.strokeStyle = isFluor ? "#10b981" : "#d97706";
+          ctx.lineWidth = 2.4;
+          for (let f = -6; f <= 6; f++) {
+            ctx.beginPath();
+            ctx.moveTo(leftPoleX, cy);
+            ctx.quadraticCurveTo(cx, cy + f * 22, rightPoleX, cy);
             ctx.stroke();
           }
-        });
-      } else {
-        // Plant Cell (Allium cepa): Anastral Spindle! NO Centrioles!
-        // Broad polar organizer caps (MTOCs) with gamma-tubulin ring complexes
-        [leftPoleX, rightPoleX].forEach(posX => {
-          ctx.strokeStyle = isFluor ? "rgba(52, 211, 153, 0.75)" : "rgba(217, 119, 6, 0.65)";
-          ctx.lineWidth = 3.5;
-          ctx.beginPath();
-          ctx.arc(posX, cy, 20, posX < cx ? -Math.PI / 2 : Math.PI / 2, posX < cx ? Math.PI / 2 : 3 * Math.PI / 2);
-          ctx.stroke();
-
-          // Polar Organizer gamma-TuRC nucleating centers
-          ctx.fillStyle = "#34d399";
-          for (let g = -3; g <= 3; g++) {
+        } else {
+          // Continuous healthy spindle fibers with dynamic curvature
+          ctx.strokeStyle = isFluor ? "rgba(16, 185, 129, 0.55)" : "rgba(245, 158, 11, 0.5)";
+          ctx.lineWidth = 1.5;
+          for (let f = -5; f <= 5; f++) {
             ctx.beginPath();
-            ctx.arc(posX, cy + g * 6, 2.5, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(leftPoleX, cy);
+            ctx.quadraticCurveTo(cx, cy + f * 26, rightPoleX, cy);
+            ctx.stroke();
           }
-        });
-      }
-
-      // Spindle Microtubules (K-fibers and Interpolar overlapping fibers)
-      if (hasColchicine && currentPhaseIdx === 2) {
-        // Colchicine depolymerizes tubulin into soluble heterodimers!
-        ctx.fillStyle = isFluor ? "rgba(52, 211, 153, 0.7)" : "rgba(239, 68, 68, 0.7)";
-        for (let t = 0; t < 55; t++) {
-          const tx = cx - 120 + ((t * 29 + Math.sin(simTime + t) * 8) % 240);
-          const ty = cy - 85 + ((t * 23 + Math.cos(simTime + t) * 8) % 170);
-          ctx.fillRect(tx, ty, 3, 3);
-        }
-      } else {
-        // Continuous healthy spindle fibers
-        ctx.strokeStyle = isFluor ? "rgba(16, 185, 129, 0.5)" : "rgba(245, 158, 11, 0.45)";
-        ctx.lineWidth = 1.4;
-        for (let f = -5; f <= 5; f++) {
-          ctx.beginPath();
-          ctx.moveTo(leftPoleX, cy);
-          ctx.quadraticCurveTo(cx, cy + f * 26, rightPoleX, cy);
-          ctx.stroke();
         }
       }
     }
 
     // 6. Chromatin / Chromosome Cytological Dynamics by Mitotic Phase
-    if (currentPhaseIdx === 0) {
-      // ==========================================
-      // PHASE 0: INTERPHASE (G₁, S, G₂)
-      // ==========================================
-      const nucR = 86;
+    if (activeChannel === "all" || activeChannel === "dapi") {
+      if (currentPhaseIdx === 0) {
+        // ==========================================
+        // PHASE 0: INTERPHASE (G₁, S, G₂)
+        // ==========================================
+        const nucR = 88;
 
-      // Double Nuclear Envelope (Outer & Inner Membraneous Bilayers)
-      ctx.strokeStyle = isFluor ? "#38bdf8" : "#831843";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(cx, cy, nucR, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Inner Nuclear Lamina meshwork
-      ctx.strokeStyle = isFluor ? "rgba(56, 189, 248, 0.4)" : "rgba(131, 24, 67, 0.4)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(cx, cy, nucR - 3, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // 16 Octagonal Nuclear Pore Complexes (NPCs) with Central Transporters
-      for (let n = 0; n < 16; n++) {
-        const ang = (n / 16) * Math.PI * 2;
-        const nx = cx + Math.cos(ang) * nucR;
-        const ny = cy + Math.sin(ang) * nucR;
-        ctx.fillStyle = isFluor ? "#7dd3fc" : "#be185d";
+        // Double Nuclear Envelope (Inner + Outer Membrane Bilayers)
+        ctx.strokeStyle = isFluor ? "#38bdf8" : "#831843";
+        ctx.lineWidth = 3.2;
         ctx.beginPath();
-        ctx.arc(nx, ny, 2.8, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Nucleoplasm Background Glow
-      const nucGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, nucR);
-      nucGrad.addColorStop(0, isFluor ? "rgba(56, 189, 248, 0.18)" : "rgba(190, 24, 93, 0.16)");
-      nucGrad.addColorStop(1, isFluor ? "rgba(14, 165, 233, 0.05)" : "rgba(131, 24, 67, 0.05)");
-      ctx.fillStyle = nucGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, nucR - 2, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Dense Spherical Nucleolus (rRNA transcription & ribosome subunit assembly)
-      const nucCore = ctx.createRadialGradient(cx - 24, cy - 18, 3, cx - 24, cy - 18, 19);
-      nucCore.addColorStop(0, isFluor ? "#bae6fd" : "#f472b6");
-      nucCore.addColorStop(0.5, isFluor ? "#0284c7" : "#be185d");
-      nucCore.addColorStop(1, isFluor ? "#0369a1" : "#831843");
-      ctx.fillStyle = nucCore;
-      ctx.beginPath();
-      ctx.arc(cx - 24, cy - 18, 19, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Internal Fibrillar Center (FC) speckles
-      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-      ctx.beginPath();
-      ctx.arc(cx - 28, cy - 22, 2.5, 0, Math.PI * 2);
-      ctx.arc(cx - 20, cy - 16, 2, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Realistic Diffuse Chromatin Network (Euchromatin threads + Heterochromatin condensations)
-      ctx.strokeStyle = isFluor ? "rgba(56, 189, 248, 0.65)" : "rgba(157, 23, 77, 0.65)";
-      ctx.lineWidth = 1.8;
-      for (let w = 0; w < 7; w++) {
-        ctx.beginPath();
-        const baseAng = (w / 7) * Math.PI * 2;
-        for (let s = 0; s <= 24; s++) {
-          const t = s / 24;
-          const rad = 15 + t * 62;
-          const drift = Math.sin(simTime * 0.8 + w * 2 + s * 0.4) * 4;
-          const a = baseAng + t * 3.2 + drift * 0.05;
-          const px = cx + Math.cos(a) * rad;
-          const py = cy + Math.sin(a) * rad;
-          if (s === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        }
+        ctx.arc(cx, cy, nucR, 0, Math.PI * 2);
         ctx.stroke();
-      }
 
-      // Dense Heterochromatin aggregates (Constitutive centromeric/telomeric clusters)
-      ctx.fillStyle = isFluor ? "rgba(14, 165, 233, 0.85)" : "rgba(131, 24, 67, 0.85)";
-      for (let h = 0; h < 24; h++) {
-        const hAng = (h / 24) * Math.PI * 2 + h * 0.3;
-        const hR = 25 + ((h * 17) % 52);
-        const hx = cx + Math.cos(hAng) * hR;
-        const hy = cy + Math.sin(hAng) * hR;
-        const dNuc = Math.hypot(hx - (cx - 24), hy - (cy - 18));
-        if (dNuc > 22) {
+        // Inner Nuclear Lamina meshwork
+        ctx.strokeStyle = isFluor ? "rgba(56, 189, 248, 0.45)" : "rgba(131, 24, 67, 0.45)";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.arc(cx, cy, nucR - 3.5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 24 Octagonal Nuclear Pore Complexes (NPCs) with Central Transporters
+        for (let n = 0; n < 24; n++) {
+          const ang = (n / 24) * Math.PI * 2;
+          const nx = cx + Math.cos(ang) * nucR;
+          const ny = cy + Math.sin(ang) * nucR;
+          ctx.fillStyle = isFluor ? "#7dd3fc" : "#be185d";
           ctx.beginPath();
-          ctx.arc(hx, hy, 2.8, 0, Math.PI * 2);
+          ctx.arc(nx, ny, 2.8, 0, Math.PI * 2);
           ctx.fill();
         }
-      }
 
-      // S-Phase DNA Replication Activity luminescence
-      ctx.fillStyle = "rgba(56, 189, 248, 0.08)";
-      const repPulse = 0.5 + 0.5 * Math.sin(simTime * 2);
-      ctx.beginPath();
-      ctx.arc(cx, cy, 55 + repPulse * 12, 0, Math.PI * 2);
-      ctx.fill();
-
-    } else if (currentPhaseIdx === 1) {
-      // ==========================================
-      // PHASE 1: PROPHASE & PROMETAPHASE
-      // ==========================================
-      // Disintegrating Nuclear Envelope (Phosphorylated Lamin Fenestration)
-      const fenestrationDash = 8 + phaseProgress * 12;
-      ctx.strokeStyle = isFluor ? `rgba(56, 189, 248, ${0.45 - phaseProgress * 0.35})` : `rgba(131, 24, 67, ${0.45 - phaseProgress * 0.35})`;
-      ctx.lineWidth = 2.5;
-      ctx.setLineDash([8, fenestrationDash]);
-      ctx.beginPath();
-      ctx.arc(cx, cy, 86, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // Dissolving nuclear membrane vesicle remnants
-      for (let v = 0; v < 14; v++) {
-        const vang = (v / 14) * Math.PI * 2 + simTime * 0.1;
-        const vR = 86 + phaseProgress * 25 * Math.sin(v);
-        const vx = cx + Math.cos(vang) * vR;
-        const vy = cy + Math.sin(vang) * vR;
-        ctx.fillStyle = isFluor ? "#38bdf8" : "#831843";
+        // Nucleoplasm Background Glow
+        const nucGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, nucR);
+        nucGrad.addColorStop(0, isFluor ? "rgba(56, 189, 248, 0.22)" : "rgba(190, 24, 93, 0.2)");
+        nucGrad.addColorStop(1, isFluor ? "rgba(14, 165, 233, 0.06)" : "rgba(131, 24, 67, 0.06)");
+        ctx.fillStyle = nucGrad;
         ctx.beginPath();
-        ctx.arc(vx, vy, 3, 0, Math.PI * 2);
+        ctx.arc(cx, cy, nucR - 2, 0, Math.PI * 2);
         ctx.fill();
-      }
 
-      // 4 Pairs of Homologous Condensed Chromosomes (2n = 4 demonstrated)
-      // Progressively condensing and coiling as phaseProgress advances
-      const armThickness = 4.5 + phaseProgress * 2.2;
-      const chromCoords = [
-        { x: cx - 44, y: cy - 42, ang: 0.35, len: 44, bend: 3 },
-        { x: cx + 46, y: cy - 38, ang: -0.42, len: 40, bend: -3 },
-        { x: cx - 40, y: cy + 44, ang: -0.25, len: 42, bend: 4 },
-        { x: cx + 42, y: cy + 46, ang: 0.55, len: 36, bend: -2 }
-      ];
+        // Dense Spherical Nucleolus (rRNA transcription & ribosome subunit assembly)
+        const nucCore = ctx.createRadialGradient(cx - 28, cy - 20, 3, cx - 28, cy - 20, 22);
+        nucCore.addColorStop(0, isFluor ? "#bae6fd" : "#f472b6");
+        nucCore.addColorStop(0.5, isFluor ? "#0284c7" : "#be185d");
+        nucCore.addColorStop(1, isFluor ? "#0369a1" : "#831843");
+        ctx.fillStyle = nucCore;
+        ctx.beginPath();
+        ctx.arc(cx - 28, cy - 20, 22, 0, Math.PI * 2);
+        ctx.fill();
 
-      chromCoords.forEach(pos => {
-        drawAnatomicalChromosome(ctx, pos.x, pos.y, pos.ang, pos.len, armThickness, pos.bend, dnaMain, dnaHighlight, kinetoColor, 0);
-      });
+        // Internal Fibrillar Center (FC) speckles
+        ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+        ctx.beginPath();
+        ctx.arc(cx - 32, cy - 24, 2.5, 0, Math.PI * 2);
+        ctx.arc(cx - 24, cy - 18, 2.0, 0, Math.PI * 2);
+        ctx.fill();
 
-    } else if (currentPhaseIdx === 2) {
-      // ==========================================
-      // PHASE 2: METAPHASE & SPINDLE ASSEMBLY CHECKPOINT (SAC)
-      // ==========================================
-      // Equatorial Metaphase Plate Reference Axis
-      ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - 125);
-      ctx.lineTo(cx, cy + 125);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      // 4 Anatomical Homologous Chromosomes congressed single-file along the equator
-      const metaphaseYPositions = [cy - 68, cy - 23, cy + 23, cy + 68];
-      const chromLengths = [44, 50, 46, 40];
-
-      metaphaseYPositions.forEach((yPos, idx) => {
-        // Microscopic bipolar tension breathing oscillation
-        const tensionOsc = Math.sin(simTime * 3.0 + idx) * 1.8;
-        const xPos = cx + (hasColchicine ? tensionOsc * 4 : tensionOsc);
-
-        // Draw chromosome with paired sister chromatids aligned along metaphase plate
-        const armLen = chromLengths[idx];
-        drawAnatomicalChromosome(ctx, xPos, yPos, Math.PI / 2, armLen, 6.5, 0, dnaMain, dnaHighlight, kinetoColor, hasColchicine ? 0 : 1.2);
-
-        // Kinetochore coordinates
-        const leftKinetoX = xPos - 5.5;
-        const rightKinetoX = xPos + 5.5;
-
-        // K-fiber tension tethers connecting to opposite spindle poles
-        if (!hasColchicine) {
-          ctx.strokeStyle = isFluor ? "rgba(250, 204, 21, 0.75)" : "rgba(217, 119, 6, 0.65)";
-          ctx.lineWidth = 2;
+        // Realistic Continuous Euchromatin Network (Hundreds of micro-threads)
+        ctx.strokeStyle = isFluor ? "rgba(56, 189, 248, 0.7)" : "rgba(157, 23, 77, 0.7)";
+        ctx.lineWidth = 1.6;
+        for (let w = 0; w < 16; w++) {
           ctx.beginPath();
-          ctx.moveTo(leftPoleX, cy);
-          ctx.lineTo(leftKinetoX, yPos);
-          ctx.moveTo(rightPoleX, cy);
-          ctx.lineTo(rightKinetoX, yPos);
-          ctx.stroke();
-
-          // Green mechanical tension satisfaction glow at kinetochores
-          ctx.strokeStyle = "#10b981";
-          ctx.lineWidth = 1.2;
-          ctx.beginPath();
-          ctx.arc(leftKinetoX, yPos, 6, 0, Math.PI * 2);
-          ctx.arc(rightKinetoX, yPos, 6, 0, Math.PI * 2);
-          ctx.stroke();
-        } else {
-          // Under Colchicine: Mad2/BubR1 checkpoint sensor recruitment (pulsing red)
-          const sacPulse = 0.5 + 0.5 * Math.sin(simTime * 6);
-          ctx.strokeStyle = `rgba(239, 68, 68, ${sacPulse})`;
-          ctx.lineWidth = 2.2;
-          ctx.beginPath();
-          ctx.arc(leftKinetoX, yPos, 7.5, 0, Math.PI * 2);
-          ctx.arc(rightKinetoX, yPos, 7.5, 0, Math.PI * 2);
+          const baseAng = (w / 16) * Math.PI * 2;
+          for (let s = 0; s <= 24; s++) {
+            const t = s / 24;
+            const rad = 14 + t * 68;
+            const drift = Math.sin(simTime * 0.9 + w * 2 + s * 0.4) * 4;
+            const a = baseAng + t * 2.8 + drift * 0.05;
+            const px = cx + Math.cos(a) * rad;
+            const py = cy + Math.sin(a) * rad;
+            if (s === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+          }
           ctx.stroke();
         }
-      });
 
-      if (hasColchicine) {
-        ctx.fillStyle = "#ef4444";
-        ctx.font = "bold 11px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText("⚠️ SPINDLE ASSEMBLY CHECKPOINT (SAC) ARREST: LACK OF TENSION", cx, cy + 138);
-      }
+        // Dense Heterochromatin aggregates (28 constitutive centromeric/telomeric clusters)
+        ctx.fillStyle = isFluor ? "rgba(14, 165, 233, 0.9)" : "rgba(131, 24, 67, 0.9)";
+        for (let h = 0; h < 28; h++) {
+          const hAng = (h / 28) * Math.PI * 2 + h * 0.35;
+          const hR = 26 + ((h * 19) % 55);
+          const hx = cx + Math.cos(hAng) * hR;
+          const hy = cy + Math.sin(hAng) * hR;
+          const dNuc = Math.hypot(hx - (cx - 28), hy - (cy - 20));
+          if (dNuc > 24) {
+            ctx.beginPath();
+            ctx.arc(hx, hy, 3.0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
 
-    } else if (currentPhaseIdx === 3) {
-      // ==========================================
-      // PHASE 3: ANAPHASE (A & B DISJUNCTION)
-      // ==========================================
-      // Separation distance increases continuously with phaseProgress
-      const sep = 26 + phaseProgress * 82;
-      const anaphaseYPositions = [cy - 64, cy - 21, cy + 21, cy + 64];
-      const armLengths = [38, 44, 40, 34];
-
-      anaphaseYPositions.forEach((yPos, idx) => {
-        const len = armLengths[idx];
-
-        // Left migrating daughter chromosome (V-shape with apex leading toward left pole)
-        const leftApexX = cx - sep;
-        ctx.save();
-        ctx.strokeStyle = dnaMain;
-        ctx.lineWidth = 6.2;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
+        // S-Phase DNA Replication Activity luminescence
+        ctx.fillStyle = isFluor ? "rgba(56, 189, 248, 0.1)" : "rgba(244, 63, 94, 0.1)";
+        const repPulse = 0.5 + 0.5 * Math.sin(simTime * 2);
         ctx.beginPath();
-        ctx.moveTo(leftApexX + len * 0.45, yPos - len * 0.35);
-        ctx.lineTo(leftApexX, yPos);
-        ctx.lineTo(leftApexX + len * 0.45, yPos + len * 0.35);
-        ctx.stroke();
-
-        // Highlight inner core
-        ctx.strokeStyle = dnaHighlight;
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.moveTo(leftApexX + len * 0.45 - 2, yPos - len * 0.35 + 2);
-        ctx.lineTo(leftApexX, yPos);
-        ctx.lineTo(leftApexX + len * 0.45 - 2, yPos + len * 0.35 - 2);
-        ctx.stroke();
-
-        // Kinetochore at the apex leading the poleward charge
-        ctx.fillStyle = kinetoColor;
-        ctx.beginPath();
-        ctx.arc(leftApexX, yPos, 3.8, 0, Math.PI * 2);
+        ctx.arc(cx, cy, 60 + repPulse * 15, 0, Math.PI * 2);
         ctx.fill();
 
-        // Shortening K-fiber pulling poleward (Anaphase A)
-        ctx.strokeStyle = isFluor ? "rgba(16, 185, 129, 0.65)" : "rgba(245, 158, 11, 0.55)";
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.moveTo(leftPoleX, cy);
-        ctx.lineTo(leftApexX, yPos);
-        ctx.stroke();
-        ctx.restore();
-
-        // Right migrating daughter chromosome (V-shape with apex leading toward right pole)
-        const rightApexX = cx + sep;
-        ctx.save();
-        ctx.strokeStyle = dnaMain;
-        ctx.lineWidth = 6.2;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.beginPath();
-        ctx.moveTo(rightApexX - len * 0.45, yPos - len * 0.35);
-        ctx.lineTo(rightApexX, yPos);
-        ctx.lineTo(rightApexX - len * 0.45, yPos + len * 0.35);
-        ctx.stroke();
-
-        // Highlight inner core
-        ctx.strokeStyle = dnaHighlight;
-        ctx.lineWidth = 2.2;
-        ctx.beginPath();
-        ctx.moveTo(rightApexX - len * 0.45 + 2, yPos - len * 0.35 + 2);
-        ctx.lineTo(rightApexX, yPos);
-        ctx.lineTo(rightApexX - len * 0.45 + 2, yPos + len * 0.35 - 2);
-        ctx.stroke();
-
-        // Kinetochore at the apex
-        ctx.fillStyle = kinetoColor;
-        ctx.beginPath();
-        ctx.arc(rightApexX, yPos, 3.8, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Shortening K-fiber pulling poleward (Anaphase A)
-        ctx.strokeStyle = isFluor ? "rgba(16, 185, 129, 0.65)" : "rgba(245, 158, 11, 0.55)";
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.moveTo(rightPoleX, cy);
-        ctx.lineTo(rightApexX, yPos);
-        ctx.stroke();
-        ctx.restore();
-      });
-
-      // Interpolar Microtubules sliding past each other (Anaphase B spindle elongation)
-      ctx.strokeStyle = isFluor ? "rgba(52, 211, 153, 0.4)" : "rgba(245, 158, 11, 0.4)";
-      ctx.lineWidth = 1.4;
-      for (let s = -2; s <= 2; s++) {
-        ctx.beginPath();
-        ctx.moveTo(cx - 35, cy + s * 18);
-        ctx.lineTo(cx + 35, cy + s * 18);
-        ctx.stroke();
-      }
-
-    } else if (currentPhaseIdx === 4) {
-      // ==========================================
-      // PHASE 4: TELOPHASE & CYTOKINESIS
-      // ==========================================
-      [-105, 105].forEach(dx => {
-        const dNucX = cx + dx;
-        const dNucR = 48;
-
-        // Reforming Nuclear Envelopes (Vesicle coalescence)
-        ctx.strokeStyle = isFluor ? "#38bdf8" : "#831843";
+      } else if (currentPhaseIdx === 1) {
+        // ==========================================
+        // PHASE 1: PROPHASE & PROMETAPHASE
+        // ==========================================
+        // Disintegrating Nuclear Envelope (Phosphorylated Lamin Fenestration)
+        const fenestrationDash = 8 + phaseProgress * 14;
+        ctx.strokeStyle = isFluor ? `rgba(56, 189, 248, ${0.45 - phaseProgress * 0.35})` : `rgba(131, 24, 67, ${0.45 - phaseProgress * 0.35})`;
         ctx.lineWidth = 2.5;
-        ctx.setLineDash([4, 4]);
+        ctx.setLineDash([8, fenestrationDash]);
         ctx.beginPath();
-        ctx.arc(dNucX, cy, dNucR, 0, Math.PI * 2);
+        ctx.arc(cx, cy, 88, 0, Math.PI * 2);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Internal Decondensing Chromatin Network
-        ctx.strokeStyle = isFluor ? "rgba(56, 189, 248, 0.65)" : "rgba(157, 23, 77, 0.65)";
-        ctx.lineWidth = 1.8;
-        for (let c = 0; c < 10; c++) {
-          const ang = (c / 10) * Math.PI * 2;
+        // Dissolving nuclear membrane vesicle remnants
+        for (let v = 0; v < 16; v++) {
+          const vang = (v / 16) * Math.PI * 2 + simTime * 0.1;
+          const vR = 88 + phaseProgress * 30 * Math.sin(v);
+          const vx = cx + Math.cos(vang) * vR;
+          const vy = cy + Math.sin(vang) * vR;
+          ctx.fillStyle = isFluor ? "#38bdf8" : "#831843";
           ctx.beginPath();
-          ctx.arc(dNucX + Math.cos(ang) * 18, cy + Math.sin(ang) * 18, 5, 0, Math.PI * 2);
-          ctx.stroke();
-        }
-
-        // Emerging Nucleolus in each daughter nucleus
-        ctx.fillStyle = isFluor ? "#0284c7" : "#be185d";
-        ctx.beginPath();
-        ctx.arc(dNucX - 8, cy - 8, 9, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // Cytokinesis Mechanism:
-      if (specimenType === "plant") {
-        // Plant Cytokinesis: Phragmoplast & Cell Plate Formation
-        // Barrel-shaped phragmoplast microtubules at the equator
-        ctx.strokeStyle = isFluor ? "rgba(52, 211, 153, 0.6)" : "rgba(245, 158, 11, 0.55)";
-        ctx.lineWidth = 1.6;
-        for (let p = -5; p <= 5; p++) {
-          ctx.beginPath();
-          ctx.moveTo(cx - 18, cy + p * 16);
-          ctx.lineTo(cx + 18, cy + p * 16);
-          ctx.stroke();
-        }
-
-        // Golgi-derived pectin vesicles fusing centrifugal from center outward
-        const plateHeight = 70 + phaseProgress * 110;
-        ctx.strokeStyle = isFluor ? "#34d399" : "#fbbf24";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy - plateHeight / 2);
-        ctx.lineTo(cx, cy + plateHeight / 2);
-        ctx.stroke();
-
-        // Pectin Vesicle beads fusing into the nascent plate
-        ctx.fillStyle = "#fef08a";
-        for (let v = -4; v <= 4; v++) {
-          ctx.beginPath();
-          ctx.arc(cx, cy + v * (plateHeight / 9), 2.8, 0, Math.PI * 2);
+          ctx.arc(vx, vy, 3.2, 0, Math.PI * 2);
           ctx.fill();
+        }
+
+        // 8 Condensed Chromosomes (2n = 8 Allium cepa representation)
+        const armThickness = 4.8 + phaseProgress * 2.4;
+        const chromCoords = [
+          { x: cx - 48, y: cy - 45, ang: 0.35, len: 44, bend: 3 },
+          { x: cx + 48, y: cy - 40, ang: -0.42, len: 42, bend: -3 },
+          { x: cx - 42, y: cy + 46, ang: -0.25, len: 40, bend: 4 },
+          { x: cx + 44, y: cy + 48, ang: 0.55, len: 38, bend: -2 },
+          { x: cx - 22, y: cy - 15, ang: 0.75, len: 46, bend: -3 },
+          { x: cx + 22, y: cy + 15, ang: -0.85, len: 44, bend: 3 },
+          { x: cx - 60, y: cy + 10, ang: 0.15, len: 38, bend: 2 },
+          { x: cx + 60, y: cy - 10, ang: -0.20, len: 40, bend: -2 }
+        ];
+
+        chromCoords.forEach(pos => {
+          drawAnatomicalChromosome(ctx, pos.x, pos.y, pos.ang, pos.len, armThickness, pos.bend, dnaMain, dnaHighlight, kinetoColor, 0);
+        });
+
+      } else if (currentPhaseIdx === 2) {
+        // ==========================================
+        // PHASE 2: METAPHASE & SPINDLE ASSEMBLY CHECKPOINT (SAC)
+        // ==========================================
+        // Equatorial Metaphase Plate Reference Axis
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.45)";
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 130);
+        ctx.lineTo(cx, cy + 130);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 8 Paired Chromosomes congressed along the equator
+        const metaphaseYPositions = [cy - 85, cy - 60, cy - 35, cy - 12, cy + 12, cy + 35, cy + 60, cy + 85];
+        const chromLengths = [38, 44, 48, 52, 50, 46, 42, 36];
+
+        metaphaseYPositions.forEach((yPos, idx) => {
+          // Bipolar mechanical tension breathing oscillation
+          const isArrested = (drugCondition === "colchicine");
+          const tensionOsc = isArrested ? (Math.sin(simTime * 1.5 + idx) * 8.0) : (Math.sin(simTime * 3.0 + idx) * 1.6);
+          const xPos = cx + tensionOsc;
+
+          const armLen = chromLengths[idx];
+          drawAnatomicalChromosome(ctx, xPos, yPos, Math.PI / 2, armLen, 6.5, 0, dnaMain, dnaHighlight, kinetoColor, isArrested ? 0 : 1.2, isArrested);
+
+          // Kinetochore coordinates
+          const leftKinetoX = xPos - 5.5;
+          const rightKinetoX = xPos + 5.5;
+
+          // K-fiber tension tethers connecting to opposite spindle poles
+          if (activeChannel === "all" || activeChannel === "gfp") {
+            if (drugCondition === "control" || drugCondition === "taxol") {
+              ctx.strokeStyle = isFluor ? "rgba(250, 204, 21, 0.75)" : "rgba(217, 119, 6, 0.65)";
+              ctx.lineWidth = 2.0;
+              ctx.beginPath();
+              ctx.moveTo(leftPoleX, cy);
+              ctx.lineTo(leftKinetoX, yPos);
+              ctx.moveTo(rightPoleX, cy);
+              ctx.lineTo(rightKinetoX, yPos);
+              ctx.stroke();
+
+              // Green mechanical tension satisfaction glow at kinetochores
+              ctx.strokeStyle = "#10b981";
+              ctx.lineWidth = 1.4;
+              ctx.beginPath();
+              ctx.arc(leftKinetoX, yPos, 6, 0, Math.PI * 2);
+              ctx.arc(rightKinetoX, yPos, 6, 0, Math.PI * 2);
+              ctx.stroke();
+            } else {
+              // Under Colchicine: Mad2/BubR1 checkpoint sensor recruitment (pulsing red)
+              const sacPulse = 0.5 + 0.5 * Math.sin(simTime * 6);
+              ctx.strokeStyle = `rgba(239, 68, 68, ${sacPulse})`;
+              ctx.lineWidth = 2.2;
+              ctx.beginPath();
+              ctx.arc(leftKinetoX, yPos, 7.5, 0, Math.PI * 2);
+              ctx.arc(rightKinetoX, yPos, 7.5, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+          }
+        });
+
+        if (drugCondition === "colchicine") {
+          ctx.fillStyle = "#ef4444";
+          ctx.font = "bold 11px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("⚠️ SAC ARREST: LACK OF BIPOLAR TENSION (MAD2 RECRUITED)", cx, cy + 142);
+        } else if (drugCondition === "taxol") {
+          ctx.fillStyle = "#c084fc";
+          ctx.font = "bold 11px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("⚠️ TAXOL FREEZE: MICROTUBULE DEPOLYMERIZATION BLOCKED", cx, cy + 142);
+        }
+
+      } else if (currentPhaseIdx === 3) {
+        // ==========================================
+        // PHASE 3: ANAPHASE (A & B DISJUNCTION)
+        // ==========================================
+        const sep = 28 + phaseProgress * 85;
+        const anaphaseYPositions = [cy - 80, cy - 56, cy - 32, cy - 10, cy + 10, cy + 32, cy + 56, cy + 80];
+        const armLengths = [34, 38, 42, 46, 44, 40, 36, 32];
+
+        anaphaseYPositions.forEach((yPos, idx) => {
+          const len = armLengths[idx];
+
+          // Left migrating daughter chromosome (V-shape with apex leading toward left pole)
+          const leftApexX = cx - sep;
+          ctx.save();
+          ctx.strokeStyle = dnaMain;
+          ctx.lineWidth = 6.2;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.beginPath();
+          ctx.moveTo(leftApexX + len * 0.45, yPos - len * 0.35);
+          ctx.lineTo(leftApexX, yPos);
+          ctx.lineTo(leftApexX + len * 0.45, yPos + len * 0.35);
+          ctx.stroke();
+
+          // Highlight inner core
+          ctx.strokeStyle = dnaHighlight;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(leftApexX + len * 0.45 - 2, yPos - len * 0.35 + 2);
+          ctx.lineTo(leftApexX, yPos);
+          ctx.lineTo(leftApexX + len * 0.45 - 2, yPos + len * 0.35 - 2);
+          ctx.stroke();
+
+          // Kinetochore at the apex leading the poleward charge
+          if (activeChannel === "all" || activeChannel === "kineto") {
+            ctx.fillStyle = kinetoColor;
+            ctx.beginPath();
+            ctx.arc(leftApexX, yPos, 3.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Shortening K-fiber pulling poleward (Anaphase A)
+          if (activeChannel === "all" || activeChannel === "gfp") {
+            ctx.strokeStyle = isFluor ? "rgba(16, 185, 129, 0.65)" : "rgba(245, 158, 11, 0.55)";
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.moveTo(leftPoleX, cy);
+            ctx.lineTo(leftApexX, yPos);
+            ctx.stroke();
+          }
+          ctx.restore();
+
+          // Right migrating daughter chromosome (V-shape with apex leading toward right pole)
+          const rightApexX = cx + sep;
+          ctx.save();
+          ctx.strokeStyle = dnaMain;
+          ctx.lineWidth = 6.2;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.beginPath();
+          ctx.moveTo(rightApexX - len * 0.45, yPos - len * 0.35);
+          ctx.lineTo(rightApexX, yPos);
+          ctx.lineTo(rightApexX - len * 0.45, yPos + len * 0.35);
+          ctx.stroke();
+
+          // Highlight inner core
+          ctx.strokeStyle = dnaHighlight;
+          ctx.lineWidth = 2.2;
+          ctx.beginPath();
+          ctx.moveTo(rightApexX - len * 0.45 + 2, yPos - len * 0.35 + 2);
+          ctx.lineTo(rightApexX, yPos);
+          ctx.lineTo(rightApexX - len * 0.45 + 2, yPos + len * 0.35 - 2);
+          ctx.stroke();
+
+          // Kinetochore at the apex
+          if (activeChannel === "all" || activeChannel === "kineto") {
+            ctx.fillStyle = kinetoColor;
+            ctx.beginPath();
+            ctx.arc(rightApexX, yPos, 3.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Shortening K-fiber pulling poleward (Anaphase A)
+          if (activeChannel === "all" || activeChannel === "gfp") {
+            ctx.strokeStyle = isFluor ? "rgba(16, 185, 129, 0.65)" : "rgba(245, 158, 11, 0.55)";
+            ctx.lineWidth = 1.8;
+            ctx.beginPath();
+            ctx.moveTo(rightPoleX, cy);
+            ctx.lineTo(rightApexX, yPos);
+            ctx.stroke();
+          }
+          ctx.restore();
+        });
+
+        // Interpolar Microtubules sliding past each other (Anaphase B spindle elongation)
+        if (activeChannel === "all" || activeChannel === "gfp") {
+          ctx.strokeStyle = isFluor ? "rgba(52, 211, 153, 0.4)" : "rgba(245, 158, 11, 0.4)";
+          ctx.lineWidth = 1.5;
+          for (let s = -3; s <= 3; s++) {
+            ctx.beginPath();
+            ctx.moveTo(cx - 40, cy + s * 16);
+            ctx.lineTo(cx + 40, cy + s * 16);
+            ctx.stroke();
+          }
+        }
+
+      } else if (currentPhaseIdx === 4) {
+        // ==========================================
+        // PHASE 4: TELOPHASE & CYTOKINESIS
+        // ==========================================
+        [-110, 110].forEach(dx => {
+          const dNucX = cx + dx;
+          const dNucR = 50;
+
+          // Reforming Nuclear Envelopes (Vesicle coalescence)
+          ctx.strokeStyle = isFluor ? "#38bdf8" : "#831843";
+          ctx.lineWidth = 2.5;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.arc(dNucX, cy, dNucR, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Internal Decondensing Chromatin Network
+          ctx.strokeStyle = isFluor ? "rgba(56, 189, 248, 0.65)" : "rgba(157, 23, 77, 0.65)";
+          ctx.lineWidth = 1.8;
+          for (let c = 0; c < 12; c++) {
+            const ang = (c / 12) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.arc(dNucX + Math.cos(ang) * 18, cy + Math.sin(ang) * 18, 5, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          // Emerging Nucleolus in each daughter nucleus
+          ctx.fillStyle = isFluor ? "#0284c7" : "#be185d";
+          ctx.beginPath();
+          ctx.arc(dNucX - 8, cy - 8, 9, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // Cytokinesis Mechanism:
+        if (specimenType === "plant") {
+          // Plant Cytokinesis: Phragmoplast & Cell Plate Formation
+          if (activeChannel === "all" || activeChannel === "gfp") {
+            ctx.strokeStyle = isFluor ? "rgba(52, 211, 153, 0.65)" : "rgba(245, 158, 11, 0.6)";
+            ctx.lineWidth = 1.8;
+            for (let p = -6; p <= 6; p++) {
+              ctx.beginPath();
+              ctx.moveTo(cx - 20, cy + p * 15);
+              ctx.lineTo(cx + 20, cy + p * 15);
+              ctx.stroke();
+            }
+          }
+
+          // Golgi-derived pectin vesicles fusing centrifugal from center outward
+          const plateHeight = 75 + phaseProgress * 115;
+          ctx.strokeStyle = isFluor ? "#34d399" : "#fbbf24";
+          ctx.lineWidth = 4.2;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy - plateHeight / 2);
+          ctx.lineTo(cx, cy + plateHeight / 2);
+          ctx.stroke();
+
+          // Pectin Vesicle beads fusing into the nascent plate
+          ctx.fillStyle = "#fef08a";
+          for (let v = -5; v <= 5; v++) {
+            ctx.beginPath();
+            ctx.arc(cx, cy + v * (plateHeight / 11), 3.0, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
       }
     }
@@ -1315,23 +1451,27 @@ export function initMitosisLab(containerId) {
 
       let hitInfo = null;
 
-      if (currentPhaseIdx === 0 && Math.hypot(mx - (cx - 24), my - (cy - 18)) < 24) {
+      if (currentPhaseIdx === 0 && Math.hypot(mx - (cx - 28), my - (cy - 20)) < 26) {
         hitInfo = {
           title: "Dense Nucleolus",
           desc: "Site of pre-rRNA transcription (rDNA loops) and 40S/60S ribosome assembly.",
           tag: "Ribosome Factory"
         };
-      } else if (currentPhaseIdx === 0 && distFromCenter < 86) {
+      } else if (currentPhaseIdx === 0 && distFromCenter < 88) {
         hitInfo = {
           title: "Diffuse Chromatin & Heterochromatin",
           desc: "Uncondensed nucleoprotein fibers (DNA wound around histone octamers); S-phase replication complete.",
           tag: "Genome (2n)"
         };
-      } else if (currentPhaseIdx === 2 && Math.abs(mx - cx) < 24 && Math.abs(my - cy) < 95) {
+      } else if (currentPhaseIdx === 2 && Math.abs(mx - cx) < 26 && Math.abs(my - cy) < 100) {
         hitInfo = {
           title: "Metaphase Chromosome & Kinetochore",
-          desc: hasColchicine ? "Colchicine depolymerized tubulin; SAC active due to absence of mechanical tension." : "Cohesin rings hold sister chromatids; kinetochores experience ~35 pN bipolar spindle tension.",
-          tag: hasColchicine ? "SAC Halted" : "Bi-Oriented Tension"
+          desc: drugCondition === "colchicine" 
+            ? "Colchicine depolymerized tubulin; SAC active due to absence of mechanical tension." 
+            : (drugCondition === "taxol" 
+                ? "Taxol stabilized microtubules; kinetochores locked without dynamic tension."
+                : "Cohesin rings hold sister chromatids; kinetochores experience ~35 pN bipolar spindle tension."),
+          tag: drugCondition === "colchicine" ? "SAC Halted" : "Bi-Oriented Tension"
         };
       } else if (currentPhaseIdx === 3 && (Math.hypot(mx - (cx - 75), my - cy) < 45 || Math.hypot(mx - (cx + 75), my - cy) < 45)) {
         hitInfo = {
@@ -1339,13 +1479,13 @@ export function initMitosisLab(containerId) {
           desc: "Separase cleaved cohesin rings; K-fibers depolymerize at plus-ends, pulling V-shaped chromatids poleward.",
           tag: "Anaphase Disjunction"
         };
-      } else if (currentPhaseIdx === 4 && specimenType === "plant" && Math.abs(mx - cx) < 24) {
+      } else if (currentPhaseIdx === 4 && specimenType === "plant" && Math.abs(mx - cx) < 26) {
         hitInfo = {
           title: "Phragmoplast & Developing Cell Plate",
           desc: "Golgi-derived vesicles carry pectin and hemicellulose, fusing centrifugal-outward to build the new middle lamella.",
           tag: "Plant Cytokinesis"
         };
-      } else if (Math.hypot(mx - leftPoleX, my - cy) < 28 || Math.hypot(mx - rightPoleX, my - cy) < 28) {
+      } else if (Math.hypot(mx - leftPoleX, my - cy) < 30 || Math.hypot(mx - rightPoleX, my - cy) < 30) {
         hitInfo = {
           title: specimenType === "animal" ? "Centrosome & Centriole Pair" : "Polar Organizer MTOC",
           desc: specimenType === "animal" ? "Perpendicular centrioles nucleating astral and spindle microtubules." : "Plant anastral spindle pole containing γ-TuRC nucleating complexes.",
@@ -1354,7 +1494,7 @@ export function initMitosisLab(containerId) {
       } else if (distFromCenter < ocularR - 10) {
         hitInfo = {
           title: specimenType === "plant" ? "Allium cepa Meristematic Cytoplasm" : "Eukaryotic Somatic Cytosol",
-          desc: "High metabolic density with mitochondria, ribosomes, and cytoskeletal motor proteins.",
+          desc: "Dense cytoplasm with active cyclosis (streaming), mitochondria, ribosomes, and cytoskeletal motor proteins.",
           tag: "Cytosol"
         };
       }
@@ -1379,7 +1519,17 @@ export function initMitosisLab(containerId) {
 
     ctx.restore(); // Restore clip
 
-    // 8. Optical Scale Bar & Microscope Specification (Left Stage HUD - Unobstructed by Inspector)
+    // 8. Draggable Ocular Micrometer (Graticule Ruler Tool)
+    if (showGraticule) {
+      drawOcularGraticule(ctx, graticulePos.x, graticulePos.y);
+    }
+
+    // 9. Laser Line Profile Scanner (Real-time Cross-Section Intensity)
+    if (showIntensityScan) {
+      drawLaserLineProfile(ctx);
+    }
+
+    // 10. Optical Scale Bar & Microscope Specification (Left Stage HUD - Unobstructed by Inspector)
     const hudX = 24;
     const hudY = 370;
     ctx.save();
@@ -1413,12 +1563,150 @@ export function initMitosisLab(containerId) {
     ctx.restore();
   }
 
+  // Draw Draggable Calibrated Ocular Micrometer (Graticule Ruler)
+  function drawOcularGraticule(ctx, gx, gy) {
+    ctx.save();
+    const rulerW = 240;
+    const rulerH = 34;
+
+    // Glass body
+    ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(gx - rulerW / 2, gy - rulerH / 2, rulerW, rulerH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // Micrometer Ticks: 0 to 50 µm (1 px = 0.25 µm scale)
+    ctx.strokeStyle = "#38bdf8";
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "8px monospace";
+    ctx.textAlign = "center";
+
+    const totalMicrons = 50;
+    const pxPerMicron = (rulerW - 30) / totalMicrons;
+    const startX = gx - rulerW / 2 + 15;
+
+    for (let u = 0; u <= totalMicrons; u += 2) {
+      const tx = startX + u * pxPerMicron;
+      const isMajor = (u % 10 === 0);
+      const isMedium = (u % 5 === 0);
+      const tickH = isMajor ? 12 : (isMedium ? 8 : 5);
+
+      ctx.beginPath();
+      ctx.moveTo(tx, gy + rulerH / 2 - 2);
+      ctx.lineTo(tx, gy + rulerH / 2 - 2 - tickH);
+      ctx.stroke();
+
+      if (isMajor) {
+        ctx.fillText(`${u}`, tx, gy - 2);
+      }
+    }
+
+    ctx.fillStyle = "#f8fafc";
+    ctx.font = "bold 8px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("📏 GRATICULE (µm)", gx - rulerW / 2 + 15, gy + 10);
+    ctx.restore();
+  }
+
+  // Draw Real-Time Laser Line Profile Scanner (Confocal Telemetry)
+  function drawLaserLineProfile(ctx) {
+    ctx.save();
+    const boxX = 705;
+    const boxY = 55;
+    const boxW = 215;
+    const boxH = 110;
+
+    // Background Panel
+    ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(boxX, boxY, boxW, boxH, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Title
+    ctx.fillStyle = "#38bdf8";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("📊 LASER INTENSITY LINE PROFILE", boxX + 10, boxY + 16);
+
+    // Coordinate Axes
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(boxX + 25, boxY + 28);
+    ctx.lineTo(boxX + 25, boxY + 95);
+    ctx.lineTo(boxX + boxW - 12, boxY + 95);
+    ctx.stroke();
+
+    // DAPI (Blue) Profile Curve
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    for (let p = 0; p < 35; p++) {
+      const px = boxX + 26 + p * 5;
+      let val = 10;
+      if (currentPhaseIdx === 2) {
+        // Metaphase tight central peak
+        val = 10 + 65 * Math.exp(-Math.pow(p - 17, 2) / 12);
+      } else if (currentPhaseIdx === 3) {
+        // Anaphase twin peaks
+        val = 10 + 55 * (Math.exp(-Math.pow(p - 9, 2) / 10) + Math.exp(-Math.pow(p - 25, 2) / 10));
+      } else {
+        val = 15 + 40 * Math.exp(-Math.pow(p - 17, 2) / 45);
+      }
+      const py = boxY + 95 - val;
+      if (p === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // GFP Tubulin (Green) Profile Curve
+    ctx.strokeStyle = "#10b981";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    for (let p = 0; p < 35; p++) {
+      const px = boxX + 26 + p * 5;
+      let val = 12;
+      if (currentPhaseIdx === 2) {
+        val = (drugCondition === "colchicine") ? 14 : (14 + 48 * (Math.exp(-Math.pow(p - 6, 2) / 16) + Math.exp(-Math.pow(p - 28, 2) / 16)));
+      } else {
+        val = 14 + 30 * Math.sin((p / 35) * Math.PI);
+      }
+      const py = boxY + 95 - val;
+      if (p === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Legend
+    ctx.fillStyle = "#38bdf8"; ctx.fillRect(boxX + 28, boxY + 100, 8, 3);
+    ctx.fillStyle = "#cbd5e1"; ctx.font = "8px monospace"; ctx.fillText("DAPI (DNA)", boxX + 40, boxY + 104);
+    ctx.fillStyle = "#10b981"; ctx.fillRect(boxX + 115, boxY + 100, 8, 3);
+    ctx.fillText("GFP (Tubulin)", boxX + 127, boxY + 104);
+
+    // Laser Scan Reference Line across cell in main viewport
+    ctx.strokeStyle = "rgba(239, 68, 68, 0.65)";
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(320, 245);
+    ctx.lineTo(620, 245);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
   // Draw 60 FPS Authentic Allium Cepa Meristem Histology Grid
   function drawHistologyGrid() {
     if (!ctx) return;
     const isFluor = stainingMode === "fluorescence";
 
-    // Canvas background
+    // Canvas background: Authentic brightfield vs fluorescent tissue slide
     ctx.fillStyle = isFluor ? "#030712" : "#fefce8";
     ctx.fillRect(0, 0, logicalW, logicalH);
 
@@ -1440,37 +1728,31 @@ export function initMitosisLab(containerId) {
         ctx.globalAlpha = 0.2;
       }
 
-      // Cell Wall (Allium Cepa rectangular meristem with biological morphology)
-      ctx.strokeStyle = isFluor ? "#047857" : "#b45309";
-      ctx.lineWidth = 3;
-      ctx.fillStyle = isFluor ? "rgba(6, 78, 59, 0.15)" : "rgba(254, 243, 199, 0.7)";
+      // Authentic Plant Meristem Cell Wall (Cellulose file with subtle jitter)
+      ctx.strokeStyle = isFluor ? "#065f46" : "#b45309";
+      ctx.lineWidth = isSelected ? 3.5 : 2;
+      ctx.fillStyle = isFluor 
+        ? (isSelected ? "rgba(56, 189, 248, 0.18)" : "rgba(6, 78, 59, 0.15)") 
+        : (isSelected ? "rgba(254, 215, 170, 0.55)" : "rgba(254, 240, 138, 0.25)");
+
       ctx.beginPath();
-      ctx.roundRect(gx + 2 + c.wallJitterX, gy + 2 + c.wallJitterY, cellW - 4, cellH - 4, 6);
+      ctx.roundRect(gx + 2 + c.wallJitterX, gy + 2 + c.wallJitterY, cellW - 4, cellH - 4, 4);
       ctx.fill();
       ctx.stroke();
 
-      // Selected cell highlight aura
       if (isSelected) {
         ctx.strokeStyle = "#38bdf8";
         ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.roundRect(gx - 1, gy - 1, cellW + 2, cellH + 2, 8);
         ctx.stroke();
       }
 
-      // Cell Number
-      ctx.fillStyle = isFluor ? "#6ee7b7" : "#78350f";
-      ctx.font = "bold 9px monospace";
-      ctx.textAlign = "left";
-      ctx.fillText(`#${c.id}`, gx + 6, gy + 14);
-
-      // Phase-specific Cytological Feature
-      const midX = gx + cellW / 2;
-      const midY = gy + cellH / 2 + 2;
+      // Internal Cell Nucleus & Mitotic Figures
+      const midX = gx + cellW / 2 + c.wallJitterX;
+      const midY = gy + cellH / 2 + c.wallJitterY;
 
       if (c.actualPhase === "interphase") {
         // Intact nucleus with nucleolus
-        ctx.fillStyle = isFluor ? "rgba(56, 189, 248, 0.45)" : "rgba(157, 23, 77, 0.5)";
+        ctx.fillStyle = isFluor ? "rgba(56, 189, 248, 0.55)" : "rgba(157, 23, 77, 0.6)";
         ctx.beginPath();
         ctx.arc(midX, midY, 18, 0, Math.PI * 2);
         ctx.fill();
@@ -1484,48 +1766,48 @@ export function initMitosisLab(containerId) {
       } else if (c.actualPhase === "prophase") {
         // Condensed coiled chromosomes inside fading nuclear envelope
         ctx.strokeStyle = isFluor ? "#f59e0b" : "#9d174d";
-        ctx.lineWidth = 2;
-        for (let k = 0; k < 4; k++) {
+        ctx.lineWidth = 2.2;
+        for (let k = 0; k < 5; k++) {
           ctx.beginPath();
-          ctx.arc(midX + (k - 1.5) * 6, midY + Math.sin(k) * 4, 8, 0, Math.PI);
+          ctx.arc(midX + (k - 2) * 5, midY + Math.sin(k) * 4, 9, 0, Math.PI);
           ctx.stroke();
         }
 
       } else if (c.actualPhase === "metaphase") {
         // Dense equatorial plate of chromosomes
         ctx.strokeStyle = isFluor ? "#818cf8" : "#831843";
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4.5;
         ctx.beginPath();
-        ctx.moveTo(midX, midY - 18);
-        ctx.lineTo(midX, midY + 18);
+        ctx.moveTo(midX, midY - 20);
+        ctx.lineTo(midX, midY + 20);
         ctx.stroke();
 
       } else if (c.actualPhase === "anaphase") {
         // Two distinct migrating V-shaped daughter chromosome groups
         ctx.strokeStyle = isFluor ? "#f43f5e" : "#831843";
-        ctx.lineWidth = 2.5;
-        [-10, 10].forEach(ox => {
+        ctx.lineWidth = 2.8;
+        [-11, 11].forEach(ox => {
           ctx.beginPath();
-          ctx.moveTo(midX + ox - 4, midY - 12);
+          ctx.moveTo(midX + ox - 5, midY - 14);
           ctx.lineTo(midX + ox + 3, midY);
-          ctx.lineTo(midX + ox - 4, midY + 12);
+          ctx.lineTo(midX + ox - 5, midY + 14);
           ctx.stroke();
         });
 
       } else if (c.actualPhase === "telophase") {
         // Two reforming polar nuclei with central cell plate line
-        ctx.fillStyle = isFluor ? "rgba(56, 189, 248, 0.4)" : "rgba(157, 23, 77, 0.4)";
+        ctx.fillStyle = isFluor ? "rgba(56, 189, 248, 0.45)" : "rgba(157, 23, 77, 0.45)";
         ctx.beginPath();
-        ctx.arc(midX - 16, midY, 10, 0, Math.PI * 2);
-        ctx.arc(midX + 16, midY, 10, 0, Math.PI * 2);
+        ctx.arc(midX - 18, midY, 10, 0, Math.PI * 2);
+        ctx.arc(midX + 18, midY, 10, 0, Math.PI * 2);
         ctx.fill();
 
         // Nascent Cell Plate (Phragmoplast)
         ctx.strokeStyle = isFluor ? "#10b981" : "#d97706";
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2.4;
         ctx.beginPath();
-        ctx.moveTo(midX, midY - 14);
-        ctx.lineTo(midX, midY + 14);
+        ctx.moveTo(midX, midY - 15);
+        ctx.lineTo(midX, midY + 15);
         ctx.stroke();
       }
 
@@ -1538,7 +1820,7 @@ export function initMitosisLab(containerId) {
       if (hCell) {
         const lx = canvasMouse.x;
         const ly = canvasMouse.y;
-        const lRadius = 55;
+        const lRadius = 58;
 
         ctx.save();
         ctx.beginPath();
@@ -1563,18 +1845,18 @@ export function initMitosisLab(containerId) {
 
         // Loupe Brass Frame
         ctx.strokeStyle = "#38bdf8";
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 3.5;
         ctx.beginPath();
         ctx.arc(lx, ly, lRadius, 0, Math.PI * 2);
         ctx.stroke();
 
         // Mini Label
-        ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
-        ctx.fillRect(lx - 40, ly + lRadius - 6, 80, 18);
+        ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+        ctx.fillRect(lx - 45, ly + lRadius - 6, 90, 20);
         ctx.fillStyle = "#38bdf8";
         ctx.font = "bold 10px monospace";
         ctx.textAlign = "center";
-        ctx.fillText(`1000× Cell #${hCell.id}`, lx, ly + lRadius + 7);
+        ctx.fillText(`1000× Cell #${hCell.id}`, lx, ly + lRadius + 8);
       }
     }
   }
@@ -1646,7 +1928,7 @@ export function initMitosisLab(containerId) {
     // Update Real Bench Photo HUD
     const curPhase = PHASES[currentPhaseIdx];
     if (photoPhase) photoPhase.textContent = curPhase.name;
-    if (photoSpindle) photoSpindle.textContent = hasColchicine ? "Colchicine Block" : "Normal";
+    if (photoSpindle) photoSpindle.textContent = hasColchicine ? "Colchicine Block" : (hasTaxol ? "Taxol Freeze" : "Normal");
 
     animId = requestAnimationFrame(loop);
   }
@@ -1701,10 +1983,35 @@ export function initMitosisLab(containerId) {
     canvasMouse.x = (e.clientX - rect.left) * scaleX;
     canvasMouse.y = (e.clientY - rect.top) * scaleY;
     canvasMouse.isOver = true;
+
+    if (graticulePos.isDragging) {
+      graticulePos.x = canvasMouse.x - graticulePos.dragStartX;
+      graticulePos.y = canvasMouse.y - graticulePos.dragStartY;
+    }
+  });
+
+  canvas?.addEventListener("mousedown", (e) => {
+    if (showGraticule) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = logicalW / rect.width;
+      const scaleY = logicalH / rect.height;
+      const mx = (e.clientX - rect.left) * scaleX;
+      const my = (e.clientY - rect.top) * scaleY;
+      if (Math.abs(mx - graticulePos.x) < 120 && Math.abs(my - graticulePos.y) < 20) {
+        graticulePos.isDragging = true;
+        graticulePos.dragStartX = mx - graticulePos.x;
+        graticulePos.dragStartY = my - graticulePos.y;
+      }
+    }
+  });
+
+  window.addEventListener("mouseup", () => {
+    graticulePos.isDragging = false;
   });
 
   canvas?.addEventListener("mouseleave", () => {
     canvasMouse.isOver = false;
+    graticulePos.isDragging = false;
   });
 
   canvas?.addEventListener("click", (e) => {
@@ -1714,12 +2021,11 @@ export function initMitosisLab(containerId) {
       const scaleY = logicalH / rect.height;
       const mx = (e.clientX - rect.left) * scaleX;
       const my = (e.clientY - rect.top) * scaleY;
-
-      const clicked = getHistologyCellAt(mx, my);
-      if (clicked) {
-        selectedHistoCell = clicked;
+      const cell = getHistologyCellAt(mx, my);
+      if (cell) {
+        selectedHistoCell = cell;
         if (histoPromptText) {
-          histoPromptText.innerHTML = `Diagnosing <strong>Cell #${clicked.id}</strong> (Row ${clicked.row + 1}, Col ${clicked.col + 1}): Select its mitotic phase:`;
+          histoPromptText.textContent = `Diagnose Phase for Cell #${cell.id} (Row ${cell.row + 1}, Col ${cell.col + 1}):`;
         }
         if (histoFeedbackBanner) histoFeedbackBanner.style.display = "none";
         SoundFX.playClick();
@@ -1807,6 +2113,8 @@ export function initMitosisLab(containerId) {
     btnStainAceto.style.background = "transparent";
     btnStainAceto.style.color = "#cbd5e1";
     btnStainAceto.style.fontWeight = "600";
+
+    if (confocalChannelsWrapper) confocalChannelsWrapper.style.display = "flex";
     SoundFX.playClick();
   });
 
@@ -1821,7 +2129,104 @@ export function initMitosisLab(containerId) {
     btnStainFluor.style.background = "transparent";
     btnStainFluor.style.color = "#cbd5e1";
     btnStainFluor.style.fontWeight = "600";
+
+    if (confocalChannelsWrapper) confocalChannelsWrapper.style.display = "none";
     SoundFX.playClick();
+  });
+
+  // Confocal Channel Splitter Listeners
+  document.querySelectorAll(".channel-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".channel-btn").forEach(b => {
+        b.classList.remove("active");
+        b.style.background = "transparent";
+      });
+      btn.classList.add("active");
+      btn.style.background = "rgba(56, 189, 248, 0.25)";
+      activeChannel = btn.getAttribute("data-chan") || "all";
+      SoundFX.playClick();
+    });
+  });
+
+  // Optical Tools Toggles (Graticule & Profile)
+  btnToggleGraticule?.addEventListener("click", () => {
+    showGraticule = !showGraticule;
+    btnToggleGraticule.classList.toggle("active", showGraticule);
+    btnToggleGraticule.style.background = showGraticule ? "rgba(56, 189, 248, 0.25)" : "";
+    btnToggleGraticule.style.borderColor = showGraticule ? "#38bdf8" : "";
+    btnToggleGraticule.style.color = showGraticule ? "#38bdf8" : "";
+    SoundFX.playClick();
+  });
+
+  btnToggleProfile?.addEventListener("click", () => {
+    showIntensityScan = !showIntensityScan;
+    btnToggleProfile.classList.toggle("active", showIntensityScan);
+    btnToggleProfile.style.background = showIntensityScan ? "rgba(56, 189, 248, 0.25)" : "";
+    btnToggleProfile.style.borderColor = showIntensityScan ? "#38bdf8" : "";
+    btnToggleProfile.style.color = showIntensityScan ? "#38bdf8" : "";
+    SoundFX.playClick();
+  });
+
+  // Pharmacological Spindle Assay Listeners
+  document.querySelectorAll(".drug-pill-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".drug-pill-btn").forEach(b => {
+        b.classList.remove("active");
+        b.style.borderColor = "var(--border-color)";
+        b.style.color = "#cbd5e1";
+        b.style.fontWeight = "600";
+      });
+      btn.classList.add("active");
+      drugCondition = btn.getAttribute("data-drug") || "control";
+      hasColchicine = (drugCondition === "colchicine");
+      hasTaxol = (drugCondition === "taxol");
+
+      if (drugCondition === "colchicine") {
+        btn.style.borderColor = "#ef4444";
+        btn.style.color = "#ef4444";
+        btn.style.fontWeight = "700";
+        if (drugStatusBadge) {
+          drugStatusBadge.textContent = "Colchicine (0.1 µM)";
+          drugStatusBadge.style.background = "rgba(239, 68, 68, 0.2)";
+          drugStatusBadge.style.color = "#f87171";
+          drugStatusBadge.style.borderColor = "rgba(239, 68, 68, 0.4)";
+        }
+        if (drugMechanismText) {
+          drugMechanismText.textContent = "Binds β-tubulin, depolymerizes spindle fibers, recruits Mad2 checkpoint sensor, halts at Metaphase.";
+        }
+      } else if (drugCondition === "taxol") {
+        btn.style.borderColor = "#c084fc";
+        btn.style.color = "#c084fc";
+        btn.style.fontWeight = "700";
+        if (drugStatusBadge) {
+          drugStatusBadge.textContent = "Taxol / Paclitaxel (10 nM)";
+          drugStatusBadge.style.background = "rgba(192, 132, 252, 0.2)";
+          drugStatusBadge.style.color = "#c084fc";
+          drugStatusBadge.style.borderColor = "rgba(192, 132, 252, 0.4)";
+        }
+        if (drugMechanismText) {
+          drugMechanismText.textContent = "Hyper-stabilizes GDP-microtubules into rigid bundles, blocks depolymerization, freezes Anaphase A.";
+        }
+      } else {
+        btn.style.borderColor = "#10b981";
+        btn.style.color = "#10b981";
+        btn.style.fontWeight = "700";
+        if (drugStatusBadge) {
+          drugStatusBadge.textContent = "Untreated Control";
+          drugStatusBadge.style.background = "rgba(16, 185, 129, 0.2)";
+          drugStatusBadge.style.color = "#34d399";
+          drugStatusBadge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+        }
+        if (drugMechanismText) {
+          drugMechanismText.textContent = "Normal microtubule dynamic instability; bi-oriented tension satisfies SAC and permits Anaphase APC/C activation.";
+        }
+      }
+
+      initHistologyCells();
+      updateTable();
+      updateEventsCard();
+      SoundFX.playBeep();
+    });
   });
 
   // Histology Filter Toolbar Buttons
@@ -1853,58 +2258,88 @@ export function initMitosisLab(containerId) {
     });
   });
 
-  // Histology Diagnostic Quiz Classification Buttons
+  // Histology Diagnostic Quiz & Tally Counter Buttons
   document.querySelectorAll(".btn-classify").forEach(btn => {
     btn.addEventListener("click", () => {
       const chosenPhase = btn.getAttribute("data-phase");
       const targetCell = selectedHistoCell || histologyCells[0];
 
-      if (targetCell && histoFeedbackBanner) {
+      if (targetCell) {
         studentScore.total++;
-        const isCorrect = targetCell.actualPhase === chosenPhase;
+        const isCorrect = (chosenPhase === targetCell.actualPhase);
         if (isCorrect) studentScore.correct++;
+
+        // Update Tally Keypad counts
+        tallyCounts[chosenPhase] = (tallyCounts[chosenPhase] || 0) + 1;
+        tallyTotal++;
+        updateTallyKeypadUI();
 
         if (histoScoreBadge) {
           const pct = Math.round((studentScore.correct / studentScore.total) * 100);
           histoScoreBadge.textContent = `Score: ${studentScore.correct}/${studentScore.total} (${pct}%)`;
         }
 
-        histoFeedbackBanner.style.display = "block";
-        if (isCorrect) {
-          histoFeedbackBanner.style.background = "rgba(16, 185, 129, 0.15)";
-          histoFeedbackBanner.style.border = "1px solid #10b981";
-          histoFeedbackBanner.style.color = "#34d399";
-          histoFeedbackBanner.innerHTML = `✓ <strong>Correct!</strong> Cell #${targetCell.id} is in <em>${chosenPhase.toUpperCase()}</em>.`;
-          SoundFX.playPing();
-        } else {
-          histoFeedbackBanner.style.background = "rgba(244, 63, 94, 0.15)";
-          histoFeedbackBanner.style.border = "1px solid #f43f5e";
-          histoFeedbackBanner.style.color = "#fca5a5";
-          histoFeedbackBanner.innerHTML = `✕ <strong>Incorrect:</strong> You selected ${chosenPhase}, but Cell #${targetCell.id} is in <em>${targetCell.actualPhase.toUpperCase()}</em>.`;
-          SoundFX.playBeep();
+        if (histoFeedbackBanner) {
+          histoFeedbackBanner.style.display = "block";
+          if (isCorrect) {
+            histoFeedbackBanner.style.background = "rgba(16, 185, 129, 0.2)";
+            histoFeedbackBanner.style.border = "1px solid #10b981";
+            histoFeedbackBanner.style.color = "#34d399";
+            histoFeedbackBanner.innerHTML = `✓ <b>Correct!</b> Cell #${targetCell.id} is in <b>${chosenPhase.toUpperCase()}</b>.`;
+            SoundFX.playPing();
+          } else {
+            histoFeedbackBanner.style.background = "rgba(244, 63, 94, 0.2)";
+            histoFeedbackBanner.style.border = "1px solid #f43f5e";
+            histoFeedbackBanner.style.color = "#fda4af";
+            histoFeedbackBanner.innerHTML = `✗ <b>Incorrect:</b> Cell #${targetCell.id} is actually in <b>${targetCell.actualPhase.toUpperCase()}</b>.`;
+            SoundFX.playBeep();
+          }
         }
       }
     });
   });
 
-  // Playback Controls (Auto-Mode vs Manual Step Mode)
-  playBtn?.addEventListener("click", () => {
-    isPlaying = !isPlaying;
-    if (isPlaying) {
-      playMode = "cycle";
-      playBtn.innerHTML = `<span>⏸</span> Pause Cycle`;
-      playBtn.className = "btn btn-primary btn-sm";
-    } else {
-      playBtn.innerHTML = `<span>▶</span> Play Cell Cycle`;
-      playBtn.className = "btn btn-secondary btn-sm";
+  function updateTallyKeypadUI() {
+    if (tallyInterphase) tallyInterphase.textContent = tallyCounts.interphase || 0;
+    if (tallyProphase) tallyProphase.textContent = tallyCounts.prophase || 0;
+    if (tallyMetaphase) tallyMetaphase.textContent = tallyCounts.metaphase || 0;
+    if (tallyAnaphase) tallyAnaphase.textContent = tallyCounts.anaphase || 0;
+    if (tallyTelophase) tallyTelophase.textContent = tallyCounts.telophase || 0;
+    if (tallyTotalDisplay) tallyTotalDisplay.textContent = tallyTotal;
+
+    if (studentMiDisplay) {
+      const mitoticSum = (tallyCounts.prophase || 0) + (tallyCounts.metaphase || 0) + (tallyCounts.anaphase || 0) + (tallyCounts.telophase || 0);
+      const studentMI = tallyTotal > 0 ? ((mitoticSum / tallyTotal) * 100).toFixed(1) : "0.0";
+      studentMiDisplay.textContent = `${studentMI}%`;
     }
+  }
+
+  btnResetTally?.addEventListener("click", () => {
+    tallyCounts = { interphase: 0, prophase: 0, metaphase: 0, anaphase: 0, telophase: 0 };
+    tallyTotal = 0;
+    studentScore = { correct: 0, total: 0 };
+    if (histoScoreBadge) histoScoreBadge.textContent = "Score: 0/0 (0%)";
+    if (histoFeedbackBanner) histoFeedbackBanner.style.display = "none";
+    updateTallyKeypadUI();
     SoundFX.playClick();
   });
 
+  // Play / Pause Animation
+  playBtn?.addEventListener("click", () => {
+    isPlaying = !isPlaying;
+    if (isPlaying) {
+      playBtn.innerHTML = `<span>⏸</span> Pause Cycle`;
+      playBtn.className = "btn btn-primary btn-sm";
+      SoundFX.playClick();
+    } else {
+      playBtn.innerHTML = `<span>▶</span> Play Cell Cycle`;
+      playBtn.className = "btn btn-secondary btn-sm";
+      SoundFX.playClick();
+    }
+  });
+
+  // Navigation Steps
   stepPrevBtn?.addEventListener("click", () => {
-    isPlaying = false;
-    playBtn.innerHTML = `<span>▶</span> Play Cell Cycle`;
-    playBtn.className = "btn btn-secondary btn-sm";
     currentPhaseIdx = (currentPhaseIdx - 1 + PHASES.length) % PHASES.length;
     phaseProgress = 0.0;
     updatePhaseJumpPills();
@@ -1912,39 +2347,25 @@ export function initMitosisLab(containerId) {
   });
 
   stepNextBtn?.addEventListener("click", () => {
-    isPlaying = false;
-    playBtn.innerHTML = `<span>▶</span> Play Cell Cycle`;
-    playBtn.className = "btn btn-secondary btn-sm";
     currentPhaseIdx = (currentPhaseIdx + 1) % PHASES.length;
     phaseProgress = 0.0;
     updatePhaseJumpPills();
     SoundFX.playClick();
   });
 
-  // Phase Jump Pills: Pauses cycle so teachers and students can inspect that phase!
+  // Manual Phase Jump Buttons
   document.querySelectorAll(".phase-jump-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      const idx = parseInt(btn.getAttribute("data-phase"), 10);
-      currentPhaseIdx = idx;
+      currentPhaseIdx = parseInt(btn.getAttribute("data-phase"), 10);
       phaseProgress = 0.0;
-      isPlaying = false; // Pauses on manual stage selection so it doesn't rush away!
-      if (playBtn) {
-        playBtn.innerHTML = `<span>▶</span> Play Cell Cycle`;
-        playBtn.className = "btn btn-secondary btn-sm";
-      }
       updatePhaseJumpPills();
-      SoundFX.playBeep();
+      SoundFX.playClick();
     });
   });
 
-  // Manual Phase Progress Scrubber: Drag to scrub transitions in real time!
+  // Scrubber Input Listener
   sliderPhaseProgress?.addEventListener("input", (e) => {
-    phaseProgress = parseFloat(e.target.value) / 100;
-    isPlaying = false; // Pauses auto-cycle so scrubbing is stable
-    if (playBtn) {
-      playBtn.innerHTML = `<span>▶</span> Play Cell Cycle`;
-      playBtn.className = "btn btn-secondary btn-sm";
-    }
+    phaseProgress = parseInt(e.target.value, 10) / 100;
     if (lblPhaseProgress) lblPhaseProgress.textContent = `${Math.round(phaseProgress * 100)}%`;
     if (badgePhaseProgressPct) badgePhaseProgressPct.textContent = `${Math.round(phaseProgress * 100)}% Complete`;
   });
@@ -1954,11 +2375,12 @@ export function initMitosisLab(containerId) {
     fineFocus = parseFloat(e.target.value);
     if (lblFineFocus) {
       if (Math.abs(fineFocus) < 0.1) {
-        lblFineFocus.textContent = `0.0 µm (In Focus)`;
+        lblFineFocus.textContent = "0.0 µm (In Focus)";
         lblFineFocus.style.color = "#10b981";
       } else {
-        lblFineFocus.textContent = `${fineFocus > 0 ? "+" : ""}${fineFocus.toFixed(1)} µm (${Math.abs(fineFocus) < 0.8 ? "Slight Aberration" : "Out of Focus"})`;
-        lblFineFocus.style.color = Math.abs(fineFocus) < 0.8 ? "#f59e0b" : "#f43f5e";
+        const sign = fineFocus > 0 ? "+" : "";
+        lblFineFocus.textContent = `${sign}${fineFocus.toFixed(1)} µm (Airy Defocus)`;
+        lblFineFocus.style.color = "#fbbf24";
       }
     }
   });
@@ -1966,18 +2388,6 @@ export function initMitosisLab(containerId) {
   sliderSpeed?.addEventListener("input", (e) => {
     animSpeed = parseFloat(e.target.value);
     if (lblSpeed) lblSpeed.textContent = `${animSpeed.toFixed(1)}×`;
-  });
-
-  // Colchicine Spindle Poison Checkbox
-  checkColchicine?.addEventListener("change", (e) => {
-    hasColchicine = e.target.checked;
-    if (colchicineToggleSpan) {
-      colchicineToggleSpan.style.background = hasColchicine ? "#ef4444" : "#475569";
-    }
-    initHistologyCells();
-    updateTable();
-    updateEventsCard();
-    SoundFX.playBeep();
   });
 
   // View Switcher (Simulator vs 4K Bench Photo)
@@ -2027,7 +2437,7 @@ export function initMitosisLab(containerId) {
       trial: trialNum,
       specimen: specimenType === "plant" ? "Allium cepa (Plant)" : "Mammalian (Animal)",
       stain: stainingMode,
-      treatment: hasColchicine ? "Colchicine (Spindle Poison)" : "Control (Untreated)",
+      treatment: drugCondition === "colchicine" ? "Colchicine (SAC Arrest)" : (drugCondition === "taxol" ? "Taxol (Spindle Freeze)" : "Control (Untreated)"),
       totalCells: TOTAL_CELLS,
       mitoticCells: mitoticCount,
       mitoticIndexPct: mi.toFixed(1),
@@ -2058,78 +2468,91 @@ export function initMitosisLab(containerId) {
       "Stain_Type",
       "Treatment_Condition",
       "Total_Cells_Counted",
-      "Mitotic_Cells_Counted",
+      "Mitotic_Cells_Count",
       "Mitotic_Index_Percent",
-      "Interphase_Cells",
-      "Prophase_Cells",
-      "Metaphase_Cells",
-      "Anaphase_Cells",
-      "Telophase_Cells"
+      "Interphase_Count",
+      "Prophase_Count",
+      "Metaphase_Count",
+      "Anaphase_Count",
+      "Telophase_Count"
     ];
 
-    let data = trialLogs.map(t => [
-      t.trial,
-      t.specimen,
-      t.stain,
-      t.treatment,
-      t.totalCells,
-      t.mitoticCells,
-      t.mitoticIndexPct,
-      t.interphase,
-      t.prophase,
-      t.metaphase,
-      t.anaphase,
-      t.telophase
-    ]);
-
-    if (data.length === 0) {
+    if (trialLogs.length === 0) {
       const { mitoticCount, mi, phaseCounts } = calculateMitoticIndex();
-      data = [[
-        1,
-        specimenType === "plant" ? "Allium cepa (Plant)" : "Mammalian (Animal)",
-        stainingMode,
-        hasColchicine ? "Colchicine (Spindle Poison)" : "Control (Untreated)",
-        TOTAL_CELLS,
-        mitoticCount,
-        mi.toFixed(1),
-        phaseCounts.interphase,
-        phaseCounts.prophase,
-        phaseCounts.metaphase,
-        phaseCounts.anaphase,
-        phaseCounts.telophase
-      ]];
+      trialLogs.push({
+        trial: 1,
+        specimen: specimenType === "plant" ? "Allium cepa (Plant)" : "Mammalian (Animal)",
+        stain: stainingMode,
+        treatment: drugCondition === "colchicine" ? "Colchicine (SAC Arrest)" : (drugCondition === "taxol" ? "Taxol (Spindle Freeze)" : "Control (Untreated)"),
+        totalCells: TOTAL_CELLS,
+        mitoticCells: mitoticCount,
+        mitoticIndexPct: mi.toFixed(1),
+        interphase: phaseCounts.interphase,
+        prophase: phaseCounts.prophase,
+        metaphase: phaseCounts.metaphase,
+        anaphase: phaseCounts.anaphase,
+        telophase: phaseCounts.telophase
+      });
     }
 
-    exportLabDataCsv("Cytogenetics_Cell_Cycle_Mitosis_Trial_Data", headers, data);
+    const rows = trialLogs.map(r => [
+      r.trial,
+      `"${r.specimen}"`,
+      `"${r.stain}"`,
+      `"${r.treatment}"`,
+      r.totalCells,
+      r.mitoticCells,
+      r.mitoticIndexPct,
+      r.interphase,
+      r.prophase,
+      r.metaphase,
+      r.anaphase,
+      r.telophase
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(row => row.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `mitosis_cytogenetics_telemetry_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     SoundFX.playPing();
   }
 
   exportBtn?.addEventListener("click", handleExport);
 
+  // Keyboard Shortcuts: 'e'/'E' for CSV export, '1'-'5' for histology cytology tally
   function handleKeyDown(e) {
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
     if (e.key === "e" || e.key === "E") {
-      const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
-      if (activeTag === "input" || activeTag === "textarea") return;
       e.preventDefault();
       handleExport();
+    } else if (activeTab === "histology" && ["1", "2", "3", "4", "5"].includes(e.key)) {
+      e.preventDefault();
+      const phaseKeys = ["interphase", "prophase", "metaphase", "anaphase", "telophase"];
+      const keyIdx = parseInt(e.key, 10) - 1;
+      const chosenPhase = phaseKeys[keyIdx];
+      const targetBtn = document.querySelector(`.btn-classify[data-phase="${chosenPhase}"]`);
+      targetBtn?.click();
     }
   }
   window.addEventListener("keydown", handleKeyDown);
 
-  // Initialize
-  initHistologyCells();
-  updateTable();
-  updateEventsCard();
-  updateScrubberUI();
-  animId = requestAnimationFrame(loop);
-
-  // Mount Assessment Checkpoint Quiz
+  // Mount Post-Lab Inquiry Checkpoint Assessment (Full Screen Width)
   mountLabCheckpoint("mitosis-checkpoint-mount", "bio-mitosis");
 
-  // Cleanup Function
+  // Initial State Rendering
+  updatePhaseJumpPills();
+  animId = requestAnimationFrame(loop);
+
+  // Return Comprehensive Cleanup Function
   return () => {
     if (animId) cancelAnimationFrame(animId);
-    window.removeEventListener("resize", setupHiDPICanvas);
     window.removeEventListener("keydown", handleKeyDown);
+    window.removeEventListener("resize", setupHiDPICanvas);
   };
 }
