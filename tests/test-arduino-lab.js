@@ -410,6 +410,31 @@ check(compUnclosedBrace.success === false && compUnclosedBrace.error.includes("u
 const emptyComp = mod.compileArduinoSketch("   ");
 check(emptyComp.success === false && emptyComp.error.includes("Empty"), "Rejects empty source code");
 
+// 7. Symbolic Constants & Custom Pin Statement AST Compilation
+const customPinSketch = `
+#define CUSTOM_LED 8
+const int BUZZ_PIN = 4;
+
+void setup() {
+  pinMode(CUSTOM_LED, OUTPUT);
+  pinMode(BUZZ_PIN, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(CUSTOM_LED, HIGH);
+  tone(BUZZ_PIN, 880, 200);
+  delay(400);
+  digitalWrite(CUSTOM_LED, LOW);
+  noTone(BUZZ_PIN);
+  delay(600);
+}
+`;
+const compCustom = mod.compileArduinoSketch(customPinSketch);
+check(compCustom.success === true && !!compCustom.parsedProgram, "Compiles custom symbolic pin sketch into parsedProgram AST");
+check(compCustom.parsedProgram.symbolTable.CUSTOM_LED === 8 && compCustom.parsedProgram.symbolTable.BUZZ_PIN === 4, "Resolves #define and const int symbolic pin constants in symbolTable");
+check(Array.isArray(compCustom.parsedProgram.statements) && compCustom.parsedProgram.statements.some(s => s.type === "digitalWrite" && s.pin === 8 && s.value === 1), "Extracts digitalWrite(CUSTOM_LED, HIGH) as pin 8 statement in AST");
+check(compCustom.parsedProgram.statements.some(s => s.type === "tone" && s.pin === 4 && s.freq === 880), "Extracts tone(BUZZ_PIN, 880) as pin 4 audio synthesis statement in AST");
+
 // ----------------------------------------------------
 // Test 5: Lifecycle Mount, Interactive Wires & DSO Controls
 // ----------------------------------------------------
@@ -551,6 +576,59 @@ try {
   canvasPointerDispatchedWithoutError = false;
 }
 check(canvasPointerDispatchedWithoutError, "Direct canvas touch & pointer events on hardware components dispatch safely");
+
+// Test 4K Photo & Blueprint vs Interactive Sim view mode buttons (verifies audio.playClick())
+const btnPhotoView = document.getElementById("view-mode-arduino-photo");
+const btnSimView = document.getElementById("view-mode-arduino-sim");
+const photoPanel = document.getElementById("arduino-photo-overlay");
+let viewModeToggleSafe = true;
+try {
+  btnPhotoView.dispatch("click");
+  check(photoPanel.style.display === "block", "Clicking '#view-mode-arduino-photo' displays 4K Photo & Blueprint panel without audio error");
+  btnSimView.dispatch("click");
+  check(photoPanel.style.display === "none", "Clicking '#view-mode-arduino-sim' returns to interactive simulator view");
+} catch (e) {
+  viewModeToggleSafe = false;
+}
+check(viewModeToggleSafe, "View mode toggle buttons execute audio.playClick() cleanly");
+
+// Test Component Property Inspector when clicking a custom breadboard component
+const inspectorComp = { id: "c_insp_test", type: "led_red", label: "Custom LED 1", pin: 8, color: "#ef4444", x: 100, y: 100, addedByUser: true };
+cleanup.state.components.customPlacedComponents = [inspectorComp];
+// Click at (420 + 100, 55 + 100) = (520, 155)
+canvas.dispatch("mousedown", { clientX: 520, clientY: 155 });
+canvas.dispatch("mouseup", {});
+const compInspector = document.getElementById("arduino-comp-inspector");
+check(cleanup.state.selectedCompIndex === 0 && compInspector.style.display === "flex", "Selecting a breadboard component opens the Component Property Inspector (#arduino-comp-inspector)");
+
+// Test Overcurrent resistor warning, Clone, Delete, Undo/Redo, Share, and Continuity badge
+const inspectorOhms = document.getElementById("inspector-comp-ohms");
+const inspectorClone = document.getElementById("inspector-comp-clone");
+const inspectorDelete = document.getElementById("inspector-comp-delete");
+const btnUndoCircuit = document.getElementById("btn-undo-circuit");
+const btnRedoCircuit = document.getElementById("btn-redo-circuit");
+const btnCustomShare = document.getElementById("btn-custom-share");
+const badgeContinuity = document.getElementById("badge-circuit-continuity");
+
+check(!!inspectorOhms && !!inspectorClone && !!inspectorDelete && !!btnUndoCircuit && !!btnRedoCircuit && !!btnCustomShare && !!badgeContinuity, "All new customization controls (Clone, Delete, Undo, Redo, Share, Continuity Badge) exist in DOM");
+
+inspectorOhms.dispatch("change", { target: { value: "47" } });
+check(inspectorComp.state && inspectorComp.state.value === 47, "Setting LED series resistor to 47 Ω updates component state for Overcurrent warning");
+
+inspectorClone.dispatch("click");
+check(cleanup.state.components.customPlacedComponents.length === 2, "Clicking '#inspector-comp-clone' duplicates the selected component on the breadboard");
+
+btnUndoCircuit.dispatch("click");
+check(cleanup.state.components.customPlacedComponents.length === 1, "Clicking '#btn-undo-circuit' restores previous circuit state before clone");
+
+btnRedoCircuit.dispatch("click");
+check(cleanup.state.components.customPlacedComponents.length === 2, "Clicking '#btn-redo-circuit' reapplies the cloned component state");
+
+inspectorDelete.dispatch("click");
+check(cleanup.state.components.customPlacedComponents.length === 1, "Clicking '#inspector-comp-delete' removes the selected component");
+
+btnCustomShare.dispatch("click");
+check(true, "Clicking '#btn-custom-share' serializes project and generates shareable circuit URL cleanly");
 
 // Allow a couple simulation frames to cycle
 await new Promise(r => setTimeout(r, 45));

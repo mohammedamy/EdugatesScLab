@@ -3,33 +3,16 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v116";
+const CACHE_NAME = "amscilab-pwa-v117";
 
 const CORE_APP_SHELL = [
   "./",
   "./index.html",
   "./404.html",
   "./index.css",
-  "./index.css?v=5.5",
-  "./index.css?v=5.6",
-  "./index.css?v=5.7",
-  "./index.css?v=5.8",
-  "./index.css?v=5.9",
-  "./index.css?v=6.0",
-  "./index.css?v=6.1",
-  "./index.css?v=6.2",
-  "./index.css?v=6.3",
-  "./index.css?v=6.4",
   "./index.css?v=6.5",
   "./app.js",
-  "./app.js?v=5.5",
-  "./app.js?v=5.6",
-  "./app.js?v=5.7",
-  "./app.js?v=5.8",
-  "./app.js?v=5.9",
-  "./app.js?v=6.0",
-  "./app.js?v=6.1",
-  "./app.js?v=6.2",
+  "./app.js?v=6.5",
   "./manifest.json",
   "./service-worker.js",
   "./sw.js",
@@ -68,9 +51,6 @@ const CORE_APP_SHELL = [
   "./components/lesson-plan-generator.js",
   "./components/progress-tracker.js",
   "./components/quiz-engine.js",
-  "./components/quiz-engine.js?v=3.1",
-  "./components/quiz-engine.js?v=3.2",
-  "./components/quiz-engine.js?v=3.3",
   "./components/smartboard-toolbar.js",
   "./components/science-calculator.js",
   "./components/flashcards.js",
@@ -81,91 +61,90 @@ const CORE_APP_SHELL = [
   "./labs/lab-telemetry-exporter.js"
 ];
 
-// All 74 Textbook Chapter Opener Photos across Chemistry, Biology & Physics
+// All 74 Textbook Chapter Opener Photos across Chemistry, Biology & Physics (WebP-optimized)
 const CHAPTER_ASSETS = [
   // Chemistry Chapters (1-23)
-  "./assets/chapters/chem_m01.jpg",
-  "./assets/chapters/chem_m02.jpg",
-  "./assets/chapters/chem_m03.jpg",
-  "./assets/chapters/chem_m04.jpg",
-  "./assets/chapters/chem_m05.jpg",
-  "./assets/chapters/chem_m06.jpg",
-  "./assets/chapters/chem_m07.jpg",
-  "./assets/chapters/chem_m08.jpg",
-  "./assets/chapters/chem_m09.jpg",
-  "./assets/chapters/chem_m10.jpg",
-  "./assets/chapters/chem_m11.jpg",
-  "./assets/chapters/chem_m12.jpg",
-  "./assets/chapters/chem_m13.jpg",
-  "./assets/chapters/chem_m14.jpg",
-  "./assets/chapters/chem_m15.jpg",
-  "./assets/chapters/chem_m16.jpg",
-  "./assets/chapters/chem_m17.jpg",
-  "./assets/chapters/chem_m18.jpg",
-  "./assets/chapters/chem_m19.jpg",
-  "./assets/chapters/chem_m20.jpg",
-  "./assets/chapters/chem_m21.jpg",
-  "./assets/chapters/chem_m22.jpg",
-  "./assets/chapters/chem_m23.jpg",
+  "./assets/chapters/chem_m01.webp",
+  "./assets/chapters/chem_m02.webp",
+  "./assets/chapters/chem_m03.webp",
+  "./assets/chapters/chem_m04.webp",
+  "./assets/chapters/chem_m05.webp",
+  "./assets/chapters/chem_m06.webp",
+  "./assets/chapters/chem_m07.webp",
+  "./assets/chapters/chem_m08.webp",
+  "./assets/chapters/chem_m09.webp",
+  "./assets/chapters/chem_m10.webp",
+  "./assets/chapters/chem_m11.webp",
+  "./assets/chapters/chem_m12.webp",
+  "./assets/chapters/chem_m13.webp",
+  "./assets/chapters/chem_m14.webp",
+  "./assets/chapters/chem_m15.webp",
+  "./assets/chapters/chem_m16.webp",
+  "./assets/chapters/chem_m17.webp",
+  "./assets/chapters/chem_m18.webp",
+  "./assets/chapters/chem_m19.webp",
+  "./assets/chapters/chem_m20.webp",
+  "./assets/chapters/chem_m21.webp",
+  "./assets/chapters/chem_m22.webp",
+  "./assets/chapters/chem_m23.webp",
 
   // Biology Chapters (1-27)
-  "./assets/chapters/bio_m01.jpg",
-  "./assets/chapters/bio_m02.jpg",
-  "./assets/chapters/bio_m03.jpg",
-  "./assets/chapters/bio_m04.jpg",
-  "./assets/chapters/bio_m05.jpg",
-  "./assets/chapters/bio_m06.jpg",
-  "./assets/chapters/bio_m07.jpg",
-  "./assets/chapters/bio_m08.jpg",
-  "./assets/chapters/bio_m09.jpg",
-  "./assets/chapters/bio_m10.jpg",
-  "./assets/chapters/bio_m11.jpg",
-  "./assets/chapters/bio_m12.jpg",
-  "./assets/chapters/bio_m13.jpg",
-  "./assets/chapters/bio_m14.jpg",
-  "./assets/chapters/bio_m15.jpg",
-  "./assets/chapters/bio_m16.jpg",
-  "./assets/chapters/bio_m17.jpg",
-  "./assets/chapters/bio_m18.jpg",
-  "./assets/chapters/bio_m19.jpg",
-  "./assets/chapters/bio_m20.jpg",
-  "./assets/chapters/bio_m21.jpg",
-  "./assets/chapters/bio_m22.jpg",
-  "./assets/chapters/bio_m23.jpg",
-  "./assets/chapters/bio_m24.jpg",
-  "./assets/chapters/bio_m25.jpg",
-  "./assets/chapters/bio_m26.jpg",
-  "./assets/chapters/bio_m27.jpg",
+  "./assets/chapters/bio_m01.webp",
+  "./assets/chapters/bio_m02.webp",
+  "./assets/chapters/bio_m03.webp",
+  "./assets/chapters/bio_m04.webp",
+  "./assets/chapters/bio_m05.webp",
+  "./assets/chapters/bio_m06.webp",
+  "./assets/chapters/bio_m07.webp",
+  "./assets/chapters/bio_m08.webp",
+  "./assets/chapters/bio_m09.webp",
+  "./assets/chapters/bio_m10.webp",
+  "./assets/chapters/bio_m11.webp",
+  "./assets/chapters/bio_m12.webp",
+  "./assets/chapters/bio_m13.webp",
+  "./assets/chapters/bio_m14.webp",
+  "./assets/chapters/bio_m15.webp",
+  "./assets/chapters/bio_m16.webp",
+  "./assets/chapters/bio_m17.webp",
+  "./assets/chapters/bio_m18.webp",
+  "./assets/chapters/bio_m19.webp",
+  "./assets/chapters/bio_m20.webp",
+  "./assets/chapters/bio_m21.webp",
+  "./assets/chapters/bio_m22.webp",
+  "./assets/chapters/bio_m23.webp",
+  "./assets/chapters/bio_m24.webp",
+  "./assets/chapters/bio_m25.webp",
+  "./assets/chapters/bio_m26.webp",
+  "./assets/chapters/bio_m27.webp",
 
   // Physics Chapters (1-24)
-  "./assets/chapters/phys_m01.jpg",
-  "./assets/chapters/phys_m02.jpg",
-  "./assets/chapters/phys_m03.jpg",
-  "./assets/chapters/phys_m04.jpg",
-  "./assets/chapters/phys_m05.jpg",
-  "./assets/chapters/phys_m06.jpg",
-  "./assets/chapters/phys_m07.jpg",
-  "./assets/chapters/phys_m08.jpg",
-  "./assets/chapters/phys_m09.jpg",
-  "./assets/chapters/phys_m10.jpg",
-  "./assets/chapters/phys_m11.jpg",
-  "./assets/chapters/phys_m12.jpg",
-  "./assets/chapters/phys_m13.jpg",
-  "./assets/chapters/phys_m14.jpg",
-  "./assets/chapters/phys_m15.jpg",
-  "./assets/chapters/phys_m16.jpg",
-  "./assets/chapters/phys_m17.jpg",
-  "./assets/chapters/phys_m18.jpg",
-  "./assets/chapters/phys_m19.jpg",
-  "./assets/chapters/phys_m20.jpg",
-  "./assets/chapters/phys_m21.jpg",
-  "./assets/chapters/phys_m22.jpg",
-  "./assets/chapters/phys_m23.jpg",
-  "./assets/chapters/phys_m24.jpg"
+  "./assets/chapters/phys_m01.webp",
+  "./assets/chapters/phys_m02.webp",
+  "./assets/chapters/phys_m03.webp",
+  "./assets/chapters/phys_m04.webp",
+  "./assets/chapters/phys_m05.webp",
+  "./assets/chapters/phys_m06.webp",
+  "./assets/chapters/phys_m07.webp",
+  "./assets/chapters/phys_m08.webp",
+  "./assets/chapters/phys_m09.webp",
+  "./assets/chapters/phys_m10.webp",
+  "./assets/chapters/phys_m11.webp",
+  "./assets/chapters/phys_m12.webp",
+  "./assets/chapters/phys_m13.webp",
+  "./assets/chapters/phys_m14.webp",
+  "./assets/chapters/phys_m15.webp",
+  "./assets/chapters/phys_m16.webp",
+  "./assets/chapters/phys_m17.webp",
+  "./assets/chapters/phys_m18.webp",
+  "./assets/chapters/phys_m19.webp",
+  "./assets/chapters/phys_m20.webp",
+  "./assets/chapters/phys_m21.webp",
+  "./assets/chapters/phys_m22.webp",
+  "./assets/chapters/phys_m23.webp",
+  "./assets/chapters/phys_m24.webp"
 ];
 
 const SECONDARY_ASSETS = [
-  "./data/question-bank.js",
   "./data/question-bank-chem.js",
   "./data/question-bank-bio.js",
   "./data/question-bank-phys.js",
@@ -245,6 +224,7 @@ const SECONDARY_ASSETS = [
   "./assets/labs/action_potential_bench.jpg",
   "./assets/labs/beer_lambert_bench.jpg",
   "./assets/labs/calorimetry_bench.jpg",
+  "./assets/labs/arduino_bench.webp",
   "./assets/labs/arduino_bench.jpg",
   "./assets/labs/circuits_bench.jpg",
   "./assets/labs/colligative_bench.jpg",
@@ -279,18 +259,18 @@ const SECONDARY_ASSETS = [
   "./assets/labs/induction_bench.jpg",
   "./assets/labs/osmosis_bench.jpg",
   "./assets/labs/mitosis_bench.jpg",
-  "./assets/labs/mitosis/interphase.jpg",
-  "./assets/labs/mitosis/prophase.jpg",
-  "./assets/labs/mitosis/metaphase.jpg",
-  "./assets/labs/mitosis/anaphase.jpg",
-  "./assets/labs/mitosis/telophase.jpg",
-  "./assets/labs/mitosis/c_metaphase.jpg",
-  "./assets/labs/mitosis/animal_interphase.jpg",
-  "./assets/labs/mitosis/animal_prophase.jpg",
-  "./assets/labs/mitosis/animal_metaphase.jpg",
-  "./assets/labs/mitosis/animal_anaphase.jpg",
-  "./assets/labs/mitosis/animal_telophase.jpg",
-  "./assets/labs/mitosis/animal_c_metaphase.jpg",
+  "./assets/labs/mitosis/interphase.webp",
+  "./assets/labs/mitosis/prophase.webp",
+  "./assets/labs/mitosis/metaphase.webp",
+  "./assets/labs/mitosis/anaphase.webp",
+  "./assets/labs/mitosis/telophase.webp",
+  "./assets/labs/mitosis/c_metaphase.webp",
+  "./assets/labs/mitosis/animal_interphase.webp",
+  "./assets/labs/mitosis/animal_prophase.webp",
+  "./assets/labs/mitosis/animal_metaphase.webp",
+  "./assets/labs/mitosis/animal_anaphase.webp",
+  "./assets/labs/mitosis/animal_telophase.webp",
+  "./assets/labs/mitosis/animal_c_metaphase.webp",
   "./assets/labs/flame_test_bench.jpg",
   "./assets/labs/precipitation_bench.jpg",
   "./assets/labs/activity_series_bench.jpg",
@@ -316,7 +296,30 @@ const SECONDARY_ASSETS = [
 
 const CORE_ASSETS = [...CORE_APP_SHELL, ...CHAPTER_ASSETS, ...SECONDARY_ASSETS];
 
-// Install: Pre-cache core shell first, then stream chapter cover photos & secondary lab modules non-blockingly
+// Throttled background precache helper (max 3 concurrent fetches to prevent socket/CPU saturation on mobile & smartboards)
+function streamAssetsThrottled(cache, assetUrls, concurrency = 3) {
+  let index = 0;
+  const results = [];
+  async function worker() {
+    while (index < assetUrls.length) {
+      const currentIdx = index++;
+      const assetUrl = assetUrls[currentIdx];
+      try {
+        const existing = await cache.match(assetUrl);
+        if (!existing) {
+          await cache.add(assetUrl);
+        }
+        results[currentIdx] = { status: "fulfilled", value: assetUrl };
+      } catch (err) {
+        results[currentIdx] = { status: "rejected", reason: err };
+      }
+    }
+  }
+  const workers = Array.from({ length: Math.min(concurrency, assetUrls.length) }, () => worker());
+  return [Promise.all(workers).then(() => results)];
+}
+
+// Install: Pre-cache core shell first, then stream chapter cover photos & secondary lab modules with throttled concurrency
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
@@ -324,19 +327,9 @@ self.addEventListener("install", (event) => {
       await cache.addAll(CORE_APP_SHELL).catch((err) => {
         console.warn("[AmScLab PWA] Core shell precache non-fatal warning:", err);
       });
-      // Stage 2: Stream all 74 Chapter Cover Photos into cache
-      const chapterPromises = CHAPTER_ASSETS.map((assetUrl) =>
-        cache.add(assetUrl).catch((err) => {
-          console.warn("[AmScLab PWA] Chapter image background cache deferred for:", assetUrl, err?.message);
-        })
-      );
-      // Stage 3: Secondary Lab Benches & Media (Non-blocking streaming without stalling install)
-      const secondaryPromises = SECONDARY_ASSETS.map((assetUrl) =>
-        cache.add(assetUrl).catch((err) => {
-          console.warn("[AmScLab PWA] Secondary asset background cache deferred for:", assetUrl, err?.message);
-        })
-      );
-      // Stream assets asynchronously without delaying shell installation
+      // Stage 2 & 3: Stream Chapter Cover Photos and Secondary Lab Modules with concurrency limit (3)
+      const chapterPromises = streamAssetsThrottled(cache, CHAPTER_ASSETS, 3);
+      const secondaryPromises = streamAssetsThrottled(cache, SECONDARY_ASSETS, 2);
       Promise.allSettled(chapterPromises);
       Promise.allSettled(secondaryPromises);
     }).then(() => self.skipWaiting())

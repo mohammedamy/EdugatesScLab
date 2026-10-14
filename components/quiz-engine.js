@@ -10,6 +10,19 @@ const subjectChunks = {
   phys: null
 };
 
+async function loadSubjectChunk(norm) {
+  if (subjectChunks[norm]) return subjectChunks[norm];
+  let chunkModule = null;
+  if (norm === "chem") chunkModule = await import("../data/question-bank-chem.js");
+  else if (norm === "bio") chunkModule = await import("../data/question-bank-bio.js");
+  else if (norm === "phys") chunkModule = await import("../data/question-bank-phys.js");
+  if (chunkModule && chunkModule.questionBank) {
+    subjectChunks[norm] = deduplicateQuestions(chunkModule.questionBank);
+    return subjectChunks[norm];
+  }
+  throw new Error(`Invalid chunk module for ${norm}`);
+}
+
 export async function getQuestionBank() {
   const subjectTrack = arguments[0] || null;
   const norm = (subjectTrack || "").toLowerCase();
@@ -18,14 +31,7 @@ export async function getQuestionBank() {
   if (!loadedQuestionBank && (norm === "chem" || norm === "bio" || norm === "phys")) {
     if (subjectChunks[norm]) return subjectChunks[norm];
     try {
-      let chunkModule = null;
-      if (norm === "chem") chunkModule = await import("../data/question-bank-chem.js");
-      else if (norm === "bio") chunkModule = await import("../data/question-bank-bio.js");
-      else if (norm === "phys") chunkModule = await import("../data/question-bank-phys.js");
-      if (chunkModule && chunkModule.questionBank) {
-        subjectChunks[norm] = deduplicateQuestions(chunkModule.questionBank);
-        return subjectChunks[norm];
-      }
+      return await loadSubjectChunk(norm);
     } catch (err) {
       console.warn(`[Quiz Engine] Chunk load failed for ${norm}, falling back to master bank:`, err);
     }
@@ -33,15 +39,26 @@ export async function getQuestionBank() {
 
   if (loadedQuestionBank) return loadedQuestionBank;
   if (!loadingBankPromise) {
-    loadingBankPromise = import("../data/question-bank.js")
-      .then(m => {
-        loadedQuestionBank = deduplicateQuestions(m.questionBank);
+    loadingBankPromise = Promise.all([
+      loadSubjectChunk("chem"),
+      loadSubjectChunk("bio"),
+      loadSubjectChunk("phys")
+    ])
+      .then(([chemQ, bioQ, physQ]) => {
+        loadedQuestionBank = deduplicateQuestions([...chemQ, ...bioQ, ...physQ]);
         return loadedQuestionBank;
       })
-      .catch(err => {
-        console.error("[Quiz Engine] Failed to load question bank:", err);
-        loadingBankPromise = null;
-        return [];
+      .catch(() => {
+        return import("../data/question-bank.js")
+          .then(m => {
+            loadedQuestionBank = deduplicateQuestions(m.questionBank);
+            return loadedQuestionBank;
+          })
+          .catch(err => {
+            console.error("[Quiz Engine] Failed to load question bank:", err);
+            loadingBankPromise = null;
+            return [];
+          });
       });
   }
   return loadingBankPromise;

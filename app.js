@@ -332,14 +332,109 @@ function initCustomLogoDetector() {
 }
 
 export function getOptimizedDPR() {
-  const isSmart = (typeof document !== "undefined" && document.documentElement && (
-    document.documentElement.getAttribute("data-mode") === "smartboard" ||
-    document.documentElement.classList.contains("fast-smartboard-mode")
-  )) || (typeof navigator !== "undefined" && /Android|MAXHUB|CVTE|seewo|SmartBoard/i.test(navigator.userAgent));
-  return isSmart ? 1.0 : Math.min((typeof window !== "undefined" && window.devicePixelRatio) || 1, 2.0);
+  const isSmartOrLite = (typeof window !== "undefined" && window.__EDUGATES_PERF_LITE__) ||
+    (typeof document !== "undefined" && document.documentElement && (
+      document.documentElement.getAttribute("data-mode") === "smartboard" ||
+      document.documentElement.classList.contains("fast-smartboard-mode") ||
+      document.documentElement.classList.contains("perf-lite-mode")
+    )) || (typeof navigator !== "undefined" && /Android|MAXHUB|CVTE|seewo|SmartBoard/i.test(navigator.userAgent));
+  if (isSmartOrLite) return 1.0;
+  const isMob = typeof document !== "undefined" && document.documentElement && document.documentElement.getAttribute("data-mode") === "mobile";
+  return Math.min((typeof window !== "undefined" && window.devicePixelRatio) || 1, isMob ? 1.5 : 2.0);
 }
 if (typeof window !== "undefined") {
   window.getLabDPR = getOptimizedDPR;
+}
+
+function isLowPowerProcessor() {
+  if (typeof navigator === "undefined") return false;
+  const cores = navigator.hardwareConcurrency || 8;
+  const mem = navigator.deviceMemory || 8;
+  return cores <= 4 || mem <= 4 || isMaxhubOrSmartboardDevice();
+}
+
+export function setPerfLiteMode(enabled, persist = false) {
+  if (typeof window !== "undefined") {
+    window.__EDUGATES_PERF_LITE__ = !!enabled;
+  }
+  if (typeof document !== "undefined" && document.documentElement) {
+    document.documentElement.classList.toggle("perf-lite-mode", !!enabled);
+    if (document.body) {
+      document.body.classList.toggle("perf-lite-mode", !!enabled);
+    }
+    const liteBtn = document.getElementById("btn-toggle-perf-lite");
+    if (liteBtn) {
+      liteBtn.classList.toggle("active", !!enabled);
+      liteBtn.setAttribute("aria-pressed", enabled ? "true" : "false");
+    }
+  }
+  if (persist && typeof localStorage !== "undefined") {
+    try {
+      localStorage.setItem("edugates_perf_lite", enabled ? "true" : "false");
+    } catch (e) {}
+  }
+}
+
+function initFrameRateWatchdog() {
+  if (typeof window === "undefined" || typeof requestAnimationFrame === "undefined") return;
+  if (window.__EDUGATES_FPS_WATCHDOG__) return;
+  window.__EDUGATES_FPS_WATCHDOG__ = true;
+
+  // Ensure Canvas2D shadowBlur hardware bypass descriptor is installed
+  try {
+    if (typeof CanvasRenderingContext2D !== "undefined") {
+      const origDesc = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, "shadowBlur");
+      if (origDesc && origDesc.set && origDesc.get && !origDesc.set.__edugatesWrapped) {
+        const wrappedSet = function(val) {
+          if (window.__EDUGATES_PERF_LITE__ ||
+              (document.documentElement && (
+                document.documentElement.classList.contains("fast-smartboard-mode") ||
+                document.documentElement.classList.contains("perf-lite-mode")
+              ))) {
+            origDesc.set.call(this, 0);
+          } else {
+            origDesc.set.call(this, val);
+          }
+        };
+        wrappedSet.__edugatesWrapped = true;
+        Object.defineProperty(CanvasRenderingContext2D.prototype, "shadowBlur", {
+          configurable: true,
+          enumerable: true,
+          get: function() { return origDesc.get.call(this); },
+          set: wrappedSet
+        });
+      }
+    }
+  } catch (e) {}
+
+  // Adaptive slow-processor frame-time sampler (monitors 45 active frames during lab interaction)
+  let slowFrames = 0;
+  let totalSampled = 0;
+  let lastTs = 0;
+  function sampleFrame(ts) {
+    if (window.__EDUGATES_PERF_LITE__) return; // Already in turbo/lite mode
+    if (document.hidden) {
+      lastTs = 0;
+      return;
+    }
+    if (lastTs > 0) {
+      const dt = ts - lastTs;
+      // Ignore tab switches / long pauses > 250ms
+      if (dt > 5 && dt < 250) {
+        totalSampled++;
+        if (dt > 25.5) slowFrames++; // < ~39 FPS
+      }
+    }
+    lastTs = ts;
+    if (totalSampled >= 45) {
+      if (slowFrames >= 22) {
+        setPerfLiteMode(true, false);
+      }
+      return;
+    }
+    requestAnimationFrame(sampleFrame);
+  }
+  requestAnimationFrame(sampleFrame);
 }
 
 function isMaxhubOrSmartboardDevice() {
@@ -378,6 +473,8 @@ function setupDeviceDetection() {
     setDeviceMode("auto");
   }
 
+  initFrameRateWatchdog();
+
   // Dynamically adapt Auto mode on orientation change or window resize
   if (typeof window !== "undefined") {
     let resizeTimer = null;
@@ -400,7 +497,10 @@ function setDeviceMode(mode) {
   } catch (e) {}
 
   document.body.classList.remove("mode-smartboard", "mode-tablet", "mode-mobile", "fast-smartboard-mode", "is-smartboard");
-  document.documentElement.classList.remove("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
+  document.documentElement.classList.remove("mode-smartboard", "mode-tablet", "mode-mobile", "fast-smartboard-mode", "is-smartboard");
+
+  const savedPerfLite = typeof localStorage !== "undefined" ? localStorage.getItem("edugates_perf_lite") : null;
+  const shouldPerfLite = mode === "smartboard" || savedPerfLite === "true" || (savedPerfLite !== "false" && isLowPowerProcessor());
 
   if (mode === "smartboard") {
     document.body.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
@@ -408,9 +508,11 @@ function setDeviceMode(mode) {
     document.documentElement.setAttribute("data-mode", "smartboard");
   } else if (mode === "tablet") {
     document.body.classList.add("mode-tablet");
+    document.documentElement.classList.add("mode-tablet");
     document.documentElement.setAttribute("data-mode", "tablet");
   } else if (mode === "mobile") {
     document.body.classList.add("mode-mobile");
+    document.documentElement.classList.add("mode-mobile");
     document.documentElement.setAttribute("data-mode", "mobile");
   } else {
     // Auto Mode: evaluate hardware profile
@@ -420,14 +522,18 @@ function setDeviceMode(mode) {
       document.documentElement.setAttribute("data-mode", "smartboard");
     } else if (isMobilePhoneDevice()) {
       document.body.classList.add("mode-mobile");
+      document.documentElement.classList.add("mode-mobile");
       document.documentElement.setAttribute("data-mode", "mobile");
     } else if (isTabletDevice()) {
       document.body.classList.add("mode-tablet");
+      document.documentElement.classList.add("mode-tablet");
       document.documentElement.setAttribute("data-mode", "tablet");
     } else {
       document.documentElement.removeAttribute("data-mode");
     }
   }
+
+  setPerfLiteMode(shouldPerfLite || document.documentElement.getAttribute("data-mode") === "smartboard", false);
 
   // Update active state in device toggle buttons
   document.querySelectorAll(".device-btn").forEach(b => {
@@ -736,6 +842,12 @@ function renderAppShell() {
           <span class="nav-btn-label">Focus</span>
         </button>
 
+        <!-- 60 FPS Lite Graphics Toggle Button (Slow CPU / Smartboard Accelerator) -->
+        <button class="btn btn-secondary nav-action-btn ${typeof window !== 'undefined' && window.__EDUGATES_PERF_LITE__ ? 'active' : ''}" id="btn-toggle-perf-lite" title="60 FPS Lite Graphics Mode (Bypass Blur &amp; Shadows for Slow Processors &amp; Smartboards)" aria-label="Toggle 60 FPS Lite Graphics Mode" aria-pressed="${typeof window !== 'undefined' && window.__EDUGATES_PERF_LITE__ ? 'true' : 'false'}">
+          <span class="nav-btn-icon">🚀</span>
+          <span class="nav-btn-label">60FPS Lite</span>
+        </button>
+
         <div class="device-mode-toggle" role="group" aria-label="Screen Optimization &amp; Hardware Profile" title="Screen Optimization &amp; Hardware Profile">
           <button class="device-btn ${AppState.deviceMode === 'auto' ? 'active' : ''}" data-mode="auto" aria-label="Auto hardware profile" aria-pressed="${AppState.deviceMode === 'auto'}">Auto</button>
           <button class="device-btn ${AppState.deviceMode === 'smartboard' ? 'active' : ''}" data-mode="smartboard" aria-label="MAXHUB &amp; Smartboard 60 FPS Turbo Profile" aria-pressed="${AppState.deviceMode === 'smartboard'}" title="MAXHUB &amp; Smartboard 60 FPS Turbo Profile (Zero-Blur, Opaque, Hardware Accelerated)">
@@ -921,7 +1033,7 @@ function bindGlobalEvents() {
   document.getElementById("nav-brand-home")?.addEventListener("click", (e) => {
     e.preventDefault();
     try { SoundFX.playClick(); } catch (err) {}
-    window.location.hash = "chem";
+    switchTab("home", true);
   });
 
   // Desktop Subjects Dropdown Trigger Toggle
@@ -1045,7 +1157,7 @@ function bindGlobalEvents() {
     triggerTeacherGuide();
   });
   document.getElementById("btn-dropdown-open-guide-mobile")?.addEventListener("click", () => {
-    closeMobileDropdown();
+    closeSubjectDropdown();
     triggerTeacherGuide();
   });
 
@@ -1084,6 +1196,30 @@ function bindGlobalEvents() {
   };
   document.getElementById("btn-toggle-focus-mode")?.addEventListener("click", () => toggleFocusMode());
   document.getElementById("btn-exit-focus-mode")?.addEventListener("click", () => toggleFocusMode(false));
+
+  // 60 FPS Lite Graphics Mode Manual Toggle
+  document.getElementById("btn-toggle-perf-lite")?.addEventListener("click", () => {
+    const nextLite = !(typeof window !== "undefined" && window.__EDUGATES_PERF_LITE__);
+    setPerfLiteMode(nextLite, true);
+    try { SoundFX.playPop(); } catch (e) {}
+  });
+
+  // Mobile Virtual Keyboard (visualViewport) Handling
+  if (typeof window !== "undefined" && window.visualViewport) {
+    const handleViewportResize = () => {
+      const vv = window.visualViewport;
+      if (!vv || !document.documentElement) return;
+      document.documentElement.style.setProperty("--visual-viewport-height", `${Math.round(vv.height)}px`);
+      const isKeyboardOpen = (window.innerHeight - vv.height) > 140;
+      document.documentElement.classList.toggle("virtual-keyboard-open", isKeyboardOpen);
+      if (isKeyboardOpen && document.activeElement && ["TEXTAREA", "INPUT"].includes(document.activeElement.tagName)) {
+        try {
+          document.activeElement.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        } catch (e) {}
+      }
+    };
+    window.visualViewport.addEventListener("resize", handleViewportResize);
+  }
 
   // Shift+F Keyboard Shortcut for Focus Mode
   document.addEventListener("keydown", (e) => {

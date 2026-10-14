@@ -51,7 +51,7 @@ assert(
   "index.html contains OpenGraph og:title tag"
 );
 assert(
-  /<meta\s+property="og:image"\s+content="https:\/\/mohammedamy\.github\.io\/EdugatesScLab\/assets\/hero-social-card-1200x630\.jpg">/.test(indexHtml),
+  /<meta\s+property="og:image"\s+content="https:\/\/(edugates\.stream|mohammedamy\.github\.io\/EdugatesScLab)\/assets\/hero-social-card-1200x630\.jpg">/.test(indexHtml),
   "index.html contains high-resolution OpenGraph social image"
 );
 assert(

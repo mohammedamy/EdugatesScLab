@@ -72,7 +72,7 @@ assert(redirectSrc.includes("https://mohammedamy.github.io/EdugatesScLab/"),
 const indexPath = path.resolve("index.html");
 const indexSrc = fs.readFileSync(indexPath, "utf-8");
 
-assert(indexSrc.includes('<link rel="canonical" href="https://mohammedamy.github.io/EdugatesScLab/">'),
+assert(indexSrc.includes('<link rel="canonical" href="https://edugates.stream/">') || indexSrc.includes('<link rel="canonical" href="https://mohammedamy.github.io/EdugatesScLab/">'),
   "index.html defines self-referencing canonical URL");
 assert(indexSrc.includes('property="og:image"') && indexSrc.includes("assets/hero-social-card-1200x630.jpg"),
   "index.html defines og:image pointing to 1200x630 social card");

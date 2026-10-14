@@ -25,3 +25,13 @@ yarn-error.log*
 dist/
 build/
 *.log
+
+# Scratch Textbook Extraction Dumps
+chem_full.txt
+bio_full.txt
+phys_full.txt
+chem_first40.txt
+chem_toc.txt
+bio_toc.txt
+phys_toc.txt
+

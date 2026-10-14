@@ -135,8 +135,40 @@ export function panBy(dx, dy) {
 }
 
 // ----------------------------------------------------
-// Touch Screen 2-Finger Pinch Gesture Handlers
+// Touch Screen 2-Finger Pinch & Zoomed-Pan Gesture Handlers
+// (Zero-jank architecture: 1-finger native scrolling is NEVER blocked by passive:false when at 100% scale)
 // ----------------------------------------------------
+let isSingleFingerPanning = false;
+let singlePanStart = { x: 0, y: 0 };
+let singlePanOrigin = { x: 0, y: 0 };
+let rafTransformPending = false;
+let nonPassiveMoveBound = false;
+
+function scheduleScreenTransform() {
+  if (rafTransformPending) return;
+  if (typeof requestAnimationFrame === "function") {
+    rafTransformPending = true;
+    requestAnimationFrame(() => {
+      rafTransformPending = false;
+      applyScreenTransform(false);
+    });
+  } else {
+    applyScreenTransform(false);
+  }
+}
+
+function updateNonPassiveMoveBinding() {
+  if (typeof window === "undefined") return;
+  const needsIntercept = isPinching || isSingleFingerPanning;
+  if (needsIntercept && !nonPassiveMoveBound) {
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    nonPassiveMoveBound = true;
+  } else if (!needsIntercept && nonPassiveMoveBound) {
+    window.removeEventListener("touchmove", onTouchMove);
+    nonPassiveMoveBound = false;
+  }
+}
+
 function shouldIgnorePinch(e) {
   const target = e.target;
   if (!target) return false;
@@ -151,9 +183,17 @@ function shouldIgnorePinch(e) {
   );
 }
 
+function isInteractiveControl(target) {
+  if (!target || !target.closest) return false;
+  return Boolean(
+    target.closest("button, a, input, select, textarea, label, canvas, [role='button'], [role='slider'], .touch-zoom-hud, .smartboard-pen-bar")
+  );
+}
+
 function onTouchStart(e) {
   if (e.touches.length === 2) {
     if (shouldIgnorePinch(e)) return;
+    isSingleFingerPanning = false;
     const t1 = e.touches[0];
     const t2 = e.touches[1];
 
@@ -167,6 +207,7 @@ function onTouchStart(e) {
       resetZoom(true);
       lastPinchEndTime = 0;
       isPinching = false;
+      updateNonPassiveMoveBinding();
       return;
     }
 
@@ -175,6 +216,13 @@ function onTouchStart(e) {
     pinchStartMidpoint = { x: midX, y: midY };
     pinchStartScale = currentScale;
     pinchStartPan = { x: currentPanX, y: currentPanY };
+    updateNonPassiveMoveBinding();
+  } else if (e.touches.length === 1 && Math.abs(currentScale - 1.0) > 0.03 && !isInteractiveControl(e.target)) {
+    // Allow 1-finger panning when screen is actively scaled away from 100%
+    isSingleFingerPanning = true;
+    singlePanStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    singlePanOrigin = { x: currentPanX, y: currentPanY };
+    updateNonPassiveMoveBinding();
   }
 }
 
@@ -206,12 +254,21 @@ function onTouchMove(e) {
     currentPanX = pinchStartMidpoint.x - contentX * currentScale + midDeltaX;
     currentPanY = pinchStartMidpoint.y - contentY * currentScale + midDeltaY;
 
-    applyScreenTransform(false);
+    scheduleScreenTransform();
+  } else if (isSingleFingerPanning && e.touches.length === 1 && Math.abs(currentScale - 1.0) > 0.03) {
+    const dx = e.touches[0].clientX - singlePanStart.x;
+    const dy = e.touches[0].clientY - singlePanStart.y;
+    if (Math.hypot(dx, dy) > 6) {
+      if (e.cancelable) e.preventDefault();
+      currentPanX = singlePanOrigin.x + dx;
+      currentPanY = singlePanOrigin.y + dy;
+      scheduleScreenTransform();
+    }
   }
 }
 
 function onTouchEnd(e) {
-  if (isPinching && e.touches.length < 2) {
+  if (isPinching && (!e.touches || e.touches.length < 2)) {
     isPinching = false;
     lastPinchEndTime = Date.now();
 
@@ -220,6 +277,10 @@ function onTouchEnd(e) {
       resetZoom(true);
     }
   }
+  if (!e.touches || e.touches.length === 0) {
+    isSingleFingerPanning = false;
+  }
+  updateNonPassiveMoveBinding();
 }
 
 // ----------------------------------------------------
@@ -523,11 +584,10 @@ export function initTouchZoom(options = {}) {
   }
   window.__TOUCH_ZOOM_INITIALIZED__ = true;
 
-  // Global touch listeners with passive: false so preventDefault() can stop browser page bounce
-  window.addEventListener("touchstart", onTouchStart, { passive: false });
-  window.addEventListener("touchmove", onTouchMove, { passive: false });
-  window.addEventListener("touchend", onTouchEnd, { passive: false });
-  window.addEventListener("touchcancel", onTouchEnd, { passive: false });
+  // Global touchstart/touchend with passive: true so 1-finger vertical scrolling runs at 60 FPS on the compositor thread
+  window.addEventListener("touchstart", onTouchStart, { passive: true });
+  window.addEventListener("touchend", onTouchEnd, { passive: true });
+  window.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
   // Trackpad pinch support
   window.addEventListener("wheel", onWheel, { passive: false });

@@ -141,7 +141,9 @@ body.mode-mobile .nav-action-btn {
 [data-mode="smartboard"] *,
 body.mode-smartboard *,
 html.mode-smartboard *,
-.fast-smartboard-mode * {
+.fast-smartboard-mode *,
+html.perf-lite-mode *,
+body.perf-lite-mode * {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -151,9 +153,13 @@ html.mode-smartboard *,
 body.mode-smartboard .bg-glow-container,
 html.mode-smartboard .bg-glow-container,
 .fast-smartboard-mode .bg-glow-container,
+html.perf-lite-mode .bg-glow-container,
+body.perf-lite-mode .bg-glow-container,
 [data-mode="smartboard"] .bg-glow-blob,
 body.mode-smartboard .bg-glow-blob,
-.fast-smartboard-mode .bg-glow-blob {
+.fast-smartboard-mode .bg-glow-blob,
+html.perf-lite-mode .bg-glow-blob,
+body.perf-lite-mode .bg-glow-blob {
   display: none !important;
   filter: none !important;
 }
@@ -5507,9 +5513,10 @@ body.modal-open .sb-toolbar-toggle {
     display: none;
   }
   .nav-action-btn {
-    width: 30px;
-    height: 30px;
-    min-height: 30px;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
     padding: 0;
     justify-content: center;
     border-radius: 50%;
@@ -5598,6 +5605,20 @@ body.modal-open .sb-toolbar-toggle {
   }
   .nav-dropdown-menu {
     width: 290px;
+  }
+  /* Prevent iOS Safari involuntary page zoom when focusing inputs/selects/code editors */
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: max(16px, 0.95rem) !important;
+  }
+  .arduino-quick-snippets-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap !important;
+    padding-bottom: 6px;
   }
 }
 

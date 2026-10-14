@@ -18,7 +18,7 @@ function getInteractivesEngine() {
   return _interactivesEnginePromise;
 }
 
-function mountLessonInteractive(containerId, subjectCode, moduleId, lessonId) {
+function mountLessonInteractive(containerId, moduleOrSubject, moduleIdOrLessonId, lessonId) {
   const container = document.getElementById(containerId);
   if (container) {
     container.innerHTML = `
@@ -30,7 +30,7 @@ function mountLessonInteractive(containerId, subjectCode, moduleId, lessonId) {
     `;
   }
   getInteractivesEngine().then(mod => {
-    mod.mountLessonInteractive(containerId, subjectCode, moduleId, lessonId);
+    mod.mountLessonInteractive(containerId, moduleOrSubject, moduleIdOrLessonId, lessonId);
   }).catch(err => {
     console.error("Simulation load error:", err);
     if (container) {

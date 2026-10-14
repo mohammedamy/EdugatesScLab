@@ -4,7 +4,7 @@
 import { SoundFX } from "../utils/audio-synth.js";
 import { showToast } from "../utils/toast.js";
 
-const CURRENT_CACHE_NAME = "amscilab-pwa-v112";
+const CURRENT_CACHE_NAME = "amscilab-pwa-v117";
 
 // Core and Secondary assets to audit for 100% offline classroom readiness
 const AUDIT_TARGETS = [
@@ -21,10 +21,10 @@ const AUDIT_TARGETS = [
   { name: "Biology Curriculum Data", url: "./data/biology-curriculum.js", critical: true },
   { name: "Physics Curriculum Data", url: "./data/physics-curriculum.js", critical: true },
   { name: "Lesson Theory Database", url: "./data/lesson-theory-database.js", critical: true },
-  { name: "7,292 Assessment Bank", url: "./data/question-bank.js", critical: true },
-  { name: "Chemistry Question Chunk", url: "./data/question-bank-chem.js", critical: false },
-  { name: "Biology Question Chunk", url: "./data/question-bank-bio.js", critical: false },
-  { name: "Physics Question Chunk", url: "./data/question-bank-phys.js", critical: false },
+  { name: "Chemistry Question Bank Chunk", url: "./data/question-bank-chem.js", critical: true },
+  { name: "Biology Question Bank Chunk", url: "./data/question-bank-bio.js", critical: true },
+  { name: "Physics Question Bank Chunk", url: "./data/question-bank-phys.js", critical: true },
+  { name: "Arduino Virtual Lab", url: "./labs/phys-arduino.js", critical: false },
   { name: "Projectile Virtual Lab", url: "./labs/phys-projectile.js", critical: false },
   { name: "Titration Virtual Lab", url: "./labs/chem-titration.js", critical: false },
   { name: "Microscope Virtual Lab", url: "./labs/bio-microscope.js", critical: false },
@@ -71,8 +71,11 @@ export async function getCacheStatistics() {
   try {
     const keys = await caches.keys();
     let currentItemsCount = 0;
-    if (keys.includes(CURRENT_CACHE_NAME)) {
-      const currentCache = await caches.open(CURRENT_CACHE_NAME);
+    const activeKey = keys.includes(CURRENT_CACHE_NAME)
+      ? CURRENT_CACHE_NAME
+      : (keys.filter(k => k.startsWith("amscilab-pwa-")).sort().pop() || CURRENT_CACHE_NAME);
+    if (keys.includes(activeKey)) {
+      const currentCache = await caches.open(activeKey);
       const matchedRequests = await currentCache.keys();
       currentItemsCount = matchedRequests.length;
     }
@@ -80,7 +83,7 @@ export async function getCacheStatistics() {
       supported: true,
       cacheNames: keys,
       cacheCount: keys.length,
-      currentCacheName: CURRENT_CACHE_NAME,
+      currentCacheName: activeKey,
       itemsInCurrent: currentItemsCount
     };
   } catch (e) {

@@ -9,25 +9,25 @@
   <meta name="theme-color" content="#070a12">
 
   <!-- Canonical URL -->
-  <link rel="canonical" href="https://mohammedamy.github.io/EdugatesScLab/">
+  <link rel="canonical" href="https://edugates.stream/">
 
   <!-- Open Graph / Facebook Social Meta -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Edugates Science Lab">
-  <meta property="og:url" content="https://mohammedamy.github.io/EdugatesScLab/">
+  <meta property="og:url" content="https://edugates.stream/">
   <meta property="og:title" content="Edugates Science Lab | Virtual Portal & Resources">
   <meta property="og:description" content="Edugates International School Science Lab: interactive 60 FPS STEM virtual laboratories, chemistry, biology, and physics simulations, safety dashboard, and curriculum resources.">
-  <meta property="og:image" content="https://mohammedamy.github.io/EdugatesScLab/assets/hero-social-card-1200x630.jpg">
+  <meta property="og:image" content="https://edugates.stream/assets/hero-social-card-1200x630.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Edugates International School Science Lab Portal Banner">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://mohammedamy.github.io/EdugatesScLab/">
+  <meta name="twitter:url" content="https://edugates.stream/">
   <meta name="twitter:title" content="Edugates Science Lab | Virtual Portal & Resources">
   <meta name="twitter:description" content="Edugates International School Science Lab: interactive 60 FPS STEM virtual laboratories, chemistry, biology, and physics simulations, safety dashboard, and curriculum resources.">
-  <meta name="twitter:image" content="https://mohammedamy.github.io/EdugatesScLab/assets/hero-social-card-1200x630.jpg">
+  <meta name="twitter:image" content="https://edugates.stream/assets/hero-social-card-1200x630.jpg">
   <meta name="twitter:image:alt" content="Edugates Science Lab Banner">
 
   <!-- Structured Data (JSON-LD) -->
@@ -37,26 +37,26 @@
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": "https://mohammedamy.github.io/EdugatesScLab/#website",
-        "url": "https://mohammedamy.github.io/EdugatesScLab/",
+        "@id": "https://edugates.stream/#website",
+        "url": "https://edugates.stream/",
         "name": "Edugates Science Lab",
         "description": "Interactive STEM Virtual Laboratories covering Inspire Chemistry, Biology, and Physics curricula for Smartboards and Web.",
         "inLanguage": "en"
       },
       {
         "@type": "EducationalOrganization",
-        "@id": "https://mohammedamy.github.io/EdugatesScLab/#organization",
+        "@id": "https://edugates.stream/#organization",
         "name": "Edugates International School",
-        "url": "https://mohammedamy.github.io/EdugatesScLab/",
-        "logo": "https://mohammedamy.github.io/EdugatesScLab/assets/logo.png"
+        "url": "https://edugates.stream/",
+        "logo": "https://edugates.stream/assets/logo.png"
       },
       {
         "@type": "Course",
-        "@id": "https://mohammedamy.github.io/EdugatesScLab/#stem-curriculum",
+        "@id": "https://edugates.stream/#stem-curriculum",
         "name": "Inspire Science Curriculum Virtual Laboratories",
         "description": "Comprehensive high-school STEM curriculum featuring 74 interactive chapters, 46 60 FPS virtual laboratory workbenches, and NGSS inquiry-aligned assessments.",
         "provider": {
-          "@id": "https://mohammedamy.github.io/EdugatesScLab/#organization"
+          "@id": "https://edugates.stream/#organization"
         },
         "hasCourseInstance": [
           {
@@ -104,7 +104,7 @@
   <link rel="preload" href="./index.css?v=6.5" as="style">
   <link rel="stylesheet" href="./index.css?v=6.5">
 
-  <!-- Instant Hardware, MAXHUB & Smartboard Processor Optimizer (Executes before first paint) -->
+  <!-- Instant Hardware, MAXHUB & Slow-Processor Optimizer (Executes before first paint) -->
   <script>
     (function() {
       try {
@@ -112,7 +112,11 @@
         var isMaxhubOrSmartboard = /MAXHUB|CVTE|seewo|SmartBoard|Promethean|ViewBoard|Newline|BenQ|Clevertouch|TouchPanel|Horion|Huawei.*IdeaHub|Hikvision|HHT|IFP|InteractiveWhiteboard/i.test(ua);
         var isAndroidLargeScreen = /Android/i.test(ua) && ((window.screen && (window.screen.width >= 1024 || window.screen.height >= 720)) || (window.innerWidth >= 1024)) && (navigator.maxTouchPoints > 0 || 'ontouchstart' in window);
         var isAndroid = /Android/i.test(ua);
+        var isLowPowerHardware = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+                                 (navigator.deviceMemory && navigator.deviceMemory <= 4) ||
+                                 isMaxhubOrSmartboard || isAndroidLargeScreen;
         var savedMode = localStorage.getItem("edugates_device_mode");
+        var savedPerfLite = localStorage.getItem("edugates_perf_lite");
         var savedTheme = localStorage.getItem("edugates_theme");
         var prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
         var activeTheme = savedTheme || (prefersLight ? "day" : "night");
@@ -129,7 +133,8 @@
         // Auto-activate Smartboard Turbo Profile if MAXHUB, Android IFP, or explicitly selected
         if (savedMode === "smartboard" || (!savedMode && (isMaxhubOrSmartboard || isAndroidLargeScreen))) {
           document.documentElement.setAttribute("data-mode", "smartboard");
-          document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard");
+          document.documentElement.classList.add("mode-smartboard", "fast-smartboard-mode", "is-smartboard", "perf-lite-mode");
+          window.__EDUGATES_PERF_LITE__ = true;
           try {
             if (!savedMode && (isMaxhubOrSmartboard || isAndroidLargeScreen)) {
               localStorage.setItem("edugates_device_mode", "smartboard");
@@ -143,12 +148,44 @@
           document.documentElement.classList.add("mode-tablet");
         }
 
-        // Centralized DPR Manager to prevent 4K Canvas OOM / VRAM Thrashing on embedded ARM Mali GPUs
+        if (savedPerfLite === "true" || (savedPerfLite !== "false" && isLowPowerHardware)) {
+          document.documentElement.classList.add("perf-lite-mode");
+          window.__EDUGATES_PERF_LITE__ = true;
+        }
+
+        // Global Zero-Overhead Canvas2D shadowBlur Hardware Bypass for Slow Processors & Smartboards
+        if (typeof CanvasRenderingContext2D !== "undefined") {
+          var origShadowBlurDesc = Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype, "shadowBlur");
+          if (origShadowBlurDesc && origShadowBlurDesc.set && origShadowBlurDesc.get) {
+            Object.defineProperty(CanvasRenderingContext2D.prototype, "shadowBlur", {
+              configurable: true,
+              enumerable: true,
+              get: function() {
+                return origShadowBlurDesc.get.call(this);
+              },
+              set: function(val) {
+                if (window.__EDUGATES_PERF_LITE__ ||
+                    document.documentElement.classList.contains("fast-smartboard-mode") ||
+                    document.documentElement.classList.contains("perf-lite-mode")) {
+                  origShadowBlurDesc.set.call(this, 0);
+                } else {
+                  origShadowBlurDesc.set.call(this, val);
+                }
+              }
+            });
+          }
+        }
+
+        // Centralized DPR Manager to prevent 4K Canvas OOM / VRAM Thrashing on embedded ARM Mali GPUs & Mobile screens
         window.getLabDPR = function() {
-          var isSmart = document.documentElement.getAttribute("data-mode") === "smartboard" ||
-                        document.documentElement.classList.contains("fast-smartboard-mode") ||
-                        /Android|MAXHUB|CVTE|seewo|SmartBoard/i.test(navigator.userAgent);
-          return isSmart ? 1.0 : Math.min(window.devicePixelRatio || 1, 2.0);
+          var isLiteOrSmart = window.__EDUGATES_PERF_LITE__ ||
+                              document.documentElement.getAttribute("data-mode") === "smartboard" ||
+                              document.documentElement.classList.contains("fast-smartboard-mode") ||
+                              document.documentElement.classList.contains("perf-lite-mode") ||
+                              /Android|MAXHUB|CVTE|seewo|SmartBoard/i.test(navigator.userAgent);
+          if (isLiteOrSmart) return 1.0;
+          var isMob = document.documentElement.getAttribute("data-mode") === "mobile";
+          return Math.min(window.devicePixelRatio || 1, isMob ? 1.5 : 2.0);
         };
       } catch (e) {}
     })();
