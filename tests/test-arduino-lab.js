@@ -650,6 +650,44 @@ check(codeInputEl.value.includes("delay(600)"), "Clicking '#btn-delay-inc' incre
 btnDelayDec.dispatch("click");
 check(codeInputEl.value.includes("delay(500)"), "Clicking '#btn-delay-dec' decrements delay(600) back to delay(500)");
 
+// Test Mobile Workbench Drawer Tabs (#arduino-mobile-drawer-tabs)
+const mobileDrawerBar = document.getElementById("arduino-mobile-drawer-tabs");
+check(!!mobileDrawerBar, "Mobile Workbench Drawer Tabs (#arduino-mobile-drawer-tabs) mounted in DOM");
+
+// Test Conditional C++ Sketch Compilation & Runtime Evaluation (if/else + analogRead + digitalRead + constrain + lcd + Serial)
+const conditionalSketch = `
+void setup() {
+  pinMode(13, OUTPUT);
+  Serial.begin(9600);
+}
+void loop() {
+  int val = analogRead(A0);
+  int clamped = constrain(val, 100, 900);
+  if (analogRead(A0) > 512) {
+    digitalWrite(13, HIGH);
+    lcd.setCursor(0, 1);
+    lcd.print("HIGH LEVEL");
+    Serial.println(clamped);
+  } else {
+    digitalWrite(13, LOW);
+    lcd.setCursor(0, 1);
+    lcd.print("LOW LEVEL");
+  }
+}
+`;
+const condCompiled = mod.compileArduinoSketch(conditionalSketch);
+check(condCompiled.success === true && Array.isArray(condCompiled.parsedProgram.conditionals) && condCompiled.parsedProgram.conditionals.length === 1, "Compiles C++ if/else block into parsedProgram.conditionals AST");
+check(condCompiled.parsedProgram.constrainVars && condCompiled.parsedProgram.constrainVars.clamped?.minVal === 100, "Compiles constrain(val, 100, 900) into parsedProgram.constrainVars");
+
+cleanup.state.compiledSketch = condCompiled;
+cleanup.state.components.potValue = 800; // A0 > 512 -> HIGH
+await new Promise(r => setTimeout(r, 35));
+check(cleanup.state.components.pin13Led === true && cleanup.state.components.lcdLine2.includes("HIGH LEVEL"), "Conditional if (analogRead(A0) > 512) evaluates TRUE branch (D13=HIGH, LCD='HIGH LEVEL') when potValue=800");
+
+cleanup.state.components.potValue = 200; // A0 <= 512 -> LOW
+await new Promise(r => setTimeout(r, 35));
+check(cleanup.state.components.pin13Led === false && cleanup.state.components.lcdLine2.includes("LOW LEVEL"), "Conditional if (analogRead(A0) > 512) evaluates ELSE branch (D13=LOW, LCD='LOW LEVEL') when potValue=200");
+
 // Allow a couple simulation frames to cycle
 await new Promise(r => setTimeout(r, 45));
 
