@@ -2347,7 +2347,8 @@ export function initMitosisLab(containerId) {
 
   function updatePhaseJumpPills() {
     document.querySelectorAll(".phase-jump-btn").forEach(btn => {
-      const idx = parseInt(btn.getAttribute("data-phase"), 10);
+      const rawPhase = typeof btn.getAttribute === "function" ? btn.getAttribute("data-phase") : btn.dataset?.phase;
+      const idx = parseInt(rawPhase, 10);
       if (idx === currentPhaseIdx) {
         btn.classList.add("active");
         btn.style.background = "rgba(56, 189, 248, 0.25)";
