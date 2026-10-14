@@ -17220,3 +17220,51 @@ body.mode-smartboard .app-navbar .device-btn .device-btn-short,
 .btn-classify:active {
   transform: translateY(0);
 }
+
+/* =========================================================================
+   Full-Width Responsive Arduino Uno & Breadboard Hardware Workbench
+   ========================================================================= */
+.arduino-workbench {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+}
+
+.arduino-workbench .arduino-grid-split {
+  width: 100% !important;
+  max-width: 100% !important;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.arduino-workbench .arduino-grid-split.split-ide-mode {
+  grid-template-columns: minmax(0, 1.35fr) minmax(380px, 0.95fr) !important;
+}
+
+.arduino-workbench .lab-canvas-area {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 850 / 460;
+  min-height: 460px;
+  max-height: 760px;
+}
+
+@media (max-width: 1180px) {
+  .arduino-workbench .arduino-grid-split,
+  .arduino-workbench .arduino-grid-split.split-ide-mode {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .arduino-workbench .lab-canvas-area {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .arduino-workbench .lab-canvas-area {
+    min-height: 320px;
+    aspect-ratio: 850 / 500;
+  }
+  #hud-pin-hole-inspector {
+    max-width: 92% !important;
+    font-size: 0.68rem !important;
+  }
+}

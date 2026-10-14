@@ -727,6 +727,24 @@ check(!!btnScrollLock, "Mobile Touch Scroll vs. Canvas Lock button (#btn-arduino
 btnScrollLock.dispatch("click");
 check(btnScrollLock.textContent.includes("Drag/Wire"), "Clicking '#btn-arduino-scroll-lock' toggles touch mode to '✋ Touch: Drag/Wire'");
 
+// Test Breadboard Hole-to-Pin Resolver, Full-Width Layout Toggle, and Live Pin/Hole Inspector HUD
+check(typeof mod.getBreadboardHoleInfo === "function", "phys-arduino.js exports getBreadboardHoleInfo() breadboard tie-point resolver");
+const holeB3 = mod.getBreadboardHoleInfo(481.5, 116.5);
+check(holeB3 && holeB3.hole === "b3" && holeB3.colNum === 3 && holeB3.stripRange === "a3–e3", "getBreadboardHoleInfo(481.5, 116.5) resolves to Hole b3 (Col 3, Strip a3–e3)");
+
+const btnLayoutToggle = document.getElementById("btn-arduino-layout-toggle");
+const hudPinHoleInspector = document.getElementById("hud-pin-hole-inspector");
+const gridSplitEl = document.getElementById("arduino-grid-split");
+check(!!btnLayoutToggle && !!hudPinHoleInspector && !!gridSplitEl, "Full-Width Layout Toggle (#btn-arduino-layout-toggle) and Pin/Hole Inspector HUD (#hud-pin-hole-inspector) exist in DOM");
+btnLayoutToggle.dispatch("click");
+check(btnLayoutToggle.textContent.includes("Split IDE"), "Clicking '#btn-arduino-layout-toggle' switches layout to Split IDE mode");
+btnLayoutToggle.dispatch("click");
+check(btnLayoutToggle.textContent.includes("100% Full Width"), "Clicking '#btn-arduino-layout-toggle' again restores 100% Full Width workbench mode");
+
+// Hover over breadboard hole b3 (481.5, 116.5) and verify HUD inspector reports Hole b3 and 5-hole strip a3–e3
+canvas.dispatch("mousemove", { clientX: 481.5, clientY: 116.5 });
+check(hudPinHoleInspector.textContent.includes("b3") && hudPinHoleInspector.textContent.includes("a3–e3"), "Hovering breadboard hole (481.5, 116.5) updates #hud-pin-hole-inspector with Hole b3 and 5-hole strip a3–e3");
+
 // Allow a couple simulation frames to cycle
 await new Promise(r => setTimeout(r, 45));
 

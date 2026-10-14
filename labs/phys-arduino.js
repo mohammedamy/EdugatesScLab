@@ -1847,6 +1847,67 @@ export const BREADBOARD_PINS = {
   "BB_BOT_5V":  { x: 442, y: 387, label: "Breadboard Bottom +5V Bus" }
 };
 
+export function getBreadboardHoleInfo(cx, cy, bx = 420, by = 55, bw = 390, bh = 350) {
+  if (cx < bx + 10 || cx > bx + bw - 10 || cy < by + 8 || cy > by + bh - 8) return null;
+  const colIdx = Math.max(0, Math.min(25, Math.round((cx - (bx + 36.5)) / 12.5)));
+  const colNum = colIdx + 1;
+  const hx = bx + 36.5 + colIdx * 12.5;
+
+  const rowCandidates = [
+    { row: "+5V", rowIdx: -2, hy: by + 18.5, section: "rail", holeId: "+5V", stripRange: "Top +5V Bus Rail", stripY1: by + 15, stripY2: by + 22 },
+    { row: "GND", rowIdx: -1, hy: by + 30.5, section: "rail", holeId: "GND", stripRange: "Top −GND Bus Rail", stripY1: by + 27, stripY2: by + 34 },
+    ...["a", "b", "c", "d", "e"].map((rL, idx) => ({
+      row: rL,
+      rowIdx: idx,
+      hy: by + 47.5 + idx * 14,
+      section: "top",
+      holeId: `${rL}${colNum}`,
+      stripRange: `a${colNum}–e${colNum}`,
+      stripY1: by + 44,
+      stripY2: by + 107
+    })),
+    ...["f", "g", "h", "i", "j"].map((rL, idx) => ({
+      row: rL,
+      rowIdx: 5 + idx,
+      hy: by + bh / 2 + 16.5 + idx * 14,
+      section: "bottom",
+      holeId: `${rL}${colNum}`,
+      stripRange: `f${colNum}–j${colNum}`,
+      stripY1: by + bh / 2 + 13,
+      stripY2: by + bh / 2 + 76
+    })),
+    { row: "GND", rowIdx: 10, hy: by + bh - 29.5, section: "rail", holeId: "GND", stripRange: "Bottom −GND Bus Rail", stripY1: by + bh - 33, stripY2: by + bh - 26 },
+    { row: "+5V", rowIdx: 11, hy: by + bh - 17.5, section: "rail", holeId: "+5V", stripRange: "Bottom +5V Bus Rail", stripY1: by + bh - 21, stripY2: by + bh - 14 }
+  ];
+
+  let best = rowCandidates[0];
+  let bestDist = Math.abs(cy - best.hy);
+  for (let i = 1; i < rowCandidates.length; i++) {
+    const d = Math.abs(cy - rowCandidates[i].hy);
+    if (d < bestDist) {
+      bestDist = d;
+      best = rowCandidates[i];
+    }
+  }
+
+  return {
+    colIdx,
+    colNum,
+    hx,
+    hy: best.hy,
+    row: best.row,
+    rowIdx: best.rowIdx,
+    section: best.section,
+    type: best.section === "rail" ? "rail" : "tie",
+    hole: best.holeId,
+    holeId: best.holeId,
+    stripRange: best.stripRange,
+    stripY1: best.stripY1,
+    stripY2: best.stripY2,
+    dist: Math.hypot(cx - hx, cy - best.hy)
+  };
+}
+
 export function getDefaultWiresForExperiment(expId) {
   const p5V = ARDUINO_PINS["5V"];
   const pGnd = ARDUINO_PINS["GND"];
@@ -2647,11 +2708,11 @@ export function initArduinoLab(containerId) {
         </span>
       </div>
 
-      <!-- Main Two-Column Workbench Layout: Left Interactive Visual Bench & Right C++ Code IDE -->
-      <div style="display: grid; grid-template-columns: minmax(360px, 1.35fr) minmax(320px, 1fr); gap: 16px; margin-bottom: 16px;" class="arduino-grid-split">
+      <!-- Main Full-Width Responsive Workbench Layout: Top Interactive Visual Bench (100% Width) & Bottom/Split C++ Code IDE -->
+      <div id="arduino-grid-split" style="display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; width: 100%;" class="arduino-grid-split">
         
-        <!-- LEFT COLUMN: Arduino & Breadboard Canvas & Interactive Controls -->
-        <div style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- LEFT/MAIN COLUMN: Arduino & Breadboard Canvas & Interactive Controls (100% Full Screen Width) -->
+        <div style="display: flex; flex-direction: column; gap: 14px; width: 100%; min-width: 0;">
           
           <!-- Experiment Preset Selector Bar -->
           <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.4);">
@@ -2857,8 +2918,8 @@ export function initArduinoLab(containerId) {
             </div>
           </div>
 
-          <!-- Interactive Circuit Board Viewport (Canvas Simulation) -->
-          <div class="lab-canvas-area" style="position: relative; background: #050811; border: 1.5px solid rgba(6, 182, 212, 0.35); border-radius: 12px; overflow: hidden; height: 460px; box-shadow: inset 0 0 40px rgba(0,0,0,0.8);">
+          <!-- Interactive Circuit Board Viewport (Full-Width Responsive Canvas Simulation) -->
+          <div class="lab-canvas-area" style="position: relative; background: #050811; border: 1.5px solid rgba(6, 182, 212, 0.35); border-radius: 12px; overflow: hidden; width: 100%; height: auto; aspect-ratio: 850 / 460; min-height: 460px; max-height: 760px; box-shadow: inset 0 0 40px rgba(0,0,0,0.8);">
             <canvas id="arduino-canvas" width="850" height="460" style="width: 100%; height: 100%; display: block;"></canvas>
 
             <!-- 4K Authentic Laboratory Photograph Overlay Viewport -->
@@ -2885,15 +2946,18 @@ export function initArduinoLab(containerId) {
               </div>
             </div>
 
-            <!-- Top Overlay Telemetry HUD -->
-            <div style="position: absolute; top: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; pointer-events: none;">
-              <div style="display: flex; gap: 8px; pointer-events: auto;">
+            <!-- Top Overlay Telemetry HUD + Live Pin/Hole Continuity Inspector -->
+            <div style="position: absolute; top: 10px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; pointer-events: none;">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; pointer-events: auto;">
                 <span class="badge" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(6, 182, 212, 0.4); padding: 4px 10px; border-radius: 9999px; font-family: monospace; font-size: 0.75rem; color: #38bdf8; display: flex; align-items: center; gap: 6px;">
                   <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981; display: inline-block; box-shadow: 0 0 8px #10b981;"></span>
                   <span>MCU 5.0V Active</span>
                 </span>
                 <span class="badge" id="hud-sim-time" style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 9999px; font-family: monospace; font-size: 0.75rem; color: #f59e0b;">
                   T = 0.00s
+                </span>
+                <span class="badge" id="hud-pin-hole-inspector" style="background: rgba(15, 23, 42, 0.94); border: 1px solid rgba(56, 189, 248, 0.45); padding: 4px 12px; border-radius: 9999px; font-family: monospace; font-size: 0.74rem; color: #7dd3fc; font-weight: 700;">
+                  📌 Hover any Arduino Socket or Breadboard Hole (a1–j26) to inspect pin
                 </span>
               </div>
 
@@ -2912,7 +2976,7 @@ export function initArduinoLab(containerId) {
             </div>
           </div>
 
-          <!-- Mobile & Smartboard Quick-Focus Drawer Tabs (Controls | C++ IDE | DSO & Serial | Show All) -->
+          <!-- Mobile & Smartboard Quick-Focus Drawer Tabs (Controls | C++ IDE | DSO & Serial | Show All | Full Width / Split IDE) -->
           <div id="arduino-mobile-drawer-tabs" class="arduino-mobile-drawer-tabs" style="display: flex; gap: 6px; flex-wrap: wrap; background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 6px 10px; align-items: center; justify-content: space-between;">
             <span style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">📱 Workbench View:</span>
             <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
@@ -2920,6 +2984,7 @@ export function initArduinoLab(containerId) {
               <button type="button" class="btn btn-secondary btn-arduino-drawer" data-drawer="controls" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #34d399;">🎛️ Controls</button>
               <button type="button" class="btn btn-secondary btn-arduino-drawer" data-drawer="code" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #a855f7;">💻 C++ IDE</button>
               <button type="button" class="btn btn-secondary btn-arduino-drawer" data-drawer="telemetry" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #facc15;">📈 DSO &amp; Serial</button>
+              <button type="button" id="btn-arduino-layout-toggle" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700; border-radius: 6px; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" title="Toggle between 100% Full-Width Workbench and Split Side-by-Side IDE">📐 Layout: Full Width</button>
               <button type="button" id="btn-arduino-scroll-lock" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700; border-radius: 6px; color: #cbd5e1;" title="Toggle touch scroll vs. canvas drag on mobile">📜 Touch: Scroll</button>
             </div>
           </div>
@@ -4800,6 +4865,20 @@ export function initArduinoLab(containerId) {
     audio.playTactileClick(locked);
   });
 
+  const btnArduinoLayoutToggle = document.getElementById("btn-arduino-layout-toggle");
+  const arduinoGridSplitEl = document.getElementById("arduino-grid-split");
+  btnArduinoLayoutToggle?.addEventListener("click", () => {
+    if (!arduinoGridSplitEl) return;
+    arduinoGridSplitEl.classList.toggle("split-ide-mode");
+    const isSplit = arduinoGridSplitEl.classList.contains("split-ide-mode");
+    arduinoGridSplitEl.style.gridTemplateColumns = isSplit ? "minmax(460px, 1.45fr) minmax(320px, 1fr)" : "1fr";
+    btnArduinoLayoutToggle.textContent = isSplit ? "📐 Layout: Split IDE" : "📐 Layout: 100% Full Width";
+    btnArduinoLayoutToggle.style.color = isSplit ? "#a855f7" : "#38bdf8";
+    btnArduinoLayoutToggle.style.borderColor = isSplit ? "rgba(168, 85, 247, 0.45)" : "rgba(56, 189, 248, 0.4)";
+    setupHiDPICanvas();
+    audio.playTactileClick(isSplit);
+  });
+
   btnCustomGen?.addEventListener("click", () => {
     audio.playTactileClick(true);
     const comps = state.components.customPlacedComponents;
@@ -5272,19 +5351,22 @@ export function initArduinoLab(containerId) {
 
     // 0b. Pin Terminal Snapping (Arduino Headers & Breadboard Rails/Tiepoints)
     // Enlarge hit radius to 20px in Wire Routing Mode for touch & smartboard accuracy
-    const pinHitRadius = state.isWireMode ? 20 : 12;
+    const pinHitRadius = state.isWireMode ? 20 : 8.5;
     if (typeof ARDUINO_PINS !== "undefined") {
       for (const [key, p] of Object.entries(ARDUINO_PINS)) {
         if (Math.hypot(cx - p.x, cy - p.y) <= pinHitRadius) {
-          state.hoveredPin = { pinKey: key, name: p.label, x: p.x, y: p.y };
+          const wConn = (state.wires || []).find(w => w.from === key || w.to === key || Math.hypot(w.sx - p.x, w.sy - p.y) <= 6);
+          const bbEnd = wConn ? getBreadboardHoleInfo(wConn.ex, wConn.ey) : null;
+          const wireInfo = wConn ? ` ➔ Hole ${bbEnd ? bbEnd.holeId : wConn.to} (${wConn.label || "Jumper"})` : " [Unconnected Socket]";
+          state.hoveredPin = { pinKey: key, name: `${key}${bbEnd ? " ➔ " + bbEnd.holeId : ""}`, x: p.x, y: p.y, connectedWire: wConn, holeInfo: bbEnd };
           return {
             id: "pin",
             pinKey: key,
-            name: p.label,
+            name: key,
             x: p.x,
             y: p.y,
             center: { x: p.x, y: p.y },
-            label: `Pin ${p.label}`,
+            label: `Arduino Socket ${key} (${p.label})${wireInfo}`,
             cursor: state.isWireMode ? "crosshair" : "pointer"
           };
         }
@@ -5307,21 +5389,27 @@ export function initArduinoLab(containerId) {
         }
       }
     }
-    if (state.isWireMode && cx >= 440 && cx <= 790 && cy >= 90 && cy <= 250) {
-      const snapX = Math.round((cx - 450) / 15) * 15 + 450;
-      const snapY = Math.round((cy - 100) / 15) * 15 + 100;
-      if (Math.hypot(cx - snapX, cy - snapY) <= 12) {
-        const colLetter = String.fromCharCode(65 + Math.floor((snapX - 450) / 15));
-        const rowNum = Math.floor((snapY - 100) / 15) + 1;
-        const pinName = `BB_${colLetter}${rowNum}`;
-        state.hoveredPin = { pinKey: pinName, name: pinName, x: snapX, y: snapY };
+    if (state.isWireMode && cx >= 430 && cx <= 800 && cy >= 65 && cy <= 395) {
+      const hole = getBreadboardHoleInfo(cx, cy);
+      if (hole && hole.dist <= 14) {
+        const wConn = (state.wires || []).find(w => Math.abs(w.ex - hole.hx) <= 8 && Math.abs(w.ey - hole.hy) <= 45);
+        const pinName = `Hole_${hole.holeId}`;
+        state.hoveredPin = {
+          pinKey: pinName,
+          name: wConn ? `Hole ${hole.holeId} (${wConn.from})` : `Hole ${hole.holeId}`,
+          x: hole.hx,
+          y: hole.hy,
+          holeInfo: hole,
+          connectedWire: wConn
+        };
         return {
           id: "pin",
           pinKey: pinName,
-          name: pinName,
-          x: snapX,
-          y: snapY,
-          label: `Tie-Point ${pinName}`,
+          name: hole.holeId,
+          x: hole.hx,
+          y: hole.hy,
+          center: { x: hole.hx, y: hole.hy },
+          label: `Breadboard Hole ${hole.holeId} (Strip ${hole.stripRange})${wConn ? " • Holds Pin " + wConn.from : ""}`,
           cursor: "crosshair"
         };
       }
@@ -5402,13 +5490,13 @@ export function initArduinoLab(containerId) {
         };
       }
       if (Math.hypot(cx - 485, cy - 137) <= 14) {
-        return { id: "led_red", label: "Stop LED - Red (Pin D13)", cursor: "pointer", circle: { x: 485, y: 137, r: 14 }, center: { x: 485, y: 137 } };
+        return { id: "led_red", label: "Stop LED - Red (Pin D13 ➔ Hole b3, Strip a3–e3)", cursor: "pointer", circle: { x: 485, y: 137, r: 14 }, center: { x: 485, y: 137 } };
       }
       if (Math.hypot(cx - 545, cy - 137) <= 14) {
-        return { id: "led_yellow", label: "Caution LED - Yellow (Pin D12)", cursor: "pointer", circle: { x: 545, y: 137, r: 14 }, center: { x: 545, y: 137 } };
+        return { id: "led_yellow", label: "Caution LED - Yellow (Pin D12 ➔ Hole b8, Strip a8–e8)", cursor: "pointer", circle: { x: 545, y: 137, r: 14 }, center: { x: 545, y: 137 } };
       }
       if (Math.hypot(cx - 605, cy - 137) <= 14) {
-        return { id: "led_green", label: "Go LED - Green (Pin D11)", cursor: "pointer", circle: { x: 605, y: 137, r: 14 }, center: { x: 605, y: 137 } };
+        return { id: "led_green", label: "Go LED - Green (Pin D11 ➔ Hole b13, Strip a13–e13)", cursor: "pointer", circle: { x: 605, y: 137, r: 14 }, center: { x: 605, y: 137 } };
       }
     } else if (expId === "ultrasonic_radar") {
       if (cx >= 500 && cx <= 620 && cy >= 125 && cy <= 173) {
@@ -5588,6 +5676,38 @@ export function initArduinoLab(containerId) {
       }
       if (Math.hypot(cx - 765, cy - 135) <= 24) {
         return { id: "buzzer", label: "Security Siren Piezo Transducer (Pin D8)", cursor: "pointer", circle: { x: 765, y: 135, r: 22 }, center: { x: 765, y: 135 } };
+      }
+    }
+
+    // 4. Breadboard Tie-Point Hole Inspection (even when Wire Mode is OFF, if not over a component)
+    if (!state.isWireMode && cx >= 430 && cx <= 800 && cy >= 65 && cy <= 395) {
+      const hole = getBreadboardHoleInfo(cx, cy);
+      if (hole && hole.dist <= 7.5) {
+        const wConn = (state.wires || []).find(w =>
+          (hole.section === "rail" && ((hole.row === "+5V" && w.to.includes("5V")) || (hole.row === "GND" && w.to.includes("GND")))) ||
+          (hole.section !== "rail" && Math.abs(w.ex - hole.hx) <= 8 && Math.abs(w.ey - hole.hy) <= 45)
+        );
+        const holeLabel = wConn
+          ? `Hole ${hole.holeId} (Strip ${hole.stripRange}) • Holds Arduino Pin ${wConn.from} (${wConn.label || wConn.to})`
+          : `Breadboard Hole ${hole.holeId} (5-Hole Strip ${hole.stripRange} • Unconnected)`;
+        state.hoveredPin = {
+          pinKey: hole.holeId,
+          name: wConn ? `${hole.holeId} ⬅ ${wConn.from}` : `Hole ${hole.holeId}`,
+          x: hole.hx,
+          y: hole.hy,
+          holeInfo: hole,
+          connectedWire: wConn
+        };
+        return {
+          id: "pin_hole",
+          pinKey: hole.holeId,
+          name: hole.holeId,
+          x: hole.hx,
+          y: hole.hy,
+          center: { x: hole.hx, y: hole.hy },
+          label: holeLabel,
+          cursor: "pointer"
+        };
       }
     }
 
@@ -5775,6 +5895,11 @@ export function initArduinoLab(containerId) {
         audio.playTactileClick(true);
         addSerialLog(`Picked up ${comp.label} (Drag across breadboard to relocate)`);
       }
+    } else if (target.id === "pin" || target.id === "pin_hole") {
+      audio.playTactileClick(true);
+      addSerialLog(`📌 Probed: ${target.label}`);
+      const hudPinBadge = document.getElementById("hud-pin-hole-inspector");
+      if (hudPinBadge) hudPinBadge.textContent = `📌 ${target.label}`;
     } else if (target.id.startsWith("led_")) {
       audio.playTactileClick(false);
       addSerialLog(`${target.label} probed: Continuity verified`);
@@ -5838,6 +5963,16 @@ export function initArduinoLab(containerId) {
     }
 
     hoveredTarget = getInteractiveTarget(coords.x, coords.y);
+    const hudPinBadge = state._hudPinBadgeEl || (state._hudPinBadgeEl = document.getElementById("hud-pin-hole-inspector"));
+    if (hudPinBadge) {
+      if (hoveredTarget && hoveredTarget.label) {
+        hudPinBadge.textContent = `📌 ${hoveredTarget.label}`;
+        hudPinBadge.style.color = "#38bdf8";
+      } else {
+        hudPinBadge.textContent = `📌 Hover any Arduino Socket or Breadboard Hole (a1–j26) to inspect pin`;
+        hudPinBadge.style.color = "#7dd3fc";
+      }
+    }
     if (canvas) {
       canvas.style.cursor = hoveredTarget ? (hoveredTarget.cursor || "pointer") : (state.isWireMode ? "crosshair" : "default");
     }
@@ -6733,6 +6868,70 @@ export function initArduinoLab(containerId) {
     c.arc(x + 34, y + bh - 30, 8, 0, Math.PI * 2);
     c.fill();
 
+    // Subtle PCB Copper Traces connecting ATmega328P DIP-28 pins to Top & Bottom Header Sockets
+    c.save();
+    c.strokeStyle = "rgba(56, 189, 248, 0.22)";
+    c.lineWidth = 1.1;
+    for (let p = 0; p < 14; p++) {
+      const icX = x + 127.5 + p * 10.5;
+      const topPinX = x + 134.5 + p * 13.5;
+      const botPinX = x + 117.5 + Math.min(12, p) * 14.5;
+      // Top trace from DIP-28 to Digital Header
+      c.beginPath();
+      c.moveTo(icX, y + 145);
+      c.lineTo(icX, y + 115 - (p % 3) * 6);
+      c.lineTo(topPinX, y + 60);
+      c.lineTo(topPinX, y + 28);
+      c.stroke();
+      // Bottom trace from DIP-28 to Power/Analog Header
+      c.beginPath();
+      c.moveTo(icX, y + 207);
+      c.lineTo(icX, y + 245 + (p % 3) * 6);
+      c.lineTo(botPinX, y + bh - 58);
+      c.lineTo(botPinX, y + bh - 28);
+      c.stroke();
+    }
+    c.restore();
+
+    // AMS1117 5.0V Voltage Regulator (SOT-223) & Electrolytic Filter Capacitors (47uF)
+    c.save();
+    c.fillStyle = "#0f172a";
+    c.fillRect(x + 22, y + bh - 102, 24, 16);
+    c.fillStyle = "#94a3b8";
+    c.fillRect(x + 28, y + bh - 106, 12, 4);
+    c.fillRect(x + 24, y + bh - 86, 4, 4);
+    c.fillRect(x + 32, y + bh - 86, 4, 4);
+    c.fillRect(x + 40, y + bh - 86, 4, 4);
+    // Two SMD Aluminum Electrolytic Capacitors
+    [y + bh - 126, y + bh - 150].forEach(capY => {
+      c.fillStyle = "#cbd5e1";
+      c.beginPath();
+      c.arc(x + 66, capY, 8, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = "#1e293b";
+      c.beginPath();
+      c.arc(x + 66, capY, 8, -0.4 * Math.PI, 0.4 * Math.PI);
+      c.fill();
+    });
+    // ATmega16U2 USB-to-Serial QFN Chip near USB port
+    c.fillStyle = "#0f172a";
+    c.fillRect(x + 66, y + 68, 22, 22);
+    c.strokeStyle = "#64748b";
+    c.lineWidth = 0.8;
+    c.strokeRect(x + 66, y + 68, 22, 22);
+    // 6-Pin ICSP Header (2x3 Gold Male Pins on right edge)
+    c.fillStyle = "#0f172a";
+    c.fillRect(x + bw - 32, y + 158, 18, 26);
+    c.fillStyle = "#fbbf24";
+    for (let r = 0; r < 3; r++) {
+      c.fillRect(x + bw - 29, y + 161 + r * 8, 4, 4);
+      c.fillRect(x + bw - 21, y + 161 + r * 8, 4, 4);
+    }
+    c.fillStyle = "#e2e8f0";
+    c.font = "bold 6.5px monospace";
+    c.fillText("ICSP", x + bw - 33, y + 154);
+    c.restore();
+
     // ATmega328P DIP-28 Microcontroller IC (Big black chip in middle)
     c.fillStyle = "#0f172a";
     c.beginPath();
@@ -6742,7 +6941,7 @@ export function initArduinoLab(containerId) {
     c.stroke();
 
     // IC Pins (14 top, 14 bottom)
-    c.fillStyle = "#94a3b8";
+    c.fillStyle = "#cbd5e1";
     for (let p = 0; p < 14; p++) {
       c.fillRect(x + 125 + p * 10.5, y + 145, 5, 5);
       c.fillRect(x + 125 + p * 10.5, y + 202, 5, 5);
@@ -6754,7 +6953,7 @@ export function initArduinoLab(containerId) {
     c.fill();
 
     // Microcontroller Text
-    c.fillStyle = "#64748b";
+    c.fillStyle = "#94a3b8";
     c.font = "bold 9px monospace";
     c.fillText("ATMEL ATMEGA328P-PU", x + 130, y + 180);
 
@@ -6772,20 +6971,20 @@ export function initArduinoLab(containerId) {
     // Arduino Board Silkscreen Text
     c.fillStyle = "#f8fafc";
     c.font = "bold 13px 'Trebuchet MS', sans-serif";
-    c.fillText("ARDUINO", x + 130, y + 75);
+    c.fillText("ARDUINO", x + 130, y + 84);
     c.fillStyle = "#38bdf8";
     c.font = "bold 10px sans-serif";
-    c.fillText("UNO R3", x + 195, y + 75);
+    c.fillText("UNO R3", x + 198, y + 84);
 
     // Infinity Loop Logo
     c.strokeStyle = "#ffffff";
     c.lineWidth = 1.8;
     c.beginPath();
-    c.arc(x + 140, y + 100, 7, 0, Math.PI * 2);
-    c.arc(x + 154, y + 100, 7, 0, Math.PI * 2);
+    c.arc(x + 140, y + 104, 7, 0, Math.PI * 2);
+    c.arc(x + 154, y + 104, 7, 0, Math.PI * 2);
     c.stroke();
 
-    // Physical Reset Button (Red button on top edge)
+    // Physical Reset Button (Red button on top-left corner)
     c.fillStyle = "#dc2626";
     c.beginPath();
     c.arc(x + 85, y + 35, 7, 0, Math.PI * 2);
@@ -6797,34 +6996,158 @@ export function initArduinoLab(containerId) {
     c.font = "bold 7px sans-serif";
     c.fillText("RESET", x + 74, y + 52);
 
-    // Digital Pin Headers across top (D0 - D13, GND, AREF)
-    c.fillStyle = "#0f172a";
-    c.fillRect(x + 100, y + 12, 220, 16);
-    c.fillStyle = "#475569";
-    for (let i = 0; i < 16; i++) {
-      c.fillRect(x + 104 + i * 13.5, y + 16, 7, 8);
-    }
-    c.fillStyle = "#cbd5e1";
-    c.font = "8px monospace";
-    c.fillText("DIGITAL (PWM ~)", x + 160, y + 36);
+    // =========================================================================
+    // TOP FEMALE HEADER BLOCK (16 Sockets: AREF, GND, D13..D0) aligned to ARDUINO_PINS
+    // =========================================================================
+    const topPinDefs = [
+      { key: "AREF", lbl: "AREF", col: "#fbbf24" },
+      { key: "GND_TOP", lbl: "GND", col: "#f87171" },
+      { key: "D13", lbl: "13", col: "#38bdf8" },
+      { key: "D12", lbl: "12", col: "#f8fafc" },
+      { key: "D11", lbl: "~11", col: "#38bdf8" },
+      { key: "D10", lbl: "~10", col: "#38bdf8" },
+      { key: "D9",  lbl: "~9",  col: "#38bdf8" },
+      { key: "D8",  lbl: "8",   col: "#f8fafc" },
+      { key: "D7",  lbl: "7",   col: "#f8fafc" },
+      { key: "D6",  lbl: "~6",  col: "#38bdf8" },
+      { key: "D5",  lbl: "~5",  col: "#38bdf8" },
+      { key: "D4",  lbl: "4",   col: "#f8fafc" },
+      { key: "D3",  lbl: "~3",  col: "#38bdf8" },
+      { key: "D2",  lbl: "2",   col: "#f8fafc" },
+      { key: "TX",  lbl: "TX1", col: "#34d399" },
+      { key: "RX",  lbl: "RX0", col: "#34d399" }
+    ];
 
-    // Power & Analog Pin Headers across bottom (IOREF, 3.3V, 5V, GND, VIN, A0 - A5)
-    c.fillStyle = "#0f172a";
-    c.fillRect(x + 110, y + bh - 28, 210, 16);
-    c.fillStyle = "#475569";
-    for (let i = 0; i < 14; i++) {
-      c.fillRect(x + 114 + i * 14.5, y + bh - 24, 7, 8);
-    }
-    c.fillStyle = "#cbd5e1";
-    c.font = "8px monospace";
-    c.fillText("POWER", x + 120, y + bh - 32);
-    c.fillText("ANALOG IN", x + 235, y + bh - 32);
+    // Black molded thermoplastic female header housing (y + 11 to y + 29, centered on y + 20)
+    c.save();
+    c.fillStyle = "#090d16";
+    c.strokeStyle = "#334155";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.roundRect(x + 99, y + 11, 220, 18, [3, 3, 3, 3]);
+    c.fill();
+    c.stroke();
+
+    // High-contrast silkscreen label backing strip directly below top header (y + 30 to y + 43)
+    c.fillStyle = "rgba(4, 15, 22, 0.72)";
+    c.beginPath();
+    c.roundRect(x + 99, y + 30, 220, 13, [2, 2, 2, 2]);
+    c.fill();
+
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    topPinDefs.forEach((pd, i) => {
+      const px = x + 107.5 + i * 13.5;
+      const py = y + 20;
+      // 3D beveled square socket hole
+      c.fillStyle = "#475569";
+      c.fillRect(px - 4.2, py - 4.2, 8.4, 8.4);
+      c.fillStyle = "#020617";
+      c.fillRect(px - 2.8, py - 2.8, 5.6, 5.6);
+      // Internal gold/nickel spring contact leaf
+      c.fillStyle = "#d97706";
+      c.fillRect(px - 1.1, py - 1.1, 2.2, 2.2);
+
+      // Individual Silkscreen Pin Label directly below socket hole
+      c.fillStyle = pd.col;
+      c.font = pd.lbl.length >= 3 ? "bold 6.3px 'JetBrains Mono', monospace" : "bold 7.2px 'JetBrains Mono', monospace";
+      c.fillText(pd.lbl, px, y + 36.5);
+    });
+
+    c.fillStyle = "#e2e8f0";
+    c.font = "bold 8px monospace";
+    c.fillText("DIGITAL (PWM ~)", x + 215, y + 52);
+    c.restore();
+
+    // =========================================================================
+    // BOTTOM FEMALE HEADER BLOCKS (13 Sockets: POWER & ANALOG IN) aligned to ARDUINO_PINS
+    // =========================================================================
+    const botPinDefs = [
+      { key: "IOREF", lbl: "IOR", col: "#cbd5e1" },
+      { key: "RESET", lbl: "RST", col: "#fca5a5" },
+      { key: "3.3V",  lbl: "3V3", col: "#fbbf24" },
+      { key: "5V",    lbl: "5V",  col: "#f87171" },
+      { key: "GND",   lbl: "GND", col: "#94a3b8" },
+      { key: "GND_2", lbl: "GND", col: "#94a3b8" },
+      { key: "VIN",   lbl: "VIN", col: "#fbbf24" },
+      { key: "A0",    lbl: "A0",  col: "#34d399" },
+      { key: "A1",    lbl: "A1",  col: "#34d399" },
+      { key: "A2",    lbl: "A2",  col: "#34d399" },
+      { key: "A3",    lbl: "A3",  col: "#34d399" },
+      { key: "A4",    lbl: "A4",  col: "#34d399" },
+      { key: "A5",    lbl: "A5",  col: "#34d399" }
+    ];
+
+    c.save();
+    // Black molded female header housing (y + bh - 29 to y + bh - 11, centered on y + bh - 20 = 385)
+    c.fillStyle = "#090d16";
+    c.strokeStyle = "#334155";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.roundRect(x + 109, y + bh - 29, 191, 18, [3, 3, 3, 3]);
+    c.fill();
+    c.stroke();
+
+    // High-contrast silkscreen label backing strip directly above bottom header (y + bh - 43 to y + bh - 30)
+    c.fillStyle = "rgba(4, 15, 22, 0.72)";
+    c.beginPath();
+    c.roundRect(x + 109, y + bh - 43, 191, 13, [2, 2, 2, 2]);
+    c.fill();
+
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    botPinDefs.forEach((pd, i) => {
+      const px = x + 117.5 + i * 14.5;
+      const py = y + bh - 20;
+      // 3D beveled square socket hole
+      c.fillStyle = "#475569";
+      c.fillRect(px - 4.2, py - 4.2, 8.4, 8.4);
+      c.fillStyle = "#020617";
+      c.fillRect(px - 2.8, py - 2.8, 5.6, 5.6);
+      // Internal gold/nickel spring contact leaf
+      c.fillStyle = "#d97706";
+      c.fillRect(px - 1.1, py - 1.1, 2.2, 2.2);
+
+      // Individual Silkscreen Pin Label directly above socket hole
+      c.fillStyle = pd.col;
+      c.font = "bold 6.8px 'JetBrains Mono', monospace";
+      c.fillText(pd.lbl, px, y + bh - 36.5);
+    });
+
+    // Divider notch between POWER (0..6) and ANALOG IN (7..12)
+    c.strokeStyle = "#38bdf8";
+    c.lineWidth = 1;
+    c.beginPath();
+    c.moveTo(x + 117.5 + 6.5 * 14.5, y + bh - 43);
+    c.lineTo(x + 117.5 + 6.5 * 14.5, y + bh - 11);
+    c.stroke();
+
+    c.fillStyle = "#e2e8f0";
+    c.font = "bold 8px monospace";
+    c.fillText("POWER", x + 160, y + bh - 49);
+    c.fillText("ANALOG IN", x + 255, y + bh - 49);
+    c.restore();
   }
 
-  // Render Photorealistic Arduino Uno R3 PCB (static base cached + dynamic status LEDs)
+  // Render Photorealistic Arduino Uno R3 PCB (static base cached + dynamic status LEDs & active socket rings)
   function drawArduinoBoard(c, x, y, bw, bh) {
     if (!(c === ctx && staticBenchCache && x === 40 && y === 55)) {
       drawStaticArduinoBoardBase(c, x, y, bw, bh);
+    }
+
+    // Dynamic Active Socket Rings on Arduino Header Holes that have connected wires
+    if (c === ctx && x === 40 && y === 55 && state.wires && state.wires.length > 0) {
+      c.save();
+      state.wires.forEach(w => {
+        if (w.sx >= 135 && w.sx <= 360 && (Math.abs(w.sy - 75) <= 6 || Math.abs(w.sy - 385) <= 6)) {
+          c.strokeStyle = w.color === "#0f172a" ? "#94a3b8" : (w.color || "#38bdf8");
+          c.lineWidth = 1.8;
+          c.beginPath();
+          c.arc(w.sx, w.sy, 6.2, 0, Math.PI * 2);
+          c.stroke();
+        }
+      });
+      c.restore();
     }
 
     // Status LEDs: ON, L (Pin 13), TX, RX
@@ -7003,13 +7326,17 @@ export function initArduinoLab(containerId) {
 
   // Pre-rendered static Solderless Breadboard chassis, power rails, and 260 tie-point holes
   function drawStaticBreadboardBase(c, bx, by, bw, bh) {
-    // Breadboard body
+    // Breadboard body with realistic ABS cream-white gradient & drop shadow
     c.save();
-    c.fillStyle = "#f8fafc";
-    c.shadowColor = "rgba(0,0,0,0.55)";
-    c.shadowBlur = 14;
+    const bbGrad = c.createLinearGradient(bx, by, bx, by + bh);
+    bbGrad.addColorStop(0, "#ffffff");
+    bbGrad.addColorStop(0.5, "#f8fafc");
+    bbGrad.addColorStop(1, "#f1f5f9");
+    c.fillStyle = bbGrad;
+    c.shadowColor = "rgba(0,0,0,0.6)";
+    c.shadowBlur = 16;
     c.shadowOffsetX = 3;
-    c.shadowOffsetY = 4;
+    c.shadowOffsetY = 5;
     c.beginPath();
     c.roundRect(bx, by, bw, bh, [10, 10, 10, 10]);
     c.fill();
@@ -7017,112 +7344,125 @@ export function initArduinoLab(containerId) {
 
     // Subtle border
     c.strokeStyle = "#cbd5e1";
-    c.lineWidth = 1;
+    c.lineWidth = 1.2;
     c.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
 
-    // Central trough divider with internal shadow
-    const troughGrad = c.createLinearGradient(bx, by + bh / 2 - 6, bx, by + bh / 2 + 6);
+    // Central DIP IC trough divider with internal shadow
+    const troughGrad = c.createLinearGradient(bx, by + bh / 2 - 7, bx, by + bh / 2 + 7);
     troughGrad.addColorStop(0, "#cbd5e1");
     troughGrad.addColorStop(0.5, "#e2e8f0");
     troughGrad.addColorStop(1, "#cbd5e1");
     c.fillStyle = troughGrad;
-    c.fillRect(bx + 15, by + bh / 2 - 6, bw - 30, 12);
+    c.fillRect(bx + 15, by + bh / 2 - 7, bw - 30, 14);
 
-    // Power Rails: Red (+) and Blue (-) lines
+    // Power Rails: Red (+5V) and Blue (-GND) bus lines
     c.save();
     c.strokeStyle = "#ef4444";
-    c.lineWidth = 1.8;
+    c.lineWidth = 2.0;
     c.beginPath();
-    c.moveTo(bx + 20, by + 18);
-    c.lineTo(bx + bw - 20, by + 18);
-    c.moveTo(bx + 20, by + bh - 18);
-    c.lineTo(bx + bw - 20, by + bh - 18);
+    c.moveTo(bx + 26, by + 18);
+    c.lineTo(bx + bw - 22, by + 18);
+    c.moveTo(bx + 26, by + bh - 18);
+    c.lineTo(bx + bw - 22, by + bh - 18);
     c.stroke();
 
-    c.strokeStyle = "#3b82f6";
+    c.strokeStyle = "#2563eb";
     c.beginPath();
-    c.moveTo(bx + 20, by + 30);
-    c.lineTo(bx + bw - 20, by + 30);
-    c.moveTo(bx + 20, by + bh - 30);
-    c.lineTo(bx + bw - 20, by + bh - 30);
+    c.moveTo(bx + 26, by + 30);
+    c.lineTo(bx + bw - 22, by + 30);
+    c.moveTo(bx + 26, by + bh - 30);
+    c.lineTo(bx + bw - 22, by + bh - 30);
     c.stroke();
 
-    // Rail Polarity Markings (+) and (−)
-    c.font = "bold 9px monospace";
+    // Rail Polarity Markings (+5V) and (−GND)
+    c.font = "bold 8.5px 'JetBrains Mono', monospace";
     c.textAlign = "center";
     c.textBaseline = "middle";
-    c.fillStyle = "#ef4444";
-    c.fillText("+", bx + 12, by + 18);
+    c.fillStyle = "#dc2626";
+    c.fillText("+5V", bx + 14, by + 18);
     c.fillText("+", bx + bw - 11, by + 18);
-    c.fillText("+", bx + 12, by + bh - 18);
+    c.fillText("+5V", bx + 14, by + bh - 18);
     c.fillText("+", bx + bw - 11, by + bh - 18);
 
-    c.fillStyle = "#3b82f6";
-    c.fillText("−", bx + 12, by + 30);
+    c.fillStyle = "#1d4ed8";
+    c.fillText("GND", bx + 14, by + 30);
     c.fillText("−", bx + bw - 11, by + 30);
-    c.fillText("−", bx + 12, by + bh - 30);
+    c.fillText("GND", bx + 14, by + bh - 30);
     c.fillText("−", bx + bw - 11, by + bh - 30);
     c.restore();
 
-    // Tie-point row holes (grid matrix with spring contact clip appearance)
+    // Tie-point row holes (26 columns x 10 terminal rows + 4 power rails)
+    c.save();
+    c.textAlign = "center";
+    c.textBaseline = "middle";
     for (let col = 0; col < 26; col++) {
       const hx = bx + 35 + col * 12.5;
+      const colNum = col + 1;
+      const isMajorCol = (colNum === 1 || colNum % 5 === 0);
 
-      // Column numbers (1, 5, 10, 15, 20, 25)
-      if (col === 0 || col === 4 || col === 9 || col === 14 || col === 19 || col === 24) {
-        c.save();
-        c.font = "bold 7px monospace";
+      // Internal 5-hole vertical continuity spring-clip track indicator (shows a-e connected, f-j connected)
+      c.fillStyle = isMajorCol ? "rgba(148, 163, 184, 0.26)" : "rgba(148, 163, 184, 0.16)";
+      c.fillRect(hx + 0.5, by + 46, 2, 59);
+      c.fillRect(hx + 0.5, by + bh / 2 + 15, 2, 59);
+
+      // Column numbers (All 1..26 labeled clearly on top, center trough, and bottom)
+      c.font = isMajorCol ? "bold 7.2px 'JetBrains Mono', monospace" : "6.2px 'JetBrains Mono', monospace";
+      c.fillStyle = isMajorCol ? "#0f172a" : "#64748b";
+      c.fillText(`${colNum}`, hx + 1.5, by + 39.5);
+      c.fillText(`${colNum}`, hx + 1.5, by + bh / 2);
+      c.fillText(`${colNum}`, hx + 1.5, by + bh - 39);
+
+      // Power rail holes (3D beveled socket + phosphor-bronze clip)
+      [by + 16.5, by + 28.5, by + bh - 31.5, by + bh - 19.5].forEach(ry => {
+        c.fillStyle = "#cbd5e1";
+        c.fillRect(hx - 0.6, ry - 0.6, 4.4, 4.4);
+        c.fillStyle = "#0f172a";
+        c.fillRect(hx, ry, 3.2, 3.2);
         c.fillStyle = "#94a3b8";
-        c.textAlign = "center";
-        c.textBaseline = "middle";
-        c.fillText(`${col + 1}`, hx + 1.5, by + 40);
-        c.fillText(`${col + 1}`, hx + 1.5, by + bh - 39);
-        c.restore();
-      }
+        c.fillRect(hx + 0.8, ry + 0.8, 1.6, 1.6);
+      });
 
-      // Power rail holes
-      c.fillStyle = "#1e293b";
-      c.fillRect(hx, by + 17, 3, 3);
-      c.fillRect(hx, by + 29, 3, 3);
-      c.fillRect(hx, by + bh - 31, 3, 3);
-      c.fillRect(hx, by + bh - 19, 3, 3);
-
-      // Top section: rows A - E
+      // Top section: rows a - e (5 vertically connected holes per column)
       for (let r = 0; r < 5; r++) {
         const hy = by + 46 + r * 14;
-        c.fillStyle = "#1e293b";
-        c.fillRect(hx, hy, 3, 3);
-        c.fillStyle = "#64748b";
-        c.fillRect(hx + 0.5, hy + 0.5, 1.5, 2);
+        c.fillStyle = "#cbd5e1";
+        c.fillRect(hx - 0.6, hy - 0.6, 4.4, 4.4);
+        c.fillStyle = "#0f172a";
+        c.fillRect(hx, hy, 3.2, 3.2);
+        c.fillStyle = "#94a3b8";
+        c.fillRect(hx + 0.8, hy + 0.8, 1.6, 1.6);
       }
-      // Bottom section: rows F - J
+      // Bottom section: rows f - j (5 vertically connected holes per column)
       for (let r = 0; r < 5; r++) {
         const hy = by + bh / 2 + 15 + r * 14;
-        c.fillStyle = "#1e293b";
-        c.fillRect(hx, hy, 3, 3);
-        c.fillStyle = "#64748b";
-        c.fillRect(hx + 0.5, hy + 0.5, 1.5, 2);
+        c.fillStyle = "#cbd5e1";
+        c.fillRect(hx - 0.6, hy - 0.6, 4.4, 4.4);
+        c.fillStyle = "#0f172a";
+        c.fillRect(hx, hy, 3.2, 3.2);
+        c.fillStyle = "#94a3b8";
+        c.fillRect(hx + 0.8, hy + 0.8, 1.6, 1.6);
       }
     }
+    c.restore();
 
-    // Row letters a..e and f..j
+    // High-contrast Row letters a..e and f..j on both left and right sides
     c.save();
-    c.font = "bold 7px monospace";
-    c.fillStyle = "#94a3b8";
+    c.font = "bold 8.5px 'JetBrains Mono', monospace";
+    c.fillStyle = "#0f172a";
     c.textAlign = "center";
     c.textBaseline = "middle";
     ["a", "b", "c", "d", "e"].forEach((l, r) => {
-      c.fillText(l, bx + 22, by + 47 + r * 14);
-      c.fillText(l, bx + bw - 21, by + 47 + r * 14);
+      c.fillText(l, bx + 22, by + 47.5 + r * 14);
+      c.fillText(l, bx + bw - 19, by + 47.5 + r * 14);
     });
     ["f", "g", "h", "i", "j"].forEach((l, r) => {
-      c.fillText(l, bx + 22, by + bh / 2 + 16 + r * 14);
-      c.fillText(l, bx + bw - 21, by + bh / 2 + 16 + r * 14);
+      c.fillText(l, bx + 22, by + bh / 2 + 16.5 + r * 14);
+      c.fillText(l, bx + bw - 19, by + bh / 2 + 16.5 + r * 14);
     });
     c.restore();
   }
 
-  // Render Solderless Half-Size Breadboard with Interactive Components
+  // Render Solderless Half-Size Breadboard with Interactive Components & Live 5-Hole Strip Continuity
   function drawBreadboard(c, bx, by, bw, bh) {
     // Only draw the static breadboard base if not already blitted via staticBenchCache
     if (!(c === ctx && staticBenchCache && bx === 420 && by === 55)) {
@@ -7130,26 +7470,75 @@ export function initArduinoLab(containerId) {
     }
 
     // Active power bus illumination
-    const isTop5VActive = state.wires?.some(w => w.to === "BB_TOP_5V");
-    const isTopGndActive = state.wires?.some(w => w.to === "BB_TOP_GND");
+    const isTop5VActive = state.wires?.some(w => w.to === "BB_TOP_5V" || (w.ey >= by + 12 && w.ey <= by + 23));
+    const isTopGndActive = state.wires?.some(w => w.to === "BB_TOP_GND" || (w.ey >= by + 24 && w.ey <= by + 35));
     if (isTop5VActive) {
       c.save();
-      c.strokeStyle = "rgba(239, 68, 68, 0.35)";
-      c.lineWidth = 4;
+      c.strokeStyle = "rgba(239, 68, 68, 0.38)";
+      c.lineWidth = 5;
       c.beginPath();
-      c.moveTo(bx + 20, by + 18);
-      c.lineTo(bx + bw - 20, by + 18);
+      c.moveTo(bx + 26, by + 18);
+      c.lineTo(bx + bw - 22, by + 18);
       c.stroke();
       c.restore();
     }
     if (isTopGndActive) {
       c.save();
-      c.strokeStyle = "rgba(59, 130, 246, 0.3)";
-      c.lineWidth = 4;
+      c.strokeStyle = "rgba(37, 99, 235, 0.34)";
+      c.lineWidth = 5;
       c.beginPath();
-      c.moveTo(bx + 20, by + 30);
-      c.lineTo(bx + bw - 20, by + 30);
+      c.moveTo(bx + 26, by + 30);
+      c.lineTo(bx + bw - 22, by + 30);
       c.stroke();
+      c.restore();
+    }
+
+    // =========================================================================
+    // LIVE 5-HOLE CONTINUITY STRIP HIGHLIGHT & PIN-TO-HOLE COLUMN TAGS
+    // Clearly shows which 5-hole vertical strip (a-e or f-j) holds which Arduino pin!
+    // =========================================================================
+    if (state.wires && state.wires.length > 0) {
+      c.save();
+      state.wires.forEach(w => {
+        const hole = getBreadboardHoleInfo(w.ex, w.ey, bx, by, bw, bh);
+        if (hole && hole.section !== "rail") {
+          const stripColor = w.color === "#0f172a" ? "#3b82f6" : (w.color || "#0284c7");
+          // Glowing 5-hole vertical continuity strip highlight (connects rows a-e or f-j in this column)
+          c.fillStyle = "rgba(14, 165, 233, 0.16)";
+          c.strokeStyle = stripColor;
+          c.lineWidth = 1.3;
+          c.beginPath();
+          if (typeof c.roundRect === "function") {
+            c.roundRect(hole.hx - 4.5, hole.stripY1, 9, hole.stripY2 - hole.stripY1, [3, 3, 3, 3]);
+          } else {
+            c.rect(hole.hx - 4.5, hole.stripY1, 9, hole.stripY2 - hole.stripY1);
+          }
+          c.fill();
+          c.stroke();
+
+          // Highlight the exact hole holding the wire pin
+          c.fillStyle = stripColor;
+          c.beginPath();
+          c.arc(hole.hx, hole.hy, 3.8, 0, Math.PI * 2);
+          c.fill();
+        }
+      });
+
+      // Also highlight any currently hovered breadboard hole's 5-hole strip
+      if (state.hoveredPin && state.hoveredPin.holeInfo && state.hoveredPin.holeInfo.section !== "rail") {
+        const hh = state.hoveredPin.holeInfo;
+        c.fillStyle = "rgba(6, 182, 212, 0.28)";
+        c.strokeStyle = "#06b6d4";
+        c.lineWidth = 1.8;
+        c.beginPath();
+        if (typeof c.roundRect === "function") {
+          c.roundRect(hh.hx - 5, hh.stripY1 - 1, 10, hh.stripY2 - hh.stripY1 + 2, [3, 3, 3, 3]);
+        } else {
+          c.rect(hh.hx - 5, hh.stripY1 - 1, 10, hh.stripY2 - hh.stripY1 + 2);
+        }
+        c.fill();
+        c.stroke();
+      }
       c.restore();
     }
 
@@ -7565,6 +7954,64 @@ export function initArduinoLab(containerId) {
       });
     }
 
+    // =========================================================================
+    // LIVE PIN ➔ BREADBOARD HOLE WIRING MAP LEGEND ON LOWER BREADBOARD DECK
+    // Makes 100% explicit which Breadboard Hole holds which Arduino Pin!
+    // =========================================================================
+    const hasLowerCustomComp = (state.components.customPlacedComponents || []).some(cp => (expId === "custom_sandbox" || cp.addedByUser) && cp.y > 165);
+    if (!hasLowerCustomComp && state.wires && state.wires.length > 0) {
+      c.save();
+      const mapX = bx + 26;
+      const mapY = by + bh / 2 + 12;
+      const mapW = bw - 52;
+      const mapH = 88;
+
+      c.fillStyle = "rgba(15, 23, 42, 0.92)";
+      c.strokeStyle = "rgba(56, 189, 248, 0.5)";
+      c.lineWidth = 1.2;
+      c.beginPath();
+      if (typeof c.roundRect === "function") {
+        c.roundRect(mapX, mapY, mapW, mapH, [6, 6, 6, 6]);
+      } else {
+        c.rect(mapX, mapY, mapW, mapH);
+      }
+      c.fill();
+      c.stroke();
+
+      // Title bar
+      c.fillStyle = "#38bdf8";
+      c.font = "bold 7.5px 'JetBrains Mono', monospace";
+      c.textAlign = "left";
+      c.textBaseline = "middle";
+      c.fillText("📌 PIN ➔ BREADBOARD HOLE MAP (5-Hole Vertical Strips a–e Connected)", mapX + 8, mapY + 11);
+
+      // Render wire connection chips in a 2-column grid
+      const maxChips = Math.min(state.wires.length, 8);
+      const colW = (mapW - 16) / 2;
+      for (let i = 0; i < maxChips; i++) {
+        const w = state.wires[i];
+        const hole = getBreadboardHoleInfo(w.ex, w.ey, bx, by, bw, bh);
+        const holeTag = hole ? (hole.section === "rail" ? `${hole.holeId} Rail` : `Hole ${hole.holeId} (${hole.stripRange})`) : w.to;
+        const colIdx = i % 2;
+        const rowIdx = Math.floor(i / 2);
+        const cxChip = mapX + 8 + colIdx * colW;
+        const cyChip = mapY + 25 + rowIdx * 15;
+
+        // Wire color dot
+        c.fillStyle = w.color === "#0f172a" ? "#94a3b8" : (w.color || "#38bdf8");
+        c.beginPath();
+        c.arc(cxChip + 4, cyChip, 3.2, 0, Math.PI * 2);
+        c.fill();
+
+        // Pin -> Hole text
+        c.fillStyle = "#f8fafc";
+        c.font = "bold 7px 'JetBrains Mono', monospace";
+        const targetShort = String(w.label || w.to).split("➔").pop().trim().slice(0, 14);
+        c.fillText(`${w.from} ➔ ${holeTag}: ${targetShort}`, cxChip + 10, cyChip + 0.5);
+      }
+      c.restore();
+    }
+
     // Open-circuit warning banner on breadboard when GND or all jumper wires are disconnected
     if (state.hasCircuitContinuity === false) {
       c.save();
@@ -7590,18 +8037,33 @@ export function initArduinoLab(containerId) {
     }
   }
 
-  // Draw Photorealistic 5mm Diffused LED with optical bloom & internal leadframe
+  // Draw Photorealistic 5mm Diffused LED with optical bloom, explicit hole insertion pins & +/- polarity markers
   function drawLargeLed(c, lx, ly, color, isOn, text = "", brightness = 1.0) {
     c.save();
-    // Metal pins (anode and cathode leads dropping down)
+    // Metal pins: Left = Anode (+, plugged into signal hole), Right = Cathode (-, plugged into resistor/GND hole)
     c.strokeStyle = "#94a3b8";
-    c.lineWidth = 1.8;
+    c.lineWidth = 2.0;
     c.beginPath();
-    c.moveTo(lx - 4, ly + 12);
-    c.lineTo(lx - 4, ly + 28);
-    c.moveTo(lx + 4, ly + 12);
-    c.lineTo(lx + 4, ly + 28);
+    c.moveTo(lx - 4, ly + 11);
+    c.lineTo(lx - 4, ly + 31);
+    c.moveTo(lx + 5.5, ly + 11);
+    c.lineTo(lx + 5.5, ly + 31);
     c.stroke();
+
+    // Explicit breadboard hole insertion collars at bottom of Anode & Cathode legs
+    c.fillStyle = "#0f172a";
+    c.beginPath();
+    c.arc(lx - 4, ly + 31, 2.5, 0, Math.PI * 2);
+    c.arc(lx + 5.5, ly + 31, 2.5, 0, Math.PI * 2);
+    c.fill();
+
+    // Polarity markers (+ Anode on left leg, - Cathode on right leg)
+    c.font = "bold 7.5px 'JetBrains Mono', monospace";
+    c.textAlign = "center";
+    c.fillStyle = "#dc2626";
+    c.fillText("+", lx - 9.5, ly + 26);
+    c.fillStyle = "#2563eb";
+    c.fillText("−", lx + 11, ly + 26);
 
     // Drop shadow
     c.shadowColor = "rgba(0,0,0,0.45)";
@@ -8882,6 +9344,35 @@ export function initArduinoLab(containerId) {
       c.bezierCurveTo(b.cp1x, b.cp1y - 0.8, b.cp2x, b.cp2y - 0.8, w.ex, w.ey - 0.8);
       c.stroke();
 
+      // (d2) Pin-to-Hole callout badge at the breadboard insertion hole
+      const bbEnd = w.ex >= 430 ? { x: w.ex, y: w.ey } : w.sx >= 430 ? { x: w.sx, y: w.sy } : null;
+      if (bbEnd) {
+        const holeInfo = getBreadboardHoleInfo(bbEnd.x, bbEnd.y);
+        if (holeInfo && holeInfo.type === "tie") {
+          let shortPin = "";
+          if (w.label) {
+            const m = w.label.match(/^(D\d+|A\d+|5V|3V3|GND)/i);
+            if (m) shortPin = m[1];
+          }
+          const badgeTxt = shortPin ? `${holeInfo.hole}:${shortPin}` : holeInfo.hole;
+          c.font = "bold 7px 'JetBrains Mono', monospace";
+          const btw = c.measureText(badgeTxt).width + 6;
+          const bxPos = bbEnd.x - btw / 2;
+          const byPos = holeInfo.rowIdx <= 2 ? bbEnd.y - 13 : bbEnd.y + 5;
+          c.fillStyle = "rgba(2, 6, 23, 0.88)";
+          c.strokeStyle = w.color === "#1e293b" ? "#94a3b8" : (w.color || "#38bdf8");
+          c.lineWidth = 0.8;
+          c.beginPath();
+          c.roundRect(bxPos, byPos, btw, 9, [2.5, 2.5, 2.5, 2.5]);
+          c.fill();
+          c.stroke();
+          c.fillStyle = "#f8fafc";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillText(badgeTxt, bbEnd.x, byPos + 4.5);
+        }
+      }
+
       // (e) Highlight if hovered in wire mode
       if (state.isWireMode && state.hoveredWireIndex === idx) {
         c.strokeStyle = "#f43f5e";
@@ -8946,7 +9437,7 @@ export function initArduinoLab(containerId) {
       c.stroke();
     }
 
-    // 3. Pin highlight & Floating Touch Pin Loupe when hovered in wire mode or interacting
+    // 3. Pin highlight & Floating Touch Pin/Hole Loupe when hovered
     if (state.hoveredPin) {
       const hp = state.hoveredPin;
       c.save();
@@ -8955,29 +9446,27 @@ export function initArduinoLab(containerId) {
       c.shadowColor = "#38bdf8";
       c.shadowBlur = 8;
       c.beginPath();
-      c.arc(hp.x, hp.y, 8, 0, Math.PI * 2);
+      c.arc(hp.x, hp.y, 7.5, 0, Math.PI * 2);
       c.stroke();
 
-      if (state.isWireMode) {
-        const loupeText = `📌 ${hp.name || hp.pinKey}`;
-        c.font = "bold 10px 'JetBrains Mono', monospace";
-        const tw = c.measureText(loupeText).width;
-        const lw = tw + 16;
-        const lh = 20;
-        const lx = Math.max(8, Math.min(LOGICAL_ARDUINO_W - lw - 8, hp.x - lw / 2));
-        const ly = Math.max(10, hp.y - 34);
-        c.fillStyle = "rgba(2, 6, 23, 0.94)";
-        c.strokeStyle = "#22d3ee";
-        c.lineWidth = 1.2;
-        c.beginPath();
-        c.roundRect(lx, ly, lw, lh, [5, 5, 5, 5]);
-        c.fill();
-        c.stroke();
-        c.fillStyle = "#22d3ee";
-        c.textAlign = "center";
-        c.textBaseline = "middle";
-        c.fillText(loupeText, lx + lw / 2, ly + lh / 2);
-      }
+      const loupeText = `📌 ${hp.name || hp.pinKey}`;
+      c.font = "bold 10px 'JetBrains Mono', monospace";
+      const tw = c.measureText(loupeText).width;
+      const lw = tw + 16;
+      const lh = 20;
+      const lx = Math.max(8, Math.min(LOGICAL_ARDUINO_W - lw - 8, hp.x - lw / 2));
+      const ly = Math.max(10, hp.y - 32);
+      c.fillStyle = "rgba(2, 6, 23, 0.94)";
+      c.strokeStyle = "#22d3ee";
+      c.lineWidth = 1.2;
+      c.beginPath();
+      c.roundRect(lx, ly, lw, lh, [5, 5, 5, 5]);
+      c.fill();
+      c.stroke();
+      c.fillStyle = "#22d3ee";
+      c.textAlign = "center";
+      c.textBaseline = "middle";
+      c.fillText(loupeText, lx + lw / 2, ly + lh / 2);
       c.restore();
     }
 
