@@ -630,6 +630,26 @@ check(cleanup.state.components.customPlacedComponents.length === 1, "Clicking '#
 btnCustomShare.dispatch("click");
 check(true, "Clicking '#btn-custom-share' serializes project and generates shareable circuit URL cleanly");
 
+// Test inline sensor slider in Component Property Inspector & Quick-Code delay steppers
+const inspectorSensorSlider = document.getElementById("inspector-sensor-slider");
+const btnDelayDec = document.getElementById("btn-delay-dec");
+const btnDelayInc = document.getElementById("btn-delay-inc");
+check(!!inspectorSensorSlider && !!btnDelayDec && !!btnDelayInc, "Inline sensor slider (#inspector-sensor-slider) and delay steppers (#btn-delay-dec, #btn-delay-inc) exist in DOM");
+
+const sensorComp = { id: "c_sensor_test", type: "ldr_sensor", label: "LDR Sensor 1", pin: "A0", x: 140, y: 120, addedByUser: true, state: { value: 500 } };
+cleanup.state.components.customPlacedComponents = [sensorComp];
+canvas.dispatch("mousedown", { clientX: 560, clientY: 175 });
+canvas.dispatch("mouseup", {});
+inspectorSensorSlider.dispatch("input", { target: { value: "820" } });
+check(cleanup.state.components.ldrLux === 820, "Adjusting '#inspector-sensor-slider' updates the live LDR sensor value in simulation state");
+
+const codeInputEl = document.getElementById("arduino-code-editor");
+codeInputEl.value = "void setup() {}\nvoid loop() {\n  delay(500);\n}";
+btnDelayInc.dispatch("click");
+check(codeInputEl.value.includes("delay(600)"), "Clicking '#btn-delay-inc' increments delay(500) to delay(600) without typing");
+btnDelayDec.dispatch("click");
+check(codeInputEl.value.includes("delay(500)"), "Clicking '#btn-delay-dec' decrements delay(600) back to delay(500)");
+
 // Allow a couple simulation frames to cycle
 await new Promise(r => setTimeout(r, 45));
 

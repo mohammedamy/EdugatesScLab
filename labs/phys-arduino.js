@@ -2704,10 +2704,16 @@ export function initArduinoLab(containerId) {
                     <option value="100">100 Ω</option>
                     <option value="220" selected>220 Ω</option>
                     <option value="330">330 Ω</option>
+                    <option value="470">470 Ω</option>
                     <option value="1000">1 kΩ</option>
                     <option value="4700">4.7 kΩ</option>
                     <option value="10000">10 kΩ</option>
                   </select>
+                </label>
+                <label id="inspector-sensor-wrap" style="display: none; align-items: center; gap: 5px; color: #94a3b8;">
+                  <span id="inspector-sensor-label" style="color: #34d399; font-weight: 700;">Val:</span>
+                  <input type="range" id="inspector-sensor-slider" min="0" max="1023" step="1" value="512" style="width: 78px; accent-color: #10b981; cursor: pointer;">
+                  <span id="inspector-sensor-val" style="font-family: monospace; color: #f8fafc; font-size: 0.7rem; min-width: 42px;">512</span>
                 </label>
                 <button type="button" id="inspector-comp-rotate" class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.7rem; border-radius: 5px; color: #cbd5e1;" title="Rotate Component 90°">
                   ↻ Rotate
@@ -2949,6 +2955,8 @@ export function initArduinoLab(containerId) {
               <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  digitalWrite(13, HIGH);\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #38bdf8; border-color: rgba(56,189,248,0.3);">+ digitalWrite</button>
               <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  analogWrite(9, 180);\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #a855f7; border-color: rgba(168,85,247,0.3);">+ analogWrite</button>
               <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  delay(500);\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #facc15; border-color: rgba(250,204,21,0.3);">+ delay()</button>
+              <button type="button" id="btn-delay-dec" class="btn btn-secondary" style="padding: 3px 7px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #fde047; border-color: rgba(250,204,21,0.35);" title="Decrease all delay() values by 100ms">⏱️ -100ms</button>
+              <button type="button" id="btn-delay-inc" class="btn btn-secondary" style="padding: 3px 7px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #fde047; border-color: rgba(250,204,21,0.35);" title="Increase all delay() values by 100ms">⏱️ +100ms</button>
               <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  tone(8, 880, 200);\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #34d399; border-color: rgba(52,211,153,0.3);">+ tone()</button>
               <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  if (analogRead(A0) > 512) {\n    digitalWrite(13, HIGH);\n  }\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #fb923c; border-color: rgba(251,146,60,0.3);">+ if/else</button>
               <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  Serial.println(&quot;Sensor OK&quot;);\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #cbd5e1; border-color: rgba(203,213,225,0.3);">+ Serial.println</button>
@@ -4337,10 +4345,39 @@ export function initArduinoLab(containerId) {
   const inspectorColor = document.getElementById("inspector-comp-color");
   const inspectorResistorWrap = document.getElementById("inspector-resistor-wrap");
   const inspectorOhms = document.getElementById("inspector-comp-ohms");
+  const inspectorSensorWrap = document.getElementById("inspector-sensor-wrap");
+  const inspectorSensorLabel = document.getElementById("inspector-sensor-label");
+  const inspectorSensorSlider = document.getElementById("inspector-sensor-slider");
+  const inspectorSensorVal = document.getElementById("inspector-sensor-val");
   const inspectorRotate = document.getElementById("inspector-comp-rotate");
   const inspectorClone = document.getElementById("inspector-comp-clone");
   const inspectorDelete = document.getElementById("inspector-comp-delete");
   const btnCustomShare = document.getElementById("btn-custom-share");
+  const btnDelayDec = document.getElementById("btn-delay-dec");
+  const btnDelayInc = document.getElementById("btn-delay-inc");
+
+  function getSensorInspectorConfig(type) {
+    const t = String(type || "");
+    if (t.includes("pot")) {
+      return { label: "ADC:", min: 0, max: 1023, step: 1, val: state.components.potValue, fmt: (v) => `${v} (${((v / 1023) * 5).toFixed(1)}V)` };
+    }
+    if (t.includes("ldr")) {
+      return { label: "Light:", min: 10, max: 1000, step: 5, val: state.components.ldrLux, fmt: (v) => `${v} lx` };
+    }
+    if (t.includes("tmp36") || t.includes("dht") || t.includes("bme")) {
+      return { label: "Temp:", min: -10, max: 60, step: 0.5, val: state.components.temperatureC, fmt: (v) => `${Number(v).toFixed(1)}°C` };
+    }
+    if (t.includes("ultrasonic")) {
+      return { label: "Dist:", min: 3, max: 120, step: 0.5, val: state.components.obstacleDistCm, fmt: (v) => `${Number(v).toFixed(1)}cm` };
+    }
+    if (t.includes("servo")) {
+      return { label: "Angle:", min: 0, max: 180, step: 1, val: Math.round(state.components.currentServoAngle || 90), fmt: (v) => `${v}°` };
+    }
+    if (t.includes("dc_motor")) {
+      return { label: "PWM:", min: 0, max: 255, step: 5, val: state.components.motorSpeed || 0, fmt: (v) => `${v}` };
+    }
+    return null;
+  }
 
   function updateComponentInspector() {
     if (!inspectorBox) return;
@@ -4371,7 +4408,56 @@ export function initArduinoLab(containerId) {
       inspectorOhms.value = String(ohmVal);
       inspectorOhms.style.color = ohmVal < 68 ? "#f87171" : "#fbbf24";
     }
+    const sensorCfg = getSensorInspectorConfig(comp.type);
+    if (inspectorSensorWrap) {
+      if (sensorCfg) {
+        inspectorSensorWrap.style.display = "inline-flex";
+        if (inspectorSensorLabel) inspectorSensorLabel.textContent = sensorCfg.label;
+        if (inspectorSensorSlider) {
+          inspectorSensorSlider.min = String(sensorCfg.min);
+          inspectorSensorSlider.max = String(sensorCfg.max);
+          inspectorSensorSlider.step = String(sensorCfg.step);
+          inspectorSensorSlider.value = String(sensorCfg.val);
+        }
+        if (inspectorSensorVal) inspectorSensorVal.textContent = sensorCfg.fmt(sensorCfg.val);
+      } else {
+        inspectorSensorWrap.style.display = "none";
+      }
+    }
   }
+
+  inspectorSensorSlider?.addEventListener("input", (e) => {
+    const comps = state.components.customPlacedComponents || [];
+    const comp = comps[state.selectedCompIndex];
+    if (!comp) return;
+    const val = parseFloat(e.target.value);
+    const t = String(comp.type || "");
+    if (t.includes("pot")) {
+      state.components.potValue = Math.round(val);
+      if (sliderPot) sliderPot.value = state.components.potValue;
+      if (valPot) valPot.textContent = `${state.components.potValue} (${((state.components.potValue / 1023) * 5.0).toFixed(2)}V)`;
+    } else if (t.includes("ldr")) {
+      state.components.ldrLux = Math.round(val);
+      if (sliderLdr) sliderLdr.value = state.components.ldrLux;
+      if (valLdr) valLdr.textContent = `${state.components.ldrLux} Lux`;
+    } else if (t.includes("tmp36") || t.includes("dht") || t.includes("bme")) {
+      state.components.temperatureC = val;
+      if (sliderTemp) sliderTemp.value = val;
+      if (valTemp) valTemp.textContent = `${val.toFixed(1)} °C`;
+    } else if (t.includes("ultrasonic")) {
+      state.components.obstacleDistCm = val;
+      if (sliderDist) sliderDist.value = val;
+      if (valDist) valDist.textContent = `${val.toFixed(1)} cm`;
+    } else if (t.includes("servo")) {
+      state.components.currentServoAngle = val;
+      state.components.servoAngle = val;
+    } else if (t.includes("dc_motor")) {
+      state.components.motorSpeed = Math.round(val);
+      if (sliderMotor) sliderMotor.value = state.components.motorSpeed;
+    }
+    const cfg = getSensorInspectorConfig(comp.type);
+    if (cfg && inspectorSensorVal) inspectorSensorVal.textContent = cfg.fmt(val);
+  });
 
   inspectorPin?.addEventListener("change", (e) => {
     const comps = state.components.customPlacedComponents || [];
@@ -4541,7 +4627,7 @@ export function initArduinoLab(containerId) {
     audio.playTactileClick(true);
   });
 
-  // Quick-Code Snippet Insertion Buttons (Mobile & Smartboard Friendly)
+  // Quick-Code Snippet Insertion Buttons & Zero-Typing Delay Steppers (Mobile & Smartboard Friendly)
   document.querySelectorAll(".btn-code-snippet").forEach(btn => {
     btn.addEventListener("click", () => {
       if (!codeEditor) return;
@@ -4557,6 +4643,30 @@ export function initArduinoLab(containerId) {
       addSerialLog(`Inserted C++ snippet: ${btn.textContent.trim()}`);
     });
   });
+
+  function stepSketchDelays(deltaMs) {
+    if (!codeEditor) return;
+    let count = 0;
+    codeEditor.value = (codeEditor.value || "").replace(/delay\s*\(\s*(\d+)\s*\)/g, (_m, numStr) => {
+      count++;
+      const nextMs = Math.max(50, Math.min(5000, parseInt(numStr, 10) + deltaMs));
+      return `delay(${nextMs})`;
+    });
+    if (count > 0) {
+      const res = compileArduinoSketch(codeEditor.value);
+      if (res.success) {
+        state.customSketch = res;
+        state.isCustomSketchActive = true;
+      }
+      audio.playTactileClick(deltaMs > 0);
+      addSerialLog(`Adjusted ${count} delay() timer(s) by ${deltaMs > 0 ? "+" : ""}${deltaMs} ms`);
+    } else {
+      addSerialLog("No numeric delay(...) calls found in sketch to adjust.");
+    }
+  }
+
+  btnDelayDec?.addEventListener("click", () => stepSketchDelays(-100));
+  btnDelayInc?.addEventListener("click", () => stepSketchDelays(100));
 
   btnCustomGen?.addEventListener("click", () => {
     audio.playTactileClick(true);
@@ -4695,6 +4805,42 @@ export function initArduinoLab(containerId) {
     renderCustomChips();
     addSerialLog("Cleared custom breadboard components.");
   });
+
+  // Auto-load shared circuit URL parameter (?circuit=<base64>) if present on mount
+  try {
+    const searchStr = typeof window !== "undefined" && window.location ? (window.location.search || "") : "";
+    if (searchStr.includes("circuit=") && typeof URLSearchParams !== "undefined" && typeof atob === "function") {
+      const params = new URLSearchParams(searchStr);
+      const encodedCircuit = params.get("circuit");
+      if (encodedCircuit) {
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(encodedCircuit))));
+        if (Array.isArray(decoded.c) && decoded.c.length > 0) {
+          state.components.customPlacedComponents = decoded.c.map((item, idx) => ({
+            id: `comp_shared_${idx}`,
+            type: item.t || "led_red",
+            label: item.l || `Part ${idx + 1}`,
+            pin: item.p !== undefined ? item.p : 13,
+            x: Number(item.x) || 90,
+            y: Number(item.y) || 90,
+            rotation: Number(item.r) || 0,
+            customColor: item.col || undefined,
+            addedByUser: true,
+            state: { on: false, val: 0, value: Number(item.v) || 220 }
+          }));
+          if (decoded.s && codeEditor) {
+            codeEditor.value = decoded.s;
+            const res = compileArduinoSketch(decoded.s);
+            if (res.success) {
+              state.customSketch = res;
+              state.isCustomSketchActive = true;
+            }
+          }
+          renderCustomChips();
+          addSerialLog(`🔗 Loaded shared circuit URL (${state.components.customPlacedComponents.length} components)`);
+        }
+      }
+    }
+  } catch (_e) {}
 
   // 5. IDE Controls: Verify & Upload
   btnVerify?.addEventListener("click", () => {
@@ -7668,14 +7814,24 @@ export function initArduinoLab(containerId) {
     c.fill();
     c.shadowColor = "transparent";
 
-    // EIA 4-Band Colors Map
-    let bands = ["#ef4444", "#ef4444", "#92400e", "#d97706"]; // default 220 ohm (Red, Red, Brown, Gold)
+    // EIA 4-Band Colors Map (47Ω, 100Ω, 220Ω, 330Ω, 470Ω, 1kΩ, 4.7kΩ, 10kΩ)
+    let bands = ["#ef4444", "#ef4444", "#92400e", "#d97706"]; // default 220Ω (Red, Red, Brown, Gold)
     if (ohms >= 10000) {
-      bands = ["#92400e", "#0f172a", "#f97316", "#d97706"]; // 10k: Brown, Black, Orange, Gold
+      bands = ["#92400e", "#0f172a", "#f97316", "#d97706"]; // 10kΩ: Brown, Black, Orange, Gold
+    } else if (ohms >= 4700) {
+      bands = ["#facc15", "#8b5cf6", "#ef4444", "#d97706"]; // 4.7kΩ: Yellow, Violet, Red, Gold
     } else if (ohms >= 1000) {
-      bands = ["#92400e", "#0f172a", "#ef4444", "#d97706"]; // 1k: Brown, Black, Red, Gold
+      bands = ["#92400e", "#0f172a", "#ef4444", "#d97706"]; // 1kΩ: Brown, Black, Red, Gold
+    } else if (ohms >= 470) {
+      bands = ["#facc15", "#8b5cf6", "#92400e", "#d97706"]; // 470Ω: Yellow, Violet, Brown, Gold
     } else if (ohms >= 330) {
-      bands = ["#f97316", "#f97316", "#92400e", "#d97706"]; // 330: Orange, Orange, Brown, Gold
+      bands = ["#f97316", "#f97316", "#92400e", "#d97706"]; // 330Ω: Orange, Orange, Brown, Gold
+    } else if (ohms >= 200) {
+      bands = ["#ef4444", "#ef4444", "#92400e", "#d97706"]; // 220Ω: Red, Red, Brown, Gold
+    } else if (ohms >= 100) {
+      bands = ["#92400e", "#0f172a", "#92400e", "#d97706"]; // 100Ω: Brown, Black, Brown, Gold
+    } else {
+      bands = ["#facc15", "#8b5cf6", "#0f172a", "#d97706"]; // 47Ω: Yellow, Violet, Black, Gold
     }
 
     // Draw the 4 bands
@@ -7690,10 +7846,11 @@ export function initArduinoLab(containerId) {
     c.fillRect(rx - 10, ry - 4, 20, 1.5);
     c.restore();
 
-    if (label) {
+    const ohmLabel = label || (ohms >= 1000 ? `${+(ohms / 1000).toFixed(1)}kΩ` : `${ohms}Ω`);
+    if (ohmLabel) {
       c.fillStyle = "#0f172a";
       c.font = "bold 8px sans-serif";
-      c.fillText(label, rx - 14, ry + 20);
+      c.fillText(ohmLabel, rx - 14, ry + 20);
     }
   }
 
@@ -8761,14 +8918,18 @@ export function initArduinoLab(containerId) {
     const ch2Vpp = Math.max(0, ch2Max - ch2Min);
     const ch2Vrms = Math.sqrt(ch2SumSq / numPoints);
 
-    // Update DSO Telemetry Badges in DOM
-    const dsoMetricsCh1 = document.getElementById("dso-metrics-ch1");
-    const dsoMetricsCh2 = document.getElementById("dso-metrics-ch2");
-    if (dsoMetricsCh1) {
-      dsoMetricsCh1.textContent = `CH1 (${state.dso?.ch1Probe || "pin13"}): Vpp = ${ch1Vpp.toFixed(2)}V | Vrms = ${ch1Vrms.toFixed(2)}V | Duty = ${dutyPercent}%`;
-    }
-    if (dsoMetricsCh2) {
-      dsoMetricsCh2.textContent = `CH2 (${state.dso?.ch2Probe || "pot"}): Vpp = ${ch2Vpp.toFixed(2)}V | Vrms = ${ch2Vrms.toFixed(2)}V | Max = ${ch2Max.toFixed(2)}V`;
+    // Update DSO Telemetry Badges in DOM (throttled to 12 Hz to avoid 60 FPS layout reflows)
+    const nowPerf = typeof performance !== "undefined" ? performance.now() : Date.now();
+    if (!state._lastDsoHudUpdate || nowPerf - state._lastDsoHudUpdate > 80) {
+      state._lastDsoHudUpdate = nowPerf;
+      const dsoMetricsCh1 = state._dsoMetricsCh1El || (state._dsoMetricsCh1El = document.getElementById("dso-metrics-ch1"));
+      const dsoMetricsCh2 = state._dsoMetricsCh2El || (state._dsoMetricsCh2El = document.getElementById("dso-metrics-ch2"));
+      if (dsoMetricsCh1) {
+        dsoMetricsCh1.textContent = `CH1 (${state.dso?.ch1Probe || "pin13"}): Vpp = ${ch1Vpp.toFixed(2)}V | Vrms = ${ch1Vrms.toFixed(2)}V | Duty = ${dutyPercent}%`;
+      }
+      if (dsoMetricsCh2) {
+        dsoMetricsCh2.textContent = `CH2 (${state.dso?.ch2Probe || "pot"}): Vpp = ${ch2Vpp.toFixed(2)}V | Vrms = ${ch2Vrms.toFixed(2)}V | Max = ${ch2Max.toFixed(2)}V`;
+      }
     }
     plotterCtx.restore();
   }
