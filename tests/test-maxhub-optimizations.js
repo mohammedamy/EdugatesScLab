@@ -219,7 +219,7 @@ console.log("  ✅ PASS: Search input debounced against layout thrashing; smartb
 console.log("\n🔬 Test 11: All Virtual Lab Workbenches Disconnect Guards");
 const labFiles = fs.readdirSync(path.join(rootDir, "labs"))
   .filter(f => f.startsWith("bio-") || f.startsWith("chem-") || f.startsWith("phys-") || f === "anatomy-atlas.js");
-assert(labFiles.length === 46, `Expected exactly 46 virtual lab modules, found ${labFiles.length}`);
+assert(labFiles.length === 48, `Expected exactly 48 virtual lab modules, found ${labFiles.length}`);
 for (const f of labFiles) {
   const code = fs.readFileSync(path.join(rootDir, "labs", f), "utf-8");
   assert(

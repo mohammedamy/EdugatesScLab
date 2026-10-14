@@ -39,7 +39,7 @@ export const chemistryCurriculum = {
         { id: 4, title: "Elements and Compounds", objectives: ["Law of Definite Proportions", "Law of Multiple Proportions"] }
       ],
       formulas: ["m_{\\text{reactants}} = m_{\\text{products}}", "\\% \\text{ by mass} = \\frac{m_{\\text{element}}}{m_{\\text{compound}}} \\times 100\\%"],
-      lab: "lab-gas-laws"
+      lab: "lab-chromatography"
     },
     {
       id: 3,

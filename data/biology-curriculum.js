@@ -202,7 +202,7 @@ export const biologyCurriculum = {
         { id: 2, title: "The Human Genome", objectives: ["Human Genome Project findings", "Bioinformatics, DNA microarrays, pharmacogenomics", "Gene therapy and ethical dimensions"] }
       ],
       formulas: ["\\text{PCR Yield} = N_0 \\times 2^n \\text{ (where } n = \\text{cycles)}"],
-      lab: "lab-electrophoresis"
+      lab: "lab-pcrcrispr"
     },
 
     // UNIT 4: HISTORY OF BIOLOGICAL DIVERSITY
@@ -263,7 +263,7 @@ export const biologyCurriculum = {
         { id: 3, title: "Domains and Kingdoms", objectives: ["Domains: Bacteria, Archaea, Eukarya", "Kingdoms: Bacteria, Archaea, Protista, Fungi, Plantae, Animalia"] }
       ],
       formulas: ["\\text{Binomial Nomenclature: } \\textit{Homo sapiens}"],
-      lab: "lab-microscope"
+      lab: "lab-electrophoresis"
     },
 
     // UNIT 5: THE DIVERSITY OF LIFE

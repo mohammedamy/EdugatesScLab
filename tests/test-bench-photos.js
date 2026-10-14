@@ -73,10 +73,12 @@ const expectedBenchImages = [
   "orbital_bench.jpg",
   "sound_resonance_bench.jpg",
   "electrostatics_bench.jpg",
-  "arduino_bench.jpg"
+  "arduino_bench.jpg",
+  "chromatography_bench.jpg",
+  "pcr_crispr_bench.jpg"
 ];
 
-console.log("📁 Test 1: Verifying 46 Lab Bench Image Files in assets/labs/");
+console.log("📁 Test 1: Verifying 48 Lab Bench Image Files in assets/labs/");
 expectedBenchImages.forEach((filename) => {
   const filePath = path.join(rootDir, "assets", "labs", filename);
   const exists = fs.existsSync(filePath);
@@ -270,6 +272,20 @@ const newLabConfigs = [
     simBtn: "view-mode-arduino-sim",
     photoBtn: "view-mode-arduino-photo",
     overlay: "arduino-photo-overlay"
+  },
+  {
+    file: "labs/chem-chromatography.js",
+    image: "assets/labs/chromatography_bench.jpg",
+    simBtn: "view-mode-chrom-sim",
+    photoBtn: "view-mode-chrom-photo",
+    overlay: "chromatography-photo-overlay"
+  },
+  {
+    file: "labs/bio-pcr-crispr.js",
+    image: "assets/labs/pcr_crispr_bench.jpg",
+    simBtn: "view-mode-pcr-sim",
+    photoBtn: "view-mode-pcr-photo",
+    overlay: "pcr-crispr-photo-overlay"
   }
 ];
 

@@ -109,8 +109,8 @@ export const NAV_SUBJECTS = [
   {
     id: "labs",
     name: "Virtual Labs",
-    badge: "46 Labs",
-    tagline: "46 Interactive STEM Workbenches",
+    badge: "48 Labs",
+    tagline: "48 Interactive STEM Workbenches",
     icon: icons.microscope,
     themeClass: "tab-labs",
     color: "#38bdf8"
@@ -1975,11 +1975,12 @@ function getSubjectPlaceholderSvg(code) {
 // Master Registry of Virtual Laboratories (Classified by Chemistry, Physics, Biology)
 // Adding new labs here or via registerVirtualLab() automatically categorizes and sorts them alphabetically (A-Z).
 export const VIRTUAL_LABS_REGISTRY = [
-  // Chemistry Laboratories (15)
+  // Chemistry Laboratories (16)
   { id: "titration", subject: "chem", title: "Acid-Base Titration", icon: icons.titration, ariaLabel: "Acid-Base Titration Virtual Lab", href: "#labs/titration" },
   { id: "beerlambert", subject: "chem", title: "Beer-Lambert Law", icon: icons.beerLambert, ariaLabel: "Spectrophotometry and Beer-Lambert Law Lab", href: "#labs/beerlambert" },
   { id: "calorimetry", subject: "chem", title: "Calorimetry & ΔH", icon: icons.calorimetry, ariaLabel: "Calorimetry and Thermochemistry Virtual Lab", href: "#labs/calorimetry" },
   { id: "kinetics", subject: "chem", title: "Chemical Kinetics & Rates", icon: icons.reactionKinetics, ariaLabel: "Chemical Kinetics and Reaction Rates Lab", href: "#labs/kinetics" },
+  { id: "chromatography", subject: "chem", title: "Chromatography & Rf Separation", icon: icons.chromatography || icons.titration, ariaLabel: "Thin-Layer, Column and HPLC Chromatography Lab", href: "#labs/chromatography" },
   { id: "colligative", subject: "chem", title: "Colligative Properties", icon: icons.colligative, ariaLabel: "Colligative Properties and Freezing Point Lab", href: "#labs/colligative" },
   { id: "electrochem", subject: "chem", title: "Electrochemistry & Voltaic", icon: icons.electrochem, ariaLabel: "Electrochemistry and Voltaic Cells Lab", href: "#labs/electrochem" },
   { id: "equilibrium", subject: "chem", title: "Equilibrium & Le Chatelier", icon: icons.equilibrium, ariaLabel: "Chemical Equilibrium and Le Chatelier Lab", href: "#labs/equilibrium" },
@@ -1993,7 +1994,7 @@ export const VIRTUAL_LABS_REGISTRY = [
   { id: "vsepr", subject: "chem", title: "VSEPR 3D Modeler", icon: icons.vsepr, ariaLabel: "VSEPR 3D Modeler Lab", href: "#labs/vsepr" },
 
   // Physics Laboratories (16)
-  { id: "arduino", subject: "phys", title: "Arduino & Microcontrollers", icon: icons.circuit, ariaLabel: "Arduino Uno and Microcontroller Circuits Lab", href: "#labs/arduino" },
+  { id: "arduino", subject: "phys", title: "Arduino & Microcontrollers", icon: icons.arduino || icons.circuit, ariaLabel: "Arduino Uno and Microcontroller Circuits Lab", href: "#labs/arduino" },
   { id: "electrostatics", subject: "phys", title: "Coulomb & Electric Fields", icon: icons.electrostatics, ariaLabel: "Coulomb's Law and Electrostatic Field Mapping Lab", href: "#labs/electrostatics" },
   { id: "circuits", subject: "phys", title: "DC Circuits & Ohm's Law", icon: icons.circuit, ariaLabel: "DC Circuits and Ohm's Law Lab", href: "#labs/circuits" },
   { id: "induction", subject: "phys", title: "Electromagnetic Induction & Faraday", icon: icons.induction, ariaLabel: "Electromagnetic Induction and Faraday Lab", href: "#labs/induction" },
@@ -2010,7 +2011,7 @@ export const VIRTUAL_LABS_REGISTRY = [
   { id: "conduction", subject: "phys", title: "Thermal Conduction", icon: icons.thermalConduction, ariaLabel: "Thermal Conduction and Fourier Law Lab", href: "#labs/conduction" },
   { id: "waves", subject: "phys", title: "Wave Interference & Slits", icon: icons.waveInterference, ariaLabel: "Wave Interference and Slits Lab", href: "#labs/waves" },
 
-  // Biology Laboratories (15) - Suite Navigation href="#labs/anatomy"
+  // Biology Laboratories (16) - Suite Navigation href="#labs/anatomy"
   { id: "anatomy", subject: "bio", title: "4K Human Anatomy Atlas", icon: "🏛️", ariaLabel: "4K Human Anatomy Atlas and Histology Lab", href: "#labs/anatomy" },
   { id: "actionpotential", subject: "bio", title: "Action Potential Patch Clamp", icon: icons.actionPotential, ariaLabel: "Neurobiology and Action Potential Patch Clamp Lab", href: "#labs/actionpotential" },
   { id: "mitosis", subject: "bio", title: "Cell Cycle & Mitosis", icon: icons.mitosis, ariaLabel: "Cell Cycle and Mitosis Cytogenetics Lab", href: "#labs/mitosis" },
@@ -2021,6 +2022,7 @@ export const VIRTUAL_LABS_REGISTRY = [
   { id: "enzymes", subject: "bio", title: "Enzyme Kinetics", icon: icons.enzymes, ariaLabel: "Enzyme Kinetics and Catalysis Lab", href: "#labs/enzymes" },
   { id: "electrophoresis", subject: "bio", title: "Gel Electrophoresis", icon: icons.gelElectrophoresis, ariaLabel: "Agarose Gel Electrophoresis Lab", href: "#labs/electrophoresis" },
   { id: "antibiotic", subject: "bio", title: "Kirby-Bauer Antibiotic", icon: icons.antibiotic, ariaLabel: "Kirby-Bauer Antibiotic Resistance Lab", href: "#labs/antibiotic" },
+  { id: "pcrcrispr", subject: "bio", title: "PCR & CRISPR Gene Editing", icon: icons.pcrCrispr || icons.dna, ariaLabel: "PCR Thermal Cycler and CRISPR-Cas9 Gene Editing Lab", href: "#labs/pcrcrispr" },
   { id: "photosynthesis", subject: "bio", title: "Photosynthesis & Bioenergetics", icon: icons.photosynthesis, ariaLabel: "Photosynthesis and Bioenergetics Lab", href: "#labs/photosynthesis" },
   { id: "transpiration", subject: "bio", title: "Plant Transpiration & Stomata", icon: icons.transpiration, ariaLabel: "Plant Transpiration Potometer and Stomata Lab", href: "#labs/transpiration" },
   { id: "ecology", subject: "bio", title: "Population Ecology", icon: icons.populationEcology, ariaLabel: "Population Ecology and Lotka-Volterra Lab", href: "#labs/ecology" },
@@ -2035,7 +2037,7 @@ export const LAB_SUBJECT_CONFIG = {
     shortCode: "CHE",
     icon: "🧪",
     color: "#06b6d4",
-    description: "Titration, Equilibrium, Gas Laws, Thermodynamics, VSEPR & Reaction Kinetics"
+    description: "Titration, Chromatography, Equilibrium, Gas Laws, Thermodynamics, VSEPR & Kinetics"
   },
   phys: {
     id: "phys",
@@ -2043,7 +2045,7 @@ export const LAB_SUBJECT_CONFIG = {
     shortCode: "PHY",
     icon: "⚛️",
     color: "#6366f1",
-    description: "Kinematics, DC Circuits, Wave Optics, Harmonic Motion & Quantum Phenomena"
+    description: "Kinematics, DC Circuits, Arduino, Wave Optics, Harmonic Motion & Quantum Phenomena"
   },
   bio: {
     id: "bio",
@@ -2051,7 +2053,7 @@ export const LAB_SUBJECT_CONFIG = {
     shortCode: "BIO",
     icon: "🧬",
     color: "#10b981",
-    description: "4K Human Anatomy Atlas, Microscopy, Genetics, Enzyme Kinetics & Bioenergetics"
+    description: "4K Human Anatomy Atlas, PCR & CRISPR, Microscopy, Genetics, Enzymes & Bioenergetics"
   }
 };
 
@@ -2087,6 +2089,8 @@ export function getClassifiedVirtualLabs() {
 export function normalizeLabId(rawId) {
   if (!rawId) return "projectile";
   const str = String(rawId).toLowerCase().trim().replace(/^lab[-_]?/, "");
+  if (str === "chromatography" || str.includes("chromato") || str.includes("tlc") || str.includes("hplc")) return "chromatography";
+  if (str === "pcrcrispr" || str === "pcr-crispr" || str.includes("pcr") || str.includes("crispr") || str.includes("cas9")) return "pcrcrispr";
   if (str === "arduino" || str.includes("arduin") || str.includes("atmega") || str.includes("microcontrol")) return "arduino";
   if (str === "flametest" || str === "flame-test" || str.includes("flame")) return "flametest";
   if (str === "precipitation" || str.includes("precip") || str.includes("solubil")) return "precipitation";
@@ -2143,6 +2147,8 @@ function formatLabName(labKey) {
     if (reg && reg.title) return reg.title;
   }
   const map = {
+    "chromatography": "Chromatography & Rf Separation",
+    "pcrcrispr": "PCR & CRISPR Gene Editing",
     "arduino": "Arduino Uno & Microcontroller Circuitry",
     "projectile": "Kinematics & Dynamics",
     "titration": "Titration & Stoichiometry",
@@ -3107,7 +3113,7 @@ function renderVirtualLabsHub(container) {
       <div class="hero-banner labs-suite-hero">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
           <div class="hero-badge labs-suite-badge">
-            Interactive Simulation Workbenches (46 Labs)
+            Interactive Simulation Workbenches (48 Labs)
           </div>
           <div style="display: flex; align-items: center; gap: 8px;">
             <button class="btn btn-secondary" id="btn-lms-share-active-lab" title="Assign this laboratory workbench to Google Classroom, Classera, Canvas, or Teams" aria-label="Assign this laboratory workbench to LMS" style="padding: 6px 14px; font-size: 0.85rem; font-weight: 700; gap: 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
@@ -3220,6 +3226,13 @@ function mountActiveLab() {
   });
 
   const labLoaders = {
+    "chromatography": () => import("./labs/chem-chromatography.js?v=6.7").then(m => m.initChromatographyLab("active-lab-mount")),
+    "lab-chromatography": () => import("./labs/chem-chromatography.js?v=6.7").then(m => m.initChromatographyLab("active-lab-mount")),
+    "chem-chromatography": () => import("./labs/chem-chromatography.js?v=6.7").then(m => m.initChromatographyLab("active-lab-mount")),
+    "pcrcrispr": () => import("./labs/bio-pcr-crispr.js?v=6.7").then(m => m.initPcrCrisprLab("active-lab-mount")),
+    "pcr-crispr": () => import("./labs/bio-pcr-crispr.js?v=6.7").then(m => m.initPcrCrisprLab("active-lab-mount")),
+    "lab-pcrcrispr": () => import("./labs/bio-pcr-crispr.js?v=6.7").then(m => m.initPcrCrisprLab("active-lab-mount")),
+    "lab-pcr-crispr": () => import("./labs/bio-pcr-crispr.js?v=6.7").then(m => m.initPcrCrisprLab("active-lab-mount")),
     "projectile": () => import("./labs/phys-projectile.js?v=5.7").then(m => m.initProjectileLab("active-lab-mount")),
     "lab-projectile": () => import("./labs/phys-projectile.js?v=5.7").then(m => m.initProjectileLab("active-lab-mount")),
     "titration": () => import("./labs/chem-titration.js?v=5.7").then(m => m.initTitrationLab("active-lab-mount")),

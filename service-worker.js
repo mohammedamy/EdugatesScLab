@@ -3,16 +3,16 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v121";
+const CACHE_NAME = "amscilab-pwa-v122";
 
 const CORE_APP_SHELL = [
   "./",
   "./index.html",
   "./404.html",
   "./index.css",
-  "./index.css?v=6.6",
+  "./index.css?v=6.7",
   "./app.js",
-  "./app.js?v=6.6",
+  "./app.js?v=6.7",
   "./manifest.json",
   "./service-worker.js",
   "./sw.js",
@@ -154,6 +154,8 @@ const SECONDARY_ASSETS = [
   "./labs/bio-microscope.js",
   "./labs/chem-periodic-table.js",
   "./labs/phys-arduino.js",
+  "./labs/chem-chromatography.js",
+  "./labs/bio-pcr-crispr.js",
   "./labs/phys-circuits.js",
   "./labs/chem-gas-laws.js",
   "./labs/bio-dna-protein.js",
@@ -227,6 +229,10 @@ const SECONDARY_ASSETS = [
   "./assets/labs/calorimetry_bench.jpg",
   "./assets/labs/arduino_bench.webp",
   "./assets/labs/arduino_bench.jpg",
+  "./assets/labs/chromatography_bench.webp",
+  "./assets/labs/chromatography_bench.jpg",
+  "./assets/labs/pcr_crispr_bench.webp",
+  "./assets/labs/pcr_crispr_bench.jpg",
   "./assets/labs/circuits_bench.jpg",
   "./assets/labs/colligative_bench.jpg",
   "./assets/labs/conduction_bench.jpg",

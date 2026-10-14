@@ -3274,6 +3274,132 @@ export const LAB_CHECKPOINTS = {
       correctIndex: 1,
       explanation: "Mechanical switches contain elastic metal spring contacts that bounce against each other repeatedly upon closure over 5–20 ms before settling. Firmware debouncing ignores state changes occurring within a refractory window (typically 10–20 ms delay or state machine timer) to register exactly one clean edge per press."
     }
+  ],
+
+  chromatography: [
+    {
+      id: "q1",
+      question: "On a normal-phase Thin-Layer Chromatography (TLC) plate coated with polar silica gel ($\\text{SiO}_2\\text{-OH}$), the solvent front advances $d_{\\text{solvent}} = 75.0\\text{ mm}$ from the origin baseline, and a chlorophyll $a$ pigment spot migrates $d_{\\text{substance}} = 36.0\\text{ mm}$. What is its retention factor ($R_f$)?",
+      options: [
+        "$R_f = 2.08$",
+        "$R_f = 0.480$ [using $R_f = d_{\\text{substance}} / d_{\\text{solvent}}$]",
+        "$R_f = 0.390$",
+        "$R_f = 0.750$"
+      ],
+      correctIndex: 1,
+      explanation: "The retention factor is the dimensionless ratio of the distance traveled by the analyte center to the distance traveled by the solvent front: $R_f = \\frac{36.0\\text{ mm}}{75.0\\text{ mm}} = 0.480$. Because no solute can outrun the solvent front, $R_f$ is always bounded between $0.0$ and $1.0$."
+    },
+    {
+      id: "q2",
+      question: "In spinach leaf chromatography on polar silica gel ($\\text{Si-OH}$) using a relatively nonpolar hexane/ethyl acetate eluent, why does $\\beta$-carotene ($\\text{C}_{40}\\text{H}_{56}$) exhibit a much higher $R_f$ ($\\approx 0.92$) than lutein/xanthophyll ($\\text{C}_{40}\\text{H}_{56}\\text{O}_2$, $R_f \\approx 0.21$)?",
+      options: [
+        "β-Carotene has a higher molecular weight than lutein",
+        "β-Carotene is a purely nonpolar hydrocarbon interacting only via weak London dispersion forces with silica, whereas lutein possesses two polar hydroxyl (-OH) groups that form strong hydrogen bonds with surface silanol (Si-OH) sites",
+        "Lutein evaporates into the gas phase inside the developing chamber",
+        "β-Carotene forms covalent silicon-carbon bonds with the stationary phase"
+      ],
+      correctIndex: 1,
+      explanation: "Normal-phase silica gel contains strongly polar silanol ($\\text{-Si-OH}$) groups. Lutein contains two polar $-\\text{OH}$ functional groups that hydrogen-bond strongly to the stationary phase, retarding its migration (low $R_f$). $\\beta$-Carotene lacks oxygen atoms and is purely nonpolar, so it partitions preferentially into the nonpolar mobile phase and travels near the solvent front (high $R_f$)."
+    },
+    {
+      id: "q3",
+      question: "How does increasing the percentage of polar Ethyl Acetate in a Hexane/Ethyl Acetate mobile phase affect the $R_f$ values of analytes on a normal-phase silica TLC plate?",
+      options: [
+        "All $R_f$ values decrease toward zero because ethyl acetate solidifies on silica",
+        "All $R_f$ values increase because polar ethyl acetate molecules compete actively for polar silanol (Si-OH) adsorption sites, displacing analyte molecules into the flowing mobile phase",
+        "$R_f$ values remain constant because $R_f$ is independent of solvent composition",
+        "Only nonpolar hydrocarbon $R_f$ values decrease while polar compounds remain stationary"
+      ],
+      correctIndex: 1,
+      explanation: "Increasing the eluotropic strength ($P'$) of the mobile phase by adding polar ethyl acetate causes solvent molecules to bind to the polar $\\text{Si-OH}$ surface sites, reducing analyte adsorption and increasing the fraction of time all solutes spend moving with the mobile phase (higher $R_f$, shorter column retention time $t_R$)."
+    },
+    {
+      id: "q4",
+      question: "Why must the initial sample spotting origin line on a TLC plate be drawn in graphite pencil rather than ink, and positioned above the pool of developing solvent at the bottom of the chamber?",
+      options: [
+        "Graphite acts as a catalyst for capillary rise",
+        "Pen ink contains organic dyes that would dissolve and elute across the plate, and submerging the spots below the solvent pool would wash the analytes directly into the reservoir instead of carrying them upward by capillary action",
+        "Graphite fluoresces at 254 nm to calibrate the UV lamp",
+        "Submerging the origin line increases chromatographic resolution $R_s$"
+      ],
+      correctIndex: 1,
+      explanation: "Inks are mixtures of soluble organic chromophores that would chromatograph alongside the sample and contaminate the plate. Furthermore, if the spotted baseline is immersed below the liquid meniscus, the sample dissolves directly into the bottom solvent pool rather than ascending cleanly via capillary action."
+    },
+    {
+      id: "q5",
+      question: "When switching from Normal-Phase Silica ($\\text{SiO}_2\\text{-OH}$) to Reversed-Phase $\\text{C}_{18}$ (octadecyl-functionalized silica), what happens to the elution order of caffeine (highly polar) versus ibuprofen (less polar, hydrophobic isobutyl group)?",
+      options: [
+        "The elution order reverses: polar caffeine elutes first (higher $R_f$, shorter $t_R$) while hydrophobic ibuprofen is strongly retained by van der Waals interactions with the nonpolar $\\text{C}_{18}$ alkyl chains",
+        "Both compounds co-elute at $R_f = 1.0$",
+        "Caffeine binds irreversibly to the nonpolar $\\text{C}_{18}$ chains via ionic bonds",
+        "The elution order remains identical to normal-phase silica"
+      ],
+      correctIndex: 0,
+      explanation: "In Reversed-Phase chromatography, the stationary phase is nonpolar ($\\text{C}_{18}$ hydrocarbon chains) and the mobile phase is polar. Hydrophobic/nonpolar molecules like ibuprofen partition strongly into the $\\text{C}_{18}$ brush layer (longer retention), whereas polar caffeine stays in the polar mobile phase and elutes first."
+    }
+  ],
+
+  pcrcrispr: [
+    {
+      id: "q1",
+      question: "What are the correct sequential temperatures and molecular events in a standard 3-step Polymerase Chain Reaction (PCR) thermal cycle?",
+      options: [
+        "37°C Denaturation → 95°C Annealing → 55°C Extension",
+        "95°C Denaturation (dsDNA H-bond separation) → 54–62°C Annealing (primer hybridization to 3' flanking sites) → 72°C Extension (Taq DNA polymerase 5'→3' synthesis)",
+        "72°C Denaturation → 55°C Annealing → 95°C Ligation",
+        "58°C Helicase unwinding → 72°C RNA primase synthesis → 95°C Okazaki ligation"
+      ],
+      correctIndex: 1,
+      explanation: "PCR cycles through three precision Peltier temperatures: (1) Denaturation at ~95°C thermally disrupts hydrogen bonds between complementary bases to yield single-stranded DNA templates; (2) Annealing at 54–62°C allows forward and reverse primers to base-pair with target sequences; (3) Extension at 72°C is the temperature optimum for thermostable *Taq* polymerase to synthesize new DNA strands."
+    },
+    {
+      id: "q2",
+      question: "A forensic sample begins with $N_0 = 100$ template copies of a target DNA locus. Assuming ideal $100\\%$ amplification efficiency ($E = 1.0$), how many amplicon copies ($N = N_0 \\cdot 2^n$) are present after $n = 20$ thermal cycles?",
+      options: [
+        "$2.00 \\times 10^3$ copies",
+        "$1.05 \\times 10^8$ copies ($100 \\times 2^{20} = 100 \\times 1,048,576$)",
+        "$4.00 \\times 10^4$ copies",
+        "$1.00 \\times 10^{20}$ copies"
+      ],
+      correctIndex: 1,
+      explanation: "During exponential PCR amplification with $E = 1.0$, target DNA doubles every cycle: $N(20) = 100 \\times 2^{20} = 100 \\times 1,048,576 = 104,857,600 \\approx 1.05 \\times 10^8$ copies."
+    },
+    {
+      id: "q3",
+      question: "Why is *Taq* DNA polymerase (isolated from the thermophilic bacterium *Thermus aquaticus*) essential for automated PCR thermal cycling compared to human or *E. coli* DNA polymerase?",
+      options: [
+        "Taq polymerase can synthesize DNA in the 3' → 5' direction without primers",
+        "Taq polymerase remains structurally stable and catalytically active after repeated heating to 95°C during denaturation, whereas mesophilic polymerases irreversibly denature at high temperatures",
+        "Taq polymerase automatically cleaves PAM sequences without guide RNA",
+        "Taq polymerase converts mRNA directly into protein"
+      ],
+      correctIndex: 1,
+      explanation: "*Thermus aquaticus* thrives in hydrothermal vents (~70–80°C). Its thermostable *Taq* DNA polymerase withstands repeated 95°C denaturation steps without unfolding, eliminating the need to manually add fresh enzyme after every heating cycle."
+    },
+    {
+      id: "q4",
+      question: "In the CRISPR-SpCas9 gene-editing system, what is the mandatory role of the Protospacer Adjacent Motif ($5'\\text{-NGG-}3'$ PAM) on the non-target DNA strand?",
+      options: [
+        "It provides ATP energy for Taq polymerase",
+        "SpCas9 must first recognize and bind the $5'\\text{-NGG-}3'$ PAM sequence before unwinding the adjacent DNA duplex to test base-pairing with the 20-nt sgRNA spacer and catalyzing a double-strand break 3 bp upstream",
+        "It degrades the single-guide RNA after transcription",
+        "It methylates histone tails to silence the entire chromosome"
+      ],
+      correctIndex: 1,
+      explanation: "TheCas9 endonuclease scans genomic DNA specifically for the $5'\\text{-NGG-}3'$ PAM dinucleotide signature. Only upon PAM binding does Cas9 locally melt the DNA strands to allow the 20-nt sgRNA spacer to form an R-loop; if complementary, the HNH and RuvC domains cleave both DNA strands 3 base pairs upstream of the PAM."
+    },
+    {
+      id: "q5",
+      question: "To correct the sickle-cell point mutation in the human $HBB$ gene ($\\text{GAG} \\to \\text{GTG}$, $\\text{Glu6Val}$) back to the wild-type sequence following a CRISPR-Cas9 double-strand break, which cellular repair pathway and reagent must be utilized?",
+      options: [
+        "Non-Homologous End Joining (NHEJ) without any donor DNA template",
+        "Homology-Directed Repair (HDR) supplied with an exogenous single-stranded or double-stranded donor DNA template containing the wild-type GAG codon flanked by homologous arms",
+        "Agarose gel electrophoresis followed by Coomassie staining",
+        "Reverse transcription of ribosomal RNA"
+      ],
+      correctIndex: 1,
+      explanation: "NHEJ ligates broken DNA ends directly without a template, frequently introducing stochastic insertion/deletion (indel) frameshifts used for gene knockouts. To perform a precise base correction (knock-in), cells must use Homology-Directed Repair (HDR) guided by a homologous donor DNA template carrying the corrected wild-type sequence."
+    }
   ]
 };
 
@@ -3290,6 +3416,8 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
     if (LAB_CHECKPOINTS[raw]) return LAB_CHECKPOINTS[raw];
     if (LAB_CHECKPOINTS[clean]) return LAB_CHECKPOINTS[clean];
     if (LAB_CHECKPOINTS[clean + "s"]) return LAB_CHECKPOINTS[clean + "s"];
+    if (clean.includes("chromato") || clean.includes("tlc") || clean.includes("rfsep")) return LAB_CHECKPOINTS.chromatography;
+    if (clean.includes("pcr") || clean.includes("crispr") || clean.includes("cas9") || clean.includes("geneedit")) return LAB_CHECKPOINTS.pcrcrispr;
     if (clean.includes("arduino") || clean.includes("atmega") || clean.includes("mcu")) return LAB_CHECKPOINTS.arduino;
     if (clean.includes("flame") || clean.includes("spectro")) return LAB_CHECKPOINTS.flametest;
     if (clean.includes("precip") || clean.includes("solubil")) return LAB_CHECKPOINTS.precipitation;

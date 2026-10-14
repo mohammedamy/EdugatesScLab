@@ -120,6 +120,20 @@ export const EXPERIMENT_CATALOG = [
     thumbnail: "assets/labs/flame_test_bench.jpg",
     launchHref: "#labs/flametest"
   },
+  {
+    id: "chromatography",
+    title: "Thin-Layer (TLC) & Flash Column Chromatography",
+    subject: "chem",
+    subjectName: "Chemistry",
+    difficulty: "Intermediate",
+    estimatedTime: "45 mins",
+    equipment: ["Borosilicate TLC Chamber", "Silica Gel 60 F254 Plates", "Flash Chromatography Column", "UV-254/365 nm Fluorescence Lamp", "Digital Vernier Caliper"],
+    formula: "R_f = \\frac{d_{\\text{substance}}}{d_{\\text{solvent}}} \\quad \\bullet \\quad R_s = \\frac{2\\Delta t_R}{w_1 + w_2}",
+    description: "Separate plant chloroplast pigments, pharmaceutical analgesics, and organic chromophores via capillary silica partitioning, UV-254nm fluorescence quenching, and live HPLC elution chromatograms.",
+    pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
+    thumbnail: "assets/labs/chromatography_bench.jpg",
+    launchHref: "#labs/chromatography"
+  },
 
   // Physics Experiments
   {
@@ -347,6 +361,20 @@ export const EXPERIMENT_CATALOG = [
     pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
     thumbnail: "assets/labs/mitosis_bench.jpg",
     launchHref: "#labs/mitosis"
+  },
+  {
+    id: "pcrcrispr",
+    title: "PCR Thermal Cycler, qPCR & CRISPR-Cas9 Gene Editing",
+    subject: "bio",
+    subjectName: "Biology",
+    difficulty: "Advanced",
+    estimatedTime: "55 mins",
+    equipment: ["96-Well Peltier qPCR Thermal Cycler", "Taq DNA Polymerase Master Mix", "SpCas9-sgRNA Ribonucleoprotein", "SYBR Green Fluorometer", "Micropipette Carousel"],
+    formula: "N(n) = N_0 (1 + E)^n \\quad \\bullet \\quad \\text{PAM: } 5'\\text{-NGG-}3'",
+    description: "Amplify target human genomic loci via 3-step Peltier thermal cycling (95°C/58°C/72°C), quantify real-time qPCR Ct thresholds, and execute CRISPR-Cas9 PAM-guided gene repair (HDR/NHEJ).",
+    pdfUrl: "./Edugates_STEM_Labs_Teacher_Guide.pdf",
+    thumbnail: "assets/labs/pcr_crispr_bench.jpg",
+    launchHref: "#labs/pcrcrispr"
   }
 ];
 

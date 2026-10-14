@@ -1342,7 +1342,41 @@ export const icons = {
     <circle cx="17" cy="12" r="4" stroke="#3b82f6" stroke-width="2" fill="rgba(59, 130, 246, 0.2)"/>
     <line x1="15.5" y1="12" x2="18.5" y2="12" stroke="#3b82f6" stroke-width="2"/>
     <path d="M11 9c1 1.5 1 4.5 0 6M13 9c-1 1.5-1 4.5 0 6" stroke="#fbbf24" stroke-width="1.5"/>
+  </svg>`,
+
+  chromatography: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="2" width="16" height="20" rx="2" stroke="#38bdf8" fill="rgba(56, 189, 248, 0.08)"/>
+    <rect x="7" y="4" width="10" height="15" rx="1" stroke="#e2e8f0" fill="rgba(248, 250, 252, 0.15)"/>
+    <line x1="4" y1="18" x2="20" y2="18" stroke="#06b6d4" stroke-width="1.8"/>
+    <line x1="7" y1="6.5" x2="17" y2="6.5" stroke="#94a3b8" stroke-dasharray="1.5 1.5" stroke-width="1"/>
+    <circle cx="10" cy="8.5" r="1.4" fill="#f97316"/>
+    <circle cx="14" cy="10" r="1.4" fill="#eab308"/>
+    <circle cx="10" cy="12.5" r="1.5" fill="#10b981"/>
+    <circle cx="14" cy="14.5" r="1.3" fill="#84cc16"/>
+  </svg>`,
+
+  pcrCrispr: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 7c4-4 8 4 12 0s4-2 4-2" stroke="#38bdf8" stroke-width="2"/>
+    <path d="M4 17c4 4 8-4 12 0s4 2 4 2" stroke="#10b981" stroke-width="2"/>
+    <line x1="7" y1="6.5" x2="7" y2="17.5" stroke="#94a3b8" stroke-width="1.4"/>
+    <line x1="11" y1="8.5" x2="11" y2="15.5" stroke="#f43f5e" stroke-width="1.8" stroke-dasharray="1.5 1.5"/>
+    <line x1="15" y1="6.5" x2="15" y2="17.5" stroke="#facc15" stroke-width="1.6"/>
+    <circle cx="11" cy="12" r="3.5" stroke="#f43f5e" stroke-width="1.5" fill="rgba(244, 63, 94, 0.2)"/>
+  </svg>`,
+
+  arduino: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="5" width="18" height="14" rx="2" stroke="#06b6d4" fill="rgba(6, 182, 212, 0.15)"/>
+    <rect x="8" y="9" width="8" height="6" rx="1" stroke="#38bdf8" fill="#0f172a"/>
+    <line x1="6" y1="3" x2="6" y2="5" stroke="#fbbf24"/>
+    <line x1="10" y1="3" x2="10" y2="5" stroke="#fbbf24"/>
+    <line x1="14" y1="3" x2="14" y2="5" stroke="#fbbf24"/>
+    <line x1="18" y1="3" x2="18" y2="5" stroke="#fbbf24"/>
+    <line x1="6" y1="19" x2="6" y2="21" stroke="#fbbf24"/>
+    <line x1="10" y1="19" x2="10" y2="21" stroke="#fbbf24"/>
+    <line x1="14" y1="19" x2="14" y2="21" stroke="#fbbf24"/>
+    <line x1="18" y1="19" x2="18" y2="21" stroke="#fbbf24"/>
   </svg>`
 };
+
 
 
