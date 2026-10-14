@@ -51,6 +51,7 @@ const CORE_APP_SHELL = [
   "./components/lesson-plan-generator.js",
   "./components/progress-tracker.js",
   "./components/quiz-engine.js",
+  "./components/quiz-engine.js?v=3.1",
   "./components/smartboard-toolbar.js",
   "./components/science-calculator.js",
   "./components/flashcards.js",
