@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v119";
+const CACHE_NAME = "amscilab-pwa-v120";
 
 const CORE_APP_SHELL = [
   "./",
@@ -406,25 +406,23 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(req).then((cachedResponse) => {
       if (cachedResponse) {
-        // Return cached asset immediately for 0-latency 60 FPS performance
+        // Return exact cached asset immediately for 0-latency 60 FPS performance
         return cachedResponse;
       }
-      return caches.match(req, { ignoreSearch: true }).then((fuzzyMatch) => {
-        if (fuzzyMatch) {
-          return fuzzyMatch;
+      // Exact cache miss (e.g. bumped ?v= query): fetch fresh from network first, fallback to ignoreSearch offline
+      return fetch(req).then((networkResponse) => {
+        if (
+          networkResponse &&
+          networkResponse.status === 200 &&
+          (networkResponse.type === "basic" || networkResponse.type === "default" || networkResponse.type === "cors")
+        ) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, responseToCache));
         }
-        // Cache miss: fetch from network, populate cache, and return
-        return fetch(req).then((networkResponse) => {
-          if (
-            networkResponse &&
-            networkResponse.status === 200 &&
-            (networkResponse.type === "basic" || networkResponse.type === "default" || networkResponse.type === "cors")
-          ) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(req, responseToCache));
-          }
-          return networkResponse;
-        }).catch((err) => {
+        return networkResponse;
+      }).catch((err) => {
+        return caches.match(req, { ignoreSearch: true }).then((fuzzyMatch) => {
+          if (fuzzyMatch) return fuzzyMatch;
           console.warn("[AmScLab PWA] Offline fetch fallback for:", req.url, err);
           if (url.pathname.includes("microscope_bench.jpg") || url.pathname.includes("bio_microscope.jpg")) {
             return caches.match("./assets/labs/microscope_bench.jpg").then((res) => res || caches.match("./assets/bench-photos/bio_microscope.jpg"));

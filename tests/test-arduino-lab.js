@@ -745,6 +745,49 @@ check(btnLayoutToggle.textContent.includes("100% Full Width"), "Clicking '#btn-a
 canvas.dispatch("mousemove", { clientX: 481.5, clientY: 116.5 });
 check(hudPinHoleInspector.textContent.includes("b3") && hudPinHoleInspector.textContent.includes("a3–e3"), "Hovering breadboard hole (481.5, 116.5) updates #hud-pin-hole-inspector with Hole b3 and 5-hole strip a3–e3");
 
+// Hover over LED +Anode hole e3 (481.5, 158.5) and LED -Cathode hole e4 (494.0, 158.5)
+canvas.dispatch("mousemove", { clientX: 481.5, clientY: 158.5 });
+check(hudPinHoleInspector.textContent.includes("e3") && hudPinHoleInspector.textContent.includes("+Anode"), "Hovering LED Anode hole e3 (481.5, 158.5) reports LED +Anode Leg (e3) & Arduino Pin D13");
+canvas.dispatch("mousemove", { clientX: 494.0, clientY: 158.5 });
+check(hudPinHoleInspector.textContent.includes("e4") && hudPinHoleInspector.textContent.includes("−Cathode"), "Hovering LED Cathode hole e4 (494.0, 158.5) reports LED −Cathode Leg (e4) & 220Ω Resistor (b4 ➔ GND)");
+
+// Test getDefaultComponentsForExperiment and Ready-Made Project Switching
+check(typeof mod.getDefaultComponentsForExperiment === "function", "phys-arduino.js exports getDefaultComponentsForExperiment()");
+const allProjectsHaveDefaultComponents = mod.ARDUINO_EXPERIMENTS.every(exp => {
+  const comps = mod.getDefaultComponentsForExperiment(exp.id);
+  return Array.isArray(comps) && comps.length >= 2 && comps.every(c => c.id && c.type && c.label && c.pin !== undefined);
+});
+check(allProjectsHaveDefaultComponents, "All 16 Arduino projects return valid non-empty breadboard component lists via getDefaultComponentsForExperiment()");
+
+const selExpEl = document.getElementById("sel-arduino-exp");
+// Switch to Project #2: Automatic LDR Nightlight (index 1)
+selExpEl.value = "1";
+selExpEl.dispatch("change", { target: { value: "1" } });
+check(
+  cleanup.state.selectedExpIndex === 1 &&
+  cleanup.state.components.customPlacedComponents.some(c => c.type === "ldr_sensor") &&
+  cleanup.state.components.customPlacedComponents.some(c => c.label.includes("+e12 / −e13")),
+  "Selecting Ready-Made Project #2 (LDR Nightlight) populates breadboard components (LDR + PWM LED +e12/−e13)"
+);
+
+// Switch to Project #4: RGB Mood Lamp (index 3)
+selExpEl.value = "3";
+selExpEl.dispatch("change", { target: { value: "3" } });
+check(
+  cleanup.state.selectedExpIndex === 3 &&
+  cleanup.state.components.customPlacedComponents.some(c => c.type === "rgb_led" && c.label.includes("e7/e8/e9/e10")),
+  "Selecting Ready-Made Project #4 (RGB Mood Lamp) populates 4-Pin RGB LED (e7/e8/e9/e10) and Hue Potentiometer on board"
+);
+
+// Switch back to Project #1: Traffic Light (index 0)
+selExpEl.value = "0";
+selExpEl.dispatch("change", { target: { value: "0" } });
+check(
+  cleanup.state.selectedExpIndex === 0 &&
+  cleanup.state.components.customPlacedComponents.length === 6,
+  "Selecting Ready-Made Project #1 (Traffic Light) restores all 6 Traffic Light components on board"
+);
+
 // Allow a couple simulation frames to cycle
 await new Promise(r => setTimeout(r, 45));
 

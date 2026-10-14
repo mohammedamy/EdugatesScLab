@@ -1923,118 +1923,231 @@ export function getDefaultWiresForExperiment(expId) {
     case "traffic_light":
       return [
         ...powerBus,
-        { id: "w_btn", from: "D2", to: "PUSHBUTTON", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 667, ey: 112, color: "#38bdf8", label: "D2 ➔ Pedestrian Button" },
-        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 742, ey: 112, color: "#a855f7", label: "D8 ➔ Warning Buzzer" },
-        { id: "w_led_r", from: "D13", to: "LED_RED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 485, ey: 112, color: "#ef4444", label: "D13 ➔ Red LED Anode" },
-        { id: "w_led_y", from: "D12", to: "LED_YELLOW", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 545, ey: 112, color: "#f59e0b", label: "D12 ➔ Yellow LED Anode" },
-        { id: "w_led_g", from: "D11", to: "LED_GREEN", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 605, ey: 112, color: "#10b981", label: "D11 ➔ Green LED Anode" }
+        { id: "w_btn", from: "D2", to: "PUSHBUTTON", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 669.0, ey: 102.5, color: "#38bdf8", label: "D2 ➔ Button (a18 ➔ e18)" },
+        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 744.0, ey: 102.5, color: "#a855f7", label: "D8 ➔ Buzzer+ (a24 ➔ e24)" },
+        { id: "w_led_r", from: "D13", to: "LED_RED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 481.5, ey: 102.5, color: "#ef4444", label: "D13 ➔ Red LED +Anode (e3) · −Cath (e4)" },
+        { id: "w_led_y", from: "D12", to: "LED_YELLOW", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 544.0, ey: 102.5, color: "#f59e0b", label: "D12 ➔ Yellow LED +Anode (e8) · −Cath (e9)" },
+        { id: "w_led_g", from: "D11", to: "LED_GREEN", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 606.5, ey: 102.5, color: "#10b981", label: "D11 ➔ Green LED +Anode (e13) · −Cath (e14)" }
       ];
     case "ultrasonic_radar":
       return [
         ...powerBus,
-        { id: "w_trig", from: "D12", to: "SONAR_TRIG", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 525, ey: 112, color: "#38bdf8", label: "D12 ➔ Sonar Trig" },
-        { id: "w_echo", from: "D11", to: "SONAR_ECHO", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 540, ey: 112, color: "#10b981", label: "D11 ➔ Sonar Echo" },
-        { id: "w_warn", from: "D13", to: "LED_WARN", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 650, ey: 112, color: "#ef4444", label: "D13 ➔ Warning LED Anode" },
-        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 730, ey: 112, color: "#a855f7", label: "D8 ➔ Proximity Buzzer" }
+        { id: "w_trig", from: "D12", to: "SONAR_TRIG", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 519.0, ey: 102.5, color: "#38bdf8", label: "D12 ➔ Sonar Trig (a6)" },
+        { id: "w_echo", from: "D11", to: "SONAR_ECHO", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 544.0, ey: 102.5, color: "#10b981", label: "D11 ➔ Sonar Echo (a8)" },
+        { id: "w_warn", from: "D13", to: "LED_WARN", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 644.0, ey: 102.5, color: "#ef4444", label: "D13 ➔ Warn LED +Anode (e16) · −Cath (e17)" },
+        { id: "w_bz", from: "D8", to: "BUZZER", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 731.5, ey: 102.5, color: "#a855f7", label: "D8 ➔ Buzzer+ (a23)" }
       ];
     case "ldr_nightlight":
       return [
         ...powerBus,
-        { id: "w_ldr", from: "A1", to: "LDR", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 500, ey: 112, color: "#38bdf8", label: "A1 ➔ LDR Divider Node" },
-        { id: "w_pwm", from: "D9", to: "LED_PWM", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 600, ey: 112, color: "#a855f7", label: "D9 (~PWM) ➔ Dimming LED Anode" },
-        { id: "w_pot", from: "A0", to: "POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 112, color: "#facc15", label: "A0 ➔ Threshold Pot Wiper" }
+        { id: "w_ldr", from: "A1", to: "LDR", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 506.5, ey: 102.5, color: "#38bdf8", label: "A1 ➔ LDR Node (a5)" },
+        { id: "w_pwm", from: "D9", to: "LED_PWM", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 594.0, ey: 102.5, color: "#a855f7", label: "D9 (~PWM) ➔ LED +Anode (e12) · −Cath (e13)" },
+        { id: "w_pot", from: "A0", to: "POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 706.5, ey: 102.5, color: "#facc15", label: "A0 ➔ Pot Wiper (a21)" }
       ];
     case "servo_control":
       return [
         ...powerBus,
-        { id: "w_srv", from: "D9", to: "SERVO_SIG", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 560, ey: 112, color: "#f97316", label: "D9 (~PWM) ➔ Servo Signal" },
-        { id: "w_pot", from: "A0", to: "POT_WIPER", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 112, color: "#38bdf8", label: "A0 ➔ Steering Pot Wiper" }
+        { id: "w_srv", from: "D9", to: "SERVO_SIG", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 556.5, ey: 102.5, color: "#f97316", label: "D9 (~PWM) ➔ Servo Sig (a9)" },
+        { id: "w_pot", from: "A0", to: "POT_WIPER", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 706.5, ey: 102.5, color: "#38bdf8", label: "A0 ➔ Pot Wiper (a21)" }
       ];
     case "chiptune_melody":
       return [
         ...powerBus,
-        { id: "w_bz", from: "D8", to: "PIEZO", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 580, ey: 112, color: "#a855f7", label: "D8 ➔ Piezo Sounder (+)" },
-        { id: "w_led", from: "D13", to: "LED_TEMPO", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 700, ey: 112, color: "#38bdf8", label: "D13 ➔ Beat Strobe Anode" }
+        { id: "w_bz", from: "D8", to: "PIEZO", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 581.5, ey: 102.5, color: "#a855f7", label: "D8 ➔ Piezo+ (a11)" },
+        { id: "w_led", from: "D13", to: "LED_TEMPO", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 694.0, ey: 102.5, color: "#38bdf8", label: "D13 ➔ Tempo LED +Anode (e20) · −Cath (e21)" }
       ];
     case "weather_station":
       return [
         ...powerBus,
-        { id: "w_sda", from: "A4", to: "LCD_SDA", sx: ARDUINO_PINS["A4"].x, sy: ARDUINO_PINS["A4"].y, ex: 595, ey: 112, color: "#10b981", label: "A4 ➔ I2C SDA" },
-        { id: "w_scl", from: "A5", to: "LCD_SCL", sx: ARDUINO_PINS["A5"].x, sy: ARDUINO_PINS["A5"].y, ex: 610, ey: 112, color: "#38bdf8", label: "A5 ➔ I2C SCL" },
-        { id: "w_tmp", from: "A1", to: "TMP36", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 730, ey: 112, color: "#facc15", label: "A1 ➔ TMP36 Vout" }
+        { id: "w_sda", from: "A4", to: "LCD_SDA", sx: ARDUINO_PINS["A4"].x, sy: ARDUINO_PINS["A4"].y, ex: 594.0, ey: 102.5, color: "#10b981", label: "A4 ➔ I2C SDA (a12)" },
+        { id: "w_scl", from: "A5", to: "LCD_SCL", sx: ARDUINO_PINS["A5"].x, sy: ARDUINO_PINS["A5"].y, ex: 606.5, ey: 102.5, color: "#38bdf8", label: "A5 ➔ I2C SCL (a13)" },
+        { id: "w_tmp", from: "A1", to: "TMP36", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 731.5, ey: 102.5, color: "#facc15", label: "A1 ➔ TMP36 Vout (a23)" }
       ];
     case "rgb_mood_lamp":
       return [
         ...powerBus,
-        { id: "w_r", from: "D9", to: "RGB_R", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 510, ey: 112, color: "#ef4444", label: "D9 (PWM) ➔ Red Limiter" },
-        { id: "w_g", from: "D10", to: "RGB_G", sx: ARDUINO_PINS["D10"].x, sy: ARDUINO_PINS["D10"].y, ex: 540, ey: 112, color: "#10b981", label: "D10 (PWM) ➔ Green Limiter" },
-        { id: "w_b", from: "D11", to: "RGB_B", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 570, ey: 112, color: "#38bdf8", label: "D11 (PWM) ➔ Blue Limiter" },
-        { id: "w_pot", from: "A0", to: "POT_HUE", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 112, color: "#facc15", label: "A0 ➔ Hue Selector Wiper" }
+        { id: "w_r", from: "D9", to: "RGB_R", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 531.5, ey: 102.5, color: "#ef4444", label: "D9 ➔ RGB Red Pin (e7)" },
+        { id: "w_g", from: "D10", to: "RGB_G", sx: ARDUINO_PINS["D10"].x, sy: ARDUINO_PINS["D10"].y, ex: 556.5, ey: 102.5, color: "#10b981", label: "D10 ➔ RGB Green Pin (e9)" },
+        { id: "w_b", from: "D11", to: "RGB_B", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 569.0, ey: 102.5, color: "#38bdf8", label: "D11 ➔ RGB Blue Pin (e10)" },
+        { id: "w_pot", from: "A0", to: "POT_HUE", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 706.5, ey: 102.5, color: "#facc15", label: "A0 ➔ Hue Pot (a21)" }
       ];
     case "dc_motor_speed":
       return [
         ...powerBus,
-        { id: "w_mot", from: "D5", to: "MOSFET_GATE", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 630, ey: 112, color: "#a855f7", label: "D5 (PWM) ➔ Driver Gate (1kΩ)" },
-        { id: "w_pot", from: "A0", to: "POT_SPEED", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 720, ey: 112, color: "#38bdf8", label: "A0 ➔ Throttle Pot Wiper" }
+        { id: "w_mot", from: "D5", to: "MOSFET_GATE", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 631.5, ey: 102.5, color: "#a855f7", label: "D5 (PWM) ➔ Driver Gate (a15)" },
+        { id: "w_pot", from: "A0", to: "POT_SPEED", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 719.0, ey: 102.5, color: "#38bdf8", label: "A0 ➔ Throttle Pot (a22)" }
       ];
     case "pir_alarm":
       return [
         ...powerBus,
-        { id: "w_pir", from: "D7", to: "PIR_OUT", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 510, ey: 112, color: "#facc15", label: "D7 ➔ PIR Trigger Out" },
-        { id: "w_rly", from: "D4", to: "RELAY_IN", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 610, ey: 112, color: "#38bdf8", label: "D4 ➔ Relay Coil In" },
-        { id: "w_warn", from: "D13", to: "LED_WARN", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 690, ey: 112, color: "#ef4444", label: "D13 ➔ Alarm Strobe Anode" },
-        { id: "w_bz", from: "D8", to: "SIREN_BZ", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 755, ey: 112, color: "#a855f7", label: "D8 ➔ Intruder Siren (+)" }
+        { id: "w_pir", from: "D7", to: "PIR_OUT", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 506.5, ey: 102.5, color: "#facc15", label: "D7 ➔ PIR Out (a5)" },
+        { id: "w_rly", from: "D4", to: "RELAY_IN", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 606.5, ey: 102.5, color: "#38bdf8", label: "D4 ➔ Relay In (a13)" },
+        { id: "w_warn", from: "D13", to: "LED_WARN", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 681.5, ey: 102.5, color: "#ef4444", label: "D13 ➔ Alarm LED +Anode (e19) · −Cath (e20)" },
+        { id: "w_bz", from: "D8", to: "SIREN_BZ", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 756.5, ey: 102.5, color: "#a855f7", label: "D8 ➔ Siren+ (a25)" }
       ];
     case "seven_seg_counter":
       return [
         ...powerBus,
-        { id: "w_s1", from: "D6", to: "SEG_A", sx: ARDUINO_PINS["D6"].x, sy: ARDUINO_PINS["D6"].y, ex: 510, ey: 112, color: "#ef4444", label: "D6 ➔ Seg A (220Ω)" },
-        { id: "w_s2", from: "D7", to: "SEG_B", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 550, ey: 112, color: "#f97316", label: "D7 ➔ Seg B (220Ω)" },
-        { id: "w_s3", from: "D8", to: "SEG_C", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 590, ey: 112, color: "#facc15", label: "D8 ➔ Seg C (220Ω)" },
-        { id: "w_btn", from: "D2", to: "STEP_BTN", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 680, ey: 112, color: "#38bdf8", label: "D2 ➔ Step Switch (Pullup)" }
+        { id: "w_s1", from: "D6", to: "SEG_A", sx: ARDUINO_PINS["D6"].x, sy: ARDUINO_PINS["D6"].y, ex: 506.5, ey: 102.5, color: "#ef4444", label: "D6 ➔ Seg A (a5)" },
+        { id: "w_s2", from: "D7", to: "SEG_B", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 544.0, ey: 102.5, color: "#f97316", label: "D7 ➔ Seg B (a8)" },
+        { id: "w_s3", from: "D8", to: "SEG_C", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 581.5, ey: 102.5, color: "#facc15", label: "D8 ➔ Seg C (a11)" },
+        { id: "w_btn", from: "D2", to: "STEP_BTN", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 681.5, ey: 102.5, color: "#38bdf8", label: "D2 ➔ Step Switch (a19)" }
       ];
     case "joystick_pan_tilt":
       return [
         ...powerBus,
-        { id: "w_jx", from: "A0", to: "JOY_VRX", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 500, ey: 112, color: "#38bdf8", label: "A0 ➔ Joystick X-Axis" },
-        { id: "w_jy", from: "A1", to: "JOY_VRY", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 515, ey: 112, color: "#10b981", label: "A1 ➔ Joystick Y-Axis" },
-        { id: "w_srv", from: "D9", to: "SERVO_PAN", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 660, ey: 112, color: "#f97316", label: "D9 (PWM) ➔ Pan Servo Signal" }
+        { id: "w_jx", from: "A0", to: "JOY_VRX", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 506.5, ey: 102.5, color: "#38bdf8", label: "A0 ➔ Joystick X (a5)" },
+        { id: "w_jy", from: "A1", to: "JOY_VRY", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 519.0, ey: 102.5, color: "#10b981", label: "A1 ➔ Joystick Y (a6)" },
+        { id: "w_srv", from: "D9", to: "SERVO_PAN", sx: ARDUINO_PINS["D9"].x, sy: ARDUINO_PINS["D9"].y, ex: 656.5, ey: 102.5, color: "#f97316", label: "D9 ➔ Pan Servo (a17)" }
       ];
     case "button_toggle":
       return [
         ...powerBus,
-        { id: "w_btn", from: "D2", to: "TACT_SW", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 540, ey: 112, color: "#facc15", label: "D2 ➔ Debounced Pushbutton" },
-        { id: "w_led", from: "D13", to: "STATUS_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 660, ey: 112, color: "#38bdf8", label: "D13 ➔ Latching LED Anode" }
+        { id: "w_btn", from: "D2", to: "TACT_SW", sx: ARDUINO_PINS["D2"].x, sy: ARDUINO_PINS["D2"].y, ex: 544.0, ey: 102.5, color: "#facc15", label: "D2 ➔ Pushbutton (a8)" },
+        { id: "w_led", from: "D13", to: "STATUS_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 656.5, ey: 102.5, color: "#38bdf8", label: "D13 ➔ Toggle LED +Anode (e17) · −Cath (e18)" }
       ];
     case "sonar_lcd_scope":
       return [
         ...powerBus,
-        { id: "w_trig", from: "D12", to: "SONAR_T", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 515, ey: 112, color: "#38bdf8", label: "D12 ➔ Sonar Trig" },
-        { id: "w_echo", from: "D11", to: "SONAR_E", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 530, ey: 112, color: "#10b981", label: "D11 ➔ Sonar Echo" },
-        { id: "w_bz", from: "D13", to: "ALARM_BZ", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 730, ey: 112, color: "#ef4444", label: "D13 ➔ Alert Sounder (+)" }
+        { id: "w_trig", from: "D12", to: "SONAR_T", sx: ARDUINO_PINS["D12"].x, sy: ARDUINO_PINS["D12"].y, ex: 519.0, ey: 102.5, color: "#38bdf8", label: "D12 ➔ Sonar Trig (a6)" },
+        { id: "w_echo", from: "D11", to: "SONAR_E", sx: ARDUINO_PINS["D11"].x, sy: ARDUINO_PINS["D11"].y, ex: 531.5, ey: 102.5, color: "#10b981", label: "D11 ➔ Sonar Echo (a7)" },
+        { id: "w_bz", from: "D13", to: "ALARM_BZ", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 731.5, ey: 102.5, color: "#ef4444", label: "D13 ➔ Sounder+ (a23)" }
       ];
     case "thermostat_relay_fan":
       return [
         ...powerBus,
-        { id: "w_tmp", from: "A0", to: "TMP36", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 480, ey: 112, color: "#facc15", label: "A0 ➔ TMP36 Temp Vout" },
-        { id: "w_pot", from: "A1", to: "SET_POT", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 560, ey: 112, color: "#f97316", label: "A1 ➔ Setpoint Pot Wiper" },
-        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 640, ey: 112, color: "#38bdf8", label: "D4 ➔ Relay Driver In" },
-        { id: "w_fan", from: "D5", to: "FAN_PWM", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 730, ey: 112, color: "#10b981", label: "D5 (PWM) ➔ Cooling Fan Gate" }
+        { id: "w_tmp", from: "A0", to: "TMP36", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 481.5, ey: 102.5, color: "#facc15", label: "A0 ➔ TMP36 Vout (a3)" },
+        { id: "w_pot", from: "A1", to: "SET_POT", sx: ARDUINO_PINS["A1"].x, sy: ARDUINO_PINS["A1"].y, ex: 556.5, ey: 102.5, color: "#f97316", label: "A1 ➔ Setpoint Pot (a9)" },
+        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 644.0, ey: 102.5, color: "#38bdf8", label: "D4 ➔ Relay In (a16)" },
+        { id: "w_fan", from: "D5", to: "FAN_PWM", sx: ARDUINO_PINS["D5"].x, sy: ARDUINO_PINS["D5"].y, ex: 731.5, ey: 102.5, color: "#10b981", label: "D5 (PWM) ➔ Fan Gate (a23)" }
       ];
     case "multi_sensor_alarm":
       return [
         ...powerBus,
-        { id: "w_pir", from: "D7", to: "PIR", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 495, ey: 112, color: "#facc15", label: "D7 ➔ PIR Motion Trigger" },
-        { id: "w_ldr", from: "A0", to: "LDR", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 570, ey: 112, color: "#38bdf8", label: "A0 ➔ LDR Divider Node" },
-        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 650, ey: 112, color: "#10b981", label: "D4 ➔ Floodlight Relay" },
-        { id: "w_bz", from: "D8", to: "SIREN", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 750, ey: 112, color: "#a855f7", label: "D8 ➔ Alarm Siren (+)" }
+        { id: "w_pir", from: "D7", to: "PIR", sx: ARDUINO_PINS["D7"].x, sy: ARDUINO_PINS["D7"].y, ex: 494.0, ey: 102.5, color: "#facc15", label: "D7 ➔ PIR Out (a4)" },
+        { id: "w_ldr", from: "A0", to: "LDR", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 569.0, ey: 102.5, color: "#38bdf8", label: "A0 ➔ LDR Node (a10)" },
+        { id: "w_rly", from: "D4", to: "RELAY", sx: ARDUINO_PINS["D4"].x, sy: ARDUINO_PINS["D4"].y, ex: 644.0, ey: 102.5, color: "#10b981", label: "D4 ➔ Relay In (a16)" },
+        { id: "w_bz", from: "D8", to: "SIREN", sx: ARDUINO_PINS["D8"].x, sy: ARDUINO_PINS["D8"].y, ex: 744.0, ey: 102.5, color: "#a855f7", label: "D8 ➔ Siren+ (a24)" }
       ];
     case "custom_sandbox":
     default:
       return [
         ...powerBus,
-        { id: "w_sb_1", from: "D13", to: "CUSTOM_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 640, ey: 112, color: "#38bdf8", label: "D13 ➔ Sandbox LED Anode" },
-        { id: "w_sb_2", from: "A0", to: "CUSTOM_POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 700, ey: 112, color: "#facc15", label: "A0 ➔ Sandbox Pot Wiper" }
+        { id: "w_sb_1", from: "D13", to: "CUSTOM_LED", sx: ARDUINO_PINS["D13"].x, sy: ARDUINO_PINS["D13"].y, ex: 631.5, ey: 102.5, color: "#38bdf8", label: "D13 ➔ Sandbox LED +Anode (e15) · −Cath (e16)" },
+        { id: "w_sb_2", from: "A0", to: "CUSTOM_POT", sx: ARDUINO_PINS["A0"].x, sy: ARDUINO_PINS["A0"].y, ex: 706.5, ey: 102.5, color: "#facc15", label: "A0 ➔ Sandbox Pot (a21)" }
+      ];
+  }
+}
+
+export function getDefaultComponentsForExperiment(expId) {
+  switch (expId) {
+    case "traffic_light":
+      return [
+        { id: "tl_led_r", type: "led_red", label: "Red LED (+e3 / −e4)", pin: 13, x: 65, y: 82, state: { on: true, brightness: 1 } },
+        { id: "tl_led_y", type: "led_yellow", label: "Yellow LED (+e8 / −e9)", pin: 12, x: 125, y: 82, state: { on: false, brightness: 1 } },
+        { id: "tl_led_g", type: "led_green", label: "Green LED (+e13 / −e14)", pin: 11, x: 185, y: 82, state: { on: false, brightness: 1 } },
+        { id: "tl_res", type: "resistor", label: "220Ω Limiters (b4/b9/b14)", pin: 13, x: 71, y: 45, state: { value: 220 } },
+        { id: "tl_btn", type: "pushbutton", label: "Crosswalk Button (e18)", pin: 2, x: 247, y: 75, state: { pressed: false } },
+        { id: "tl_bz", type: "piezo_buzzer", label: "Crosswalk Buzzer (e24)", pin: 8, x: 322, y: 75, state: { playing: false } }
+      ];
+    case "ldr_nightlight":
+      return [
+        { id: "nl_ldr", type: "ldr_sensor", label: "LDR Photoresistor (e4)", pin: "A1", x: 80, y: 80, state: { val: 450 } },
+        { id: "nl_r10k", type: "resistor_10k", label: "10kΩ Divider (b4)", pin: "A1", x: 80, y: 45, state: { value: 10000 } },
+        { id: "nl_led", type: "led_blue", label: "PWM LED (+e12 / −e13)", pin: 9, x: 180, y: 82, state: { on: true, brightness: 1 } },
+        { id: "nl_r220", type: "resistor", label: "220Ω LED Limiter (b13)", pin: 9, x: 186, y: 45, state: { value: 220 } },
+        { id: "nl_pot", type: "potentiometer", label: "10kΩ Threshold Pot (e20)", pin: "A0", x: 280, y: 75, state: { val: 512 } }
+      ];
+    case "chiptune_melody":
+      return [
+        { id: "cm_bz", type: "piezo_buzzer", label: "Piezo Speaker (e11)", pin: 8, x: 160, y: 75, state: { playing: true } },
+        { id: "cm_led", type: "led_yellow", label: "Tempo Strobe LED (+e20 / −e21)", pin: 13, x: 280, y: 82, state: { on: true, brightness: 1 } },
+        { id: "cm_r220", type: "resistor", label: "220Ω Limiter (b21)", pin: 13, x: 286, y: 45, state: { value: 220 } }
+      ];
+    case "rgb_mood_lamp":
+      return [
+        { id: "rgb_1", type: "rgb_led", label: "4-Pin RGB LED (e7/e8/e9/e10)", pin: 9, x: 120, y: 80, state: { on: true } },
+        { id: "rgb_res", type: "resistor", label: "220Ω RGB Limiters (×3)", pin: 9, x: 111.5, y: 45, state: { value: 220 } },
+        { id: "rgb_pot", type: "potentiometer", label: "Hue Selector Pot (e20)", pin: "A0", x: 280, y: 75, state: { val: 512 } }
+      ];
+    case "button_toggle":
+      return [
+        { id: "bt_btn", type: "pushbutton", label: "Tactile Pushbutton (e8)", pin: 2, x: 120, y: 75, state: { pressed: false } },
+        { id: "bt_r10k", type: "resistor_10k", label: "10kΩ Pull-Down (b9)", pin: 2, x: 136, y: 45, state: { value: 10000 } },
+        { id: "bt_led", type: "led_blue", label: "Toggle LED (+e17 / −e18)", pin: 13, x: 240, y: 80, state: { on: false, brightness: 1 } },
+        { id: "bt_r220", type: "resistor", label: "220Ω Limiter (b18)", pin: 13, x: 246, y: 45, state: { value: 220 } }
+      ];
+    case "ultrasonic_radar":
+      return [
+        { id: "ur_sonar", type: "ultrasonic_sonar", label: "HC-SR04 Sonar (e5/e7)", pin: 9, x: 50, y: 70, state: { dist: 25 } },
+        { id: "ur_led", type: "led_red", label: "Warn LED (+e16 / −e17)", pin: 13, x: 230, y: 82, state: { on: false, brightness: 1 } },
+        { id: "ur_r220", type: "resistor", label: "220Ω Limiter (b17)", pin: 13, x: 236, y: 45, state: { value: 220 } },
+        { id: "ur_bz", type: "piezo_buzzer", label: "Proximity Buzzer (e23)", pin: 8, x: 310, y: 75, state: { playing: false } }
+      ];
+    case "servo_control":
+      return [
+        { id: "sv_motor", type: "servo_motor", label: "SG90 Micro Servo (e11)", pin: 9, x: 110, y: 65, state: { angle: 90 } },
+        { id: "sv_pot", type: "potentiometer", label: "Steering Pot (e20)", pin: "A0", x: 280, y: 75, state: { val: 512 } }
+      ];
+    case "weather_station":
+      return [
+        { id: "ws_lcd", type: "lcd_16x2", label: "16x2 I2C LCD (e7/e9)", pin: "A4", x: 50, y: 50, state: { on: true } },
+        { id: "ws_tmp", type: "tmp36_temp", label: "TMP36 Sensor (e23)", pin: "A1", x: 310, y: 80, state: { temp: 24.5 } }
+      ];
+    case "dc_motor_speed":
+      return [
+        { id: "dc_fan", type: "dc_motor_fan", label: "5V DC Motor Fan (e6)", pin: 5, x: 100, y: 85, state: { speed: 0 } },
+        { id: "dc_npn", type: "resistor_10k", label: "NPN Driver + 1kΩ (e14)", pin: 5, x: 210, y: 80, state: { value: 1000 } },
+        { id: "dc_pot", type: "potentiometer", label: "Throttle Pot (e22)", pin: "A0", x: 300, y: 75, state: { val: 512 } }
+      ];
+    case "seven_seg_counter":
+      return [
+        { id: "ss_disp", type: "seven_segment", label: "7-Segment Display (e6/e8/e10)", pin: 3, x: 110, y: 55, state: { digit: 0 } },
+        { id: "ss_res", type: "resistor", label: "220Ω Segment Limiters (×3)", pin: 3, x: 130, y: 45, state: { value: 220 } },
+        { id: "ss_btn", type: "pushbutton", label: "Step Pushbutton (e19)", pin: 2, x: 260, y: 75, state: { pressed: false } }
+      ];
+    case "pir_alarm":
+      return [
+        { id: "pa_pir", type: "pir_motion", label: "HC-SR501 PIR (e5)", pin: 7, x: 60, y: 70, state: { motion: false } },
+        { id: "pa_rly", type: "relay_module", label: "5V Relay Module (e13)", pin: 4, x: 175, y: 65, state: { active: false } },
+        { id: "pa_led", type: "led_red", label: "Alarm LED (+e20 / −e21)", pin: 13, x: 270, y: 80, state: { on: false, brightness: 1 } },
+        { id: "pa_r220", type: "resistor", label: "220Ω Limiter (b21)", pin: 13, x: 276, y: 45, state: { value: 220 } },
+        { id: "pa_bz", type: "piezo_buzzer", label: "Security Siren (e25)", pin: 8, x: 335, y: 75, state: { playing: false } }
+      ];
+    case "joystick_pan_tilt":
+      return [
+        { id: "jp_joy", type: "joystick_thumb", label: "2-Axis Joystick (e5/e6/e7)", pin: "A0", x: 75, y: 70, state: { x: 512, y: 512 } },
+        { id: "jp_srv", type: "servo_motor", label: "Pan SG90 Servo (e18)", pin: 9, x: 240, y: 65, state: { angle: 90 } }
+      ];
+    case "sonar_lcd_scope":
+      return [
+        { id: "sl_lcd", type: "lcd_16x2", label: "16x2 I2C LCD (e7/e8)", pin: "A4", x: 50, y: 30, state: { on: true } },
+        { id: "sl_snr", type: "ultrasonic_sonar", label: "HC-SR04 Sonar (e13/e15)", pin: 9, x: 75, y: 120, state: { dist: 25 } },
+        { id: "sl_bz", type: "piezo_buzzer", label: "Alert Buzzer (e23)", pin: 13, x: 310, y: 75, state: { playing: false } }
+      ];
+    case "thermostat_relay_fan":
+      return [
+        { id: "tr_tmp", type: "tmp36_temp", label: "TMP36 Sensor (e3)", pin: "A0", x: 60, y: 80, state: { temp: 24.5 } },
+        { id: "tr_pot", type: "potentiometer", label: "Setpoint Dial (e9)", pin: "A1", x: 140, y: 75, state: { val: 512 } },
+        { id: "tr_rly", type: "relay_module", label: "Relay Switch (e15)", pin: 4, x: 220, y: 65, state: { active: false } },
+        { id: "tr_fan", type: "dc_motor_fan", label: "Cooling Fan Motor (e23)", pin: 5, x: 310, y: 85, state: { speed: 0 } }
+      ];
+    case "multi_sensor_alarm":
+      return [
+        { id: "ms_pir", type: "pir_motion", label: "HC-SR501 PIR (e4)", pin: 7, x: 60, y: 70, state: { motion: false } },
+        { id: "ms_ldr", type: "ldr_sensor", label: "LDR Night Sensor (e10)", pin: "A0", x: 150, y: 80, state: { val: 450 } },
+        { id: "ms_r10k", type: "resistor_10k", label: "10kΩ LDR Divider (b10)", pin: "A0", x: 150, y: 45, state: { value: 10000 } },
+        { id: "ms_rly", type: "relay_module", label: "Security Relay (e16)", pin: 4, x: 230, y: 65, state: { active: false } },
+        { id: "ms_bz", type: "piezo_buzzer", label: "Alarm Siren (e24)", pin: 8, x: 330, y: 75, state: { playing: false } }
+      ];
+    case "custom_sandbox":
+    default:
+      return [
+        { id: "comp_1", type: "led_red", label: "Status LED (+e15 / −e16)", pin: 13, x: 220, y: 80, state: { on: true, brightness: 1 } },
+        { id: "comp_2", type: "resistor", label: "220Ω Limiter (b16)", pin: 13, x: 160, y: 80, state: { value: 220 } },
+        { id: "comp_3", type: "pushbutton", label: "Trigger Button", pin: 2, x: 120, y: 160, state: { pressed: false } },
+        { id: "comp_4", type: "potentiometer", label: "10kΩ Pot (e21)", pin: "A0", x: 280, y: 170, state: { val: 512 } },
+        { id: "comp_5", type: "piezo_buzzer", label: "Tone Alarm", pin: 8, x: 360, y: 80, state: { playing: false } }
       ];
   }
 }
@@ -2561,13 +2674,7 @@ export function initArduinoLab(containerId) {
       sevenSegSegments: { a: true, b: true, c: true, d: true, e: true, f: true, g: false, dp: false },
       pirMotionDetected: false,
       joystick: { x: 512, y: 512, btn: false },
-      customPlacedComponents: [
-        { id: "comp_1", type: "led_red", label: "Status LED", pin: 13, x: 220, y: 80, state: { on: true, brightness: 1 } },
-        { id: "comp_2", type: "resistor", label: "220Ω Limiter", pin: 13, x: 160, y: 80, state: { value: 220 } },
-        { id: "comp_3", type: "pushbutton", label: "Trigger Button", pin: 2, x: 120, y: 160, state: { pressed: false } },
-        { id: "comp_4", type: "potentiometer", label: "10kΩ Pot", pin: "A0", x: 280, y: 170, state: { val: 512 } },
-        { id: "comp_5", type: "piezo_buzzer", label: "Tone Alarm", pin: 8, x: 360, y: 80, state: { playing: false } }
-      ]
+      customPlacedComponents: getDefaultComponentsForExperiment(ARDUINO_EXPERIMENTS[0].id)
     },
     serialLogs: [
       "[00:00.000] Arduino Uno R3 Bootloader v4.4 OK",
@@ -3750,10 +3857,15 @@ export function initArduinoLab(containerId) {
   btnResetWires?.addEventListener("click", () => {
     pushCircuitHistory();
     const curExp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
-    state.wires = getDefaultWiresForExperiment(curExp?.id || "traffic_light");
+    const expId = curExp?.id || "traffic_light";
+    state.wires = getDefaultWiresForExperiment(expId);
+    state.components.customPlacedComponents = getDefaultComponentsForExperiment(expId);
+    state.selectedCompIndex = 0;
+    renderCustomChips();
     updateWireCountBadge();
     audio.playTactileClick(true);
-    addSerialLog(`Restored schematic jumper wires for ${curExp?.title}`);
+    addSerialLog(`Restored schematic jumper wires & components for ${curExp?.title}`);
+    drawArduinoWorkbench();
   });
 
   // Dual-Channel DSO Controls Elements
@@ -4369,34 +4481,61 @@ export function initArduinoLab(containerId) {
         }
       });
 
-      // If current experiment matches tier, select it, otherwise select first available in filtered tier
+      // If current experiment is a ready-made project matching the tier, keep it; otherwise switch to the first matching ready-made project
       const curExp = ARDUINO_EXPERIMENTS[state.selectedExpIndex];
-      if (curExp && (tier === "all" || curExp.difficulty === tier)) {
+      const matchesReadyMadeTier = curExp && curExp.id !== "custom_sandbox" && (tier === "all" || curExp.difficulty === tier);
+      if (matchesReadyMadeTier) {
         selExp.value = String(state.selectedExpIndex);
-      } else if (selExp.options.length > 0) {
-        selExp.selectedIndex = 0;
-        selExp.dispatchEvent(new Event("change"));
+      } else {
+        const firstMatchIdx = ARDUINO_EXPERIMENTS.findIndex(exp => tier === "all" ? exp.id !== "custom_sandbox" : exp.difficulty === tier);
+        if (firstMatchIdx !== -1) {
+          selExp.value = String(firstMatchIdx);
+          if (selExp.options && selExp.options.length > 0) selExp.selectedIndex = 0;
+          if (typeof selExp.dispatch === "function") {
+            selExp.dispatch("change", { target: selExp });
+          } else if (typeof selExp.dispatchEvent === "function" && typeof Event === "function") {
+            selExp.dispatchEvent(new Event("change"));
+          }
+        }
       }
     });
   });
 
   // 2. Experiment Selection
   selExp?.addEventListener("change", (e) => {
-    const idx = parseInt(e.target.value, 10) || 0;
+    const rawVal = e && e.target && e.target.value !== undefined ? e.target.value : selExp.value;
+    const idx = parseInt(rawVal, 10) || 0;
     state.selectedExpIndex = idx;
     const exp = ARDUINO_EXPERIMENTS[idx];
     if (exp) {
       if (expCategoryBadge) expCategoryBadge.textContent = exp.category;
       if (expDescBox) expDescBox.textContent = exp.description;
       if (expDifficultyBadge) expDifficultyBadge.textContent = exp.difficultyLabel || "🟢 Easy";
-      codeEditor.value = exp.code;
+      if (codeEditor) codeEditor.value = exp.code;
       state.wires = getDefaultWiresForExperiment(exp.id);
+      state.components.customPlacedComponents = getDefaultComponentsForExperiment(exp.id);
+      state.selectedCompIndex = 0;
+      renderCustomChips();
       updateWireCountBadge();
       state.isCustomSketchActive = false;
       state.customSketch = null;
-      addSerialLog(`Loaded experiment: ${exp.title}`);
+      state.compiledSketch = null;
+      if (arduinoPhotoOverlay && arduinoPhotoOverlay.style.display !== "none") {
+        arduinoPhotoOverlay.style.display = "none";
+        if (btnArduinoSim) {
+          btnArduinoSim.classList.add("active");
+          btnArduinoSim.style.background = "";
+        }
+        if (btnArduinoPhoto) {
+          btnArduinoPhoto.classList.remove("active");
+          btnArduinoPhoto.style.background = "transparent";
+        }
+      }
+      addSerialLog(`Loaded experiment: ${exp.title} (${state.components.customPlacedComponents.length} components mounted on board)`);
       audio.playUploadChime();
       resetMcuState();
+      updateSimulationLogic(16);
+      drawArduinoWorkbench();
       if (modal4k && modal4k.style.display !== "none") {
         populate4kModalData(exp);
       }
@@ -4886,9 +5025,10 @@ export function initArduinoLab(containerId) {
       addSerialLog("No custom components placed. Add components first!");
       return;
     }
+    const hasUserAdded = comps.some(c => c.addedByUser);
     const sandboxIdx = ARDUINO_EXPERIMENTS.findIndex(e => e.id === "custom_sandbox");
-    if (sandboxIdx !== -1 && state.selectedExpIndex !== sandboxIdx) {
-      if (selExp) selExp.value = sandboxIdx;
+    if (hasUserAdded && sandboxIdx !== -1 && state.selectedExpIndex !== sandboxIdx) {
+      if (selExp) selExp.value = String(sandboxIdx);
       state.selectedExpIndex = sandboxIdx;
       if (expCategoryBadge) expCategoryBadge.textContent = ARDUINO_EXPERIMENTS[sandboxIdx].category;
       if (expDescBox) expDescBox.textContent = ARDUINO_EXPERIMENTS[sandboxIdx].description;
@@ -5121,6 +5261,7 @@ export function initArduinoLab(containerId) {
     audio.playReset();
     audio.stopBuzzer();
     audio.stopServo();
+    state.pinStates = {};
     state.components.pin13Led = false;
     state.components.pin9Pwm = 0;
     state.components.pin11Led = false;
@@ -5543,13 +5684,13 @@ export function initArduinoLab(containerId) {
         return { id: "led_pwm", label: "Nightlight Dimming LED (PWM Pin ~9)", cursor: "pointer", circle: { x: 600, y: 135, r: 14 }, center: { x: 600, y: 135 } };
       }
     } else if (expId === "servo_control") {
-      if (cx >= 550 && cx <= 625 && cy >= 150 && cy <= 245) {
+      if (cx >= 525 && cx <= 625 && cy >= 105 && cy <= 245) {
         return {
           id: "servo",
           label: "SG90 Micro Servo Motor (PWM Pin ~9)",
           cursor: "pointer",
-          box: { x: 550, y: 150, w: 75, h: 95 },
-          center: { x: 587, y: 197 }
+          box: { x: 525, y: 110, w: 75, h: 95 },
+          center: { x: 560, y: 155 }
         };
       }
       if (Math.hypot(cx - 737, cy - 147) <= 22) {
@@ -5594,8 +5735,8 @@ export function initArduinoLab(containerId) {
         };
       }
     } else if (expId === "rgb_mood_lamp") {
-      if (Math.hypot(cx - 570, cy - 140) <= 24) {
-        return { id: "rgb_led", label: "Diffused 4-Pin RGB LED (Pins D9/10/11)", cursor: "pointer", circle: { x: 570, y: 140, r: 22 }, center: { x: 570, y: 140 } };
+      if (Math.hypot(cx - 555, cy - 135) <= 28) {
+        return { id: "rgb_led", label: "Diffused 4-Pin RGB LED (Pins D9/10/11)", cursor: "pointer", circle: { x: 555, y: 135, r: 24 }, center: { x: 555, y: 135 } };
       }
       if (Math.hypot(cx - 720, cy - 147) <= 22) {
         return { id: "pot", label: "10kΩ RGB Hue Selector Potentiometer (ADC A0)", cursor: "grab", box: { x: 701, y: 128, w: 38, h: 38 }, center: { x: 720, y: 147 } };
@@ -5631,8 +5772,8 @@ export function initArduinoLab(containerId) {
       if (Math.hypot(cx - 530, cy - 135) <= 30) {
         return { id: "joystick", label: "2-Axis Analog Thumbstick Joystick (A0/A1, D2)", cursor: "pointer", circle: { x: 530, y: 135, r: 30 }, center: { x: 530, y: 135 } };
       }
-      if (cx >= 660 && cx <= 735 && cy >= 150 && cy <= 245) {
-        return { id: "servo", label: "Pan-Tilt Micro Servo Motor (PWM ~9)", cursor: "pointer", box: { x: 660, y: 150, w: 75, h: 95 }, center: { x: 697, y: 197 } };
+      if (cx >= 655 && cx <= 735 && cy >= 105 && cy <= 245) {
+        return { id: "servo", label: "Pan-Tilt Micro Servo Motor (PWM ~9)", cursor: "pointer", box: { x: 655, y: 110, w: 75, h: 95 }, center: { x: 690, y: 155 } };
       }
     } else if (expId === "button_toggle") {
       if (cx >= 520 && cx <= 560 && cy >= 110 && cy <= 150) {
@@ -5685,18 +5826,34 @@ export function initArduinoLab(containerId) {
       if (hole && hole.dist <= 7.5) {
         const wConn = (state.wires || []).find(w =>
           (hole.section === "rail" && ((hole.row === "+5V" && w.to.includes("5V")) || (hole.row === "GND" && w.to.includes("GND")))) ||
-          (hole.section !== "rail" && Math.abs(w.ex - hole.hx) <= 8 && Math.abs(w.ey - hole.hy) <= 45)
+          (hole.section !== "rail" && Math.abs(w.ex - hole.hx) <= 8 && Math.abs(w.ey - hole.hy) <= 65)
         );
-        const holeLabel = wConn
-          ? `Hole ${hole.holeId} (Strip ${hole.stripRange}) • Holds Arduino Pin ${wConn.from} (${wConn.label || wConn.to})`
-          : `Breadboard Hole ${hole.holeId} (5-Hole Strip ${hole.stripRange} • Unconnected)`;
+        const wLedCathode = !wConn && hole.section === "top"
+          ? (state.wires || []).find(w => String(w.to).includes("LED") && Math.abs((w.ex + 12.5) - hole.hx) <= 8)
+          : null;
+
+        let holeLabel = `Breadboard Hole ${hole.holeId} (5-Hole Strip ${hole.stripRange} • Unconnected)`;
+        let loupeName = `Hole ${hole.holeId}`;
+        if (wConn) {
+          if (String(wConn.to).includes("LED")) {
+            holeLabel = `Hole ${hole.holeId} (Strip ${hole.stripRange}) • Holds LED +Anode Leg (e${hole.colNum}) & Arduino Pin ${wConn.from} (a${hole.colNum})`;
+            loupeName = `${hole.holeId}: +Anode (${wConn.from})`;
+          } else {
+            holeLabel = `Hole ${hole.holeId} (Strip ${hole.stripRange}) • Holds Arduino Pin ${wConn.from} (${wConn.label || wConn.to})`;
+            loupeName = `${hole.holeId} ⬅ ${wConn.from}`;
+          }
+        } else if (wLedCathode) {
+          holeLabel = `Hole ${hole.holeId} (Strip ${hole.stripRange}) • Holds LED −Cathode Leg (e${hole.colNum}) & 220Ω Resistor (b${hole.colNum} ➔ GND)`;
+          loupeName = `${hole.holeId}: −Cathode ➔ GND`;
+        }
+
         state.hoveredPin = {
           pinKey: hole.holeId,
-          name: wConn ? `${hole.holeId} ⬅ ${wConn.from}` : `Hole ${hole.holeId}`,
+          name: loupeName,
           x: hole.hx,
           y: hole.hy,
           holeInfo: hole,
-          connectedWire: wConn
+          connectedWire: wConn || wLedCathode
         };
         return {
           id: "pin_hole",
@@ -7217,25 +7374,55 @@ export function initArduinoLab(containerId) {
     }
   }
 
-  // 1. Draw Vertical 1/4W Through-Hole Resistor bridging two Y coordinates with EIA 4-Band Color Code
+  // 1. Draw Vertical 1/4W Through-Hole Resistor bridging two Y coordinates with EIA 4-Band Color Code & exact hole badges
   function drawVerticalResistor(c, rx, yTop, yBot, ohms = 220, label = "220Ω") {
     c.save();
+    let snappedX = rx;
+    let botHoleTag = "";
+    if (rx >= 445 && rx <= 795) {
+      const colIdx = Math.max(0, Math.min(25, Math.round((rx - (420 + 36.5)) / 12.5)));
+      snappedX = 420 + 36.5 + colIdx * 12.5;
+      const colNum = colIdx + 1;
+      if (Math.abs(yBot - 112) <= 8) {
+        yBot = 55 + 61.5; // Row b (116.5)
+        botHoleTag = `b${colNum}`;
+        // Draw internal 5-hole strip continuity trace from b{colNum} down to e{colNum} (158.5)
+        c.fillStyle = "rgba(56, 189, 248, 0.22)";
+        c.strokeStyle = "rgba(2, 132, 199, 0.55)";
+        c.lineWidth = 1;
+        c.beginPath();
+        c.roundRect(snappedX - 3.5, 55 + 58, 7, 104, [3, 3, 3, 3]);
+        c.fill();
+        c.stroke();
+      }
+      if (Math.abs(yTop - 85) <= 4) yTop = 55 + 30.5; // Top GND rail (85.5)
+      else if (Math.abs(yTop - 73) <= 4) yTop = 55 + 18.5; // Top +5V rail (73.5)
+    }
+
     // Metal Leads extending out of ends into breadboard holes
-    c.strokeStyle = "#94a3b8";
-    c.lineWidth = 1.6;
+    c.strokeStyle = "#64748b";
+    c.lineWidth = 2.0;
     c.beginPath();
-    c.moveTo(rx, yTop);
-    c.lineTo(rx, yBot);
+    c.moveTo(snappedX, yTop);
+    c.lineTo(snappedX, yBot);
     c.stroke();
 
-    // Pin insertion points
-    c.fillStyle = "#334155";
-    c.fillRect(rx - 1.5, yTop - 1.5, 3, 3);
-    c.fillRect(rx - 1.5, yBot - 1.5, 3, 3);
+    // Glowing pin-insertion rings at top & bottom breadboard holes
+    c.fillStyle = "#0f172a";
+    c.strokeStyle = "#0284c7";
+    c.lineWidth = 1.4;
+    c.beginPath();
+    c.arc(snappedX, yTop, 3.2, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    c.beginPath();
+    c.arc(snappedX, yBot, 3.2, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
 
     // Resistor Ceramic Body
-    const bodyH = Math.min(16, Math.abs(yBot - yTop) * 0.65);
-    const bodyW = 6.5;
+    const bodyH = Math.min(16, Math.abs(yBot - yTop) * 0.62);
+    const bodyW = 6.8;
     const cy = (yTop + yBot) / 2;
 
     c.shadowColor = "rgba(0,0,0,0.3)";
@@ -7243,14 +7430,14 @@ export function initArduinoLab(containerId) {
     c.shadowOffsetX = 1;
     c.shadowOffsetY = 1;
 
-    const grad = c.createLinearGradient(rx - bodyW / 2, cy, rx + bodyW / 2, cy);
+    const grad = c.createLinearGradient(snappedX - bodyW / 2, cy, snappedX + bodyW / 2, cy);
     grad.addColorStop(0, "#e8d7be");
     grad.addColorStop(0.5, "#d4b896");
     grad.addColorStop(1, "#9e7f5e");
     c.fillStyle = grad;
 
     c.beginPath();
-    c.roundRect(rx - bodyW / 2, cy - bodyH / 2, bodyW, bodyH, [2, 2, 2, 2]);
+    c.roundRect(snappedX - bodyW / 2, cy - bodyH / 2, bodyW, bodyH, [2, 2, 2, 2]);
     c.fill();
     c.shadowColor = "transparent";
 
@@ -7262,20 +7449,20 @@ export function initArduinoLab(containerId) {
     const bandSpacing = bodyH / 5;
     bands.forEach((bColor, idx) => {
       c.fillStyle = bColor;
-      const by = cy - bodyH / 2 + (idx + 1) * bandSpacing - 1;
-      c.fillRect(rx - bodyW / 2, by, bodyW, 1.5);
+      const byBand = cy - bodyH / 2 + (idx + 1) * bandSpacing - 1;
+      c.fillRect(snappedX - bodyW / 2, byBand, bodyW, 1.5);
     });
 
     // Specular shine
     c.fillStyle = "rgba(255, 255, 255, 0.4)";
-    c.fillRect(rx - bodyW / 2 + 1, cy - bodyH / 2, 1.5, bodyH);
+    c.fillRect(snappedX - bodyW / 2 + 1, cy - bodyH / 2, 1.5, bodyH);
 
     if (label) {
-      c.fillStyle = "#475569";
-      c.font = "bold 7px monospace";
+      c.fillStyle = "#1e293b";
+      c.font = "bold 6.5px 'JetBrains Mono', monospace";
       c.textAlign = "left";
       c.textBaseline = "middle";
-      c.fillText(label, rx + bodyW / 2 + 2, cy);
+      c.fillText(botHoleTag ? `${label}(${botHoleTag})` : label, snappedX + bodyW / 2 + 2, cy - 2);
     }
     c.restore();
   }
@@ -7283,10 +7470,25 @@ export function initArduinoLab(containerId) {
   // 2. Draw Solid-Core Insulated Wire Link on Breadboard
   function drawBreadboardWireLink(c, x1, y1, x2, y2, color = "#0f172a", label = "") {
     c.save();
-    // Metal pin insertion terminals
-    c.fillStyle = "#64748b";
-    c.fillRect(x1 - 1.5, y1 - 2, 3, 4);
-    c.fillRect(x2 - 1.5, y2 - 2, 3, 4);
+    if (x1 >= 445 && x1 <= 795 && Math.abs(x1 - x2) < 2) {
+      const colIdx = Math.max(0, Math.min(25, Math.round((x1 - (420 + 36.5)) / 12.5)));
+      x1 = x2 = 420 + 36.5 + colIdx * 12.5;
+      if (Math.abs(y1 - 112) <= 8) y1 = 55 + 61.5;
+      if (Math.abs(y2 - 85) <= 4) y2 = 55 + 30.5;
+      else if (Math.abs(y2 - 73) <= 4) y2 = 55 + 18.5;
+    }
+    // Metal pin insertion rings
+    c.fillStyle = "#0f172a";
+    c.strokeStyle = color === "#0f172a" ? "#64748b" : color;
+    c.lineWidth = 1.3;
+    c.beginPath();
+    c.arc(x1, y1, 3, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    c.beginPath();
+    c.arc(x2, y2, 3, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
 
     // Wire shadow
     c.strokeStyle = "rgba(0,0,0,0.3)";
@@ -7315,11 +7517,11 @@ export function initArduinoLab(containerId) {
     c.stroke();
 
     if (label) {
-      c.fillStyle = "#64748b";
-      c.font = "bold 7px monospace";
+      c.fillStyle = "#475569";
+      c.font = "bold 6.5px 'JetBrains Mono', monospace";
       c.textAlign = "left";
       c.textBaseline = "middle";
-      c.fillText(label, Math.max(x1, x2) + 3, (y1 + y2) / 2);
+      c.fillText(label, Math.max(x1, x2) + 3.5, (y1 + y2) / 2);
     }
     c.restore();
   }
@@ -7602,7 +7804,7 @@ export function initArduinoLab(containerId) {
       // 1. SG90 Micro Servo 3-Pin Header: GND (Brown), VCC (Red), Signal (Orange)
       drawBreadboardWireLink(c, bx + 125, by + 57, bx + 125, by + 30, "#78350f", "GND");
       drawBreadboardWireLink(c, bx + 155, by + 57, bx + 155, by + 18, "#ef4444", "5V");
-      drawServoMotor(c, bx + 110, by + 90, state.components.currentServoAngle);
+      drawServoMotor(c, bx + 110, by + 65, state.components.currentServoAngle);
 
       // 2. Potentiometer Steering with +5V and GND Rails Links
       drawBreadboardWireLink(c, bx + 268, by + 57, bx + 268, by + 18, "#ef4444", "5V");
@@ -7630,12 +7832,12 @@ export function initArduinoLab(containerId) {
       drawTmp36Sensor(c, bx + 310, by + 80, state.components.temperatureC, "TMP36 (A1)\n5V · GND");
 
     } else if (expId === "rgb_mood_lamp") {
-      // 1. Three 220Ω Current Limiting Resistors for Red, Green, Blue Channels
-      drawVerticalResistor(c, bx + 90, by + 30, by + 57, 220, "220Ω");
-      drawVerticalResistor(c, bx + 120, by + 30, by + 57, 220, "220Ω");
-      drawVerticalResistor(c, bx + 150, by + 30, by + 57, 220, "220Ω");
-      // Common Cathode Ground Return Jumper Link
-      drawBreadboardWireLink(c, bx + 135, by + 57, bx + 135, by + 30, "#0f172a", "GND");
+      // 1. Three 220Ω Current Limiting Resistors for Red (col 7), Green (col 9), Blue (col 10) Channels
+      drawVerticalResistor(c, bx + 111.5, by + 30, by + 57, 220, "220Ω");
+      drawVerticalResistor(c, bx + 136.5, by + 30, by + 57, 220, "220Ω");
+      drawVerticalResistor(c, bx + 149.0, by + 30, by + 57, 220, "220Ω");
+      // Common Cathode Ground Return Jumper Link on col 8 (e8 -> b8 -> GND)
+      drawBreadboardWireLink(c, bx + 124.0, by + 57, bx + 124.0, by + 30, "#0f172a", "GND");
       // 4-pin RGB LED
       drawRgbLed(c, bx + 120, by + 80, state.components.rgbColor, "RGB (D9/10/11)\n220Ω x3 to GND");
 
@@ -7701,7 +7903,7 @@ export function initArduinoLab(containerId) {
       // 2. Pan Servo with Ground, +5V, and D9 Signal Pin
       drawBreadboardWireLink(c, bx + 225, by + 57, bx + 225, by + 30, "#78350f", "GND");
       drawBreadboardWireLink(c, bx + 255, by + 57, bx + 255, by + 18, "#ef4444", "5V");
-      drawServoMotor(c, bx + 240, by + 95, state.components.currentServoAngle, "PAN SERVO (D9)\n5V · GND");
+      drawServoMotor(c, bx + 240, by + 65, state.components.currentServoAngle, "PAN SERVO (D9)\n5V · GND");
 
     } else if (expId === "button_toggle") {
       // 1. Tactile Pushbutton with +5V Feed & 10kΩ Pull-Down Resistor to GND
@@ -7955,19 +8157,19 @@ export function initArduinoLab(containerId) {
     }
 
     // =========================================================================
-    // LIVE PIN ➔ BREADBOARD HOLE WIRING MAP LEGEND ON LOWER BREADBOARD DECK
-    // Makes 100% explicit which Breadboard Hole holds which Arduino Pin!
+    // LIVE PIN & LED LEG ➔ BREADBOARD HOLE WIRING MAP ON LOWER BREADBOARD DECK
+    // Makes 100% explicit which Breadboard Hole holds each Arduino Pin & LED Leg!
     // =========================================================================
     const hasLowerCustomComp = (state.components.customPlacedComponents || []).some(cp => (expId === "custom_sandbox" || cp.addedByUser) && cp.y > 165);
     if (!hasLowerCustomComp && state.wires && state.wires.length > 0) {
       c.save();
-      const mapX = bx + 26;
-      const mapY = by + bh / 2 + 12;
-      const mapW = bw - 52;
-      const mapH = 88;
+      const mapX = bx + 22;
+      const mapY = by + bh / 2 + 24;
+      const mapW = bw - 44;
+      const mapH = 76;
 
-      c.fillStyle = "rgba(15, 23, 42, 0.92)";
-      c.strokeStyle = "rgba(56, 189, 248, 0.5)";
+      c.fillStyle = "rgba(15, 23, 42, 0.94)";
+      c.strokeStyle = "rgba(56, 189, 248, 0.55)";
       c.lineWidth = 1.2;
       c.beginPath();
       if (typeof c.roundRect === "function") {
@@ -7983,31 +8185,42 @@ export function initArduinoLab(containerId) {
       c.font = "bold 7.5px 'JetBrains Mono', monospace";
       c.textAlign = "left";
       c.textBaseline = "middle";
-      c.fillText("📌 PIN ➔ BREADBOARD HOLE MAP (5-Hole Vertical Strips a–e Connected)", mapX + 8, mapY + 11);
+      c.fillText("📌 PIN & LED LEG ➔ BREADBOARD HOLE MAP (5-Hole Strips a–e Connected)", mapX + 8, mapY + 10);
 
-      // Render wire connection chips in a 2-column grid
+      // Render wire & LED leg connection chips in a 2-column grid
       const maxChips = Math.min(state.wires.length, 8);
-      const colW = (mapW - 16) / 2;
+      const colW = (mapW - 14) / 2;
       for (let i = 0; i < maxChips; i++) {
         const w = state.wires[i];
         const hole = getBreadboardHoleInfo(w.ex, w.ey, bx, by, bw, bh);
-        const holeTag = hole ? (hole.section === "rail" ? `${hole.holeId} Rail` : `Hole ${hole.holeId} (${hole.stripRange})`) : w.to;
         const colIdx = i % 2;
         const rowIdx = Math.floor(i / 2);
         const cxChip = mapX + 8 + colIdx * colW;
-        const cyChip = mapY + 25 + rowIdx * 15;
+        const cyChip = mapY + 23 + rowIdx * 13.5;
 
         // Wire color dot
         c.fillStyle = w.color === "#0f172a" ? "#94a3b8" : (w.color || "#38bdf8");
         c.beginPath();
-        c.arc(cxChip + 4, cyChip, 3.2, 0, Math.PI * 2);
+        c.arc(cxChip + 3.5, cyChip, 3.0, 0, Math.PI * 2);
         c.fill();
 
-        // Pin -> Hole text
+        // Pin -> Hole & LED Leg text
         c.fillStyle = "#f8fafc";
-        c.font = "bold 7px 'JetBrains Mono', monospace";
-        const targetShort = String(w.label || w.to).split("➔").pop().trim().slice(0, 14);
-        c.fillText(`${w.from} ➔ ${holeTag}: ${targetShort}`, cxChip + 10, cyChip + 0.5);
+        c.font = "bold 6.8px 'JetBrains Mono', monospace";
+        let chipText = "";
+        if (hole && hole.section === "rail") {
+          chipText = `${w.from} ➔ ${hole.holeId} Power Bus Rail`;
+        } else if (hole && String(w.to).includes("LED")) {
+          const cA = hole.colNum;
+          const cK = Math.min(26, hole.colNum + 1);
+          chipText = `${w.from}➔${hole.holeId} | LED +e${cA} / −e${cK}➔220Ω(b${cK})`;
+        } else if (hole) {
+          const targetShort = String(w.label || w.to).split("➔").pop().trim().slice(0, 16);
+          chipText = `${w.from}➔${hole.holeId} (e${hole.colNum}): ${targetShort}`;
+        } else {
+          chipText = `${w.from} ➔ ${w.to}`;
+        }
+        c.fillText(chipText, cxChip + 9, cyChip + 0.5);
       }
       c.restore();
     }
@@ -8037,45 +8250,161 @@ export function initArduinoLab(containerId) {
     }
   }
 
-  // Draw Photorealistic 5mm Diffused LED with optical bloom, explicit hole insertion pins & +/- polarity markers
+  // Draw Photorealistic 5mm Diffused LED with exact Breadboard Hole Snapping, Continuity Strips & +Anode / −Cathode Hole Badges
   function drawLargeLed(c, lx, ly, color, isOn, text = "", brightness = 1.0) {
     c.save();
-    // Metal pins: Left = Anode (+, plugged into signal hole), Right = Cathode (-, plugged into resistor/GND hole)
-    c.strokeStyle = "#94a3b8";
-    c.lineWidth = 2.0;
+
+    // Determine exact breadboard holes for Left Leg (+ Anode) and Right Leg (− Cathode)
+    const onBreadboard = lx >= 445 && lx <= 795;
+    let xAnode = lx - 5.5;
+    let xCathode = lx + 5.5;
+    let yHole = ly + 22;
+    let domeX = lx;
+    let domeY = ly - 4;
+    let anodeHoleId = "+";
+    let cathodeHoleId = "−";
+
+    if (onBreadboard) {
+      const colAnodeIdx = Math.max(0, Math.min(24, Math.round(((lx - 5) - (420 + 36.5)) / 12.5)));
+      const colCathodeIdx = colAnodeIdx + 1;
+      xAnode = 420 + 36.5 + colAnodeIdx * 12.5;
+      xCathode = 420 + 36.5 + colCathodeIdx * 12.5;
+      const colAnodeNum = colAnodeIdx + 1;
+      const colCathodeNum = colCathodeIdx + 1;
+      const isTopBank = ly <= 215;
+      yHole = isTopBank ? (55 + 103.5) : (55 + 175 + 16.5 + 4 * 14); // Row e (158.5) or Row j (302.5)
+      const rowLetter = isTopBank ? "e" : "j";
+      anodeHoleId = `${rowLetter}${colAnodeNum}`;
+      cathodeHoleId = `${rowLetter}${colCathodeNum}`;
+      domeX = (xAnode + xCathode) / 2;
+      domeY = yHole - 27; // Positions LED dome at y=131.5 so Row e (y=158.5) is 100% uncovered!
+
+      // 1. Highlight 5-Hole Vertical Continuity Strip for Anode Column (a -> e) & Cathode Column (b -> e)
+      const stripTopY = isTopBank ? (55 + 44) : (55 + 175 + 13);
+      const stripBotY = isTopBank ? (55 + 107) : (55 + 175 + 76);
+      // Anode column continuity bar (Signal Wire at 'a' -> LED +Anode at 'e')
+      c.fillStyle = isOn ? "rgba(239, 68, 68, 0.26)" : "rgba(239, 68, 68, 0.14)";
+      c.strokeStyle = color || "#ef4444";
+      c.lineWidth = 1.2;
+      c.beginPath();
+      c.roundRect(xAnode - 3.8, stripTopY, 7.6, stripBotY - stripTopY, [3, 3, 3, 3]);
+      c.fill();
+      c.stroke();
+
+      // Cathode column continuity bar (LED −Cathode at 'e' -> 220Ω Resistor at 'b')
+      c.fillStyle = "rgba(56, 189, 248, 0.18)";
+      c.strokeStyle = "rgba(2, 132, 199, 0.65)";
+      c.lineWidth = 1.1;
+      c.beginPath();
+      c.roundRect(xCathode - 3.8, stripTopY + 14, 7.6, stripBotY - (stripTopY + 14), [3, 3, 3, 3]);
+      c.fill();
+      c.stroke();
+    }
+
+    // 2. Bent Tinned-Copper Metal Leads from LED Flange into Exact Breadboard Holes (xAnode, yHole) & (xCathode, yHole)
+    c.strokeStyle = "#cbd5e1";
+    c.lineWidth = 2.2;
+    c.lineCap = "round";
+    c.lineJoin = "round";
     c.beginPath();
-    c.moveTo(lx - 4, ly + 11);
-    c.lineTo(lx - 4, ly + 31);
-    c.moveTo(lx + 5.5, ly + 11);
-    c.lineTo(lx + 5.5, ly + 31);
+    // Left Leg (+ Anode)
+    c.moveTo(domeX - 4.5, domeY + 11);
+    c.lineTo(xAnode, domeY + 15.5);
+    c.lineTo(xAnode, yHole);
+    // Right Leg (− Cathode)
+    c.moveTo(domeX + 4.5, domeY + 11);
+    c.lineTo(xCathode, domeY + 15.5);
+    c.lineTo(xCathode, yHole);
     c.stroke();
 
-    // Explicit breadboard hole insertion collars at bottom of Anode & Cathode legs
-    c.fillStyle = "#0f172a";
+    // Color-coded Polarity Insulation Sleeves on LED Legs (Red = +Anode, Blue = −Cathode)
+    c.strokeStyle = "#ef4444";
+    c.lineWidth = 3.2;
     c.beginPath();
-    c.arc(lx - 4, ly + 31, 2.5, 0, Math.PI * 2);
-    c.arc(lx + 5.5, ly + 31, 2.5, 0, Math.PI * 2);
+    c.moveTo(xAnode, domeY + 15.5);
+    c.lineTo(xAnode, domeY + 21);
+    c.stroke();
+
+    c.strokeStyle = "#2563eb";
+    c.lineWidth = 3.2;
+    c.beginPath();
+    c.moveTo(xCathode, domeY + 15.5);
+    c.lineTo(xCathode, domeY + 21);
+    c.stroke();
+
+    // 3. Glowing Breadboard Hole Insertion Socket Rings at (xAnode, yHole) and (xCathode, yHole)
+    // Anode (+) Hole Ring
+    c.fillStyle = "#0f172a";
+    c.strokeStyle = "#ef4444";
+    c.lineWidth = 1.6;
+    c.beginPath();
+    c.arc(xAnode, yHole, 3.8, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    c.fillStyle = "#f8fafc";
+    c.beginPath();
+    c.arc(xAnode, yHole, 1.5, 0, Math.PI * 2);
     c.fill();
 
-    // Polarity markers (+ Anode on left leg, - Cathode on right leg)
-    c.font = "bold 7.5px 'JetBrains Mono', monospace";
-    c.textAlign = "center";
-    c.fillStyle = "#dc2626";
-    c.fillText("+", lx - 9.5, ly + 26);
-    c.fillStyle = "#2563eb";
-    c.fillText("−", lx + 11, ly + 26);
+    // Cathode (−) Hole Ring
+    c.fillStyle = "#0f172a";
+    c.strokeStyle = "#0284c7";
+    c.lineWidth = 1.6;
+    c.beginPath();
+    c.arc(xCathode, yHole, 3.8, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    c.fillStyle = "#f8fafc";
+    c.beginPath();
+    c.arc(xCathode, yHole, 1.5, 0, Math.PI * 2);
+    c.fill();
 
-    // Drop shadow
+    // 4. High-Contrast Pin-to-Hole Callout Badges ("+e3" and "−e4") directly under the insertion holes
+    if (onBreadboard) {
+      c.font = "bold 6.8px 'JetBrains Mono', monospace";
+      c.textAlign = "center";
+      c.textBaseline = "middle";
+
+      const tagA = `+${anodeHoleId}`;
+      const tagK = `−${cathodeHoleId}`;
+      const wA = Math.max(18, c.measureText(tagA).width + 5);
+      const wK = Math.max(18, c.measureText(tagK).width + 5);
+      const bxA = xAnode - wA / 2 - 2;
+      const bxK = xCathode - wK / 2 + 2;
+      const byTag = yHole + 5.5;
+
+      // Anode (+eN) Pill
+      c.fillStyle = "rgba(15, 23, 42, 0.94)";
+      c.strokeStyle = "#ef4444";
+      c.lineWidth = 1.0;
+      c.beginPath();
+      c.roundRect(bxA, byTag, wA, 9.5, [2.5, 2.5, 2.5, 2.5]);
+      c.fill();
+      c.stroke();
+      c.fillStyle = "#fca5a5";
+      c.fillText(tagA, bxA + wA / 2, byTag + 5);
+
+      // Cathode (−eN+1) Pill
+      c.fillStyle = "rgba(15, 23, 42, 0.94)";
+      c.strokeStyle = "#38bdf8";
+      c.lineWidth = 1.0;
+      c.beginPath();
+      c.roundRect(bxK, byTag, wK, 9.5, [2.5, 2.5, 2.5, 2.5]);
+      c.fill();
+      c.stroke();
+      c.fillStyle = "#7dd3fc";
+      c.fillText(tagK, bxK + wK / 2, byTag + 5);
+    }
+
+    // 5. 5mm Epoxy Dome + Base Flange Rim at (domeX, domeY)
     c.shadowColor = "rgba(0,0,0,0.45)";
     c.shadowBlur = 6;
     c.shadowOffsetY = 3;
 
-    // 5mm Epoxy Dome + Base Flange Rim
     c.beginPath();
-    c.arc(lx, ly, 10, Math.PI, 0, false);
-    c.rect(lx - 10, ly, 20, 8);
-    // Base rim flange
-    c.rect(lx - 11.5, ly + 8, 23, 3.5);
+    c.arc(domeX, domeY, 9.5, Math.PI, 0, false);
+    c.rect(domeX - 9.5, domeY, 19, 8);
+    c.rect(domeX - 11, domeY + 8, 22, 3.2);
     c.closePath();
 
     if (isOn) {
@@ -8084,13 +8413,13 @@ export function initArduinoLab(containerId) {
         c.globalAlpha = 0.25 * Math.max(0.3, brightness);
         c.fillStyle = color;
         c.beginPath();
-        c.arc(lx, ly + 2, 18, 0, Math.PI * 2);
+        c.arc(domeX, domeY + 2, 18, 0, Math.PI * 2);
         c.fill();
         c.restore();
         c.beginPath();
-        c.arc(lx, ly, 10, Math.PI, 0, false);
-        c.rect(lx - 10, ly, 20, 8);
-        c.rect(lx - 11.5, ly + 8, 23, 3.5);
+        c.arc(domeX, domeY, 9.5, Math.PI, 0, false);
+        c.rect(domeX - 9.5, domeY, 19, 8);
+        c.rect(domeX - 11, domeY + 8, 22, 3.2);
         c.closePath();
       }
       c.fillStyle = color;
@@ -8101,17 +8430,17 @@ export function initArduinoLab(containerId) {
       // Leadframe anvil & post internal silhouettes
       c.shadowBlur = 0;
       c.fillStyle = "rgba(0, 0, 0, 0.25)";
-      c.fillRect(lx - 4, ly + 2, 3, 7);
-      c.fillRect(lx + 1, ly + 2, 3, 7);
+      c.fillRect(domeX - 4, domeY + 2, 3, 7);
+      c.fillRect(domeX + 1, domeY + 2, 3, 7);
 
       // Core semiconductor chip die intense hotspot
-      const coreGrad = c.createRadialGradient(lx, ly + 1, 1, lx, ly + 1, 7);
+      const coreGrad = c.createRadialGradient(domeX, domeY + 1, 1, domeX, domeY + 1, 7);
       coreGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
       coreGrad.addColorStop(0.5, "rgba(255, 255, 255, 0.5)");
       coreGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
       c.fillStyle = coreGrad;
       c.beginPath();
-      c.arc(lx, ly + 1, 7, 0, Math.PI * 2);
+      c.arc(domeX, domeY + 1, 7, 0, Math.PI * 2);
       c.fill();
     } else {
       // Unlit tinted resin
@@ -8120,15 +8449,15 @@ export function initArduinoLab(containerId) {
 
       // Visible internal metal leadframe
       c.fillStyle = "#64748b";
-      c.fillRect(lx - 3.5, ly + 2, 2.5, 6);
-      c.fillRect(lx + 1, ly + 2, 2.5, 6);
+      c.fillRect(domeX - 3.5, domeY + 2, 2.5, 6);
+      c.fillRect(domeX + 1, domeY + 2, 2.5, 6);
     }
 
     // Specular Fresnel lens reflection highlight arc
     c.strokeStyle = "rgba(255, 255, 255, 0.65)";
     c.lineWidth = 1.4;
     c.beginPath();
-    c.arc(lx - 3, ly - 3, 5, -0.6 * Math.PI, -0.1 * Math.PI);
+    c.arc(domeX - 3, domeY - 3, 5, -0.6 * Math.PI, -0.1 * Math.PI);
     c.stroke();
     c.restore();
 
@@ -8137,15 +8466,16 @@ export function initArduinoLab(containerId) {
       c.textAlign = "center";
       c.textBaseline = "top";
       c.fillStyle = "#0f172a";
-      c.font = "bold 9px system-ui, -apple-system, sans-serif";
+      c.font = "bold 8.5px system-ui, -apple-system, sans-serif";
+      const labelY = onBreadboard ? (yHole + 17) : (ly + 36);
       if (text.includes("\n")) {
         const lines = text.split("\n");
-        c.fillText(lines[0], lx, ly + 36);
-        c.font = "bold 8px system-ui, -apple-system, sans-serif";
-        c.fillStyle = "#64748b";
-        c.fillText(lines[1], lx, ly + 47);
+        c.fillText(lines[0], domeX, labelY);
+        c.font = "bold 7.5px 'JetBrains Mono', monospace";
+        c.fillStyle = "#475569";
+        c.fillText(onBreadboard ? `+Anode:${anodeHoleId} · −Cath:${cathodeHoleId}` : lines[1], domeX, labelY + 10);
       } else {
-        c.fillText(text, lx, ly + 38);
+        c.fillText(text, domeX, labelY);
       }
       c.restore();
     }
@@ -8463,18 +8793,56 @@ export function initArduinoLab(containerId) {
   // Photorealistic Electronics Components Rendering
   // -------------------------------------------------------------------------
 
-  // 1. Photorealistic 4-Pin Diffused RGB LED
+  // 1. Photorealistic 4-Pin Diffused RGB LED with Exact 4-Hole Breadboard Pin Mapping (R, −GND, G, B)
   function drawRgbLed(c, lx, ly, rgb = { r: 255, g: 0, b: 128 }, label = "") {
     c.save();
-    // 4 Solder Lead Pins (Red, Cathode/Anode, Green, Blue)
-    c.strokeStyle = "#94a3b8";
-    c.lineWidth = 1.5;
+    const onBreadboard = lx >= 445 && lx <= 795;
+    const baseColIdx = Math.max(0, Math.min(22, Math.round(((lx - 18) - (420 + 36.5)) / 12.5)));
+    const isTopBank = ly <= 215;
+    const yHole = onBreadboard ? (isTopBank ? (55 + 103.5) : (55 + 175 + 16.5 + 4 * 14)) : (ly + 28);
+    const rowLetter = isTopBank ? "e" : "j";
+    const domeY = onBreadboard ? (yHole - 28) : ly;
+    const domeX = onBreadboard ? (420 + 36.5 + (baseColIdx + 1.5) * 12.5) : lx;
+    const pinColors = ["#ef4444", "#475569", "#10b981", "#38bdf8"];
+    const pinNames = ["R", "−", "G", "B"];
+
+    // 4 Solder Lead Pins (Red, Common Cathode −, Green, Blue) into 4 adjacent breadboard holes
     for (let i = 0; i < 4; i++) {
-      const px = lx - 6 + i * 4;
+      const colIdx = baseColIdx + i;
+      const hx = onBreadboard ? (420 + 36.5 + colIdx * 12.5) : (lx - 9 + i * 6);
+      const startX = domeX - 7.5 + i * 5;
+      c.strokeStyle = "#cbd5e1";
+      c.lineWidth = 1.8;
       c.beginPath();
-      c.moveTo(px, ly + 14);
-      c.lineTo(px, ly + 28);
+      c.moveTo(startX, domeY + 10);
+      c.lineTo(hx, domeY + 15);
+      c.lineTo(hx, yHole);
       c.stroke();
+
+      // Colored collar sleeve
+      c.strokeStyle = pinColors[i];
+      c.lineWidth = 2.8;
+      c.beginPath();
+      c.moveTo(hx, domeY + 15);
+      c.lineTo(hx, domeY + 20);
+      c.stroke();
+
+      // Insertion hole ring
+      c.fillStyle = "#0f172a";
+      c.strokeStyle = pinColors[i];
+      c.lineWidth = 1.4;
+      c.beginPath();
+      c.arc(hx, yHole, 3.2, 0, Math.PI * 2);
+      c.fill();
+      c.stroke();
+
+      if (onBreadboard) {
+        const tag = `${pinNames[i]}${rowLetter}${colIdx + 1}`;
+        c.font = "bold 5.8px 'JetBrains Mono', monospace";
+        c.textAlign = "center";
+        c.fillStyle = pinColors[i] === "#475569" ? "#cbd5e1" : pinColors[i];
+        c.fillText(tag, hx, yHole + 8.5);
+      }
     }
 
     // Drop shadow
@@ -8484,8 +8852,8 @@ export function initArduinoLab(containerId) {
 
     // 5mm Frosted Epoxy Dome with rim flange
     c.beginPath();
-    c.arc(lx, ly, 12, Math.PI, 0, false);
-    c.rect(lx - 12, ly, 24, 10);
+    c.arc(domeX, domeY, 12, Math.PI, 0, false);
+    c.rect(domeX - 12, domeY, 24, 10);
     c.closePath();
 
     const hexColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
@@ -8499,34 +8867,37 @@ export function initArduinoLab(containerId) {
     // Internal 3 micro-dies (Red, Green, Blue semiconductor chips)
     c.shadowBlur = 0;
     c.fillStyle = "#ef4444";
-    c.fillRect(lx - 5, ly + 3, 2.5, 2.5);
+    c.fillRect(domeX - 5, domeY + 3, 2.5, 2.5);
     c.fillStyle = "#10b981";
-    c.fillRect(lx - 1, ly + 3, 2.5, 2.5);
+    c.fillRect(domeX - 1, domeY + 3, 2.5, 2.5);
     c.fillStyle = "#3b82f6";
-    c.fillRect(lx + 3, ly + 3, 2.5, 2.5);
+    c.fillRect(domeX + 3, domeY + 3, 2.5, 2.5);
 
     // Core central optical hotspot
-    const coreGrad = c.createRadialGradient(lx, ly + 2, 1, lx, ly + 2, 9);
+    const coreGrad = c.createRadialGradient(domeX, domeY + 2, 1, domeX, domeY + 2, 9);
     coreGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
     coreGrad.addColorStop(0.4, "rgba(255, 255, 255, 0.5)");
     coreGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
     c.fillStyle = coreGrad;
     c.beginPath();
-    c.arc(lx, ly + 2, 9, 0, Math.PI * 2);
+    c.arc(domeX, domeY + 2, 9, 0, Math.PI * 2);
     c.fill();
 
     // Specular Fresnel lens reflection curve
     c.strokeStyle = "rgba(255, 255, 255, 0.7)";
     c.lineWidth = 1.5;
     c.beginPath();
-    c.arc(lx - 3, ly - 3, 6, -0.6 * Math.PI, -0.1 * Math.PI);
+    c.arc(domeX - 3, domeY - 3, 6, -0.6 * Math.PI, -0.1 * Math.PI);
     c.stroke();
     c.restore();
 
     if (label) {
+      c.save();
       c.fillStyle = "#0f172a";
       c.font = "bold 8px sans-serif";
-      c.fillText(label, lx - 20, ly + 42);
+      c.textAlign = "center";
+      c.fillText(label.split("\n")[0], domeX, yHole + 16);
+      c.restore();
     }
   }
 
