@@ -8,6 +8,25 @@ import { getLessonComprehensiveTheory } from "../data/lesson-theory-database.js"
 // Active animation frame tracker to ensure zero memory leaks
 const activeSimulations = new Map();
 
+// Visibility-aware & Low-CPU / Smartboard frame scheduler for all 38 lesson interactives
+const _nativeRAF = typeof globalThis.requestAnimationFrame === "function"
+  ? globalThis.requestAnimationFrame.bind(globalThis)
+  : (cb) => setTimeout(() => cb(Date.now()), 16);
+const _nativeCAF = typeof globalThis.cancelAnimationFrame === "function"
+  ? globalThis.cancelAnimationFrame.bind(globalThis)
+  : (id) => clearTimeout(id);
+
+function requestAnimationFrame(cb) {
+  if (typeof document !== "undefined" && document.hidden) {
+    return setTimeout(() => _nativeRAF(cb), 250);
+  }
+  return _nativeRAF(cb);
+}
+function cancelAnimationFrame(id) {
+  _nativeCAF(id);
+  clearTimeout(id);
+}
+
 export { LESSON_INTERACTIVE_REGISTRY, getLessonInteractiveSpec } from "../data/lesson-interactive-specs.js";
 import { LESSON_INTERACTIVE_REGISTRY, getLessonInteractiveSpec } from "../data/lesson-interactive-specs.js";
 

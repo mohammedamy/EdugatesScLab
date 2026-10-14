@@ -2027,6 +2027,20 @@ export function compileArduinoSketch(source) {
     return { success: false, error: "Linker Error: undefined reference to 'loop()'. Every Arduino sketch requires a void loop() function." };
   }
 
+  // 2b. Missing Semicolon Syntax Check on Hardware API Statements
+  for (let l = 0; l < lines.length; l++) {
+    const cleanLine = lines[l].replace(/\/\/.*$/, "").replace(/\/\*.*?\*\//g, "").trim();
+    if (!cleanLine || cleanLine.startsWith("#") || cleanLine.startsWith("if") || cleanLine.startsWith("else") || cleanLine.startsWith("for") || cleanLine.startsWith("while") || cleanLine.startsWith("void")) {
+      continue;
+    }
+    if (/^(pinMode|digitalWrite|analogWrite|delay|tone|noTone|Serial\.(?:begin|print|println)|lcd\.(?:begin|setCursor|print|clear)|[A-Za-z_]\w*\.(?:attach|write))\s*\([^;{}]*\)$/.test(cleanLine)) {
+      return {
+        success: false,
+        error: `sketch.ino:${l + 1}:${lines[l].length} (Line ${l + 1}): error: expected ';' after '${cleanLine.split("(")[0]}()' statement.`
+      };
+    }
+  }
+
   // 3. Realistic AVR-GCC memory metrics
   const flashBytes = Math.min(32256, 1140 + Math.round(source.length * 2.8));
   const sramBytes = Math.min(2048, 128 + ((source.match(/\b(int|float|bool|long|char)\b/g) || []).length * 8));
@@ -2050,11 +2064,6 @@ export function compileArduinoSketch(source) {
 
   const setupBody = extractBody(source, "setup");
   const loopBody = extractBody(source, "loop");
-
-  // Extract delay timers if present
-  const delayMatches = loopBody.match(/delay\s*\(\s*(\d+)\s*\)/g) || [];
-  const delays = delayMatches.map(m => parseInt(m.replace(/\D/g, ""), 10) || 500);
-  const totalCycleMs = delays.reduce((acc, d) => acc + d, 0) || 1000;
 
   // 5. Parse symbolic constants (#define PIN_X 8, const int ledPin = 12, int pin = A0)
   const cleanSource = source.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
@@ -2150,23 +2159,54 @@ export function compileArduinoSketch(source) {
     return list;
   }
 
-  const cleanLoop = loopBody.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
+  let cleanLoop = loopBody.replace(/\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, "");
 
-  // Extract if (...) { ... } else { ... } conditional blocks (supports nested function calls like analogRead(A0))
+  // 7b. Unroll bounded for (int i = start; i < end; i++) { ... } loops (cycle-guarded to 32 iterations max)
+  const forRegex = /for\s*\(\s*(?:int\s+|byte\s+)?([A-Za-z_]\w*)\s*=\s*(-?\d+)\s*;\s*\1\s*(<=|<|>=|>)\s*(-?\d+)\s*;\s*\1\s*(\+\+|--|\+=\s*\d+|-=\s*\d+)\s*\)\s*\{([^{}]*)\}/g;
+  cleanLoop = cleanLoop.replace(forRegex, (_full, varName, startStr, cmpOp, endStr, stepExpr, bodyStr) => {
+    const startVal = parseInt(startStr, 10);
+    const endVal = parseInt(endStr, 10);
+    let step = 1;
+    if (stepExpr === "--") step = -1;
+    else if (stepExpr.startsWith("+=")) step = Math.max(1, parseInt(stepExpr.replace(/\D/g, ""), 10) || 1);
+    else if (stepExpr.startsWith("-=")) step = -Math.max(1, parseInt(stepExpr.replace(/\D/g, ""), 10) || 1);
+
+    const unrolled = [];
+    let guard = 0;
+    const varWordRegex = new RegExp(`\\b${varName}\\b`, "g");
+    for (
+      let v = startVal;
+      guard < 32 && (cmpOp === "<" ? v < endVal : cmpOp === "<=" ? v <= endVal : cmpOp === ">" ? v > endVal : v >= endVal);
+      v += step, guard++
+    ) {
+      unrolled.push(bodyStr.replace(varWordRegex, String(v)));
+    }
+    return unrolled.join("\n");
+  });
+
+  // Extract if (...) { ... } [else if (...) { ... }]* [else { ... }] conditional blocks (supports nested function calls like analogRead(A0))
   const conditionals = [];
-  const ifRegex = /if\s*\(\s*((?:[^()]|\([^()]*\))+?)\s*\)\s*\{([^{}]*)\}(?:\s*else\s*\{([^{}]*)\})?/g;
+  const ifRegex = /if\s*\(\s*((?:[^()]|\([^()]*\))+?)\s*\)\s*\{([^{}]*)\}(?:\s*else\s+if\s*\(\s*((?:[^()]|\([^()]*\))+?)\s*\)\s*\{([^{}]*)\})?(?:\s*else\s*\{([^{}]*)\})?/g;
   let ifMatch;
   while ((ifMatch = ifRegex.exec(cleanLoop)) !== null) {
     conditionals.push({
       condExpr: ifMatch[1].trim(),
       thenStmts: parseStatementList(ifMatch[2] || ""),
-      elseStmts: parseStatementList(ifMatch[3] || "")
+      elseIfCondExpr: ifMatch[3] ? ifMatch[3].trim() : null,
+      elseIfStmts: ifMatch[4] ? parseStatementList(ifMatch[4]) : [],
+      elseStmts: parseStatementList(ifMatch[5] || "")
     });
   }
 
   // Strip parsed if/else blocks from top-level sequential statement list so branches don't unconditionally overwrite each other
-  const topLevelLoop = cleanLoop.replace(/if\s*\(\s*(?:[^()]|\([^()]*\))+?\s*\)\s*\{[^{}]*\}(?:\s*else\s*\{[^{}]*\})?/g, "");
+  const topLevelLoop = cleanLoop.replace(/if\s*\(\s*(?:[^()]|\([^()]*\))+?\s*\)\s*\{[^{}]*\}(?:\s*else\s+if\s*\(\s*(?:[^()]|\([^()]*\))+?\s*\)\s*\{[^{}]*\})?(?:\s*else\s*\{[^{}]*\})?/g, "");
   const statements = parseStatementList(topLevelLoop);
+
+  // Extract delay timers (including unrolled for-loop delays)
+  const parsedDelays = statements.filter(s => s.type === "delay").map(s => s.ms);
+  const delayMatches = loopBody.match(/delay\s*\(\s*(\d+)\s*\)/g) || [];
+  const delays = parsedDelays.length > 0 ? parsedDelays : delayMatches.map(m => parseInt(m.replace(/\D/g, ""), 10) || 500);
+  const totalCycleMs = delays.reduce((acc, d) => acc + d, 0) || 1000;
 
   // Extract analog/digital read mappings (e.g. int val = analogRead(A0); int btn = digitalRead(2);)
   const analogReadVars = {};
@@ -2875,11 +2915,12 @@ export function initArduinoLab(containerId) {
           <!-- Mobile & Smartboard Quick-Focus Drawer Tabs (Controls | C++ IDE | DSO & Serial | Show All) -->
           <div id="arduino-mobile-drawer-tabs" class="arduino-mobile-drawer-tabs" style="display: flex; gap: 6px; flex-wrap: wrap; background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 6px 10px; align-items: center; justify-content: space-between;">
             <span style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase;">📱 Workbench View:</span>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
               <button type="button" class="btn btn-secondary btn-arduino-drawer active" data-drawer="all" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #38bdf8; border-color: #38bdf8; background: rgba(56, 189, 248, 0.18);">👁️ Show All</button>
               <button type="button" class="btn btn-secondary btn-arduino-drawer" data-drawer="controls" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #34d399;">🎛️ Controls</button>
               <button type="button" class="btn btn-secondary btn-arduino-drawer" data-drawer="code" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #a855f7;">💻 C++ IDE</button>
               <button type="button" class="btn btn-secondary btn-arduino-drawer" data-drawer="telemetry" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 6px; color: #facc15;">📈 DSO &amp; Serial</button>
+              <button type="button" id="btn-arduino-scroll-lock" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700; border-radius: 6px; color: #cbd5e1;" title="Toggle touch scroll vs. canvas drag on mobile">📜 Touch: Scroll</button>
             </div>
           </div>
 
@@ -3015,6 +3056,7 @@ export function initArduinoLab(containerId) {
               <button type="button" id="btn-delay-inc" class="btn btn-secondary" style="padding: 3px 7px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #fde047; border-color: rgba(250,204,21,0.35);" title="Increase all delay() values by 100ms">⏱️ +100ms</button>
               <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  tone(8, 880, 200);\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #34d399; border-color: rgba(52,211,153,0.3);">+ tone()</button>
               <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  if (analogRead(A0) > 512) {\n    digitalWrite(13, HIGH);\n  } else {\n    digitalWrite(13, LOW);\n  }\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #fb923c; border-color: rgba(251,146,60,0.3);">+ if/else</button>
+              <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  for (int i = 0; i < 3; i++) {\n    digitalWrite(13, HIGH);\n    delay(150);\n    digitalWrite(13, LOW);\n    delay(150);\n  }\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #f472b6; border-color: rgba(244,114,182,0.3);">+ for loop</button>
               <button type="button" class="btn btn-secondary btn-code-snippet" data-snippet="  Serial.println(&quot;Sensor OK&quot;);\n" style="padding: 3px 8px; font-size: 0.7rem; font-family: monospace; border-radius: 5px; color: #cbd5e1; border-color: rgba(203,213,225,0.3);">+ Serial.println</button>
             </div>
 
@@ -4729,6 +4771,7 @@ export function initArduinoLab(containerId) {
   const customToolbarEl = document.getElementById("arduino-custom-toolbar");
   const ideColumnEl = document.getElementById("arduino-ide-column");
   const telemetryPanelEl = document.getElementById("arduino-telemetry-panel");
+  const btnArduinoScrollLock = document.getElementById("btn-arduino-scroll-lock");
   document.querySelectorAll(".btn-arduino-drawer").forEach(btn => {
     btn.addEventListener("click", () => {
       const mode = btn.dataset.drawer || "all";
@@ -4744,6 +4787,17 @@ export function initArduinoLab(containerId) {
       if (telemetryPanelEl) telemetryPanelEl.style.display = (mode === "all" || mode === "telemetry") ? "block" : "none";
       audio.playTactileClick(true);
     });
+  });
+
+  btnArduinoScrollLock?.addEventListener("click", () => {
+    const area = (canvas && typeof canvas.closest === "function") ? canvas.closest(".lab-canvas-area") : canvas;
+    if (!area || !area.classList) return;
+    area.classList.toggle("canvas-touch-locked");
+    const locked = area.classList.contains("canvas-touch-locked");
+    btnArduinoScrollLock.textContent = locked ? "✋ Touch: Drag/Wire" : "📜 Touch: Scroll";
+    btnArduinoScrollLock.style.color = locked ? "#38bdf8" : "#cbd5e1";
+    btnArduinoScrollLock.style.borderColor = locked ? "#38bdf8" : "";
+    audio.playTactileClick(locked);
   });
 
   btnCustomGen?.addEventListener("click", () => {
@@ -5926,6 +5980,7 @@ export function initArduinoLab(containerId) {
 
   // Probe voltage evaluator for DSO channels
   function getProbeVoltage(probeId, t) {
+    const hasCont = state.hasCircuitContinuity !== false;
     switch (probeId) {
       case "pin13": {
         if (state.pinStates && state.pinStates[13] !== undefined) {
@@ -5940,34 +5995,39 @@ export function initArduinoLab(containerId) {
         return duty > 0 ? (inst > 0 ? 5.0 : 0.0) : 0.0;
       }
       case "motor": {
+        if (!hasCont) return 0.0;
         const baseV = ((state.components.motorSpeed || 0) / 255) * 5.0;
         const ripple = state.components.motorSpeed > 0 ? (Math.sin(t * 0.08) * 0.15) : 0;
         return Math.max(0, Math.min(5.0, baseV + ripple));
       }
       case "buzzer": {
+        if (!hasCont) return 0.0;
         const tone = state.components.buzzerTone || (state.components.pin13Led ? 440 : 0);
         return tone > 0 ? (Math.sin(t * 0.001 * tone * 2 * Math.PI) > 0 ? 5.0 : 0.0) : 0.0;
       }
-      case "relay": return state.components.relayActive ? 5.0 : 0.0;
+      case "relay": return (hasCont && state.components.relayActive) ? 5.0 : 0.0;
       case "pin11": {
         if (state.pinStates && state.pinStates[11] !== undefined) {
           return state.pinStates[11] > 0 ? 5.0 : 0.0;
         }
         return state.components.pin11Led ? 5.0 : 0.0;
       }
-      case "pot": return ((state.components.potValue || 0) / 1023) * 5.0;
-      case "ldr": return Math.min(5.0, ((state.components.ldrLux || 0) / 1000) * 5.0);
-      case "temp": return Math.min(5.0, Math.max(0.0, ((state.components.temperatureC || 20) * 0.01) + 0.5));
-      case "dist": return Math.min(5.0, ((state.components.obstacleDistCm || 0) / 100) * 5.0);
+      case "pot": return hasCont ? ((state.components.potValue || 0) / 1023) * 5.0 : 0.0;
+      case "ldr": return hasCont ? Math.min(5.0, ((state.components.ldrLux || 0) / 1000) * 5.0) : 0.0;
+      case "temp": return hasCont ? Math.min(5.0, Math.max(0.0, ((state.components.temperatureC || 20) * 0.01) + 0.5)) : 0.0;
+      case "dist": return hasCont ? Math.min(5.0, ((state.components.obstacleDistCm || 0) / 100) * 5.0) : 0.0;
       case "dht11": {
+        if (!hasCont) return 0.0;
         const inBurst = (t % 1200) < 60;
         return inBurst ? (((t % 6) < 3) ? 0.2 : 4.8) : 5.0;
       }
       case "bme280": {
+        if (!hasCont) return 0.0;
         const inI2c = (t % 600) < 40;
         return inI2c ? (((t % 4) < 2) ? 0.3 : 3.3) : 3.3;
       }
       case "stepper": {
+        if (!hasCont) return 0.0;
         const stepRate = 25; // 25 Hz
         const stepState = Math.floor((t * 0.001 * stepRate) % 4);
         return (stepState === 0 || stepState === 2) ? 5.0 : 0.0;
@@ -6279,11 +6339,12 @@ export function initArduinoLab(containerId) {
         }
       };
 
-      // Evaluate if (...) { ... } else { ... } conditional blocks
+      // Evaluate if (...) { ... } [else if (...) { ... }] [else { ... }] conditional blocks
       if (prog && Array.isArray(prog.conditionals) && prog.conditionals.length > 0) {
         const resolveOperand = (tok) => {
           const s = String(tok || "").trim();
           let m;
+          if (/^millis\s*\(\s*\)$/.test(s)) return t;
           if ((m = /^analogRead\s*\(\s*([^)]+?)\s*\)$/.exec(s))) {
             const p = prog.symbolTable && prog.symbolTable[m[1].trim()] !== undefined ? prog.symbolTable[m[1].trim()] : m[1].trim();
             return readAnalogPin(p);
@@ -6297,23 +6358,32 @@ export function initArduinoLab(containerId) {
           return Number(s) || 0;
         };
 
-        for (const cond of prog.conditionals) {
-          const cm = /^(.+?)\s*(>=|<=|==|!=|>|<)\s*(.+)$/.exec(cond.condExpr);
-          let isTrue = false;
+        const evalBoolExpr = (exprStr) => {
+          if (!exprStr) return false;
+          const cm = /^(.+?)\s*(>=|<=|==|!=|>|<)\s*(.+)$/.exec(exprStr);
           if (cm) {
             const lhs = resolveOperand(cm[1]);
             const op = cm[2];
             const rhs = resolveOperand(cm[3]);
-            if (op === ">") isTrue = lhs > rhs;
-            else if (op === "<") isTrue = lhs < rhs;
-            else if (op === ">=") isTrue = lhs >= rhs;
-            else if (op === "<=") isTrue = lhs <= rhs;
-            else if (op === "==") isTrue = lhs == rhs;
-            else if (op === "!=") isTrue = lhs != rhs;
-          } else {
-            isTrue = Boolean(resolveOperand(cond.condExpr));
+            if (op === ">") return lhs > rhs;
+            if (op === "<") return lhs < rhs;
+            if (op === ">=") return lhs >= rhs;
+            if (op === "<=") return lhs <= rhs;
+            if (op === "==") return lhs == rhs;
+            if (op === "!=") return lhs != rhs;
           }
-          const branch = isTrue ? cond.thenStmts : cond.elseStmts;
+          return Boolean(resolveOperand(exprStr));
+        };
+
+        for (const cond of prog.conditionals) {
+          let branch = null;
+          if (evalBoolExpr(cond.condExpr)) {
+            branch = cond.thenStmts;
+          } else if (cond.elseIfCondExpr && evalBoolExpr(cond.elseIfCondExpr)) {
+            branch = cond.elseIfStmts;
+          } else {
+            branch = cond.elseStmts;
+          }
           if (Array.isArray(branch)) branch.forEach(execStmt);
         }
       }
@@ -6367,7 +6437,7 @@ export function initArduinoLab(containerId) {
       });
     }
 
-    // Sync all customPlacedComponents with their assigned pin state
+    // Sync all customPlacedComponents with their assigned pin state OR breadboard tie-point column continuity
     if (state.components.customPlacedComponents && state.components.customPlacedComponents.length > 0) {
       state.components.customPlacedComponents.forEach(comp => {
         comp.state = comp.state || {};
@@ -6387,6 +6457,18 @@ export function initArduinoLab(containerId) {
         } else if (p === 4) {
           comp.state.on = state.components.relayActive;
         }
+        // Check jumper wire tie-point column continuity (breadboard origin bx = 430)
+        const compAbsX = 430 + (comp.x || 0);
+        (state.wires || []).forEach(w => {
+          const fromPin = String(w.from || "").replace(/^~?D/i, "");
+          const pNum = parseInt(fromPin, 10);
+          if (!isNaN(pNum) && state.pinStates && state.pinStates[pNum] !== undefined) {
+            if (typeof w.toX === "number" && Math.abs(w.toX - compAbsX) <= 14) {
+              comp.state.on = state.pinStates[pNum] > 0;
+              comp.state.pwm = state.pinStates[pNum];
+            }
+          }
+        });
       });
     }
 
@@ -6761,6 +6843,15 @@ export function initArduinoLab(containerId) {
   // Draw realistic LED bulb on Arduino or breadboard
   function drawLedBulb(c, lx, ly, color, isActive, label = "") {
     c.save();
+    if (isActive && typeof window !== "undefined" && window.__EDUGATES_PERF_LITE__) {
+      c.save();
+      c.globalAlpha = 0.28;
+      c.fillStyle = color;
+      c.beginPath();
+      c.arc(lx, ly, 8.5, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+    }
     c.beginPath();
     c.arc(lx, ly, 4.5, 0, Math.PI * 2);
     if (isActive) {
@@ -7526,6 +7617,20 @@ export function initArduinoLab(containerId) {
     c.closePath();
 
     if (isOn) {
+      if (typeof window !== "undefined" && window.__EDUGATES_PERF_LITE__) {
+        c.save();
+        c.globalAlpha = 0.25 * Math.max(0.3, brightness);
+        c.fillStyle = color;
+        c.beginPath();
+        c.arc(lx, ly + 2, 18, 0, Math.PI * 2);
+        c.fill();
+        c.restore();
+        c.beginPath();
+        c.arc(lx, ly, 10, Math.PI, 0, false);
+        c.rect(lx - 10, ly, 20, 8);
+        c.rect(lx - 11.5, ly + 8, 23, 3.5);
+        c.closePath();
+      }
       c.fillStyle = color;
       c.shadowColor = color;
       c.shadowBlur = 24 * brightness;

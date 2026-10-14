@@ -688,6 +688,45 @@ cleanup.state.components.potValue = 200; // A0 <= 512 -> LOW
 await new Promise(r => setTimeout(r, 35));
 check(cleanup.state.components.pin13Led === false && cleanup.state.components.lcdLine2.includes("LOW LEVEL"), "Conditional if (analogRead(A0) > 512) evaluates ELSE branch (D13=LOW, LCD='LOW LEVEL') when potValue=200");
 
+// Test Missing Semicolon Diagnostics, Bounded For-Loop Unrolling, Else-If Evaluation, and Mobile Scroll-Lock Button
+const missingSemiRes = mod.compileArduinoSketch("void setup() {\n  pinMode(13, OUTPUT);\n}\nvoid loop() {\n  digitalWrite(13, HIGH)\n}");
+check(missingSemiRes.success === false && missingSemiRes.error.includes("Line 5") && missingSemiRes.error.includes("expected ';'"), "Detects missing semicolon with exact line number (Line 5)");
+
+const forAndElseIfSketch = `
+void setup() { pinMode(13, OUTPUT); }
+void loop() {
+  for (int i = 0; i < 3; i++) {
+    digitalWrite(13, HIGH);
+    delay(100);
+    digitalWrite(13, LOW);
+    delay(100);
+  }
+  if (analogRead(A0) > 800) {
+    lcd.setCursor(0, 0);
+    lcd.print("TIER: HIGH");
+  } else if (analogRead(A0) > 400) {
+    lcd.setCursor(0, 0);
+    lcd.print("TIER: MID");
+  } else {
+    lcd.setCursor(0, 0);
+    lcd.print("TIER: LOW");
+  }
+}
+`;
+const forElseIfRes = mod.compileArduinoSketch(forAndElseIfSketch);
+check(forElseIfRes.success === true && forElseIfRes.parsedProgram.statements.filter(s => s.type === "digitalWrite").length === 6, "Unrolls 'for (int i = 0; i < 3; i++)' loop into 6 sequential digitalWrite statements");
+check(forElseIfRes.parsedProgram.conditionals[0].elseIfCondExpr === "analogRead(A0) > 400", "Compiles 'else if (analogRead(A0) > 400)' branch into AST");
+
+cleanup.state.compiledSketch = forElseIfRes;
+cleanup.state.components.potValue = 600; // 400 < A0 <= 800 -> TIER: MID
+await new Promise(r => setTimeout(r, 35));
+check(cleanup.state.components.lcdLine1.includes("TIER: MID"), "Evaluates 'else if (analogRead(A0) > 400)' branch when potValue=600 (LCD='TIER: MID')");
+
+const btnScrollLock = document.getElementById("btn-arduino-scroll-lock");
+check(!!btnScrollLock, "Mobile Touch Scroll vs. Canvas Lock button (#btn-arduino-scroll-lock) exists in DOM");
+btnScrollLock.dispatch("click");
+check(btnScrollLock.textContent.includes("Drag/Wire"), "Clicking '#btn-arduino-scroll-lock' toggles touch mode to '✋ Touch: Drag/Wire'");
+
 // Allow a couple simulation frames to cycle
 await new Promise(r => setTimeout(r, 45));
 
