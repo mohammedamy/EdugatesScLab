@@ -32,8 +32,12 @@
   --accent-amber: #f59e0b;
   --accent-rose: #f43f5e;
   --text-main: #f8fafc;
+  --text-color: #f8fafc;
+  --text-primary: #f8fafc;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
+  --surface-bg: rgba(15, 23, 42, 0.85);
+  --surface-card: #0f172a;
 
   /* Mobile Safe Area Insets (iOS Safari Notch/Dynamic Island & Home Indicator) */
   --safe-top: env(safe-area-inset-top, 0px);
@@ -2989,16 +2993,23 @@ body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
   font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  border: none;
+  background: var(--bg-surface-elevated, #1e293b);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.14));
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   color: var(--text-main, #f8fafc);
 }
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm, 8px);
+}
 .btn:active {
   transform: scale(0.97) !important;
 }
-.btn-primary {
+.btn-primary,
+.btn.active {
   background-image: 
     linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 100%),
     linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
@@ -3030,6 +3041,26 @@ body.mode-smartboard[data-theme="day"] .modal-content-shell .modal-tabs-header,
   border-color: rgba(165, 180, 252, 0.6);
   box-shadow: 0 0 16px rgba(99, 102, 241, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   font-weight: 700;
+}
+.btn-outline {
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--text-main, #f8fafc);
+  border: 1px solid rgba(148, 163, 184, 0.38);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+.btn-outline:hover {
+  background: rgba(30, 41, 59, 0.96);
+  border-color: #38bdf8;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+}
+.btn-outline.active {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0) 100%),
+    linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+  color: #ffffff;
+  border-color: rgba(56, 189, 248, 0.65);
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35);
 }
 .btn-accent {
   background-image:
@@ -8679,12 +8710,16 @@ html, body, .app-navbar, .hero-banner, .module-card, .lesson-row-card, .search-i
   --bg-card-hover: #ffffff;
   --bg-surface: #ffffff;
   --bg-surface-elevated: #f1f5f9;
+  --surface-bg: #ffffff;
+  --surface-card: #f8fafc;
   --border-color: #cbd5e1;
   --border-color-glow: rgba(2, 132, 199, 0.3);
   --card-accent: #0284c7;
 
   /* Deeply saturated, crisp text for effortless reading (WCAG AAA compliant: 16.5:1 ratio) */
   --text-main: #0f172a;
+  --text-color: #0f172a;
+  --text-primary: #0f172a;
   --text-muted: #1e293b;
   --text-dim: #334155;
 
@@ -17268,3 +17303,441 @@ body.mode-smartboard .app-navbar .device-btn .device-btn-short,
     font-size: 0.68rem !important;
   }
 }
+
+/* =========================================================================
+   UNIVERSAL 48-LAB DARK & DAY MODE CONTRAST SYSTEM (WCAG AAA 7:1+)
+   Guarantees zero low-contrast buttons, selects, inputs, or telemetry cards
+   ========================================================================= */
+
+/* 1. Dark Mode Form Controls & Button Group Defaults across all 48 Labs */
+.lab-container select,
+.atlas-workbench select,
+.sim-select,
+.select-input,
+.form-select,
+.form-control,
+.custom-chip-select,
+.custom-pin-sel {
+  background-color: #0f172a;
+  color: var(--text-main, #f8fafc);
+  border: 1px solid rgba(148, 163, 184, 0.32);
+}
+
+.lab-container select option,
+.lab-container select optgroup,
+.atlas-workbench select option,
+.atlas-workbench select optgroup,
+select option,
+select optgroup {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+.lab-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.atlas-workbench input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.lab-container textarea,
+.atlas-workbench textarea {
+  background-color: #0f172a;
+  color: var(--text-main, #f8fafc);
+}
+
+.lab-container input::placeholder,
+.atlas-workbench input::placeholder,
+.lab-container textarea::placeholder,
+.atlas-workbench textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+.btn-group .btn:not(.active):not(.btn-primary) {
+  background: rgba(15, 23, 42, 0.85);
+  color: #cbd5e1;
+}
+
+/* 2. Day Mode Universal Form Controls (Selects, Options, Inputs, Textareas) */
+[data-theme="day"] .lab-container select,
+[data-theme="day"] .atlas-workbench select,
+[data-theme="day"] .sim-select,
+[data-theme="day"] .select-input,
+[data-theme="day"] .form-select,
+[data-theme="day"] .form-control,
+[data-theme="day"] .custom-chip-select,
+[data-theme="day"] .custom-pin-sel,
+[data-theme="day"] .lab-container input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+[data-theme="day"] .atlas-workbench input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+[data-theme="day"] .lab-container textarea,
+[data-theme="day"] .atlas-workbench textarea,
+[data-theme="day"] .search-input,
+[data-theme="day"] #ptable-search-input,
+[data-theme="day"] #input-anatomy-search {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1.5px solid #cbd5e1 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="day"] .lab-container select:focus,
+[data-theme="day"] .atlas-workbench select:focus,
+[data-theme="day"] .sim-select:focus,
+[data-theme="day"] .lab-container input:not([type="range"]):focus,
+[data-theme="day"] .atlas-workbench input:not([type="range"]):focus,
+[data-theme="day"] .search-input:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18) !important;
+}
+
+[data-theme="day"] select option,
+[data-theme="day"] select optgroup {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="day"] input::placeholder,
+[data-theme="day"] textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* 3. Day Mode Universal Lab Cards, Panels & Telemetry Containers */
+[data-theme="day"] .lab-card,
+[data-theme="day"] .telemetry-card,
+[data-theme="day"] .telemetry-panel,
+[data-theme="day"] .atlas-plate-strip-wrapper,
+[data-theme="day"] #dissection-control-panel,
+[data-theme="day"] #panel-macro-inspector,
+[data-theme="day"] #panel-histology-controller,
+[data-theme="day"] .pcr-telemetry-strip,
+[data-theme="day"] .chrom-telemetry-strip,
+[data-theme="day"] .lab-checkpoint-section,
+[data-theme="day"] .lab-telemetry-suite-bar,
+[data-theme="day"] .bench-header {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Convert all non-viewport dark inline cards, badges & sub-boxes in Day Mode to crisp light surfaces */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) :is(div, section, aside, table, thead, tbody, tr, th, td, ul, li, pre, span, label, kbd):not(.lab-canvas-area):not(.lab-canvas-area *):not(#viewport-wrapper):not(#viewport-wrapper *):not(#atlas-canvas-container):not(#atlas-canvas-container *):not(.bench-photo-frame):not(.bench-photo-frame *):not(#photo-overlay):not(#photo-overlay *):not([id$="-photo-overlay"]):not([id$="-photo-overlay"] *):not(#specimen-img-container):not(#specimen-img-container *):not(#macro-specimen-overlay):not(#macro-specimen-overlay *):not(#ide-panel-wrapper):not(#ide-panel-wrapper *):is(
+  .sim-sub-card,
+  .pcr-metric-card,
+  .chrom-metric-card,
+  .control-group,
+  .control-slider-group,
+  .lab-question-card,
+  #histology-dynamic-controls,
+  #histology-telemetry-table,
+  [style*="background: rgba(15, 23, 42"],
+  [style*="background:rgba(15, 23, 42"],
+  [style*="background: rgba(15,23,42"],
+  [style*="background:rgba(15,23,42"],
+  [style*="background: rgba(30, 41, 59"],
+  [style*="background:rgba(30, 41, 59"],
+  [style*="background: rgba(30,41,59"],
+  [style*="background: rgba(2, 6, 23"],
+  [style*="background:rgba(2, 6, 23"],
+  [style*="background: rgba(2,6,23"],
+  [style*="background: rgba(3, 7, 18"],
+  [style*="background: rgba(6, 18, 15"],
+  [style*="background: rgba(7, 13, 26"],
+  [style*="background: rgba(9, 13, 24"],
+  [style*="background: rgba(9, 14, 28"],
+  [style*="background: rgba(9, 15, 30"],
+  [style*="background: rgba(7, 11, 22"],
+  [style*="background: rgba(6, 28, 22"],
+  [style*="background: rgba(6, 32, 26"],
+  [style*="background: rgba(8, 28, 48"],
+  [style*="background: rgba(10, 15, 30"],
+  [style*="background: rgba(11, 19, 38"],
+  [style*="background: rgba(0, 0, 0"],
+  [style*="background:rgba(0, 0, 0"],
+  [style*="background: rgba(0,0,0"],
+  [style*="background:rgba(0,0,0"],
+  [style*="background: rgba(255, 255, 255, 0.0"],
+  [style*="background:rgba(255, 255, 255, 0.0"],
+  [style*="background: rgba(255,255,255,0.0"],
+  [style*="background:rgba(255,255,255,0.0"],
+  [style*="background: #0f172a"],
+  [style*="background:#0f172a"],
+  [style*="background: #020617"],
+  [style*="background:#020617"],
+  [style*="background: #030712"],
+  [style*="background:#030712"],
+  [style*="background: #02040a"],
+  [style*="background: #020806"],
+  [style*="background: #03060f"],
+  [style*="background: #0b1120"],
+  [style*="background:#0b1120"],
+  [style*="background: #0b1329"],
+  [style*="background: #1e293b"],
+  [style*="background:#1e293b"],
+  [style*="background: #090d16"],
+  [style*="background: #050811"],
+  [style*="background: #070a12"],
+  [style*="background: #070a13"],
+  [style*="background: #070a14"],
+  [style*="background: #070b14"],
+  [style*="background: #070c18"],
+  [style*="background: #070d1a"],
+  [style*="background: #07152d"],
+  [style*="background: #080c14"],
+  [style*="background: #080d1a"],
+  [style*="background: #0a0f1d"],
+  [style*="linear-gradient(135deg, rgba(15, 23, 42"],
+  [style*="linear-gradient(135deg, rgba(6, 32, 26"],
+  [style*="linear-gradient(180deg, rgba(15, 23, 42"],
+  [style*="linear-gradient(90deg, #0b1329"],
+  [style*="linear-gradient(90deg, rgba(16, 185, 129, 0.12)"],
+  [style*="linear-gradient(90deg, rgba(6, 182, 212, 0.12)"],
+  [style*="radial-gradient(circle at 45px 50%, rgba(30, 41, 59"],
+  [style*="radial-gradient(circle at 50% 20%, #0d1527"]
+) {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Keep top-level cards pure white in Day Mode */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) :is(.lab-header-bar, .sim-telemetry-card, .lab-controls-panel, .lab-card, .atlas-plate-strip-wrapper, .pcr-telemetry-strip, .chrom-telemetry-strip) {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* 4. Day Mode Buttons inside Labs */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) :is(
+  .btn:not(.btn-primary):not(.btn-accent):not(.active):not(.is-active),
+  .btn-secondary:not(.active):not(.is-active),
+  .btn-outline:not(.active):not(.is-active),
+  .cat-pill:not(.active),
+  .filter-btn:not(.active),
+  .histo-filter-btn:not(.active),
+  .drug-pill-btn:not(.active),
+  .channel-btn:not(.active),
+  .pcr-stage-btn:not(.active),
+  .chrom-light-btn:not(.active),
+  .obj-btn:not(.active),
+  .btn-gravity-preset:not(.active),
+  .btn-speed-sel:not(.active),
+  .btn-shm-speed:not(.active),
+  .btn-tier-filter:not(.active),
+  .phase-jump-btn:not(.active),
+  .atlas-sys-pill:not(.is-active),
+  #modal-close-btn
+):not(.lab-canvas-area *):not(#viewport-wrapper *):not(#atlas-canvas-container *):not(#specimen-img-container *) {
+  background: #f1f5f9 !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="day"] :is(.lab-container, .atlas-workbench) :is(
+  .btn:not(.btn-primary):not(.btn-accent):not(.active):not(.is-active),
+  .btn-secondary:not(.active):not(.is-active),
+  .btn-outline:not(.active):not(.is-active),
+  .cat-pill:not(.active),
+  .atlas-sys-pill:not(.is-active)
+):not(.lab-canvas-area *):not(#viewport-wrapper *):not(#atlas-canvas-container *):not(#specimen-img-container *):hover {
+  background: #e0f2fe !important;
+  border-color: #0284c7 !important;
+  color: #0369a1 !important;
+}
+
+[data-theme="day"] :is(.lab-container, .atlas-workbench) :is(
+  .btn-primary,
+  .btn.active,
+  .btn-secondary.active,
+  .btn-outline.active,
+  .cat-pill.active,
+  .atlas-sys-pill.is-active
+) {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  border-color: #0284c7 !important;
+  color: #ffffff !important;
+}
+
+[data-theme="day"] :is(.lab-container, .atlas-workbench) :is(
+  .btn-primary,
+  .btn.active,
+  .btn-secondary.active,
+  .btn-outline.active,
+  .cat-pill.active,
+  .atlas-sys-pill.is-active
+) span {
+  color: #ffffff !important;
+}
+
+/* 5. Day Mode High-Contrast Text & Semantic Accent Color Overrides in Non-Canvas Lab UI */
+/* 5a. Light / White / Slate Text -> Deep Ink (#0f172a) */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) *:not(.lab-canvas-area):not(.lab-canvas-area *):not(#viewport-wrapper):not(#viewport-wrapper *):not(#atlas-canvas-container):not(#atlas-canvas-container *):not(.bench-photo-frame):not(.bench-photo-frame *):not(#photo-overlay):not(#photo-overlay *):not([id$="-photo-overlay"]):not([id$="-photo-overlay"] *):not(#specimen-img-container):not(#specimen-img-container *):not(#macro-specimen-overlay):not(#macro-specimen-overlay *):not(#ide-panel-wrapper):not(#ide-panel-wrapper *):not(.btn-primary):not(.btn-primary *):not(.btn-accent):not(.btn-accent *):not(.active):not(.active *):not(.is-active):not(.is-active *):is(
+  [style*="color: #fff"],
+  [style*="color:#fff"],
+  [style*="color: #ffffff"],
+  [style*="color:#ffffff"],
+  [style*="color: #f8fafc"],
+  [style*="color:#f8fafc"],
+  [style*="color: #f1f5f9"],
+  [style*="color:#f1f5f9"],
+  [style*="color: #e2e8f0"],
+  [style*="color:#e2e8f0"],
+  [style*="color: rgb(255, 255, 255)"],
+  [style*="color: rgb(248, 250, 252)"],
+  [style*="color: rgb(241, 245, 249)"],
+  [style*="color: rgb(226, 232, 240)"]
+) {
+  color: #0f172a !important;
+}
+
+/* 5b. Muted / Dim Gray Text -> Crisp Slate (#334155) */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) *:not(.lab-canvas-area):not(.lab-canvas-area *):not(#viewport-wrapper):not(#viewport-wrapper *):not(#atlas-canvas-container):not(#atlas-canvas-container *):not(.bench-photo-frame):not(.bench-photo-frame *):not(#photo-overlay):not(#photo-overlay *):not([id$="-photo-overlay"]):not([id$="-photo-overlay"] *):not(#specimen-img-container):not(#specimen-img-container *):not(#macro-specimen-overlay):not(#macro-specimen-overlay *):not(#ide-panel-wrapper):not(#ide-panel-wrapper *):not(.btn-primary):not(.btn-primary *):not(.active):not(.active *):not(.is-active):not(.is-active *):is(
+  [style*="color: #cbd5e1"],
+  [style*="color:#cbd5e1"],
+  [style*="color: #94a3b8"],
+  [style*="color:#94a3b8"],
+  [style*="color: #64748b"],
+  [style*="color:#64748b"],
+  [style*="color: rgb(203, 213, 225)"],
+  [style*="color: rgb(148, 163, 184)"],
+  [style*="color: rgb(100, 116, 139)"]
+) {
+  color: #334155 !important;
+}
+
+/* 5c. Light Cyan / Sky Blue Accents -> High-Contrast Deep Cerulean (#0369a1) */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) *:not(.lab-canvas-area):not(.lab-canvas-area *):not(#viewport-wrapper):not(#viewport-wrapper *):not(#atlas-canvas-container):not(#atlas-canvas-container *):not(.bench-photo-frame):not(.bench-photo-frame *):not(#photo-overlay):not(#photo-overlay *):not([id$="-photo-overlay"]):not([id$="-photo-overlay"] *):not(#specimen-img-container):not(#specimen-img-container *):not(#macro-specimen-overlay):not(#macro-specimen-overlay *):not(#ide-panel-wrapper):not(#ide-panel-wrapper *):not(.btn-primary):not(.btn-primary *):not(.active):not(.active *):not(.is-active):not(.is-active *):is(
+  [style*="color: #38bdf8"],
+  [style*="color:#38bdf8"],
+  [style*="color: #7dd3fc"],
+  [style*="color:#7dd3fc"],
+  [style*="color: #bae6fd"],
+  [style*="color:#bae6fd"],
+  [style*="color: #e0f2fe"],
+  [style*="color:#e0f2fe"],
+  [style*="color: #22d3ee"],
+  [style*="color:#22d3ee"],
+  [style*="color: #67e8f9"],
+  [style*="color:#67e8f9"],
+  [style*="color: #06b6d4"],
+  [style*="color:#06b6d4"],
+  [style*="color: #60a5fa"],
+  [style*="color:#60a5fa"],
+  [style*="color: rgb(56, 189, 248)"],
+  [style*="color: rgb(125, 211, 252)"],
+  [style*="color: rgb(6, 182, 212)"]
+) {
+  color: #0369a1 !important;
+}
+
+/* 5d. Light Emerald / Green Accents -> High-Contrast Forest Emerald (#047857) */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) *:not(.lab-canvas-area):not(.lab-canvas-area *):not(#viewport-wrapper):not(#viewport-wrapper *):not(#atlas-canvas-container):not(#atlas-canvas-container *):not(.bench-photo-frame):not(.bench-photo-frame *):not(#photo-overlay):not(#photo-overlay *):not([id$="-photo-overlay"]):not([id$="-photo-overlay"] *):not(#specimen-img-container):not(#specimen-img-container *):not(#macro-specimen-overlay):not(#macro-specimen-overlay *):not(#ide-panel-wrapper):not(#ide-panel-wrapper *):not(.btn-primary):not(.btn-primary *):not(.active):not(.active *):not(.is-active):not(.is-active *):is(
+  [style*="color: #34d399"],
+  [style*="color:#34d399"],
+  [style*="color: #6ee7b7"],
+  [style*="color:#6ee7b7"],
+  [style*="color: #a7f3d0"],
+  [style*="color:#a7f3d0"],
+  [style*="color: #10b981"],
+  [style*="color:#10b981"],
+  [style*="color: #4ade80"],
+  [style*="color:#4ade80"],
+  [style*="color: #86efac"],
+  [style*="color:#86efac"],
+  [style*="color: rgb(52, 211, 153)"],
+  [style*="color: rgb(16, 185, 129)"],
+  [style*="color: rgb(74, 222, 128)"]
+) {
+  color: #047857 !important;
+}
+
+/* 5e. Light Amber / Yellow / Orange Accents -> High-Contrast Deep Ochre (#b45309) */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) *:not(.lab-canvas-area):not(.lab-canvas-area *):not(#viewport-wrapper):not(#viewport-wrapper *):not(#atlas-canvas-container):not(#atlas-canvas-container *):not(.bench-photo-frame):not(.bench-photo-frame *):not(#photo-overlay):not(#photo-overlay *):not([id$="-photo-overlay"]):not([id$="-photo-overlay"] *):not(#specimen-img-container):not(#specimen-img-container *):not(#macro-specimen-overlay):not(#macro-specimen-overlay *):not(#ide-panel-wrapper):not(#ide-panel-wrapper *):not(.btn-primary):not(.btn-primary *):not(.active):not(.active *):not(.is-active):not(.is-active *):is(
+  [style*="color: #fef08a"],
+  [style*="color:#fef08a"],
+  [style*="color: #fde047"],
+  [style*="color:#fde047"],
+  [style*="color: #fde68a"],
+  [style*="color:#fde68a"],
+  [style*="color: #facc15"],
+  [style*="color:#facc15"],
+  [style*="color: #fbbf24"],
+  [style*="color:#fbbf24"],
+  [style*="color: #f59e0b"],
+  [style*="color:#f59e0b"],
+  [style*="color: #eab308"],
+  [style*="color:#eab308"],
+  [style*="color: #fdba74"],
+  [style*="color:#fdba74"],
+  [style*="color: #fb923c"],
+  [style*="color:#fb923c"],
+  [style*="color: rgb(251, 191, 36)"],
+  [style*="color: rgb(250, 204, 21)"],
+  [style*="color: rgb(253, 224, 71)"],
+  [style*="color: rgb(253, 230, 138)"],
+  [style*="color: rgb(245, 158, 11)"]
+) {
+  color: #b45309 !important;
+}
+
+/* 5f. Light Red / Rose Accents -> High-Contrast Crimson (#b91c1c) */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) *:not(.lab-canvas-area):not(.lab-canvas-area *):not(#viewport-wrapper):not(#viewport-wrapper *):not(#atlas-canvas-container):not(#atlas-canvas-container *):not(.bench-photo-frame):not(.bench-photo-frame *):not(#photo-overlay):not(#photo-overlay *):not([id$="-photo-overlay"]):not([id$="-photo-overlay"] *):not(#specimen-img-container):not(#specimen-img-container *):not(#macro-specimen-overlay):not(#macro-specimen-overlay *):not(#ide-panel-wrapper):not(#ide-panel-wrapper *):not(.btn-primary):not(.btn-primary *):not(.active):not(.active *):not(.is-active):not(.is-active *):is(
+  [style*="color: #fca5a5"],
+  [style*="color:#fca5a5"],
+  [style*="color: #fecaca"],
+  [style*="color:#fecaca"],
+  [style*="color: #f87171"],
+  [style*="color:#f87171"],
+  [style*="color: #ef4444"],
+  [style*="color:#ef4444"],
+  [style*="color: #fb7185"],
+  [style*="color:#fb7185"],
+  [style*="color: #f43f5e"],
+  [style*="color:#f43f5e"],
+  [style*="color: rgb(248, 113, 113)"],
+  [style*="color: rgb(252, 165, 165)"],
+  [style*="color: rgb(239, 68, 68)"],
+  [style*="color: rgb(244, 63, 94)"]
+) {
+  color: #b91c1c !important;
+}
+
+/* 5g. Light Purple / Violet / Indigo Accents -> High-Contrast Royal Violet (#6d28d9) */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) *:not(.lab-canvas-area):not(.lab-canvas-area *):not(#viewport-wrapper):not(#viewport-wrapper *):not(#atlas-canvas-container):not(#atlas-canvas-container *):not(.bench-photo-frame):not(.bench-photo-frame *):not(#photo-overlay):not(#photo-overlay *):not([id$="-photo-overlay"]):not([id$="-photo-overlay"] *):not(#specimen-img-container):not(#specimen-img-container *):not(#macro-specimen-overlay):not(#macro-specimen-overlay *):not(#ide-panel-wrapper):not(#ide-panel-wrapper *):not(.btn-primary):not(.btn-primary *):not(.active):not(.active *):not(.is-active):not(.is-active *):is(
+  [style*="color: #c084fc"],
+  [style*="color:#c084fc"],
+  [style*="color: #d8b4fe"],
+  [style*="color:#d8b4fe"],
+  [style*="color: #e9d5ff"],
+  [style*="color:#e9d5ff"],
+  [style*="color: #a855f7"],
+  [style*="color:#a855f7"],
+  [style*="color: #a78bfa"],
+  [style*="color:#a78bfa"],
+  [style*="color: #818cf8"],
+  [style*="color:#818cf8"],
+  [style*="color: #a5b4fc"],
+  [style*="color:#a5b4fc"],
+  [style*="color: rgb(192, 132, 252)"],
+  [style*="color: rgb(167, 139, 250)"],
+  [style*="color: rgb(129, 140, 248)"]
+) {
+  color: #6d28d9 !important;
+}
+
+/* 5h. Light Pink / Magenta Accents -> High-Contrast Magenta (#be185d) */
+[data-theme="day"] :is(.lab-container, .atlas-workbench) *:not(.lab-canvas-area):not(.lab-canvas-area *):not(#viewport-wrapper):not(#viewport-wrapper *):not(#atlas-canvas-container):not(#atlas-canvas-container *):not(.bench-photo-frame):not(.bench-photo-frame *):not(#photo-overlay):not(#photo-overlay *):not([id$="-photo-overlay"]):not([id$="-photo-overlay"] *):not(#specimen-img-container):not(#specimen-img-container *):not(#macro-specimen-overlay):not(#macro-specimen-overlay *):not(#ide-panel-wrapper):not(#ide-panel-wrapper *):not(.btn-primary):not(.btn-primary *):not(.active):not(.active *):not(.is-active):not(.is-active *):is(
+  [style*="color: #f472b6"],
+  [style*="color:#f472b6"],
+  [style*="color: #f9a8d4"],
+  [style*="color:#f9a8d4"],
+  [style*="color: #ec4899"],
+  [style*="color:#ec4899"],
+  [style*="color: rgb(244, 114, 182)"],
+  [style*="color: rgb(236, 72, 153)"]
+) {
+  color: #be185d !important;
+}
+

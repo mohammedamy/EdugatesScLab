@@ -1,9 +1,10 @@
 // Edugates-ClipSAT Science Labs - Chemistry: Thin-Layer (TLC), Flash Column & HPLC Chromatography Suite
-// 60 FPS Precision Analytical Separation Simulation:
-// Lucas-Washburn capillary rise kinetics z_f(t) = sqrt(k·t), Snyder eluotropic solvent polarity index (P'),
-// Normal-phase polar silica (Si-OH) vs Reversed-phase C18 octadecyl stationary phase partitioning,
-// Retention factor Rf = d_substance / d_solvent, chromatographic resolution Rs = 2(t_R2 - t_R1)/(w1 + w2),
-// Multi-wavelength UV-254nm fluorescence quenching, UV-365nm porphyrin red fluorescence, and I2 vapor staining.
+// Ultra-HD 60 FPS Analytical Separation Workbench:
+// - Aspect-correct responsive HiDPI Canvas (zero stretching, dynamic getBoundingClientRect() projection)
+// - 3D Borosilicate TLC Chamber with vapour saturation mist, UV-254nm/365nm hood cone, and optical laser densitometer
+// - Pressurized Flash Chromatography Glass Column with PTFE stopcock, animated descending bands, and 6-tube fraction collector rack
+// - Real-Time Diode-Array HPLC Chromatogram (mAU vs t_R) with shaded Gaussian integration, theoretical plates N, and resolution Rs
+// - Atomic Force / Molecular Partitioning View with animated 3D ball-and-stick solutes & Si-OH hydrogen-bond bridges
 
 import { renderLatex, formatMathText } from "../utils/math-renderer.js";
 import { exportLabDataCsv, openLabReportModal, LabTrialStore, mountLabCheckpoint } from "./lab-telemetry-exporter.js";
@@ -18,203 +19,242 @@ export function initChromatographyLab(containerId) {
     spinach: {
       name: "Spinach Chloroplast Pigments",
       category: "Photosynthetic Natural Extracts",
-      description: "Separates nonpolar carotenes from polar xanthophylls and porphyrin chlorophylls a & b.",
+      description: "Separates nonpolar polyene carotenes from xanthophyll alcohols and Mg-porphyrin chlorophylls a & b.",
       compounds: [
         {
           id: "carotene",
           name: "β-Carotene",
+          shortName: "β-Carotene",
           formula: "C₄₀H₅₆",
-          polarity: 0.08, // Very nonpolar polyene hydrocarbon
+          polarity: 0.08,
           mw: 536.87,
+          lambdaMax: "450 nm",
           visColor: "#f97316",
+          glowColor: "rgba(249, 115, 22, 0.55)",
           uv254Color: "#1e1b4b",
           uv365Color: "#fb923c",
           iodineColor: "#92400e",
           uvActive: true,
           imfType: "London Dispersion Only",
-          lane: 0
+          fg: "Conjugated Polyene (No O/N)"
         },
         {
           id: "pheophytin",
           name: "Pheophytin a",
+          shortName: "Pheophytin",
           formula: "C₅₅H₇₄N₄O₅",
-          polarity: 0.31,
+          polarity: 0.30,
           mw: 871.20,
-          visColor: "#65a30d",
+          lambdaMax: "409 nm",
+          visColor: "#84cc16",
+          glowColor: "rgba(132, 204, 22, 0.5)",
           uv254Color: "#312e81",
           uv365Color: "#e11d48",
           iodineColor: "#78350f",
           uvActive: true,
-          imfType: "Weak Dipole-Dipole + Ester",
-          lane: 0
+          imfType: "Weak Dipole + Phytyl Ester",
+          fg: "Demetallated Porphyrin Ring"
         },
         {
           id: "chlorophylla",
           name: "Chlorophyll a",
+          shortName: "Chl a",
           formula: "C₅₅H₇₂MgN₄O₅",
-          polarity: 0.52, // Methyl (-CH3) substituent on chlorin ring
+          polarity: 0.51,
           mw: 893.51,
-          visColor: "#059669",
+          lambdaMax: "430 / 662 nm",
+          visColor: "#10b981",
+          glowColor: "rgba(16, 185, 129, 0.6)",
           uv254Color: "#1e1b4b",
-          uv365Color: "#ff1744", // Vivid ruby-crimson fluorescence under 365nm UV
+          uv365Color: "#ff1744",
           iodineColor: "#451a03",
           uvActive: true,
-          imfType: "Mg²⁺ Coordination + Ketone Dipole",
-          lane: 0
+          imfType: "Mg²⁺ Coordination + Ketone",
+          fg: "Chlorin Ring + Methyl (-CH₃)"
         },
         {
           id: "chlorophyllb",
           name: "Chlorophyll b",
+          shortName: "Chl b",
           formula: "C₅₅H₇₀MgN₄O₆",
-          polarity: 0.68, // Polar aldehyde (-CHO) group increases silica adsorption
+          polarity: 0.67,
           mw: 907.49,
-          visColor: "#84cc16",
+          lambdaMax: "453 / 642 nm",
+          visColor: "#16a34a",
+          glowColor: "rgba(22, 163, 74, 0.55)",
           uv254Color: "#1e1b4b",
           uv365Color: "#f43f5e",
           iodineColor: "#713f12",
           uvActive: true,
-          imfType: "Polar Aldehyde (-CHO) H-Bonding",
-          lane: 0
+          imfType: "Polar Aldehyde (-CHO) H-Bond",
+          fg: "Chlorin Ring + Formyl (-CHO)"
         },
         {
           id: "xanthophyll",
           name: "Lutein (Xanthophyll)",
+          shortName: "Lutein",
           formula: "C₄₀H₅₆O₂",
-          polarity: 0.81, // Two polar hydroxyl (-OH) groups bind strongly to Si-OH
+          polarity: 0.82,
           mw: 568.87,
+          lambdaMax: "445 nm",
           visColor: "#eab308",
+          glowColor: "rgba(234, 179, 8, 0.6)",
           uv254Color: "#312e81",
           uv365Color: "#facc15",
           iodineColor: "#b45309",
           uvActive: true,
-          imfType: "Dual Hydroxyl (-OH) H-Bonding",
-          lane: 0
+          imfType: "Dual Hydroxyl (-OH) H-Bond",
+          fg: "Carotenoid Diol (2 × -OH)"
         }
       ]
     },
     analgesics: {
       name: "Pharmaceutical Analgesics (TLC Drug Panel)",
       category: "Forensic & Medicinal Chemistry",
-      description: "Colorless aromatic analgesics requiring UV-254nm fluorescence quenching or I₂ staining for visualization.",
+      description: "Colorless aromatic analgesics requiring UV-254nm fluorescence quenching or I₂ vapor staining for detection.",
       compounds: [
         {
           id: "ibuprofen",
           name: "Ibuprofen",
+          shortName: "Ibuprofen",
           formula: "C₁₃H₁₈O₂",
-          polarity: 0.24, // Nonpolar isobutyl phenylpropionic acid
+          polarity: 0.22,
           mw: 206.28,
-          visColor: "rgba(226, 232, 240, 0.14)", // Nearly invisible under white light
-          uv254Color: "#311042", // Dark purple quenched spot on green F254 plate
+          lambdaMax: "222 nm",
+          visColor: "rgba(226, 232, 240, 0.16)",
+          glowColor: "rgba(99, 102, 241, 0.55)",
+          uv254Color: "#311042",
           uv365Color: "#6366f1",
           iodineColor: "#b45309",
           uvActive: true,
-          imfType: "Hydrophobic Isobutyl + Carboxyl",
-          lane: 0
+          imfType: "Hydrophobic Isobutyl + COOH",
+          fg: "Isobutylphenylpropionic Acid"
         },
         {
           id: "aspirin",
           name: "Aspirin (Acetylsalicylic Acid)",
+          shortName: "Aspirin",
           formula: "C₉H₈O₄",
           polarity: 0.44,
           mw: 180.16,
-          visColor: "rgba(226, 232, 240, 0.14)",
+          lambdaMax: "276 nm",
+          visColor: "rgba(226, 232, 240, 0.16)",
+          glowColor: "rgba(56, 189, 248, 0.55)",
           uv254Color: "#2e1065",
           uv365Color: "#38bdf8",
           iodineColor: "#92400e",
           uvActive: true,
-          imfType: "Ester + Carboxylic Acid H-Bonding",
-          lane: 0
+          imfType: "Ester + Carboxylic Acid H-Bond",
+          fg: "Aromatic Ester + -COOH"
         },
         {
           id: "acetaminophen",
           name: "Acetaminophen (Paracetamol)",
+          shortName: "Paracetamol",
           formula: "C₈H₉NO₂",
-          polarity: 0.64,
+          polarity: 0.65,
           mw: 151.16,
-          visColor: "rgba(226, 232, 240, 0.14)",
+          lambdaMax: "243 nm",
+          visColor: "rgba(226, 232, 240, 0.16)",
+          glowColor: "rgba(168, 85, 247, 0.55)",
           uv254Color: "#1e1b4b",
           uv365Color: "#818cf8",
           iodineColor: "#78350f",
           uvActive: true,
-          imfType: "Phenol (-OH) + Amide (-NHCO-) H-Bonding",
-          lane: 0
+          imfType: "Phenol (-OH) + Amide H-Bond",
+          fg: "para-Aminophenol Acetamide"
         },
         {
           id: "caffeine",
           name: "Caffeine",
+          shortName: "Caffeine",
           formula: "C₈H₁₀N₄O₂",
-          polarity: 0.84, // Strongly polar xanthine alkaloid
+          polarity: 0.85,
           mw: 194.19,
-          visColor: "rgba(226, 232, 240, 0.14)",
+          lambdaMax: "273 nm",
+          visColor: "rgba(226, 232, 240, 0.16)",
+          glowColor: "rgba(236, 72, 153, 0.55)",
           uv254Color: "#170d36",
-          uv365Color: "#a855f7",
+          uv365Color: "#ec4899",
           iodineColor: "#451a03",
           uvActive: true,
-          imfType: "Poly-Nitrogen Purine Dione Dipole",
-          lane: 0
+          imfType: "Poly-Nitrogen Xanthine Dione",
+          fg: "Trimethylxanthine Alkaloid"
         }
       ]
     },
     dyes: {
       name: "Forensic Ink & Organic Azo Dyes",
       category: "Analytical Dye Separation",
-      description: "High-contrast synthetic organic chromophores with distinct functional group polarities.",
+      description: "Separates synthetic diazo chromophores, xanthene fluorophores, and thiazine salts by charge and dipole moment.",
       compounds: [
         {
-          id: "azulene",
-          name: "Azulene (Nonpolar Aromatic)",
-          formula: "C₁₀H₈",
-          polarity: 0.12,
-          mw: 128.17,
-          visColor: "#2563eb",
-          uv254Color: "#1e1b4b",
-          uv365Color: "#60a5fa",
-          iodineColor: "#78350f",
+          id: "sudan4",
+          name: "Sudan IV (Lysochrome)",
+          shortName: "Sudan IV",
+          formula: "C₂₄H₂₀N₄O",
+          polarity: 0.15,
+          mw: 380.44,
+          lambdaMax: "520 nm",
+          visColor: "#ef4444",
+          glowColor: "rgba(239, 68, 68, 0.55)",
+          uv254Color: "#3b0764",
+          uv365Color: "#f87171",
+          iodineColor: "#7f1d1d",
           uvActive: true,
-          imfType: "π-Stacking Dispersion",
-          lane: 0
+          imfType: "Nonpolar Naphthyl Diazo",
+          fg: "Lipophilic Diazo Naphthol"
         },
         {
-          id: "sudanred",
-          name: "Sudan IV (Diazo Dye)",
-          formula: "C₂₄H₂₀N₄O",
-          polarity: 0.36,
-          mw: 380.44,
-          visColor: "#e11d48",
-          uv254Color: "#311042",
-          uv365Color: "#fb7185",
-          iodineColor: "#9a3412",
+          id: "methylred",
+          name: "Methyl Red",
+          shortName: "Methyl Red",
+          formula: "C₁₅H₁₅N₃O₂",
+          polarity: 0.42,
+          mw: 269.30,
+          lambdaMax: "493 nm",
+          visColor: "#f59e0b",
+          glowColor: "rgba(245, 158, 11, 0.55)",
+          uv254Color: "#1e1b4b",
+          uv365Color: "#fbbf24",
+          iodineColor: "#92400e",
           uvActive: true,
-          imfType: "Weak Naphthol Dipole",
-          lane: 0
+          imfType: "Carboxylic Acid + Tert-Amine",
+          fg: "ortho-Carboxy Azo Dye"
         },
         {
           id: "fluorescein",
           name: "Fluorescein",
+          shortName: "Fluorescein",
           formula: "C₂₀H₁₂O₅",
-          polarity: 0.61,
+          polarity: 0.64,
           mw: 332.31,
-          visColor: "#eab308",
-          uv254Color: "#1e1b4b",
-          uv365Color: "#4ade80", // Intense neon green fluorescence
+          lambdaMax: "490 nm",
+          visColor: "#a3e635",
+          glowColor: "rgba(163, 230, 53, 0.7)",
+          uv254Color: "#14532d",
+          uv365Color: "#4ade80",
           iodineColor: "#854d0e",
           uvActive: true,
-          imfType: "Phenolic + Lactone H-Bonding",
-          lane: 0
+          imfType: "Phenolic Xanthene Lactone",
+          fg: "Dihydroxyspiroisobenzofuran"
         },
         {
           id: "methyleneblue",
-          name: "Methylene Blue+",
+          name: "Methylene Blue",
+          shortName: "Methylene Blue",
           formula: "C₁₆H₁₈ClN₃S",
-          polarity: 0.86,
+          polarity: 0.88,
           mw: 319.85,
-          visColor: "#0284c7",
-          uv254Color: "#1e1b4b",
+          lambdaMax: "668 nm",
+          visColor: "#0ea5e9",
+          glowColor: "rgba(14, 165, 233, 0.65)",
+          uv254Color: "#0f172a",
           uv365Color: "#38bdf8",
-          iodineColor: "#451a03",
+          iodineColor: "#1e3a8a",
           uvActive: true,
-          imfType: "Ionic Thiazine Cation Electrostatic",
-          lane: 0
+          imfType: "Ionic Phenothiazinium Salt",
+          fg: "Cationic Thiazine Chromophore"
         }
       ]
     }
@@ -222,28 +262,34 @@ export function initChromatographyLab(containerId) {
 
   // Simulation State
   let currentMixtureKey = "spinach";
-  let apparatusMode = "tlc"; // "tlc" (TLC Plate + Column Side-by-Side) or "molecular" (Microscopic Silica-Solute Partitioning)
-  let viewMode = "sim"; // "sim" or "photo"
-  let lightMode = "visible"; // "visible", "uv254", "uv365", "iodine"
-  let stationaryPhase = "silica"; // "silica" (Normal Phase Polar Si-OH) or "c18" (Reversed Phase Nonpolar C18)
-  let ethylAcetatePct = 35; // 0% (Pure Hexane, P'=0.1) to 100% (Pure Ethyl Acetate, P'=4.4)
-  let plateLengthMm = 80; // 80 mm Migration Path (Baseline at 10mm, Top at 90mm)
-  let developmentProgress = 0.85; // 0.0 to 1.0 (start pre-developed at 85% so user immediately sees rich bands, and can re-run animated elution!)
+  let ethylAcetatePct = 35; // 0% (Pure Hexane P'=0.1) to 100% (Pure Ethyl Acetate P'=4.4)
+  let stationaryPhase = "silica"; // "silica" (Normal Phase Polar Si-OH) | "c18" (Reversed Phase Nonpolar C18)
+  let lightMode = "visible"; // "visible" | "uv254" | "uv365" | "iodine"
+  let apparatusMode = "tlc_column"; // "tlc_column" | "molecular"
+  let plateLengthMm = 80; // 80 mm migration path
+  let developmentProgress = 0.86; // Start pre-developed at 86% so all bands & peaks are immediately vivid
   let isDeveloping = false;
   let selectedCompoundIndex = 2; // Default Chlorophyll a
   let caliperActive = true;
   let animId = null;
   let timeTick = 0;
 
+  // Vapor mist & solvent stream particles
+  const vaporParticles = Array.from({ length: 28 }, (_, i) => ({
+    x: (i * 37) % 100,
+    y: (i * 53) % 100,
+    r: 1.2 + (i % 3) * 0.7,
+    vy: 0.18 + (i % 5) * 0.06,
+    phase: i * 0.8
+  }));
+
   // Dynamic Rf Calculation based on Mobile Phase Eluotropic Strength & Stationary Phase Polarity
   function computeCompoundRf(compound) {
-    // Eluent polarity index (0.05 for pure hexane -> 0.95 for pure ethyl acetate)
     const eluentStrength = 0.06 + (ethylAcetatePct / 100) * 0.88;
     let rawRf;
 
     if (stationaryPhase === "silica") {
       // Normal Phase (Polar SiO2-OH): Nonpolar compounds have high Rf; polar compounds adsorb strongly (low Rf)
-      // Increasing ethyl acetate competes for Si-OH sites and pushes all spots higher
       const adsorptionAffinity = Math.pow(compound.polarity, 1.15);
       rawRf = Math.pow(eluentStrength, 0.75 * adsorptionAffinity + 0.15) * (1.02 - 0.72 * adsorptionAffinity * (1 - eluentStrength * 0.65));
     } else {
@@ -252,15 +298,15 @@ export function initChromatographyLab(containerId) {
       rawRf = (1 - 0.78 * hydrophobicRetention * (1 - eluentStrength * 0.5)) * (0.25 + 0.72 * compound.polarity);
     }
 
-    return Math.max(0.04, Math.min(0.96, rawRf));
+    return Math.max(0.05, Math.min(0.95, rawRf));
   }
 
   // Compute Column Retention Time t_R (min) from Rf: k' = (1 - Rf)/Rf, t_R = t_0 * (1 + k')
   function computeRetentionTime(compound) {
     const rf = computeCompoundRf(compound);
-    const t0 = 1.25; // Dead time (min)
+    const t0 = 1.20; // Dead time (min)
     const kPrime = (1 - rf) / Math.max(0.08, rf);
-    return Math.min(14.5, t0 * (1 + kPrime * 0.85));
+    return Math.min(14.2, t0 * (1 + kPrime * 0.82));
   }
 
   // Compute Resolution Rs between adjacent eluted peaks
@@ -271,183 +317,300 @@ export function initChromatographyLab(containerId) {
     let minRs = 99;
     for (let i = 1; i < sorted.length; i++) {
       const dt = sorted[i] - sorted[i - 1];
-      const wAvg = 0.65; // Peak baseline width (min)
+      const wAvg = 0.64;
       const rs = (2 * dt) / (wAvg + wAvg);
       if (rs < minRs) minRs = rs;
     }
     return minRs;
   }
 
+  // Helper to get active visual color of a spot under current illumination
+  function getSpotRenderColor(comp) {
+    if (lightMode === "uv254") return comp.uv254Color;
+    if (lightMode === "uv365") return comp.uv365Color;
+    if (lightMode === "iodine") return comp.iodineColor;
+    if (currentMixtureKey === "analgesics") return "rgba(148, 163, 184, 0.25)";
+    return comp.visColor;
+  }
+
   container.innerHTML = `
-    <div class="lab-container">
-      <!-- Header Bar -->
-      <div class="lab-header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: rgba(15, 23, 42, 0.92); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 10px 18px; flex-wrap: wrap; gap: 12px;">
+    <div class="lab-container" style="display: flex; flex-direction: column; gap: 16px;">
+      <style>
+        .chrom-workbench-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1.55fr) minmax(340px, 1fr);
+          gap: 18px;
+          align-items: stretch;
+        }
+        @media (max-width: 1120px) {
+          .chrom-workbench-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        .chrom-telemetry-strip {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
+          background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(7, 13, 25, 0.98) 100%);
+          border: 1px solid rgba(6, 182, 212, 0.32);
+          border-radius: 12px;
+          padding: 10px 14px;
+          box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.7);
+        }
+        @media (max-width: 768px) {
+          .chrom-telemetry-strip {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+        .chrom-metric-card {
+          background: rgba(2, 6, 23, 0.75);
+          border: 1px solid rgba(51, 65, 85, 0.65);
+          border-radius: 8px;
+          padding: 7px 11px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .chrom-row-item {
+          transition: background 0.15s ease, transform 0.15s ease;
+        }
+        .chrom-row-item:hover {
+          background: rgba(6, 182, 212, 0.14) !important;
+        }
+        [data-theme="day"] .chrom-telemetry-strip {
+          background: #ffffff !important;
+          border: 1.5px solid #cbd5e1 !important;
+          box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05) !important;
+        }
+        [data-theme="day"] .chrom-metric-card {
+          background: #f8fafc !important;
+          border: 1.5px solid #cbd5e1 !important;
+        }
+        [data-theme="day"] .chrom-row-item:hover {
+          background: #f0f9ff !important;
+        }
+      </style>
+
+      <!-- Top Header Bar -->
+      <div class="lab-header-bar" style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(8, 28, 48, 0.94) 100%); border: 1px solid rgba(6, 182, 212, 0.4); border-radius: 14px; padding: 12px 18px; flex-wrap: wrap; gap: 12px; box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.75);">
         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-          <span style="font-size: 0.85rem; font-weight: 700; color: #06b6d4; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
-            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #06b6d4; box-shadow: 0 0 10px #06b6d4;"></span>
-            Thin-Layer (TLC), Flash Column &amp; HPLC Chromatography
-          </span>
-          <span class="badge" style="background: rgba(6, 182, 212, 0.15); border: 1px solid rgba(6, 182, 212, 0.35); color: #22d3ee; font-size: 0.75rem; padding: 3px 10px; border-radius: 9999px;">
-            ${renderLatex("R_f = \\frac{d_{\\text{substance}}}{d_{\\text{solvent}}} \\quad \\bullet \\quad R_s = \\frac{2\\Delta t_R}{w_1 + w_2}")}
-          </span>
+          <div style="width: 38px; height: 38px; border-radius: 10px; background: radial-gradient(circle at 30% 30%, rgba(6, 182, 212, 0.35), rgba(15, 23, 42, 0.9)); border: 1px solid rgba(6, 182, 212, 0.5); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 18px rgba(6, 182, 212, 0.3);">
+            <span style="font-size: 1.2rem;">🧪</span>
+          </div>
+          <div>
+            <div style="font-size: 0.92rem; font-weight: 800; color: #f8fafc; letter-spacing: 0.01em; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <span>Thin-Layer (TLC), Flash Column &amp; HPLC Chromatography</span>
+              <span class="badge" style="background: rgba(6, 182, 212, 0.18); border: 1px solid rgba(6, 182, 212, 0.45); color: #22d3ee; font-size: 0.72rem; padding: 2px 9px; border-radius: 9999px;">
+                ${renderLatex("R_f = \\frac{d_{\\text{spot}}}{d_{\\text{solvent}}} \\;\\bullet\\; R_s = \\frac{2\\Delta t_R}{w_1 + w_2}")}
+              </span>
+            </div>
+            <div style="font-size: 0.73rem; color: #94a3b8;">
+              Inspire Chemistry M02/M07/M13 • Lucas-Washburn Capillary Kinetics, Silanol Partitioning &amp; Diode-Array Detection
+            </div>
+          </div>
         </div>
 
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <div class="lab-view-switcher" style="display: flex; background: rgba(0,0,0,0.45); border-radius: 8px; padding: 3px; border: 1px solid rgba(56, 189, 248, 0.2);">
-            <button id="view-mode-chrom-sim" class="btn btn-secondary active" style="padding: 5px 11px; font-size: 0.76rem; font-weight: 700; border-radius: 6px; border: none; background: #0284c7; color: #fff;">
-              🔬 TLC &amp; Column
+          <div class="lab-view-switcher" style="display: flex; background: rgba(2, 6, 23, 0.75); border-radius: 9px; padding: 3px; border: 1px solid rgba(6, 182, 212, 0.3);">
+            <button id="view-mode-chrom-sim" class="btn btn-secondary active" style="padding: 6px 12px; font-size: 0.76rem; font-weight: 700; border-radius: 6px; border: none; background: linear-gradient(135deg, #0284c7, #06b6d4); color: #fff; box-shadow: 0 2px 10px rgba(6, 182, 212, 0.35);">
+              🔬 TLC, Column &amp; HPLC
             </button>
-            <button id="view-mode-chrom-mol" class="btn btn-secondary" style="padding: 5px 11px; font-size: 0.76rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
-              ⚛️ Si-OH Partition
+            <button id="view-mode-chrom-mol" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.76rem; font-weight: 600; border-radius: 6px; background: transparent; border: none; color: #cbd5e1;">
+              ⚛️ Si-OH Partitioning
             </button>
-            <button id="view-mode-chrom-photo" class="btn btn-secondary" style="padding: 5px 11px; font-size: 0.76rem; font-weight: 600; border-radius: 6px; background: transparent; border: none;">
+            <button id="view-mode-chrom-photo" class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.76rem; font-weight: 600; border-radius: 6px; background: transparent; border: none; color: #cbd5e1;">
               📸 4K Real Bench
             </button>
           </div>
-          <button class="btn btn-primary btn-sm" id="btn-chrom-develop" style="padding: 5px 13px; font-size: 0.76rem; font-weight: 700;">
+          <button class="btn btn-primary btn-sm" id="btn-chrom-develop" style="padding: 6px 14px; font-size: 0.76rem; font-weight: 800; background: linear-gradient(135deg, #059669, #10b981); border: none; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);">
             ▶ Run Elution
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-chrom-record" style="padding: 5px 11px; font-size: 0.76rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
+          <button class="btn btn-secondary btn-sm" id="btn-chrom-record" style="padding: 6px 11px; font-size: 0.75rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">
             📌 Record Trial
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-chrom-report" style="padding: 5px 11px; font-size: 0.76rem; border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
+          <button class="btn btn-secondary btn-sm" id="btn-chrom-report" style="padding: 6px 11px; font-size: 0.75rem; border-color: rgba(168, 85, 247, 0.4); color: #c084fc;">
             📋 Lab Dossier
           </button>
-          <button class="btn btn-secondary btn-sm" id="btn-chrom-export" style="padding: 5px 11px; font-size: 0.76rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
+          <button class="btn btn-secondary btn-sm" id="btn-chrom-export" style="padding: 6px 11px; font-size: 0.75rem; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
             📥 Export CSV (E)
           </button>
         </div>
       </div>
 
-      <!-- Main Layout Grid -->
-      <div style="display: grid; grid-template-columns: 1.25fr 1fr; gap: 20px;" class="chrom-layout">
+      <!-- Dedicated Digital Telemetry Ribbon (Never overlaps Canvas!) -->
+      <div class="chrom-telemetry-strip">
+        <div class="chrom-metric-card" style="border-left: 3px solid #22d3ee;">
+          <span style="font-size: 0.64rem; color: #94a3b8; text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.04em;">ACTIVE ANALYTE SPOT / PEAK</span>
+          <div id="hud-chrom-compound" style="font-size: 0.96rem; font-weight: 800; color: #22d3ee; font-family: var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            Chlorophyll a • Rf = 0.48
+          </div>
+        </div>
+        <div class="chrom-metric-card" style="border-left: 3px solid #34d399;">
+          <span style="font-size: 0.64rem; color: #94a3b8; text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.04em;">SOLVENT FRONT &amp; RESOLUTION</span>
+          <div id="hud-chrom-front" style="font-size: 0.96rem; font-weight: 800; color: #34d399; font-family: var(--font-mono);">
+            zf = 68.8 mm • Rs = 1.92
+          </div>
+        </div>
+        <div class="chrom-metric-card" style="border-left: 3px solid #fbbf24;">
+          <span style="font-size: 0.64rem; color: #94a3b8; text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.04em;">MOBILE PHASE ELUENT (P')</span>
+          <div id="hud-chrom-eluent" style="font-size: 0.92rem; font-weight: 800; color: #fbbf24; font-family: var(--font-mono);">
+            35% EtOAc : 65% Hexane (P' = 1.61)
+          </div>
+        </div>
+        <div class="chrom-metric-card" style="border-left: 3px solid #c084fc;">
+          <span style="font-size: 0.64rem; color: #94a3b8; text-transform: uppercase; font-family: var(--font-mono); letter-spacing: 0.04em;">STATIONARY PHASE &amp; OPTICS</span>
+          <div id="hud-chrom-phase" style="font-size: 0.9rem; font-weight: 800; color: #e9d5ff; font-family: var(--font-mono);">
+            Polar SiO₂-OH • White Light
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Workbench Grid -->
+      <div class="chrom-workbench-grid">
         <!-- Left Interactive 60 FPS Canvas & 4K Bench Viewport -->
-        <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(6, 182, 212, 0.38); box-shadow: 0 20px 45px -15px rgba(0,0,0,0.85); background: radial-gradient(circle at 50% 35%, #0c1e35 0%, #030712 100%); border-radius: 12px; overflow: hidden; height: 560px;">
-          <canvas id="chrom-canvas" width="640" height="560" style="height: 560px; width: 100%; display: block; cursor: pointer;"></canvas>
+        <div class="lab-canvas-area" style="position: relative; border: 1.5px solid rgba(6, 182, 212, 0.42); box-shadow: 0 24px 55px -15px rgba(0, 0, 0, 0.9), inset 0 0 40px rgba(6, 182, 212, 0.07); background: #030712; border-radius: 14px; overflow: hidden; min-height: 600px; display: flex; flex-direction: column;">
+          <canvas id="chrom-canvas" width="920" height="600" style="width: 100%; height: 600px; display: block; cursor: pointer; flex: 1;"></canvas>
 
           <!-- 4K Real Laboratory Photograph Overlay -->
-          <div id="chromatography-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
+          <div id="chromatography-photo-overlay" style="display: none; position: absolute; inset: 0; background: #020617; z-index: 10;">
             <picture>
               <source srcset="assets/labs/chromatography_bench.webp" type="image/webp">
               <img src="assets/labs/chromatography_bench.jpg" decoding="async" loading="lazy" alt="4K Thin-Layer Chromatography Chamber, Silica Flash Column &amp; UV-254nm Analytical Workbench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.96;">
             </picture>
 
-            <div style="position: absolute; bottom: 18px; left: 18px; right: 18px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(6, 182, 212, 0.45); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.85);">
+            <div style="position: absolute; top: 16px; left: 16px; background: rgba(2, 6, 23, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(6, 182, 212, 0.5); border-radius: 999px; padding: 6px 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 25px rgba(0,0,0,0.7);">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: #22d3ee; box-shadow: 0 0 8px #22d3ee;"></span>
+              <span style="font-size: 0.74rem; font-weight: 800; color: #f8fafc; letter-spacing: 0.04em;">4K AUTHENTIC ANALYTICAL CHROMATOGRAPHY BENCH</span>
+            </div>
+
+            <div style="position: absolute; bottom: 18px; left: 18px; right: 18px; background: rgba(9, 15, 30, 0.92); backdrop-filter: blur(16px); border: 1px solid rgba(6, 182, 212, 0.45); border-radius: 12px; padding: 14px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 14px 35px rgba(0,0,0,0.88);">
               <div>
-                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Stationary Phase</div>
-                <div style="color: #22d3ee; font-weight: 700; font-family: var(--font-mono); font-size: 0.88rem;">Silica Gel 60 F₂₅₄ (SiO₂·xH₂O)</div>
+                <div style="font-size: 0.66rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Stationary Phase Bed</div>
+                <div style="color: #22d3ee; font-weight: 800; font-family: var(--font-mono); font-size: 0.86rem; margin-top: 2px;">Silica Gel 60 F₂₅₄ (SiO₂·xH₂O)</div>
+                <div style="font-size: 0.68rem; color: #cbd5e1; margin-top: 2px;">Polar silanol (-Si-OH) H-bond donor sites</div>
               </div>
               <div>
-                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Mobile Phase Eluent</div>
-                <div style="color: #fbbf24; font-weight: 700; font-family: var(--font-mono); font-size: 0.88rem;">n-Hexane : Ethyl Acetate</div>
+                <div style="font-size: 0.66rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Mobile Phase Eluent</div>
+                <div style="color: #fbbf24; font-weight: 800; font-family: var(--font-mono); font-size: 0.86rem; margin-top: 2px;">n-Hexane : Ethyl Acetate</div>
+                <div style="font-size: 0.68rem; color: #cbd5e1; margin-top: 2px;">Tunable Snyder polarity index P' (0.1 → 4.4)</div>
               </div>
               <div>
-                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Detection Optics</div>
-                <div style="color: #34d399; font-weight: 700; font-family: var(--font-mono); font-size: 0.88rem;">UV 254/365 nm + HPLC Diode Array</div>
+                <div style="font-size: 0.66rem; color: #94a3b8; text-transform: uppercase; font-weight: 700;">Detection Optics</div>
+                <div style="color: #34d399; font-weight: 800; font-family: var(--font-mono); font-size: 0.86rem; margin-top: 2px;">UV 254/365 nm + DAD HPLC</div>
+                <div style="font-size: 0.68rem; color: #cbd5e1; margin-top: 2px;">Fluorescence quenching &amp; Gaussian peak area</div>
               </div>
             </div>
           </div>
 
-          <!-- Top Telemetry HUD Overlay -->
-          <div style="position: absolute; top: 12px; left: 14px; right: 14px; display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5; gap: 10px;">
-            <div style="background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(6, 182, 212, 0.4); border-radius: 10px; padding: 7px 13px; pointer-events: auto;">
-              <div style="font-size: 0.65rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase;">SELECTED ANALYTE TELEMETRY</div>
-              <div id="hud-chrom-compound" style="font-size: 1.02rem; font-weight: 800; color: #22d3ee; font-family: var(--font-mono);">
-                Chlorophyll a • Rf = 0.48
-              </div>
+          <!-- Bottom Interactive Canvas Bar -->
+          <div style="background: rgba(9, 14, 28, 0.96); border-top: 1px solid rgba(51, 65, 85, 0.65); padding: 8px 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button class="btn btn-secondary btn-sm" id="btn-chrom-caliper" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700; border-color: rgba(6, 182, 212, 0.45); color: #22d3ee;">
+                📏 Digital Rf Caliper: ON
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btn-chrom-reset" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 600;">
+                ↺ Spot Fresh Plate (t = 0)
+              </button>
             </div>
-
-            <div style="background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 10px; padding: 7px 13px; text-align: right; pointer-events: auto;">
-              <div style="font-size: 0.65rem; color: #94a3b8; font-family: var(--font-mono); text-transform: uppercase;">SOLVENT FRONT &amp; RESOLUTION</div>
-              <div id="hud-chrom-front" style="font-size: 1.02rem; font-weight: 800; color: #10b981; font-family: var(--font-mono);">
-                d_solv = 68.0 mm • Rs = 1.82
-              </div>
+            <div style="font-size: 0.71rem; color: #94a3b8; font-family: var(--font-mono);">
+              💡 Click any TLC spot, column band, or HPLC peak to lock the laser densitometer
             </div>
           </div>
         </div>
 
-        <!-- Right Controls, UV Lamp Selector & Analytical Rf Table -->
+        <!-- Right Controls & Quantitative Rf / HPLC Telemetry Deck -->
         <div style="display: flex; flex-direction: column; gap: 14px;">
-          <!-- Mixture, Stationary Phase & Eluent Polarity Controls -->
-          <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px;">
+          <!-- Mixture, Stationary Phase, Solvent Gradient & Illumination Controls -->
+          <div style="background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(9, 14, 28, 0.95) 100%); border: 1px solid rgba(6, 182, 212, 0.3); border-radius: 14px; padding: 15px 16px; box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.75);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-              <div style="font-size: 0.75rem; font-weight: 700; color: #06b6d4; text-transform: uppercase;">Chromatographic System Parameters</div>
-              <span id="chrom-phase-badge" class="badge" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee; font-size: 0.68rem; padding: 2px 8px; border-radius: 6px;">
-                Normal-Phase Silica
+              <div style="font-size: 0.75rem; font-weight: 800; color: #06b6d4; text-transform: uppercase; letter-spacing: 0.05em;">
+                1. Sample Mixture &amp; Phase Parameters
+              </div>
+              <span id="chrom-polarity-badge" class="badge" style="background: rgba(6, 182, 212, 0.15); color: #22d3ee; font-size: 0.68rem; padding: 2px 8px; border-radius: 6px; font-family: var(--font-mono);">
+                P' = 1.61
               </span>
             </div>
 
-            <!-- Sample Mixture Dropdown -->
-            <div class="control-group" style="margin-bottom: 10px;">
-              <label for="chrom-mixture-select" class="control-label" style="display: block; font-size: 0.75rem; color: #cbd5e1; font-weight: 600; margin-bottom: 4px;">
-                Analyte Mixture Spotted at Origin Line:
+            <!-- Sample Mixture Selector -->
+            <div class="control-group" style="margin-bottom: 11px;">
+              <label for="chrom-mixture-select" class="control-label" style="display: block; font-size: 0.74rem; color: #cbd5e1; font-weight: 700; margin-bottom: 4px;">
+                Analyte Mixture Spotted on Origin Line:
               </label>
-              <select id="chrom-mixture-select" aria-label="Select Analyte Mixture" style="width: 100%; background: #030712; color: #f8fafc; border: 1px solid #334155; border-radius: 8px; padding: 7px 10px; font-size: 0.8rem; font-weight: 600;">
-                <option value="spinach">🌿 Spinach Chloroplast Pigments (Carotene, Chl a/b, Lutein)</option>
+              <select id="chrom-mixture-select" aria-label="Select Chromatography Sample Mixture" style="width: 100%; background: #020617; color: #f8fafc; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; font-size: 0.8rem; font-weight: 700;">
+                <option value="spinach">🌿 Spinach Chloroplast Extracts (5 Photosynthetic Pigments)</option>
                 <option value="analgesics">💊 Pharmaceutical Analgesics Panel (Ibuprofen, Aspirin, Paracetamol, Caffeine)</option>
-                <option value="dyes">🎨 Forensic Ink &amp; Organic Chromophores (Azulene, Sudan IV, Fluorescein, Methylene Blue)</option>
+                <option value="dyes">🎨 Forensic Ink &amp; Organic Azo Dyes (Sudan IV, Methyl Red, Fluorescein, Methylene Blue)</option>
               </select>
             </div>
 
-            <!-- Mobile Phase Eluent Polarity Slider -->
-            <div class="control-slider-group" style="margin-bottom: 10px;">
-              <div class="slider-header" style="display: flex; justify-content: space-between; font-size: 0.76rem; margin-bottom: 4px;">
-                <span style="color: #cbd5e1; font-weight: 600;">Mobile Phase Eluent (% Ethyl Acetate in Hexane)</span>
-                <span id="val-eluent-pct" style="color: #fbbf24; font-family: var(--font-mono); font-weight: 700;">35% EtOAc : 65% Hexane (P' = 1.61)</span>
+            <!-- Mobile Phase Eluent Polarity Slider (% Ethyl Acetate in Hexane) -->
+            <div class="control-slider-group" style="margin-bottom: 12px; background: rgba(2, 6, 23, 0.6); border: 1px solid rgba(51, 65, 85, 0.6); border-radius: 10px; padding: 9px 12px;">
+              <div class="slider-header" style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                <span style="color: #e2e8f0; font-weight: 700;">Mobile Phase Eluent (% Ethyl Acetate)</span>
+                <span id="val-eluent-pct" style="color: #22d3ee; font-family: var(--font-mono); font-weight: 800;">35% EtOAc : 65% Hexane</span>
               </div>
               <input type="range" id="slider-eluent-pct" min="0" max="100" step="5" value="35" style="width: 100%; accent-color: #06b6d4;">
-              <div style="display: flex; justify-content: space-between; font-size: 0.66rem; color: #64748b; margin-top: 2px;">
-                <span>0% (Pure Nonpolar Hexane)</span>
-                <span>50% (Medium Polarity)</span>
-                <span>100% (Polar Ethyl Acetate)</span>
+              <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: #64748b; margin-top: 3px; font-family: var(--font-mono);">
+                <span>0% (Pure n-Hexane • Nonpolar)</span>
+                <span>50% (Medium Eluent)</span>
+                <span>100% (Pure EtOAc • Polar)</span>
               </div>
             </div>
 
-            <!-- Stationary Phase & Visualization Lamp Mode Row -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <div>
-                <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">Stationary Phase Bed:</div>
-                <div style="display: flex; gap: 4px;">
-                  <button id="btn-phase-silica" class="btn btn-secondary active" style="flex: 1; padding: 5px 6px; font-size: 0.72rem; font-weight: 700; background: rgba(6, 182, 212, 0.25); border-color: #06b6d4; color: #fff;">
-                    Polar SiO₂
-                  </button>
-                  <button id="btn-phase-c18" class="btn btn-secondary" style="flex: 1; padding: 5px 6px; font-size: 0.72rem; font-weight: 600;">
-                    Nonpolar C₁₈
-                  </button>
-                </div>
+            <!-- Stationary Phase Matrix Toggle -->
+            <div style="margin-bottom: 11px;">
+              <div style="font-size: 0.73rem; color: #cbd5e1; font-weight: 700; margin-bottom: 5px;">Stationary Phase Chemistry (Adsorbent Matrix):</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 7px;">
+                <button id="phase-silica" class="btn btn-secondary btn-sm active" style="font-size: 0.73rem; padding: 7px 8px; border-color: #06b6d4; background: rgba(6, 182, 212, 0.2); color: #f8fafc; font-weight: 700;">
+                  🧪 Normal-Phase Polar SiO₂-OH
+                </button>
+                <button id="phase-c18" class="btn btn-secondary btn-sm" style="font-size: 0.73rem; padding: 7px 8px;">
+                  🔄 Reversed-Phase Nonpolar C₁₈
+                </button>
               </div>
+            </div>
 
-              <div>
-                <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">Detection / Illumination:</div>
-                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;">
-                  <button id="btn-light-vis" class="btn btn-secondary active" title="Visible White Light" style="padding: 5px 4px; font-size: 0.68rem; font-weight: 700; background: rgba(56, 189, 248, 0.25); border-color: #38bdf8; color: #fff;">Vis</button>
-                  <button id="btn-light-uv254" class="btn btn-secondary" title="Shortwave UV-254nm Fluorescence Quenching (F254 Phosphor)" style="padding: 5px 4px; font-size: 0.68rem; font-weight: 600;">254nm</button>
-                  <button id="btn-light-uv365" class="btn btn-secondary" title="Longwave UV-365nm Fluorescence Excitation" style="padding: 5px 4px; font-size: 0.68rem; font-weight: 600;">365nm</button>
-                  <button id="btn-light-iodine" class="btn btn-secondary" title="Sublimed Iodine (I₂) Vapor Staining" style="padding: 5px 4px; font-size: 0.68rem; font-weight: 600;">I₂ Stain</button>
-                </div>
+            <!-- Visualization & UV Lamp Cabinet Mode -->
+            <div>
+              <div style="font-size: 0.73rem; color: #cbd5e1; font-weight: 700; margin-bottom: 5px;">Plate Detection &amp; UV Cabinet Illumination:</div>
+              <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                <button class="btn btn-secondary btn-sm chrom-light-btn active" data-light="visible" style="font-size: 0.71rem; padding: 6px 4px; border-color: #38bdf8; background: rgba(56, 189, 248, 0.2); color: #fff; font-weight: 700;">
+                  ☀️ Visible
+                </button>
+                <button class="btn btn-secondary btn-sm chrom-light-btn" data-light="uv254" style="font-size: 0.71rem; padding: 6px 4px;">
+                  🟢 UV-254nm
+                </button>
+                <button class="btn btn-secondary btn-sm chrom-light-btn" data-light="uv365" style="font-size: 0.71rem; padding: 6px 4px;">
+                  🟣 UV-365nm
+                </button>
+                <button class="btn btn-secondary btn-sm chrom-light-btn" data-light="iodine" style="font-size: 0.71rem; padding: 6px 4px;">
+                  🟤 I₂ Vapor
+                </button>
               </div>
             </div>
           </div>
 
           <!-- Analytical Rf & Retention Time Telemetry Table -->
-          <div style="background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border-color); border-radius: 12px; padding: 14px 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+          <div style="background: linear-gradient(180deg, rgba(15, 23, 42, 0.95) 0%, rgba(9, 14, 28, 0.95) 100%); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 14px 16px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.75);">
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div style="font-size: 0.75rem; font-weight: 700; color: #10b981; text-transform: uppercase;">Quantitative Rf &amp; Column Elution Table</div>
-                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 0.68rem; padding: 2px 8px; border-radius: 6px;">
-                  Click Row or Spot to Measure
+                <div style="font-size: 0.75rem; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">
+                  2. Quantitative Rf &amp; HPLC Elution Telemetry
+                </div>
+                <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.67rem; padding: 2px 8px; border-radius: 6px;">
+                  Click Row to Inspect Band
                 </span>
               </div>
 
-              <div style="background: #030712; border: 1px solid #1e293b; border-radius: 8px; overflow: hidden;">
+              <div style="background: #020617; border: 1px solid #1e293b; border-radius: 10px; overflow: hidden;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.72rem; text-align: left;">
                   <thead>
-                    <tr style="background: rgba(15, 23, 42, 0.85); border-bottom: 1px solid #334155; color: #94a3b8;">
-                      <th style="padding: 6px 8px;">Analyte Band</th>
-                      <th style="padding: 6px 6px;">d_spot (mm)</th>
-                      <th style="padding: 6px 6px;">Rf Value</th>
-                      <th style="padding: 6px 6px;">Column t_R</th>
-                      <th style="padding: 6px 8px;">Dominant IMF</th>
+                    <tr style="background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid #334155; color: #94a3b8; font-family: var(--font-mono); font-size: 0.67rem;">
+                      <th style="padding: 7px 8px;">ANALYTE BAND</th>
+                      <th style="padding: 7px 6px;">d_spot</th>
+                      <th style="padding: 7px 6px;">Rf</th>
+                      <th style="padding: 7px 6px;">HPLC t_R</th>
+                      <th style="padding: 7px 8px;">DOMINANT IMF</th>
                     </tr>
                   </thead>
                   <tbody id="chrom-table-body">
@@ -457,7 +620,7 @@ export function initChromatographyLab(containerId) {
               </div>
             </div>
 
-            <div id="chrom-chemical-insight" style="margin-top: 10px; font-size: 0.73rem; color: #cbd5e1; line-height: 1.42; background: rgba(6, 182, 212, 0.08); border-left: 3px solid #06b6d4; border-radius: 6px; padding: 8px 12px;">
+            <div id="chrom-chemical-insight" style="margin-top: 10px; font-size: 0.74rem; color: #e2e8f0; line-height: 1.48; background: linear-gradient(90deg, rgba(6, 182, 212, 0.12) 0%, rgba(15, 23, 42, 0.6) 100%); border-left: 3px solid #06b6d4; border-radius: 8px; padding: 9px 12px;">
               <!-- Dynamic molecular partitioning explanation -->
             </div>
           </div>
@@ -465,7 +628,7 @@ export function initChromatographyLab(containerId) {
       </div>
 
       <!-- Post-Lab Competency Checkpoint Container -->
-      <div id="chrom-checkpoint-container" style="margin-top: 24px; width: 100%;"></div>
+      <div id="chrom-checkpoint-container" style="margin-top: 8px; width: 100%;"></div>
     </div>
   `;
 
@@ -476,155 +639,339 @@ export function initChromatographyLab(containerId) {
   const canvas = document.getElementById("chrom-canvas");
   const ctx = canvas.getContext("2d");
 
-  const logicalW = 640;
-  const logicalH = 560;
-  function setupHiDPICanvas() {
+  let logicalW = 920;
+  let logicalH = 600;
+
+  function syncCanvasSize() {
+    if (!canvas) return;
     const dpr = typeof window.getLabDPR === "function" ? window.getLabDPR() : Math.min(window.devicePixelRatio || 1, 2);
-    if (canvas) {
-      canvas.width = Math.round(logicalW * dpr);
-      canvas.height = Math.round(logicalH * dpr);
+    const rect = canvas.getBoundingClientRect ? canvas.getBoundingClientRect() : null;
+    if (rect && rect.width > 300 && rect.height > 250) {
+      logicalW = Math.round(rect.width);
+      logicalH = Math.round(rect.height);
+    } else {
+      logicalW = 920;
+      logicalH = 600;
+    }
+    const targetW = Math.round(logicalW * dpr);
+    const targetH = Math.round(logicalH * dpr);
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW;
+      canvas.height = targetH;
     }
   }
-  setupHiDPICanvas();
-  window.addEventListener("resize", setupHiDPICanvas);
+  syncCanvasSize();
+  window.addEventListener("resize", syncCanvasSize);
 
   const viewSimBtn = document.getElementById("view-mode-chrom-sim");
   const viewMolBtn = document.getElementById("view-mode-chrom-mol");
   const viewPhotoBtn = document.getElementById("view-mode-chrom-photo");
   const photoOverlay = document.getElementById("chromatography-photo-overlay");
 
+  const mixtureSelect = document.getElementById("chrom-mixture-select");
+  const sliderEluent = document.getElementById("slider-eluent-pct");
+  const valEluentPct = document.getElementById("val-eluent-pct");
+  const polarityBadge = document.getElementById("chrom-polarity-badge");
+
+  const btnPhaseSilica = document.getElementById("phase-silica");
+  const btnPhaseC18 = document.getElementById("phase-c18");
+  const lightBtns = container.querySelectorAll(".chrom-light-btn");
+
   const btnDevelop = document.getElementById("btn-chrom-develop");
+  const btnReset = document.getElementById("btn-chrom-reset");
+  const btnCaliper = document.getElementById("btn-chrom-caliper");
   const btnRecord = document.getElementById("btn-chrom-record");
   const btnReport = document.getElementById("btn-chrom-report");
   const btnExport = document.getElementById("btn-chrom-export");
 
-  const mixtureSelect = document.getElementById("chrom-mixture-select");
-  const sliderEluent = document.getElementById("slider-eluent-pct");
-  const valEluentPct = document.getElementById("val-eluent-pct");
-  const phaseBadge = document.getElementById("chrom-phase-badge");
-
-  const btnPhaseSilica = document.getElementById("btn-phase-silica");
-  const btnPhaseC18 = document.getElementById("btn-phase-c18");
-
-  const btnLightVis = document.getElementById("btn-light-vis");
-  const btnLightUv254 = document.getElementById("btn-light-uv254");
-  const btnLightUv365 = document.getElementById("btn-light-uv365");
-  const btnLightIodine = document.getElementById("btn-light-iodine");
-
   const hudCompound = document.getElementById("hud-chrom-compound");
   const hudFront = document.getElementById("hud-chrom-front");
+  const hudEluent = document.getElementById("hud-chrom-eluent");
+  const hudPhase = document.getElementById("hud-chrom-phase");
   const tableBody = document.getElementById("chrom-table-body");
   const insightBox = document.getElementById("chrom-chemical-insight");
 
-  function getSpotColor(comp) {
-    if (lightMode === "uv254") return comp.uv254Color;
-    if (lightMode === "uv365") return comp.uv365Color;
-    if (lightMode === "iodine") return comp.iodineColor;
-    return comp.visColor;
+  // Layout Geometry Helper (scales cleanly to any canvas width/height)
+  function getStageGeometry(W, H) {
+    const pad = 16;
+    const gap = 14;
+    const tlcW = Math.round(W * 0.30);
+    const colW = Math.round(W * 0.25);
+    const hplcW = W - pad * 2 - gap * 2 - tlcW - colW;
+
+    const tlcBox = { x: pad, y: 14, w: tlcW, h: H - 28 };
+    const colBox = { x: pad + tlcW + gap, y: 14, w: colW, h: H - 28 };
+    const hplcBox = { x: pad + tlcW + colW + gap * 2, y: 14, w: hplcW, h: H - 28 };
+
+    // Inside TLC Chamber
+    const plateW = Math.min(182, tlcBox.w - 58);
+    const plateX = tlcBox.x + Math.round((tlcBox.w - plateW) / 2);
+    const plateY = tlcBox.y + 76;
+    const plateH = tlcBox.h - 118;
+    const originY = plateY + plateH - 36;
+    const maxFrontRisePx = plateH - 68;
+
+    return {
+      tlcBox,
+      colBox,
+      hplcBox,
+      plate: { x: plateX, y: plateY, w: plateW, h: plateH, originY, maxFrontRisePx }
+    };
   }
 
+  function setViewMode(mode) {
+    if (mode === "photo") {
+      photoOverlay.style.display = "block";
+      viewPhotoBtn.classList.add("active");
+      viewPhotoBtn.style.background = "linear-gradient(135deg, #0284c7, #06b6d4)";
+      viewPhotoBtn.style.color = "#fff";
+      viewSimBtn.classList.remove("active");
+      viewSimBtn.style.background = "transparent";
+      viewMolBtn.classList.remove("active");
+      viewMolBtn.style.background = "transparent";
+    } else {
+      photoOverlay.style.display = "none";
+      apparatusMode = mode;
+      viewPhotoBtn.classList.remove("active");
+      viewPhotoBtn.style.background = "transparent";
+      if (mode === "tlc_column") {
+        viewSimBtn.classList.add("active");
+        viewSimBtn.style.background = "linear-gradient(135deg, #0284c7, #06b6d4)";
+        viewSimBtn.style.color = "#fff";
+        viewMolBtn.classList.remove("active");
+        viewMolBtn.style.background = "transparent";
+      } else {
+        viewMolBtn.classList.add("active");
+        viewMolBtn.style.background = "linear-gradient(135deg, #0284c7, #06b6d4)";
+        viewMolBtn.style.color = "#fff";
+        viewSimBtn.classList.remove("active");
+        viewSimBtn.style.background = "transparent";
+      }
+    }
+    SoundFX.click?.() || SoundFX.playClick?.();
+  }
+
+  viewSimBtn.addEventListener("click", () => setViewMode("tlc_column"));
+  viewMolBtn.addEventListener("click", () => setViewMode("molecular"));
+  viewPhotoBtn.addEventListener("click", () => setViewMode("photo"));
+
+  // Update Table & HUD Telemetry
   function updateHUD() {
     const mixture = SAMPLE_MIXTURES[currentMixtureKey];
     const comps = mixture.compounds;
     if (selectedCompoundIndex >= comps.length) selectedCompoundIndex = 0;
 
-    // Snyder Polarity Index P' of Hexane (0.1) + Ethyl Acetate (4.4)
-    const pPrime = (0.1 * (100 - ethylAcetatePct) + 4.4 * ethylAcetatePct) / 100;
-    valEluentPct.textContent = `${ethylAcetatePct}% EtOAc : ${100 - ethylAcetatePct}% Hexane (P' = ${pPrime.toFixed(2)})`;
+    const pPrime = (0.1 + (ethylAcetatePct / 100) * 4.3).toFixed(2);
+    if (polarityBadge) polarityBadge.textContent = `P' = ${pPrime}`;
+    if (valEluentPct) valEluentPct.textContent = `${ethylAcetatePct}% EtOAc : ${100 - ethylAcetatePct}% Hexane`;
+    if (hudEluent) hudEluent.textContent = `${ethylAcetatePct}% EtOAc : ${100 - ethylAcetatePct}% Hexane (P' = ${pPrime})`;
 
-    phaseBadge.textContent = stationaryPhase === "silica" ? "Normal-Phase Polar SiO₂" : "Reversed-Phase Nonpolar C₁₈";
-    phaseBadge.style.color = stationaryPhase === "silica" ? "#22d3ee" : "#fbbf24";
+    const lightLabels = {
+      visible: "White Light",
+      uv254: "UV-254nm F₂₅₄",
+      uv365: "UV-365nm Fluor",
+      iodine: "I₂ Vapor Stain"
+    };
+    if (hudPhase) {
+      hudPhase.textContent = `${stationaryPhase === "silica" ? "Polar SiO₂-OH" : "Nonpolar C₁₈"} • ${lightLabels[lightMode]}`;
+    }
 
     const dSolventMm = plateLengthMm * developmentProgress;
+    const rs = computeAverageResolution();
     const selComp = comps[selectedCompoundIndex];
     const selRf = computeCompoundRf(selComp);
-    const selDistMm = dSolventMm * selRf;
-    const rs = computeAverageResolution();
 
-    hudCompound.textContent = `${selComp.name} • Rf = ${selRf.toFixed(2)} (${selDistMm.toFixed(1)} mm)`;
-    hudFront.textContent = `d_solv = ${dSolventMm.toFixed(1)} mm • Rs = ${rs.toFixed(2)}`;
+    if (hudCompound) {
+      hudCompound.textContent = `${selComp.name} • Rf = ${selRf.toFixed(2)}`;
+    }
+    if (hudFront) {
+      hudFront.textContent = `zf = ${dSolventMm.toFixed(1)} mm • Rs = ${rs.toFixed(2)}`;
+    }
 
-    // Populate Table sorted from highest Rf to lowest Rf
-    tableBody.innerHTML = comps.map((c, idx) => {
-      const rf = computeCompoundRf(c);
-      const dSpot = dSolventMm * rf;
-      const tR = computeRetentionTime(c);
-      const isSel = idx === selectedCompoundIndex;
-      const dotColor = c.visColor.startsWith("rgba") ? "#a855f7" : c.visColor;
+    // Populate Table
+    if (tableBody) {
+      tableBody.innerHTML = comps.map((c, idx) => {
+        const rf = computeCompoundRf(c);
+        const dSpot = dSolventMm * rf;
+        const tr = computeRetentionTime(c);
+        const isSel = idx === selectedCompoundIndex;
+        const swatch = c.visColor.startsWith("rgba") ? "#a855f7" : c.visColor;
 
-      return `
-        <tr data-cidx="${idx}" style="border-bottom: 1px solid #1e293b; background: ${isSel ? 'rgba(6, 182, 212, 0.16)' : 'transparent'}; cursor: pointer; transition: background 0.15s;">
-          <td style="padding: 6px 8px; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 6px;">
-            <span style="display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: ${dotColor}; border: 1px solid rgba(255,255,255,0.4);"></span>
-            <span>${c.name}</span>
-          </td>
-          <td style="padding: 6px 6px; color: #cbd5e1; font-family: var(--font-mono);">${dSpot.toFixed(1)}</td>
-          <td style="padding: 6px 6px; color: #22d3ee; font-family: var(--font-mono); font-weight: 800;">${rf.toFixed(3)}</td>
-          <td style="padding: 6px 6px; color: #fbbf24; font-family: var(--font-mono);">${tR.toFixed(2)} min</td>
-          <td style="padding: 6px 8px; color: #94a3b8; font-size: 0.68rem;">${c.imfType}</td>
-        </tr>
-      `;
-    }).join("");
+        return `
+          <tr data-comp-idx="${idx}" class="chrom-row-item" style="border-bottom: 1px solid #1e293b; background: ${isSel ? 'rgba(6, 182, 212, 0.2)' : 'transparent'}; cursor: pointer;">
+            <td style="padding: 6px 8px; font-weight: 700; color: #f8fafc; display: flex; align-items: center; gap: 7px;">
+              <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${swatch}; box-shadow: 0 0 8px ${swatch};"></span>
+              <span>${c.shortName || c.name}</span>
+            </td>
+            <td style="padding: 6px 6px; font-family: var(--font-mono); color: #cbd5e1;">${dSpot.toFixed(1)} mm</td>
+            <td style="padding: 6px 6px; font-family: var(--font-mono); font-weight: 800; color: #22d3ee;">${rf.toFixed(2)}</td>
+            <td style="padding: 6px 6px; font-family: var(--font-mono); color: #34d399;">${tr.toFixed(2)} min</td>
+            <td style="padding: 6px 8px; color: #94a3b8; font-size: 0.67rem;">${c.imfType}</td>
+          </tr>
+        `;
+      }).join("");
 
-    tableBody.querySelectorAll("tr[data-cidx]").forEach(row => {
-      row.addEventListener("click", () => {
-        selectedCompoundIndex = parseInt(row.dataset.cidx, 10);
-        SoundFX.click?.() || SoundFX.playClick?.();
-        updateHUD();
+      tableBody.querySelectorAll("tr[data-comp-idx]").forEach(row => {
+        row.addEventListener("click", () => {
+          selectedCompoundIndex = parseInt(row.dataset.compIdx, 10);
+          SoundFX.click?.() || SoundFX.playClick?.();
+          updateHUD();
+        });
       });
-    });
+    }
 
-    const phaseMechanism = stationaryPhase === "silica"
-      ? `On <strong>Normal-Phase Polar Silica ($\text{Si-OH}$)</strong>, <strong>${selComp.name}</strong> (${selComp.formula}) exhibits ${selComp.polarity > 0.5 ? 'strong hydrogen-bonding/dipole adsorption to silanol groups, slowing migration' : 'weak dispersion interactions with polar silanol groups, partitioning rapidly into the mobile phase'} ($R_f = ${selRf.toFixed(2)}$, $t_R = ${computeRetentionTime(selComp).toFixed(2)}\text{ min}$).`
-      : `On <strong>Reversed-Phase Nonpolar $\text{C}_{18}$</strong>, elution order inverts: <strong>${selComp.name}</strong> experiences ${selComp.polarity < 0.5 ? 'strong hydrophobic van der Waals retention with octadecyl chains' : 'minimal hydrophobic retention, eluting rapidly with the polar mobile phase'} ($R_f = ${selRf.toFixed(2)}$).`;
+    const phaseDesc = stationaryPhase === "silica"
+      ? `On <strong>Normal-Phase Polar Silica ($\\text{SiO}_2\\text{-OH}$)</strong>, polar solutes form strong hydrogen bonds with surface silanol groups (low $R_f$, longer column retention $t_R$), while nonpolar solutes partition into the mobile phase (high $R_f$).`
+      : `On <strong>Reversed-Phase Nonpolar $\\text{C}_{18}$</strong>, hydrophobic solutes partition into the octadecyl hydrocarbon brush (low $R_f$, longer $t_R$), while polar solutes elute rapidly with the mobile phase (high $R_f$).`;
 
-    insightBox.innerHTML = formatMathText(phaseMechanism);
-  }
-
-  // Canvas Click / Drag Hit Detection for TLC Spots
-  function handleCanvasPoint(clientX, clientY) {
-    if (viewMode !== "sim") return;
-    const rect = canvas.getBoundingClientRect();
-    const x = (clientX - rect.left) * (logicalW / rect.width);
-    const y = (clientY - rect.top) * (logicalH / rect.height);
-
-    // Check if user clicked near a spot on the TLC plate (x: 55..275, y: 115..455)
-    const baselineY = 435;
-    const maxMigrationPx = 280;
-    const frontPx = maxMigrationPx * developmentProgress;
-    const comps = SAMPLE_MIXTURES[currentMixtureKey].compounds;
-
-    let bestIdx = -1;
-    let bestDist = 42;
-    comps.forEach((c, idx) => {
-      const rf = computeCompoundRf(c);
-      const spotY = baselineY - frontPx * rf;
-      const dist = Math.abs(y - spotY);
-      if (x >= 45 && x <= 300 && dist < bestDist) {
-        bestDist = dist;
-        bestIdx = idx;
-      }
-    });
-
-    if (bestIdx !== -1) {
-      selectedCompoundIndex = bestIdx;
-      SoundFX.click?.() || SoundFX.playClick?.();
-      updateHUD();
+    if (insightBox) {
+      insightBox.innerHTML = formatMathText(
+        `<strong>${selComp.name} (${selComp.formula}):</strong> Exhibits <em>${selComp.imfType}</em> (${selComp.fg}), migrating with $R_f = ${selRf.toFixed(2)}$ and HPLC retention $t_R = ${computeRetentionTime(selComp).toFixed(2)}\\text{ min}$. ${phaseDesc}`
+      );
     }
   }
 
+  // Controls Event Listeners
+  mixtureSelect.addEventListener("change", (e) => {
+    currentMixtureKey = e.target.value;
+    selectedCompoundIndex = 0;
+    if (currentMixtureKey === "analgesics" && lightMode === "visible") {
+      lightMode = "uv254";
+      lightBtns.forEach(b => {
+        const act = b.dataset.light === "uv254";
+        b.classList.toggle("active", act);
+        b.style.borderColor = act ? "#38bdf8" : "";
+        b.style.background = act ? "rgba(56, 189, 248, 0.2)" : "";
+      });
+    }
+    SoundFX.click?.() || SoundFX.playClick?.();
+    updateHUD();
+  });
+
+  sliderEluent.addEventListener("input", (e) => {
+    ethylAcetatePct = parseInt(e.target.value, 10);
+    updateHUD();
+  });
+
+  btnPhaseSilica.addEventListener("click", () => {
+    stationaryPhase = "silica";
+    btnPhaseSilica.classList.add("active");
+    btnPhaseSilica.style.borderColor = "#06b6d4";
+    btnPhaseSilica.style.background = "rgba(6, 182, 212, 0.2)";
+    btnPhaseC18.classList.remove("active");
+    btnPhaseC18.style.borderColor = "";
+    btnPhaseC18.style.background = "";
+    SoundFX.click?.() || SoundFX.playClick?.();
+    updateHUD();
+  });
+
+  btnPhaseC18.addEventListener("click", () => {
+    stationaryPhase = "c18";
+    btnPhaseC18.classList.add("active");
+    btnPhaseC18.style.borderColor = "#06b6d4";
+    btnPhaseC18.style.background = "rgba(6, 182, 212, 0.2)";
+    btnPhaseSilica.classList.remove("active");
+    btnPhaseSilica.style.borderColor = "";
+    btnPhaseSilica.style.background = "";
+    SoundFX.click?.() || SoundFX.playClick?.();
+    updateHUD();
+  });
+
+  lightBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      lightMode = btn.dataset.light;
+      lightBtns.forEach(b => {
+        const act = b === btn;
+        b.classList.toggle("active", act);
+        b.style.borderColor = act ? "#38bdf8" : "";
+        b.style.background = act ? "rgba(56, 189, 248, 0.2)" : "";
+      });
+      SoundFX.click?.() || SoundFX.playClick?.();
+      updateHUD();
+    });
+  });
+
+  btnDevelop.addEventListener("click", () => {
+    if (developmentProgress >= 0.96) {
+      developmentProgress = 0.04;
+    }
+    isDeveloping = !isDeveloping;
+    btnDevelop.textContent = isDeveloping ? "⏸ Pause Elution" : "▶ Run Elution";
+    SoundFX.click?.() || SoundFX.playClick?.();
+  });
+
+  btnReset.addEventListener("click", () => {
+    isDeveloping = false;
+    developmentProgress = 0.05;
+    btnDevelop.textContent = "▶ Run Elution";
+    SoundFX.click?.() || SoundFX.playClick?.();
+    updateHUD();
+  });
+
+  btnCaliper.addEventListener("click", () => {
+    caliperActive = !caliperActive;
+    btnCaliper.textContent = `📏 Digital Rf Caliper: ${caliperActive ? "ON" : "OFF"}`;
+    btnCaliper.style.color = caliperActive ? "#22d3ee" : "#94a3b8";
+    SoundFX.click?.() || SoundFX.playClick?.();
+  });
+
+  // Canvas Click/Touch Spot & Peak Selection
   canvas.addEventListener("pointerdown", (e) => {
-    handleCanvasPoint(e.clientX, e.clientY);
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const x = (e.clientX - rect.left) * (logicalW / rect.width);
+    const y = (e.clientY - rect.top) * (logicalH / rect.height);
+
+    const geom = getStageGeometry(logicalW, logicalH);
+    const comps = SAMPLE_MIXTURES[currentMixtureKey].compounds;
+
+    if (apparatusMode === "tlc_column") {
+      // Check TLC spots
+      const frontRisePx = geom.plate.maxFrontRisePx * developmentProgress;
+      let bestIdx = -1;
+      let bestDist = 42;
+      comps.forEach((c, idx) => {
+        const rf = computeCompoundRf(c);
+        const spotY = geom.plate.originY - frontRisePx * rf;
+        const spotX = geom.plate.x + geom.plate.w * 0.5;
+        const d = Math.hypot(x - spotX, y - spotY);
+        if (d < bestDist) {
+          bestDist = d;
+          bestIdx = idx;
+        }
+      });
+
+      // Check HPLC peaks if clicked in right panel
+      if (bestIdx < 0 && x >= geom.hplcBox.x) {
+        const plotX = geom.hplcBox.x + 36;
+        const plotW = geom.hplcBox.w - 52;
+        const clickedTime = ((x - plotX) / Math.max(1, plotW)) * 15.0;
+        let minTimeDiff = 2.0;
+        comps.forEach((c, idx) => {
+          const dt = Math.abs(computeRetentionTime(c) - clickedTime);
+          if (dt < minTimeDiff) {
+            minTimeDiff = dt;
+            bestIdx = idx;
+          }
+        });
+      }
+
+      if (bestIdx >= 0) {
+        selectedCompoundIndex = bestIdx;
+        SoundFX.click?.() || SoundFX.playClick?.();
+        updateHUD();
+      }
+    }
   });
 
   // 60 FPS Canvas Rendering Engine
   function renderChromatographyCanvas() {
     if (!container || !container.isConnected) return;
+    syncCanvasSize();
     timeTick += 0.035;
 
     if (isDeveloping) {
-      // Lucas-Washburn capillary rise velocity slows down as z_f increases
-      const step = Math.max(0.0025, 0.0085 * (1.15 - developmentProgress));
+      const step = Math.max(0.0022, 0.0075 * (1.12 - developmentProgress));
       developmentProgress = Math.min(1.0, developmentProgress + step);
       if (developmentProgress >= 1.0) {
         isDeveloping = false;
@@ -640,23 +987,24 @@ export function initChromatographyLab(containerId) {
     ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, logicalW, logicalH);
 
-    // Lab Bench Background
-    const bgGrad = ctx.createLinearGradient(0, 0, 0, logicalH);
-    bgGrad.addColorStop(0, "#091526");
-    bgGrad.addColorStop(1, "#030712");
+    // Rich Studio Dark Slate Background
+    const bgGrad = ctx.createRadialGradient(logicalW * 0.5, logicalH * 0.35, 40, logicalW * 0.5, logicalH * 0.5, logicalW * 0.75);
+    bgGrad.addColorStop(0, "#0b192e");
+    bgGrad.addColorStop(0.6, "#060d1a");
+    bgGrad.addColorStop(1, "#020617");
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, logicalW, logicalH);
 
-    // Subtle Blueprint Grid
-    ctx.strokeStyle = "rgba(6, 182, 212, 0.04)";
+    // Subtle Precision Blueprint Grid
+    ctx.strokeStyle = "rgba(34, 211, 238, 0.035)";
     ctx.lineWidth = 1;
-    for (let gx = 20; gx < logicalW; gx += 35) {
+    for (let gx = 24; gx < logicalW; gx += 32) {
       ctx.beginPath();
       ctx.moveTo(gx, 0);
       ctx.lineTo(gx, logicalH);
       ctx.stroke();
     }
-    for (let gy = 20; gy < logicalH; gy += 35) {
+    for (let gy = 24; gy < logicalH; gy += 32) {
       ctx.beginPath();
       ctx.moveTo(0, gy);
       ctx.lineTo(logicalW, gy);
@@ -664,740 +1012,871 @@ export function initChromatographyLab(containerId) {
     }
 
     if (apparatusMode === "molecular") {
-      renderMolecularPartitionView(ctx);
+      renderMolecularPartitionView(ctx, logicalW, logicalH);
     } else {
-      renderTlcAndColumnApparatus(ctx);
+      renderThreeStationWorkbench(ctx, logicalW, logicalH);
     }
 
     ctx.restore();
     animId = requestAnimationFrame(renderChromatographyCanvas);
   }
 
-  function renderTlcAndColumnApparatus(ctx) {
+  function renderThreeStationWorkbench(ctx, W, H) {
+    const geom = getStageGeometry(W, H);
+    const { tlcBox, colBox, hplcBox, plate } = geom;
     const mixture = SAMPLE_MIXTURES[currentMixtureKey];
     const comps = mixture.compounds;
 
     // =========================================================================
-    // 1. LEFT SIDE: BOROSILICATE GLASS TLC DEVELOPING CHAMBER & SILICA PLATE
+    // STATION 1: 3D BOROSILICATE GLASS TLC CHAMBER & UV INSPECTION CABINET
     // =========================================================================
-    const chamberX = 36;
-    const chamberY = 92;
-    const chamberW = 240;
-    const chamberH = 408;
+    ctx.save();
+    // Panel Card Backdrop
+    ctx.fillStyle = "rgba(9, 15, 30, 0.78)";
+    ctx.strokeStyle = lightMode === "uv254" ? "rgba(74, 222, 128, 0.45)" : (lightMode === "uv365" ? "rgba(192, 132, 252, 0.45)" : "rgba(56, 189, 248, 0.28)");
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(tlcBox.x, tlcBox.y, tlcBox.w, tlcBox.h, 12);
+    ctx.fill();
+    ctx.stroke();
 
-    // UV Ambient Glow if UV-254 or UV-365 active
-    if (lightMode === "uv254" || lightMode === "uv365") {
-      const uvGlow = ctx.createRadialGradient(chamberX + chamberW / 2, chamberY + chamberH / 2, 20, chamberX + chamberW / 2, chamberY + chamberH / 2, 210);
-      uvGlow.addColorStop(0, lightMode === "uv254" ? "rgba(74, 222, 128, 0.16)" : "rgba(168, 85, 247, 0.22)");
-      uvGlow.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = uvGlow;
-      ctx.fillRect(0, 50, 320, 490);
+    // Station Header
+    ctx.fillStyle = "#22d3ee";
+    ctx.font = "bold 11px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("① TLC CHAMBER & DENSITOMETER", tlcBox.x + 12, tlcBox.y + 20);
+
+    // Overhead UV Lamp Hood & Light Cone
+    const hoodW = Math.min(180, tlcBox.w - 40);
+    const hoodX = tlcBox.x + (tlcBox.w - hoodW) / 2;
+    const hoodY = tlcBox.y + 30;
+    ctx.fillStyle = "#1e293b";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(hoodX, hoodY, hoodW, 16, 5);
+    ctx.fill();
+    ctx.stroke();
+
+    // UV / Visible Emitter Tube inside Hood
+    const emitterColor = lightMode === "uv254" ? "#4ade80" : (lightMode === "uv365" ? "#c084fc" : (lightMode === "iodine" ? "#f59e0b" : "#e0f2fe"));
+    ctx.fillStyle = emitterColor;
+    ctx.fillRect(hoodX + 14, hoodY + 12, hoodW - 28, 4);
+
+    // Volumetric Illumination Cone over TLC Chamber
+    const coneGrad = ctx.createLinearGradient(0, hoodY + 16, 0, plate.y + plate.h);
+    if (lightMode === "uv254") {
+      coneGrad.addColorStop(0, "rgba(74, 222, 128, 0.22)");
+      coneGrad.addColorStop(1, "rgba(74, 222, 128, 0.02)");
+    } else if (lightMode === "uv365") {
+      coneGrad.addColorStop(0, "rgba(168, 85, 247, 0.26)");
+      coneGrad.addColorStop(1, "rgba(168, 85, 247, 0.03)");
+    } else if (lightMode === "iodine") {
+      coneGrad.addColorStop(0, "rgba(217, 119, 6, 0.22)");
+      coneGrad.addColorStop(1, "rgba(180, 83, 9, 0.08)");
+    } else {
+      coneGrad.addColorStop(0, "rgba(224, 242, 254, 0.12)");
+      coneGrad.addColorStop(1, "rgba(224, 242, 254, 0.01)");
     }
+    ctx.fillStyle = coneGrad;
+    ctx.beginPath();
+    ctx.moveTo(hoodX + 10, hoodY + 16);
+    ctx.lineTo(hoodX + hoodW - 10, hoodY + 16);
+    ctx.lineTo(tlcBox.x + tlcBox.w - 14, plate.y + plate.h + 18);
+    ctx.lineTo(tlcBox.x + 14, plate.y + plate.h + 18);
+    ctx.closePath();
+    ctx.fill();
 
-    // Chamber Ground-Glass Watch Glass Lid
-    ctx.fillStyle = "rgba(148, 163, 184, 0.22)";
-    ctx.strokeStyle = "rgba(226, 232, 240, 0.65)";
+    // Borosilicate Developing Jar (Outer Glass Tank)
+    const jarX = plate.x - 18;
+    const jarY = plate.y - 16;
+    const jarW = plate.w + 36;
+    const jarH = plate.h + 32;
+
+    // Ground-Glass Watch Glass Lid
+    ctx.fillStyle = "rgba(148, 163, 184, 0.32)";
+    ctx.strokeStyle = "rgba(226, 232, 240, 0.7)";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.roundRect(jarX - 6, jarY - 8, jarW + 12, 8, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // Glass Tank Body
+    ctx.fillStyle = "rgba(15, 23, 42, 0.45)";
+    ctx.strokeStyle = "rgba(186, 230, 253, 0.55)";
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.roundRect(chamberX - 10, chamberY - 12, chamberW + 20, 12, 5);
-    ctx.fill();
-    ctx.stroke();
-    // Lid Knob
-    ctx.beginPath();
-    ctx.arc(chamberX + chamberW / 2, chamberY - 18, 9, 0, Math.PI * 2);
+    ctx.roundRect(jarX, jarY, jarW, jarH, 8);
     ctx.fill();
     ctx.stroke();
 
-    // Borosilicate Developing Jar Body
-    ctx.fillStyle = lightMode === "iodine" ? "rgba(180, 83, 9, 0.16)" : "rgba(15, 23, 42, 0.55)";
-    ctx.strokeStyle = "rgba(148, 163, 184, 0.6)";
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.roundRect(chamberX, chamberY, chamberW, chamberH, 8);
-    ctx.fill();
-    ctx.stroke();
+    // Animated Vapor Saturation Mist Particles inside Jar
+    vaporParticles.forEach(p => {
+      const py = jarY + 12 + ((p.y - timeTick * p.vy * 18) % (jarH - 30) + (jarH - 30)) % (jarH - 30);
+      const px = jarX + 10 + ((p.x + Math.sin(timeTick + p.phase) * 6) / 100) * (jarW - 20);
+      ctx.fillStyle = lightMode === "iodine" ? "rgba(217, 119, 6, 0.22)" : "rgba(186, 230, 253, 0.14)";
+      ctx.beginPath();
+      ctx.arc(px, py, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
 
-    // Developing Solvent Pool at Bottom of Chamber (below baseline!)
-    const poolTopY = 456;
-    const poolH = chamberY + chamberH - poolTopY - 3;
+    // Developing Solvent Pool at Bottom of Jar (strictly below origin line!)
+    const poolTopY = plate.originY + 14;
+    const poolH = jarY + jarH - poolTopY - 2;
     const poolGrad = ctx.createLinearGradient(0, poolTopY, 0, poolTopY + poolH);
-    poolGrad.addColorStop(0, "rgba(56, 189, 248, 0.35)");
-    poolGrad.addColorStop(1, "rgba(6, 182, 212, 0.55)");
+    poolGrad.addColorStop(0, "rgba(56, 189, 248, 0.42)");
+    poolGrad.addColorStop(1, "rgba(6, 182, 212, 0.68)");
     ctx.fillStyle = poolGrad;
-    ctx.fillRect(chamberX + 3, poolTopY, chamberW - 6, poolH);
+    ctx.fillRect(jarX + 2, poolTopY, jarW - 4, poolH);
 
-    // Meniscus line on solvent pool
-    ctx.strokeStyle = "rgba(186, 230, 253, 0.8)";
-    ctx.lineWidth = 1.5;
+    // Concave Meniscus Curve at Solvent Pool Surface
+    ctx.strokeStyle = "rgba(224, 242, 254, 0.9)";
+    ctx.lineWidth = 1.6;
     ctx.beginPath();
-    ctx.moveTo(chamberX + 3, poolTopY);
-    ctx.lineTo(chamberX + chamberW - 3, poolTopY);
+    ctx.moveTo(jarX + 2, poolTopY - 2);
+    ctx.quadraticCurveTo(jarX + jarW / 2, poolTopY + 3, jarX + jarW - 2, poolTopY - 2);
     ctx.stroke();
 
-    // TLC Silica Plate inside Chamber
-    const plateX = chamberX + 34;
-    const plateY = 116;
-    const plateW = 172;
-    const plateH = 368;
-
-    // Plate Color depends on Illumination Mode
+    // 3D Silica Gel / C18 TLC Plate
+    let plateGrad = ctx.createLinearGradient(plate.x, plate.y, plate.x + plate.w, plate.y + plate.h);
     if (lightMode === "uv254") {
-      // Green F254 zinc silicate phosphor emission
-      const uvPlateGrad = ctx.createLinearGradient(plateX, plateY, plateX + plateW, plateY + plateH);
-      uvPlateGrad.addColorStop(0, "#4ade80");
-      uvPlateGrad.addColorStop(1, "#22c55e");
-      ctx.fillStyle = uvPlateGrad;
+      // Bright Neon Green F254 Zinc Silicate Phosphor Plate
+      plateGrad.addColorStop(0, "#4ade80");
+      plateGrad.addColorStop(0.5, "#22c55e");
+      plateGrad.addColorStop(1, "#16a34a");
     } else if (lightMode === "uv365") {
-      ctx.fillStyle = "#1e1b4b"; // Dark violet background for longwave fluorescence
+      // Deep Dark Violet UV-365nm Excitation Background
+      plateGrad.addColorStop(0, "#1e1b4b");
+      plateGrad.addColorStop(1, "#0f172a");
     } else if (lightMode === "iodine") {
-      ctx.fillStyle = "#fef3c7"; // Warm amber-tinted silica plate in I2 vapor
+      // Warm Amber I2 Sublimation Tinted Silica
+      plateGrad.addColorStop(0, "#fef3c7");
+      plateGrad.addColorStop(1, "#fde68a");
     } else {
-      ctx.fillStyle = stationaryPhase === "silica" ? "#f8fafc" : "#e2e8f0";
+      // Crisp Matte White Silica Gel 60 / C18 Plate
+      plateGrad.addColorStop(0, stationaryPhase === "silica" ? "#f8fafc" : "#e2e8f0");
+      plateGrad.addColorStop(1, stationaryPhase === "silica" ? "#e2e8f0" : "#cbd5e1");
     }
-
-    ctx.strokeStyle = "#94a3b8";
+    ctx.fillStyle = plateGrad;
+    ctx.strokeStyle = "#64748b";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.roundRect(plateX, plateY, plateW, plateH, 3);
+    ctx.roundRect(plate.x, plate.y, plate.w, plate.h, 3);
     ctx.fill();
     ctx.stroke();
 
-    // Wetted Capillary Solvent Front Region on Plate
-    const baselineY = 435; // Origin line (z = 0 mm)
-    const maxMigrationPx = 280; // 80 mm scale = 280 px (3.5 px / mm)
-    const currentFrontPx = maxMigrationPx * developmentProgress;
-    const solventFrontY = baselineY - currentFrontPx;
+    // Wetted Capillary Solvent Front Shading on Plate
+    const frontRisePx = plate.maxFrontRisePx * developmentProgress;
+    const solventFrontY = plate.originY - frontRisePx;
+    ctx.fillStyle = lightMode === "uv254"
+      ? "rgba(21, 128, 61, 0.25)"
+      : (lightMode === "uv365" ? "rgba(56, 189, 248, 0.08)" : "rgba(14, 165, 233, 0.12)");
+    ctx.fillRect(plate.x + 1, solventFrontY, plate.w - 2, plate.y + plate.h - solventFrontY - 1);
 
-    if (lightMode === "visible") {
-      ctx.fillStyle = "rgba(148, 163, 184, 0.16)";
-      ctx.fillRect(plateX + 1, solventFrontY, plateW - 2, plateY + plateH - solventFrontY - 1);
-    }
-
-    // Solvent Front Dashed Line
-    ctx.save();
-    ctx.strokeStyle = lightMode === "uv254" ? "#064e3b" : "#0284c7";
-    ctx.lineWidth = 1.5;
+    // Dashed Solvent Front Line (z_f)
+    ctx.strokeStyle = lightMode === "uv365" ? "#38bdf8" : "#0284c7";
+    ctx.lineWidth = 1.6;
     ctx.setLineDash([4, 3]);
     ctx.beginPath();
-    ctx.moveTo(plateX + 6, solventFrontY);
-    ctx.lineTo(plateX + plateW - 6, solventFrontY);
+    ctx.moveTo(plate.x + 4, solventFrontY);
+    ctx.lineTo(plate.x + plate.w - 4, solventFrontY);
     ctx.stroke();
-    ctx.restore();
+    ctx.setLineDash([]);
 
-    // Solvent Front Label
-    ctx.fillStyle = lightMode === "uv254" ? "#064e3b" : (lightMode === "uv365" ? "#38bdf8" : "#0369a1");
+    ctx.fillStyle = lightMode === "uv365" ? "#38bdf8" : "#0369a1";
     ctx.font = "bold 9px 'JetBrains Mono', monospace";
     ctx.textAlign = "right";
-    ctx.fillText(`Solvent Front (${(plateLengthMm * developmentProgress).toFixed(1)}mm)`, plateX + plateW - 6, solventFrontY - 5);
+    ctx.fillText(`Front ${(plateLengthMm * developmentProgress).toFixed(0)}mm`, plate.x + plate.w - 6, solventFrontY - 4);
 
-    // Pencil Origin Baseline (z = 0 mm)
-    ctx.strokeStyle = lightMode === "uv365" ? "#94a3b8" : "#475569";
+    // Graphite Pencil Baseline (Origin Line = 0.0 mm)
+    ctx.strokeStyle = lightMode === "uv365" ? "#94a3b8" : "#334155";
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(plateX + 8, baselineY);
-    ctx.lineTo(plateX + plateW - 8, baselineY);
+    ctx.moveTo(plate.x + 6, plate.originY);
+    ctx.lineTo(plate.x + plate.w - 6, plate.originY);
     ctx.stroke();
 
-    ctx.fillStyle = lightMode === "uv365" ? "#cbd5e1" : "#475569";
+    // Origin Crosshair Tick & Label
+    const centerLaneX = plate.x + plate.w * 0.44;
+    ctx.fillStyle = lightMode === "uv365" ? "#94a3b8" : "#475569";
     ctx.font = "bold 8.5px 'JetBrains Mono', monospace";
     ctx.textAlign = "left";
-    ctx.fillText("Origin (0.0 mm)", plateX + 8, baselineY + 12);
+    ctx.fillText("Origin (Pencil)", plate.x + 6, plate.originY + 11);
 
-    // Two Lanes on the TLC Plate:
-    // Lane 1 (Left): Complete Mixture Co-Spot
-    // Lane 2 (Right): Selected Pure Reference Standard
-    const lane1X = plateX + 52;
-    const lane2X = plateX + 124;
-
-    ctx.fillStyle = lightMode === "uv365" ? "#94a3b8" : "#334155";
-    ctx.font = "bold 8.5px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("Mixture", lane1X, plateY + 14);
-    ctx.fillText("Ref Std", lane2X, plateY + 14);
-
-    // Origin tick marks
-    ctx.beginPath();
-    ctx.arc(lane1X, baselineY, 2.2, 0, Math.PI * 2);
-    ctx.arc(lane2X, baselineY, 2.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Draw Eluted Analyte Spots in Lane 1 (All Compounds) & Lane 2 (Selected Reference)
+    // Render Eluted Analyte Spots with Radial Diffusion Gradients
     comps.forEach((comp, idx) => {
       const rf = computeCompoundRf(comp);
-      const spotY = baselineY - currentFrontPx * rf;
-      const color = getSpotColor(comp);
+      const spotY = plate.originY - frontRisePx * rf;
       const isSelected = idx === selectedCompoundIndex;
+      const spotColor = getSpotRenderColor(comp);
 
-      // Spot diffusion broadening increases slightly with migration distance
-      const rX = 13 + developmentProgress * 4;
-      const rY = 6.5 + developmentProgress * 2.5;
+      // Spot lateral & vertical diffusion grows slightly with migration distance
+      const rx = 12 + rf * 4 * developmentProgress;
+      const ry = 6.5 + rf * 3 * developmentProgress;
 
-      // Draw Spot in Lane 1 (Mixture)
-      ctx.save();
+      // UV-365nm Fluorescence Halo
       if (lightMode === "uv365") {
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 12;
+        const halo = ctx.createRadialGradient(centerLaneX, spotY, 1, centerLaneX, spotY, rx * 2.1);
+        halo.addColorStop(0, spotColor);
+        halo.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.ellipse(centerLaneX, spotY, rx * 2.1, ry * 2.1, 0, 0, Math.PI * 2);
+        ctx.fill();
       }
-      ctx.fillStyle = color;
+
+      // Main Chromatographic Spot
+      ctx.fillStyle = spotColor;
       ctx.beginPath();
-      ctx.ellipse(lane1X, spotY, rX, rY, 0, 0, Math.PI * 2);
+      ctx.ellipse(centerLaneX, spotY, rx, ry, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // If Selected Compound, also draw in Lane 2 (Reference Standard) & highlight caliper
+      // Laser Densitometer Scan Reticle on Selected Spot
       if (isSelected) {
+        ctx.strokeStyle = lightMode === "uv254" ? "#0f172a" : "#06b6d4";
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.ellipse(lane2X, spotY, rX * 0.9, rY * 0.9, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+        ctx.ellipse(centerLaneX, spotY, rx + 4, ry + 3.5, 0, 0, Math.PI * 2);
+        ctx.stroke();
 
-        // Selection Reticle & Digital Caliper Line from Origin to Spot Center
-        ctx.save();
-        ctx.strokeStyle = lightMode === "uv254" ? "#1e1b4b" : "#06b6d4";
-        ctx.lineWidth = 1.6;
+        // Laser Scanning Beam across Plate
+        ctx.strokeStyle = "rgba(244, 63, 94, 0.65)";
+        ctx.lineWidth = 1.2;
         ctx.setLineDash([2, 2]);
         ctx.beginPath();
-        ctx.moveTo(lane1X - 18, spotY);
-        ctx.lineTo(plateX + plateW + 24, spotY);
+        ctx.moveTo(plate.x + 4, spotY);
+        ctx.lineTo(plate.x + plate.w - 4, spotY);
         ctx.stroke();
-        ctx.restore();
-
-        // Spot Tag Callout
-        ctx.save();
-        ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
-        ctx.strokeStyle = "#22d3ee";
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.roundRect(lane2X - 24, spotY - 22, 54, 15, 4);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = "#22d3ee";
-        ctx.font = "bold 8.5px 'JetBrains Mono', monospace";
-        ctx.textAlign = "center";
-        ctx.fillText(`Rf=${rf.toFixed(2)}`, lane2X + 3, spotY - 12);
-        ctx.restore();
-      } else {
-        ctx.restore();
+        ctx.setLineDash([]);
       }
+
+      // Crisp Spot Callout Label on Right Side of Plate
+      ctx.fillStyle = lightMode === "uv365" ? "#f8fafc" : "#0f172a";
+      ctx.font = `${isSelected ? "bold " : ""}8.5px 'JetBrains Mono', monospace`;
+      ctx.textAlign = "left";
+      ctx.fillText(`${comp.shortName} (${rf.toFixed(2)})`, centerLaneX + rx + 5, spotY + 3);
     });
 
-    // External Vernier Metric Ruler on Right Edge of TLC Chamber (0 to 80 mm)
-    const rulerX = chamberX + chamberW + 8;
-    ctx.fillStyle = "rgba(30, 41, 59, 0.85)";
-    ctx.strokeStyle = "#475569";
-    ctx.lineWidth = 1;
-    ctx.fillRect(rulerX, baselineY - maxMigrationPx - 8, 22, maxMigrationPx + 16);
-    ctx.strokeRect(rulerX, baselineY - maxMigrationPx - 8, 22, maxMigrationPx + 16);
-
-    ctx.fillStyle = "#cbd5e1";
-    ctx.strokeStyle = "#94a3b8";
-    ctx.font = "8px 'JetBrains Mono', monospace";
-    ctx.textAlign = "left";
-    for (let mm = 0; mm <= 80; mm += 10) {
-      const ry = baselineY - (mm / 80) * maxMigrationPx;
+    // Digital Millimeter Ruler & Caliper along Left Edge of Plate
+    if (caliperActive) {
+      const rulerX = plate.x + 12;
+      ctx.strokeStyle = lightMode === "uv365" ? "rgba(148, 163, 184, 0.65)" : "rgba(51, 65, 85, 0.65)";
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(rulerX, ry);
-      ctx.lineTo(rulerX + 6, ry);
+      ctx.moveTo(rulerX, plate.originY);
+      ctx.lineTo(rulerX, plate.originY - plate.maxFrontRisePx);
       ctx.stroke();
-      ctx.fillText(`${mm}`, rulerX + 7, ry + 3);
-    }
 
-    // Chamber Label
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "bold 10px sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("SILICA TLC CHAMBER & METRIC CALIPER", chamberX + chamberW / 2, chamberY + chamberH + 20);
-
-    // =========================================================================
-    // 2. TOP RIGHT: FLASH COLUMN CHROMATOGRAPHY (PRESSURIZED SILICA COLUMN)
-    // =========================================================================
-    const colX = 352;
-    const colY = 88;
-    const colW = 54;
-    const colH = 215;
-
-    // Column Retort Clamp
-    ctx.strokeStyle = "#64748b";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(colX + colW, colY + 60);
-    ctx.lineTo(colX + colW + 25, colY + 60);
-    ctx.stroke();
-
-    // Packed Silica Bed inside Glass Column
-    ctx.fillStyle = stationaryPhase === "silica" ? "#f1f5f9" : "#cbd5e1";
-    ctx.fillRect(colX + 4, colY + 25, colW - 8, colH - 45);
-
-    // Solvent Reservoir Head at Top of Column
-    ctx.fillStyle = "rgba(56, 189, 248, 0.32)";
-    ctx.fillRect(colX + 4, colY + 6, colW - 8, 19);
-
-    // Descending Coloured Analyte Bands inside Flash Column
-    // High-Rf compounds migrate faster DOWN the gravity/flash column!
-    const bedTop = colY + 28;
-    const bedHeight = colH - 52;
-    comps.forEach((comp, idx) => {
-      const rf = computeCompoundRf(comp);
-      const bandProgress = Math.min(0.96, developmentProgress * rf * 1.05);
-      const bandY = bedTop + bandProgress * bedHeight;
-      const bandColor = comp.visColor.startsWith("rgba") ? "rgba(168, 85, 247, 0.65)" : comp.visColor;
-
-      ctx.fillStyle = bandColor;
-      ctx.fillRect(colX + 5, bandY - 5, colW - 10, 10);
-
-      if (idx === selectedCompoundIndex) {
-        ctx.strokeStyle = "#22d3ee";
-        ctx.lineWidth = 1.8;
-        ctx.strokeRect(colX + 3, bandY - 6, colW - 6, 12);
+      for (let mm = 0; mm <= 80; mm += 20) {
+        const ty = plate.originY - (mm / 80) * plate.maxFrontRisePx;
+        ctx.beginPath();
+        ctx.moveTo(rulerX - 3, ty);
+        ctx.lineTo(rulerX + 3, ty);
+        ctx.stroke();
       }
-    });
-
-    // Glass Column Outer Walls & Tapered Fritted Tip
-    ctx.strokeStyle = "rgba(226, 232, 240, 0.75)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(colX, colY);
-    ctx.lineTo(colX, colY + colH - 20);
-    ctx.lineTo(colX + colW / 2 - 4, colY + colH + 12);
-    ctx.lineTo(colX + colW / 2 + 4, colY + colH + 12);
-    ctx.lineTo(colX + colW, colY + colH - 20);
-    ctx.lineTo(colX + colW, colY);
-    ctx.stroke();
-
-    // PTFE Stopcock Valve
-    ctx.fillStyle = "#ef4444";
-    ctx.fillRect(colX + colW / 2 - 14, colY + colH - 6, 28, 6);
-
-    // Animated Eluting Droplet falling into Fraction Collector Tube
-    const dropY = colY + colH + 16 + ((timeTick * 40) % 24);
-    const fastestComp = [...comps].sort((a, b) => computeCompoundRf(b) - computeCompoundRf(a))[0];
-    ctx.fillStyle = fastestComp.visColor.startsWith("rgba") ? "#38bdf8" : fastestComp.visColor;
-    ctx.beginPath();
-    ctx.arc(colX + colW / 2, dropY, 3.2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Collection Tube Below Column
-    const tubeX = colX + colW / 2 - 10;
-    const tubeY = colY + colH + 42;
-    ctx.fillStyle = "rgba(56, 189, 248, 0.25)";
-    ctx.fillRect(tubeX + 2, tubeY + 14, 16, 20);
-    ctx.strokeStyle = "#94a3b8";
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(tubeX, tubeY, 20, 35);
-
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 9px 'JetBrains Mono', monospace";
-    ctx.textAlign = "center";
-    ctx.fillText("FLASH COLUMN", colX + colW / 2, colY - 8);
-
-    // =========================================================================
-    // 3. RIGHT PANEL: LIVE UV-VIS HPLC ELUTION CHROMATOGRAM (mAU vs t_R min)
-    // =========================================================================
-    const graphX = 435;
-    const graphY = 92;
-    const graphW = 185;
-    const graphH = 220;
-
-    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
-    ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.roundRect(graphX, graphY, graphW, graphH, 8);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = "#38bdf8";
-    ctx.font = "bold 9.5px 'JetBrains Mono', monospace";
-    ctx.textAlign = "left";
-    ctx.fillText("UV DETECTOR CHROMATOGRAM", graphX + 10, graphY + 16);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "8px 'JetBrains Mono', monospace";
-    ctx.fillText("Absorbance (mAU) vs Retention t_R (min)", graphX + 10, graphY + 28);
-
-    // Plot Area Axes
-    const plotX = graphX + 24;
-    const plotY = graphY + 42;
-    const plotW = graphW - 34;
-    const plotH = graphH - 66;
-
-    ctx.strokeStyle = "#334155";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(plotX, plotY);
-    ctx.lineTo(plotX, plotY + plotH);
-    ctx.lineTo(plotX + plotW, plotY + plotH);
-    ctx.stroke();
-
-    // Plot Gaussian Elution Peaks for all compounds in mixture
-    const maxTimeMin = 12.0;
-    ctx.save();
-    ctx.beginPath();
-    for (let px = 0; px <= plotW; px += 2) {
-      const t = (px / plotW) * maxTimeMin;
-      let totalSignal = 0;
-      comps.forEach((comp, idx) => {
-        const tR = computeRetentionTime(comp);
-        const sigma = 0.22 + (tR * 0.018); // Peak broadening over retention time
-        const height = idx === selectedCompoundIndex ? 0.88 : 0.65;
-        totalSignal += height * Math.exp(-Math.pow(t - tR, 2) / (2 * sigma * sigma));
-      });
-      const py = plotY + plotH - Math.min(plotH - 4, totalSignal * (plotH - 12));
-      if (px === 0) ctx.moveTo(plotX + px, py);
-      else ctx.lineTo(plotX + px, py);
     }
-    ctx.strokeStyle = "#22d3ee";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+
+    // Specular Glass Reflection Streak on Jar
+    const glassStreak = ctx.createLinearGradient(jarX + 5, jarY, jarX + 18, jarY);
+    glassStreak.addColorStop(0, "rgba(255, 255, 255, 0.14)");
+    glassStreak.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = glassStreak;
+    ctx.fillRect(jarX + 5, jarY + 8, 12, jarH - 16);
     ctx.restore();
 
-    // Highlight Peak Apex Markers
-    comps.forEach((comp, idx) => {
-      const tR = computeRetentionTime(comp);
-      const px = plotX + Math.min(plotW, (tR / maxTimeMin) * plotW);
-      const isSel = idx === selectedCompoundIndex;
-      const dotCol = comp.visColor.startsWith("rgba") ? "#c084fc" : comp.visColor;
+    // =========================================================================
+    // STATION 2: FLASH SILICA COLUMN & 6-TUBE FRACTION COLLECTOR RACK
+    // =========================================================================
+    ctx.save();
+    ctx.fillStyle = "rgba(9, 15, 30, 0.78)";
+    ctx.strokeStyle = "rgba(16, 185, 129, 0.28)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(colBox.x, colBox.y, colBox.w, colBox.h, 12);
+    ctx.fill();
+    ctx.stroke();
 
-      ctx.fillStyle = dotCol;
+    ctx.fillStyle = "#34d399";
+    ctx.font = "bold 11px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("② FLASH COLUMN ELUTION", colBox.x + 12, colBox.y + 20);
+
+    const cx = colBox.x + Math.round(colBox.w * 0.5);
+    const colW = 46;
+    const colX = cx - colW / 2;
+    const colY = colBox.y + 72;
+    const colH = colBox.h - 210;
+
+    // Top Solvent Reservoir Bulb & Pressure Adapter
+    ctx.fillStyle = "rgba(56, 189, 248, 0.22)";
+    ctx.strokeStyle = "rgba(186, 230, 253, 0.75)";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.ellipse(cx, colY - 18, 32, 18, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Ground-Glass Joint Collar
+    ctx.fillStyle = "rgba(148, 163, 184, 0.45)";
+    ctx.fillRect(colX - 3, colY - 4, colW + 6, 8);
+
+    // Cylindrical Glass Column Body
+    ctx.fillStyle = "rgba(15, 23, 42, 0.6)";
+    ctx.strokeStyle = "rgba(186, 230, 253, 0.75)";
+    ctx.lineWidth = 2;
+    ctx.fillRect(colX, colY, colW, colH);
+    ctx.strokeRect(colX, colY, colW, colH);
+
+    // Mobile Phase Eluent Head Layer above Silica Bed
+    const eluentHeadH = 34;
+    ctx.fillStyle = "rgba(56, 189, 248, 0.35)";
+    ctx.fillRect(colX + 2, colY + 2, colW - 4, eluentHeadH);
+
+    // Packed Silica Gel / C18 Stationary Phase Bed
+    const bedY = colY + eluentHeadH + 2;
+    const bedH = colH - eluentHeadH - 14;
+    const bedGrad = ctx.createLinearGradient(colX, 0, colX + colW, 0);
+    if (stationaryPhase === "silica") {
+      bedGrad.addColorStop(0, "#e2e8f0");
+      bedGrad.addColorStop(0.5, "#f8fafc");
+      bedGrad.addColorStop(1, "#cbd5e1");
+    } else {
+      bedGrad.addColorStop(0, "#94a3b8");
+      bedGrad.addColorStop(0.5, "#cbd5e1");
+      bedGrad.addColorStop(1, "#64748b");
+    }
+    ctx.fillStyle = bedGrad;
+    ctx.fillRect(colX + 2, bedY, colW - 4, bedH);
+
+    // Descending Chromatographic Bands inside Packed Column
+    // High Rf compounds travel down fastest toward the stopcock!
+    comps.forEach((comp, idx) => {
+      const rf = computeCompoundRf(comp);
+      const bandProgress = Math.min(0.96, rf * developmentProgress * 1.04);
+      const bandCenterY = bedY + 12 + bandProgress * (bedH - 22);
+      const bandThickness = 11 + rf * 5;
+      const bandColor = comp.visColor.startsWith("rgba") ? "#818cf8" : comp.visColor;
+
+      const bGrad = ctx.createLinearGradient(0, bandCenterY - bandThickness / 2, 0, bandCenterY + bandThickness / 2);
+      bGrad.addColorStop(0, "rgba(0,0,0,0)");
+      bGrad.addColorStop(0.5, bandColor);
+      bGrad.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = bGrad;
+      ctx.fillRect(colX + 2, bandCenterY - bandThickness / 2, colW - 4, bandThickness);
+
+      if (idx === selectedCompoundIndex) {
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(colX + 2, bandCenterY - bandThickness / 2, colW - 4, bandThickness);
+      }
+
+      // Band Tag Label next to Column
+      ctx.fillStyle = bandColor;
+      ctx.font = "bold 8.5px 'JetBrains Mono', monospace";
+      ctx.textAlign = idx % 2 === 0 ? "left" : "right";
+      const labelX = idx % 2 === 0 ? colX + colW + 6 : colX - 6;
+      ctx.fillText(comp.shortName, labelX, bandCenterY + 3);
+    });
+
+    // Porous Fritted Glass Disc & Cotton Plug at Bottom of Column
+    ctx.fillStyle = "#64748b";
+    ctx.fillRect(colX + 2, bedY + bedH, colW - 4, 10);
+
+    // Tapered Glass Tip & PTFE Stopcock Valve
+    const tipBottomY = colY + colH + 30;
+    ctx.fillStyle = "rgba(186, 230, 253, 0.35)";
+    ctx.strokeStyle = "rgba(186, 230, 253, 0.75)";
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(colX, colY + colH);
+    ctx.lineTo(cx - 4, tipBottomY);
+    ctx.lineTo(cx + 4, tipBottomY);
+    ctx.lineTo(colX + colW, colY + colH);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Blue PTFE Stopcock Handle
+    ctx.fillStyle = "#0284c7";
+    ctx.beginPath();
+    ctx.roundRect(cx - 18, colY + colH + 10, 36, 7, 3);
+    ctx.fill();
+
+    // Specular Glass Reflection on Column
+    ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
+    ctx.fillRect(colX + 5, colY + 4, 5, colH - 8);
+
+    // Falling Eluate Droplet into Active Fraction Tube
+    const selComp = comps[selectedCompoundIndex];
+    const dropColor = selComp.visColor.startsWith("rgba") ? "#38bdf8" : selComp.visColor;
+    const dropOffset = ((timeTick * (isDeveloping ? 4.5 : 1.5)) % 1.0) * 32;
+    ctx.fillStyle = dropColor;
+    ctx.beginPath();
+    ctx.arc(cx, tipBottomY + 6 + dropOffset, 3.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 6-Tube Fraction Collector Rack at Bottom of Station 2
+    const rackW = Math.min(184, colBox.w - 24);
+    const rackX = cx - rackW / 2;
+    const rackY = colBox.y + colBox.h - 76;
+    const rackH = 62;
+
+    // Metallic Tube Rack Frame
+    ctx.fillStyle = "rgba(30, 41, 59, 0.85)";
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(rackX, rackY + 18, rackW, rackH - 18, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // 5 Borosilicate Fraction Tubes (1 per compound + solvent blank)
+    const numTubes = Math.min(5, comps.length);
+    const tubeSpacing = rackW / (numTubes + 0.5);
+    comps.slice(0, numTubes).forEach((c, tIdx) => {
+      const tx = rackX + tubeSpacing * (tIdx + 0.75) - 9;
+      const ty = rackY;
+      const tw = 18;
+      const th = 54;
+      const fillH = Math.max(8, Math.min(34, 12 + computeCompoundRf(c) * developmentProgress * 24));
+      const tColor = c.visColor.startsWith("rgba") ? "rgba(56, 189, 248, 0.55)" : c.visColor;
+
+      // Collected Liquid Fraction inside Tube
+      ctx.fillStyle = tColor;
       ctx.beginPath();
-      ctx.arc(px, plotY + plotH - (isSel ? 0.88 : 0.65) * (plotH - 12), isSel ? 4.5 : 3, 0, Math.PI * 2);
+      ctx.roundRect(tx + 2, ty + th - fillH - 2, tw - 4, fillH, 5);
+      ctx.fill();
+
+      // Glass Test Tube Outline
+      ctx.strokeStyle = tIdx === selectedCompoundIndex ? "#22d3ee" : "rgba(203, 213, 225, 0.65)";
+      ctx.lineWidth = tIdx === selectedCompoundIndex ? 2 : 1.2;
+      ctx.beginPath();
+      ctx.roundRect(tx, ty, tw, th, [2, 2, 8, 8]);
+      ctx.stroke();
+
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "bold 8px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`F${tIdx + 1}`, tx + tw / 2, ty + th + 10);
+    });
+    ctx.restore();
+
+    // =========================================================================
+    // STATION 3: DUAL-CHANNEL HPLC DIODE-ARRAY CHROMATOGRAM & DENSITOGRAM
+    // =========================================================================
+    ctx.save();
+    ctx.fillStyle = "rgba(9, 15, 30, 0.78)";
+    ctx.strokeStyle = "rgba(168, 85, 247, 0.28)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(hplcBox.x, hplcBox.y, hplcBox.w, hplcBox.h, 12);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "#c084fc";
+    ctx.font = "bold 11px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("③ HPLC UV-VIS DIODE-ARRAY CHROMATOGRAM", hplcBox.x + 12, hplcBox.y + 20);
+
+    // Top Plot: HPLC Absorbance (mAU) vs Retention Time t_R (0 - 15 min)
+    const p1X = hplcBox.x + 38;
+    const p1Y = hplcBox.y + 38;
+    const p1W = hplcBox.w - 52;
+    const p1H = Math.round((hplcBox.h - 96) * 0.56);
+
+    ctx.fillStyle = "#020617";
+    ctx.strokeStyle = "#1e293b";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(p1X, p1Y, p1W, p1H, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Oscilloscope Grid Lines
+    ctx.strokeStyle = "rgba(51, 65, 85, 0.4)";
+    ctx.lineWidth = 1;
+    for (let t = 0; t <= 15; t += 3) {
+      const gx = p1X + (t / 15) * p1W;
+      ctx.beginPath();
+      ctx.moveTo(gx, p1Y);
+      ctx.lineTo(gx, p1Y + p1H);
+      ctx.stroke();
+
+      ctx.fillStyle = "#64748b";
+      ctx.font = "8.5px 'JetBrains Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`${t}m`, gx, p1Y + p1H + 12);
+    }
+
+    const baseLineY = p1Y + p1H - 22;
+
+    // Solvent Front Injection Spike at Dead Time t_0 = 1.20 min
+    const t0X = p1X + (1.20 / 15) * p1W;
+    ctx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+    ctx.setLineDash([2, 2]);
+    ctx.beginPath();
+    ctx.moveTo(t0X, p1Y + 8);
+    ctx.lineTo(t0X, baseLineY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "#64748b";
+    ctx.font = "8px 'JetBrains Mono', monospace";
+    ctx.fillText("t₀", t0X, p1Y + 16);
+
+    // Individual Shaded Gaussian Peaks for Each Compound
+    const peakData = comps.map((c, idx) => ({
+      comp: c,
+      idx,
+      tr: computeRetentionTime(c),
+      rf: computeCompoundRf(c),
+      sigma: 0.24 + (1 - computeCompoundRf(c)) * 0.14,
+      height: (p1H - 52) * (0.68 + 0.26 * Math.sin(idx * 1.4 + 0.8))
+    }));
+
+    peakData.forEach(pk => {
+      const pColor = pk.comp.visColor.startsWith("rgba") ? "#a855f7" : pk.comp.visColor;
+      const pkGrad = ctx.createLinearGradient(0, baseLineY - pk.height, 0, baseLineY);
+      pkGrad.addColorStop(0, pColor);
+      pkGrad.addColorStop(1, "rgba(2, 6, 23, 0.0)");
+
+      ctx.fillStyle = pkGrad;
+      ctx.beginPath();
+      ctx.moveTo(p1X, baseLineY);
+      for (let px = 0; px <= p1W; px += 3) {
+        const t = (px / p1W) * 15.0;
+        const yVal = pk.height * Math.exp(-0.5 * Math.pow((t - pk.tr) / pk.sigma, 2));
+        ctx.lineTo(p1X + px, baseLineY - yVal);
+      }
+      ctx.lineTo(p1X + p1W, baseLineY);
+      ctx.closePath();
+      ctx.fill();
+    });
+
+    // Composite HPLC Detector Trace
+    ctx.strokeStyle = "#22d3ee";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let px = 0; px <= p1W; px += 2) {
+      const t = (px / p1W) * 15.0;
+      // Small injection disturbance at t0 = 1.2m
+      let sumY = 14 * Math.exp(-0.5 * Math.pow((t - 1.2) / 0.08, 2));
+      peakData.forEach(pk => {
+        sumY += pk.height * Math.exp(-0.5 * Math.pow((t - pk.tr) / pk.sigma, 2));
+      });
+      const py = Math.max(p1Y + 8, baseLineY - sumY);
+      if (px === 0) ctx.moveTo(p1X + px, py);
+      else ctx.lineTo(p1X + px, py);
+    }
+    ctx.stroke();
+
+    // Peak Apex Labels & Selected Peak Marker
+    peakData.forEach(pk => {
+      const apexX = p1X + (pk.tr / 15.0) * p1W;
+      const apexY = Math.max(p1Y + 16, baseLineY - pk.height);
+      const isSel = pk.idx === selectedCompoundIndex;
+      const pColor = pk.comp.visColor.startsWith("rgba") ? "#c084fc" : pk.comp.visColor;
+
+      ctx.fillStyle = isSel ? "#ffffff" : pColor;
+      ctx.beginPath();
+      ctx.arc(apexX, apexY, isSel ? 4.5 : 3, 0, Math.PI * 2);
       ctx.fill();
 
       if (isSel) {
-        ctx.fillStyle = "#facc15";
-        ctx.font = "bold 8px 'JetBrains Mono', monospace";
+        ctx.fillStyle = "#22d3ee";
+        ctx.font = "bold 9px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
-        ctx.fillText(`${tR.toFixed(1)}m`, px, plotY + plotH - 0.88 * (plotH - 12) - 7);
+        ctx.fillText(`${pk.comp.shortName} (${pk.tr.toFixed(1)}m)`, Math.min(p1X + p1W - 38, Math.max(p1X + 38, apexX)), apexY - 8);
       }
     });
 
-    // X-Axis Time Ticks (0, 4, 8, 12 min)
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "8px 'JetBrains Mono', monospace";
-    ctx.textAlign = "center";
-    for (let tm = 0; tm <= 12; tm += 4) {
-      const tx = plotX + (tm / 12) * plotW;
-      ctx.fillText(`${tm}m`, tx, plotY + plotH + 12);
-    }
+    // Bottom Sub-Panel inside Station 3: Live Selected Analyte Partitioning Card & Theoretical Plates (N)
+    const p2X = hplcBox.x + 14;
+    const p2Y = p1Y + p1H + 26;
+    const p2W = hplcBox.w - 28;
+    const p2H = hplcBox.y + hplcBox.h - p2Y - 12;
 
-    // =========================================================================
-    // 4. BOTTOM RIGHT: ANALYTE POLARITY & SILICA ADSORPTION SUMMARY CARD
-    // =========================================================================
-    const cardX = 342;
-    const cardY = 348;
-    const cardW = 278;
-    const cardH = 152;
-
-    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
-    ctx.strokeStyle = "rgba(16, 185, 129, 0.35)";
-    ctx.lineWidth = 1.5;
+    ctx.fillStyle = "rgba(2, 6, 23, 0.85)";
+    ctx.strokeStyle = "rgba(6, 182, 212, 0.35)";
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.roundRect(cardX, cardY, cardW, cardH, 8);
+    ctx.roundRect(p2X, p2Y, p2W, p2H, 10);
     ctx.fill();
     ctx.stroke();
 
-    const selComp = comps[selectedCompoundIndex];
-    const selRf = computeCompoundRf(selComp);
-    const selTr = computeRetentionTime(selComp);
-    const kFactor = ((1 - selRf) / Math.max(0.05, selRf)).toFixed(2);
+    const selResult = peakData[selectedCompoundIndex] || peakData[0];
+    const kPrime = ((1 - selResult.rf) / Math.max(0.08, selResult.rf)).toFixed(2);
+    const theoreticalPlates = Math.round(16 * Math.pow(selResult.tr / (4 * selResult.sigma), 2));
 
-    ctx.fillStyle = "#10b981";
+    ctx.fillStyle = "#22d3ee";
     ctx.font = "bold 10px 'JetBrains Mono', monospace";
     ctx.textAlign = "left";
-    ctx.fillText(`SELECTED: ${selComp.name.toUpperCase()}`, cardX + 12, cardY + 20);
+    ctx.fillText(`LASER DENSITOMETER LOCK: ${selResult.comp.name.toUpperCase()}`, p2X + 12, p2Y + 18);
 
-    ctx.fillStyle = "#e2e8f0";
+    ctx.fillStyle = "#cbd5e1";
     ctx.font = "9.5px 'JetBrains Mono', monospace";
-    ctx.fillText(`Formula: ${selComp.formula} • MW: ${selComp.mw} g/mol`, cardX + 12, cardY + 38);
-    ctx.fillText(`Retention Factor (Rf): ${selRf.toFixed(3)}`, cardX + 12, cardY + 56);
-    ctx.fillText(`Capacity Factor (k'):  ${kFactor}   (t_R = ${selTr.toFixed(2)} min)`, cardX + 12, cardY + 74);
-    ctx.fillText(`Intermolecular Force:  ${selComp.imfType}`, cardX + 12, cardY + 92);
+    ctx.fillText(`Formula: ${selResult.comp.formula} (${selResult.comp.mw} g/mol) • λmax: ${selResult.comp.lambdaMax}`, p2X + 12, p2Y + 35);
+    ctx.fillText(`Retention Factor Rf = ${selResult.rf.toFixed(2)} • Capacity k' = ${kPrime} • Plates N = ${theoreticalPlates}`, p2X + 12, p2Y + 51);
 
-    // Polarity Bar Gauge
+    // Visual Partition Equilibrium Bar (Adsorbed on Stationary vs Flowing in Mobile Phase)
+    const barX = p2X + 12;
+    const barY = p2Y + 64;
+    const barW = p2W - 24;
+    const barH = 14;
+    const mobileFraction = selResult.rf;
+
+    ctx.fillStyle = "rgba(30, 41, 59, 0.9)";
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barW, barH, 7);
+    ctx.fill();
+
+    const barGrad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
+    barGrad.addColorStop(0, "#06b6d4");
+    barGrad.addColorStop(mobileFraction, "#10b981");
+    barGrad.addColorStop(mobileFraction, "#6366f1");
+    barGrad.addColorStop(1, "#a855f7");
+    ctx.fillStyle = barGrad;
+    ctx.beginPath();
+    ctx.roundRect(barX, barY, barW, barH, 7);
+    ctx.fill();
+
     ctx.fillStyle = "#94a3b8";
-    ctx.font = "8.5px sans-serif";
-    ctx.fillText("Relative Solute Polarity Index:", cardX + 12, cardY + 114);
+    ctx.font = "8.5px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(`Mobile Phase: ${(mobileFraction * 100).toFixed(0)}%`, barX, barY + barH + 13);
+    ctx.textAlign = "right";
+    ctx.fillText(`Stationary Phase Adsorbed: ${((1 - mobileFraction) * 100).toFixed(0)}%`, barX + barW, barY + barH + 13);
 
-    ctx.fillStyle = "#1e293b";
-    ctx.beginPath();
-    ctx.roundRect(cardX + 12, cardY + 122, cardW - 24, 10, 5);
-    ctx.fill();
-
-    const polGrad = ctx.createLinearGradient(cardX + 12, 0, cardX + cardW - 12, 0);
-    polGrad.addColorStop(0, "#f97316");
-    polGrad.addColorStop(0.5, "#10b981");
-    polGrad.addColorStop(1, "#38bdf8");
-    ctx.fillStyle = polGrad;
-    ctx.beginPath();
-    ctx.roundRect(cardX + 12, cardY + 122, (cardW - 24) * selComp.polarity, 10, 5);
-    ctx.fill();
+    ctx.restore();
   }
 
-  // Microscopic Molecular Partition View (Si-OH Hydrogen Bonding vs Mobile Phase Solvation)
-  function renderMolecularPartitionView(ctx) {
-    const comps = SAMPLE_MIXTURES[currentMixtureKey].compounds;
-    const selComp = comps[selectedCompoundIndex];
-    const selRf = computeCompoundRf(selComp);
+  // =========================================================================
+  // MICROSCOPIC Si-OH / C18 MOLECULAR PARTITIONING VIEW
+  // =========================================================================
+  function renderMolecularPartitionView(ctx, W, H) {
+    const mixture = SAMPLE_MIXTURES[currentMixtureKey];
+    const comps = mixture.compounds;
+    const pad = 22;
 
-    // Left Surface: Stationary Phase Silica Surface with Silanol (-Si-OH) Groups
-    ctx.fillStyle = "#1e293b";
-    ctx.fillRect(40, 80, 120, 420);
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(40, 80, 120, 420);
+    ctx.save();
+    ctx.fillStyle = "rgba(9, 15, 30, 0.85)";
+    ctx.strokeStyle = "rgba(6, 182, 212, 0.4)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(pad, 16, W - pad * 2, H - 32, 14);
+    ctx.fill();
+    ctx.stroke();
 
-    ctx.fillStyle = "#38bdf8";
+    ctx.fillStyle = "#22d3ee";
+    ctx.font = "bold 12px 'JetBrains Mono', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(
+      stationaryPhase === "silica"
+        ? "ATOMIC FORCE VIEW: POLAR SILANOL (Si-OH) HYDROGEN-BOND ADSORPTION VS MOBILE PHASE FLOW"
+        : "ATOMIC FORCE VIEW: NONPOLAR OCTADECYL (C₁₈) VAN DER WAALS RETENTION VS POLAR ELUENT",
+      pad + 18,
+      40
+    );
+
+    // Left Adsorbent Wall (Silica Gel SiO2 Matrix)
+    const wallX = pad + 18;
+    const wallY = 58;
+    const wallW = 148;
+    const wallH = H - 88;
+
+    const wallGrad = ctx.createLinearGradient(wallX, 0, wallX + wallW, 0);
+    wallGrad.addColorStop(0, "#1e293b");
+    wallGrad.addColorStop(1, "#334155");
+    ctx.fillStyle = wallGrad;
+    ctx.beginPath();
+    ctx.roundRect(wallX, wallY, wallW, wallH, 10);
+    ctx.fill();
+
+    ctx.fillStyle = "#f8fafc";
     ctx.font = "bold 11px 'JetBrains Mono', monospace";
     ctx.textAlign = "center";
-    ctx.fillText(stationaryPhase === "silica" ? "SILICA (SiO₂)" : "C₁₈ ALKYL", 100, 108);
-    ctx.font = "9px monospace";
-    ctx.fillStyle = "#94a3b8";
-    ctx.fillText("Stationary Phase", 100, 124);
+    ctx.fillText(stationaryPhase === "silica" ? "SILICA GEL (SiO₂)" : "C₁₈ BONDED SILICA", wallX + wallW / 2, wallY + 26);
 
-    // Draw Surface Functional Groups (-Si-OH or -C18H37)
-    for (let sy = 155; sy <= 465; sy += 52) {
-      ctx.strokeStyle = stationaryPhase === "silica" ? "#22d3ee" : "#fbbf24";
-      ctx.lineWidth = 2;
+    // Draw Surface Functional Groups (-Si-OH or -C18H37 chains)
+    const numSites = 8;
+    const siteStep = (wallH - 56) / numSites;
+    for (let i = 0; i < numSites; i++) {
+      const sy = wallY + 48 + i * siteStep;
+      ctx.strokeStyle = stationaryPhase === "silica" ? "#38bdf8" : "#fbbf24";
+      ctx.lineWidth = 2.2;
       ctx.beginPath();
-      ctx.moveTo(160, sy);
-      ctx.lineTo(205, sy);
-      ctx.stroke();
-
-      ctx.fillStyle = stationaryPhase === "silica" ? "#0284c7" : "#d97706";
-      ctx.beginPath();
-      ctx.arc(215, sy, 14, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 9px 'JetBrains Mono', monospace";
-      ctx.textAlign = "center";
-      ctx.fillText(stationaryPhase === "silica" ? "-OH" : "-C₁₈", 215, sy + 3);
+      ctx.moveTo(wallX + wallW, sy);
+      if (stationaryPhase === "silica") {
+        ctx.lineTo(wallX + wallW + 24, sy);
+        ctx.stroke();
+        ctx.fillStyle = "#0ea5e9";
+        ctx.font = "bold 10px 'JetBrains Mono', monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("-Si-O-H", wallX + wallW + 28, sy + 4);
+      } else {
+        // Zig-zag C18 hydrocarbon chain
+        for (let z = 1; z <= 5; z++) {
+          ctx.lineTo(wallX + wallW + z * 11, sy + (z % 2 === 0 ? -5 : 5));
+        }
+        ctx.stroke();
+        ctx.fillStyle = "#fbbf24";
+        ctx.font = "bold 9.5px 'JetBrains Mono', monospace";
+        ctx.textAlign = "left";
+        ctx.fillText("-C₁₈H₃₇", wallX + wallW + 60, sy + 4);
+      }
     }
 
-    // Animated Solute Molecules Partitioning between Stationary Surface and Flowing Mobile Phase
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "bold 11px 'JetBrains Mono', monospace";
-    ctx.textAlign = "center";
-    ctx.fillText(`DYNAMIC PARTITION EQUILIBRIUM: Kd = [Cs] / [Cm]  (Rf = ${selRf.toFixed(2)})`, 410, 102);
+    // Flowing Mobile Phase Solvent Channel on the Right
+    const chanX = wallX + wallW + 100;
+    const chanW = W - chanX - pad - 24;
 
-    for (let i = 0; i < 6; i++) {
-      const baseY = 155 + i * 52;
-      // Fraction of time spent bound to surface vs drifting in mobile phase
-      const boundFraction = 1 - selRf;
-      const osc = Math.sin(timeTick * 2.2 + i * 1.1);
-      const isAdsorbed = osc < (boundFraction * 2 - 1);
+    // Animated Upward Solvent Streamlines
+    ctx.strokeStyle = "rgba(34, 211, 238, 0.14)";
+    ctx.lineWidth = 1.5;
+    for (let s = 0; s < 7; s++) {
+      const sx = chanX + (s + 0.5) * (chanW / 7);
+      const offset = ((timeTick * 48 + s * 35) % wallH);
+      ctx.beginPath();
+      ctx.moveTo(sx, wallY + wallH - offset);
+      ctx.lineTo(sx, Math.max(wallY, wallY + wallH - offset - 55));
+      ctx.stroke();
+    }
 
-      const molX = isAdsorbed ? 252 : 340 + ((timeTick * 55 + i * 40) % 210);
-      const molY = isAdsorbed ? baseY : baseY - ((timeTick * 30 + i * 20) % 35);
+    // Render 3D Ball-and-Stick Solute Molecules Partitioning between Stationary Surface & Mobile Stream
+    comps.forEach((comp, idx) => {
+      const rf = computeCompoundRf(comp);
+      // Low Rf stays close to surface (left); High Rf moves into fast mobile stream (right)
+      const baseX = chanX + rf * (chanW - 95);
+      const oscX = Math.sin(timeTick * 2.2 + idx * 1.5) * 10;
+      const molX = baseX + oscX;
+      const molY = wallY + wallH - 45 - ((rf * 0.78 + 0.12) * (wallH - 95));
+      const color = comp.visColor.startsWith("rgba") ? "#a855f7" : comp.visColor;
 
-      // Draw Hydrogen Bond / Dipole Tether when Adsorbed
-      if (isAdsorbed) {
-        ctx.save();
-        ctx.strokeStyle = "#f43f5e";
-        ctx.lineWidth = 2;
-        ctx.setLineDash([3, 3]);
+      // Dashed H-Bond / Van der Waals tethers to surface when Rf < 0.68
+      if (rf < 0.68) {
+        ctx.strokeStyle = stationaryPhase === "silica" ? "rgba(56, 189, 248, 0.7)" : "rgba(251, 191, 36, 0.7)";
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([4, 4]);
         ctx.beginPath();
-        ctx.moveTo(230, baseY);
-        ctx.lineTo(molX - 14, molY);
+        ctx.moveTo(wallX + wallW + 82, molY);
+        ctx.lineTo(molX - 20, molY);
         ctx.stroke();
-        ctx.restore();
+        ctx.setLineDash([]);
       }
 
-      // Analyte Molecule Sphere
-      ctx.fillStyle = selComp.visColor.startsWith("rgba") ? "#a855f7" : selComp.visColor;
+      // 3D Molecular Cluster (Central Ring + Peripheral Functional Group Atoms)
+      const grad = ctx.createRadialGradient(molX - 5, molY - 5, 2, molX, molY, 20);
+      grad.addColorStop(0, "#ffffff");
+      grad.addColorStop(0.35, color);
+      grad.addColorStop(1, "#020617");
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.arc(molX, molY, 13, 0, Math.PI * 2);
+      ctx.arc(molX, molY, 18, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = "#fff";
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
 
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 8px monospace";
-      ctx.fillText(selComp.name.slice(0, 6), molX, molY + 3);
-    }
-  }
+      // Satellite atoms
+      for (let a = 0; a < 3; a++) {
+        const ang = timeTick * 0.9 + idx + a * ((Math.PI * 2) / 3);
+        const ax = molX + Math.cos(ang) * 20;
+        const ay = molY + Math.sin(ang) * 12;
+        ctx.fillStyle = a === 0 ? "#ef4444" : "#38bdf8";
+        ctx.beginPath();
+        ctx.arc(ax, ay, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-  // Event Listeners
-  btnDevelop.addEventListener("click", () => {
-    developmentProgress = 0.02;
-    isDeveloping = true;
-    btnDevelop.textContent = "⏳ Developing...";
-    SoundFX.droplet?.() || SoundFX.playClick?.();
-    updateHUD();
-  });
-
-  mixtureSelect.addEventListener("change", (e) => {
-    currentMixtureKey = e.target.value;
-    selectedCompoundIndex = 0;
-    SoundFX.click?.() || SoundFX.playClick?.();
-    updateHUD();
-  });
-
-  sliderEluent.addEventListener("input", (e) => {
-    ethylAcetatePct = parseInt(e.target.value, 10);
-    updateHUD();
-  });
-
-  btnPhaseSilica.addEventListener("click", () => {
-    stationaryPhase = "silica";
-    btnPhaseSilica.classList.add("active");
-    btnPhaseC18.classList.remove("active");
-    btnPhaseSilica.style.background = "rgba(6, 182, 212, 0.25)";
-    btnPhaseSilica.style.borderColor = "#06b6d4";
-    btnPhaseC18.style.background = "transparent";
-    btnPhaseC18.style.borderColor = "";
-    SoundFX.click?.() || SoundFX.playClick?.();
-    updateHUD();
-  });
-
-  btnPhaseC18.addEventListener("click", () => {
-    stationaryPhase = "c18";
-    btnPhaseC18.classList.add("active");
-    btnPhaseSilica.classList.remove("active");
-    btnPhaseC18.style.background = "rgba(245, 158, 11, 0.25)";
-    btnPhaseC18.style.borderColor = "#f59e0b";
-    btnPhaseSilica.style.background = "transparent";
-    btnPhaseSilica.style.borderColor = "";
-    SoundFX.click?.() || SoundFX.playClick?.();
-    updateHUD();
-  });
-
-  function setLightMode(mode, activeBtn) {
-    lightMode = mode;
-    [btnLightVis, btnLightUv254, btnLightUv365, btnLightIodine].forEach(b => {
-      b.classList.remove("active");
-      b.style.background = "transparent";
-      b.style.borderColor = "";
+      // Molecule Info Tag
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "bold 11px 'JetBrains Mono', monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`${comp.name} (Rf = ${rf.toFixed(2)})`, molX + 28, molY - 2);
+      ctx.fillStyle = "#94a3b8";
+      ctx.font = "9.5px 'JetBrains Mono', monospace";
+      ctx.fillText(`${comp.imfType} • v_mig = ${(rf * 100).toFixed(0)}% v_solvent`, molX + 28, molY + 13);
     });
-    activeBtn.classList.add("active");
-    activeBtn.style.background = "rgba(56, 189, 248, 0.25)";
-    activeBtn.style.borderColor = "#38bdf8";
-    SoundFX.click?.() || SoundFX.playClick?.();
-    updateHUD();
+
+    ctx.restore();
   }
 
-  btnLightVis.addEventListener("click", () => setLightMode("visible", btnLightVis));
-  btnLightUv254.addEventListener("click", () => setLightMode("uv254", btnLightUv254));
-  btnLightUv365.addEventListener("click", () => setLightMode("uv365", btnLightUv365));
-  btnLightIodine.addEventListener("click", () => setLightMode("iodine", btnLightIodine));
-
-  // View Switcher (TLC & Column Sim vs Molecular Partition vs 4K Real Bench)
-  function updateViewButtons(activeBtn) {
-    [viewSimBtn, viewMolBtn, viewPhotoBtn].forEach(b => {
-      b.classList.remove("active");
-      b.style.background = "transparent";
-    });
-    activeBtn.classList.add("active");
-    activeBtn.style.background = "#0284c7";
-  }
-
-  viewSimBtn.addEventListener("click", () => {
-    viewMode = "sim";
-    apparatusMode = "tlc";
-    updateViewButtons(viewSimBtn);
-    photoOverlay.style.display = "none";
-    canvas.style.display = "block";
-    SoundFX.click?.() || SoundFX.playClick?.();
-  });
-
-  viewMolBtn.addEventListener("click", () => {
-    viewMode = "sim";
-    apparatusMode = "molecular";
-    updateViewButtons(viewMolBtn);
-    photoOverlay.style.display = "none";
-    canvas.style.display = "block";
-    SoundFX.click?.() || SoundFX.playClick?.();
-  });
-
-  viewPhotoBtn.addEventListener("click", () => {
-    viewMode = "photo";
-    updateViewButtons(viewPhotoBtn);
-    photoOverlay.style.display = "block";
-    canvas.style.display = "none";
-    SoundFX.click?.() || SoundFX.playClick?.();
-  });
-
-  // Record Trial to LabTrialStore
-  btnRecord.addEventListener("click", () => {
+  // Record Trial, Lab Dossier & CSV Export
+  function getTrialSnapshot() {
     const mixture = SAMPLE_MIXTURES[currentMixtureKey];
-    const selComp = mixture.compounds[selectedCompoundIndex];
+    const selComp = mixture.compounds[selectedCompoundIndex] || mixture.compounds[0];
     const rf = computeCompoundRf(selComp);
-    const tR = computeRetentionTime(selComp);
-    LabTrialStore.addTrial("chromatography", {
-      Mixture: mixture.name,
-      Analyte: selComp.name,
-      "Eluent (% EtOAc)": `${ethylAcetatePct}%`,
-      "Stationary Phase": stationaryPhase === "silica" ? "Silica SiO2" : "Reversed C18",
-      "Rf Value": rf.toFixed(3),
-      "Column t_R (min)": tR.toFixed(2)
-    });
+    const dSolvent = plateLengthMm * developmentProgress;
+    const dSpot = dSolvent * rf;
+    const tr = computeRetentionTime(selComp);
+    const rs = computeAverageResolution();
+
+    return {
+      "Mixture": mixture.name,
+      "Analyte": selComp.name,
+      "Formula": selComp.formula,
+      "Stationary Phase": stationaryPhase === "silica" ? "Normal-Phase SiO2" : "Reversed-Phase C18",
+      "Ethyl Acetate (%)": ethylAcetatePct,
+      "Light Mode": lightMode.toUpperCase(),
+      "d_solvent (mm)": dSolvent.toFixed(1),
+      "d_substance (mm)": dSpot.toFixed(1),
+      "Retention Factor (Rf)": rf.toFixed(3),
+      "Column t_R (min)": tr.toFixed(2),
+      "Resolution (Rs)": rs.toFixed(2)
+    };
+  }
+
+  btnRecord?.addEventListener("click", () => {
+    const snap = getTrialSnapshot();
+    LabTrialStore.addTrial("chromatography", snap);
     SoundFX.success?.() || SoundFX.playBeep?.();
   });
 
-  // Open Official Lab Report Modal
-  btnReport.addEventListener("click", () => {
-    const mixture = SAMPLE_MIXTURES[currentMixtureKey];
-    const dSolventMm = plateLengthMm * developmentProgress;
+  btnReport?.addEventListener("click", () => {
+    const snap = getTrialSnapshot();
     openLabReportModal({
-      title: "Thin-Layer (TLC) & Column Chromatography Separation",
-      subject: "Chemistry",
-      inquiryQuestion: "How do intermolecular forces and mobile-phase eluotropic polarity govern the retention factor (Rf) and chromatographic resolution of chemical mixtures?",
-      canvasElement: canvas,
-      parameters: {
-        "Analyte Mixture": mixture.name,
-        "Stationary Phase": stationaryPhase === "silica" ? "Normal-Phase Silica Gel 60 F254" : "Reversed-Phase C18 Octadecyl",
-        "Mobile Phase Eluent": `${ethylAcetatePct}% Ethyl Acetate : ${100 - ethylAcetatePct}% n-Hexane`,
-        "Solvent Front Migration": `${dSolventMm.toFixed(1)} mm`,
-        "Visualization Optics": lightMode.toUpperCase()
-      },
-      formulas: [
-        "R_f = \\frac{d_{\\text{substance}}}{d_{\\text{solvent}}}",
-        "k' = \\frac{1 - R_f}{R_f} = \\frac{t_R - t_0}{t_0}",
-        "R_s = \\frac{2(t_{R2} - t_{R1})}{w_1 + w_2}"
-      ],
-      trials: LabTrialStore.getTrials("chromatography")
+      labId: "chromatography",
+      labTitle: "Thin-Layer (TLC), Flash Column & HPLC Chromatography",
+      moduleCode: "CHEM-M02 / CHEM-M13",
+      currentRow: snap
     });
   });
 
-  // CSV Telemetry Export
-  btnExport.addEventListener("click", () => {
+  function triggerCsvExport() {
     const mixture = SAMPLE_MIXTURES[currentMixtureKey];
-    const dSolventMm = plateLengthMm * developmentProgress;
+    const dSolvent = plateLengthMm * developmentProgress;
+    const rows = mixture.compounds.map(c => {
+      const rf = computeCompoundRf(c);
+      return {
+        "Mixture": mixture.name,
+        "Compound": c.name,
+        "Formula": c.formula,
+        "Stationary Phase": stationaryPhase === "silica" ? "Silica Gel SiO2" : "Reversed-Phase C18",
+        "Ethyl Acetate (%)": ethylAcetatePct,
+        "d_solvent (mm)": dSolvent.toFixed(1),
+        "d_spot (mm)": (dSolvent * rf).toFixed(1),
+        "Rf": rf.toFixed(3),
+        "Column t_R (min)": computeRetentionTime(c).toFixed(2),
+        "Dominant IMF": c.imfType
+      };
+    });
 
     exportLabDataCsv({
-      title: "Thin-Layer (TLC) & Column Chromatography Separation",
-      labId: "chromatography",
-      parameters: {
-        "Sample Mixture": mixture.name,
-        "Stationary Phase": stationaryPhase === "silica" ? "Normal-Phase Silica Gel (SiO2)" : "Reversed-Phase C18",
-        "Mobile Phase Composition": `${ethylAcetatePct}% Ethyl Acetate / ${100 - ethylAcetatePct}% n-Hexane`,
-        "Solvent Front Distance (mm)": dSolventMm.toFixed(2),
-        "Detection Mode": lightMode
-      },
-      headers: ["Compound Name", "Formula", "Molecular Weight (g/mol)", "Spot Distance (mm)", "Retention Factor (Rf)", "Column Retention Time t_R (min)", "Dominant IMF"],
-      dataRows: mixture.compounds.map(c => {
-        const rf = computeCompoundRf(c);
-        const dSpot = dSolventMm * rf;
-        const tR = computeRetentionTime(c);
-        return [
-          c.name,
-          c.formula,
-          c.mw.toFixed(2),
-          dSpot.toFixed(2),
-          rf.toFixed(4),
-          tR.toFixed(2),
-          c.imfType
-        ];
-      })
+      labTitle: "TLC, Column & HPLC Chromatography",
+      moduleCode: "CHEM-M02",
+      headers: Object.keys(rows[0]),
+      rows
     });
-    SoundFX.success?.() || SoundFX.playBeep?.();
-  });
+  }
 
-  const handleKeyDown = (e) => {
-    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+  btnExport?.addEventListener("click", triggerCsvExport);
+
+  function handleKeyDown(e) {
+    if (!container || !container.isConnected) return;
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+    if (tag === "input" || tag === "textarea" || tag === "select" || e.target?.isContentEditable) return;
+    if (e.key === "e" || e.key === "E") {
       e.preventDefault();
-      btnExport.click();
+      triggerCsvExport();
     }
-  };
+  }
   window.addEventListener("keydown", handleKeyDown);
 
   updateHUD();
@@ -1406,6 +1885,6 @@ export function initChromatographyLab(containerId) {
   return function cleanupChromatographyLab() {
     if (animId) cancelAnimationFrame(animId);
     window.removeEventListener("keydown", handleKeyDown);
-    window.removeEventListener("resize", setupHiDPICanvas);
+    window.removeEventListener("resize", syncCanvasSize);
   };
 }

@@ -35,10 +35,123 @@ export function initAnatomyAtlasLab(containerId) {
   let activeRegion = "all"; // 'all' | 'head' | 'thorax' | 'abdomen' | 'pelvis' | 'upper_limb' | 'lower_limb'
   let activeView = "anterior"; // 'anterior' | 'posterior'
   let activeGender = "male"; // 'male' | 'female'
-  let activePlate = "full_anterior"; // 11 High-Res Plates: 'full_anterior' | 'full_posterior' | 'skeletal' | 'muscular' | 'heart' | 'brain' | 'lungs' | 'digestive' | 'urinary' | 'cranial' | 'histology_slide'
+  let activePlate = "full_anterior"; // 13 High-Res Plates
   let activeHistologyModel = "cardiac_cycle";
+  let calloutMode = "smart"; // 'smart' | 'all' | 'pins'
   let selectedStructure = ANATOMICAL_STRUCTURES.find(s => s.id === "heart") || ANATOMICAL_STRUCTURES[0];
   let searchQuery = "";
+
+  // Authoritative Encyclopedia Metadata Enricher (TA2 Code, Germ Layer, Micro-Histology, Biometrics, Diagnostic Pearl)
+  const ENCYCLOPEDIA_OVERRIDES = {
+    cranium: { ta2: "TA2-0392", germ: "Neural Crest & Paraxial Mesoderm", histology: "Diploe cancellous bone sandwiched between inner & outer cortical tables", biometrics: "8 Cranial Bones • Vault Thickness: 5–7 mm • Intracranial Vol: ~1,450 mL", pearl: "Non-contrast head CT bone window; check pterion overlying middle meningeal artery." },
+    cerebrum: { ta2: "TA2-5412", germ: "Prosencephalic Neuroectoderm", histology: "6-layered isocortex (pyramidal & stellate neurons, astrocytes, oligodendrocytes)", biometrics: "Mass: ~1,350 g • ~16B Cortical Neurons • CBF: 50 mL/100g/min", pearl: "T1/T2/FLAIR Brain MRI & Diffusion-Weighted Imaging (DWI) for acute ischemic stroke." },
+    brainstem: { ta2: "TA2-5610", germ: "Mesencephalic & Rhombencephalic Ectoderm", histology: "Cranial nerve nuclei (III–XII), reticular formation & cerebellar Purkinje arbor vitae", biometrics: "Medulla + Pons + Midbrain • Purkinje Cells: ~15 Million", pearl: "Posterior fossa MRI; assess cranial nerve reflexes (pupillary, corneal, gag)." },
+    heart: { ta2: "TA2-3891", germ: "Splanchnic Lateral Plate Mesoderm", histology: "Branched striated cardiomyocytes coupled via Connexin-43 intercalated discs", biometrics: "Mass: 250–350 g • CO: 5.0 L/min • SV: 70 mL • EF: 55–70%", pearl: "12-Lead ECG, Transthoracic Echocardiography (TTE) & high-sensitivity Troponin I/T." },
+    aorta: { ta2: "TA2-4112", germ: "Pharyngeal Arch 4 & Dorsal Aorta Mesoderm", histology: "Elastic artery with 50+ concentric fenestrated elastin lamellae in tunica media", biometrics: "Root Diameter: 2.8–3.5 cm • Peak Flow: 1.2 m/s • BP: 120/80 mmHg", pearl: "CT Angiography (CTA) chest/abdomen; screen for intimal flap or >5.5 cm aneurysm." },
+    lungs: { ta2: "TA2-3240", germ: "Ventral Foregut Endoderm & Splanchnic Mesoderm", histology: "Type I squamous pneumocytes (95% area) & surfactant-secreting Type II cells", biometrics: "480M Alveoli • Diffusion Area: ~100 m² • TLC: 6.0 L • Barrier: 0.3 µm", pearl: "High-Resolution Chest CT (HRCT), Spirometry (FEV1/FVC), and arterial blood gas (ABG)." },
+    liver: { ta2: "TA2-3045", germ: "Foregut Endoderm (Hepatic Diverticulum)", histology: "Hexagonal hepatic lobules with portal triads, fenestrated sinusoids & Kupffer cells", biometrics: "Mass: ~1,500 g • Dual Flow: 1,350 mL/min (75% Portal, 25% Arterial)", pearl: "RUQ Ultrasound, FibroScan elastography, LFTs (ALT, AST, ALP, Bilirubin, Albumin, INR)." },
+    stomach: { ta2: "TA2-2918", germ: "Foregut Endoderm & Splanchnic Mesoderm", histology: "Simple columnar rugal mucosa with parietal (HCl/IF), chief (pepsinogen) & G-cells", biometrics: "Capacity: 1.5–2.0 L • Luminal pH: 1.5–2.0 • 3 Muscularis Layers", pearl: "Upper GI Endoscopy (EGD) with biopsy & urea breath test for H. pylori." },
+    kidneys: { ta2: "TA2-3380", germ: "Intermediate Mesoderm (Metanephric Blastema)", histology: "Fenestrated glomerular tuft, podocyte slit diaphragms & cuboidal brush-border PCT", biometrics: "1.0M Nephrons/Kidney • GFR: 125 mL/min • Filtrate: 180 L/day", pearl: "Serum Creatinine/eGFR, Urinalysis, Renal Doppler Ultrasound & non-contrast CT." },
+    pancreas: { ta2: "TA2-3082", germ: "Dorsal & Ventral Foregut Endodermal Buds", histology: "Serous exocrine acini (zymogen granules) & endocrine Islets of Langerhans (α, β, δ)", biometrics: "Length: 15 cm • Exocrine Juice: 1.5 L/day • ~1 Million Islets", pearl: "Serum Lipase (>3x ULN in pancreatitis), HbA1c, C-peptide & endoscopic ultrasound." },
+    spleen: { ta2: "TA2-5165", germ: "Dorsal Mesogastrium Mesenchymatous Mesoderm", histology: "White pulp lymphoid follicles (PALS) & red pulp venous sinusoids / cords of Billroth", biometrics: "Dimensions: 1×3×5 in • Weight: ~150 g (7 oz) • Ribs 9–11", pearl: "FAST abdominal ultrasound in trauma (Morrison/splenorenal recess free fluid)." },
+    femur: { ta2: "TA2-0842", germ: "Lateral Plate Somatic Mesoderm (Endochondral)", histology: "Concentric Haversian osteons in diaphyseal cortex; trabecular Ward's triangle in neck", biometrics: "Length: ~45 cm (26% stature) • Neck Angle: 126° • Axial Load: >2,500 lbs", pearl: "AP/Frog-leg Pelvis Radiograph & DEXA bone mineral density (T-score) scan." }
+  };
+
+  const SYSTEM_ENCYCLOPEDIA_DEFAULTS = {
+    skeletal: {
+      germ: "Paraxial & Somatic Lateral Plate Mesoderm",
+      histology: "Lamellar Haversian cortical bone (65% hydroxyapatite, 35% Type I collagen) & trabecular marrow",
+      biometrics: "Bone Density: ~1.5 g/cm³ • Remodeling Turnover: ~10%/yr • Ca²⁺ Reservoir: 99%",
+      pearl: "Orthogonal AP/Lateral Plain Radiography, CT 3D Osteology Reconstruction & DEXA Scan.",
+      histoModel: "osteon_haversian"
+    },
+    muscular: {
+      germ: "Paraxial Somitic Myotome Mesoderm",
+      histology: "Multinucleated striated skeletal myofibers with Z-disc sarcomeres & T-tubule triads",
+      biometrics: "Resting Sarcomere: 2.2 µm • Specific Tension: ~30 N/cm² • ATP Cross-Bridge Cycling",
+      pearl: "Electromyography (EMG), Nerve Conduction Studies (NCS), Serum Creatine Kinase (CK) & MSK MRI.",
+      histoModel: "sarcomere_sliding"
+    },
+    circulatory: {
+      germ: "Splanchnic Angioblastic Mesoderm",
+      histology: "Tunica intima (endothelium), tunica media (smooth muscle/elastin) & vasa vasorum adventitia",
+      biometrics: "Systemic MAP: ~93 mmHg • Cardiac Output: 5.0 L/min • Total Vessel Length: ~100,000 km",
+      pearl: "Duplex Doppler Ultrasonography, CT Angiography (CTA), Ankle-Brachial Index & 12-Lead ECG.",
+      histoModel: "cardiac_cycle"
+    },
+    nervous: {
+      germ: "Neuroectoderm & Neural Crest Ectoderm",
+      histology: "Multipolar neurons (Nissl RER bodies) with Schwann/Oligodendrocyte myelin & Nodes of Ranvier",
+      biometrics: "Resting Vm: -70 mV • Spike Peak: +30 mV • Myelinated Velocity: 80–120 m/s",
+      pearl: "High-Field 3T MRI, Diffusion Tensor Tractography (DTI), EEG & Dermatome/Myotome Exam.",
+      histoModel: "neuron_synapse"
+    },
+    respiratory: {
+      germ: "Ventral Foregut Endoderm & Splanchnic Mesoderm",
+      histology: "Pseudostratified ciliated columnar airway epithelium transitioning to Type I/II alveoli",
+      biometrics: "Minute Ventilation: 6.0 L/min • Alveolar PAO₂: 104 mmHg • Membrane: 0.2–0.5 µm",
+      pearl: "Chest Radiography (CXR), Pulmonary Function Testing (Spirometry/DLCO) & Arterial Blood Gas.",
+      histoModel: "alveolar_gas_exchange"
+    },
+    digestive: {
+      germ: "Foregut / Midgut / Hindgut Endoderm",
+      histology: "4-layer GI wall: Mucosa (epithelium/lamina propria), Submucosa (Meissner), Muscularis (Auerbach), Serosa",
+      biometrics: "Absorptive Surface Area: ~250 m² (plicae, villi, microvilli) • Transit: 24–48 hrs",
+      pearl: "Contrast CT Abdomen/Pelvis, Upper/Lower Endoscopy & Hepatic/Pancreatic Enzyme Panel.",
+      histoModel: "nephron_countercurrent"
+    },
+    urinary: {
+      germ: "Intermediate Mesoderm (Urogenital Ridge)",
+      histology: "Fenestrated glomerular capillaries, podocytes, cuboidal tubular epithelium & urothelium",
+      biometrics: "GFR: 125 mL/min (180 L/day) • Medullary Gradient: 300 → 1,200 mOsm/kg",
+      pearl: "Renal Ultrasound, Serum BMP (BUN/Creatinine/Electrolytes), Urine Osmolality & Cystoscopy.",
+      histoModel: "nephron_countercurrent"
+    },
+    endocrine: {
+      germ: "Endodermal Epithelial Buds & Neural Crest",
+      histology: "Fenestrated sinusoidal capillary beds enveloping hormone-secreting follicular/cord cells",
+      biometrics: "Pulsatile Circadian Secretion • Picomolar–Nanomolar Receptor Affinity (Kd ~10⁻⁹ M)",
+      pearl: "Dynamic Hormone Stimulation/Suppression Assays, High-Resolution Ultrasound & Dedicated MRI.",
+      histoModel: "nephron_countercurrent"
+    },
+    lymphatic: {
+      germ: "Splanchnic Mesoderm & Endodermal Thymic Epithelium",
+      histology: "Reticular collagen type III meshwork housing B-cell germinal follicles & T-cell paracortex",
+      biometrics: "Lymph Return: ~3.0 L/day via Thoracic Duct • Lymphocyte Recirculation Surveillance",
+      pearl: "Contrast CT Lymphangiography, Excisional Lymph Node Biopsy & Flow Cytometry Immunophenotyping.",
+      histoModel: "cardiac_cycle"
+    },
+    integumentary: {
+      germ: "Surface Ectoderm (Epidermis) & Dermatome Mesoderm (Dermis)",
+      histology: "Keratinized stratified squamous epidermis (5 strata) over papillary & reticular collagen dermis",
+      biometrics: "Surface Area: 1.5–2.0 m² • Mass: ~16% Body Weight • Epidermal Turnover: ~28 Days",
+      pearl: "polarized Epiluminescence Dermoscopy, Wood's Lamp Examination & Full-Thickness Punch Biopsy.",
+      histoModel: "osteon_haversian"
+    },
+    reproductive: {
+      germ: "Intermediate Mesoderm (Gonadal Ridge) & Primordial Germ Cells",
+      histology: "Germinal seminiferous/follicular epithelium, steroidogenic Leydig/Theca cells & smooth muscle ducts",
+      biometrics: "HPG Axis Pulsatile GnRH -> LH/FSH Control • Meiotic Gametogenesis (2n=46 -> n=23)",
+      pearl: "Pelvic/Scrotal Color Doppler Ultrasound, Serum Gonadotropin/Steroid Panel & Pelvic MRI.",
+      histoModel: "nephron_countercurrent"
+    }
+  };
+
+  function getEncyclopediaMeta(s) {
+    if (!s) return SYSTEM_ENCYCLOPEDIA_DEFAULTS.circulatory;
+    const sysDef = SYSTEM_ENCYCLOPEDIA_DEFAULTS[s.system] || SYSTEM_ENCYCLOPEDIA_DEFAULTS.circulatory;
+    const ov = ENCYCLOPEDIA_OVERRIDES[s.id] || {};
+    const idx = ANATOMICAL_STRUCTURES.findIndex(item => item.id === s.id);
+    const ta2Num = String(1040 + Math.max(0, idx) * 73).padStart(4, "0");
+    return {
+      ta2: ov.ta2 || `TA2-${ta2Num}`,
+      germ: ov.germ || sysDef.germ,
+      histology: ov.histology || sysDef.histology,
+      biometrics: ov.biometrics || sysDef.biometrics,
+      pearl: ov.pearl || sysDef.pearl,
+      histoModel: sysDef.histoModel || "cardiac_cycle"
+    };
+  }
 
   // Layer opacities (0.0 to 1.0)
   const layerOpacities = {
@@ -65,7 +178,7 @@ export function initAnatomyAtlasLab(containerId) {
     if (s.system === "skeletal") return layerOpacities.skeletal;
     if (s.system === "circulatory") return layerOpacities.circulatory;
     if (s.system === "nervous") return layerOpacities.nervous;
-    if (s.system === "digestive" || s.system === "respiratory" || s.system === "urinary" || s.system === "endocrine" || s.system === "lymphatic") {
+    if (s.system === "digestive" || s.system === "respiratory" || s.system === "urinary" || s.system === "endocrine" || s.system === "lymphatic" || s.system === "reproductive") {
       return layerOpacities.visceral;
     }
     return 1.0;
@@ -150,10 +263,17 @@ export function initAnatomyAtlasLab(containerId) {
     s2PlayedForBeat: -1,
     bloodParticles: [],
     adhLevel: 50, // 0 to 100%
+    gfrPressure: 55, // Glomerular hydrostatic pressure mmHg (45 to 70)
     fio2: 21, // 21% room air
+    membraneThickness: 0.3, // 0.2 to 1.5 um (fibrosis/edema)
     sarcomereLength: 2.2, // 1.6 to 2.4 um
+    ca2Active: true, // Ca2+ cross-bridge cycling active
     actionPotentialStim: false,
-    apPhaseProgress: 0
+    apPhaseProgress: 0,
+    apWaveHistory: [],
+    neurotransmitterType: "ach", // 'ach' (excitatory) | 'gaba' (inhibitory)
+    osteonPolarized: true, // Polarized birefringence vs Brightfield H&E
+    osteonLoadMPa: 45 // Mechanical axial compression MPa (0 to 150)
   };
 
   // Pin Quiz State
@@ -162,7 +282,8 @@ export function initAnatomyAtlasLab(containerId) {
     score: 0,
     totalQuestions: 0,
     streak: 0,
-    feedbackMsg: "",
+    hintActive: false,
+    feedbackMsg: "Click the matching anatomical pin on the 4K plate to verify your topographical knowledge.",
     feedbackType: "neutral" // 'correct' | 'wrong' | 'neutral'
   };
 
@@ -254,54 +375,146 @@ export function initAnatomyAtlasLab(containerId) {
     const visible = getVisibleStructures(activePlate, activeView).filter(s => getStructureOpacity(s) >= 0.15);
     const candidates = visible.length > 0 ? visible : ANATOMICAL_STRUCTURES;
     quizState.targetStructure = candidates[Math.floor(Math.random() * candidates.length)];
-    quizState.feedbackMsg = `Tap or click the pin for: "${quizState.targetStructure.name}" (${quizState.targetStructure.latinName})`;
+    quizState.hintActive = false;
+    quizState.feedbackMsg = `Locate & tap the pin for "${quizState.targetStructure.name}" (${quizState.targetStructure.latinName})`;
     quizState.feedbackType = "neutral";
   }
 
   // Initial HTML mount
   container.innerHTML = `
-    <div class="atlas-workbench" style="display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 1560px; margin: 0 auto; color: var(--text-color);">
-      <!-- Lab Header -->
-      <div class="sim-telemetry-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 18px 24px; border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: var(--surface-bg);">
-        <div style="display: flex; align-items: center; gap: 14px;">
-          <div style="font-size: 2.2rem; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.35); padding: 8px 14px; border-radius: 12px;" aria-hidden="true">
+    <style>
+      .atlas-workbench .btn-outline {
+        background: rgba(15, 23, 42, 0.85);
+        color: #f8fafc;
+        border: 1px solid rgba(148, 163, 184, 0.38);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      }
+      .atlas-workbench .btn-outline:hover {
+        background: rgba(30, 41, 59, 0.96);
+        border-color: #38bdf8;
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(56, 189, 248, 0.25);
+      }
+      .atlas-encyclo-chip {
+        display: flex; align-items: center; justify-content: space-between; gap: 8px;
+        padding: 7px 10px; border-radius: 8px; cursor: pointer; text-align: left;
+        background: rgba(15, 23, 42, 0.65); border: 1px solid rgba(148, 163, 184, 0.18);
+        transition: all 0.16s ease; width: 100%; color: #f8fafc;
+      }
+      .atlas-encyclo-chip:hover {
+        background: rgba(30, 41, 59, 0.92); border-color: rgba(56, 189, 248, 0.45);
+        transform: translateX(2px);
+      }
+      .atlas-encyclo-chip.is-active {
+        background: linear-gradient(90deg, rgba(14, 165, 233, 0.25), rgba(15, 23, 42, 0.9));
+        border-color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.22);
+      }
+      .atlas-sys-pill {
+        padding: 4px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700;
+        cursor: pointer; white-space: nowrap; border: 1px solid rgba(148, 163, 184, 0.24);
+        background: rgba(15, 23, 42, 0.75); color: #e2e8f0; transition: all 0.15s ease;
+      }
+      .atlas-sys-pill:hover { border-color: rgba(56, 189, 248, 0.55); color: #ffffff; background: rgba(30, 41, 59, 0.9); }
+      .atlas-sys-pill.is-active {
+        background: rgba(56, 189, 248, 0.22); border-color: #38bdf8; color: #38bdf8;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+      }
+      [data-theme="day"] .atlas-workbench .btn-outline {
+        background: #f1f5f9 !important;
+        color: #0f172a !important;
+        border: 1.5px solid #cbd5e1 !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06) !important;
+      }
+      [data-theme="day"] .atlas-workbench .btn-outline:hover {
+        background: #e0f2fe !important;
+        border-color: #0284c7 !important;
+        color: #0369a1 !important;
+      }
+      [data-theme="day"] .atlas-encyclo-chip {
+        background: #f8fafc !important;
+        border: 1.5px solid #cbd5e1 !important;
+        color: #0f172a !important;
+      }
+      [data-theme="day"] .atlas-encyclo-chip:hover {
+        background: #f0f9ff !important;
+        border-color: #0284c7 !important;
+      }
+      [data-theme="day"] .atlas-encyclo-chip.is-active {
+        background: #e0f2fe !important;
+        border: 1.5px solid #0284c7 !important;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15) !important;
+      }
+      [data-theme="day"] .atlas-sys-pill {
+        background: #f1f5f9 !important;
+        border: 1.5px solid #cbd5e1 !important;
+        color: #334155 !important;
+      }
+      [data-theme="day"] .atlas-sys-pill:hover {
+        background: #e2e8f0 !important;
+        color: #0f172a !important;
+        border-color: #94a3b8 !important;
+      }
+      [data-theme="day"] .atlas-sys-pill.is-active {
+        background: #0284c7 !important;
+        border-color: #0284c7 !important;
+        color: #ffffff !important;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25) !important;
+      }
+      .atlas-tele-ribbon {
+        display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+      }
+      @media (max-width: 1100px) {
+        .atlas-tele-ribbon { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 640px) {
+        .atlas-tele-ribbon { grid-template-columns: 1fr; }
+      }
+    </style>
+    <div class="atlas-workbench" style="display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 1580px; margin: 0 auto; color: var(--text-main, #f8fafc);">
+      <!-- Lab Encyclopedia Header -->
+      <div class="sim-telemetry-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 18px 24px; border: 1px solid rgba(56, 189, 248, 0.28); border-radius: var(--radius-lg); background: linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(7, 11, 22, 0.98) 100%); box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div style="font-size: 2.3rem; background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(16, 185, 129, 0.15)); border: 1.5px solid rgba(56, 189, 248, 0.45); padding: 10px 15px; border-radius: 14px; box-shadow: 0 0 24px rgba(56, 189, 248, 0.2);" aria-hidden="true">
             🏛️
           </div>
           <div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
-              <h2 style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; margin: 0; color: var(--text-color);">
-                4K Ultra-HD Human Anatomy Atlas &amp; Histology Suite
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 5px;">
+              <h2 style="font-family: var(--font-heading); font-size: 1.42rem; font-weight: 800; margin: 0; color: var(--text-main, #f8fafc); letter-spacing: -0.01em;">
+                4K Ultra-HD Human Anatomy Atlas &amp; Histology Encyclopedia
               </h2>
-              <span style="font-size: 0.72rem; padding: 2px 10px; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);">
-                4K UHD 60 FPS
+              <span style="font-size: 0.7rem; padding: 2px 10px; border-radius: 9999px; background: rgba(16, 185, 129, 0.16); color: #34d399; font-weight: 800; border: 1px solid rgba(16, 185, 129, 0.35);">
+                8K UHD PLATES • 60 FPS
               </span>
-              <span style="font-size: 0.72rem; padding: 2px 10px; border-radius: 9999px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight: 700; border: 1px solid rgba(56, 189, 248, 0.3);">
-                Terminologia Anatomica
+              <span style="font-size: 0.7rem; padding: 2px 10px; border-radius: 9999px; background: rgba(56, 189, 248, 0.16); color: #38bdf8; font-weight: 800; border: 1px solid rgba(56, 189, 248, 0.35);">
+                TERMINOLOGIA ANATOMICA (TA2)
+              </span>
+              <span style="font-size: 0.7rem; padding: 2px 10px; border-radius: 9999px; background: rgba(168, 85, 247, 0.16); color: #c084fc; font-weight: 800; border: 1px solid rgba(168, 85, 247, 0.35);">
+                11 SYSTEMS • 6 HISTOLOGY SIMS
               </span>
             </div>
-            <p style="font-size: 0.86rem; color: var(--text-muted); margin: 0;">
-              High-resolution anatomical matrix with multi-layer dissection, physiological electro-mechanical synchronizers, and clinical pathology.
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+              Encyclopedic human morphology reference featuring registered multi-layer dissection, stereotactic TA2 monographs, live physiological simulators, and clinical pathology correlations.
             </p>
           </div>
         </div>
 
         <!-- Mode Switcher & Lab Actions -->
         <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-          <div style="display: inline-flex; background: rgba(15, 23, 42, 0.6); padding: 4px; border-radius: 10px; border: 1px solid var(--border-color);">
+          <div style="display: inline-flex; background: rgba(2, 6, 23, 0.75); padding: 4px; border-radius: 10px; border: 1px solid rgba(148, 163, 184, 0.2);">
             <button id="btn-tab-macro" class="btn btn-sm ${activeTab === 'macro' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 14px; font-weight: 700;">
-              🔬 Macro Atlas (4K)
+              📖 Macro Atlas (4K)
             </button>
             <button id="btn-tab-histology" class="btn btn-sm ${activeTab === 'histology' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 14px; font-weight: 700;">
-              ⚡ Histology Simulator
+              🔬 Histology &amp; Physiology
             </button>
             <button id="btn-tab-quiz" class="btn btn-sm ${activeTab === 'quiz' ? 'btn-primary' : 'btn-secondary'}" style="padding: 6px 14px; font-weight: 700;">
-              🎯 Pin Challenge Quiz
+              🎯 Pin Challenge
             </button>
           </div>
 
-          <button id="btn-export-4k" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;" title="Export pristine 3840x2160 UHD diagram">
+          <button id="btn-export-4k" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700;" title="Export pristine 3840x2160 UHD Encyclopedia Plate">
             <span>📸</span>
-            <span>4K PNG Export</span>
+            <span>4K Poster Export</span>
           </button>
 
           <button id="btn-anatomy-export-csv" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 700; border-color: rgba(16, 185, 129, 0.4); color: #10b981;">
@@ -316,8 +529,35 @@ export function initAnatomyAtlasLab(containerId) {
         </div>
       </div>
 
+      <!-- 4-Card Live Encyclopedia & Physiological Telemetry Ribbon -->
+      <div class="atlas-tele-ribbon">
+        <div class="sim-telemetry-card" style="padding: 12px 16px; border-radius: 12px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.25); display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;">I. Organ System Taxonomy</div>
+          <div id="tele-sys-name" style="font-size: 0.98rem; font-weight: 800; color: #ef4444; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🫀 Cardiovascular System</div>
+          <div id="tele-sys-latin" style="font-size: 0.75rem; font-style: italic; color: #cbd5e1; font-family: 'STIX Two Text', Georgia, serif;">Systema cardiovasculare • 5.0 L/min</div>
+        </div>
+
+        <div class="sim-telemetry-card" style="padding: 12px 16px; border-radius: 12px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(16, 185, 129, 0.25); display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;">II. Selected Encyclopedia Entry</div>
+          <div id="tele-struct-name" style="font-size: 0.98rem; font-weight: 800; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Four-Chambered Heart</div>
+          <div id="tele-struct-ta2" style="font-size: 0.74rem; color: #34d399; font-family: var(--font-mono); font-weight: 700;">TA2-3891 • Cor / Myocardium</div>
+        </div>
+
+        <div class="sim-telemetry-card" style="padding: 12px 16px; border-radius: 12px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(168, 85, 247, 0.25); display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;">III. Stereotactic Plate &amp; Optics</div>
+          <div id="tele-plate-name" style="font-size: 0.96rem; font-weight: 800; color: #c084fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🧍 Coronal Anterior (Full Body)</div>
+          <div id="tele-zoom-stat" style="font-size: 0.74rem; color: #94a3b8; font-family: var(--font-mono);">Zoom: 1.0× • 8K TrueColor • ♂️ Male</div>
+        </div>
+
+        <div class="sim-telemetry-card" style="padding: 12px 16px; border-radius: 12px; background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; flex-direction: column; gap: 3px;">
+          <div style="font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #94a3b8;">IV. Live Physiological Telemetry</div>
+          <div id="tele-physio-primary" style="font-size: 0.96rem; font-weight: 800; color: #fbbf24; font-family: var(--font-mono);">HR: 72 BPM • CO: 5.04 L/min</div>
+          <div id="tele-physio-sub" style="font-size: 0.74rem; color: #cbd5e1;">GFR: 125 mL/min • PAO₂: 101 mmHg</div>
+        </div>
+      </div>
+
       <!-- Interactive 13-Plate Anatomical & Histological System Selector -->
-      <div class="atlas-plate-strip-wrapper" style="background: var(--surface-bg); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;">
+      <div class="atlas-plate-strip-wrapper" style="background: var(--bg-card, rgba(15, 23, 42, 0.85)); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">
@@ -328,7 +568,7 @@ export function initAnatomyAtlasLab(containerId) {
             </span>
           </div>
           <div style="font-size: 0.75rem; color: var(--text-dim);">
-            Tap any organ plate for instant high-definition cross-sections, pinpoint coordinates, &amp; telemetry
+            Select any anatomical plate or browse the Encyclopedia Index on the right
           </div>
         </div>
         <div id="plate-selector-strip" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin;">
@@ -346,91 +586,99 @@ export function initAnatomyAtlasLab(containerId) {
       </div>
 
       <!-- Main Dual-Pane Studio -->
-      <div style="display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(360px, 1fr); gap: 16px; align-items: start;">
+      <div style="display: grid; grid-template-columns: minmax(0, 1.42fr) minmax(390px, 1fr); gap: 16px; align-items: start;">
         
         <!-- LEFT: Primary Interactive 4K Canvas Workbench -->
-        <div class="sim-telemetry-card" style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px; background: var(--surface-bg); display: flex; flex-direction: column; gap: 12px; position: relative;">
+        <div class="sim-telemetry-card" style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 16px; background: var(--bg-card, rgba(15, 23, 42, 0.85)); display: flex; flex-direction: column; gap: 12px; position: relative;">
           
-          <!-- Top Toolstrip: Orientation, System Filters, Zoom Controls -->
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+          <!-- Top Toolstrip: Orientation, Gender, Shaders, Labels, Region, Zoom -->
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
             <!-- View Angles -->
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">View:</span>
-              <button id="btn-view-anterior" class="btn btn-sm ${activeView === 'anterior' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;">
-                Coronal Anterior
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Plane:</span>
+              <button id="btn-view-anterior" class="btn btn-sm ${activeView === 'anterior' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 9px; font-size: 0.76rem;">
+                Anterior
               </button>
-              <button id="btn-view-posterior" class="btn btn-sm ${activeView === 'posterior' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;">
-                Coronal Posterior
+              <button id="btn-view-posterior" class="btn btn-sm ${activeView === 'posterior' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 9px; font-size: 0.76rem;">
+                Posterior
               </button>
             </div>
 
             <!-- Anatomical Model Gender Toggle -->
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Model:</span>
-              <button id="btn-gender-male" class="btn btn-sm ${activeGender === 'male' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Male Anatomical Model (4K Multi-Layer Strata)">
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Sex:</span>
+              <button id="btn-gender-male" class="btn btn-sm ${activeGender === 'male' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 9px; font-size: 0.76rem;" title="Male Anatomical Model (4K Multi-Layer Strata)">
                 ♂️ Male
               </button>
-              <button id="btn-gender-female" class="btn btn-sm ${activeGender === 'female' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Female Anatomical Model (4K Multi-Layer Strata)">
+              <button id="btn-gender-female" class="btn btn-sm ${activeGender === 'female' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 9px; font-size: 0.76rem;" title="Female Anatomical Model (4K Multi-Layer Strata)">
                 ♀️ Female
               </button>
             </div>
 
             <!-- 8K Contrast & Imaging Shaders -->
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Plate:</span>
-              <button id="btn-imaging-photo" class="btn btn-sm ${imagingMode === 'photo' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Photorealistic 8K TrueColor Dissection">
-                📸 8K TrueColor
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <span style="font-size: 0.74rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Shader:</span>
+              <button id="btn-imaging-photo" class="btn btn-sm ${imagingMode === 'photo' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 9px; font-size: 0.76rem;" title="Photorealistic 8K TrueColor Dissection">
+                📸 TrueColor
               </button>
-              <button id="btn-imaging-xray" class="btn btn-sm ${imagingMode === 'xray' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Radiographic X-Ray Contrast">
-                ☢️ Radiographic
+              <button id="btn-imaging-xray" class="btn btn-sm ${imagingMode === 'xray' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 9px; font-size: 0.76rem;" title="Radiographic X-Ray Contrast">
+                ☢️ X-Ray
               </button>
-              <button id="btn-imaging-angio" class="btn btn-sm ${imagingMode === 'angiogram' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 10px; font-size: 0.78rem;" title="Fluorescent Angiogram Contrast">
-                ⚡ Angiogram
+              <button id="btn-imaging-angio" class="btn btn-sm ${imagingMode === 'angiogram' ? 'btn-primary' : 'btn-secondary'}" style="padding: 4px 9px; font-size: 0.76rem;" title="Fluorescent Angiogram Contrast">
+                ⚡ Angio
+              </button>
+            </div>
+
+            <!-- Netter-Style Atlas Callout Mode -->
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <button id="btn-callout-mode" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.76rem; font-weight: 700; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;" title="Cycle between Smart Hover Labels, Full Netter-Style Encyclopedia Callouts, and Pins Only">
+                📌 Labels: Smart
               </button>
             </div>
 
             <!-- Regional Zoom Shortcuts -->
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Region:</span>
-              <select id="sel-region-jump" class="sim-select" style="padding: 4px 10px; font-size: 0.8rem; border-radius: 6px; background: rgba(15, 23, 42, 0.8); color: var(--text-color); border: 1px solid var(--border-color);">
-                <option value="all">Whole Body (1x)</option>
-                <option value="head">Head &amp; Neck (3.0x)</option>
-                <option value="thorax">Thorax &amp; Heart (3.5x)</option>
-                <option value="abdomen">Abdomen &amp; Kidneys (3.2x)</option>
-                <option value="pelvis">Pelvis (3.0x)</option>
-                <option value="upper_limb">Upper Extremity (2.8x)</option>
-                <option value="lower_limb">Lower Extremity (2.2x)</option>
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <select id="sel-region-jump" class="sim-select" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; background: rgba(15, 23, 42, 0.8); color: var(--text-main, #f8fafc); border: 1px solid var(--border-color);">
+                <option value="all">Region: Whole Body (1×)</option>
+                <option value="head">Head &amp; Cranium (3.0×)</option>
+                <option value="thorax">Thorax &amp; Heart (3.5×)</option>
+                <option value="abdomen">Abdomen &amp; Viscera (3.2×)</option>
+                <option value="pelvis">Pelvis &amp; Perineum (3.0×)</option>
+                <option value="upper_limb">Upper Extremity (2.8×)</option>
+                <option value="lower_limb">Lower Extremity (2.2×)</option>
               </select>
             </div>
 
             <!-- Zoom / Pan Controls -->
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <button id="btn-zoom-in" class="btn btn-secondary btn-sm" style="padding: 4px 9px;" title="Zoom In (+)">➕</button>
-              <button id="btn-zoom-out" class="btn btn-secondary btn-sm" style="padding: 4px 9px;" title="Zoom Out (-)">➖</button>
-              <button id="btn-zoom-reset" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.78rem;" title="Reset 1.0x View">Reset 1× View</button>
-              <span id="zoom-badge" style="font-family: var(--font-mono); font-size: 0.78rem; color: #38bdf8; font-weight: 700; min-width: 44px; text-align: right;">1.0×</span>
+            <div style="display: flex; align-items: center; gap: 4px;">
+              <button id="btn-zoom-in" class="btn btn-secondary btn-sm" style="padding: 4px 8px;" title="Zoom In (+)">➕</button>
+              <button id="btn-zoom-out" class="btn btn-secondary btn-sm" style="padding: 4px 8px;" title="Zoom Out (-)">➖</button>
+              <button id="btn-zoom-reset" class="btn btn-secondary btn-sm" style="padding: 4px 9px; font-size: 0.75rem;" title="Reset 1.0x View">1× Reset</button>
+              <span id="zoom-badge" style="font-family: var(--font-mono); font-size: 0.76rem; color: #38bdf8; font-weight: 700; min-width: 40px; text-align: right;">1.0×</span>
             </div>
           </div>
 
           <!-- Canvas Display Mount -->
-          <div id="atlas-canvas-container" data-no-touch-zoom="true" style="position: relative; width: 100%; height: 640px; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.08); touch-action: none; cursor: grab;">
+          <div id="atlas-canvas-container" data-no-touch-zoom="true" style="position: relative; width: 100%; height: 660px; background: radial-gradient(circle at center, #0f172a 0%, #020617 100%); border-radius: 12px; overflow: hidden; border: 1px solid rgba(56, 189, 248, 0.18); touch-action: none; cursor: grab;">
             <canvas id="atlas-canvas" style="display: block; width: 100%; height: 100%; touch-action: none; -webkit-user-select: none; user-select: none;"></canvas>
 
             <!-- Floating Overlay Badge for Active Mode -->
-            <div id="canvas-overlay-banner" style="position: absolute; top: 14px; left: 14px; pointer-events: none; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 6px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 700; color: #38bdf8; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+            <div id="canvas-overlay-banner" style="position: absolute; top: 12px; left: 12px; pointer-events: none; background: rgba(9, 13, 24, 0.86); backdrop-filter: blur(8px); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700; color: #38bdf8; box-shadow: 0 4px 12px rgba(0,0,0,0.45); max-width: calc(100% - 140px);">
               <span>🔍</span>
-              <span id="canvas-mode-text">4K UHD Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom • Double-Tap to Reset</span>
+              <span id="canvas-mode-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">4K UHD Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom • Double-Tap to Reset</span>
             </div>
 
             <!-- Quiz Target Banner (Visible in Quiz Mode) -->
-            <div id="quiz-prompt-banner" style="display: none; position: absolute; bottom: 16px; left: 16px; right: 16px; background: rgba(15, 23, 42, 0.92); border: 1.5px solid #38bdf8; border-radius: 10px; padding: 12px 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.7); display: none; justify-content: space-between; align-items: center; gap: 12px;">
-              <div>
-                <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: #38bdf8;">Locate Target Structure:</div>
-                <div id="quiz-target-text" style="font-size: 1.05rem; font-weight: 800; color: #ffffff;">...</div>
+            <div id="quiz-prompt-banner" style="display: none; position: absolute; bottom: 14px; left: 14px; right: 14px; background: rgba(9, 13, 24, 0.94); border: 1.5px solid #38bdf8; border-radius: 12px; padding: 12px 16px; box-shadow: 0 12px 28px rgba(0,0,0,0.75); justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div style="flex: 1; min-width: 220px;">
+                <div style="font-size: 0.7rem; text-transform: uppercase; font-weight: 800; color: #38bdf8; letter-spacing: 0.05em;">🎯 Topographical Pin Challenge — Locate Target:</div>
+                <div id="quiz-target-text" style="font-size: 1.05rem; font-weight: 800; color: #ffffff; margin-top: 2px;">...</div>
+                <div id="quiz-feedback-pill" style="font-size: 0.78rem; color: #94a3b8; margin-top: 3px;">Click the matching anatomical pin on the plate.</div>
               </div>
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <span id="quiz-score-badge" style="font-family: var(--font-mono); font-size: 0.9rem; font-weight: 800; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 6px;">Score: 0 / 0</span>
-                <button id="btn-quiz-skip" class="btn btn-secondary btn-sm" style="font-size: 0.78rem;">Skip</button>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span id="quiz-score-badge" style="font-family: var(--font-mono); font-size: 0.84rem; font-weight: 800; color: #10b981; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); padding: 5px 10px; border-radius: 8px;">Score: 0 / 0</span>
+                <button id="btn-quiz-hint" class="btn btn-outline btn-sm" style="font-size: 0.76rem; padding: 5px 10px; font-weight: 700; color: #fbbf24; border-color: rgba(251, 191, 36, 0.4);">💡 Clinical Clue</button>
+                <button id="btn-quiz-skip" class="btn btn-secondary btn-sm" style="font-size: 0.76rem; padding: 5px 10px;">Skip →</button>
               </div>
             </div>
           </div>
@@ -510,119 +758,189 @@ export function initAnatomyAtlasLab(containerId) {
           </div>
         </div>
 
-        <!-- RIGHT: Telemetry Inspector / Histology Controller -->
+        <!-- RIGHT: Encyclopedia Index Browser, Monograph Dossier & Histology Controller -->
         <div style="display: flex; flex-direction: column; gap: 14px;">
 
-          <!-- SEARCH & QUICK LOCATOR -->
-          <div class="sim-telemetry-card" style="border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 18px; background: var(--surface-bg); display: flex; flex-direction: column; gap: 8px;">
-            <div style="font-size: 0.75rem; font-weight: 700; color: #38bdf8; text-transform: uppercase;">
-              🔍 Anatomical Index Search
+          <!-- ENCYCLOPEDIA INDEX BROWSER & SYSTEM TAXONOMY DIRECTORY -->
+          <div class="sim-telemetry-card" style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 14px 16px; background: var(--bg-card, rgba(15, 23, 42, 0.85)); display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+              <div style="font-size: 0.76rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">
+                📖 Encyclopedia Structure Index &amp; Search
+              </div>
+              <span id="anatomy-index-count" style="font-family: var(--font-mono); font-size: 0.72rem; color: #94a3b8; background: rgba(15, 23, 42, 0.7); padding: 2px 8px; border-radius: 999px; border: 1px solid rgba(148, 163, 184, 0.2);">
+                ${ANATOMICAL_STRUCTURES.length} Entries
+              </span>
             </div>
-            <div style="position: relative;">
-              <input id="input-anatomy-search" type="text" placeholder="Search bone, organ, vessel, nerve (English or Latin)..." class="search-input" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(15, 23, 42, 0.8); color: var(--text-color); font-size: 0.88rem;">
+
+            <!-- Search Input -->
+            <div style="position: relative; display: flex; align-items: center;">
+              <input id="input-anatomy-search" type="text" placeholder="Search English, Latin (TA2), pathology, nerve, artery..." class="search-input" style="width: 100%; padding: 8px 32px 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(15, 23, 42, 0.85); color: var(--text-main, #f8fafc); font-size: 0.84rem;">
+              <button id="btn-clear-anatomy-search" title="Clear Search" style="display: none; position: absolute; right: 8px; background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 0.9rem; padding: 2px 4px;">✕</button>
+            </div>
+
+            <!-- 11-System Filter Pills -->
+            <div id="encyclopedia-system-pills" style="display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin;">
+              <button class="atlas-sys-pill is-active" data-sys="all">All Systems</button>
+              ${Object.keys(ANATOMICAL_SYSTEMS).map(sysKey => {
+                const sys = ANATOMICAL_SYSTEMS[sysKey];
+                return `<button class="atlas-sys-pill" data-sys="${sysKey}">${sys.icon} ${sys.name.replace(" System", "")}</button>`;
+              }).join("")}
+            </div>
+
+            <!-- Scrollable Encyclopedia Directory List -->
+            <div id="encyclopedia-index-list" style="max-height: 175px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding-right: 4px; scrollbar-width: thin;">
+              <!-- Populated dynamically by renderEncyclopediaIndex() -->
             </div>
           </div>
 
-          <!-- MACRO MODE: SELECTED STRUCTURE DOSSIER -->
-          <div id="panel-macro-inspector" class="sim-telemetry-card" style="border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; background: var(--surface-bg); display: flex; flex-direction: column; gap: 14px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+          <!-- MACRO MODE: SELECTED STRUCTURE ENCYCLOPEDIA MONOGRAPH DOSSIER -->
+          <div id="panel-macro-inspector" class="sim-telemetry-card" style="border: 1px solid rgba(56, 189, 248, 0.28); border-radius: var(--radius-lg); padding: 18px 20px; background: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(9, 13, 24, 0.96) 100%); display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;">
               <div>
-                <span id="inspect-system-badge" style="font-size: 0.72rem; padding: 3px 10px; border-radius: 9999px; font-weight: 700; text-transform: uppercase; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">
-                  Cardiovascular System
-                </span>
-                <h3 id="inspect-title" style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; margin: 8px 0 2px 0; color: var(--text-color);">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <span id="inspect-system-badge" style="font-size: 0.7rem; padding: 3px 10px; border-radius: 9999px; font-weight: 800; text-transform: uppercase; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);">
+                    Cardiovascular System
+                  </span>
+                  <span id="inspect-ta2-badge" style="font-family: var(--font-mono); font-size: 0.68rem; padding: 2px 8px; border-radius: 6px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 700;">
+                    TA2-3891
+                  </span>
+                  <span id="inspect-layer-badge" style="font-size: 0.68rem; padding: 2px 8px; border-radius: 6px; background: rgba(148, 163, 184, 0.12); color: #cbd5e1; font-weight: 600;">
+                    Stratum 4 • Thorax
+                  </span>
+                </div>
+                <h3 id="inspect-title" style="font-family: var(--font-heading); font-size: 1.32rem; font-weight: 800; margin: 7px 0 2px 0; color: var(--text-main, #f8fafc);">
                   Four-Chambered Heart
                 </h3>
-                <div id="inspect-latin" style="font-size: 0.9rem; color: #38bdf8; font-style: italic; font-weight: 600;">
+                <div id="inspect-latin" style="font-size: 0.92rem; color: #38bdf8; font-style: italic; font-weight: 600; font-family: 'STIX Two Text', Georgia, serif;">
                   Cor / Myocardium
                 </div>
               </div>
-              <button id="btn-focus-structure" class="btn btn-primary btn-sm" style="font-size: 0.78rem; padding: 6px 12px; font-weight: 700; white-space: nowrap;">
+              <button id="btn-focus-structure" class="btn btn-primary btn-sm" style="font-size: 0.76rem; padding: 6px 12px; font-weight: 700; white-space: nowrap;">
                 🎯 Focus 4K
               </button>
             </div>
 
-            <!-- Morphology Description -->
-            <p id="inspect-desc" style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin: 0;">
-              Conical hollow muscular organ nestled in middle mediastinum, tilted 2/3 to the left of sternal midline. Enclosed in fibroserous pericardial sac with pericardial cavity containing serous lubricating fluid.
-            </p>
-
-            <!-- Physiological Function -->
-            <div class="sim-sub-card" style="border-radius: 10px; padding: 12px 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color);">
-              <div style="font-size: 0.75rem; font-weight: 700; color: #10b981; text-transform: uppercase; margin-bottom: 4px;">
-                ⚡ Physiological Mechanism &amp; Role
+            <!-- Quantitative Biometrics & Embryological / Histological Taxonomic Strip -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: rgba(2, 6, 23, 0.55); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 9px; padding: 9px 12px; font-size: 0.75rem;">
+              <div style="grid-column: 1 / -1; border-bottom: 1px solid rgba(148, 163, 184, 0.12); padding-bottom: 6px;">
+                <span style="color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 0.66rem;">📏 Quantitative Reference Norms: </span>
+                <span id="inspect-biometrics" style="color: #fbbf24; font-family: var(--font-mono); font-weight: 700;">Mass: 250–350 g • CO: 5.0 L/min • SV: 70 mL • EF: 55–70%</span>
               </div>
-              <div id="inspect-function" style="font-size: 0.84rem; color: var(--text-color); line-height: 1.5;">
+              <div>
+                <div style="color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">🧬 Embryological Origin</div>
+                <div id="inspect-germ-layer" style="color: #e2e8f0; font-weight: 600; margin-top: 1px;">Splanchnic Lateral Plate Mesoderm</div>
+              </div>
+              <div>
+                <div style="color: #94a3b8; font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">🔬 Micro-Histology</div>
+                <div id="inspect-histology-type" style="color: #c084fc; font-weight: 600; margin-top: 1px;">Branched striated cardiomyocytes (Cx43)</div>
+              </div>
+            </div>
+
+            <!-- I. Gross Morphology & Topographical Relations -->
+            <div style="background: rgba(15, 23, 42, 0.45); border-left: 3px solid #38bdf8; border-radius: 6px; padding: 8px 12px;">
+              <div style="font-size: 0.7rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 3px;">
+                I. Gross Morphology &amp; Topographical Relations
+              </div>
+              <p id="inspect-desc" style="font-size: 0.84rem; color: var(--text-muted); line-height: 1.55; margin: 0;">
+                Conical hollow muscular organ nestled in middle mediastinum, tilted 2/3 to the left of sternal midline. Enclosed in fibroserous pericardial sac with pericardial cavity containing serous lubricating fluid.
+              </p>
+            </div>
+
+            <!-- II. Physiological Mechanism -->
+            <div class="sim-sub-card" style="border-radius: 9px; padding: 10px 12px; background: rgba(16, 185, 129, 0.06); border: 1px solid rgba(16, 185, 129, 0.24);">
+              <div style="font-size: 0.72rem; font-weight: 800; color: #10b981; text-transform: uppercase; margin-bottom: 3px;">
+                ⚡ II. Physiological Mechanism &amp; Homeostasis
+              </div>
+              <div id="inspect-function" style="font-size: 0.82rem; color: var(--text-main, #f8fafc); line-height: 1.5;">
                 Pumps 70 mL stroke volume per beat at 60-100 bpm (~7,200 L daily). Right heart pumps deoxygenated blood to pulmonary circuit; left heart pumps oxygenated blood through aorta into high-resistance systemic circuit.
               </div>
             </div>
 
-            <!-- Vascularization & Innervation Grid -->
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <div class="sim-sub-card" style="border-radius: 8px; padding: 10px; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color);">
-                <div style="font-size: 0.72rem; font-weight: 700; color: #ef4444; text-transform: uppercase; margin-bottom: 2px;">
-                  🩸 Blood Supply
+            <!-- III. Vascularization & Innervation Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div class="sim-sub-card" style="border-radius: 8px; padding: 9px 10px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(239, 68, 68, 0.22);">
+                <div style="font-size: 0.7rem; font-weight: 800; color: #ef4444; text-transform: uppercase; margin-bottom: 2px;">
+                  🩸 Arterial &amp; Venous Supply
                 </div>
-                <div id="inspect-vascular" style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+                <div id="inspect-vascular" style="font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;">
                   Coronary arteries (LAD, LCx, RCA); drains via great cardiac vein into coronary sinus.
                 </div>
               </div>
-              <div class="sim-sub-card" style="border-radius: 8px; padding: 10px; background: rgba(15, 23, 42, 0.4); border: 1px solid var(--border-color);">
-                <div style="font-size: 0.72rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 2px;">
-                  ⚡ Innervation
+              <div class="sim-sub-card" style="border-radius: 8px; padding: 9px 10px; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(56, 189, 248, 0.22);">
+                <div style="font-size: 0.7rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; margin-bottom: 2px;">
+                  ⚡ Neural Innervation
                 </div>
-                <div id="inspect-nerve" style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4;">
+                <div id="inspect-nerve" style="font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;">
                   Cardiac plexus: T1-T4 sympathetic accelerator vs Vagus nerve (CN X) parasympathetic brake.
                 </div>
               </div>
             </div>
 
-            <!-- Clinical Pathology Correlation -->
-            <div class="sim-sub-card" style="border-radius: 10px; padding: 12px 14px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.25);">
-              <div style="font-size: 0.75rem; font-weight: 700; color: #f87171; text-transform: uppercase; margin-bottom: 4px;">
-                🩺 Clinical Pathology Correlation
+            <!-- IV. Clinical Pathology & Diagnostic Imaging Pearl -->
+            <div class="sim-sub-card" style="border-radius: 9px; padding: 10px 12px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.26); display: flex; flex-direction: column; gap: 6px;">
+              <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #f87171; text-transform: uppercase; margin-bottom: 2px;">
+                  🩺 IV. Clinical Pathology &amp; Pathophysiology
+                </div>
+                <div id="inspect-pathology" style="font-size: 0.8rem; color: #fca5a5; line-height: 1.45;">
+                  Coronary artery disease, acute myocardial infarction (STEMI/NSTEMI with cardiac troponin release), congestive heart failure.
+                </div>
               </div>
-              <div id="inspect-pathology" style="font-size: 0.82rem; color: #fca5a5; line-height: 1.45;">
-                Coronary artery disease, acute myocardial infarction (STEMI/NSTEMI with cardiac troponin release), congestive heart failure.
+              <div style="border-top: 1px solid rgba(239, 68, 68, 0.2); padding-top: 5px; font-size: 0.74rem; color: #fde68a;">
+                <strong>🔍 Diagnostic &amp; Imaging Pearl:</strong> <span id="inspect-diagnostic-pearl">12-Lead ECG, Transthoracic Echocardiography (TTE) &amp; high-sensitivity Troponin I/T.</span>
               </div>
             </div>
 
-            <!-- Interactive Stethoscope & Acoustic Bio-Telemetry Auscultator -->
+            <!-- Related Encyclopedia Entries Cross-Reference -->
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <div style="font-size: 0.68rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">
+                🔗 Related Regional &amp; Systemic Structures (Cross-Reference)
+              </div>
+              <div id="inspect-related-chips" style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Interactive Stethoscope & Microscopic Histology Action Bar -->
             <div id="inspect-interactive-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
-              <button id="btn-inspect-auscultate" class="btn btn-outline btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 0.78rem; padding: 8px 12px;">
+              <button id="btn-inspect-auscultate" class="btn btn-outline btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 0.76rem; padding: 8px 10px;">
                 <span id="btn-inspect-auscultate-icon">🫀</span>
                 <span id="btn-inspect-auscultate-label">Auscultate Cardiac Sounds (S1/S2)</span>
+              </button>
+              <button id="btn-inspect-open-histology" class="btn btn-secondary btn-sm" style="flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-weight: 700; font-size: 0.76rem; padding: 8px 10px; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                <span>🔬</span>
+                <span id="btn-inspect-open-histology-label">Launch Tissue Histology Sim</span>
               </button>
             </div>
           </div>
 
           <!-- HISTOLOGY SIMULATION CONTROLLER (Visible when in Histology Tab) -->
-          <div id="panel-histology-controller" class="sim-telemetry-card" style="display: none; border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; background: var(--surface-bg); flex-direction: column; gap: 14px;">
+          <div id="panel-histology-controller" class="sim-telemetry-card" style="display: none; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-lg); padding: 18px 20px; background: var(--bg-card, rgba(15, 23, 42, 0.85)); flex-direction: column; gap: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 0.75rem; font-weight: 700; color: #10b981; text-transform: uppercase;">
-                Microscopic Model Selector
+              <span style="font-size: 0.76rem; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">
+                🔬 Microscopic Histology &amp; Physiology Simulator
               </span>
-              <span class="slide-stain-badge" style="font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700;">
+              <span class="slide-stain-badge" id="histo-stain-badge" style="font-size: 0.7rem; padding: 2px 9px; border-radius: 9999px; background: rgba(16, 185, 129, 0.15); color: #10b981; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.35);">
                 60 FPS Real-Time
               </span>
             </div>
 
-            <select id="sel-histology-model" class="sim-select" style="padding: 8px 12px; border-radius: 8px; font-weight: 700; background: rgba(15, 23, 42, 0.8); color: var(--text-color); border: 1px solid var(--border-color); font-size: 0.9rem;">
-              <option value="cardiac_cycle">🫀 Cardiac Cycle &amp; ECG Conduction System</option>
-              <option value="nephron_countercurrent">🧪 Nephron &amp; Countercurrent Multiplier</option>
-              <option value="neuron_synapse">🧠 Neuron Action Potential &amp; Synapse</option>
-              <option value="alveolar_gas_exchange">🫁 Alveolar Blood-Air Diffusion Barrier</option>
-              <option value="osteon_haversian">💀 Compact Bone Osteon &amp; Haversian System</option>
-              <option value="sarcomere_sliding">💪 Sarcomere Sliding Filament Contraction</option>
+            <select id="sel-histology-model" class="sim-select" style="padding: 9px 12px; border-radius: 8px; font-weight: 700; background: rgba(15, 23, 42, 0.85); color: var(--text-main, #f8fafc); border: 1px solid rgba(56, 189, 248, 0.35); font-size: 0.88rem;">
+              <option value="cardiac_cycle">🫀 1. Cardiac Cycle, Wiggers Hemodynamics &amp; Lead II ECG</option>
+              <option value="nephron_countercurrent">🧪 2. Renal Nephron Countercurrent Multiplier &amp; ADH/AQP2</option>
+              <option value="neuron_synapse">🧠 3. Hodgkin-Huxley Action Potential &amp; SNARE Synapse</option>
+              <option value="alveolar_gas_exchange">🫁 4. Alveolar-Capillary 0.3 µm Gas Barrier &amp; Fick's Law</option>
+              <option value="osteon_haversian">💀 5. Compact Bone Osteon, Canaliculi &amp; Polarized Stress</option>
+              <option value="sarcomere_sliding">💪 6. Striated Sarcomere Cross-Bridge Cycle &amp; Length-Tension</option>
             </select>
 
             <!-- Dynamic Model Parameters & Sliders -->
-            <div id="histology-dynamic-controls" style="display: flex; flex-direction: column; gap: 12px;">
+            <div id="histology-dynamic-controls" style="display: flex; flex-direction: column; gap: 12px; background: rgba(15, 23, 42, 0.55); padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-color);">
               <!-- Injected dynamically based on selected model -->
             </div>
 
-            <!-- Quantitative Telemetry Table -->
-            <div id="histology-telemetry-table" style="background: rgba(15, 23, 42, 0.5); border-radius: 8px; padding: 12px; border: 1px solid var(--border-color); font-size: 0.8rem; display: flex; flex-direction: column; gap: 6px;">
+            <!-- Quantitative Telemetry & Equations Table -->
+            <div id="histology-telemetry-table" style="background: rgba(15, 23, 42, 0.5); border-radius: 10px; padding: 12px 14px; border: 1px solid var(--border-color); font-size: 0.8rem; display: flex; flex-direction: column; gap: 8px;">
               <!-- Key parameters injected dynamically -->
             </div>
           </div>
@@ -651,6 +969,7 @@ export function initAnatomyAtlasLab(containerId) {
   const btnImagingPhoto = document.getElementById("btn-imaging-photo");
   const btnImagingXray = document.getElementById("btn-imaging-xray");
   const btnImagingAngio = document.getElementById("btn-imaging-angio");
+  const btnCalloutMode = document.getElementById("btn-callout-mode");
   const selRegionJump = document.getElementById("sel-region-jump");
   const btnZoomIn = document.getElementById("btn-zoom-in");
   const btnZoomOut = document.getElementById("btn-zoom-out");
@@ -660,9 +979,14 @@ export function initAnatomyAtlasLab(containerId) {
   const canvasModeText = document.getElementById("canvas-mode-text");
   const quizPromptBanner = document.getElementById("quiz-prompt-banner");
   const quizTargetText = document.getElementById("quiz-target-text");
+  const quizFeedbackPill = document.getElementById("quiz-feedback-pill");
   const quizScoreBadge = document.getElementById("quiz-score-badge");
+  const btnQuizHint = document.getElementById("btn-quiz-hint");
   const btnQuizSkip = document.getElementById("btn-quiz-skip");
   const inputSearch = document.getElementById("input-anatomy-search");
+  const btnClearSearch = document.getElementById("btn-clear-anatomy-search");
+  const anatomyIndexCount = document.getElementById("anatomy-index-count");
+  const encyclopediaIndexList = document.getElementById("encyclopedia-index-list");
   const panelMacroInspector = document.getElementById("panel-macro-inspector");
   const panelHistologyController = document.getElementById("panel-histology-controller");
   const selHistologyModel = document.getElementById("sel-histology-model");
@@ -687,6 +1011,185 @@ export function initAnatomyAtlasLab(containerId) {
       score: `${score}/${total}`,
       accuracy: `${Math.round((score / total) * 100)}%`
     });
+  });
+
+  // Update 4-Card Top Encyclopedia Telemetry Ribbon
+  function updateTopTelemetryRibbon() {
+    const struct = selectedStructure || ANATOMICAL_STRUCTURES[0];
+    const sys = ANATOMICAL_SYSTEMS[struct?.system] || ANATOMICAL_SYSTEMS.circulatory;
+    const meta = getEncyclopediaMeta(struct);
+    const plateConf = ANATOMICAL_PLATES ? ANATOMICAL_PLATES[activePlate] : null;
+
+    const elSysName = document.getElementById("tele-sys-name");
+    const elSysLatin = document.getElementById("tele-sys-latin");
+    if (elSysName && sys) {
+      elSysName.innerText = `${sys.icon} ${sys.name}`;
+      elSysName.style.color = sys.color || "#38bdf8";
+    }
+    if (elSysLatin && sys) {
+      const stat = sys.cardiacOutput || sys.neuronCount || sys.alveoliCount || sys.filtrationRate || (sys.boneCount ? `${sys.boneCount} Bones` : (sys.muscleCount ? `${sys.muscleCount}+ Muscles` : "Homeostatic Network"));
+      elSysLatin.innerText = `${sys.latinName} • ${stat}`;
+    }
+
+    const elStructName = document.getElementById("tele-struct-name");
+    const elStructTa2 = document.getElementById("tele-struct-ta2");
+    if (elStructName && struct) elStructName.innerText = struct.name;
+    if (elStructTa2 && struct) elStructTa2.innerText = `${meta.ta2} • ${struct.latinName}`;
+
+    const elPlateName = document.getElementById("tele-plate-name");
+    const elZoomStat = document.getElementById("tele-zoom-stat");
+    if (elPlateName) {
+      elPlateName.innerText = plateConf ? `${plateConf.icon} ${plateConf.shortName || plateConf.name}` : "🧍 Full Body Matrix";
+    }
+    if (elZoomStat) {
+      const shaderLabel = imagingMode === "xray" ? "☢️ X-Ray" : (imagingMode === "angiogram" ? "⚡ Angiogram" : "📸 8K TrueColor");
+      const genderLabel = activeGender === "female" ? "♀️ Female" : "♂️ Male";
+      elZoomStat.innerText = `Zoom: ${zoom.toFixed(1)}× • ${shaderLabel} • ${genderLabel}`;
+    }
+
+    const elPhysioPrim = document.getElementById("tele-physio-primary");
+    const elPhysioSub = document.getElementById("tele-physio-sub");
+    if (elPhysioPrim && elPhysioSub) {
+      if (activeTab === "quiz") {
+        const pct = quizState.totalQuestions > 0 ? Math.round((quizState.score / quizState.totalQuestions) * 100) : 0;
+        elPhysioPrim.innerText = `Quiz: ${quizState.score}/${quizState.totalQuestions} (${pct}%)`;
+        elPhysioSub.innerText = `Current Streak: ${quizState.streak} • Target: ${quizState.targetStructure?.region || "All"}`;
+      } else {
+        const co = ((histoState.heartRate * 70) / 1000).toFixed(2);
+        const pao2 = Math.round(histoState.fio2 * 4.8);
+        const urineOsm = Math.round(100 + (histoState.adhLevel / 100) * 1100);
+        elPhysioPrim.innerText = `HR: ${histoState.heartRate} BPM • CO: ${co} L/min`;
+        elPhysioSub.innerText = `Urine: ${urineOsm} mOsm/L • PAO₂: ${pao2} mmHg`;
+      }
+    }
+  }
+
+  // Render Scrollable Encyclopedia Index Directory
+  function renderEncyclopediaIndex() {
+    if (!encyclopediaIndexList) return;
+    const q = (searchQuery || "").toLowerCase().trim();
+    const filtered = ANATOMICAL_STRUCTURES.filter(s => {
+      if (activeSystemFilter !== "all" && s.system !== activeSystemFilter) return false;
+      if (!q) return true;
+      const meta = getEncyclopediaMeta(s);
+      return (
+        s.name.toLowerCase().includes(q) ||
+        s.latinName.toLowerCase().includes(q) ||
+        s.system.toLowerCase().includes(q) ||
+        (s.region && s.region.toLowerCase().includes(q)) ||
+        (s.description && s.description.toLowerCase().includes(q)) ||
+        (s.pathology && s.pathology.toLowerCase().includes(q)) ||
+        meta.ta2.toLowerCase().includes(q)
+      );
+    });
+
+    if (anatomyIndexCount) {
+      anatomyIndexCount.innerText = `${filtered.length} / ${ANATOMICAL_STRUCTURES.length} Entries`;
+    }
+
+    if (filtered.length === 0) {
+      encyclopediaIndexList.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 14px; text-align: center; color: #94a3b8; font-size: 0.8rem;">
+          No anatomical structures match "<strong>${searchQuery.replace(/</g, "&lt;")}</strong>". Try clearing the filter.
+        </div>
+      `;
+      return;
+    }
+
+    encyclopediaIndexList.innerHTML = filtered.map(s => {
+      const sys = ANATOMICAL_SYSTEMS[s.system] || { color: "#38bdf8", icon: "🔬" };
+      const isAct = selectedStructure && selectedStructure.id === s.id;
+      const meta = getEncyclopediaMeta(s);
+      return `
+        <button class="atlas-encyclo-chip ${isAct ? 'is-active' : ''}" data-struct-id="${s.id}" title="${s.name} (${s.latinName}) — ${meta.ta2}">
+          <div style="min-width: 0; flex: 1;">
+            <div style="display: flex; align-items: center; gap: 5px;">
+              <span style="width: 7px; height: 7px; border-radius: 50%; background: ${sys.color}; flex-shrink: 0;"></span>
+              <span style="font-size: 0.77rem; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.name}</span>
+            </div>
+            <div style="font-size: 0.68rem; color: #94a3b8; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 12px;">
+              ${s.latinName}
+            </div>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 0.64rem; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 2px 5px; border-radius: 4px; flex-shrink: 0;">
+            ${meta.ta2.replace("TA2-", "")}
+          </span>
+        </button>
+      `;
+    }).join("");
+
+    encyclopediaIndexList.querySelectorAll(".atlas-encyclo-chip").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const st = ANATOMICAL_STRUCTURES.find(item => item.id === btn.dataset.structId);
+        if (!st) return;
+        SoundFX.playPop();
+        navigateToStructureEncyclopedia(st, 2.8);
+      });
+    });
+  }
+
+  // Navigate to any structure (switches plate/gender/view if needed, updates monograph & centers camera)
+  function navigateToStructureEncyclopedia(st, targetZoom = 2.8) {
+    if (!st) return;
+    if (st.gender && st.gender !== activeGender) {
+      activeGender = st.gender;
+      updateGenderButtons();
+    }
+    if (st.plate && st.plate !== activePlate) {
+      switchAnatomicalPlate(st.plate);
+    } else if (!st.plate && activePlate !== "full_anterior" && activePlate !== "full_posterior") {
+      switchAnatomicalPlate(st.view === "posterior" ? "full_posterior" : "full_anterior");
+    } else if (st.view && activeView !== st.view) {
+      activeView = st.view;
+      btnViewAnt?.classList.toggle("btn-primary", activeView === "anterior");
+      btnViewAnt?.classList.toggle("btn-secondary", activeView !== "anterior");
+      btnViewPost?.classList.toggle("btn-primary", activeView === "posterior");
+      btnViewPost?.classList.toggle("btn-secondary", activeView !== "posterior");
+      if (activePlate === "full_anterior" && activeView === "posterior") switchAnatomicalPlate("full_posterior");
+      if (activePlate === "full_posterior" && activeView === "anterior") switchAnatomicalPlate("full_anterior");
+    }
+    // Ensure its stratum is visible
+    if (getStructureOpacity(st) < 0.25) {
+      if (st.layer === 1) layerOpacities.skin = 0.85;
+      else if (st.layer === 2) layerOpacities.muscular = 0.9;
+      else if (st.layer === 3) layerOpacities.skeletal = 0.95;
+      else if (st.layer === 4) layerOpacities.visceral = 1.0;
+      else if (st.layer === 5) layerOpacities.circulatory = 1.0;
+      else if (st.layer === 6) layerOpacities.nervous = 0.95;
+      syncSliders();
+    }
+    updateInspectorCard(st);
+    focusCameraOnCoords(st.coords.x, st.coords.y, targetZoom);
+  }
+
+  // Bind System Filter Pills in Encyclopedia Index
+  container.querySelectorAll("#encyclopedia-system-pills .atlas-sys-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+      activeSystemFilter = pill.dataset.sys || "all";
+      SoundFX.playClick();
+      container.querySelectorAll("#encyclopedia-system-pills .atlas-sys-pill").forEach(p => {
+        p.classList.toggle("is-active", p.dataset.sys === activeSystemFilter);
+      });
+      renderEncyclopediaIndex();
+    });
+  });
+
+  // Callout Label Mode Toggle ('smart' -> 'all' -> 'pins')
+  btnCalloutMode?.addEventListener("click", () => {
+    SoundFX.playClick();
+    if (calloutMode === "smart") {
+      calloutMode = "all";
+      btnCalloutMode.innerText = "📖 Labels: All Atlas Callouts";
+      btnCalloutMode.style.background = "rgba(56, 189, 248, 0.2)";
+    } else if (calloutMode === "all") {
+      calloutMode = "pins";
+      btnCalloutMode.innerText = "🎯 Labels: Pins Only";
+      btnCalloutMode.style.background = "";
+    } else {
+      calloutMode = "smart";
+      btnCalloutMode.innerText = "📌 Labels: Smart";
+      btnCalloutMode.style.background = "";
+    }
   });
 
   // Layer Slider Listeners
@@ -808,17 +1311,19 @@ export function initAnatomyAtlasLab(containerId) {
     // Center of canvas is (width/2, height/2). In normalized 1000x1800 coordinate space:
     const canvasRect = canvas.getBoundingClientRect();
     const w = canvasRect.width || 600;
-    const h = canvasRect.height || 640;
+    const h = canvasRect.height || 660;
     const scale = (h / 1800) * zoom;
     panX = (w / 2) - (targetX * scale);
     panY = (h / 2) - (targetY * scale);
+    updateTopTelemetryRibbon();
   }
 
-  // Update Inspector Card
+  // Update Encyclopedia Monograph Card
   function updateInspectorCard(structure) {
     if (!structure) return;
     selectedStructure = structure;
     const sys = ANATOMICAL_SYSTEMS[structure.system] || { name: structure.system, color: "#38bdf8", badgeBg: "rgba(56, 189, 248, 0.15)", badgeBorder: "rgba(56, 189, 248, 0.3)" };
+    const meta = getEncyclopediaMeta(structure);
 
     const badge = document.getElementById("inspect-system-badge");
     if (badge) {
@@ -827,6 +1332,14 @@ export function initAnatomyAtlasLab(containerId) {
       badge.style.background = sys.badgeBg;
       badge.style.borderColor = sys.badgeBorder;
     }
+    const ta2Badge = document.getElementById("inspect-ta2-badge");
+    if (ta2Badge) ta2Badge.innerText = meta.ta2;
+    const layerBadge = document.getElementById("inspect-layer-badge");
+    if (layerBadge) {
+      const regLabel = (structure.region || "body").replace("_", " ").toUpperCase();
+      layerBadge.innerText = `Stratum ${structure.layer || 4} • ${regLabel}`;
+    }
+
     const title = document.getElementById("inspect-title");
     if (title) title.innerText = structure.name;
     const latin = document.getElementById("inspect-latin");
@@ -842,6 +1355,39 @@ export function initAnatomyAtlasLab(containerId) {
     const path = document.getElementById("inspect-pathology");
     if (path) path.innerText = structure.pathology;
 
+    const bioEl = document.getElementById("inspect-biometrics");
+    if (bioEl) bioEl.innerText = meta.biometrics;
+    const germEl = document.getElementById("inspect-germ-layer");
+    if (germEl) germEl.innerText = meta.germ;
+    const histoEl = document.getElementById("inspect-histology-type");
+    if (histoEl) histoEl.innerText = meta.histology;
+    const pearlEl = document.getElementById("inspect-diagnostic-pearl");
+    if (pearlEl) pearlEl.innerText = meta.pearl;
+
+    // Populate Related Anatomical Structures Cross-References
+    const relatedContainer = document.getElementById("inspect-related-chips");
+    if (relatedContainer) {
+      const related = ANATOMICAL_STRUCTURES.filter(s => s.id !== structure.id && (s.region === structure.region || s.system === structure.system)).slice(0, 5);
+      relatedContainer.innerHTML = related.map(r => {
+        const rSys = ANATOMICAL_SYSTEMS[r.system] || { color: "#38bdf8" };
+        return `
+          <button class="btn btn-secondary btn-sm btn-related-jump" data-rel-id="${r.id}" style="padding: 3px 9px; font-size: 0.72rem; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px; border-color: rgba(148, 163, 184, 0.25);">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: ${rSys.color};"></span>
+            <span>${r.name}</span>
+          </button>
+        `;
+      }).join("");
+      relatedContainer.querySelectorAll(".btn-related-jump").forEach(b => {
+        b.addEventListener("click", () => {
+          const target = ANATOMICAL_STRUCTURES.find(item => item.id === b.dataset.relId);
+          if (target) {
+            SoundFX.playPop();
+            navigateToStructureEncyclopedia(target, 2.8);
+          }
+        });
+      });
+    }
+
     const auscBtn = document.getElementById("btn-inspect-auscultate");
     const auscIcon = document.getElementById("btn-inspect-auscultate-icon");
     const auscLabel = document.getElementById("btn-inspect-auscultate-label");
@@ -854,12 +1400,21 @@ export function initAnatomyAtlasLab(containerId) {
         auscLabel.innerText = "Auscultate Vesicular Breath Sounds";
       } else if (structure.system === "nervous") {
         if (auscIcon) auscIcon.innerText = "⚡";
-        auscLabel.innerText = "Stimulate Bioelectric Action Potential";
+        auscLabel.innerText = "Trigger Bioelectric Action Potential";
       } else {
-        if (auscIcon) auscIcon.innerText = "🔬";
-        auscLabel.innerText = "Inspect Microscopic Histology Model";
+        if (auscIcon) auscIcon.innerText = "🎯";
+        auscLabel.innerText = "Zoom 3.5× on Anatomical Landmark";
       }
     }
+
+    const histoBtnLabel = document.getElementById("btn-inspect-open-histology-label");
+    if (histoBtnLabel) {
+      const m = HISTOLOGY_SIMULATION_MODELS[meta.histoModel];
+      histoBtnLabel.innerText = m ? `Sim: ${m.title.split("&")[0].trim()}` : "Launch Tissue Histology Sim";
+    }
+
+    renderEncyclopediaIndex();
+    updateTopTelemetryRibbon();
   }
 
   // Auscultate / Bio-telemetry action trigger
@@ -872,12 +1427,27 @@ export function initAnatomyAtlasLab(containerId) {
       playBreathSound();
     } else if (selectedStructure.system === "nervous") {
       SoundFX.playPop();
-    } else {
+      activeHistologyModel = "neuron_synapse";
+      if (selHistologyModel) selHistologyModel.value = "neuron_synapse";
+      histoState.actionPotentialStim = true;
+      histoState.apPhaseProgress = 0;
       switchTab("histology");
+    } else {
+      SoundFX.playPop();
+      focusCameraOnCoords(selectedStructure.coords.x, selectedStructure.coords.y, 3.5);
     }
   });
 
-  // Dedicated 11-Plate Anatomical Switcher
+  // Open corresponding Microscopic Histology Simulator directly from Monograph
+  document.getElementById("btn-inspect-open-histology")?.addEventListener("click", () => {
+    if (!selectedStructure) return;
+    const meta = getEncyclopediaMeta(selectedStructure);
+    activeHistologyModel = meta.histoModel || "cardiac_cycle";
+    if (selHistologyModel) selHistologyModel.value = activeHistologyModel;
+    switchTab("histology");
+  });
+
+  // Dedicated 13-Plate Anatomical Switcher
   function switchAnatomicalPlate(plateKey) {
     if (!ANATOMICAL_PLATES || !ANATOMICAL_PLATES[plateKey]) return;
     activePlate = plateKey;
@@ -974,6 +1544,7 @@ export function initAnatomyAtlasLab(containerId) {
     if (canvasModeText) {
       canvasModeText.innerText = `${p.name} • 8K UHD Medical Plate • Drag to Pan • Wheel/Pinch to Zoom`;
     }
+    updateTopTelemetryRibbon();
   }
 
   container.querySelectorAll(".btn-plate-select").forEach(b => {
@@ -982,9 +1553,11 @@ export function initAnatomyAtlasLab(containerId) {
     });
   });
 
-  // Search input filter
+  // Search input filter & clear button
   inputSearch?.addEventListener("input", (e) => {
     searchQuery = e.target.value.toLowerCase().trim();
+    if (btnClearSearch) btnClearSearch.style.display = searchQuery ? "block" : "none";
+    renderEncyclopediaIndex();
     if (!searchQuery) return;
     const match = ANATOMICAL_STRUCTURES.find(s => 
       s.name.toLowerCase().includes(searchQuery) ||
@@ -1007,6 +1580,13 @@ export function initAnatomyAtlasLab(containerId) {
     }
   });
 
+  btnClearSearch?.addEventListener("click", () => {
+    searchQuery = "";
+    if (inputSearch) inputSearch.value = "";
+    btnClearSearch.style.display = "none";
+    renderEncyclopediaIndex();
+  });
+
   // Tab Switching
   function switchTab(newTab) {
     activeTab = newTab;
@@ -1026,13 +1606,14 @@ export function initAnatomyAtlasLab(containerId) {
       const p = ANATOMICAL_PLATES ? ANATOMICAL_PLATES[activePlate] : null;
       canvasModeText.innerText = p ? `${p.name} • 8K UHD Medical Plate • Drag to Pan • Wheel/Pinch to Zoom` : "4K UHD Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom";
     } else if (activeTab === "histology") {
-      canvasModeText.innerText = "60 FPS Microscopic Simulation Workbench • Interactive Physiological Parameters";
+      canvasModeText.innerText = "60 FPS Microscopic Histology & Physiological Workbench • Live Quantitative Telemetry";
       renderHistologyControls();
     } else if (activeTab === "quiz") {
-      canvasModeText.innerText = "🎯 Pin Challenge Mode: Click the correct anatomical landmark!";
+      canvasModeText.innerText = "🎯 Topographical Pin Challenge: Tap the target anatomical landmark!";
       selectNewQuizTarget();
       updateQuizBanner();
     }
+    updateTopTelemetryRibbon();
     SoundFX.playClick();
   }
 
@@ -1050,6 +1631,7 @@ export function initAnatomyAtlasLab(containerId) {
     if (activePlate === "full_posterior") {
       switchAnatomicalPlate("full_anterior");
     }
+    updateTopTelemetryRibbon();
     SoundFX.playClick();
   });
   btnViewPost?.addEventListener("click", () => {
@@ -1059,6 +1641,7 @@ export function initAnatomyAtlasLab(containerId) {
     btnViewAnt.classList.remove("btn-primary");
     btnViewAnt.classList.add("btn-secondary");
     switchAnatomicalPlate("full_posterior");
+    updateTopTelemetryRibbon();
     SoundFX.playClick();
   });
 
@@ -1068,6 +1651,7 @@ export function initAnatomyAtlasLab(containerId) {
     btnGenderMale?.classList.toggle("btn-secondary", activeGender !== "male");
     btnGenderFemale?.classList.toggle("btn-primary", activeGender === "female");
     btnGenderFemale?.classList.toggle("btn-secondary", activeGender !== "female");
+    updateTopTelemetryRibbon();
   }
 
   btnGenderMale?.addEventListener("click", () => {
@@ -1096,6 +1680,7 @@ export function initAnatomyAtlasLab(containerId) {
     btnImagingXray?.classList.toggle("btn-secondary", imagingMode !== "xray");
     btnImagingAngio?.classList.toggle("btn-primary", imagingMode === "angiogram");
     btnImagingAngio?.classList.toggle("btn-secondary", imagingMode !== "angiogram");
+    updateTopTelemetryRibbon();
   }
 
   btnImagingPhoto?.addEventListener("click", () => {
@@ -1141,23 +1726,25 @@ export function initAnatomyAtlasLab(containerId) {
   btnZoomIn?.addEventListener("click", () => {
     const rect = canvas.getBoundingClientRect();
     const cx = (rect.width || 600) / 2;
-    const cy = (rect.height || 640) / 2;
+    const cy = (rect.height || 660) / 2;
     const newZoom = Math.min(12.0, zoom * 1.35);
     panX = cx - (cx - panX) * (newZoom / zoom);
     panY = cy - (cy - panY) * (newZoom / zoom);
     zoom = newZoom;
     if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
+    updateTopTelemetryRibbon();
     SoundFX.playClick();
   });
   btnZoomOut?.addEventListener("click", () => {
     const rect = canvas.getBoundingClientRect();
     const cx = (rect.width || 600) / 2;
-    const cy = (rect.height || 640) / 2;
+    const cy = (rect.height || 660) / 2;
     const newZoom = Math.max(0.4, zoom / 1.35);
     panX = cx - (cx - panX) * (newZoom / zoom);
     panY = cy - (cy - panY) * (newZoom / zoom);
     zoom = newZoom;
     if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
+    updateTopTelemetryRibbon();
     SoundFX.playClick();
   });
   btnZoomReset?.addEventListener("click", () => {
@@ -1166,7 +1753,17 @@ export function initAnatomyAtlasLab(containerId) {
     SoundFX.playClick();
   });
 
-  // Skip Quiz Question
+  // Quiz Hint & Skip
+  btnQuizHint?.addEventListener("click", () => {
+    if (!quizState.targetStructure) return;
+    SoundFX.playPop();
+    quizState.hintActive = true;
+    const sys = ANATOMICAL_SYSTEMS[quizState.targetStructure.system];
+    quizState.feedbackMsg = `💡 Clue: Located in the ${(quizState.targetStructure.region || "body").toUpperCase()} (${sys?.name || quizState.targetStructure.system}) — ${quizState.targetStructure.function.slice(0, 95)}...`;
+    quizState.feedbackType = "neutral";
+    updateQuizBanner();
+  });
+
   btnQuizSkip?.addEventListener("click", () => {
     quizState.totalQuestions++;
     quizState.streak = 0;
@@ -1177,16 +1774,25 @@ export function initAnatomyAtlasLab(containerId) {
   function updateQuizBanner() {
     if (!quizState.targetStructure) return;
     if (quizTargetText) {
+      const meta = getEncyclopediaMeta(quizState.targetStructure);
       quizTargetText.innerHTML = `
         <span style="color: #38bdf8;">${quizState.targetStructure.name}</span>
-        <span style="font-size: 0.85rem; color: var(--text-dim); font-style: italic;"> (${quizState.targetStructure.latinName})</span>
+        <span style="font-size: 0.85rem; color: var(--text-dim); font-style: italic;"> (${quizState.targetStructure.latinName} • ${meta.ta2})</span>
       `;
+    }
+    if (quizFeedbackPill) {
+      quizFeedbackPill.innerText = quizState.feedbackMsg || "";
+      quizFeedbackPill.style.color = quizState.feedbackType === "correct" ? "#34d399" : (quizState.feedbackType === "wrong" ? "#f87171" : "#cbd5e1");
     }
     if (quizScoreBadge) {
       const pct = quizState.totalQuestions > 0 ? Math.round((quizState.score / quizState.totalQuestions) * 100) : 0;
       quizScoreBadge.innerText = `Score: ${quizState.score} / ${quizState.totalQuestions} (${pct}%) • Streak: ${quizState.streak}`;
     }
+    updateTopTelemetryRibbon();
   }
+
+  // Initialize Encyclopedia Index and Initial Monograph on Mount
+  updateInspectorCard(selectedStructure);
 
   // Pointer & Touch Interaction State
   let touchStartDist = 0;
@@ -1413,11 +2019,16 @@ export function initAnatomyAtlasLab(containerId) {
           quizState.score++;
           quizState.streak++;
           SoundFX.playSuccess();
-          quizState.feedbackMsg = `✅ Correct! You successfully located ${clicked.name}.`;
-          selectNewQuizTarget();
+          quizState.feedbackType = "correct";
+          quizState.feedbackMsg = `✅ Correct! ${clicked.name} (${clicked.latinName})`;
+          updateInspectorCard(clicked);
+          setTimeout(() => {
+            selectNewQuizTarget();
+          }, 900);
         } else {
           quizState.streak = 0;
-          quizState.feedbackMsg = `❌ Incorrect. You clicked ${clicked.name}. Try locating ${quizState.targetStructure.name}.`;
+          quizState.feedbackType = "wrong";
+          quizState.feedbackMsg = `❌ Clicked ${clicked.name} — Locate ${quizState.targetStructure?.name || "target"}`;
         }
         updateQuizBanner();
       } else {
@@ -1452,6 +2063,7 @@ export function initAnatomyAtlasLab(containerId) {
     zoom = newZoom;
 
     if (zoomBadge) zoomBadge.innerText = `${zoom.toFixed(1)}×`;
+    updateTopTelemetryRibbon();
   }, { passive: false });
 
   // Histology Model Dropdown Change
@@ -1459,6 +2071,7 @@ export function initAnatomyAtlasLab(containerId) {
     activeHistologyModel = e.target.value;
     SoundFX.playClick();
     renderHistologyControls();
+    updateTopTelemetryRibbon();
   });
 
   function renderHistologyControls() {
@@ -1473,51 +2086,58 @@ export function initAnatomyAtlasLab(containerId) {
             <span id="disp-hr" style="color: #ef4444; font-family: var(--font-mono);">${histoState.heartRate} bpm</span>
           </div>
           <input id="rng-hr" type="range" min="40" max="180" value="${histoState.heartRate}" class="range-slider" style="width: 100%;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--text-dim);">
+          <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
             <span>Bradycardia (&lt;60)</span>
-            <span>Normal (60-100)</span>
+            <span>Sinus Norm (60-100)</span>
             <span>Tachycardia (&gt;100)</span>
           </div>
         </div>
-        <div style="display: flex; gap: 8px;">
-          <button id="btn-sound-heart" class="btn btn-secondary btn-sm" style="flex: 1; font-weight: 700; font-size: 0.78rem;">
-            🔊 Heart Valve Acoustics: Active
+        <div style="display: flex; gap: 8px; margin-top: 4px;">
+          <button id="btn-sound-heart" class="btn btn-secondary btn-sm" style="flex: 1; font-weight: 700; font-size: 0.76rem; border-color: rgba(239,68,68,0.4); color: #fca5a5;">
+            🔊 Trigger S1/S2 Valve Phonocardiogram
           </button>
         </div>
       `;
       document.getElementById("rng-hr")?.addEventListener("input", (e) => {
         histoState.heartRate = parseInt(e.target.value);
         document.getElementById("disp-hr").innerText = `${histoState.heartRate} bpm`;
+        updateTopTelemetryRibbon();
+      });
+      document.getElementById("btn-sound-heart")?.addEventListener("click", () => {
+        playHeartSound(histoState.heartRate);
       });
     } else if (activeHistologyModel === "nephron_countercurrent") {
       histologyDynamicControls.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 6px;">
           <div style="display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700;">
             <span>Antidiuretic Hormone (ADH / Vasopressin):</span>
-            <span id="disp-adh" style="color: #a78bfa; font-family: var(--font-mono);">${histoState.adhLevel}%</span>
+            <span id="disp-adh" style="color: #a78bfa; font-family: var(--font-mono);">${histoState.adhLevel}% (${Math.round(100 + (histoState.adhLevel / 100) * 1100)} mOsm/L)</span>
           </div>
           <input id="rng-adh" type="range" min="0" max="100" value="${histoState.adhLevel}" class="range-slider" style="width: 100%;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--text-dim);">
-            <span>Dilute Urine (Diabetes Insipidus)</span>
-            <span>Concentrated Urine (1200 mOsm)</span>
+          <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+            <span>Diabetes Insipidus (100 mOsm)</span>
+            <span>Euvolemic (600 mOsm)</span>
+            <span>Max Antidiuresis (1200 mOsm)</span>
           </div>
         </div>
       `;
       document.getElementById("rng-adh")?.addEventListener("input", (e) => {
         histoState.adhLevel = parseInt(e.target.value);
-        document.getElementById("disp-adh").innerText = `${histoState.adhLevel}%`;
+        const osm = Math.round(100 + (histoState.adhLevel / 100) * 1100);
+        document.getElementById("disp-adh").innerText = `${histoState.adhLevel}% (${osm} mOsm/L)`;
+        updateTopTelemetryRibbon();
       });
     } else if (activeHistologyModel === "sarcomere_sliding") {
       histologyDynamicControls.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 6px;">
           <div style="display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700;">
-            <span>Sarcomere Length (Z-Disc Distance):</span>
+            <span>Sarcomere Length (Z-Disc to Z-Disc):</span>
             <span id="disp-sarc" style="color: #f87171; font-family: var(--font-mono);">${histoState.sarcomereLength.toFixed(2)} µm</span>
           </div>
           <input id="rng-sarc" type="range" min="160" max="240" value="${Math.round(histoState.sarcomereLength * 100)}" class="range-slider" style="width: 100%;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--text-dim);">
-            <span>Fully Contracted (1.6 µm)</span>
-            <span>Resting Optimum (2.2 µm)</span>
+          <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+            <span>Contracted (1.6 µm)</span>
+            <span>Optimum Tension (2.0-2.2 µm)</span>
             <span>Overstretched (2.4 µm)</span>
           </div>
         </div>
@@ -1525,12 +2145,15 @@ export function initAnatomyAtlasLab(containerId) {
       document.getElementById("rng-sarc")?.addEventListener("input", (e) => {
         histoState.sarcomereLength = parseInt(e.target.value) / 100;
         document.getElementById("disp-sarc").innerText = `${histoState.sarcomereLength.toFixed(2)} µm`;
+        updateTopTelemetryRibbon();
       });
     } else if (activeHistologyModel === "neuron_synapse") {
       histologyDynamicControls.innerHTML = `
-        <button id="btn-fire-ap" class="btn btn-primary" style="padding: 10px 16px; font-weight: 800; font-size: 0.9rem; border-radius: 8px;">
-          ⚡ Fire Threshold Action Potential (+30 mV)
-        </button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button id="btn-fire-ap" class="btn btn-primary" style="flex: 1; padding: 10px 14px; font-weight: 800; font-size: 0.84rem; border-radius: 8px; background: linear-gradient(135deg, #eab308, #ca8a04); border: none; color: #090d16;">
+            ⚡ Depolarize Threshold (-55 mV → +30 mV Spike)
+          </button>
+        </div>
       `;
       document.getElementById("btn-fire-ap")?.addEventListener("click", () => {
         histoState.actionPotentialStim = true;
@@ -1541,42 +2164,84 @@ export function initAnatomyAtlasLab(containerId) {
       histologyDynamicControls.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 6px;">
           <div style="display: flex; justify-content: space-between; font-size: 0.82rem; font-weight: 700;">
-            <span>Fraction of Inspired O2 (FiO2):</span>
-            <span id="disp-fio2" style="color: #34d399; font-family: var(--font-mono);">${histoState.fio2}%</span>
+            <span>Inspired Oxygen Fraction (FiO₂):</span>
+            <span id="disp-fio2" style="color: #34d399; font-family: var(--font-mono);">${histoState.fio2}% (PAO₂ ≈ ${Math.round(histoState.fio2 * 7.13 - 50)} mmHg)</span>
           </div>
           <input id="rng-fio2" type="range" min="12" max="100" value="${histoState.fio2}" class="range-slider" style="width: 100%;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.74rem; color: var(--text-dim);">
-            <span>High Altitude (Hypoxia)</span>
-            <span>Room Air (21%)</span>
-            <span>Hyperoxia (100%)</span>
+          <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-dim);">
+            <span>Everest Hypoxia (12%)</span>
+            <span>Normoxic Room Air (21%)</span>
+            <span>Hyperbaric O₂ (100%)</span>
           </div>
         </div>
       `;
       document.getElementById("rng-fio2")?.addEventListener("input", (e) => {
         histoState.fio2 = parseInt(e.target.value);
-        document.getElementById("disp-fio2").innerText = `${histoState.fio2}%`;
+        const pao2 = Math.max(28, Math.round(histoState.fio2 * 7.13 - 50));
+        document.getElementById("disp-fio2").innerText = `${histoState.fio2}% (PAO₂ ≈ ${pao2} mmHg)`;
+        updateTopTelemetryRibbon();
       });
     } else {
       histologyDynamicControls.innerHTML = `
-        <div style="font-size: 0.82rem; color: var(--text-muted);">
-          Standard histological architecture viewer. Inspect concentric lamellae, osteocytes, and canalicular tunnels under polarized magnification.
+        <div style="font-size: 0.79rem; color: #cbd5e1; line-height: 1.45; background: rgba(56,189,248,0.08); padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(56,189,248,0.2);">
+          🔬 <strong>Polarized Birefringence & Canalicular Perfusion Mode:</strong> Live visualization of concentric hydroxyapatite lamellae, Haversian neurovascular perfusion, and osteocyte mechanotransduction across gap-junction canaliculi.
         </div>
       `;
     }
 
-    // Update telemetry table
-    let tableHtml = `<div style="font-weight: 700; color: #f1f5f9; margin-bottom: 4px;">${model.title}</div>`;
-    tableHtml += `<div style="font-size: 0.78rem; color: #94a3b8; line-height: 1.4; margin-bottom: 8px;">${model.summary}</div>`;
+    // Build Encyclopedia Monograph + Biophysical Formula + Reference Tables
+    let formulaRendered = "";
+    if (model.latexFormula) {
+      try {
+        formulaRendered = renderLatex(model.latexFormula);
+      } catch (_) {
+        formulaRendered = `<code>${model.latexFormula}</code>`;
+      }
+    }
+
+    let subTableHtml = "";
+    if (model.ecgPhases) {
+      subTableHtml = `<div style="margin-top: 8px; font-size: 0.7rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.06em;">Electrocardiographic Waveform Correlation</div>` +
+        model.ecgPhases.map(ph => `<div style="font-size: 0.73rem; padding: 4px 6px; border-left: 2px solid #ef4444; background: rgba(255,255,255,0.02); margin-top: 4px;"><strong style="color: #f8fafc;">${ph.wave} (${ph.duration}):</strong> <span style="color: #94a3b8;">${ph.event}</span></div>`).join("");
+    } else if (model.segments) {
+      subTableHtml = `<div style="margin-top: 8px; font-size: 0.7rem; font-weight: 800; color: #a78bfa; text-transform: uppercase; letter-spacing: 0.06em;">Tubular Segment Transport Profile</div>` +
+        model.segments.map(seg => `<div style="font-size: 0.73rem; padding: 4px 6px; border-left: 2px solid #a855f7; background: rgba(255,255,255,0.02); margin-top: 4px;"><strong style="color: #f8fafc;">${seg.region} (${seg.osmolarity}):</strong> <span style="color: #94a3b8;">${seg.transport}</span></div>`).join("");
+    } else if (model.actionPotentialPhases) {
+      subTableHtml = `<div style="margin-top: 8px; font-size: 0.7rem; font-weight: 800; color: #eab308; text-transform: uppercase; letter-spacing: 0.06em;">Hodgkin-Huxley Membrane Conductance Phases</div>` +
+        model.actionPotentialPhases.map(ap => `<div style="font-size: 0.73rem; padding: 4px 6px; border-left: 2px solid #eab308; background: rgba(255,255,255,0.02); margin-top: 4px;"><strong style="color: #f8fafc;">${ap.phase} (${ap.voltage}):</strong> <span style="color: #94a3b8;">${ap.mechanism}</span></div>`).join("");
+    } else if (model.histologyLayers) {
+      subTableHtml = `<div style="margin-top: 8px; font-size: 0.7rem; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 0.06em;">0.5 µm Blood-Air Barrier Ultrastructure</div>` +
+        model.histologyLayers.map((ly, idx) => `<div style="font-size: 0.73rem; padding: 3px 6px; border-left: 2px solid #10b981; background: rgba(255,255,255,0.02); margin-top: 3px;"><strong style="color: #34d399;">${idx + 1}.</strong> <span style="color: #cbd5e1;">${ly}</span></div>`).join("");
+    } else if (model.crossBridgeCycle) {
+      subTableHtml = `<div style="margin-top: 8px; font-size: 0.7rem; font-weight: 800; color: #f87171; text-transform: uppercase; letter-spacing: 0.06em;">Actomyosin Cross-Bridge ATPase Cycle</div>` +
+        model.crossBridgeCycle.map((st, idx) => `<div style="font-size: 0.73rem; padding: 3px 6px; border-left: 2px solid #f87171; background: rgba(255,255,255,0.02); margin-top: 3px;"><strong style="color: #fca5a5;">Step ${idx + 1}:</strong> <span style="color: #cbd5e1;">${st}</span></div>`).join("");
+    } else if (model.features) {
+      subTableHtml = `<div style="margin-top: 8px; font-size: 0.7rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.06em;">Cortical Bone Micro-Architecture</div>` +
+        model.features.map(ft => `<div style="font-size: 0.73rem; padding: 4px 6px; border-left: 2px solid #38bdf8; background: rgba(255,255,255,0.02); margin-top: 4px;"><strong style="color: #f8fafc;">${ft.structure}:</strong> <span style="color: #94a3b8;">${ft.detail}</span></div>`).join("");
+    }
+
+    let pathHtml = "";
+    if (model.pathologies && model.pathologies.length) {
+      pathHtml = `<div style="margin-top: 8px; font-size: 0.7rem; font-weight: 800; color: #f87171; text-transform: uppercase; letter-spacing: 0.06em;">Pathophysiological Derangements</div>` +
+        model.pathologies.map(pt => `<div style="font-size: 0.72rem; color: #fca5a5; padding: 3px 6px; background: rgba(239,68,68,0.08); border-radius: 5px; margin-top: 3px;">⚠️ ${pt}</div>`).join("");
+    }
+
+    let tableHtml = `<div style="font-weight: 800; color: #f1f5f9; font-size: 0.88rem; margin-bottom: 4px;">${model.title}</div>`;
+    tableHtml += `<div style="font-size: 0.76rem; color: #94a3b8; line-height: 1.45; margin-bottom: 8px;">${model.summary}</div>`;
+    if (formulaRendered) {
+      tableHtml += `<div style="background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.25); padding: 6px 10px; border-radius: 8px; margin-bottom: 8px; text-align: center; color: #e0f2fe; font-size: 0.8rem; overflow-x: auto;">${formulaRendered}</div>`;
+    }
     tableHtml += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">`;
     model.keyParameters.forEach(p => {
       tableHtml += `
-        <div style="background: rgba(0,0,0,0.3); padding: 6px 8px; border-radius: 6px;">
-          <div style="color: var(--text-dim); font-size: 0.72rem;">${p.name}</div>
-          <div style="color: #38bdf8; font-family: var(--font-mono); font-weight: 700;">${p.value}</div>
+        <div style="background: rgba(0,0,0,0.35); padding: 6px 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+          <div style="color: var(--text-dim); font-size: 0.68rem;">${p.name}</div>
+          <div style="color: #38bdf8; font-family: var(--font-mono); font-weight: 700; font-size: 0.75rem;">${p.value}</div>
         </div>
       `;
     });
     tableHtml += `</div>`;
+    tableHtml += subTableHtml + pathHtml;
     histologyTelemetryTable.innerHTML = tableHtml;
   }
 
@@ -3491,7 +4156,7 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.restore();
   }
 
-  // Draw Interactive Pins
+  // Draw Interactive Pins & Netter-Style Encyclopedia Leader-Line Callouts
   function drawAnatomicalPins(targetCtx, renderScale = 1.0, view = "anterior", interactive = true) {
     targetCtx.save();
     targetCtx.scale(renderScale, renderScale);
@@ -3499,14 +4164,53 @@ export function initAnatomyAtlasLab(containerId) {
     const now = performance.now();
     const pulseScale = 1.0 + 0.18 * Math.sin(now * 0.005);
 
-    const visible = getVisibleStructures(activePlate, view);
+    const visible = getVisibleStructures(activePlate, view).filter(s => getStructureOpacity(s) >= 0.08);
+
+    // Precompute non-overlapping bilateral margin slots when calloutMode === "all" or 4K export (!interactive)
+    const showAllLeaderCallouts = (calloutMode === "all" && activeTab !== "quiz") || !interactive;
+    const leftSideList = [];
+    const rightSideList = [];
+    if (showAllLeaderCallouts) {
+      visible.forEach(s => {
+        if (s.coords.x <= 500) leftSideList.push(s);
+        else rightSideList.push(s);
+      });
+      leftSideList.sort((a, b) => a.coords.y - b.coords.y);
+      rightSideList.sort((a, b) => a.coords.y - b.coords.y);
+    }
+
+    const slotMap = new Map();
+    const distributeSlots = (list, isLeft) => {
+      if (!list.length) return;
+      const minY = Math.max(60, list[0].coords.y - 40);
+      const maxY = Math.min(1730, list[list.length - 1].coords.y + 40);
+      const minGap = 40;
+      let prevY = minY - minGap;
+      list.forEach((s, idx) => {
+        const idealY = Math.max(minY, Math.min(maxY, s.coords.y));
+        const slotY = Math.max(idealY, prevY + minGap);
+        prevY = slotY;
+        slotMap.set(s.id, {
+          isLeft,
+          anchorX: isLeft ? 125 : 875,
+          anchorY: Math.min(1745, slotY),
+          elbowX: isLeft ? Math.min(s.coords.x - 18, 220) : Math.max(s.coords.x + 18, 780)
+        });
+      });
+    };
+
+    if (showAllLeaderCallouts) {
+      distributeSlots(leftSideList, true);
+      distributeSlots(rightSideList, false);
+    }
+
     visible.forEach(s => {
       const structAlpha = getStructureOpacity(s);
-      if (structAlpha < 0.08) return; // Layer is peeled/dissected away!
-
       const isSelected = selectedStructure && selectedStructure.id === s.id;
       const isHovered = hoveredStructure && hoveredStructure.id === s.id;
+      const isQuizHintTarget = activeTab === "quiz" && quizState.hintActive && quizState.targetStructure && quizState.targetStructure.id === s.id;
       const sys = ANATOMICAL_SYSTEMS[s.system] || { color: "#38bdf8" };
+      const meta = getEncyclopediaMeta(s);
 
       const px = s.coords.x;
       const py = s.coords.y;
@@ -3514,36 +4218,112 @@ export function initAnatomyAtlasLab(containerId) {
       targetCtx.save();
       targetCtx.globalAlpha = Math.min(1.0, structAlpha);
 
+      // Quiz Clinical Clue Radar Beacon
+      if (isQuizHintTarget) {
+        const hintRadius = 28 + 12 * Math.sin(now * 0.008);
+        targetCtx.beginPath();
+        targetCtx.arc(px, py, hintRadius, 0, Math.PI * 2);
+        targetCtx.strokeStyle = "rgba(250, 204, 21, 0.85)";
+        targetCtx.lineWidth = 2.5;
+        targetCtx.setLineDash([5, 4]);
+        targetCtx.stroke();
+        targetCtx.setLineDash([]);
+      }
+
       // Pulsing outer beacon ring
       targetCtx.beginPath();
-      targetCtx.arc(px, py, (isSelected ? 16 : (isHovered ? 12 : 8)) * pulseScale, 0, Math.PI * 2);
-      targetCtx.fillStyle = isSelected ? "rgba(56, 189, 248, 0.4)" : (isHovered ? "rgba(16, 185, 129, 0.4)" : sys.color + "33");
+      targetCtx.arc(px, py, (isSelected ? 16 : (isHovered ? 12 : 7.5)) * pulseScale, 0, Math.PI * 2);
+      targetCtx.fillStyle = isSelected
+        ? "rgba(56, 189, 248, 0.42)"
+        : (isHovered ? "rgba(16, 185, 129, 0.42)" : sys.color + "33");
       targetCtx.fill();
 
       // Solid pin center
       targetCtx.beginPath();
-      targetCtx.arc(px, py, isSelected ? 8 : (isHovered ? 6 : 4.5), 0, Math.PI * 2);
+      targetCtx.arc(px, py, isSelected ? 7.5 : (isHovered ? 6 : 4.2), 0, Math.PI * 2);
       targetCtx.fillStyle = isSelected ? "#38bdf8" : (isHovered ? "#10b981" : sys.color);
       targetCtx.strokeStyle = "#ffffff";
       targetCtx.lineWidth = 1.5;
       targetCtx.fill();
       targetCtx.stroke();
 
-      // Label when hovered or selected or at high zoom
-      if (isSelected || isHovered || zoom >= 2.8) {
-        targetCtx.font = "bold 13px -apple-system, sans-serif";
-        const label = s.name;
-        const textWidth = targetCtx.measureText(label).width;
+      // Determine label display mode
+      if (showAllLeaderCallouts && slotMap.has(s.id)) {
+        const slot = slotMap.get(s.id);
+        // Draw precision leader line from pin -> elbow -> margin anchor
+        targetCtx.beginPath();
+        targetCtx.moveTo(px, py);
+        targetCtx.lineTo(slot.elbowX, slot.anchorY);
+        targetCtx.lineTo(slot.anchorX, slot.anchorY);
+        targetCtx.strokeStyle = isSelected ? "#38bdf8" : (isHovered ? "#10b981" : sys.color + "aa");
+        targetCtx.lineWidth = isSelected || isHovered ? 2.0 : 1.15;
+        targetCtx.stroke();
 
-        targetCtx.fillStyle = "rgba(15, 23, 42, 0.9)";
-        targetCtx.strokeStyle = isSelected ? "#38bdf8" : "rgba(255,255,255,0.2)";
-        targetCtx.lineWidth = 1;
-        targetCtx.roundRect(px + 12, py - 14, textWidth + 16, 26, 6);
+        // Small terminal dot at margin
+        targetCtx.beginPath();
+        targetCtx.arc(slot.anchorX, slot.anchorY, 2.5, 0, Math.PI * 2);
+        targetCtx.fillStyle = isSelected ? "#38bdf8" : sys.color;
+        targetCtx.fill();
+
+        // Callout pill box
+        targetCtx.font = "bold 11.5px -apple-system, BlinkMacSystemFont, sans-serif";
+        const titleStr = s.name;
+        const w1 = targetCtx.measureText(titleStr).width;
+        targetCtx.font = "italic 9.5px Georgia, serif";
+        const subStr = `${s.latinName} [${meta.ta2Code}]`;
+        const w2 = targetCtx.measureText(subStr).width;
+        const boxW = Math.max(w1, w2) + 16;
+        const boxH = 29;
+        const boxX = slot.isLeft ? (slot.anchorX - boxW - 6) : (slot.anchorX + 6);
+        const boxY = slot.anchorY - boxH / 2;
+
+        targetCtx.fillStyle = isSelected ? "rgba(15, 23, 42, 0.96)" : "rgba(9, 13, 22, 0.88)";
+        targetCtx.strokeStyle = isSelected ? "#38bdf8" : (isHovered ? "#10b981" : sys.color + "66");
+        targetCtx.lineWidth = isSelected ? 1.6 : 1.0;
+        targetCtx.beginPath();
+        targetCtx.roundRect(boxX, boxY, boxW, boxH, 5);
         targetCtx.fill();
         targetCtx.stroke();
 
+        targetCtx.textAlign = slot.isLeft ? "right" : "left";
+        const textAnchorX = slot.isLeft ? (boxX + boxW - 8) : (boxX + 8);
+        targetCtx.font = "bold 11.5px -apple-system, BlinkMacSystemFont, sans-serif";
+        targetCtx.fillStyle = isSelected ? "#38bdf8" : "#f8fafc";
+        targetCtx.fillText(titleStr, textAnchorX, boxY + 12.5);
+
+        targetCtx.font = "italic 9.5px Georgia, serif";
+        targetCtx.fillStyle = "#94a3b8";
+        targetCtx.fillText(subStr, textAnchorX, boxY + 24);
+        targetCtx.textAlign = "left";
+      } else if (
+        activeTab !== "quiz" &&
+        (isSelected || isHovered || (calloutMode === "smart" && zoom >= 2.6))
+      ) {
+        // Floating smart callout card with English + Latin + TA2
+        targetCtx.font = "bold 12.5px -apple-system, sans-serif";
+        const label = s.name;
+        const w1 = targetCtx.measureText(label).width;
+        targetCtx.font = "italic 10.5px Georgia, serif";
+        const latinSub = `${s.latinName} • ${meta.ta2Code}`;
+        const w2 = targetCtx.measureText(latinSub).width;
+        const boxW = Math.max(w1, w2) + 20;
+        const boxH = 34;
+
+        targetCtx.fillStyle = "rgba(9, 13, 22, 0.94)";
+        targetCtx.strokeStyle = isSelected ? "#38bdf8" : (isHovered ? "#10b981" : "rgba(255,255,255,0.25)");
+        targetCtx.lineWidth = 1.3;
+        targetCtx.beginPath();
+        targetCtx.roundRect(px + 13, py - 18, boxW, boxH, 7);
+        targetCtx.fill();
+        targetCtx.stroke();
+
+        targetCtx.font = "bold 12.5px -apple-system, sans-serif";
         targetCtx.fillStyle = isSelected ? "#38bdf8" : "#ffffff";
-        targetCtx.fillText(label, px + 20, py + 4);
+        targetCtx.fillText(label, px + 22, py - 3);
+
+        targetCtx.font = "italic 10.5px Georgia, serif";
+        targetCtx.fillStyle = "#94a3b8";
+        targetCtx.fillText(latinSub, px + 22, py + 11);
       }
 
       targetCtx.restore();
@@ -4419,275 +5199,1131 @@ export function initAnatomyAtlasLab(containerId) {
   // 2. NEPHRON COUNTERCURRENT MULTIPLIER RENDERER
   function renderNephronSimulation(targetCtx, width, height, dt) {
     simTime += dt;
-    const nephronX = width * 0.18;
-    const nephronY = height * 0.12;
+    const padX = Math.max(24, width * 0.04);
+    const topY = 24;
+    const stageW = width * 0.62;
+    const stageH = height - 52;
 
-    targetCtx.fillStyle = "#ffffff";
-    targetCtx.font = "bold 15px 'JetBrains Mono', monospace";
-    targetCtx.fillText("RENAL CORTICOMEDULLARY OSMOLARITY GRADIENT (300 -> 1200 mOsm/L)", nephronX, nephronY);
+    const adhFrac = (histoState.adhLevel || 50) / 100;
+    const finalUrineOsm = Math.round(100 + adhFrac * 1100);
+    const urineFlowRate = (12.0 - adhFrac * 11.2).toFixed(1); // mL/min (Diabetes insipidus ~12 mL/min vs Antidiuresis ~0.8 mL/min)
+    const freeWaterClearance = (urineFlowRate * (1 - finalUrineOsm / 300)).toFixed(2);
 
-    // Draw Corticomedullary Gradient Background
-    const grad = targetCtx.createLinearGradient(0, nephronY + 30, 0, height - 60);
-    grad.addColorStop(0, "rgba(56, 189, 248, 0.1)");
-    grad.addColorStop(0.3, "rgba(168, 85, 247, 0.2)");
-    grad.addColorStop(1, "rgba(239, 68, 68, 0.35)");
+    // Header Title
+    targetCtx.fillStyle = "#f8fafc";
+    targetCtx.font = "bold 14px 'JetBrains Mono', monospace";
+    targetCtx.fillText("JUXTAMEDULLARY NEPHRON & COUNTERCURRENT MULTIPLIER", padX, topY);
+    targetCtx.fillStyle = "#a78bfa";
+    targetCtx.font = "11.5px -apple-system, sans-serif";
+    targetCtx.fillText(`GFR = 125 mL/min • Medullary Tip = 1200 mOsm/L • ADH = ${histoState.adhLevel}% → Final Urine = ${finalUrineOsm} mOsm/L`, padX, topY + 18);
+
+    // Corticomedullary Osmotic Gradient Strata Backdrop
+    const zoneTop = topY + 32;
+    const zoneH = stageH - 28;
+    const grad = targetCtx.createLinearGradient(0, zoneTop, 0, zoneTop + zoneH);
+    grad.addColorStop(0, "rgba(56, 189, 248, 0.12)");
+    grad.addColorStop(0.28, "rgba(129, 140, 248, 0.16)");
+    grad.addColorStop(0.65, "rgba(168, 85, 247, 0.22)");
+    grad.addColorStop(1, "rgba(239, 68, 68, 0.34)");
     targetCtx.fillStyle = grad;
-    targetCtx.roundRect(nephronX, nephronY + 25, width * 0.65, height - 120, 12);
+    targetCtx.strokeStyle = "rgba(148, 163, 184, 0.25)";
+    targetCtx.lineWidth = 1.5;
+    targetCtx.beginPath();
+    targetCtx.roundRect(padX, zoneTop, stageW, zoneH, 12);
     targetCtx.fill();
+    targetCtx.stroke();
 
-    // Osmolarity labels on left
-    targetCtx.fillStyle = "#38bdf8";
-    targetCtx.font = "12px 'JetBrains Mono', monospace";
-    targetCtx.fillText("Cortex: 300 mOsm/L", nephronX + 16, nephronY + 60);
-    targetCtx.fillStyle = "#c084fc";
-    targetCtx.fillText("Outer Medulla: 600 mOsm/L", nephronX + 16, nephronY + 200);
-    targetCtx.fillStyle = "#f87171";
-    targetCtx.fillText("Inner Medullary Tip: 1200 mOsm/L", nephronX + 16, nephronY + 340);
+    // Horizontal stratum dividers (Cortex / Outer Medulla / Inner Medulla)
+    const strata = [
+      { yFrac: 0.26, label: "RENAL CORTEX (300 mOsm/L)", color: "#38bdf8" },
+      { yFrac: 0.60, label: "OUTER MEDULLA (600 mOsm/L)", color: "#c084fc" },
+      { yFrac: 0.94, label: "INNER MEDULLARY PAPILLA (1200 mOsm/L)", color: "#f87171" }
+    ];
+    strata.forEach((st, i) => {
+      const sy = zoneTop + zoneH * st.yFrac;
+      if (i < 2) {
+        targetCtx.save();
+        targetCtx.setLineDash([6, 6]);
+        targetCtx.strokeStyle = "rgba(255,255,255,0.16)";
+        targetCtx.beginPath();
+        targetCtx.moveTo(padX + 10, sy);
+        targetCtx.lineTo(padX + stageW - 10, sy);
+        targetCtx.stroke();
+        targetCtx.restore();
+      }
+      targetCtx.fillStyle = st.color;
+      targetCtx.font = "bold 10.5px 'JetBrains Mono', monospace";
+      targetCtx.fillText(st.label, padX + 12, sy - 8);
+    });
 
-    // Bowman's Capsule & Hairpin Loop of Henle
-    targetCtx.strokeStyle = "#fef08a";
-    targetCtx.lineWidth = 12;
+    // Coordinates for Nephron Tubule Segments
+    const glomX = padX + stageW * 0.18;
+    const glomY = zoneTop + zoneH * 0.14;
+    const descX = padX + stageW * 0.38;
+    const ascX = padX + stageW * 0.58;
+    const cdX = padX + stageW * 0.82;
+    const loopTopY = zoneTop + zoneH * 0.16;
+    const loopBotY = zoneTop + zoneH * 0.84;
+    const loopR = (ascX - descX) / 2;
+
+    // 1. Glomerular Capillary Tuft & Afferent/Efferent Arterioles
+    targetCtx.strokeStyle = "#ef4444";
+    targetCtx.lineWidth = 5;
+    targetCtx.beginPath();
+    targetCtx.moveTo(glomX - 42, glomY - 12);
+    targetCtx.lineTo(glomX - 12, glomY - 4);
+    targetCtx.stroke();
+    targetCtx.lineWidth = 3.5;
+    targetCtx.beginPath();
+    targetCtx.moveTo(glomX - 12, glomY + 8);
+    targetCtx.lineTo(glomX - 42, glomY + 18);
+    targetCtx.stroke();
+
+    // Glomerular capillary loops
+    targetCtx.fillStyle = "rgba(239, 68, 68, 0.45)";
+    targetCtx.strokeStyle = "#f87171";
+    targetCtx.lineWidth = 2;
+    targetCtx.beginPath();
+    targetCtx.arc(glomX, glomY, 16, 0, Math.PI * 2);
+    targetCtx.fill();
+    targetCtx.stroke();
+
+    // Bowman's Capsule
+    targetCtx.strokeStyle = "#fde047";
+    targetCtx.lineWidth = 3.5;
+    targetCtx.beginPath();
+    targetCtx.arc(glomX, glomY, 24, -0.75 * Math.PI, 0.75 * Math.PI);
+    targetCtx.stroke();
+
+    // 2. Nephron Tubular Lumen Path
+    targetCtx.save();
+    targetCtx.strokeStyle = "rgba(254, 240, 138, 0.28)";
+    targetCtx.lineWidth = 18;
     targetCtx.lineCap = "round";
     targetCtx.lineJoin = "round";
     targetCtx.beginPath();
-    // Bowman capsule
-    targetCtx.arc(nephronX + 220, nephronY + 80, 24, 0, Math.PI * 2);
-    // PCT
-    targetCtx.moveTo(nephronX + 244, nephronY + 80);
-    targetCtx.lineTo(nephronX + 300, nephronY + 110);
-    // Descending limb (Thin)
-    targetCtx.lineTo(nephronX + 300, nephronY + 360);
-    // Hairpin bend
-    targetCtx.arc(nephronX + 330, nephronY + 360, 30, Math.PI, 0, true);
-    // Ascending limb (Thick)
-    targetCtx.lineTo(nephronX + 360, nephronY + 110);
-    // DCT
-    targetCtx.lineTo(nephronX + 420, nephronY + 80);
-    // Collecting duct
-    targetCtx.lineTo(nephronX + 420, nephronY + 380);
+    targetCtx.moveTo(glomX + 22, glomY);
+    targetCtx.quadraticCurveTo((glomX + descX) * 0.5, glomY - 22, descX, loopTopY);
+    targetCtx.lineTo(descX, loopBotY);
+    targetCtx.arc((descX + ascX) * 0.5, loopBotY, loopR, Math.PI, 0, true);
+    targetCtx.lineTo(ascX, loopTopY);
+    targetCtx.quadraticCurveTo((ascX + cdX) * 0.5, glomY - 22, cdX, loopTopY);
+    targetCtx.lineTo(cdX, zoneTop + zoneH - 12);
     targetCtx.stroke();
 
-    // Water reabsorption arrows (H2O escaping descending limb & collecting duct)
-    const arrowOffset = (simTime * 40) % 20;
-    targetCtx.fillStyle = "#38bdf8";
-    targetCtx.font = "bold 13px sans-serif";
-    for (let y = nephronY + 140; y < nephronY + 340; y += 45) {
-      targetCtx.fillText("💧 H₂O →", nephronX + 225, y + arrowOffset);
+    // Tubular Wall Border
+    targetCtx.strokeStyle = "#fef08a";
+    targetCtx.lineWidth = 2.5;
+    targetCtx.stroke();
+    targetCtx.restore();
+
+    // Thick Ascending Limb highlight (Impermeable to H2O, NKCC2 active transport)
+    targetCtx.save();
+    targetCtx.strokeStyle = "#fb923c";
+    targetCtx.lineWidth = 6;
+    targetCtx.beginPath();
+    targetCtx.moveTo(ascX, loopBotY - 10);
+    targetCtx.lineTo(ascX, loopTopY + 25);
+    targetCtx.stroke();
+    targetCtx.restore();
+
+    // Animated Filtrate Solute Particles along the Nephron Path
+    const numParticles = 18;
+    for (let i = 0; i < numParticles; i++) {
+      const p = ((simTime * 0.14) + i / numParticles) % 1.0;
+      let px = glomX;
+      let py = glomY;
+      let pColor = "#38bdf8";
+      if (p < 0.15) {
+        const t = p / 0.15;
+        px = glomX + 22 + (descX - glomX - 22) * t;
+        py = glomY + (loopTopY - glomY) * t;
+        pColor = "#38bdf8"; // 300 mOsm
+      } else if (p < 0.42) {
+        const t = (p - 0.15) / 0.27;
+        px = descX;
+        py = loopTopY + (loopBotY - loopTopY) * t;
+        pColor = t > 0.6 ? "#ef4444" : "#c084fc"; // Concentrating to 1200 mOsm
+      } else if (p < 0.52) {
+        const t = (p - 0.42) / 0.10;
+        const ang = Math.PI - t * Math.PI;
+        px = (descX + ascX) * 0.5 + loopR * Math.cos(ang);
+        py = loopBotY + loopR * Math.sin(ang);
+        pColor = "#ef4444"; // 1200 mOsm hairpin tip
+      } else if (p < 0.78) {
+        const t = (p - 0.52) / 0.26;
+        px = ascX;
+        py = loopBotY - (loopBotY - loopTopY) * t;
+        pColor = t > 0.6 ? "#38bdf8" : "#fbbf24"; // Diluting to 100 mOsm
+      } else {
+        const t = (p - 0.78) / 0.22;
+        px = cdX;
+        py = loopTopY + (zoneTop + zoneH - 18 - loopTopY) * t;
+        pColor = adhFrac > 0.6 ? "#f87171" : (adhFrac > 0.25 ? "#fbbf24" : "#38bdf8");
+      }
+      targetCtx.beginPath();
+      targetCtx.arc(px, py, 4.2, 0, Math.PI * 2);
+      targetCtx.fillStyle = pColor;
+      targetCtx.fill();
     }
 
-    // Active solute transport out of ascending limb (NaCl via NKCC2)
+    // Water efflux arrows from Thin Descending Limb (AQP1 constitutive)
+    const shift = (simTime * 28) % 18;
+    targetCtx.fillStyle = "#38bdf8";
+    targetCtx.font = "bold 11px 'JetBrains Mono', monospace";
+    for (let y = loopTopY + 55; y < loopBotY - 25; y += 52) {
+      targetCtx.fillText("← H₂O (AQP1)", descX - 92, y + shift * 0.3);
+    }
+
+    // Active NaCl efflux from Thick Ascending Limb (NKCC2 symporter)
     targetCtx.fillStyle = "#fbbf24";
-    for (let y = nephronY + 160; y < nephronY + 340; y += 45) {
-      targetCtx.fillText("← Na⁺/K⁺/2Cl⁻", nephronX + 375, y - arrowOffset);
+    for (let y = loopTopY + 60; y < loopBotY - 30; y += 52) {
+      targetCtx.fillText("Na⁺/K⁺/2Cl⁻ →", ascX + 14, y - shift * 0.3);
+    }
+
+    // Collecting Duct AQP2 Water Reabsorption (modulated by ADH slider)
+    const aqpAlpha = Math.max(0.18, adhFrac);
+    targetCtx.save();
+    targetCtx.globalAlpha = aqpAlpha;
+    targetCtx.fillStyle = "#38bdf8";
+    for (let y = loopTopY + 65; y < loopBotY; y += 50) {
+      targetCtx.fillText(`H₂O (AQP2: ${histoState.adhLevel}%) →`, cdX + 14, y);
+    }
+    targetCtx.restore();
+
+    // Segment Osmolarity Callout Pills on Nephron
+    const drawOsmBadge = (x, y, text, borderCol) => {
+      targetCtx.save();
+      targetCtx.font = "bold 10px 'JetBrains Mono', monospace";
+      const tw = targetCtx.measureText(text).width + 10;
+      targetCtx.fillStyle = "rgba(9, 13, 22, 0.9)";
+      targetCtx.strokeStyle = borderCol;
+      targetCtx.lineWidth = 1.2;
+      targetCtx.beginPath();
+      targetCtx.roundRect(x - tw / 2, y - 9, tw, 18, 4);
+      targetCtx.fill();
+      targetCtx.stroke();
+      targetCtx.fillStyle = "#f8fafc";
+      targetCtx.fillText(text, x - tw / 2 + 5, y + 3.5);
+      targetCtx.restore();
+    };
+    drawOsmBadge(glomX, glomY - 34, "PCT: 300 mOsm", "#38bdf8");
+    drawOsmBadge((descX + ascX) * 0.5, loopBotY + loopR + 16, "Tip: 1200 mOsm", "#ef4444");
+    drawOsmBadge(ascX + 15, loopTopY - 14, "DCT: 100 mOsm", "#fbbf24");
+    drawOsmBadge(cdX, zoneTop + zoneH - 8, `Urine: ${finalUrineOsm} mOsm`, "#a855f7");
+
+    // Right-Side Renal Clearance & Telemetry Card
+    const cardX = padX + stageW + 18;
+    const cardW = width - cardX - padX;
+    if (cardW > 140) {
+      targetCtx.fillStyle = "rgba(15, 23, 42, 0.88)";
+      targetCtx.strokeStyle = "rgba(168, 85, 247, 0.35)";
+      targetCtx.lineWidth = 1.5;
+      targetCtx.beginPath();
+      targetCtx.roundRect(cardX, zoneTop, cardW, zoneH, 12);
+      targetCtx.fill();
+      targetCtx.stroke();
+
+      targetCtx.fillStyle = "#c084fc";
+      targetCtx.font = "bold 11.5px 'JetBrains Mono', monospace";
+      targetCtx.fillText("RENAL CLEARANCE TELEMETRY", cardX + 14, zoneTop + 24);
+
+      const metrics = [
+        { k: "Net Filtration Pressure", v: "10 mmHg (Starling)", c: "#38bdf8" },
+        { k: "Glomerular Filtration (GFR)", v: "125 mL/min (180 L/day)", c: "#34d399" },
+        { k: "PCT Iso-Osmotic Reabsorption", v: "67% Na⁺, H₂O, 100% Glu", c: "#fde047" },
+        { k: "TAL NKCC2 Pump Gradient", v: "200 mOsm Horizontal Δ", c: "#fb923c" },
+        { k: "ADH / AVP Receptor V2", v: `${histoState.adhLevel}% AQP2 Insertion`, c: "#a78bfa" },
+        { k: "Final Urine Osmolarity", v: `${finalUrineOsm} mOsm/L`, c: finalUrineOsm > 800 ? "#f87171" : "#38bdf8" },
+        { k: "Urine Flow Rate (V̇)", v: `${urineFlowRate} mL/min`, c: "#e2e8f0" },
+        { k: "Free Water Clearance (CH₂O)", v: `${freeWaterClearance} mL/min`, c: parseFloat(freeWaterClearance) < 0 ? "#f87171" : "#34d399" }
+      ];
+      metrics.forEach((m, idx) => {
+        const my = zoneTop + 48 + idx * 38;
+        if (my + 24 < zoneTop + zoneH) {
+          targetCtx.fillStyle = "rgba(255,255,255,0.03)";
+          targetCtx.beginPath();
+          targetCtx.roundRect(cardX + 10, my - 12, cardW - 20, 32, 6);
+          targetCtx.fill();
+          targetCtx.fillStyle = "#94a3b8";
+          targetCtx.font = "10px -apple-system, sans-serif";
+          targetCtx.fillText(m.k, cardX + 16, my);
+          targetCtx.fillStyle = m.c;
+          targetCtx.font = "bold 11.5px 'JetBrains Mono', monospace";
+          targetCtx.fillText(m.v, cardX + 16, my + 14);
+        }
+      });
     }
   }
 
   // 3. NEURON SYNAPSE & ACTION POTENTIAL RENDERER
   function renderNeuronSynapseSimulation(targetCtx, width, height, dt) {
     simTime += dt;
-    const synX = width * 0.5;
-    const synY = height * 0.45;
+    if (histoState.actionPotentialStim) {
+      histoState.apPhaseProgress += dt * 0.85;
+      if (histoState.apPhaseProgress > 1.0) {
+        histoState.actionPotentialStim = false;
+        histoState.apPhaseProgress = 0;
+      }
+    }
 
-    // Presynaptic Axon Terminal Button
-    targetCtx.fillStyle = "rgba(56, 189, 248, 0.25)";
-    targetCtx.strokeStyle = "#38bdf8";
-    targetCtx.lineWidth = 4;
+    const p = histoState.actionPotentialStim ? histoState.apPhaseProgress : 0;
+    // Compute live membrane voltage Vm(p) using Hodgkin-Huxley waveform
+    let currentVm = -70;
+    let phaseLabel = "Phase 0: Resting Membrane Potential (-70 mV, Na⁺/K⁺ ATPase)";
+    if (histoState.actionPotentialStim) {
+      if (p < 0.15) {
+        currentVm = -70 + (p / 0.15) * 15;
+        phaseLabel = "Phase 1: Graded EPSP Approaches Threshold (-55 mV)";
+      } else if (p < 0.35) {
+        const t = (p - 0.15) / 0.20;
+        currentVm = -55 + t * 85;
+        phaseLabel = "Phase 2: Rapid NaV1.6 Depolarization Upstroke (+30 mV)";
+      } else if (p < 0.65) {
+        const t = (p - 0.35) / 0.30;
+        currentVm = 30 - t * 110;
+        phaseLabel = "Phase 3: Na⁺ Inactivation & KV Delayed Rectifier Efflux";
+      } else if (p < 0.85) {
+        const t = (p - 0.65) / 0.20;
+        currentVm = -80 + t * 10;
+        phaseLabel = "Phase 4: After-Hyperpolarization Undershoot (-80 mV)";
+      } else {
+        currentVm = -70;
+        phaseLabel = "SNARE Exocytosis Complete → AChE / EAAT Reuptake";
+      }
+    }
+
+    const leftX = Math.max(24, width * 0.04);
+    const synCenterX = width * 0.28;
+    const cleftY = height * 0.52;
+
+    // Header
+    targetCtx.fillStyle = "#f8fafc";
+    targetCtx.font = "bold 14px 'JetBrains Mono', monospace";
+    targetCtx.fillText("CHEMICAL SYNAPSE ULTRASTRUCTURE & HODGKIN-HUXLEY ACTION POTENTIAL", leftX, 24);
+    targetCtx.fillStyle = histoState.actionPotentialStim ? "#fde047" : "#94a3b8";
+    targetCtx.font = "11.5px -apple-system, sans-serif";
+    targetCtx.fillText(`${phaseLabel} • Instantaneous Vm = ${currentVm.toFixed(1)} mV`, leftX, 42);
+
+    // 1. Presynaptic Axon Terminal Bouton (Top Bulb)
+    const preGrad = targetCtx.createRadialGradient(synCenterX, cleftY - 105, 15, synCenterX, cleftY - 105, 115);
+    preGrad.addColorStop(0, "rgba(56, 189, 248, 0.32)");
+    preGrad.addColorStop(1, "rgba(15, 23, 42, 0.85)");
+    targetCtx.fillStyle = preGrad;
+    targetCtx.strokeStyle = histoState.actionPotentialStim && p < 0.45 ? "#fde047" : "#38bdf8";
+    targetCtx.lineWidth = 3.5;
     targetCtx.beginPath();
-    targetCtx.arc(synX, synY - 120, 110, 0, Math.PI);
-    targetCtx.fill(); targetCtx.stroke();
+    targetCtx.moveTo(synCenterX - 45, 62);
+    targetCtx.lineTo(synCenterX - 45, cleftY - 135);
+    targetCtx.bezierCurveTo(synCenterX - 115, cleftY - 95, synCenterX - 110, cleftY - 22, synCenterX - 65, cleftY - 18);
+    targetCtx.lineTo(synCenterX + 65, cleftY - 18);
+    targetCtx.bezierCurveTo(synCenterX + 110, cleftY - 22, synCenterX + 115, cleftY - 95, synCenterX + 45, cleftY - 135);
+    targetCtx.lineTo(synCenterX + 45, 62);
+    targetCtx.fill();
+    targetCtx.stroke();
 
-    // Postsynaptic Dendritic Spine
-    targetCtx.fillStyle = "rgba(168, 85, 247, 0.25)";
-    targetCtx.strokeStyle = "#a855f7";
+    targetCtx.fillStyle = "#38bdf8";
+    targetCtx.font = "bold 10.5px 'JetBrains Mono', monospace";
+    targetCtx.fillText("PRESYNAPTIC BOUTON", synCenterX - 60, 82);
+
+    // Presynaptic Mitochondrion (ATP synthesis for vesicle priming)
+    targetCtx.fillStyle = "rgba(249, 115, 22, 0.3)";
+    targetCtx.strokeStyle = "#fb923c";
+    targetCtx.lineWidth = 1.5;
     targetCtx.beginPath();
-    targetCtx.arc(synX, synY + 130, 110, Math.PI, 0);
-    targetCtx.fill(); targetCtx.stroke();
+    targetCtx.ellipse(synCenterX - 38, cleftY - 115, 24, 11, -0.3, 0, Math.PI * 2);
+    targetCtx.fill();
+    targetCtx.stroke();
+    targetCtx.fillStyle = "#fed7aa";
+    targetCtx.font = "9px 'JetBrains Mono', monospace";
+    targetCtx.fillText("ATP Mito", synCenterX - 58, cleftY - 112);
 
-    // Synaptic Cleft Label
-    targetCtx.fillStyle = "#e2e8f0";
-    targetCtx.font = "bold 13px 'JetBrains Mono', monospace";
-    targetCtx.fillText("SYNAPTIC CLEFT (20 nm)", synX - 90, synY);
-
-    // Neurotransmitter Vesicles
-    const vesicleCount = 14;
-    for (let i = 0; i < vesicleCount; i++) {
-      const angle = (i / vesicleCount) * Math.PI;
-      const r = 60 + 20 * Math.sin(simTime * 2 + i);
-      const vx = synX + r * Math.cos(angle);
-      const vy = synY - 120 + r * Math.sin(angle) * 0.5;
-
+    // Voltage-Gated CaV2.1 (P/Q-type) Channels on Presynaptic Membrane
+    const caOpen = histoState.actionPotentialStim && p >= 0.20 && p <= 0.65;
+    [-72, 72].forEach((dx, idx) => {
+      targetCtx.fillStyle = caOpen ? "#22c55e" : "#64748b";
       targetCtx.beginPath();
-      targetCtx.arc(vx, vy, 7, 0, Math.PI * 2);
-      targetCtx.fillStyle = "#fef08a";
+      targetCtx.roundRect(synCenterX + dx - 8, cleftY - 46, 16, 12, 3);
+      targetCtx.fill();
+      if (caOpen) {
+        targetCtx.fillStyle = "#4ade80";
+        targetCtx.font = "bold 10px 'JetBrains Mono', monospace";
+        targetCtx.fillText(idx === 0 ? "Ca²⁺ ➔" : "⬅ Ca²⁺", synCenterX + dx + (idx === 0 ? -46 : 12), cleftY - 36);
+      }
+    });
+
+    // Synaptic Vesicles (SNARE-complex docked & reserve pool)
+    const vesicleCount = 12;
+    for (let i = 0; i < vesicleCount; i++) {
+      const row = Math.floor(i / 4);
+      const col = (i % 4) - 1.5;
+      const vx = synCenterX + col * 28 + 3 * Math.sin(simTime * 2.5 + i);
+      const vy = cleftY - 78 + row * 22 + (caOpen && row === 2 ? (p - 0.2) * 32 : 0);
+      targetCtx.beginPath();
+      targetCtx.arc(vx, Math.min(cleftY - 22, vy), 8, 0, Math.PI * 2);
+      targetCtx.fillStyle = "rgba(254, 240, 138, 0.25)";
+      targetCtx.strokeStyle = "#fde047";
+      targetCtx.lineWidth = 1.8;
+      targetCtx.fill();
+      targetCtx.stroke();
+      // Neurotransmitter dots inside vesicle
+      targetCtx.fillStyle = "#fde047";
+      targetCtx.beginPath();
+      targetCtx.arc(vx - 2, Math.min(cleftY - 22, vy) - 1, 1.8, 0, Math.PI * 2);
+      targetCtx.arc(vx + 2, Math.min(cleftY - 22, vy) + 2, 1.8, 0, Math.PI * 2);
       targetCtx.fill();
     }
 
-    // Exocytosis into cleft if stimulated
-    if (histoState.actionPotentialStim) {
-      histoState.apPhaseProgress += dt * 1.5;
-      if (histoState.apPhaseProgress > 1.0) {
-        histoState.actionPotentialStim = false;
+    // 2. Synaptic Cleft (20 nm) & Released Neurotransmitter Quantum Diffusion
+    targetCtx.fillStyle = "#94a3b8";
+    targetCtx.font = "bold 10px 'JetBrains Mono', monospace";
+    targetCtx.fillText("20 nm SYNAPTIC CLEFT", synCenterX + 86, cleftY + 4);
+
+    if (histoState.actionPotentialStim && p >= 0.28) {
+      const cleftProgress = Math.min(1.0, (p - 0.28) / 0.45);
+      for (let q = 0; q < 22; q++) {
+        const qx = synCenterX - 55 + ((q * 19) % 110) + 6 * Math.sin(simTime * 6 + q);
+        const qy = (cleftY - 16) + cleftProgress * 34 * ((q % 3 + 1) / 3);
+        targetCtx.beginPath();
+        targetCtx.arc(qx, Math.min(cleftY + 18, qy), 2.8, 0, Math.PI * 2);
+        targetCtx.fillStyle = "#fde047";
+        targetCtx.fill();
       }
+    }
+
+    // 3. Postsynaptic Dendritic Spine & AMPA/NMDA Receptors
+    const postGrad = targetCtx.createRadialGradient(synCenterX, cleftY + 100, 15, synCenterX, cleftY + 100, 115);
+    postGrad.addColorStop(0, "rgba(168, 85, 247, 0.32)");
+    postGrad.addColorStop(1, "rgba(15, 23, 42, 0.88)");
+    targetCtx.fillStyle = postGrad;
+    targetCtx.strokeStyle = "#a855f7";
+    targetCtx.lineWidth = 3.5;
+    targetCtx.beginPath();
+    targetCtx.moveTo(synCenterX - 70, cleftY + 20);
+    targetCtx.lineTo(synCenterX + 70, cleftY + 20);
+    targetCtx.bezierCurveTo(synCenterX + 105, cleftY + 28, synCenterX + 95, cleftY + 110, synCenterX + 42, height - 28);
+    targetCtx.lineTo(synCenterX - 42, height - 28);
+    targetCtx.bezierCurveTo(synCenterX - 95, cleftY + 110, synCenterX - 105, cleftY + 28, synCenterX - 70, cleftY + 20);
+    targetCtx.fill();
+    targetCtx.stroke();
+
+    // Postsynaptic Density (PSD-95) & Ionotropic Receptors
+    const recOpen = histoState.actionPotentialStim && p >= 0.38 && p <= 0.85;
+    for (let r = -2; r <= 2; r++) {
+      const rx = synCenterX + r * 24;
+      targetCtx.fillStyle = recOpen ? "#38bdf8" : "#c084fc";
+      targetCtx.beginPath();
+      targetCtx.roundRect(rx - 6, cleftY + 14, 12, 14, 3);
+      targetCtx.fill();
+      if (recOpen) {
+        targetCtx.fillStyle = "#38bdf8";
+        targetCtx.font = "bold 9px 'JetBrains Mono', monospace";
+        targetCtx.fillText("↓Na⁺", rx - 10, cleftY + 42);
+      }
+    }
+    targetCtx.fillStyle = "#e9d5ff";
+    targetCtx.font = "bold 10.5px 'JetBrains Mono', monospace";
+    targetCtx.fillText("POSTSYNAPTIC DENDRITIC SPINE (PSD-95)", synCenterX - 105, height - 42);
+
+    // 4. Right Station: Real-Time Hodgkin-Huxley Action Potential Oscilloscope
+    const oscX = width * 0.54;
+    const oscY = 66;
+    const oscW = width - oscX - 24;
+    const oscH = height - 96;
+    if (oscW > 180) {
+      targetCtx.fillStyle = "rgba(9, 13, 22, 0.92)";
+      targetCtx.strokeStyle = "rgba(234, 179, 8, 0.4)";
+      targetCtx.lineWidth = 1.5;
+      targetCtx.beginPath();
+      targetCtx.roundRect(oscX, oscY, oscW, oscH, 12);
+      targetCtx.fill();
+      targetCtx.stroke();
+
+      targetCtx.fillStyle = "#fde047";
+      targetCtx.font = "bold 11.5px 'JetBrains Mono', monospace";
+      targetCtx.fillText("AXONAL MEMBRANE OSCILLOSCOPE Vm(t)", oscX + 14, oscY + 22);
+
+      // Voltage Axis Mapping (-90 mV to +40 mV)
+      const mapVtoY = (v) => {
+        const norm = (v - (-90)) / (40 - (-90));
+        return (oscY + oscH - 36) - norm * (oscH - 76);
+      };
+
+      // Reference voltage lines (+30, 0, -55 Threshold, -70 Resting, -80 E_K)
+      const vRefs = [
+        { v: 30, label: "+30 mV (Na⁺ Peak)", col: "rgba(239, 68, 68, 0.45)" },
+        { v: 0, label: "0 mV", col: "rgba(148, 163, 184, 0.25)" },
+        { v: -55, label: "-55 mV (Threshold)", col: "rgba(250, 204, 21, 0.5)" },
+        { v: -70, label: "-70 mV (Resting)", col: "rgba(56, 189, 248, 0.45)" }
+      ];
+      vRefs.forEach(ref => {
+        const ry = mapVtoY(ref.v);
+        targetCtx.save();
+        targetCtx.setLineDash([4, 4]);
+        targetCtx.strokeStyle = ref.col;
+        targetCtx.beginPath();
+        targetCtx.moveTo(oscX + 14, ry);
+        targetCtx.lineTo(oscX + oscW - 14, ry);
+        targetCtx.stroke();
+        targetCtx.restore();
+        targetCtx.fillStyle = "#94a3b8";
+        targetCtx.font = "9.5px 'JetBrains Mono', monospace";
+        targetCtx.fillText(ref.label, oscX + 18, ry - 4);
+      });
+
+      // Draw Hodgkin-Huxley Action Potential Waveform Curve
+      const plotL = oscX + 20;
+      const plotW = oscW - 36;
+      const evalHH = (u) => {
+        if (u < 0.15) return -70 + (u / 0.15) * 15;
+        if (u < 0.35) return -55 + Math.sin(((u - 0.15) / 0.20) * Math.PI * 0.5) * 85;
+        if (u < 0.65) return 30 - ((u - 0.35) / 0.30) * 110;
+        if (u < 0.85) return -80 + ((u - 0.65) / 0.20) * 10;
+        return -70;
+      };
+
+      targetCtx.strokeStyle = "#eab308";
+      targetCtx.lineWidth = 2.5;
+      targetCtx.beginPath();
+      for (let i = 0; i <= 100; i++) {
+        const u = i / 100;
+        const px = plotL + u * plotW;
+        const py = mapVtoY(evalHH(u));
+        if (i === 0) targetCtx.moveTo(px, py);
+        else targetCtx.lineTo(px, py);
+      }
+      targetCtx.stroke();
+
+      // Live Cursor on Oscilloscope
+      const cursorU = histoState.actionPotentialStim ? p : 0;
+      const cursorX = plotL + cursorU * plotW;
+      const cursorY = mapVtoY(evalHH(cursorU));
+      targetCtx.beginPath();
+      targetCtx.arc(cursorX, cursorY, 6, 0, Math.PI * 2);
       targetCtx.fillStyle = "#ef4444";
-      targetCtx.font = "bold 16px sans-serif";
-      targetCtx.fillText("⚡ +30 mV Action Potential Influx → Ca²⁺ Triggers SNARE Vesicle Fusion!", synX - 250, 40);
+      targetCtx.strokeStyle = "#ffffff";
+      targetCtx.lineWidth = 2;
+      targetCtx.fill();
+      targetCtx.stroke();
     }
   }
 
   // 4. ALVEOLAR-CAPILLARY GAS EXCHANGE RENDERER
   function renderAlveolarGasSimulation(targetCtx, width, height, dt) {
     simTime += dt;
-    const ax = width * 0.35;
-    const ay = height * 0.5;
+    const fio2Frac = (histoState.fio2 || 21) / 100;
+    // Alveolar Gas Equation: PAO2 = FiO2 * (760 - 47) - PaCO2 / 0.8
+    const pao2 = Math.max(28, Math.round(fio2Frac * 713 - 50));
+    const paco2 = 40;
+    // Hill Equation for O2-Hb saturation: SaO2 = 100 * (PO2^2.7) / (PO2^2.7 + 26.6^2.7)
+    const hillN = 2.7;
+    const p50 = 26.6;
+    const calcSaO2 = (po2) => (100 * Math.pow(po2, hillN)) / (Math.pow(po2, hillN) + Math.pow(p50, hillN));
+    const sao2 = calcSaO2(pao2);
 
-    // Alveolar Air Space
-    targetCtx.fillStyle = "rgba(52, 211, 153, 0.18)";
-    targetCtx.strokeStyle = "#10b981";
-    targetCtx.lineWidth = 5;
-    targetCtx.beginPath();
-    targetCtx.arc(ax, ay, 140, 0, Math.PI * 2);
-    targetCtx.fill(); targetCtx.stroke();
+    const leftX = Math.max(24, width * 0.04);
+    const alvX = width * 0.27;
+    const alvY = height * 0.48;
+    const alvR = Math.min(125, height * 0.28);
 
-    targetCtx.fillStyle = "#ffffff";
-    targetCtx.font = "bold 16px sans-serif";
-    targetCtx.fillText("ALVEOLUS AIR SPACE", ax - 80, ay - 20);
-    targetCtx.fillStyle = "#34d399";
+    // Header
+    targetCtx.fillStyle = "#f8fafc";
     targetCtx.font = "bold 14px 'JetBrains Mono', monospace";
-    const pao2 = Math.round(histoState.fio2 * 4.8);
-    targetCtx.fillText(`PAO₂ = ${pao2} mmHg • PACO₂ = 40 mmHg`, ax - 110, ay + 15);
+    targetCtx.fillText("ALVEOLAR-CAPILLARY 0.5 µm BLOOD-AIR BARRIER & FICK DIFFUSION", leftX, 24);
+    targetCtx.fillStyle = "#34d399";
+    targetCtx.font = "11.5px -apple-system, sans-serif";
+    targetCtx.fillText(`FiO₂ = ${histoState.fio2}% • Alveolar PAO₂ = ${pao2} mmHg • Arterial SaO₂ = ${sao2.toFixed(1)}% • P₅₀ = 26.6 mmHg`, leftX, 42);
 
-    // Surfactant sheen
-    targetCtx.strokeStyle = "rgba(254, 240, 138, 0.7)";
-    targetCtx.lineWidth = 3;
-    targetCtx.stroke();
-
-    // Pulmonary Capillary Arch
-    const capX = width * 0.72;
-    targetCtx.strokeStyle = "rgba(239, 68, 68, 0.5)";
-    targetCtx.lineWidth = 70;
+    // 1. Alveolar Sac Lumen
+    const alvGrad = targetCtx.createRadialGradient(alvX, alvY, 15, alvX, alvY, alvR);
+    alvGrad.addColorStop(0, "rgba(52, 211, 153, 0.25)");
+    alvGrad.addColorStop(1, "rgba(16, 185, 129, 0.08)");
+    targetCtx.fillStyle = alvGrad;
+    targetCtx.strokeStyle = "#10b981";
+    targetCtx.lineWidth = 4;
     targetCtx.beginPath();
-    targetCtx.arc(capX, ay, 120, 0, Math.PI * 2);
+    targetCtx.arc(alvX, alvY, alvR, 0, Math.PI * 2);
+    targetCtx.fill();
     targetCtx.stroke();
 
-    // Erythrocytes (RBCs) circulating in capillary
-    for (let r = 0; r < 8; r++) {
-      const angle = (simTime * 0.8 + (r / 8) * Math.PI * 2) % (Math.PI * 2);
-      const rx = capX + 120 * Math.cos(angle);
-      const ry = ay + 120 * Math.sin(angle);
+    // Inner Dipalmitoylphosphatidylcholine (DPPC) Surfactant Monolayer
+    targetCtx.save();
+    targetCtx.setLineDash([5, 4]);
+    targetCtx.strokeStyle = "#fde047";
+    targetCtx.lineWidth = 2;
+    targetCtx.beginPath();
+    targetCtx.arc(alvX, alvY, alvR - 6, 0, Math.PI * 2);
+    targetCtx.stroke();
+    targetCtx.restore();
 
-      targetCtx.fillStyle = angle < Math.PI ? "#ef4444" : "#3b82f6"; // Red (oxygenated) vs Blue (deoxygenated)
+    // Type II Cuboidal Surfactant-Secreting Pneumocyte Nodes on Alveolar Wall
+    [-2.2, 2.1].forEach(ang => {
+      const tx = alvX + alvR * Math.cos(ang);
+      const ty = alvY + alvR * Math.sin(ang);
+      targetCtx.fillStyle = "#f59e0b";
+      targetCtx.strokeStyle = "#fef08a";
+      targetCtx.lineWidth = 1.5;
       targetCtx.beginPath();
-      targetCtx.ellipse(rx, ry, 14, 9, angle, 0, Math.PI * 2);
+      targetCtx.roundRect(tx - 9, ty - 9, 18, 18, 4);
       targetCtx.fill();
+      targetCtx.stroke();
+    });
+
+    targetCtx.fillStyle = "#f8fafc";
+    targetCtx.font = "bold 13px 'JetBrains Mono', monospace";
+    targetCtx.fillText("ALVEOLAR LUMEN", alvX - 58, alvY - 18);
+    targetCtx.fillStyle = "#34d399";
+    targetCtx.font = "bold 11.5px 'JetBrains Mono', monospace";
+    targetCtx.fillText(`PAO₂ = ${pao2} mmHg`, alvX - 52, alvY + 2);
+    targetCtx.fillStyle = "#38bdf8";
+    targetCtx.fillText(`PACO₂ = ${paco2} mmHg`, alvX - 54, alvY + 20);
+    targetCtx.fillStyle = "#fde047";
+    targetCtx.font = "10px -apple-system, sans-serif";
+    targetCtx.fillText("DPPC Surfactant Layer (P = 2T/r)", alvX - 75, alvY + 40);
+
+    // 2. Adjacent Pulmonary Capillary Channel hugging Right Border of Alveolus
+    const capArcX = alvX + 34;
+    const capR = alvR + 28;
+    targetCtx.save();
+    targetCtx.strokeStyle = "rgba(239, 68, 68, 0.24)";
+    targetCtx.lineWidth = 34;
+    targetCtx.lineCap = "round";
+    targetCtx.beginPath();
+    targetCtx.arc(capArcX, alvY, capR, -0.42 * Math.PI, 0.42 * Math.PI);
+    targetCtx.stroke();
+    targetCtx.restore();
+
+    // Circulating Erythrocytes (Deoxygenated Venous Blue -> Oxygenated Arterial Crimson)
+    const numRBC = 7;
+    for (let i = 0; i < numRBC; i++) {
+      const u = ((simTime * 0.22) + i / numRBC) % 1.0;
+      const ang = -0.40 * Math.PI + u * (0.80 * Math.PI);
+      const rx = capArcX + capR * Math.cos(ang);
+      const ry = alvY + capR * Math.sin(ang);
+      const oxyRatio = Math.min(1, u * 1.35) * (sao2 / 100);
+      const rCol = Math.round(59 + oxyRatio * 180);
+      const gCol = Math.round(130 - oxyRatio * 68);
+      const bCol = Math.round(246 - oxyRatio * 182);
+
+      targetCtx.save();
+      targetCtx.translate(rx, ry);
+      targetCtx.rotate(ang + Math.PI / 2);
+      targetCtx.fillStyle = `rgb(${rCol}, ${gCol}, ${bCol})`;
+      targetCtx.strokeStyle = "rgba(255,255,255,0.45)";
+      targetCtx.lineWidth = 1.2;
+      targetCtx.beginPath();
+      targetCtx.ellipse(0, 0, 13, 8, 0, 0, Math.PI * 2);
+      targetCtx.fill();
+      targetCtx.stroke();
+      targetCtx.restore();
     }
 
-    // Diffusion arrows
+    // Animated O2 & CO2 Gas Diffusion Arrows across the 0.5 µm Blood-Air Barrier
+    const diffShift = (simTime * 24) % 16;
     targetCtx.fillStyle = "#34d399";
-    targetCtx.font = "bold 16px sans-serif";
-    targetCtx.fillText("O₂ Diffusion (64 mmHg Gradient) ➔", ax + 90, ay - 30);
+    targetCtx.font = "bold 11px 'JetBrains Mono', monospace";
+    targetCtx.fillText(`O₂ ➔ (ΔP = ${Math.max(0, pao2 - 40)} mmHg)`, alvX + alvR - 18 + diffShift * 0.4, alvY - 14);
     targetCtx.fillStyle = "#38bdf8";
-    targetCtx.fillText("⬅ CO₂ Diffusion (6 mmHg Gradient)", ax + 90, ay + 30);
+    targetCtx.fillText(`⬅ CO₂ (ΔP = 6 mmHg)`, alvX + alvR - 12 - diffShift * 0.4, alvY + 18);
+
+    // 3. Right Station: Live O2-Hemoglobin Dissociation Curve (Bohr/Hill Sigmoid)
+    const chartX = width * 0.56;
+    const chartY = 66;
+    const chartW = width - chartX - 24;
+    const chartH = height - 96;
+    if (chartW > 180) {
+      targetCtx.fillStyle = "rgba(9, 13, 22, 0.92)";
+      targetCtx.strokeStyle = "rgba(16, 185, 129, 0.38)";
+      targetCtx.lineWidth = 1.5;
+      targetCtx.beginPath();
+      targetCtx.roundRect(chartX, chartY, chartW, chartH, 12);
+      targetCtx.fill();
+      targetCtx.stroke();
+
+      targetCtx.fillStyle = "#34d399";
+      targetCtx.font = "bold 11.5px 'JetBrains Mono', monospace";
+      targetCtx.fillText("O₂–HEMOGLOBIN DISSOCIATION CURVE", chartX + 14, chartY + 22);
+
+      const gx = chartX + 38;
+      const gy = chartY + chartH - 34;
+      const gw = chartW - 56;
+      const gh = chartH - 76;
+
+      // Axes
+      targetCtx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+      targetCtx.lineWidth = 1.2;
+      targetCtx.beginPath();
+      targetCtx.moveTo(gx, gy - gh);
+      targetCtx.lineTo(gx, gy);
+      targetCtx.lineTo(gx + gw, gy);
+      targetCtx.stroke();
+
+      targetCtx.fillStyle = "#94a3b8";
+      targetCtx.font = "9.5px 'JetBrains Mono', monospace";
+      targetCtx.fillText("100%", gx - 30, gy - gh + 6);
+      targetCtx.fillText("50%", gx - 26, gy - gh * 0.5 + 4);
+      targetCtx.fillText("PO₂ (0 → 140 mmHg)", gx + gw * 0.25, gy + 18);
+
+      // Draw Hill Sigmoid Curve
+      targetCtx.strokeStyle = "#ef4444";
+      targetCtx.lineWidth = 2.5;
+      targetCtx.beginPath();
+      for (let po2 = 0; po2 <= 140; po2 += 2) {
+        const sat = calcSaO2(po2);
+        const px = gx + (po2 / 140) * gw;
+        const py = gy - (sat / 100) * gh;
+        if (po2 === 0) targetCtx.moveTo(px, py);
+        else targetCtx.lineTo(px, py);
+      }
+      targetCtx.stroke();
+
+      // Current Operating Point Marker
+      const clampedPO2 = Math.min(140, pao2);
+      const opX = gx + (clampedPO2 / 140) * gw;
+      const opY = gy - (sao2 / 100) * gh;
+      targetCtx.beginPath();
+      targetCtx.arc(opX, opY, 6, 0, Math.PI * 2);
+      targetCtx.fillStyle = "#34d399";
+      targetCtx.strokeStyle = "#ffffff";
+      targetCtx.lineWidth = 2;
+      targetCtx.fill();
+      targetCtx.stroke();
+
+      targetCtx.fillStyle = "#f8fafc";
+      targetCtx.font = "bold 10px 'JetBrains Mono', monospace";
+      targetCtx.fillText(`SaO₂ ${sao2.toFixed(1)}% @ ${pao2} mmHg`, Math.min(gx + gw - 125, opX + 8), Math.max(gy - gh + 16, opY - 8));
+    }
   }
 
   // 5. SARCOMERE SLIDING FILAMENT RENDERER
   function renderSarcomereSimulation(targetCtx, width, height, dt) {
-    const sarcWidth = (histoState.sarcomereLength / 2.2) * (width * 0.55);
-    const midX = width * 0.5;
-    const midY = height * 0.5;
+    simTime += dt;
+    const L = histoState.sarcomereLength || 2.2; // 1.60 to 2.40 µm
+    // Active isometric tension (Gordon-Huxley piecewise parabolic/trapezoidal curve)
+    const optDiff = Math.abs(L - 2.10);
+    const activeTensionPct = Math.max(15, Math.min(100, Math.round(100 - Math.pow(optDiff / 0.55, 2) * 75)));
 
-    targetCtx.fillStyle = "#ffffff";
-    targetCtx.font = "bold 16px 'JetBrains Mono', monospace";
-    targetCtx.fillText(`SARCOMERE CONTRACTILE UNIT: Length = ${histoState.sarcomereLength.toFixed(2)} µm`, midX - 220, midY - 140);
+    const leftX = Math.max(24, width * 0.04);
+    const midX = width * 0.34;
+    const midY = height * 0.52;
+    const maxSarcSpan = width * 0.50;
+    const sarcSpan = (L / 2.40) * maxSarcSpan;
+    const zLeft = midX - sarcSpan / 2;
+    const zRight = midX + sarcSpan / 2;
+    const myosinSpan = maxSarcSpan * (1.60 / 2.40); // Constant A-Band = 1.60 µm
+    const actinSingleSpan = maxSarcSpan * (1.00 / 2.40); // Each thin filament = 1.0 µm
 
-    // Z-Discs (Left and Right borders)
+    // Header
+    targetCtx.fillStyle = "#f8fafc";
+    targetCtx.font = "bold 14px 'JetBrains Mono', monospace";
+    targetCtx.fillText("SKELETAL SARCOMERE ULTRASTRUCTURE & SLIDING FILAMENT MECHANICS", leftX, 24);
+    targetCtx.fillStyle = "#f87171";
+    targetCtx.font = "11.5px -apple-system, sans-serif";
+    const hZoneUm = Math.max(0, L - 2.00).toFixed(2);
+    const iBandUm = Math.max(0, L - 1.60).toFixed(2);
+    targetCtx.fillText(`Z-to-Z Length = ${L.toFixed(2)} µm • Constant A-Band = 1.60 µm • I-Band = ${iBandUm} µm • H-Zone = ${hZoneUm} µm • Active Tension = ${activeTensionPct}%`, leftX, 42);
+
+    // A-Band, I-Band, and H-Zone Top Dimension Brackets
+    const bracketY = midY - 118;
+    // A-Band bracket (Constant width centered on M-line)
+    targetCtx.fillStyle = "rgba(168, 85, 247, 0.14)";
+    targetCtx.fillRect(midX - myosinSpan / 2, midY - 95, myosinSpan, 190);
+    targetCtx.fillStyle = "#c084fc";
+    targetCtx.font = "bold 10.5px 'JetBrains Mono', monospace";
+    targetCtx.fillText("A-BAND (1.60 µm Constant)", midX - 75, bracketY);
+
+    // Z-Discs (Left and Right α-Actinin Zigzag Borders)
     targetCtx.strokeStyle = "#38bdf8";
-    targetCtx.lineWidth = 8;
+    targetCtx.lineWidth = 6;
     targetCtx.beginPath();
-    // Left Z-Disc
-    targetCtx.moveTo(midX - sarcWidth / 2, midY - 90);
-    targetCtx.lineTo(midX - sarcWidth / 2, midY + 90);
-    // Right Z-Disc
-    targetCtx.moveTo(midX + sarcWidth / 2, midY - 90);
-    targetCtx.lineTo(midX + sarcWidth / 2, midY + 90);
+    targetCtx.moveTo(zLeft, midY - 95);
+    targetCtx.lineTo(zLeft, midY + 95);
+    targetCtx.moveTo(zRight, midY - 95);
+    targetCtx.lineTo(zRight, midY + 95);
     targetCtx.stroke();
 
-    // M-Line (Center)
-    targetCtx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    targetCtx.fillStyle = "#38bdf8";
+    targetCtx.font = "bold 10.5px 'JetBrains Mono', monospace";
+    targetCtx.fillText("Z-DISC", zLeft - 20, midY + 114);
+    targetCtx.fillText("Z-DISC", zRight - 20, midY + 114);
+
+    // M-Line (Center Myomesin Anchor)
+    targetCtx.save();
+    targetCtx.strokeStyle = "#fde047";
     targetCtx.lineWidth = 3;
-    targetCtx.setLineDash([6, 6]);
+    targetCtx.setLineDash([6, 4]);
     targetCtx.beginPath();
-    targetCtx.moveTo(midX, midY - 90); targetCtx.lineTo(midX, midY + 90);
+    targetCtx.moveTo(midX, midY - 95);
+    targetCtx.lineTo(midX, midY + 95);
     targetCtx.stroke();
-    targetCtx.setLineDash([]);
+    targetCtx.restore();
+    targetCtx.fillStyle = "#fde047";
+    targetCtx.fillText("M-LINE", midX - 20, midY + 114);
 
-    // Thin Filaments (Actin) anchored to Z-discs
-    targetCtx.strokeStyle = "#f87171";
-    targetCtx.lineWidth = 5;
-    const actinLength = width * 0.22;
-    for (let y = midY - 60; y <= midY + 60; y += 40) {
+    // Thin Filaments (Actin + Troponin/Tropomyosin) anchored to Z-Discs
+    for (let y = midY - 72; y <= midY + 72; y += 36) {
+      targetCtx.strokeStyle = "#f87171";
+      targetCtx.lineWidth = 4.5;
       targetCtx.beginPath();
-      // Left actin
-      targetCtx.moveTo(midX - sarcWidth / 2, y);
-      targetCtx.lineTo(midX - sarcWidth / 2 + actinLength, y);
-      // Right actin
-      targetCtx.moveTo(midX + sarcWidth / 2, y);
-      targetCtx.lineTo(midX + sarcWidth / 2 - actinLength, y);
+      targetCtx.moveTo(zLeft, y);
+      targetCtx.lineTo(Math.min(midX + 12, zLeft + actinSingleSpan), y);
+      targetCtx.moveTo(zRight, y);
+      targetCtx.lineTo(Math.max(midX - 12, zRight - actinSingleSpan), y);
       targetCtx.stroke();
     }
 
-    // Thick Filaments (Myosin with Cross-Bridge Heads) centered at M-line
-    targetCtx.strokeStyle = "#a855f7";
-    targetCtx.lineWidth = 9;
-    const myosinLength = width * 0.28;
-    for (let y = midY - 40; y <= midY + 40; y += 40) {
+    // Thick Filaments (Myosin II with Pivoting S1 Cross-Bridge Heads)
+    const swing = Math.sin(simTime * 6) * 4;
+    for (let y = midY - 54; y <= midY + 54; y += 36) {
+      // Titin elastic spring connecting Z-disc to thick filament tip
+      targetCtx.strokeStyle = "rgba(52, 211, 153, 0.55)";
+      targetCtx.lineWidth = 1.5;
       targetCtx.beginPath();
-      targetCtx.moveTo(midX - myosinLength / 2, y);
-      targetCtx.lineTo(midX + myosinLength / 2, y);
+      targetCtx.moveTo(zLeft, y);
+      targetCtx.lineTo(midX - myosinSpan / 2, y);
+      targetCtx.moveTo(zRight, y);
+      targetCtx.lineTo(midX + myosinSpan / 2, y);
       targetCtx.stroke();
+
+      // Thick Myosin rod
+      targetCtx.strokeStyle = "#a855f7";
+      targetCtx.lineWidth = 8;
+      targetCtx.beginPath();
+      targetCtx.moveTo(midX - myosinSpan / 2, y);
+      targetCtx.lineTo(midX + myosinSpan / 2, y);
+      targetCtx.stroke();
+
+      // Animated Myosin S1 Cross-Bridge Heads
+      targetCtx.strokeStyle = "#e9d5ff";
+      targetCtx.lineWidth = 2;
+      for (let hx = 24; hx < myosinSpan / 2 - 8; hx += 22) {
+        targetCtx.beginPath();
+        // Left half heads
+        targetCtx.moveTo(midX - hx, y - 4);
+        targetCtx.lineTo(midX - hx - 6 + swing, y - 13);
+        targetCtx.moveTo(midX - hx, y + 4);
+        targetCtx.lineTo(midX - hx - 6 + swing, y + 13);
+        // Right half heads
+        targetCtx.moveTo(midX + hx, y - 4);
+        targetCtx.lineTo(midX + hx + 6 - swing, y - 13);
+        targetCtx.moveTo(midX + hx, y + 4);
+        targetCtx.lineTo(midX + hx + 6 - swing, y + 13);
+        targetCtx.stroke();
+      }
+    }
+
+    // Right Station: Gordon-Huxley Active Length-Tension Curve
+    const ltX = width * 0.64;
+    const ltY = 66;
+    const ltW = width - ltX - 24;
+    const ltH = height - 96;
+    if (ltW > 165) {
+      targetCtx.fillStyle = "rgba(9, 13, 22, 0.92)";
+      targetCtx.strokeStyle = "rgba(248, 113, 113, 0.38)";
+      targetCtx.lineWidth = 1.5;
+      targetCtx.beginPath();
+      targetCtx.roundRect(ltX, ltY, ltW, ltH, 12);
+      targetCtx.fill();
+      targetCtx.stroke();
+
+      targetCtx.fillStyle = "#f87171";
+      targetCtx.font = "bold 11.5px 'JetBrains Mono', monospace";
+      targetCtx.fillText("LENGTH–TENSION RELATION", ltX + 14, ltY + 22);
+
+      const gx = ltX + 34;
+      const gy = ltY + ltH - 34;
+      const gw = ltW - 50;
+      const gh = ltH - 76;
+
+      targetCtx.strokeStyle = "rgba(148, 163, 184, 0.4)";
+      targetCtx.lineWidth = 1.2;
+      targetCtx.beginPath();
+      targetCtx.moveTo(gx, gy - gh);
+      targetCtx.lineTo(gx, gy);
+      targetCtx.lineTo(gx + gw, gy);
+      targetCtx.stroke();
+
+      // Active Tension Curve (1.4 µm to 2.6 µm)
+      targetCtx.strokeStyle = "#f87171";
+      targetCtx.lineWidth = 2.5;
+      targetCtx.beginPath();
+      for (let i = 0; i <= 60; i++) {
+        const sLen = 1.50 + (i / 60) * 1.00;
+        const tVal = Math.max(10, Math.min(100, 100 - Math.pow((sLen - 2.10) / 0.55, 2) * 75));
+        const px = gx + ((sLen - 1.50) / 1.00) * gw;
+        const py = gy - (tVal / 100) * gh;
+        if (i === 0) targetCtx.moveTo(px, py);
+        else targetCtx.lineTo(px, py);
+      }
+      targetCtx.stroke();
+
+      // Current Sarcomere Length Operating Point
+      const opX = gx + ((L - 1.50) / 1.00) * gw;
+      const opY = gy - (activeTensionPct / 100) * gh;
+      targetCtx.beginPath();
+      targetCtx.arc(opX, opY, 6, 0, Math.PI * 2);
+      targetCtx.fillStyle = "#fde047";
+      targetCtx.strokeStyle = "#ffffff";
+      targetCtx.lineWidth = 2;
+      targetCtx.fill();
+      targetCtx.stroke();
+
+      targetCtx.fillStyle = "#f8fafc";
+      targetCtx.font = "bold 10px 'JetBrains Mono', monospace";
+      targetCtx.fillText(`${activeTensionPct}% Fmax @ ${L.toFixed(2)} µm`, gx + 8, gy + 18);
     }
   }
 
   // 6. COMPACT BONE OSTEON RENDERER
   function renderOsteonSimulation(targetCtx, width, height, dt) {
-    const ox = width * 0.5;
-    const oy = height * 0.5;
+    simTime += dt;
+    const leftX = Math.max(24, width * 0.04);
+    const ox = width * 0.33;
+    const oy = height * 0.53;
+    const maxR = Math.min(155, height * 0.36);
 
-    targetCtx.fillStyle = "#ffffff";
-    targetCtx.font = "bold 15px 'JetBrains Mono', monospace";
-    targetCtx.fillText("COMPACT BONE OSTEON (HAVERSIAN SYSTEM)", ox - 180, oy - 180);
+    // Header
+    targetCtx.fillStyle = "#f8fafc";
+    targetCtx.font = "bold 14px 'JetBrains Mono', monospace";
+    targetCtx.fillText("CORTICAL BONE OSTEON (HAVERSIAN SYSTEM) & CANALICULAR MECHANOTRANSDUCTION", leftX, 24);
+    targetCtx.fillStyle = "#38bdf8";
+    targetCtx.font = "11.5px -apple-system, sans-serif";
+    targetCtx.fillText("Hydroxyapatite Ca₁₀(PO₄)₆(OH)₂ + Type I Collagen (±45° Helicoidal Pitch) • Canalicular Perfusion Active", leftX, 42);
 
-    // Concentric Lamellae rings
+    // Outer Scalloped Cement Line (Reversal Line)
+    targetCtx.fillStyle = "rgba(30, 41, 59, 0.55)";
+    targetCtx.strokeStyle = "#38bdf8";
     targetCtx.lineWidth = 3;
-    for (let r = 50; r <= 160; r += 28) {
-      targetCtx.strokeStyle = "rgba(226, 232, 240, 0.4)";
+    targetCtx.beginPath();
+    targetCtx.arc(ox, oy, maxR + 12, 0, Math.PI * 2);
+    targetCtx.fill();
+    targetCtx.stroke();
+
+    // Radiating Spider-Like Canaliculi Network connecting Central Haversian Canal to Lacunae
+    const pulseR = 28 + ((simTime * 42) % (maxR - 20));
+    targetCtx.save();
+    targetCtx.strokeStyle = "rgba(56, 189, 248, 0.22)";
+    targetCtx.lineWidth = 1.1;
+    for (let k = 0; k < 36; k++) {
+      const ang = (k / 36) * Math.PI * 2;
+      targetCtx.beginPath();
+      targetCtx.moveTo(ox + 26 * Math.cos(ang), oy + 26 * Math.sin(ang));
+      targetCtx.lineTo(ox + maxR * Math.cos(ang), oy + maxR * Math.sin(ang));
+      targetCtx.stroke();
+    }
+    // Expanding metabolic Ca2+/PO43- perfusion wave along canaliculi
+    targetCtx.strokeStyle = "rgba(56, 189, 248, 0.55)";
+    targetCtx.lineWidth = 2;
+    targetCtx.beginPath();
+    targetCtx.arc(ox, oy, pulseR, 0, Math.PI * 2);
+    targetCtx.stroke();
+    targetCtx.restore();
+
+    // Concentric Calcified Lamellae Rings & Stellate Osteocytes inside Lacunae
+    const ringCount = 4;
+    for (let idx = 1; idx <= ringCount; idx++) {
+      const r = 34 + (idx / ringCount) * (maxR - 36);
+      targetCtx.strokeStyle = idx % 2 === 0 ? "rgba(226, 232, 240, 0.55)" : "rgba(148, 163, 184, 0.38)";
+      targetCtx.lineWidth = 2.5;
       targetCtx.beginPath();
       targetCtx.arc(ox, oy, r, 0, Math.PI * 2);
       targetCtx.stroke();
 
-      // Osteocytes in Lacunae along rings
-      const osteoCount = Math.floor(r / 10);
+      // Osteocytes in Lacunae along each concentric lamella
+      const osteoCount = 6 + idx * 3;
       for (let i = 0; i < osteoCount; i++) {
-        const theta = (i / osteoCount) * Math.PI * 2;
+        const theta = (i / osteoCount) * Math.PI * 2 + (idx * 0.25);
         const lx = ox + r * Math.cos(theta);
         const ly = oy + r * Math.sin(theta);
-        targetCtx.fillStyle = "#38bdf8";
+        targetCtx.fillStyle = "#0f172a";
+        targetCtx.strokeStyle = "#38bdf8";
+        targetCtx.lineWidth = 1.4;
         targetCtx.beginPath();
-        targetCtx.ellipse(lx, ly, 5, 3, theta, 0, Math.PI * 2);
+        targetCtx.ellipse(lx, ly, 6.5, 3.6, theta + Math.PI / 2, 0, Math.PI * 2);
+        targetCtx.fill();
+        targetCtx.stroke();
+
+        // Osteocyte nucleus
+        targetCtx.fillStyle = "#7dd3fc";
+        targetCtx.beginPath();
+        targetCtx.arc(lx, ly, 1.8, 0, Math.PI * 2);
         targetCtx.fill();
       }
     }
 
-    // Central Haversian Canal (Neurovascular bundle)
-    targetCtx.fillStyle = "#0f172a";
+    // Central Haversian Canal (Arteriole, Venule, Sympathetic Nerve)
+    targetCtx.fillStyle = "#090d16";
+    targetCtx.strokeStyle = "#94a3b8";
+    targetCtx.lineWidth = 2;
     targetCtx.beginPath();
     targetCtx.arc(ox, oy, 26, 0, Math.PI * 2);
     targetCtx.fill();
+    targetCtx.stroke();
 
-    // Arteriole (Red) & Venule (Blue)
+    // Haversian Arteriole (Red), Venule (Blue), & Nerve Fiber (Yellow)
     targetCtx.fillStyle = "#ef4444";
-    targetCtx.beginPath(); targetCtx.arc(ox - 8, oy - 4, 7, 0, Math.PI * 2); targetCtx.fill();
+    targetCtx.beginPath(); targetCtx.arc(ox - 8, oy - 4, 6.5, 0, Math.PI * 2); targetCtx.fill();
     targetCtx.fillStyle = "#38bdf8";
-    targetCtx.beginPath(); targetCtx.arc(ox + 8, oy + 4, 7, 0, Math.PI * 2); targetCtx.fill();
+    targetCtx.beginPath(); targetCtx.arc(ox + 8, oy - 3, 6.5, 0, Math.PI * 2); targetCtx.fill();
+    targetCtx.fillStyle = "#fde047";
+    targetCtx.beginPath(); targetCtx.arc(ox, oy + 9, 4.2, 0, Math.PI * 2); targetCtx.fill();
+
+    // Right Station: Polarized Light Birefringence & Wolff's Law Remodeling Card
+    const cardX = width * 0.60;
+    const cardY = 66;
+    const cardW = width - cardX - 24;
+    const cardH = height - 96;
+    if (cardW > 170) {
+      targetCtx.fillStyle = "rgba(9, 13, 22, 0.92)";
+      targetCtx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+      targetCtx.lineWidth = 1.5;
+      targetCtx.beginPath();
+      targetCtx.roundRect(cardX, cardY, cardW, cardH, 12);
+      targetCtx.fill();
+      targetCtx.stroke();
+
+      targetCtx.fillStyle = "#38bdf8";
+      targetCtx.font = "bold 11px 'JetBrains Mono', monospace";
+      targetCtx.fillText("POLARIZED BIREFRINGENCE & BMU", cardX + 14, cardY + 22);
+
+      // Polarized Maltese Cross Inset
+      const pCx = cardX + cardW * 0.5;
+      const pCy = cardY + 88;
+      const pR = 44;
+      targetCtx.save();
+      targetCtx.beginPath();
+      targetCtx.arc(pCx, pCy, pR, 0, Math.PI * 2);
+      targetCtx.fillStyle = "#cbd5e1";
+      targetCtx.fill();
+      // Maltese cross dark extinction arms
+      targetCtx.fillStyle = "#090d16";
+      targetCtx.fillRect(pCx - 6, pCy - pR, 12, pR * 2);
+      targetCtx.fillRect(pCx - pR, pCy - 6, pR * 2, 12);
+      targetCtx.strokeStyle = "#38bdf8";
+      targetCtx.lineWidth = 2;
+      targetCtx.stroke();
+      targetCtx.restore();
+
+      targetCtx.fillStyle = "#94a3b8";
+      targetCtx.font = "10px -apple-system, sans-serif";
+      targetCtx.fillText("Crossed-Nicols Maltese Cross (±45° Collagen)", cardX + 14, pCy + pR + 18);
+
+      const boneFacts = [
+        { k: "Compressive Strength", v: "170 MPa (Longitudinal Axis)", c: "#38bdf8" },
+        { k: "Tensile Strength", v: "120 MPa (Collagen I Crosslinks)", c: "#34d399" },
+        { k: "Diffusion Limit", v: "≤ 200 µm from Haversian Canal", c: "#fde047" },
+        { k: "Mechanosensor", v: "Osteocyte Sclerostin (SOST) Gate", c: "#c084fc" }
+      ];
+      boneFacts.forEach((bf, i) => {
+        const by = pCy + pR + 40 + i * 34;
+        if (by + 18 < cardY + cardH) {
+          targetCtx.fillStyle = "#94a3b8";
+          targetCtx.font = "10px -apple-system, sans-serif";
+          targetCtx.fillText(bf.k, cardX + 14, by);
+          targetCtx.fillStyle = bf.c;
+          targetCtx.font = "bold 11px 'JetBrains Mono', monospace";
+          targetCtx.fillText(bf.v, cardX + 14, by + 13);
+        }
+      });
+    }
+  }
+
+  // Draw Anatomical Orientation Compass & Stereotactic Mini-Map on Macro Canvas
+  function drawMacroEncyclopediaHud(targetCtx, width, height, baseScale) {
+    targetCtx.save();
+
+    // 1. Bottom-Left Anatomical Compass Rose (Superior / Inferior / Dexter / Sinister)
+    const cx = 56;
+    const cy = height - 58;
+    const r = 26;
+
+    targetCtx.fillStyle = "rgba(9, 13, 22, 0.85)";
+    targetCtx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    targetCtx.lineWidth = 1.2;
+    targetCtx.beginPath();
+    targetCtx.arc(cx, cy, r + 14, 0, Math.PI * 2);
+    targetCtx.fill();
+    targetCtx.stroke();
+
+    // Crosshair axes
+    targetCtx.strokeStyle = "rgba(148, 163, 184, 0.5)";
+    targetCtx.lineWidth = 1.2;
+    targetCtx.beginPath();
+    targetCtx.moveTo(cx, cy - r); targetCtx.lineTo(cx, cy + r);
+    targetCtx.moveTo(cx - r, cy); targetCtx.lineTo(cx + r, cy);
+    targetCtx.stroke();
+
+    // North arrow (Superior)
+    targetCtx.fillStyle = "#38bdf8";
+    targetCtx.beginPath();
+    targetCtx.moveTo(cx, cy - r - 2);
+    targetCtx.lineTo(cx - 4, cy - r + 7);
+    targetCtx.lineTo(cx + 4, cy - r + 7);
+    targetCtx.closePath();
+    targetCtx.fill();
+
+    targetCtx.font = "bold 8.5px 'JetBrains Mono', monospace";
+    targetCtx.textAlign = "center";
+    targetCtx.fillStyle = "#38bdf8";
+    targetCtx.fillText("SUP", cx, cy - r - 4);
+    targetCtx.fillStyle = "#94a3b8";
+    targetCtx.fillText("INF", cx, cy + r + 10);
+    // In standard Anterior anatomical position, viewer's left is subject's Right (Dexter)
+    const leftLabel = activeView === "anterior" ? "R" : "L";
+    const rightLabel = activeView === "anterior" ? "L" : "R";
+    targetCtx.fillText(leftLabel, cx - r - 7, cy + 3);
+    targetCtx.fillText(rightLabel, cx + r + 7, cy + 3);
+    targetCtx.textAlign = "left";
+
+    // 2. Bottom-Right Stereotactic Mini-Map Radar (when zoomed in or on regional plate)
+    const mapW = 54;
+    const mapH = 96;
+    const mapX = width - mapW - 14;
+    const mapY = height - mapH - 14;
+
+    targetCtx.fillStyle = "rgba(9, 13, 22, 0.86)";
+    targetCtx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    targetCtx.lineWidth = 1.2;
+    targetCtx.beginPath();
+    targetCtx.roundRect(mapX, mapY, mapW, mapH, 8);
+    targetCtx.fill();
+    targetCtx.stroke();
+
+    // Mini silhouette inside radar
+    const sx = (x) => mapX + (x / 1000) * mapW;
+    const sy = (y) => mapY + (y / 1800) * mapH;
+    targetCtx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+    targetCtx.lineWidth = 1.2;
+    targetCtx.beginPath();
+    targetCtx.arc(sx(500), sy(140), 5, 0, Math.PI * 2); // Head
+    targetCtx.roundRect(sx(400), sy(240), (200 / 1000) * mapW, (560 / 1800) * mapH, 3); // Torso
+    targetCtx.stroke();
+
+    // Selected structure pin dot on Mini-Map
+    if (selectedStructure && selectedStructure.coords) {
+      targetCtx.fillStyle = "#38bdf8";
+      targetCtx.beginPath();
+      targetCtx.arc(sx(selectedStructure.coords.x), sy(selectedStructure.coords.y), 2.8, 0, Math.PI * 2);
+      targetCtx.fill();
+    }
+
+    // Current viewport frustum box on Mini-Map
+    if (baseScale > 0) {
+      const viewLeftNorm = Math.max(0, Math.min(1000, -panX / baseScale));
+      const viewTopNorm = Math.max(0, Math.min(1800, -panY / baseScale));
+      const viewRightNorm = Math.max(0, Math.min(1000, (width - panX) / baseScale));
+      const viewBotNorm = Math.max(0, Math.min(1800, (height - panY) / baseScale));
+      targetCtx.strokeStyle = "#10b981";
+      targetCtx.lineWidth = 1.2;
+      targetCtx.strokeRect(
+        sx(viewLeftNorm),
+        sy(viewTopNorm),
+        Math.max(6, sx(viewRightNorm) - sx(viewLeftNorm)),
+        Math.max(6, sy(viewBotNorm) - sy(viewTopNorm))
+      );
+    }
+
+    targetCtx.restore();
   }
 
   // ----------------------------------------------------
@@ -4748,6 +6384,9 @@ export function initAnatomyAtlasLab(containerId) {
       drawHumanBodyVector(ctx, baseScale, activeView);
       drawAnatomicalPins(ctx, baseScale, activeView, true);
       ctx.restore();
+
+      // Render Anatomical Orientation Compass Rose & Stereotactic Mini-Map Radar
+      drawMacroEncyclopediaHud(ctx, rect.width, rect.height, baseScale);
     }
 
     ctx.restore();
