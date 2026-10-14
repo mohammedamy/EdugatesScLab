@@ -170,6 +170,7 @@ function bootApp() {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("./service-worker.js").then(reg => {
           console.log("[AmScLab PWA] Service Worker registered with scope:", reg.scope);
+          if (reg && typeof reg.update === "function") reg.update().catch(() => {});
           reg.addEventListener("updatefound", () => {
             const installingWorker = reg.installing;
             if (installingWorker) {
