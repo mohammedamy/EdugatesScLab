@@ -357,7 +357,7 @@ export function openOfflineDiagnosticsModal() {
     }
   }
 
-  // Precache all
+  // Precache all with concurrency-limited worker queue (max 4 parallel fetches)
   async function precacheAll() {
     SoundFX.playClick();
     const progressContainer = overlay.querySelector("#diag-action-progress-container");
@@ -376,21 +376,30 @@ export function openOfflineDiagnosticsModal() {
       const cache = await caches.open(CURRENT_CACHE_NAME);
       const allUrls = AUDIT_TARGETS.map(t => t.url);
       let loaded = 0;
+      let completed = 0;
+      let cursor = 0;
+      const MAX_CONCURRENT_FETCHES = 4;
 
-      for (let i = 0; i < allUrls.length; i++) {
-        const u = allUrls[i];
-        if (statusText) statusText.textContent = `Pre-caching: ${u}`;
-        const pct = Math.round(((i + 1) / allUrls.length) * 100);
-        if (pctDisp) pctDisp.textContent = `${pct}%`;
-        if (statusBar) statusBar.style.width = `${pct}%`;
-
-        try {
-          await cache.add(u);
-          loaded++;
-        } catch (e) {
-          console.warn("Precache failed for:", u, e);
+      async function worker() {
+        while (cursor < allUrls.length) {
+          const idx = cursor++;
+          const u = allUrls[idx];
+          if (statusText) statusText.textContent = `Pre-caching (${completed + 1}/${allUrls.length}): ${u}`;
+          try {
+            await cache.add(u);
+            loaded++;
+          } catch (e) {
+            console.warn("Precache failed for:", u, e);
+          }
+          completed++;
+          const pct = Math.round((completed / allUrls.length) * 100);
+          if (pctDisp) pctDisp.textContent = `${pct}%`;
+          if (statusBar) statusBar.style.width = `${pct}%`;
         }
       }
+
+      const workers = Array.from({ length: Math.min(MAX_CONCURRENT_FETCHES, allUrls.length) }, () => worker());
+      await Promise.all(workers);
 
       if (statusText) statusText.textContent = `✅ Successfully pre-cached ${loaded} assets into ${CURRENT_CACHE_NAME}!`;
       refreshStorageView();

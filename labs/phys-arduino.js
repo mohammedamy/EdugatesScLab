@@ -5139,8 +5139,8 @@ export function initArduinoLab(containerId) {
     }
 
     // 0b. Pin Terminal Snapping (Arduino Headers & Breadboard Rails/Tiepoints)
-    // Enlarge hit radius to 18px in Wire Routing Mode for touch & smartboard accuracy
-    const pinHitRadius = state.isWireMode ? 18 : 12;
+    // Enlarge hit radius to 20px in Wire Routing Mode for touch & smartboard accuracy
+    const pinHitRadius = state.isWireMode ? 20 : 12;
     if (typeof ARDUINO_PINS !== "undefined") {
       for (const [key, p] of Object.entries(ARDUINO_PINS)) {
         if (Math.hypot(cx - p.x, cy - p.y) <= pinHitRadius) {
@@ -6276,6 +6276,9 @@ export function initArduinoLab(containerId) {
     targetCtx.strokeStyle = "rgba(56, 189, 248, 0.22)";
     targetCtx.lineWidth = 1.5;
     targetCtx.strokeRect(1, 1, w - 2, h - 2);
+
+    // Pre-render static 400-point solderless breadboard chassis & tie-point matrix into the offscreen cache
+    drawStaticBreadboardBase(targetCtx, 420, 55, 390, 350);
   }
 
   function drawArduinoWorkbench() {
@@ -6737,8 +6740,8 @@ export function initArduinoLab(containerId) {
     c.restore();
   }
 
-  // Render Solderless Half-Size Breadboard with Interactive Components
-  function drawBreadboard(c, bx, by, bw, bh) {
+  // Pre-rendered static Solderless Breadboard chassis, power rails, and 260 tie-point holes
+  function drawStaticBreadboardBase(c, bx, by, bw, bh) {
     // Breadboard body
     c.save();
     c.fillStyle = "#f8fafc";
@@ -6800,30 +6803,6 @@ export function initArduinoLab(containerId) {
     c.fillText("−", bx + bw - 11, by + bh - 30);
     c.restore();
 
-    // Active power bus illumination
-    const isTop5VActive = state.wires?.some(w => w.to === "BB_TOP_5V");
-    const isTopGndActive = state.wires?.some(w => w.to === "BB_TOP_GND");
-    if (isTop5VActive) {
-      c.save();
-      c.strokeStyle = "rgba(239, 68, 68, 0.35)";
-      c.lineWidth = 4;
-      c.beginPath();
-      c.moveTo(bx + 20, by + 18);
-      c.lineTo(bx + bw - 20, by + 18);
-      c.stroke();
-      c.restore();
-    }
-    if (isTopGndActive) {
-      c.save();
-      c.strokeStyle = "rgba(59, 130, 246, 0.3)";
-      c.lineWidth = 4;
-      c.beginPath();
-      c.moveTo(bx + 20, by + 30);
-      c.lineTo(bx + bw - 20, by + 30);
-      c.stroke();
-      c.restore();
-    }
-
     // Tie-point row holes (grid matrix with spring contact clip appearance)
     for (let col = 0; col < 26; col++) {
       const hx = bx + 35 + col * 12.5;
@@ -6880,6 +6859,38 @@ export function initArduinoLab(containerId) {
       c.fillText(l, bx + bw - 21, by + bh / 2 + 16 + r * 14);
     });
     c.restore();
+  }
+
+  // Render Solderless Half-Size Breadboard with Interactive Components
+  function drawBreadboard(c, bx, by, bw, bh) {
+    // Only draw the static breadboard base if not already blitted via staticBenchCache
+    if (!(c === ctx && staticBenchCache && bx === 420 && by === 55)) {
+      drawStaticBreadboardBase(c, bx, by, bw, bh);
+    }
+
+    // Active power bus illumination
+    const isTop5VActive = state.wires?.some(w => w.to === "BB_TOP_5V");
+    const isTopGndActive = state.wires?.some(w => w.to === "BB_TOP_GND");
+    if (isTop5VActive) {
+      c.save();
+      c.strokeStyle = "rgba(239, 68, 68, 0.35)";
+      c.lineWidth = 4;
+      c.beginPath();
+      c.moveTo(bx + 20, by + 18);
+      c.lineTo(bx + bw - 20, by + 18);
+      c.stroke();
+      c.restore();
+    }
+    if (isTopGndActive) {
+      c.save();
+      c.strokeStyle = "rgba(59, 130, 246, 0.3)";
+      c.lineWidth = 4;
+      c.beginPath();
+      c.moveTo(bx + 20, by + 30);
+      c.lineTo(bx + bw - 20, by + 30);
+      c.stroke();
+      c.restore();
+    }
 
     // DRAW APPARATUS ON BREADBOARD BASED ON EXPERIMENT
     const expId = ARDUINO_EXPERIMENTS[state.selectedExpIndex].id;
