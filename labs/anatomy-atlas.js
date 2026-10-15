@@ -248,10 +248,49 @@ export function initAnatomyAtlasLab(containerId) {
   };
   const bodyLayerImages = maleLayerImages; // Backwards-compatible reference
 
-  // Animation and simulation handles
+  // Animation and 3D Volumetric Organ Studio handles
   let animId = null;
   let simTime = 0;
   let lastTimestamp = performance.now();
+  let use3dOrgansMaster = true; // Default to hyper-realistic 4K 3D Main Body Organs view
+  let liveFlowParticles = true; // 60 FPS blood, airflow, neural, bile, and renal filtrate streams
+  let orbit3dEnabled = true;    // 3D volumetric perspective tilt & dynamic wet-tissue specular highlight
+  let pointerTiltX = 0;         // Normalized -1..+1 pointer 3D parallax X
+  let pointerTiltY = 0;         // Normalized -1..+1 pointer 3D parallax Y
+  let breathRate = 15;          // Respiratory cycles per minute (10 - 30)
+
+  // Preserve base full-body coordinates and dynamically sync structure coords when switching plates
+  ANATOMICAL_STRUCTURES.forEach(s => {
+    if (!s._baseCoords && s.coords) {
+      s._baseCoords = { x: s.coords.x, y: s.coords.y };
+    }
+  });
+
+  function syncStructureCoordsForPlate(plateId) {
+    ANATOMICAL_STRUCTURES.forEach(s => {
+      if (!s._baseCoords && s.coords) {
+        s._baseCoords = { x: s.coords.x, y: s.coords.y };
+      }
+      if (s.plateCoords && s.plateCoords[plateId]) {
+        s.coords = { x: s.plateCoords[plateId].x, y: s.plateCoords[plateId].y };
+      } else if (s._baseCoords) {
+        s.coords = { x: s._baseCoords.x, y: s._baseCoords.y };
+      }
+    });
+  }
+  syncStructureCoordsForPlate(activePlate);
+
+  function getDefaultPlateCamera(plateKey) {
+    if (plateKey === "full_anterior" && use3dOrgansMaster) {
+      return { x: 500, y: 505, zoom: 1.65 };
+    }
+    if (plateKey === "brain") return { x: 500, y: 900, zoom: 1.82 };
+    if (plateKey === "lungs") return { x: 500, y: 900, zoom: 1.68 };
+    if (plateKey === "heart") return { x: 500, y: 900, zoom: 1.55 };
+    if (plateKey === "digestive" || plateKey === "urinary") return { x: 500, y: 900, zoom: 1.34 };
+    if (plateKey === "histology_slide") return { x: 500, y: 780, zoom: 1.55 };
+    return { x: 500, y: 900, zoom: 1.0 };
+  }
 
   // Histology interactive parameters
   const histoState = {
@@ -348,6 +387,7 @@ export function initAnatomyAtlasLab(containerId) {
 
   // Visible structures helper for active plate & view
   function getVisibleStructures(plateId, view) {
+    const dedicated3dOrganPlates = ["heart", "lungs", "digestive", "brain", "urinary"];
     return ANATOMICAL_STRUCTURES.filter(s => {
       // Gender-aware pin filtering for dual-gender anatomy
       if (s.gender && s.gender !== activeGender) {
@@ -356,17 +396,22 @@ export function initAnatomyAtlasLab(containerId) {
       if (s.plate) {
         return s.plate === plateId;
       }
+      if (dedicated3dOrganPlates.includes(plateId)) {
+        return Boolean(s.plateCoords && s.plateCoords[plateId]);
+      }
       if (plateId === "full_anterior") {
-        return s.view === "anterior";
+        // In 3D Main Body Organs Master mode, focus on the head-to-pelvis 3D organs & structures
+        if (use3dOrgansMaster && s.region === "lower_limb") return false;
+        return s.view === "anterior" || Boolean(s.bothViews);
       }
       if (plateId === "full_posterior") {
-        return s.view === "posterior";
+        return s.view === "posterior" || Boolean(s.bothViews);
       }
       const plateConf = ANATOMICAL_PLATES ? ANATOMICAL_PLATES[plateId] : null;
       if (plateConf && plateConf.system !== "all") {
         return s.system === plateConf.system;
       }
-      return s.view === view;
+      return s.view === view || Boolean(s.bothViews);
     });
   }
 
@@ -557,18 +602,18 @@ export function initAnatomyAtlasLab(containerId) {
       </div>
 
       <!-- Interactive 13-Plate Anatomical & Histological System Selector -->
-      <div class="atlas-plate-strip-wrapper" style="background: var(--bg-card, rgba(15, 23, 42, 0.85)); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 12px 16px; display: flex; flex-direction: column; gap: 8px;">
+      <div class="atlas-plate-strip-wrapper" style="background: var(--bg-card, rgba(15, 23, 42, 0.85)); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 12px 16px; display: flex; flex-direction: column; gap: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <span style="font-size: 0.8rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em;">
-              🏛️ High-Resolution Scientific Anatomical Plates (8K UHD)
+              🏛️ 4K 3D Anatomical Plates &amp; Organ Cutaways
             </span>
             <span style="font-size: 0.72rem; padding: 2px 8px; border-radius: 9999px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-weight: 700; border: 1px solid rgba(56, 189, 248, 0.3);">
-              13 Dedicated Medical Plates (Dual-Gender Reproductive)
+              13 Volumetric 3D Plates (Click Any Organ or Plate)
             </span>
           </div>
           <div style="font-size: 0.75rem; color: var(--text-dim);">
-            Select any anatomical plate or browse the Encyclopedia Index on the right
+            💡 <strong>Tip:</strong> Click any organ pill below to inspect it in 3D, or double-click an organ pin to open its 4K 3D Internal Cutaway!
           </div>
         </div>
         <div id="plate-selector-strip" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin;">
@@ -582,6 +627,36 @@ export function initAnatomyAtlasLab(containerId) {
               </button>
             `;
           }).join("")}
+        </div>
+
+        <!-- 1-Click Main 3D Body Organs Quick-Select Dock -->
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-top: 6px; border-top: 1px solid rgba(148, 163, 184, 0.15);">
+          <span style="font-size: 0.72rem; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px;">
+            🎯 3D Main Body Organs:
+          </span>
+          ${[
+            { id: "cerebrum", icon: "🧠", label: "Brain", color: "#38bdf8" },
+            { id: "thyroid_gland", icon: "🦋", label: "Thyroid", color: "#a855f7" },
+            { id: "trachea", icon: "🌬️", label: "Trachea", color: "#06b6d4" },
+            { id: "lungs", icon: "🫁", label: "Lungs", color: "#f472b6" },
+            { id: "heart", icon: "🫀", label: "Heart", color: "#ef4444" },
+            { id: "aorta", icon: "🩸", label: "Aorta", color: "#f87171" },
+            { id: "diaphragm", icon: "💚", label: "Diaphragm", color: "#34d399" },
+            { id: "liver", icon: "🤎", label: "Liver", color: "#f59e0b" },
+            { id: "gallbladder", icon: "🟢", label: "Gallbladder", color: "#10b981" },
+            { id: "stomach", icon: "🍑", label: "Stomach", color: "#fb923c" },
+            { id: "pancreas", icon: "🟡", label: "Pancreas", color: "#eab308" },
+            { id: "spleen", icon: "🟣", label: "Spleen", color: "#c084fc" },
+            { id: "kidneys", icon: "🫘", label: "Kidneys", color: "#ec4899" },
+            { id: "small_intestine", icon: "🌀", label: "Small Intestine", color: "#fda4af" },
+            { id: "large_intestine", icon: "🟠", label: "Colon", color: "#fbbf24" },
+            { id: "urinary_bladder", icon: "💧", label: "Bladder", color: "#60a5fa" }
+          ].map(org => `
+            <button class="btn btn-sm btn-quick-organ" data-organ-id="${org.id}" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 0.74rem; font-weight: 700; border-radius: 999px; background: rgba(15, 23, 42, 0.9); color: #f8fafc; border: 1px solid ${org.color}66; cursor: pointer; transition: all 0.15s ease;">
+              <span>${org.icon}</span>
+              <span>${org.label}</span>
+            </button>
+          `).join("")}
         </div>
       </div>
 
@@ -639,12 +714,12 @@ export function initAnatomyAtlasLab(containerId) {
             <!-- Regional Zoom Shortcuts -->
             <div style="display: flex; align-items: center; gap: 5px;">
               <select id="sel-region-jump" class="sim-select" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; background: rgba(15, 23, 42, 0.8); color: var(--text-main, #f8fafc); border: 1px solid var(--border-color);">
-                <option value="all">Region: Whole Body (1×)</option>
-                <option value="head">Head &amp; Cranium (3.0×)</option>
-                <option value="thorax">Thorax &amp; Heart (3.5×)</option>
-                <option value="abdomen">Abdomen &amp; Viscera (3.2×)</option>
-                <option value="pelvis">Pelvis &amp; Perineum (3.0×)</option>
-                <option value="upper_limb">Upper Extremity (2.8×)</option>
+                <option value="all">Region: Whole 3D Torso (1.6×)</option>
+                <option value="head">Head &amp; Brain (3.2×)</option>
+                <option value="thorax">Thorax, Heart &amp; Lungs (2.8×)</option>
+                <option value="abdomen">Abdomen, Liver &amp; Stomach (2.8×)</option>
+                <option value="pelvis">Pelvis, Kidneys &amp; Bladder (2.8×)</option>
+                <option value="upper_limb">Upper Extremity (2.6×)</option>
                 <option value="lower_limb">Lower Extremity (2.2×)</option>
               </select>
             </div>
@@ -653,8 +728,8 @@ export function initAnatomyAtlasLab(containerId) {
             <div style="display: flex; align-items: center; gap: 4px;">
               <button id="btn-zoom-in" class="btn btn-secondary btn-sm" style="padding: 4px 8px;" title="Zoom In (+)">➕</button>
               <button id="btn-zoom-out" class="btn btn-secondary btn-sm" style="padding: 4px 8px;" title="Zoom Out (-)">➖</button>
-              <button id="btn-zoom-reset" class="btn btn-secondary btn-sm" style="padding: 4px 9px; font-size: 0.75rem;" title="Reset 1.0x View">1× Reset</button>
-              <span id="zoom-badge" style="font-family: var(--font-mono); font-size: 0.76rem; color: #38bdf8; font-weight: 700; min-width: 40px; text-align: right;">1.0×</span>
+              <button id="btn-zoom-reset" class="btn btn-secondary btn-sm" style="padding: 4px 9px; font-size: 0.75rem;" title="Fit 3D View">🎯 Fit 3D View</button>
+              <span id="zoom-badge" style="font-family: var(--font-mono); font-size: 0.76rem; color: #38bdf8; font-weight: 700; min-width: 40px; text-align: right;">1.6×</span>
             </div>
           </div>
 
@@ -663,9 +738,19 @@ export function initAnatomyAtlasLab(containerId) {
             <canvas id="atlas-canvas" style="display: block; width: 100%; height: 100%; touch-action: none; -webkit-user-select: none; user-select: none;"></canvas>
 
             <!-- Floating Overlay Badge for Active Mode -->
-            <div id="canvas-overlay-banner" style="position: absolute; top: 12px; left: 12px; pointer-events: none; background: rgba(9, 13, 24, 0.86); backdrop-filter: blur(8px); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700; color: #38bdf8; box-shadow: 0 4px 12px rgba(0,0,0,0.45); max-width: calc(100% - 140px);">
+            <div id="canvas-overlay-banner" style="position: absolute; top: 12px; left: 12px; pointer-events: none; background: rgba(9, 13, 24, 0.86); backdrop-filter: blur(8px); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 6px 12px; display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700; color: #38bdf8; box-shadow: 0 4px 12px rgba(0,0,0,0.45); max-width: calc(100% - 260px);">
               <span>🔍</span>
-              <span id="canvas-mode-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">4K UHD Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom • Double-Tap to Reset</span>
+              <span id="canvas-mode-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">4K 3D Main Body Organs • Click Any Pin to Inspect • Double-Click Pin for 3D Cutaway</span>
+            </div>
+
+            <!-- Floating Top-Right 3D Navigation Action Pill (Back to Full 3D Body / Open 3D Organ Cutaway) -->
+            <div id="canvas-3d-nav-overlay" style="position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; z-index: 5;">
+              <button id="btn-canvas-back-body" class="btn btn-primary btn-sm" style="display: none; padding: 6px 12px; font-size: 0.76rem; font-weight: 800; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,0.6);">
+                ⬅ Back to Full 3D Body
+              </button>
+              <button id="btn-canvas-open-cutaway" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 0.76rem; font-weight: 800; border-radius: 8px; background: rgba(16, 185, 129, 0.22); border: 1px solid #10b981; color: #34d399; box-shadow: 0 6px 18px rgba(0,0,0,0.5);">
+                🔍 Open 3D Heart Cutaway
+              </button>
             </div>
 
             <!-- Quiz Target Banner (Visible in Quiz Mode) -->
@@ -683,16 +768,47 @@ export function initAnatomyAtlasLab(containerId) {
             </div>
           </div>
 
-          <!-- Bottom Layer Opacity & Dissection Strip (Macro Mode) -->
-          <div id="dissection-control-panel" style="display: flex; flex-direction: column; gap: 10px; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(12px); padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);">
+          <!-- Bottom Live 3D Organ Animation & Layer Dissection Strip (Macro Mode) -->
+          <div id="dissection-control-panel" style="display: flex; flex-direction: column; gap: 12px; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(12px); padding: 14px 18px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);">
+            
+            <!-- Live 3D Organ Physiology & Biomechanical Animation Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid rgba(148, 163, 184, 0.18);">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 0.78rem; font-weight: 800; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;">
+                  💓 Live 60 FPS 3D Organ Physiology &amp; Biomechanics:
+                </span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 6px; background: rgba(2, 6, 23, 0.65); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.3);">
+                  <span style="font-size: 0.74rem; font-weight: 700; color: #f87171;">🫀 Heart Rate:</span>
+                  <input id="rng-macro-hr" type="range" min="40" max="160" value="72" style="width: 80px; accent-color: #ef4444; cursor: pointer;">
+                  <span id="val-macro-hr" style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 800; color: #fca5a5; min-width: 52px;">72 BPM</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; background: rgba(2, 6, 23, 0.65); padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(56, 189, 248, 0.3);">
+                  <span style="font-size: 0.74rem; font-weight: 700; color: #38bdf8;">🫁 Breath Rate:</span>
+                  <input id="rng-macro-rr" type="range" min="6" max="36" value="15" style="width: 75px; accent-color: #38bdf8; cursor: pointer;">
+                  <span id="val-macro-rr" style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 800; color: #bae6fd; min-width: 54px;">15 /min</span>
+                </div>
+                <button id="btn-toggle-flow-particles" class="btn btn-primary btn-sm" style="font-size: 0.72rem; padding: 5px 10px; font-weight: 700;" title="Toggle real-time 60 FPS blood flow, O₂/CO₂ respiration, neural impulses, peristalsis, and renal filtrate streams">
+                  ✨ Live 3D Flows: ON
+                </button>
+                <button id="btn-toggle-3d-tilt" class="btn btn-primary btn-sm" style="font-size: 0.72rem; padding: 5px 10px; font-weight: 700;" title="Toggle interactive 3D holographic perspective tilt">
+                  🔄 3D Tilt: ON
+                </button>
+              </div>
+            </div>
+
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 0.8rem; font-weight: 800; color: #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em;">
                   🔬 Layer Dissection &amp; Opacity Blending
                 </span>
-                <span style="font-size: 0.72rem; color: #64748b; font-style: italic;">(Drag sliders to peel anatomical strata)</span>
+                <span style="font-size: 0.72rem; color: #94a3b8; font-style: italic;">(Switch between 3D Main Organs or peel individual strata)</span>
               </div>
               <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                <button id="btn-restore-3d-organs" class="btn btn-primary btn-sm" style="font-size: 0.72rem; padding: 4px 10px; font-weight: 800; background: linear-gradient(135deg, #0ea5e9, #10b981); border: none;" title="Show Colorful 4K 3D Main Body Organs View">
+                  🧍 3D Main Organs (Full Clarity)
+                </button>
                 <button id="btn-isolate-skeletal" class="btn btn-outline btn-sm" style="font-size: 0.72rem; padding: 4px 10px; font-weight: 700;" title="Isolate 206-Bone Skeleton">
                   💀 Isolate Skeleton
                 </button>
@@ -815,9 +931,14 @@ export function initAnatomyAtlasLab(containerId) {
                   Cor / Myocardium
                 </div>
               </div>
-              <button id="btn-focus-structure" class="btn btn-primary btn-sm" style="font-size: 0.76rem; padding: 6px 12px; font-weight: 700; white-space: nowrap;">
-                🎯 Focus 4K
-              </button>
+              <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end;">
+                <button id="btn-focus-structure" class="btn btn-primary btn-sm" style="font-size: 0.75rem; padding: 5px 11px; font-weight: 700; white-space: nowrap;">
+                  🎯 Focus 4K Pin
+                </button>
+                <button id="btn-inspect-open-3d-cutaway" class="btn btn-secondary btn-sm" style="font-size: 0.74rem; padding: 5px 11px; font-weight: 800; white-space: nowrap; background: rgba(16, 185, 129, 0.18); border: 1px solid #10b981; color: #34d399;">
+                  🔍 3D Organ Cutaway
+                </button>
+              </div>
             </div>
 
             <!-- Quantitative Biometrics & Embryological / Histological Taxonomic Strip -->
@@ -977,6 +1098,9 @@ export function initAnatomyAtlasLab(containerId) {
   const zoomBadge = document.getElementById("zoom-badge");
   const canvasOverlayBanner = document.getElementById("canvas-overlay-banner");
   const canvasModeText = document.getElementById("canvas-mode-text");
+  const btnCanvasBackBody = document.getElementById("btn-canvas-back-body");
+  const btnCanvasOpenCutaway = document.getElementById("btn-canvas-open-cutaway");
+  const btnInspectOpen3dCutaway = document.getElementById("btn-inspect-open-3d-cutaway");
   const quizPromptBanner = document.getElementById("quiz-prompt-banner");
   const quizTargetText = document.getElementById("quiz-target-text");
   const quizFeedbackPill = document.getElementById("quiz-feedback-pill");
@@ -1059,9 +1183,61 @@ export function initAnatomyAtlasLab(containerId) {
         const pao2 = Math.round(histoState.fio2 * 4.8);
         const urineOsm = Math.round(100 + (histoState.adhLevel / 100) * 1100);
         elPhysioPrim.innerText = `HR: ${histoState.heartRate} BPM • CO: ${co} L/min`;
-        elPhysioSub.innerText = `Urine: ${urineOsm} mOsm/L • PAO₂: ${pao2} mmHg`;
+        elPhysioSub.innerText = `Breath: ${breathRate}/min • Urine: ${urineOsm} mOsm/L • PAO₂: ${pao2} mmHg`;
       }
     }
+  }
+
+  // Helper to resolve which 3D Close-Up Cutaway Plate corresponds to a structure
+  function getCloseUpPlateForStructure(st) {
+    if (!st) return null;
+    if (st.closeUpPlate && ANATOMICAL_PLATES[st.closeUpPlate]) return st.closeUpPlate;
+    if (st.plate && ANATOMICAL_PLATES[st.plate]) return st.plate;
+    if (st.system === "circulatory") return "heart";
+    if (st.system === "respiratory") return "lungs";
+    if (st.system === "digestive") return "digestive";
+    if (st.system === "nervous") return "brain";
+    if (st.system === "urinary" || st.system === "endocrine") return "urinary";
+    if (st.system === "skeletal") return "skeletal";
+    if (st.system === "muscular") return "muscular";
+    return null;
+  }
+
+  function update3dCutawayButtons(st) {
+    const closeUpKey = getCloseUpPlateForStructure(st);
+    const closeUpPlate = closeUpKey ? ANATOMICAL_PLATES[closeUpKey] : null;
+    if (btnCanvasBackBody) {
+      btnCanvasBackBody.style.display = (activePlate !== "full_anterior" && activePlate !== "full_posterior" && activeTab !== "histology") ? "inline-flex" : "none";
+    }
+    if (btnCanvasOpenCutaway) {
+      if (activeTab !== "histology" && closeUpPlate && activePlate !== closeUpKey) {
+        btnCanvasOpenCutaway.style.display = "inline-flex";
+        btnCanvasOpenCutaway.innerText = `🔍 Open 3D ${closeUpPlate.shortName || closeUpPlate.name}`;
+        btnCanvasOpenCutaway.dataset.targetPlate = closeUpKey;
+      } else {
+        btnCanvasOpenCutaway.style.display = "none";
+      }
+    }
+    if (btnInspectOpen3dCutaway) {
+      if (closeUpPlate && activePlate !== closeUpKey) {
+        btnInspectOpen3dCutaway.style.display = "inline-flex";
+        btnInspectOpen3dCutaway.innerText = `🔍 3D ${closeUpPlate.shortName || "Cutaway"}`;
+        btnInspectOpen3dCutaway.dataset.targetPlate = closeUpKey;
+      } else if (activePlate !== "full_anterior") {
+        btnInspectOpen3dCutaway.style.display = "inline-flex";
+        btnInspectOpen3dCutaway.innerText = `⬅ Full 3D Body`;
+        btnInspectOpen3dCutaway.dataset.targetPlate = "full_anterior";
+      } else {
+        btnInspectOpen3dCutaway.style.display = "none";
+      }
+    }
+
+    // Highlight active organ pill in the 3D Main Body Organs dock
+    container.querySelectorAll(".btn-quick-organ").forEach(btn => {
+      const isSel = st && btn.dataset.organId === st.id;
+      btn.style.background = isSel ? "rgba(56, 189, 248, 0.28)" : "rgba(15, 23, 42, 0.9)";
+      btn.style.boxShadow = isSel ? "0 0 12px rgba(56, 189, 248, 0.45)" : "none";
+    });
   }
 
   // Render Scrollable Encyclopedia Index Directory
@@ -1123,13 +1299,13 @@ export function initAnatomyAtlasLab(containerId) {
         const st = ANATOMICAL_STRUCTURES.find(item => item.id === btn.dataset.structId);
         if (!st) return;
         SoundFX.playPop();
-        navigateToStructureEncyclopedia(st, 2.8);
+        navigateToStructureEncyclopedia(st, 2.4);
       });
     });
   }
 
   // Navigate to any structure (switches plate/gender/view if needed, updates monograph & centers camera)
-  function navigateToStructureEncyclopedia(st, targetZoom = 2.8) {
+  function navigateToStructureEncyclopedia(st, targetZoom = 2.4) {
     if (!st) return;
     if (st.gender && st.gender !== activeGender) {
       activeGender = st.gender;
@@ -1137,9 +1313,9 @@ export function initAnatomyAtlasLab(containerId) {
     }
     if (st.plate && st.plate !== activePlate) {
       switchAnatomicalPlate(st.plate);
-    } else if (!st.plate && activePlate !== "full_anterior" && activePlate !== "full_posterior") {
-      switchAnatomicalPlate(st.view === "posterior" ? "full_posterior" : "full_anterior");
-    } else if (st.view && activeView !== st.view) {
+    } else if (!st.plate && activePlate !== "full_anterior" && activePlate !== "full_posterior" && (!st.plateCoords || !st.plateCoords[activePlate])) {
+      switchAnatomicalPlate(st.view === "posterior" && !st.bothViews ? "full_posterior" : "full_anterior");
+    } else if (st.view && activeView !== st.view && !st.bothViews) {
       activeView = st.view;
       btnViewAnt?.classList.toggle("btn-primary", activeView === "anterior");
       btnViewAnt?.classList.toggle("btn-secondary", activeView !== "anterior");
@@ -1148,6 +1324,7 @@ export function initAnatomyAtlasLab(containerId) {
       if (activePlate === "full_anterior" && activeView === "posterior") switchAnatomicalPlate("full_posterior");
       if (activePlate === "full_posterior" && activeView === "anterior") switchAnatomicalPlate("full_anterior");
     }
+    syncStructureCoordsForPlate(activePlate);
     // Ensure its stratum is visible
     if (getStructureOpacity(st) < 0.25) {
       if (st.layer === 1) layerOpacities.skin = 0.85;
@@ -1161,6 +1338,127 @@ export function initAnatomyAtlasLab(containerId) {
     updateInspectorCard(st);
     focusCameraOnCoords(st.coords.x, st.coords.y, targetZoom);
   }
+
+  // Bind 16-Organ 3D Quick-Select Dock buttons
+  container.querySelectorAll(".btn-quick-organ").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const organId = btn.dataset.organId;
+      const st = ANATOMICAL_STRUCTURES.find(item => item.id === organId);
+      if (!st) return;
+      SoundFX.playPop();
+      if (activeTab === "histology") switchTab("macro");
+      // If user clicks an organ pill while on an unrelated close-up plate, return to 3D Full Body or its matching plate
+      if (activePlate !== "full_anterior" && (!st.plateCoords || !st.plateCoords[activePlate])) {
+        use3dOrgansMaster = true;
+        switchAnatomicalPlate("full_anterior");
+      }
+      syncStructureCoordsForPlate(activePlate);
+      updateInspectorCard(st);
+      focusCameraOnCoords(st.coords.x, st.coords.y, activePlate === "full_anterior" ? 2.35 : 1.75);
+    });
+    btn.addEventListener("dblclick", () => {
+      const organId = btn.dataset.organId;
+      const st = ANATOMICAL_STRUCTURES.find(item => item.id === organId);
+      const closeUpKey = getCloseUpPlateForStructure(st);
+      if (closeUpKey) {
+        SoundFX.playSuccess();
+        switchAnatomicalPlate(closeUpKey);
+        syncStructureCoordsForPlate(closeUpKey);
+        updateInspectorCard(st);
+      }
+    });
+  });
+
+  // Bind Floating 3D Cutaway & Back-to-Body Buttons
+  btnCanvasBackBody?.addEventListener("click", () => {
+    SoundFX.playPop();
+    use3dOrgansMaster = true;
+    switchAnatomicalPlate("full_anterior");
+  });
+
+  btnCanvasOpenCutaway?.addEventListener("click", () => {
+    const targetPlate = btnCanvasOpenCutaway.dataset.targetPlate || getCloseUpPlateForStructure(selectedStructure);
+    if (targetPlate && ANATOMICAL_PLATES[targetPlate]) {
+      SoundFX.playPop();
+      const preserveStruct = selectedStructure;
+      switchAnatomicalPlate(targetPlate);
+      if (preserveStruct && preserveStruct.plateCoords && preserveStruct.plateCoords[targetPlate]) {
+        syncStructureCoordsForPlate(targetPlate);
+        updateInspectorCard(preserveStruct);
+      }
+    }
+  });
+
+  btnInspectOpen3dCutaway?.addEventListener("click", () => {
+    const targetPlate = btnInspectOpen3dCutaway.dataset.targetPlate || getCloseUpPlateForStructure(selectedStructure) || "full_anterior";
+    if (ANATOMICAL_PLATES[targetPlate]) {
+      SoundFX.playPop();
+      const preserveStruct = selectedStructure;
+      if (targetPlate === "full_anterior") use3dOrgansMaster = true;
+      switchAnatomicalPlate(targetPlate);
+      if (preserveStruct && (targetPlate === "full_anterior" || (preserveStruct.plateCoords && preserveStruct.plateCoords[targetPlate]))) {
+        syncStructureCoordsForPlate(targetPlate);
+        updateInspectorCard(preserveStruct);
+      }
+    }
+  });
+
+  // Bind Live 3D Organ Physiology Controls
+  const rngMacroHr = document.getElementById("rng-macro-hr");
+  const valMacroHr = document.getElementById("val-macro-hr");
+  const rngMacroRr = document.getElementById("rng-macro-rr");
+  const valMacroRr = document.getElementById("val-macro-rr");
+  const btnToggleFlowParticles = document.getElementById("btn-toggle-flow-particles");
+  const btnToggle3dTilt = document.getElementById("btn-toggle-3d-tilt");
+  const btnRestore3dOrgans = document.getElementById("btn-restore-3d-organs");
+
+  rngMacroHr?.addEventListener("input", (e) => {
+    histoState.heartRate = parseInt(e.target.value, 10) || 72;
+    if (valMacroHr) valMacroHr.innerText = `${histoState.heartRate} BPM`;
+    updateTopTelemetryRibbon();
+  });
+
+  rngMacroRr?.addEventListener("input", (e) => {
+    breathRate = parseInt(e.target.value, 10) || 15;
+    if (valMacroRr) valMacroRr.innerText = `${breathRate} /min`;
+    updateTopTelemetryRibbon();
+  });
+
+  btnToggleFlowParticles?.addEventListener("click", () => {
+    liveFlowParticles = !liveFlowParticles;
+    SoundFX.playClick();
+    btnToggleFlowParticles.innerText = `✨ Live 3D Flows: ${liveFlowParticles ? "ON" : "OFF"}`;
+    btnToggleFlowParticles.classList.toggle("btn-primary", liveFlowParticles);
+    btnToggleFlowParticles.classList.toggle("btn-secondary", !liveFlowParticles);
+  });
+
+  btnToggle3dTilt?.addEventListener("click", () => {
+    orbit3dEnabled = !orbit3dEnabled;
+    if (!orbit3dEnabled) {
+      pointerTiltX = 0;
+      pointerTiltY = 0;
+    }
+    SoundFX.playClick();
+    btnToggle3dTilt.innerText = `🔄 3D Tilt: ${orbit3dEnabled ? "ON" : "OFF"}`;
+    btnToggle3dTilt.classList.toggle("btn-primary", orbit3dEnabled);
+    btnToggle3dTilt.classList.toggle("btn-secondary", !orbit3dEnabled);
+  });
+
+  btnRestore3dOrgans?.addEventListener("click", () => {
+    SoundFX.playPop();
+    use3dOrgansMaster = true;
+    layerOpacities.skin = 0.25;
+    layerOpacities.muscular = 0.85;
+    layerOpacities.skeletal = 0.95;
+    layerOpacities.visceral = 1.0;
+    layerOpacities.circulatory = 1.0;
+    layerOpacities.nervous = 0.90;
+    syncSliders();
+    switchAnatomicalPlate("full_anterior");
+    if (canvasModeText) {
+      canvasModeText.innerText = "🧍 4K 3D Main Body Organs View • Live Biomechanical Breathing & Heartbeat";
+    }
+  });
 
   // Bind System Filter Pills in Encyclopedia Index
   container.querySelectorAll("#encyclopedia-system-pills .atlas-sys-pill").forEach(pill => {
@@ -1197,6 +1495,10 @@ export function initAnatomyAtlasLab(containerId) {
     slider?.addEventListener("input", (e) => {
       const val = parseFloat(e.target.value);
       layerOpacities[key] = val / 100;
+      // When user manually drags a dissection layer slider on full_anterior, blend the 6-layer PNG strata
+      if (key === "skin" || key === "muscular" || key === "skeletal") {
+        use3dOrgansMaster = false;
+      }
       document.getElementById(valDisp).innerText = `${Math.round(val)}%`;
     });
   };
@@ -1217,6 +1519,7 @@ export function initAnatomyAtlasLab(containerId) {
   document.getElementById("btn-isolate-skeletal")?.addEventListener("click", () => {
     SoundFX.playPop();
     ensureFullBodyMacro();
+    use3dOrgansMaster = false;
     layerOpacities.skin = 0.0;
     layerOpacities.muscular = 0.0;
     layerOpacities.skeletal = 1.0;
@@ -1232,6 +1535,7 @@ export function initAnatomyAtlasLab(containerId) {
   document.getElementById("btn-isolate-muscular")?.addEventListener("click", () => {
     SoundFX.playPop();
     ensureFullBodyMacro();
+    use3dOrgansMaster = false;
     layerOpacities.skin = 0.0;
     layerOpacities.muscular = 1.0;
     layerOpacities.skeletal = 0.0;
@@ -1247,21 +1551,23 @@ export function initAnatomyAtlasLab(containerId) {
   document.getElementById("btn-isolate-viscera")?.addEventListener("click", () => {
     SoundFX.playPop();
     ensureFullBodyMacro();
+    use3dOrgansMaster = true;
     layerOpacities.skin = 0.0;
     layerOpacities.muscular = 0.0;
     layerOpacities.skeletal = 0.18;
     layerOpacities.visceral = 1.0;
-    layerOpacities.circulatory = 0.20;
-    layerOpacities.nervous = 0.0;
+    layerOpacities.circulatory = 1.0;
+    layerOpacities.nervous = 0.85;
     syncSliders();
     if (canvasModeText) {
-      canvasModeText.innerText = "🍽️ Splanchnic Viscera Isolated • Thoracic & Abdominal Internal Organs";
+      canvasModeText.innerText = "🍽️ 3D Internal Viscera Isolated • Colorful Thoracic & Abdominal Organs";
     }
   });
 
   document.getElementById("btn-isolate-neuro")?.addEventListener("click", () => {
     SoundFX.playPop();
     ensureFullBodyMacro();
+    use3dOrgansMaster = false;
     layerOpacities.skin = 0.0;
     layerOpacities.muscular = 0.0;
     layerOpacities.skeletal = 0.18;
@@ -1277,6 +1583,7 @@ export function initAnatomyAtlasLab(containerId) {
   document.getElementById("btn-reset-layers")?.addEventListener("click", () => {
     SoundFX.playPop();
     ensureFullBodyMacro();
+    use3dOrgansMaster = true;
     layerOpacities.skin = 0.35;
     layerOpacities.muscular = 0.70;
     layerOpacities.skeletal = 0.85;
@@ -1285,7 +1592,7 @@ export function initAnatomyAtlasLab(containerId) {
     layerOpacities.nervous = 0.70;
     syncSliders();
     if (canvasModeText) {
-      canvasModeText.innerText = "All Anatomical Strata Balanced • 6-Layer Multi-System Composite";
+      canvasModeText.innerText = "🧍 4K 3D Main Body Organs View Restored • Full Volumetric Clarity";
     }
   });
 
@@ -1302,7 +1609,8 @@ export function initAnatomyAtlasLab(containerId) {
   btnFocusStructure?.addEventListener("click", () => {
     if (!selectedStructure) return;
     SoundFX.playPop();
-    focusCameraOnCoords(selectedStructure.coords.x, selectedStructure.coords.y, 3.2);
+    syncStructureCoordsForPlate(activePlate);
+    focusCameraOnCoords(selectedStructure.coords.x, selectedStructure.coords.y, 2.8);
   });
 
   function focusCameraOnCoords(targetX, targetY, targetZoom = 3.0) {
@@ -1382,7 +1690,7 @@ export function initAnatomyAtlasLab(containerId) {
           const target = ANATOMICAL_STRUCTURES.find(item => item.id === b.dataset.relId);
           if (target) {
             SoundFX.playPop();
-            navigateToStructureEncyclopedia(target, 2.8);
+            navigateToStructureEncyclopedia(target, 2.4);
           }
         });
       });
@@ -1403,7 +1711,7 @@ export function initAnatomyAtlasLab(containerId) {
         auscLabel.innerText = "Trigger Bioelectric Action Potential";
       } else {
         if (auscIcon) auscIcon.innerText = "🎯";
-        auscLabel.innerText = "Zoom 3.5× on Anatomical Landmark";
+        auscLabel.innerText = "Zoom 3.0× on Anatomical Landmark";
       }
     }
 
@@ -1413,6 +1721,7 @@ export function initAnatomyAtlasLab(containerId) {
       histoBtnLabel.innerText = m ? `Sim: ${m.title.split("&")[0].trim()}` : "Launch Tissue Histology Sim";
     }
 
+    update3dCutawayButtons(structure);
     renderEncyclopediaIndex();
     updateTopTelemetryRibbon();
   }
@@ -1434,7 +1743,7 @@ export function initAnatomyAtlasLab(containerId) {
       switchTab("histology");
     } else {
       SoundFX.playPop();
-      focusCameraOnCoords(selectedStructure.coords.x, selectedStructure.coords.y, 3.5);
+      focusCameraOnCoords(selectedStructure.coords.x, selectedStructure.coords.y, 3.0);
     }
   });
 
@@ -1451,6 +1760,8 @@ export function initAnatomyAtlasLab(containerId) {
   function switchAnatomicalPlate(plateKey) {
     if (!ANATOMICAL_PLATES || !ANATOMICAL_PLATES[plateKey]) return;
     activePlate = plateKey;
+    syncStructureCoordsForPlate(plateKey);
+
     const p = ANATOMICAL_PLATES[plateKey];
     if (p.view) {
       activeView = p.view;
@@ -1461,9 +1772,9 @@ export function initAnatomyAtlasLab(containerId) {
     }
     SoundFX.playPop();
 
-    // Reset viewport zoom/pan to centered view
-    focusCameraOnCoords(500, 900, 1.0);
-    if (zoomBadge) zoomBadge.innerText = "1.0×";
+    // Frame the plate at its optimal 3D camera zoom & center
+    const defCam = getDefaultPlateCamera(plateKey);
+    focusCameraOnCoords(defCam.x, defCam.y, defCam.zoom);
 
     // Intelligent layer opacity adaptation for dedicated plates
     if (plateKey === "skeletal") {
@@ -1497,6 +1808,11 @@ export function initAnatomyAtlasLab(containerId) {
       layerOpacities.visceral = 1.0;
       layerOpacities.skin = 0.0;
       syncSliders();
+    } else if (plateKey === "urinary") {
+      layerOpacities.visceral = 1.0;
+      layerOpacities.circulatory = 1.0;
+      layerOpacities.skin = 0.0;
+      syncSliders();
     } else if (plateKey === "male_reproductive") {
       activeGender = "male";
       updateGenderButtons();
@@ -1515,7 +1831,16 @@ export function initAnatomyAtlasLab(containerId) {
       layerOpacities.skeletal = 0.1;
       layerOpacities.skin = 0.0;
       syncSliders();
-    } else if (plateKey === "full_anterior" || plateKey === "full_posterior") {
+    } else if (plateKey === "full_anterior") {
+      use3dOrgansMaster = true;
+      layerOpacities.skin = 0.25;
+      layerOpacities.muscular = 0.85;
+      layerOpacities.skeletal = 0.95;
+      layerOpacities.visceral = 1.0;
+      layerOpacities.circulatory = 1.0;
+      layerOpacities.nervous = 0.90;
+      syncSliders();
+    } else if (plateKey === "full_posterior") {
       layerOpacities.skin = 0.25;
       layerOpacities.muscular = 0.85;
       layerOpacities.skeletal = 0.95;
@@ -1527,6 +1852,7 @@ export function initAnatomyAtlasLab(containerId) {
 
     // Auto-select relevant structure
     const candidate = ANATOMICAL_STRUCTURES.find(s => s.plate === plateKey) ||
+                      ANATOMICAL_STRUCTURES.find(s => s.plateCoords && s.plateCoords[plateKey]) ||
                       ANATOMICAL_STRUCTURES.find(s => p.system !== "all" && s.system === p.system) ||
                       ANATOMICAL_STRUCTURES.find(s => s.view === activeView);
     if (candidate) {
@@ -1542,7 +1868,7 @@ export function initAnatomyAtlasLab(containerId) {
 
     // Update banner text
     if (canvasModeText) {
-      canvasModeText.innerText = `${p.name} • 8K UHD Medical Plate • Drag to Pan • Wheel/Pinch to Zoom`;
+      canvasModeText.innerText = `${p.name} • 4K 3D Volumetric Plate • Click Pin to Inspect • Drag to Pan • Wheel/Pinch to Zoom`;
     }
     updateTopTelemetryRibbon();
   }
@@ -1568,15 +1894,16 @@ export function initAnatomyAtlasLab(containerId) {
     if (match) {
       if (match.plate && match.plate !== activePlate) {
         switchAnatomicalPlate(match.plate);
-      } else if (activeView !== match.view) {
+      } else if (activeView !== match.view && !match.bothViews) {
         activeView = match.view;
         btnViewAnt.classList.toggle("btn-primary", activeView === "anterior");
         btnViewAnt.classList.toggle("btn-secondary", activeView !== "anterior");
         btnViewPost.classList.toggle("btn-primary", activeView === "posterior");
         btnViewPost.classList.toggle("btn-secondary", activeView !== "posterior");
       }
+      syncStructureCoordsForPlate(activePlate);
       updateInspectorCard(match);
-      focusCameraOnCoords(match.coords.x, match.coords.y, 2.8);
+      focusCameraOnCoords(match.coords.x, match.coords.y, 2.5);
     }
   });
 
@@ -1604,7 +1931,7 @@ export function initAnatomyAtlasLab(containerId) {
 
     if (activeTab === "macro") {
       const p = ANATOMICAL_PLATES ? ANATOMICAL_PLATES[activePlate] : null;
-      canvasModeText.innerText = p ? `${p.name} • 8K UHD Medical Plate • Drag to Pan • Wheel/Pinch to Zoom` : "4K UHD Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom";
+      canvasModeText.innerText = p ? `${p.name} • 4K 3D Volumetric Plate • Click Pin to Inspect • Double-Click for 3D Cutaway` : "4K 3D Anatomical Matrix • Drag to Pan • Wheel/Pinch to Zoom";
     } else if (activeTab === "histology") {
       canvasModeText.innerText = "60 FPS Microscopic Histology & Physiological Workbench • Live Quantitative Telemetry";
       renderHistologyControls();
@@ -1613,6 +1940,7 @@ export function initAnatomyAtlasLab(containerId) {
       selectNewQuizTarget();
       updateQuizBanner();
     }
+    update3dCutawayButtons(selectedStructure);
     updateTopTelemetryRibbon();
     SoundFX.playClick();
   }
@@ -1705,17 +2033,18 @@ export function initAnatomyAtlasLab(containerId) {
     activeRegion = reg;
     SoundFX.playClick();
     if (reg === "all") {
-      focusCameraOnCoords(500, 900, 1.0);
+      const defCam = getDefaultPlateCamera(activePlate);
+      focusCameraOnCoords(defCam.x, defCam.y, defCam.zoom);
     } else if (reg === "head") {
-      focusCameraOnCoords(500, 150, 3.2);
+      focusCameraOnCoords(500, 155, 3.0);
     } else if (reg === "thorax") {
-      focusCameraOnCoords(500, 380, 3.2);
+      focusCameraOnCoords(500, 420, 2.7);
     } else if (reg === "abdomen") {
-      focusCameraOnCoords(500, 620, 3.0);
+      focusCameraOnCoords(500, 620, 2.7);
     } else if (reg === "pelvis") {
-      focusCameraOnCoords(500, 820, 3.0);
+      focusCameraOnCoords(500, 820, 2.7);
     } else if (reg === "upper_limb") {
-      focusCameraOnCoords(330, 450, 2.6);
+      focusCameraOnCoords(330, 450, 2.4);
     } else if (reg === "lower_limb") {
       focusCameraOnCoords(440, 1200, 2.2);
     }
@@ -1748,8 +2077,8 @@ export function initAnatomyAtlasLab(containerId) {
     SoundFX.playClick();
   });
   btnZoomReset?.addEventListener("click", () => {
-    focusCameraOnCoords(500, 900, 1.0);
-    if (zoomBadge) zoomBadge.innerText = "1.0×";
+    const defCam = getDefaultPlateCamera(activePlate);
+    focusCameraOnCoords(defCam.x, defCam.y, defCam.zoom);
     SoundFX.playClick();
   });
 
@@ -1792,6 +2121,7 @@ export function initAnatomyAtlasLab(containerId) {
   }
 
   // Initialize Encyclopedia Index and Initial Monograph on Mount
+  syncStructureCoordsForPlate(activePlate);
   updateInspectorCard(selectedStructure);
 
   // Pointer & Touch Interaction State
@@ -1838,6 +2168,15 @@ export function initAnatomyAtlasLab(containerId) {
 
   function handlePointerMove(e) {
     if (e.pointerType === "touch") return;
+    const coords = getCanvasCoords(e);
+    if (orbit3dEnabled && coords.width > 0 && coords.height > 0) {
+      const relX = (coords.x / coords.width) - 0.5;
+      const relY = (coords.y / coords.height) - 0.5;
+      if (relX >= -0.6 && relX <= 0.6 && relY >= -0.6 && relY <= 0.6) {
+        pointerTiltX = Math.max(-1, Math.min(1, relX * 2));
+        pointerTiltY = Math.max(-1, Math.min(1, relY * 2));
+      }
+    }
     if (isDragging) {
       const nextPanX = e.clientX - dragStartX;
       const nextPanY = e.clientY - dragStartY;
@@ -1846,9 +2185,8 @@ export function initAnatomyAtlasLab(containerId) {
       panY = nextPanY;
     } else {
       // Hover detection on active plate pins
-      const coords = getCanvasCoords(e);
       const norm = canvasToNormalizedCoords(coords.x, coords.y, coords.width, coords.height);
-      const hitRadius = 36 / zoom; // Screen pixel normalized radius
+      const hitRadius = 38 / zoom; // Screen pixel normalized radius
       const visible = getVisibleStructures(activePlate, activeView).filter(s => getStructureOpacity(s) >= 0.12);
       const found = visible.find(s => {
         const dx = s.coords.x - norm.x;
@@ -1915,9 +2253,9 @@ export function initAnatomyAtlasLab(containerId) {
         const tapCanvasX = t.clientX - rect.left;
         const tapCanvasY = t.clientY - rect.top;
 
-        if (zoom > 1.35) {
-          // Reset to 1.0x centered
-          focusCameraOnCoords(500, 900, 1.0);
+        if (zoom > 2.2) {
+          const defCam = getDefaultPlateCamera(activePlate);
+          focusCameraOnCoords(defCam.x, defCam.y, defCam.zoom);
         } else {
           // Zoom in 2.8x centered at tap point
           const scale = (rect.height / 1800) * zoom;
@@ -2003,7 +2341,7 @@ export function initAnatomyAtlasLab(containerId) {
 
     const coords = getCanvasCoords(e);
     const norm = canvasToNormalizedCoords(coords.x, coords.y, coords.width, coords.height);
-    const hitRadius = 40 / zoom;
+    const hitRadius = 42 / zoom;
     const visible = getVisibleStructures(activePlate, activeView).filter(s => getStructureOpacity(s) >= 0.12);
     const clicked = visible.find(s => {
       const dx = s.coords.x - norm.x;
@@ -2033,6 +2371,31 @@ export function initAnatomyAtlasLab(containerId) {
         updateQuizBanner();
       } else {
         updateInspectorCard(clicked);
+      }
+    }
+  });
+
+  // Double-click on an organ pin opens its 4K 3D Internal Cutaway Plate (or returns to 3D Full Body)
+  canvas.addEventListener("dblclick", (e) => {
+    if (activeTab !== "macro") return;
+    const coords = getCanvasCoords(e);
+    const norm = canvasToNormalizedCoords(coords.x, coords.y, coords.width, coords.height);
+    const hitRadius = 46 / zoom;
+    const visible = getVisibleStructures(activePlate, activeView).filter(s => getStructureOpacity(s) >= 0.12);
+    const clicked = visible.find(s => {
+      const dx = s.coords.x - norm.x;
+      const dy = s.coords.y - norm.y;
+      return Math.hypot(dx, dy) <= hitRadius;
+    });
+    if (clicked) {
+      const closeUpKey = getCloseUpPlateForStructure(clicked);
+      if (closeUpKey && activePlate !== closeUpKey && ANATOMICAL_PLATES[closeUpKey]) {
+        SoundFX.playSuccess();
+        switchAnatomicalPlate(closeUpKey);
+        if (clicked.plateCoords && clicked.plateCoords[closeUpKey]) {
+          syncStructureCoordsForPlate(closeUpKey);
+          updateInspectorCard(clicked);
+        }
       }
     }
   });
@@ -2433,7 +2796,7 @@ export function initAnatomyAtlasLab(containerId) {
   window.addEventListener("keydown", handleKeyDown);
 
   // ----------------------------------------------------
-  // 8K ULTRA-HD MEDICAL DISSECTION & COMPOSITING ENGINE
+  // 8K ULTRA-HD 3D BIOMECHANICAL MESH & COMPOSITING ENGINE
   // ----------------------------------------------------
   function drawPlateImageLayer(targetCtx, img, alpha, filterMode = null) {
     if (!img || !img.complete || img.naturalWidth <= 0 || alpha <= 0.005) return;
@@ -2453,8 +2816,14 @@ export function initAnatomyAtlasLab(containerId) {
     const aspect = img.naturalWidth / img.naturalHeight;
     let drawX, drawY, drawW, drawH;
 
-    // Exact 1000x1800 registered multi-layer dissection plate
-    if (img.naturalWidth === 1000 && img.naturalHeight === 1800) {
+    // 1. Calibrated 4K 3D Full-Body Main Organs Render (896x1200 -> 690x924 at 155, 55)
+    if (img === imgAnterior) {
+      drawW = 690;
+      drawH = 924;
+      drawX = 155;
+      drawY = 55;
+    } else if (img.naturalWidth === 1000 && img.naturalHeight === 1800) {
+      // Exact 1000x1800 registered multi-layer dissection plate
       drawX = 0;
       drawY = 0;
       drawW = 1000;
@@ -2478,7 +2847,110 @@ export function initAnatomyAtlasLab(containerId) {
       drawY = 900 - (drawH / 2);
     }
 
-    targetCtx.drawImage(img, drawX, drawY, drawW, drawH);
+    // Apply subtle interactive 3D Holographic Perspective Tilt when enabled
+    const centerX = drawX + drawW * 0.5;
+    const centerY = drawY + drawH * 0.5;
+    if (orbit3dEnabled && simTime > 0) {
+      const idleTiltX = Math.sin(simTime * 1.1) * 0.25;
+      const idleTiltY = Math.cos(simTime * 0.85) * 0.2;
+      const tx = pointerTiltX * 0.75 + idleTiltX;
+      const ty = pointerTiltY * 0.75 + idleTiltY;
+      targetCtx.translate(centerX, centerY);
+      targetCtx.transform(1, ty * 0.014, tx * 0.018, 1, tx * 4.5, ty * 3.5);
+      targetCtx.translate(-centerX, -centerY);
+    }
+
+    // Real-Time 60 FPS Biomechanical 3D Mesh Slice Deformation for Living Organs
+    const heartFreq = ((histoState.heartRate || 72) / 60) * Math.PI * 2;
+    const breathFreq = ((breathRate || 15) / 60) * Math.PI * 2;
+    const systolePulse = Math.pow(Math.max(0, Math.sin(simTime * heartFreq)), 3);
+    const breathWave = Math.sin(simTime * breathFreq);
+
+    if (img === imgAnterior && simTime > 0) {
+      // 36-Slice Biomechanical Thoracic Breathing & Precordial Heartbeat Mesh
+      const slices = 36;
+      const srcSliceH = img.naturalHeight / slices;
+      const dstSliceH = drawH / slices;
+      for (let i = 0; i < slices; i++) {
+        const normY = (i + 0.5) / slices;
+        // Thoracic ribcage/lung expansion zone (normY 0.22 .. 0.48)
+        let scaleX = 1.0;
+        let shiftY = 0;
+        if (normY > 0.20 && normY < 0.52) {
+          const thoraxEnv = Math.sin(((normY - 0.20) / 0.32) * Math.PI);
+          scaleX += 0.016 * breathWave * thoraxEnv;
+          shiftY -= 2.2 * breathWave * thoraxEnv;
+        }
+        // Precordial cardiac beat impulse (normY 0.28 .. 0.42)
+        if (normY > 0.28 && normY < 0.42) {
+          const heartEnv = Math.sin(((normY - 0.28) / 0.14) * Math.PI);
+          scaleX += 0.012 * systolePulse * heartEnv;
+        }
+        const sliceW = drawW * scaleX;
+        const sliceX = drawX + (drawW - sliceW) * 0.5;
+        const sliceY = drawY + i * dstSliceH + shiftY;
+        targetCtx.drawImage(
+          img,
+          0, i * srcSliceH, img.naturalWidth, srcSliceH + 0.8,
+          sliceX, sliceY, sliceW, dstSliceH + 0.9
+        );
+      }
+    } else if (activePlate === "heart" && img === plateImages.heart && simTime > 0) {
+      // 36-Slice Wiggers Cardiac Cycle Myocardial Contraction & Apical Twist
+      const slices = 36;
+      const srcSliceH = img.naturalHeight / slices;
+      const dstSliceH = drawH / slices;
+      const atrialKick = Math.pow(Math.max(0, Math.sin(simTime * heartFreq - 0.85)), 4);
+      for (let i = 0; i < slices; i++) {
+        const normY = (i + 0.5) / slices;
+        let scaleX = 1.0;
+        let twistX = 0;
+        // Ventricular myocardium contraction (lower 60% of heart image)
+        if (normY > 0.38 && normY < 0.92) {
+          const ventEnv = Math.sin(((normY - 0.38) / 0.54) * Math.PI);
+          scaleX += 0.032 * systolePulse * ventEnv;
+          twistX = 4.5 * systolePulse * ventEnv * Math.sin(normY * Math.PI * 2);
+        } else if (normY >= 0.18 && normY <= 0.45) {
+          // Atrial & Great Vessel systolic expansion
+          const atrEnv = Math.sin(((normY - 0.18) / 0.27) * Math.PI);
+          scaleX += 0.022 * (atrialKick * 0.6 + systolePulse * 0.5) * atrEnv;
+        }
+        const sliceW = drawW * scaleX;
+        const sliceX = drawX + (drawW - sliceW) * 0.5 + twistX;
+        const sliceY = drawY + i * dstSliceH;
+        targetCtx.drawImage(
+          img,
+          0, i * srcSliceH, img.naturalWidth, srcSliceH + 0.8,
+          sliceX, sliceY, sliceW, dstSliceH + 0.9
+        );
+      }
+    } else if (activePlate === "lungs" && img === plateImages.lungs && simTime > 0) {
+      // 36-Slice Pulmonary Tidal Inspiration & Diaphragmatic Excursion Mesh
+      const slices = 36;
+      const srcSliceH = img.naturalHeight / slices;
+      const dstSliceH = drawH / slices;
+      for (let i = 0; i < slices; i++) {
+        const normY = (i + 0.5) / slices;
+        let scaleX = 1.0;
+        let shiftY = 0;
+        if (normY > 0.22 && normY < 0.92) {
+          const lungEnv = Math.sin(((normY - 0.22) / 0.70) * Math.PI);
+          scaleX += 0.028 * breathWave * lungEnv;
+          shiftY += 4.5 * breathWave * Math.pow(normY, 1.5);
+        }
+        const sliceW = drawW * scaleX;
+        const sliceX = drawX + (drawW - sliceW) * 0.5;
+        const sliceY = drawY + i * dstSliceH + shiftY;
+        targetCtx.drawImage(
+          img,
+          0, i * srcSliceH, img.naturalWidth, srcSliceH + 0.8,
+          sliceX, sliceY, sliceW, dstSliceH + 0.9
+        );
+      }
+    } else {
+      targetCtx.drawImage(img, drawX, drawY, drawW, drawH);
+    }
+
     targetCtx.restore();
   }
 
@@ -3916,6 +4388,212 @@ export function initAnatomyAtlasLab(containerId) {
     targetCtx.restore();
   }
 
+  // Helper to interpolate along a polyline path for 60 FPS physiological particle streams
+  function samplePolylinePoint(pts, tNorm) {
+    if (!pts || pts.length === 0) return { x: 500, y: 500 };
+    if (pts.length === 1) return pts[0];
+    const t = ((tNorm % 1) + 1) % 1;
+    const totalSegs = pts.length - 1;
+    const scaled = t * totalSegs;
+    const idx = Math.min(totalSegs - 1, Math.floor(scaled));
+    const frac = scaled - idx;
+    const p0 = pts[idx];
+    const p1 = pts[idx + 1];
+    return {
+      x: p0.x + (p1.x - p0.x) * frac,
+      y: p0.y + (p1.y - p0.y) * frac
+    };
+  }
+
+  // Real-Time 60 FPS Physiological Particle & Bio-Signal Streams on 3D Plates
+  function drawLive3dPhysiologicalStreams(targetCtx, plateKey) {
+    if (!liveFlowParticles) return;
+    targetCtx.save();
+
+    const hrFactor = (histoState.heartRate || 72) / 72;
+    const rrFactor = (breathRate || 15) / 15;
+    const heartBeat = Math.pow(Math.max(0, Math.sin(simTime * hrFactor * 7.5)), 3);
+    const breathPhase = Math.sin(simTime * rrFactor * 1.6); // > 0 inspiration, < 0 expiration
+
+    const drawParticleStream = (pathPts, count, speed, color, glowColor, radius, reverse = false) => {
+      targetCtx.save();
+      targetCtx.beginPath();
+      pathPts.forEach((pt, i) => {
+        if (i === 0) targetCtx.moveTo(pt.x, pt.y);
+        else targetCtx.lineTo(pt.x, pt.y);
+      });
+      targetCtx.strokeStyle = `${color}28`;
+      targetCtx.lineWidth = radius * 1.4;
+      targetCtx.lineCap = "round";
+      targetCtx.stroke();
+
+      targetCtx.fillStyle = color;
+      targetCtx.shadowColor = glowColor || color;
+      targetCtx.shadowBlur = radius * 2.4;
+      for (let i = 0; i < count; i++) {
+        let phase = (simTime * speed + i / count) % 1;
+        if (reverse) phase = 1.0 - phase;
+        const pt = samplePolylinePoint(pathPts, phase);
+        targetCtx.beginPath();
+        targetCtx.arc(pt.x, pt.y, radius * (0.85 + 0.25 * Math.sin(simTime * 6 + i)), 0, Math.PI * 2);
+        targetCtx.fill();
+      }
+      targetCtx.restore();
+    };
+
+    if (plateKey === "full_anterior") {
+      // 1. Beating 3D Heart Systolic Glow
+      const hGrad = targetCtx.createRadialGradient(515, 385, 4, 515, 385, 44 * (1 + 0.25 * heartBeat));
+      hGrad.addColorStop(0, `rgba(239, 68, 68, ${0.28 + 0.35 * heartBeat})`);
+      hGrad.addColorStop(1, "rgba(239, 68, 68, 0)");
+      targetCtx.fillStyle = hGrad;
+      targetCtx.beginPath();
+      targetCtx.arc(515, 385, 44 * (1 + 0.25 * heartBeat), 0, Math.PI * 2);
+      targetCtx.fill();
+
+      // 2. Arterial Oxygenated Blood Streams (Heart -> Aorta -> Brain / Liver / Kidneys / Pelvis)
+      drawParticleStream(
+        [{ x: 515, y: 385 }, { x: 502, y: 332 }, { x: 484, y: 230 }, { x: 500, y: 125 }],
+        5, 0.38 * hrFactor, "#ff4d6d", "#ef4444", 3.2
+      );
+      drawParticleStream(
+        [{ x: 515, y: 385 }, { x: 502, y: 332 }, { x: 500, y: 480 }, { x: 500, y: 588 }, { x: 500, y: 740 }],
+        7, 0.42 * hrFactor, "#ef4444", "#f87171", 3.5
+      );
+      // Renal arterial branches to Left & Right 3D Kidneys
+      drawParticleStream(
+        [{ x: 500, y: 580 }, { x: 450, y: 588 }],
+        3, 0.45 * hrFactor, "#fb7185", "#ef4444", 2.6
+      );
+      drawParticleStream(
+        [{ x: 500, y: 580 }, { x: 552, y: 588 }],
+        3, 0.45 * hrFactor, "#fb7185", "#ef4444", 2.6
+      );
+      // Venous Return (IVC & SVC -> Right Atrium)
+      drawParticleStream(
+        [{ x: 486, y: 740 }, { x: 486, y: 580 }, { x: 486, y: 450 }, { x: 492, y: 382 }],
+        6, 0.32 * hrFactor, "#38bdf8", "#0284c7", 3.0
+      );
+
+      // 3. Respiratory O₂ / CO₂ Tidal Airflow in Trachea & Lungs
+      const isInsp = breathPhase >= 0;
+      const airColor = isInsp ? "#22d3ee" : "#a78bfa";
+      drawParticleStream(
+        [{ x: 500, y: 215 }, { x: 500, y: 278 }, { x: 500, y: 325 }, { x: 435, y: 365 }, { x: 420, y: 405 }],
+        5, 0.34 * rrFactor, airColor, airColor, 3.0, !isInsp
+      );
+      drawParticleStream(
+        [{ x: 500, y: 215 }, { x: 500, y: 278 }, { x: 500, y: 325 }, { x: 562, y: 365 }, { x: 575, y: 405 }],
+        5, 0.34 * rrFactor, airColor, airColor, 3.0, !isInsp
+      );
+
+      // 4. Neural Bioelectric Synaptic Sparks in 3D Brain & Brainstem
+      drawParticleStream(
+        [{ x: 465, y: 115 }, { x: 500, y: 102 }, { x: 535, y: 115 }, { x: 500, y: 145 }, { x: 500, y: 195 }],
+        5, 0.55, "#fde047", "#38bdf8", 2.8
+      );
+
+      // 5. Hepatobiliary Bile & Gastric/Intestinal Peristalsis
+      drawParticleStream(
+        [{ x: 432, y: 495 }, { x: 448, y: 535 }, { x: 485, y: 555 }],
+        3, 0.25, "#10b981", "#34d399", 2.8
+      );
+      drawParticleStream(
+        [{ x: 545, y: 485 }, { x: 556, y: 512 }, { x: 525, y: 550 }, { x: 505, y: 635 }, { x: 505, y: 695 }],
+        5, 0.22, "#fb923c", "#f59e0b", 3.0
+      );
+
+      // 6. Renal Ureteral Peristalsis (Kidneys -> Ureters -> Urinary Bladder)
+      drawParticleStream(
+        [{ x: 450, y: 595 }, { x: 472, y: 695 }, { x: 492, y: 790 }],
+        4, 0.26, "#facc15", "#eab308", 2.7
+      );
+      drawParticleStream(
+        [{ x: 552, y: 595 }, { x: 528, y: 695 }, { x: 508, y: 790 }],
+        4, 0.26, "#facc15", "#eab308", 2.7
+      );
+
+    } else if (plateKey === "heart") {
+      // 3D Heart Cutaway Intracardiac Hemodynamics (Deoxygenated Right Heart & Oxygenated Left Heart)
+      drawParticleStream(
+        [{ x: 320, y: 390 }, { x: 325, y: 520 }, { x: 335, y: 650 }, { x: 415, y: 775 }, { x: 445, y: 635 }, { x: 455, y: 515 }, { x: 605, y: 485 }],
+        9, 0.36 * hrFactor, "#38bdf8", "#0284c7", 4.5
+      );
+      drawParticleStream(
+        [{ x: 645, y: 585 }, { x: 570, y: 665 }, { x: 595, y: 765 }, { x: 515, y: 615 }, { x: 485, y: 445 }, { x: 485, y: 375 }, { x: 510, y: 295 }],
+        10, 0.42 * hrFactor, "#ff4d6d", "#ef4444", 4.8
+      );
+      drawParticleStream(
+        [{ x: 325, y: 575 }, { x: 445, y: 655 }, { x: 495, y: 745 }, { x: 535, y: 830 }],
+        4, 0.55 * hrFactor, "#fde047", "#facc15", 3.6
+      );
+
+    } else if (plateKey === "lungs") {
+      // 3D Respiratory Cutaway Tidal O₂ Inspiration & CO₂ Expiration
+      const isInsp = breathPhase >= 0;
+      const airCol = isInsp ? "#22d3ee" : "#c084fc";
+      drawParticleStream(
+        [{ x: 498, y: 230 }, { x: 498, y: 435 }, { x: 498, y: 585 }, { x: 380, y: 610 }, { x: 315, y: 615 }, { x: 265, y: 720 }],
+        8, 0.35 * rrFactor, airCol, airCol, 4.2, !isInsp
+      );
+      drawParticleStream(
+        [{ x: 498, y: 230 }, { x: 498, y: 435 }, { x: 498, y: 585 }, { x: 595, y: 625 }, { x: 645, y: 730 }, { x: 690, y: 835 }],
+        8, 0.35 * rrFactor, airCol, airCol, 4.2, !isInsp
+      );
+
+    } else if (plateKey === "digestive") {
+      // 3D Digestive System Peristaltic Wave & Hepatobiliary Secretion
+      drawParticleStream(
+        [{ x: 506, y: 170 }, { x: 506, y: 310 }, { x: 575, y: 420 }, { x: 535, y: 490 }, { x: 465, y: 525 }, { x: 512, y: 690 }],
+        8, 0.24, "#fb923c", "#f59e0b", 4.2
+      );
+      drawParticleStream(
+        [{ x: 405, y: 360 }, { x: 418, y: 442 }, { x: 462, y: 510 }],
+        4, 0.28, "#10b981", "#34d399", 3.6
+      );
+      drawParticleStream(
+        [{ x: 585, y: 515 }, { x: 525, y: 518 }, { x: 468, y: 518 }],
+        4, 0.30, "#fde047", "#eab308", 3.4
+      );
+      drawParticleStream(
+        [{ x: 368, y: 760 }, { x: 368, y: 585 }, { x: 505, y: 565 }, { x: 645, y: 585 }, { x: 645, y: 765 }, { x: 508, y: 865 }],
+        7, 0.18, "#fbbf24", "#d97706", 3.8
+      );
+
+    } else if (plateKey === "brain") {
+      // 3D Brain Sagittal & Lateral Neural Action Potential Pathways
+      drawParticleStream(
+        [{ x: 185, y: 480 }, { x: 275, y: 448 }, { x: 365, y: 475 }, { x: 282, y: 512 }, { x: 288, y: 618 }, { x: 295, y: 710 }],
+        7, 0.48, "#22d3ee", "#38bdf8", 3.8
+      );
+      drawParticleStream(
+        [{ x: 645, y: 445 }, { x: 705, y: 430 }, { x: 805, y: 435 }, { x: 875, y: 520 }, { x: 715, y: 548 }, { x: 805, y: 625 }],
+        7, 0.45, "#fde047", "#f59e0b", 3.8
+      );
+
+    } else if (plateKey === "urinary") {
+      // 3D Urinary & Renal System Hemodynamics & Ureteral Filtrate Flow
+      drawParticleStream(
+        [{ x: 495, y: 240 }, { x: 495, y: 390 }, { x: 430, y: 415 }, { x: 335, y: 395 }],
+        6, 0.42 * hrFactor, "#ef4444", "#f87171", 4.0
+      );
+      drawParticleStream(
+        [{ x: 495, y: 390 }, { x: 595, y: 410 }, { x: 650, y: 395 }],
+        4, 0.42 * hrFactor, "#ef4444", "#f87171", 3.8
+      );
+      drawParticleStream(
+        [{ x: 385, y: 435 }, { x: 425, y: 635 }, { x: 475, y: 835 }, { x: 510, y: 855 }],
+        6, 0.26, "#facc15", "#eab308", 3.8
+      );
+      drawParticleStream(
+        [{ x: 615, y: 435 }, { x: 595, y: 635 }, { x: 545, y: 835 }, { x: 510, y: 855 }],
+        6, 0.26, "#facc15", "#eab308", 3.8
+      );
+    }
+
+    targetCtx.restore();
+  }
+
   function drawHumanBodyVector(targetCtx, renderScale = 1.0, view = "anterior") {
     targetCtx.save();
     targetCtx.scale(renderScale, renderScale);
@@ -3923,111 +4601,91 @@ export function initAnatomyAtlasLab(containerId) {
     const isFullBody = (activePlate === "full_anterior" || activePlate === "full_posterior");
 
     if (isFullBody) {
-      // 0. MULTI-LAYER 8K ANATOMICAL DISSECTION MATRIX (Full Body Macro Studio)
+      // 0. 4K 3D MAIN BODY ORGANS MASTER VIEW OR 6-LAYER DISSECTION MATRIX
       const skinImg = (view === "anterior") ? imgAnterior : imgPosterior;
       const isImgReady = skinImg && skinImg.complete && skinImg.naturalWidth > 0;
 
       if (view === "anterior") {
-        const activeLayers = (activeGender === "female") ? femaleLayerImages : maleLayerImages;
-        let anyLayerDrawn = false;
+        if (use3dOrgansMaster && isImgReady) {
+          // Render the ultra-detailed, colorful 4K 3D Main Body Organs render at 100% crisp clarity
+          drawPlateImageLayer(targetCtx, imgAnterior, 1.0, imagingMode);
+          // Overlay real-time 60 FPS physiological blood/air/neural/bile/renal streams
+          drawLive3dPhysiologicalStreams(targetCtx, "full_anterior");
+        } else {
+          const activeLayers = (activeGender === "female") ? femaleLayerImages : maleLayerImages;
+          let anyLayerDrawn = false;
 
-        // MULTI-LAYER 8K ANATOMICAL DISSECTION MATRIX (Registered Identical-Silhouette Strata)
-        // Render in anatomical order from deep to superficial based on active slider opacities:
-        if (layerOpacities.skeletal > 0.01) {
-          if (activeLayers.skeletal && activeLayers.skeletal.complete && activeLayers.skeletal.naturalWidth > 0) {
-            drawPlateImageLayer(targetCtx, activeLayers.skeletal, layerOpacities.skeletal, imagingMode);
-            anyLayerDrawn = true;
-          } else {
-            drawSkeletalVector(targetCtx, view, layerOpacities.skeletal, imagingMode);
-            anyLayerDrawn = true;
+          // MULTI-LAYER 8K ANATOMICAL DISSECTION MATRIX (Registered Identical-Silhouette Strata)
+          if (layerOpacities.skeletal > 0.01) {
+            if (activeLayers.skeletal && activeLayers.skeletal.complete && activeLayers.skeletal.naturalWidth > 0) {
+              drawPlateImageLayer(targetCtx, activeLayers.skeletal, layerOpacities.skeletal, imagingMode);
+              anyLayerDrawn = true;
+            } else {
+              drawSkeletalVector(targetCtx, view, layerOpacities.skeletal, imagingMode);
+              anyLayerDrawn = true;
+            }
           }
-        }
 
-        if (layerOpacities.visceral > 0.01) {
-          if (activeLayers.visceral && activeLayers.visceral.complete && activeLayers.visceral.naturalWidth > 0) {
-            drawPlateImageLayer(targetCtx, activeLayers.visceral, layerOpacities.visceral, imagingMode);
-            anyLayerDrawn = true;
-          } else {
-            drawVisceralVector(targetCtx, view, layerOpacities.visceral);
-            anyLayerDrawn = true;
+          if (layerOpacities.visceral > 0.01) {
+            if (activeLayers.visceral && activeLayers.visceral.complete && activeLayers.visceral.naturalWidth > 0) {
+              drawPlateImageLayer(targetCtx, activeLayers.visceral, layerOpacities.visceral, imagingMode);
+              anyLayerDrawn = true;
+            } else {
+              drawVisceralVector(targetCtx, view, layerOpacities.visceral);
+              anyLayerDrawn = true;
+            }
           }
-        }
 
-        if (layerOpacities.circulatory > 0.01) {
-          if (activeLayers.circulatory && activeLayers.circulatory.complete && activeLayers.circulatory.naturalWidth > 0) {
-            drawPlateImageLayer(targetCtx, activeLayers.circulatory, layerOpacities.circulatory, imagingMode);
-            anyLayerDrawn = true;
-          } else {
-            drawVascularVector(targetCtx, view, layerOpacities.circulatory, imagingMode);
-            anyLayerDrawn = true;
+          if (layerOpacities.circulatory > 0.01) {
+            if (activeLayers.circulatory && activeLayers.circulatory.complete && activeLayers.circulatory.naturalWidth > 0) {
+              drawPlateImageLayer(targetCtx, activeLayers.circulatory, layerOpacities.circulatory, imagingMode);
+              anyLayerDrawn = true;
+            } else {
+              drawVascularVector(targetCtx, view, layerOpacities.circulatory, imagingMode);
+              anyLayerDrawn = true;
+            }
           }
-        }
 
-        if (layerOpacities.nervous > 0.01) {
-          if (activeLayers.nervous && activeLayers.nervous.complete && activeLayers.nervous.naturalWidth > 0) {
-            drawPlateImageLayer(targetCtx, activeLayers.nervous, layerOpacities.nervous, imagingMode);
-            anyLayerDrawn = true;
-          } else {
-            drawNervousVector(targetCtx, view, layerOpacities.nervous);
-            anyLayerDrawn = true;
+          if (layerOpacities.nervous > 0.01) {
+            if (activeLayers.nervous && activeLayers.nervous.complete && activeLayers.nervous.naturalWidth > 0) {
+              drawPlateImageLayer(targetCtx, activeLayers.nervous, layerOpacities.nervous, imagingMode);
+              anyLayerDrawn = true;
+            } else {
+              drawNervousVector(targetCtx, view, layerOpacities.nervous);
+              anyLayerDrawn = true;
+            }
           }
-        }
 
-        if (layerOpacities.muscular > 0.01) {
-          if (activeLayers.muscular && activeLayers.muscular.complete && activeLayers.muscular.naturalWidth > 0) {
-            drawPlateImageLayer(targetCtx, activeLayers.muscular, layerOpacities.muscular, imagingMode);
-            anyLayerDrawn = true;
-          } else {
-            drawMuscularVector(targetCtx, view, layerOpacities.muscular);
-            anyLayerDrawn = true;
+          if (layerOpacities.muscular > 0.01) {
+            if (activeLayers.muscular && activeLayers.muscular.complete && activeLayers.muscular.naturalWidth > 0) {
+              drawPlateImageLayer(targetCtx, activeLayers.muscular, layerOpacities.muscular, imagingMode);
+              anyLayerDrawn = true;
+            } else {
+              drawMuscularVector(targetCtx, view, layerOpacities.muscular);
+              anyLayerDrawn = true;
+            }
           }
-        }
 
-        if (layerOpacities.skin > 0.01) {
-          if (activeLayers.skin && activeLayers.skin.complete && activeLayers.skin.naturalWidth > 0) {
-            drawPlateImageLayer(targetCtx, activeLayers.skin, layerOpacities.skin, imagingMode);
-            anyLayerDrawn = true;
-          } else {
-            drawSkinVector(targetCtx, view, layerOpacities.skin, null, imagingMode);
-            anyLayerDrawn = true;
+          if (layerOpacities.skin > 0.01) {
+            if (activeLayers.skin && activeLayers.skin.complete && activeLayers.skin.naturalWidth > 0) {
+              drawPlateImageLayer(targetCtx, activeLayers.skin, layerOpacities.skin, imagingMode);
+              anyLayerDrawn = true;
+            } else {
+              drawSkinVector(targetCtx, view, layerOpacities.skin, null, imagingMode);
+              anyLayerDrawn = true;
+            }
           }
-        }
 
-        // If none of the active layers had opacity or loaded yet, fall back to base plate or skin contour
-        if (!anyLayerDrawn) {
-          if (isImgReady) {
-            drawPlateImageLayer(targetCtx, skinImg, 1.0, imagingMode);
-          } else {
-            drawSkinVector(targetCtx, view, 0.45, null, imagingMode);
-            drawSkeletalVector(targetCtx, view, 0.65, imagingMode);
+          if (!anyLayerDrawn) {
+            if (isImgReady) {
+              drawPlateImageLayer(targetCtx, skinImg, 1.0, imagingMode);
+            } else {
+              drawSkinVector(targetCtx, view, 0.45, null, imagingMode);
+              drawSkeletalVector(targetCtx, view, 0.65, imagingMode);
+            }
           }
-        }
 
-        // Physiological Dynamics (Realistic cardiac systole pulse & neuroaxis signal)
-        if (layerOpacities.circulatory > 0.1) {
-          targetCtx.save();
-          const pulse = 1.0 + 0.12 * Math.sin(simTime * 8);
-          const cGrad = targetCtx.createRadialGradient(500, 480, 6, 500, 480, 50 * pulse);
-          cGrad.addColorStop(0, `rgba(239, 68, 68, ${0.42 * layerOpacities.circulatory})`);
-          cGrad.addColorStop(1, "rgba(239, 68, 68, 0)");
-          targetCtx.fillStyle = cGrad;
-          targetCtx.beginPath();
-          targetCtx.arc(500, 480, 50 * pulse, 0, Math.PI * 2);
-          targetCtx.fill();
-          targetCtx.restore();
-        }
-
-        if (layerOpacities.nervous > 0.1) {
-          targetCtx.save();
-          const apPos = (simTime * 350) % 550;
-          const nGrad = targetCtx.createRadialGradient(500, 260 + apPos, 2, 500, 260 + apPos, 16);
-          nGrad.addColorStop(0, `rgba(56, 189, 248, ${0.65 * layerOpacities.nervous})`);
-          nGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
-          targetCtx.fillStyle = nGrad;
-          targetCtx.beginPath();
-          targetCtx.arc(500, 260 + apPos, 16, 0, Math.PI * 2);
-          targetCtx.fill();
-          targetCtx.restore();
+          drawLive3dPhysiologicalStreams(targetCtx, "full_anterior");
         }
       } else {
         if (isImgReady) {
@@ -4072,48 +4730,11 @@ export function initAnatomyAtlasLab(containerId) {
         }
       }
 
-      // Dynamic Physiological Plate Overlays:
-      if (activePlate === "heart" && layerOpacities.circulatory > 0.05) {
-        targetCtx.save();
-        const pulse = 1.0 + 0.15 * Math.sin(simTime * 8);
-        targetCtx.shadowColor = "#ef4444";
-        targetCtx.shadowBlur = 24 * pulse;
-        targetCtx.strokeStyle = `rgba(239, 68, 68, ${0.45 * layerOpacities.circulatory})`;
-        targetCtx.lineWidth = 3 * pulse;
-        targetCtx.beginPath();
-        targetCtx.arc(505, 645, 50 * pulse, 0, Math.PI * 2);
-        targetCtx.stroke();
-        targetCtx.restore();
-      }
-
-      if (activePlate === "lungs" && layerOpacities.visceral > 0.05) {
-        targetCtx.save();
-        const breath = 1.0 + 0.08 * Math.sin(simTime * 2.4);
-        targetCtx.shadowColor = "#34d399";
-        targetCtx.shadowBlur = 20 * breath;
-        targetCtx.strokeStyle = `rgba(52, 211, 153, ${0.4 * layerOpacities.visceral})`;
-        targetCtx.lineWidth = 2.5 * breath;
-        targetCtx.beginPath();
-        targetCtx.arc(500, 630, 45 * breath, 0, Math.PI * 2);
-        targetCtx.stroke();
-        targetCtx.restore();
-      }
-
-      if (activePlate === "brain" && layerOpacities.nervous > 0.05) {
-        targetCtx.save();
-        const brainPulse = 1.0 + 0.12 * Math.sin(simTime * 5);
-        targetCtx.shadowColor = "#38bdf8";
-        targetCtx.shadowBlur = 18 * brainPulse;
-        targetCtx.strokeStyle = `rgba(56, 189, 248, ${0.4 * layerOpacities.nervous})`;
-        targetCtx.lineWidth = 2.5;
-        targetCtx.beginPath();
-        targetCtx.arc(310, 550, 40 * brainPulse, 0, Math.PI * 2);
-        targetCtx.stroke();
-        targetCtx.restore();
-      }
+      // Overlay 60 FPS Live 3D Physiological Particle Streams for the active 3D Organ Cutaway Plate
+      drawLive3dPhysiologicalStreams(targetCtx, activePlate);
     }
 
-    // 4. ACTIVE STRUCTURE HIGH-PRECISION HUD RETICLE & SPOTLIGHT
+    // 4. ACTIVE STRUCTURE 3D VOLUMETRIC ORGAN SPOTLIGHT & HUD RETICLE
     const visibleStructures = getVisibleStructures(activePlate, view);
     const structAlpha = selectedStructure ? getStructureOpacity(selectedStructure) : 0;
     const isStructureVisible = selectedStructure && visibleStructures.some(s => s.id === selectedStructure.id) && structAlpha >= 0.08;
@@ -4122,8 +4743,19 @@ export function initAnatomyAtlasLab(containerId) {
       targetCtx.globalAlpha = Math.min(1.0, structAlpha);
       const sx = selectedStructure.coords.x;
       const sy = selectedStructure.coords.y;
+      const sysColor = ANATOMICAL_SYSTEMS[selectedStructure.system]?.color || "#38bdf8";
       const now = performance.now();
       const pulse = 1.0 + 0.15 * Math.sin(now * 0.006);
+
+      // Soft 3D Volumetric Organ Spotlight Halo
+      const spotGrad = targetCtx.createRadialGradient(sx, sy, 4, sx, sy, 68 * pulse);
+      spotGrad.addColorStop(0, `${sysColor}44`);
+      spotGrad.addColorStop(0.55, `${sysColor}18`);
+      spotGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
+      targetCtx.fillStyle = spotGrad;
+      targetCtx.beginPath();
+      targetCtx.arc(sx, sy, 68 * pulse, 0, Math.PI * 2);
+      targetCtx.fill();
 
       // Glowing targeting halo
       targetCtx.beginPath();
@@ -6350,7 +6982,8 @@ export function initAnatomyAtlasLab(containerId) {
     }
 
     if (!hasCenteredInitialView && rect.width > 0 && rect.height > 0) {
-      focusCameraOnCoords(500, 900, 1.0);
+      const defCam = getDefaultPlateCamera(activePlate);
+      focusCameraOnCoords(defCam.x, defCam.y, defCam.zoom);
       hasCenteredInitialView = true;
     }
 
@@ -6360,7 +6993,10 @@ export function initAnatomyAtlasLab(containerId) {
     if (activeTab === "histology") {
       renderHistologyCanvas(ctx, rect.width, rect.height, dt);
     } else {
-      // Macro or Quiz Mode: Render Full-Body 4K Vector Anatomy
+      // Advance 60 FPS simulation clock for 3D biomechanical organ mesh & physiological particle streams
+      simTime += dt;
+
+      // Macro or Quiz Mode: Render Full-Body 4K 3D Anatomy & Organ Cutaway Plates
       ctx.clearRect(0, 0, rect.width, rect.height);
 
       // Deep space grid background
