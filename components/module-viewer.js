@@ -1130,7 +1130,13 @@ export function openModuleModal(moduleData, subjectColor, initialLessonId, trigg
       "lab-sound-resonance": () => import("../labs/phys-sound-resonance.js?v=5.7").then(m => m.initSoundResonanceLab("embedded-module-lab-mount")),
       "sound-resonance": () => import("../labs/phys-sound-resonance.js?v=5.7").then(m => m.initSoundResonanceLab("embedded-module-lab-mount")),
       "electrostatics": () => import("../labs/phys-electrostatics.js?v=5.7").then(m => m.initElectrostaticsLab("embedded-module-lab-mount")),
-      "lab-electrostatics": () => import("../labs/phys-electrostatics.js?v=5.7").then(m => m.initElectrostaticsLab("embedded-module-lab-mount"))
+      "lab-electrostatics": () => import("../labs/phys-electrostatics.js?v=5.7").then(m => m.initElectrostaticsLab("embedded-module-lab-mount")),
+      "engine-piston": () => import("../labs/phys-engine-piston.js?v=6.9").then(m => m.initEnginePistonLab("embedded-module-lab-mount")),
+      "lab-engine-piston": () => import("../labs/phys-engine-piston.js?v=6.9").then(m => m.initEnginePistonLab("embedded-module-lab-mount")),
+      "piston": () => import("../labs/phys-engine-piston.js?v=6.9").then(m => m.initEnginePistonLab("embedded-module-lab-mount")),
+      "manual-gearbox": () => import("../labs/phys-manual-gearbox.js?v=6.9").then(m => m.initManualGearboxLab("embedded-module-lab-mount")),
+      "lab-manual-gearbox": () => import("../labs/phys-manual-gearbox.js?v=6.9").then(m => m.initManualGearboxLab("embedded-module-lab-mount")),
+      "gearbox": () => import("../labs/phys-manual-gearbox.js?v=6.9").then(m => m.initManualGearboxLab("embedded-module-lab-mount"))
     };
 
     const loader = labLoaders[rawKey] || labLoaders[cleanKey] || labLoaders["lab-projectile"];

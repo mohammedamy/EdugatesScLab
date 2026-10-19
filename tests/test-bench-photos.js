@@ -75,10 +75,12 @@ const expectedBenchImages = [
   "electrostatics_bench.jpg",
   "arduino_bench.jpg",
   "chromatography_bench.jpg",
-  "pcr_crispr_bench.jpg"
+  "pcr_crispr_bench.jpg",
+  "engine_piston_bench.jpg",
+  "manual_gearbox_bench.jpg"
 ];
 
-console.log("📁 Test 1: Verifying 48 Lab Bench Image Files in assets/labs/");
+console.log("📁 Test 1: Verifying 50 Lab Bench Image Files in assets/labs/");
 expectedBenchImages.forEach((filename) => {
   const filePath = path.join(rootDir, "assets", "labs", filename);
   const exists = fs.existsSync(filePath);
@@ -286,6 +288,20 @@ const newLabConfigs = [
     simBtn: "view-mode-pcr-sim",
     photoBtn: "view-mode-pcr-photo",
     overlay: "pcr-crispr-photo-overlay"
+  },
+  {
+    file: "labs/phys-engine-piston.js",
+    image: "assets/labs/engine_piston_bench.jpg",
+    simBtn: "view-mode-piston-sim",
+    photoBtn: "view-mode-piston-photo",
+    overlay: "piston-photo-overlay"
+  },
+  {
+    file: "labs/phys-manual-gearbox.js",
+    image: "assets/labs/manual_gearbox_bench.jpg",
+    simBtn: "view-mode-gear-sim",
+    photoBtn: "view-mode-gear-photo",
+    overlay: "gear-photo-overlay"
   }
 ];
 

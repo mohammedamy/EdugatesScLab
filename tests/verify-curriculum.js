@@ -261,7 +261,9 @@ const virtualLabFiles = [
   "labs/phys-electrostatics.js",
   "labs/phys-arduino.js",
   "labs/chem-chromatography.js",
-  "labs/bio-pcr-crispr.js"
+  "labs/bio-pcr-crispr.js",
+  "labs/phys-engine-piston.js",
+  "labs/phys-manual-gearbox.js"
 ];
 
 let allLabsImported = true;

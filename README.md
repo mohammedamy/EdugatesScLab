@@ -8,10 +8,10 @@ An enterprise-grade, world-class virtual science laboratory and interactive STEM
 
 | Curriculum Domain | Modules / Chapters | Interactive Lessons | Question Bank Items | Dedicated Virtual Labs |
 | :--- | :---: | :---: | :---: | :---: |
-| 🧪 **Inspire Chemistry** | 23 | 89 | 2,670 | 15 Workbenches |
-| 🧬 **Inspire Biology** | 27 | 81 | 2,430 | 15 Workbenches |
-| ⚡ **Inspire Physics** | 24 | 72 | 2,160 | 16 Workbenches |
-| **Total Platform Scope** | **74 Chapters** | **242 Lessons** | **7,260 Questions (+ 230 Checkpoints)** | **46 Virtual Labs** |
+| 🧪 **Inspire Chemistry** | 23 | 89 | 2,670 | 16 Workbenches |
+| 🧬 **Inspire Biology** | 27 | 81 | 2,430 | 16 Workbenches |
+| ⚡ **Inspire Physics** | 24 | 72 | 2,160 | 18 Workbenches |
+| **Total Platform Scope** | **74 Chapters** | **242 Lessons** | **7,260 Questions (+ 250 Checkpoints)** | **50 Virtual Labs** |
 
 - **Zero-Drop Standard**: 100% curriculum coverage across all 74 NGSS and AP-aligned chapters.
 - **Formulas & Theory**: Every lesson features college-level physical mechanics, SI parameters, KaTeX math formulations, particulate mechanisms, and real-world STEM applications.
@@ -42,7 +42,7 @@ Guarantees uninterrupted classroom delivery in school networks with intermittent
 - **Live Connection Monitor**: Real-time online/offline detection with latency ping measurement.
 - **Storage Quota Inspection**: Uses `navigator.storage.estimate()` to report active cache footprint (MB used, GB quota, percentage meter).
 - **Persistent Storage Locking**: Calls `navigator.storage.persist()` to protect laboratory simulations and question banks from automated browser disk eviction.
-- **One-Click Field Trip Precaching**: Pre-caches all 46 virtual lab engines, curriculum theory databases, and media assets into CacheStorage (`amscilab-pwa-v53`).
+- **One-Click Field Trip Precaching**: Pre-caches all 50 virtual lab engines, curriculum theory databases, and media assets into CacheStorage (`amscilab-pwa-v125`).
 - **Offline Health Check**: Verifies 16 essential subsystems (HTML shell, CSS, engines, data, labs) with visual status indicators.
 - **Quick Access**: Open via Pen Toolbar button (`#sb-tool-offline`) or universal keyboard shortcut **`O`**.
 
@@ -61,9 +61,9 @@ Floating, draggable, and bottom-dockable teacher presentation suite:
 
 ---
 
-## 🔬 46 Virtual Laboratory Simulation Catalog
+## 🔬 50 Virtual Laboratory Simulation Catalog
 
-### 🧪 Chemistry Laboratory Workbenches (15 Workbenches)
+### 🧪 Chemistry Laboratory Workbenches (16 Workbenches)
 1. **Acid-Base Titration & pH Curve Analyzer** (`#labs/titration`): Real-time burette titrant drop simulation, strong/weak acid-base equilibria, Henderson-Hasselbalch buffer calculations, indicator color transitions, and automated derivative inflection titration curves.
 2. **Precision Periodic Table & Quantum Orbitals** (`#labs/ptable`): All 118 IUPAC elements with standard weights, electron configurations, Bohr models, real-world photographs, and periodic trends (electronegativity, ionization energy, atomic radius).
 3. **Ideal Gas Laws & Kinetic Molecular Theory** (`#labs/gaslaws`): Boyle's, Charles's, Gay-Lussac's, and Avogadro's laws with particle collision velocity histograms and piston pressure-volume dynamics.
@@ -79,8 +79,9 @@ Floating, draggable, and bottom-dockable teacher presentation suite:
 13. **Flame Test & Atomic Emission Spectroscopy** (`#labs/flametest`): Bunsen burner excitation of metal cations ($\text{Li}^+, \text{Na}^+, \text{K}^+, \text{Cu}^{2+}, \text{Sr}^{2+}, \text{Ba}^{2+}$), Bohr electronic energy level transitions ($\Delta E = h\nu = hc/\lambda$), continuous spectroscope prism diffraction, and spectral line wavelength readouts.
 14. **Precipitation Reactions & Solubility Rules** (`#labs/precipitation`): Double replacement reactions, dynamic ionic solubility matrix ($K_{sp}$), net ionic equations, precipitate crystallization animations, and gravimetric filtration analysis.
 15. **Metal Reactivity & Activity Series** (`#labs/activityseries`): Single replacement redox reactions across standard activity series ($\text{Li} \rightarrow \text{Au}$), standard reduction potentials ($E^\circ$), micro-bubble hydrogen gas evolution, and galvanic surface plating.
+16. **Thin-Layer & Column Chromatography Analyzer** (`#labs/chromatography`): Mobile and stationary phase polarity interactions, Rf retention factor metrology, capillary solvent front migration, UV fluorescence dye visualization, and preparative silica column fractionation.
 
-### 🧬 Biology Laboratory Workbenches (15 Workbenches)
+### 🧬 Biology Laboratory Workbenches (16 Workbenches)
 1. **4K Ultra-HD Human Anatomy & Histology Atlas** (`#labs/anatomy`): 13 dedicated 8K medical plates, dual male/female 6-strata dissection engine, real physiological 60 FPS cardiac cycle biomechanics with continuous nodal myocardial mesh and S1/S2 acoustic triggers, Nephron countercurrent multiplier, and interactive pin challenge.
 2. **Virtual Compound Microscope & Micrograph Suite** (`#labs/microscope`): 40x, 100x, 400x, and 1000x oil-immersion lenses, fine/coarse focus knobs, slide stage translation, and cellular specimen library (onion epidermis, human blood smear, paramecium, chloroplasts).
 3. **DNA Transcription & Protein Translation** (`#labs/dnaprotein`): Double-helix unzipping, RNA Polymerase transcription, mRNA ribosome translation, tRNA anticodon binding, and genetic code codon chart mapping.
@@ -96,8 +97,9 @@ Floating, draggable, and bottom-dockable teacher presentation suite:
 13. **Antibiotic Resistance & Kirby-Bauer Disk Diffusion** (`#labs/antibiotic`): Mueller-Hinton agar culture plate, antibiotic antimicrobial disks (Ampicillin, Streptomycin, Tetracycline, Chloramphenicol, Ciprofloxacin), zone of inhibition caliper metrology, CLSI susceptibility interpretation (Resistant, Intermediate, Susceptible), and bacterial mutation selection dynamics.
 14. **ELISA Immunoassay & Serological Diagnostics** (`#labs/elisa`): Enzyme-Linked Immunosorbent Assay (Direct, Indirect, and Sandwich), primary/secondary antibody targeting, horseradish peroxidase (HRP) catalytic oxidation with TMB substrate, 96-well microplate colorimetry, and spectrophotometric optical density quantification.
 15. **Plant Transpiration & Potometer Dynamics** (`#labs/transpiration`): Ganong bubble potometer, xylem water potential gradients ($\Delta \Psi$), environmental stress factors (humidity, wind speed, light intensity, temperature), stomatal guard cell aperture regulation, and volume uptake rate quantification ($mL/hr$).
+16. **PCR Thermocycling & CRISPR-Cas9 Gene Editing** (`#labs/pcrcrispr`): Denaturation, annealing, and extension thermocycler kinetics, $2^n$ exponential amplicon replication, sgRNA protospacer adjacent motif (PAM, 5'-NGG-3') target binding, Cas9 endonuclease double-strand break (DSB), and non-homologous end joining (NHEJ) vs HDR repair pathways.
 
-### ⚡ Physics Laboratory Workbenches (16 Workbenches)
+### ⚡ Physics Laboratory Workbenches (18 Workbenches)
 1. **Kinematics & 2D Projectile Motion** (`#labs/projectile`): Launch angle, initial velocity, air drag coefficient, gravitational acceleration ($g$), trajectory tracing, and range/apogee calculators.
 2. **DC Circuits & Kirchhoff's Metrology** (`#labs/circuits`): Interactive breadboard workbench with batteries, resistors, lamps, switches, ammeters, voltmeters, and Ohm's / Kirchhoff's circuit law calculators.
 3. **Geometric Optics, Snell's Law & Thin Lenses** (`#labs/optics`): Convex/concave lenses and mirrors, ray-tracing vectors, refraction indices ($n_1 \sin\theta_1 = n_2 \sin\theta_2$), focal lengths, and virtual/real image formation.
@@ -114,6 +116,8 @@ Floating, draggable, and bottom-dockable teacher presentation suite:
 14. **Acoustic Resonance & Speed of Sound** (`#labs/resonance`): Variable-water column resonance tube, tuning fork frequency excitation, open/closed pipe standing acoustic waves ($\lambda_n = 4L/n$), end-correction factor ($\Delta L = 0.61 r$), harmonic modes, and environmental temperature air sound speed determination ($v = 331.3\sqrt{1 + T/273.15}\text{ m/s}$).
 15. **Electrostatics & Coulomb's Law Metrology** (`#labs/electrostatics`): Point charges, electric field vector maps ($\vec{E} = \frac{1}{4\pi\varepsilon_0}\frac{q}{r^2}\hat{r}$), electrostatic potential contours, Coulomb force vectors ($\vec{F}_e$), field lines, and Faraday cage charge shielding.
 16. **Arduino Microcontroller & Embedded Hardware Prototyping** (`#labs/arduino`): ATmega328P virtual MCU, breadboard wire routing, 26 active electronic components (sensors, displays, actuators, motors), in-browser C++ sketch compiler and linker, dual-channel 60 FPS digital storage oscilloscope (DSO), and SPICE / CAD netlist generation.
+17. **Four-Stroke Engine Piston & Otto Cycle Thermodynamic Simulation** (`#labs/engine-piston`): Real-time 60 FPS slider-crank piston kinematics, 4 discrete engine strokes (Intake, Compression, Power with electric spark ignition plasma, Exhaust), real-time $P-V$ indicator diagram, thermal efficiency metrology ($\eta = 1 - r^{1-\gamma}$), dynamic compression ratio ($r$), and multi-harmonic engine acoustic synthesizer.
+18. **Manual Gearbox Transmission & Clutch Mechanics** (`#labs/manual-gearbox`): 5-speed + reverse manual transmission simulation with interactive clutch pedal friction coupling, constant-mesh helical gears, sliding synchronizer dog collars with friction cone synchromesh, reverse idler gear, real-time H-pattern shifter, torque multiplication vs vehicle speed curves, and road grade incline resistance.
 
 ---
 
@@ -166,9 +170,9 @@ for f in tests/*.js tests/*.mjs; do node "$f"; done
 ```
 
 ### Test Suite Coverage:
-1. `tests/verify-curriculum.js`: Validates 74 chapters, 242 lessons, 46 virtual labs, and interactive spec mappings.
+1. `tests/verify-curriculum.js`: Validates 74 chapters, 242 lessons, 50 virtual labs, and interactive spec mappings.
 2. `tests/test-quiz-zero-duplicates.js`: Validates 7,260 questions across all lessons with 0 duplicate prompts or choices.
-3. `tests/test-all-46-virtual-labs-lifecycle.js`: Tests instantiation, rendering cycles, and cleanup teardown of all 46 virtual lab workbenches.
+3. `tests/test-all-46-virtual-labs-lifecycle.js`: Tests instantiation, rendering cycles, and cleanup teardown of all 50 virtual lab workbenches.
 4. `tests/test-worked-example-and-offline-diagnostics.js`: Tests step-by-step solver numerical tolerances, parsing engine, storage quota, and offline diagnostics.
 5. `tests/test-maxhub-optimizations.js`: Validates Smartboard Turbo profile, 30 FPS pacing, fullscreen zero-box mode, and annotation bar layering.
 6. `tests/test-periodic-table.js`: Audits all 118 elements, atomic weights, electron configurations, and media links.

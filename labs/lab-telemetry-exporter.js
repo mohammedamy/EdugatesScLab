@@ -3400,6 +3400,132 @@ export const LAB_CHECKPOINTS = {
       correctIndex: 1,
       explanation: "NHEJ ligates broken DNA ends directly without a template, frequently introducing stochastic insertion/deletion (indel) frameshifts used for gene knockouts. To perform a precise base correction (knock-in), cells must use Homology-Directed Repair (HDR) guided by a homologous donor DNA template carrying the corrected wild-type sequence."
     }
+  ],
+
+  "engine-piston": [
+    {
+      id: "q1",
+      question: "In a four-stroke internal combustion engine operating on the theoretical Otto cycle, during which stroke is net positive mechanical boundary work ($W = \\int P\\,dV > 0$) performed on the piston to turn the crankshaft?",
+      options: [
+        "Intake stroke",
+        "Compression stroke",
+        "Combustion & Power (Expansion) stroke",
+        "Exhaust stroke"
+      ],
+      correctIndex: 2,
+      explanation: "During the power stroke (expansion), spark-initiated combustion produces high peak pressure and temperature ($P_3, T_3$). The expanding gas forces the piston downward from TDC to BDC, doing positive boundary work on the piston that rotates the crankshaft."
+    },
+    {
+      id: "q2",
+      question: "The theoretical thermal efficiency of an air-standard Otto cycle is given by $\\eta_{\\text{Otto}} = 1 - \\frac{1}{r^{\\gamma - 1}}$. If the compression ratio $r = \\frac{V_{\\text{max}}}{V_{\\text{min}}}$ is increased from 8.0:1 to 11.0:1 (with $\\gamma = 1.4$), the theoretical efficiency:",
+      options: [
+        "Decreases because peak cylinder pressure drops",
+        "Remains constant because fuel heat content is unchanged",
+        "Increases from approximately 56.5% to 61.7% because the working gas expands through a larger volume ratio",
+        "Becomes negative due to knocking"
+      ],
+      correctIndex: 2,
+      explanation: "As compression ratio $r$ increases, $\\frac{1}{r^{\\gamma - 1}}$ decreases, so $\\eta = 1 - r^{1-\\gamma}$ increases. For $r = 8.0$, $\\eta = 1 - 8^{-0.4} \\approx 0.565$ (56.5%). For $r = 11.0$, $\\eta = 1 - 11^{-0.4} \\approx 0.617$ (61.7%). Higher compression allows greater thermodynamic expansion work."
+    },
+    {
+      id: "q3",
+      question: "On a thermodynamic $P-V$ indicator diagram for an idealized Otto cycle, the constant-volume heat addition process (spark ignition) is represented by:",
+      options: [
+        "A horizontal isobaric line at constant pressure",
+        "A vertical isochoric line at clearance volume $V_c$ (Top Dead Center)",
+        "An isentropic hyperbolic curve $PV^\\gamma = \\text{const}$",
+        "An isothermal curve at ambient temperature"
+      ],
+      correctIndex: 1,
+      explanation: "In the idealized Otto cycle, combustion occurs so rapidly near Top Dead Center (TDC) that the piston barely moves ($dV \\approx 0$). This is modeled as an isochoric (constant-volume) heat addition process along a vertical line from $P_2$ to $P_3$ at volume $V_c$."
+    },
+    {
+      id: "q4",
+      question: "Why does a four-stroke internal combustion engine require two complete crankshaft revolutions ($720^\\circ$) to complete one thermodynamic cycle for each cylinder?",
+      options: [
+        "To allow time for the spark plug to recharge its battery",
+        "Because each of the four distinct strokes (Intake, Compression, Power, Exhaust) requires one half-revolution ($180^\\circ$) of the crankshaft",
+        "Because the camshaft rotates twice as fast as the crankshaft",
+        "To cool the piston rings below the melting point of aluminum"
+      ],
+      correctIndex: 1,
+      explanation: "Each stroke moves the piston from TDC to BDC or vice-versa, rotating the crank by $180^\\circ$ (half a turn). Four strokes $\\times 180^\\circ = 720^\\circ$, corresponding to exactly 2 full crankshaft revolutions per power event."
+    },
+    {
+      id: "q5",
+      question: "Net indicated work output per cycle $W_{\\text{net}}$ is represented graphically on the engine indicator diagram as:",
+      options: [
+        "The slope of the compression curve",
+        "The total enclosed area inside the closed $P-V$ loop ($\\oint P\\,dV$)",
+        "The peak pressure $P_3$ divided by clearance volume $V_c$",
+        "The distance between TDC and BDC along the volume axis"
+      ],
+      correctIndex: 1,
+      explanation: "Work is boundary displacement work $W = \\int P\\,dV$. The net work delivered per cycle equals the integral around the closed cycle $\\oint P\\,dV$, which corresponds geometrically to the enclosed area within the $P-V$ loop."
+    }
+  ],
+
+  "manual-gearbox": [
+    {
+      id: "q1",
+      question: "In a car manual transmission, 1st gear has a gear ratio of $i = 3.82:1$ while 5th gear has an overdrive ratio of $i = 0.72:1$. When shifting from 5th gear down to 1st gear at constant engine torque, what happens to output driveshaft torque $\\tau_{\\text{out}}$ and angular velocity $\\omega_{\\text{out}}$?",
+      options: [
+        "Output torque decreases by ~5.3x while output speed increases",
+        "Output torque increases by ~5.3x ($\\tau_{\\text{out}} = \\tau_{\\text{in}} \\cdot i$), while output speed decreases proportionally ($\\omega_{\\text{out}} = \\frac{\\omega_{\\text{in}}}{i}$)",
+        "Both output torque and output speed double",
+        "Torque and speed remain identical due to conservation of momentum"
+      ],
+      correctIndex: 1,
+      explanation: "By mechanical advantage, torque multiplies by gear ratio: $\\frac{3.82}{0.72} \\approx 5.3$. Because mechanical power $P = \\tau \\omega$ is conserved (minus frictional losses), multiplying torque by 5.3x requires dividing output angular velocity by 5.3x."
+    },
+    {
+      id: "q2",
+      question: "What is the primary physical function of the clutch assembly (flywheel, friction disc, pressure plate) positioned between the engine crankshaft and transmission input shaft?",
+      options: [
+        "To increase fuel flow into the fuel injectors",
+        "To temporarily decouple engine inertia and torque from the transmission, allowing synchronizers to equalize gear speeds during shifts without tooth damage",
+        "To convert direct current into alternating current for the spark plugs",
+        "To reverse the direction of crankshaft rotation during braking"
+      ],
+      correctIndex: 1,
+      explanation: "The clutch friction plate decouples the transmission input shaft from the massive spinning engine flywheel. This eliminates torque load on the gear teeth, allowing the brass synchronizer friction cones to safely match rotational speeds without gear grinding."
+    },
+    {
+      id: "q3",
+      question: "In a constant-mesh manual transmission, what component physically locks a free-wheeling output gear to the rotating output mainshaft when the driver moves the gearshift lever?",
+      options: [
+        "The carburetor throttle butterfly valve",
+        "A splined synchronizer hub sleeve with internal dog teeth that slides over the gear's external dog teeth",
+        "A centrifugal governor spring",
+        "An electromagnetic solenoid brake"
+      ],
+      correctIndex: 1,
+      explanation: "In modern synchromesh transmissions, all forward gears are in constant mesh and spin freely on needle bearings. Selecting a gear causes the shift fork to slide the splined synchronizer collar (dog clutch) until its internal teeth lock onto the chosen gear's dog teeth, rigidly coupling it to the output shaft."
+    },
+    {
+      id: "q4",
+      question: "Why does selecting Reverse gear require an intermediate 'Reverse Idler Gear' positioned between the countershaft reverse gear and the output mainshaft reverse gear?",
+      options: [
+        "To double the torque capacity of the reverse gear teeth",
+        "Because an odd number of meshing external spur gears (3 gears: driver, idler, driven) reverses the direction of rotation of the output shaft relative to normal forward gears",
+        "To provide high-speed overdrive in reverse",
+        "To reduce engine oil temperature"
+      ],
+      correctIndex: 1,
+      explanation: "Meshing two external gears inverts rotation direction (driver CW $\\to$ driven CCW). For forward drive, the 2-pair mesh (input-countershaft, countershaft-output) results in forward rotation. Adding an intermediate third idler gear in the train inverts rotation once more, causing the output shaft to rotate in reverse."
+    },
+    {
+      id: "q5",
+      question: "When climbing a steep $15\\%$ road grade where gravitational resistance force ($F_g = mg \\sin\\theta$) is high, why must a driver downshift to 1st or 2nd gear instead of remaining in 5th gear overdrive ($i = 0.72$)?",
+      options: [
+        "5th gear would spin the tires too quickly and cause hydroplaning",
+        "1st gear ($i = 3.82$) provides large torque multiplication, delivering the tractive wheel force ($F = \\frac{\\tau_{\\text{wheel}}}{r_{\\text{tire}}}$) required to overcome gravity, whereas 5th gear would stall the engine due to excessive resistive torque",
+        "Overdrive gears cannot operate when the car is tilted",
+        "The transmission fluid boils in 5th gear"
+      ],
+      correctIndex: 1,
+      explanation: "Tractive force at the drive wheels is $F = \\frac{\\tau_{\\text{engine}} \\cdot i_{\\text{trans}} \\cdot i_{\\text{diff}}}{r_{\\text{tire}}}$. A high gear ratio (1st gear, $i = 3.82$) multiplies wheel torque by nearly $4\\times$ compared to 4th gear, overcoming the gravitational incline force $F_g = mg \\sin\\theta$. In overdrive ($i = 0.72$), insufficient wheel torque stalls the engine."
+    }
   ]
 };
 
@@ -3418,6 +3544,8 @@ export function mountLabCheckpoint(containerId, labKey = "projectile") {
     if (LAB_CHECKPOINTS[clean + "s"]) return LAB_CHECKPOINTS[clean + "s"];
     if (clean.includes("chromato") || clean.includes("tlc") || clean.includes("rfsep")) return LAB_CHECKPOINTS.chromatography;
     if (clean.includes("pcr") || clean.includes("crispr") || clean.includes("cas9") || clean.includes("geneedit")) return LAB_CHECKPOINTS.pcrcrispr;
+    if (clean.includes("piston") || clean.includes("otto") || clean.includes("engine")) return LAB_CHECKPOINTS["engine-piston"];
+    if (clean.includes("gear") || clean.includes("transmiss") || clean.includes("clutch") || clean.includes("manualgear")) return LAB_CHECKPOINTS["manual-gearbox"];
     if (clean.includes("arduino") || clean.includes("atmega") || clean.includes("mcu")) return LAB_CHECKPOINTS.arduino;
     if (clean.includes("flame") || clean.includes("spectro")) return LAB_CHECKPOINTS.flametest;
     if (clean.includes("precip") || clean.includes("solubil")) return LAB_CHECKPOINTS.precipitation;

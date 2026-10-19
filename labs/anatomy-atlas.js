@@ -4399,6 +4399,7 @@ export function initAnatomyAtlasLab(containerId) {
     const frac = scaled - idx;
     const p0 = pts[idx];
     const p1 = pts[idx + 1];
+    if (!p0 || !p1) return p0 || p1 || { x: 500, y: 500 };
     return {
       x: p0.x + (p1.x - p0.x) * frac,
       y: p0.y + (p1.y - p0.y) * frac

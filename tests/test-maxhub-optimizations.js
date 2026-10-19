@@ -214,12 +214,12 @@ assert(indexCssContent.includes('[data-mode="smartboard"] .range-slider::-webkit
 console.log("  ✅ PASS: Search input debounced against layout thrashing; smartboard touch targets sized generously (52-58px)");
 
 // ----------------------------------------------------
-// Test 11: All 44 Virtual Lab Workbenches Disconnect Guards
+// Test 11: All 50 Virtual Lab Workbenches Disconnect Guards
 // ----------------------------------------------------
 console.log("\n🔬 Test 11: All Virtual Lab Workbenches Disconnect Guards");
 const labFiles = fs.readdirSync(path.join(rootDir, "labs"))
   .filter(f => f.startsWith("bio-") || f.startsWith("chem-") || f.startsWith("phys-") || f === "anatomy-atlas.js");
-assert(labFiles.length === 48, `Expected exactly 48 virtual lab modules, found ${labFiles.length}`);
+assert(labFiles.length === 50, `Expected exactly 50 virtual lab modules, found ${labFiles.length}`);
 for (const f of labFiles) {
   const code = fs.readFileSync(path.join(rootDir, "labs", f), "utf-8");
   assert(

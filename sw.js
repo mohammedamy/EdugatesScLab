@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v124";
+const CACHE_NAME = "amscilab-pwa-v125";
 
 const CORE_APP_SHELL = [
   "./",
@@ -197,6 +197,8 @@ const SECONDARY_ASSETS = [
   "./labs/phys-orbital-mechanics.js",
   "./labs/phys-sound-resonance.js",
   "./labs/phys-electrostatics.js",
+  "./labs/phys-engine-piston.js",
+  "./labs/phys-manual-gearbox.js",
   "./data/human-anatomy-atlas-data.js",
   "./assets/labs/human_anatomy_anterior_8k.jpg",
   "./assets/labs/human_anatomy_posterior_8k.jpg",
@@ -233,6 +235,10 @@ const SECONDARY_ASSETS = [
   "./assets/labs/chromatography_bench.jpg",
   "./assets/labs/pcr_crispr_bench.webp",
   "./assets/labs/pcr_crispr_bench.jpg",
+  "./assets/labs/engine_piston_bench.webp",
+  "./assets/labs/engine_piston_bench.jpg",
+  "./assets/labs/manual_gearbox_bench.webp",
+  "./assets/labs/manual_gearbox_bench.jpg",
   "./assets/labs/circuits_bench.jpg",
   "./assets/labs/colligative_bench.jpg",
   "./assets/labs/conduction_bench.jpg",

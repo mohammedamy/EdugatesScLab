@@ -233,7 +233,15 @@ const testCases = [
   { input: "tlc", expected: "chromatography" },
   { input: "lab-pcrcrispr", expected: "pcrcrispr" },
   { input: "pcrcrispr", expected: "pcrcrispr" },
-  { input: "crispr", expected: "pcrcrispr" }
+  { input: "crispr", expected: "pcrcrispr" },
+  { input: "lab-engine-piston", expected: "engine-piston" },
+  { input: "engine-piston", expected: "engine-piston" },
+  { input: "piston", expected: "engine-piston" },
+  { input: "otto-cycle", expected: "engine-piston" },
+  { input: "lab-manual-gearbox", expected: "manual-gearbox" },
+  { input: "manual-gearbox", expected: "manual-gearbox" },
+  { input: "gearbox", expected: "manual-gearbox" },
+  { input: "clutch", expected: "manual-gearbox" }
 ];
 
 let allNormalized = true;
@@ -260,7 +268,8 @@ const expectedLabIds = [
   "flametest", "precipitation", "activityseries",
   "antibiotic", "elisa", "transpiration",
   "orbital", "resonance", "electrostatics",
-  "arduino", "chromatography", "pcrcrispr"
+  "arduino", "chromatography", "pcrcrispr",
+  "engine-piston", "manual-gearbox"
 ];
 
 let allModulesMapValid = true;
@@ -277,7 +286,7 @@ allModules.forEach(m => {
     console.error(`Module ${m.code} has unmapped lab: "${m.lab}" -> "${labNorm}"`);
   }
 });
-assert(allModulesMapValid && allModules.length === 74, `All 74 curriculum modules map to one of 48 verified lab suites (Total: ${allModules.length})`);
+assert(allModulesMapValid && allModules.length === 74, `All 74 curriculum modules map to one of ${expectedLabIds.length} verified lab suites (Total: ${allModules.length})`);
 
 // 3. Competency Checkpoint Questions Coverage
 let allCheckpointsPresent = true;
@@ -351,7 +360,9 @@ const labLoaders = [
   { name: "electrostatics", loader: () => import("../labs/phys-electrostatics.js").then(m => m.initElectrostaticsLab("test-mount")) },
   { name: "arduino", loader: () => import("../labs/phys-arduino.js").then(m => m.initArduinoLab("test-mount")) },
   { name: "chromatography", loader: () => import("../labs/chem-chromatography.js").then(m => m.initChromatographyLab("test-mount")) },
-  { name: "pcrcrispr", loader: () => import("../labs/bio-pcr-crispr.js").then(m => m.initPcrCrisprLab("test-mount")) }
+  { name: "pcrcrispr", loader: () => import("../labs/bio-pcr-crispr.js").then(m => m.initPcrCrisprLab("test-mount")) },
+  { name: "engine-piston", loader: () => import("../labs/phys-engine-piston.js").then(m => m.initEnginePistonLab("test-mount")) },
+  { name: "manual-gearbox", loader: () => import("../labs/phys-manual-gearbox.js").then(m => m.initManualGearboxLab("test-mount")) }
 ];
 
 let allLabsInitCleanly = true;
@@ -372,8 +383,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appJsContent = fs.readFileSync(path.join(__dirname, "../app.js"), "utf-8");
-assert(/badge:\s*"48 Labs"/.test(appJsContent), 'Virtual Labs navigation tab badge displays "48 Labs"');
-assert(/tagline:\s*"48 Interactive STEM Workbenches"/.test(appJsContent), 'Virtual Labs navigation tab tagline displays "48 Interactive STEM Workbenches"');
+assert(/badge:\s*"50 Labs"/.test(appJsContent), 'Virtual Labs navigation tab badge displays "50 Labs"');
+assert(/tagline:\s*"50 Interactive STEM Workbenches"/.test(appJsContent), 'Virtual Labs navigation tab tagline displays "50 Interactive STEM Workbenches"');
 
 console.log("\n========================================================");
 console.log(`📊 Lab Links Tests: ${passed} Passed, ${failed} Failed`);

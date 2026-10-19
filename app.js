@@ -109,8 +109,8 @@ export const NAV_SUBJECTS = [
   {
     id: "labs",
     name: "Virtual Labs",
-    badge: "48 Labs",
-    tagline: "48 Interactive STEM Workbenches",
+    badge: "50 Labs",
+    tagline: "50 Interactive STEM Workbenches",
     icon: icons.microscope,
     themeClass: "tab-labs",
     color: "#38bdf8"
@@ -1993,17 +1993,19 @@ export const VIRTUAL_LABS_REGISTRY = [
   { id: "precipitation", subject: "chem", title: "Precipitation & Solubility", icon: icons.precipitation, ariaLabel: "Precipitation and Solubility Rules Lab", href: "#labs/precipitation" },
   { id: "vsepr", subject: "chem", title: "VSEPR 3D Modeler", icon: icons.vsepr, ariaLabel: "VSEPR 3D Modeler Lab", href: "#labs/vsepr" },
 
-  // Physics Laboratories (16)
+  // Physics Laboratories (18)
   { id: "arduino", subject: "phys", title: "Arduino & Microcontrollers", icon: icons.arduino || icons.circuit, ariaLabel: "Arduino Uno and Microcontroller Circuits Lab", href: "#labs/arduino" },
   { id: "electrostatics", subject: "phys", title: "Coulomb & Electric Fields", icon: icons.electrostatics, ariaLabel: "Coulomb's Law and Electrostatic Field Mapping Lab", href: "#labs/electrostatics" },
   { id: "circuits", subject: "phys", title: "DC Circuits & Ohm's Law", icon: icons.circuit, ariaLabel: "DC Circuits and Ohm's Law Lab", href: "#labs/circuits" },
   { id: "induction", subject: "phys", title: "Electromagnetic Induction & Faraday", icon: icons.induction, ariaLabel: "Electromagnetic Induction and Faraday Lab", href: "#labs/induction" },
+  { id: "engine-piston", subject: "phys", title: "Engine Piston & Otto Cycle", icon: icons.enginePiston, ariaLabel: "Four-Stroke Engine Piston and Otto Cycle Lab", href: "#labs/engine-piston" },
   { id: "fluids", subject: "phys", title: "Fluid Dynamics & Buoyancy", icon: icons.fluidsBuoyancy, ariaLabel: "Fluid Dynamics and Buoyancy Lab", href: "#labs/fluids" },
   { id: "optics", subject: "phys", title: "Geometric Optics Ray Tracing", icon: icons.optics, ariaLabel: "Geometric Optics Ray Tracing Lab", href: "#labs/optics" },
   { id: "harmonic", subject: "phys", title: "Harmonic Motion & Hooke", icon: icons.harmonic, ariaLabel: "Harmonic Motion and Hooke's Law Lab", href: "#labs/harmonic" },
   { id: "projectile", subject: "phys", title: "Kinematics & Projectiles", icon: icons.projectile, ariaLabel: "Kinematics and Projectiles Virtual Lab", href: "#labs/projectile" },
   { id: "collisions", subject: "phys", title: "Linear Momentum & Collisions", icon: icons.collisions, ariaLabel: "Linear Momentum and Collisions Virtual Lab", href: "#labs/collisions" },
   { id: "magnetism", subject: "phys", title: "Magnetic Force & e/m", icon: icons.magnetism, ariaLabel: "Magnetic Force and Lorentz e/m Lab", href: "#labs/magnetism" },
+  { id: "manual-gearbox", subject: "phys", title: "Manual Gearbox Transmission", icon: icons.manualGearbox, ariaLabel: "Manual Gearbox and Transmission Mechanics Lab", href: "#labs/manual-gearbox" },
   { id: "orbital", subject: "phys", title: "Orbital Mechanics & Kepler", icon: icons.orbital, ariaLabel: "Keplerian Orbital Mechanics and Gravitation Lab", href: "#labs/orbital" },
   { id: "photoelectric", subject: "phys", title: "Photoelectric Effect", icon: icons.photoelectric, ariaLabel: "Photoelectric Effect and Quantum Physics Lab", href: "#labs/photoelectric" },
   { id: "rotational", subject: "phys", title: "Rotational Dynamics", icon: icons.rotationalDynamics, ariaLabel: "Rotational Dynamics and Moment of Inertia Lab", href: "#labs/rotational" },
@@ -2091,6 +2093,8 @@ export function normalizeLabId(rawId) {
   const str = String(rawId).toLowerCase().trim().replace(/^lab[-_]?/, "");
   if (str === "chromatography" || str.includes("chromato") || str.includes("tlc") || str.includes("hplc")) return "chromatography";
   if (str === "pcrcrispr" || str === "pcr-crispr" || str.includes("pcr") || str.includes("crispr") || str.includes("cas9")) return "pcrcrispr";
+  if (str === "engine-piston" || str === "piston" || str.includes("piston") || str.includes("otto") || str.includes("combustion") || str.includes("engine")) return "engine-piston";
+  if (str === "manual-gearbox" || str === "gearbox" || str.includes("gearbox") || str.includes("transmiss") || str.includes("clutch") || str.includes("gear")) return "manual-gearbox";
   if (str === "arduino" || str.includes("arduin") || str.includes("atmega") || str.includes("microcontrol")) return "arduino";
   if (str === "flametest" || str === "flame-test" || str.includes("flame")) return "flametest";
   if (str === "precipitation" || str.includes("precip") || str.includes("solubil")) return "precipitation";
@@ -2149,6 +2153,8 @@ function formatLabName(labKey) {
   const map = {
     "chromatography": "Chromatography & Rf Separation",
     "pcrcrispr": "PCR & CRISPR Gene Editing",
+    "engine-piston": "Four-Stroke Engine Piston & Otto Cycle",
+    "manual-gearbox": "Manual Gearbox & Transmission Mechanics",
     "arduino": "Arduino Uno & Microcontroller Circuitry",
     "projectile": "Kinematics & Dynamics",
     "titration": "Titration & Stoichiometry",
@@ -3233,6 +3239,14 @@ function mountActiveLab() {
     "pcr-crispr": () => import("./labs/bio-pcr-crispr.js?v=6.9").then(m => m.initPcrCrisprLab("active-lab-mount")),
     "lab-pcrcrispr": () => import("./labs/bio-pcr-crispr.js?v=6.9").then(m => m.initPcrCrisprLab("active-lab-mount")),
     "lab-pcr-crispr": () => import("./labs/bio-pcr-crispr.js?v=6.9").then(m => m.initPcrCrisprLab("active-lab-mount")),
+    "engine-piston": () => import("./labs/phys-engine-piston.js?v=6.9").then(m => m.initEnginePistonLab("active-lab-mount")),
+    "lab-engine-piston": () => import("./labs/phys-engine-piston.js?v=6.9").then(m => m.initEnginePistonLab("active-lab-mount")),
+    "phys-engine-piston": () => import("./labs/phys-engine-piston.js?v=6.9").then(m => m.initEnginePistonLab("active-lab-mount")),
+    "piston": () => import("./labs/phys-engine-piston.js?v=6.9").then(m => m.initEnginePistonLab("active-lab-mount")),
+    "manual-gearbox": () => import("./labs/phys-manual-gearbox.js?v=6.9").then(m => m.initManualGearboxLab("active-lab-mount")),
+    "lab-manual-gearbox": () => import("./labs/phys-manual-gearbox.js?v=6.9").then(m => m.initManualGearboxLab("active-lab-mount")),
+    "phys-manual-gearbox": () => import("./labs/phys-manual-gearbox.js?v=6.9").then(m => m.initManualGearboxLab("active-lab-mount")),
+    "gearbox": () => import("./labs/phys-manual-gearbox.js?v=6.9").then(m => m.initManualGearboxLab("active-lab-mount")),
     "projectile": () => import("./labs/phys-projectile.js?v=5.7").then(m => m.initProjectileLab("active-lab-mount")),
     "lab-projectile": () => import("./labs/phys-projectile.js?v=5.7").then(m => m.initProjectileLab("active-lab-mount")),
     "titration": () => import("./labs/chem-titration.js?v=5.7").then(m => m.initTitrationLab("active-lab-mount")),

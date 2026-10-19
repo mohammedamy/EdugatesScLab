@@ -1375,6 +1375,22 @@ export const icons = {
     <line x1="10" y1="19" x2="10" y2="21" stroke="#fbbf24"/>
     <line x1="14" y1="19" x2="14" y2="21" stroke="#fbbf24"/>
     <line x1="18" y1="19" x2="18" y2="21" stroke="#fbbf24"/>
+  </svg>`,
+
+  enginePiston: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6.5" y="2" width="11" height="13" rx="1.5" stroke="#94a3b8" fill="rgba(148, 163, 184, 0.15)"/>
+    <rect x="8" y="5.5" width="8" height="5" rx="1" stroke="#f59e0b" fill="rgba(245, 158, 11, 0.3)"/>
+    <line x1="12" y1="10.5" x2="12" y2="17" stroke="#38bdf8" stroke-width="2.2"/>
+    <circle cx="12" cy="19" r="2.5" stroke="#ef4444" stroke-width="2"/>
+    <path d="M12 2v2M10.5 4l3-2" stroke="#facc15" stroke-width="1.5"/>
+  </svg>`,
+
+  manualGearbox: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="8" cy="9" r="4.5" stroke="#38bdf8" stroke-width="2" stroke-dasharray="2 1.5"/>
+    <circle cx="16" cy="15" r="5.5" stroke="#f59e0b" stroke-width="2" stroke-dasharray="2 1.5"/>
+    <circle cx="8" cy="9" r="1.5" fill="#38bdf8"/>
+    <circle cx="16" cy="15" r="2" fill="#f59e0b"/>
+    <path d="M5 21h5M7.5 18v3M10 18v3M13 18v3M15 21h4" stroke="#94a3b8" stroke-width="1.5"/>
   </svg>`
 };
 

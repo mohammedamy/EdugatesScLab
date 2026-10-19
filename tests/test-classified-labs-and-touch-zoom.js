@@ -49,11 +49,11 @@ console.log("========================================================\n");
 // Test 1: Registry Integrity & Subject Classification
 // ----------------------------------------------------
 check(Array.isArray(VIRTUAL_LABS_REGISTRY), "VIRTUAL_LABS_REGISTRY is an array");
-check(VIRTUAL_LABS_REGISTRY.length === 48, `VIRTUAL_LABS_REGISTRY contains all 48 platform laboratories (Found: ${VIRTUAL_LABS_REGISTRY.length})`);
+check(VIRTUAL_LABS_REGISTRY.length === 50, `VIRTUAL_LABS_REGISTRY contains all 50 platform laboratories (Found: ${VIRTUAL_LABS_REGISTRY.length})`);
 
 const classified = getClassifiedVirtualLabs();
 check(Array.isArray(classified.chem) && classified.chem.length === 16, `Chemistry classification contains exactly 16 laboratories (Found: ${classified.chem?.length})`);
-check(Array.isArray(classified.phys) && classified.phys.length === 16, `Physics classification contains exactly 16 laboratories (Found: ${classified.phys?.length})`);
+check(Array.isArray(classified.phys) && classified.phys.length === 18, `Physics classification contains exactly 18 laboratories (Found: ${classified.phys?.length})`);
 check(Array.isArray(classified.bio) && classified.bio.length === 16, `Biology classification contains exactly 16 laboratories (Found: ${classified.bio?.length})`);
 
 // ----------------------------------------------------
