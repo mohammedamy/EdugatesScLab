@@ -65,17 +65,42 @@ export function initEnginePistonLab(containerId) {
   let oscCrank = null;
   let oscFire = null;
   let oscSub = null;
+  let oscRasp = null;
   let gainExhaust = null;
+  let gainRasp = null;
   let noiseNode = null;
   let noiseFilter = null;
   let gainInduction = null;
   let valvetrainOsc = null;
   let valvetrainGain = null;
+  let compressor = null;
+  let isRevLimiterActive = false;
 
-  // Visual Particle Effects (Intake Air Mist, Fuel Spray, Combustion Flame Sparks, Exhaust Smoke)
+  // Real Multi-Phase Fluid & Gas Simulation State:
+  // 1. Liquids:
+  //    - High-Pressure Fuel Spray Micro-Droplets & Wall Wetting
+  //    - Active Crankcase Oil Sump Wave Surface (Multi-Harmonic Fourier Heightfield)
+  //    - Crankshaft Splash Lubrication Droplets
+  //    - Pressurized Internal Oil Gallery Beads
+  //    - Cylinder Wall Lubricating Oil Film Sheen & Ring Scraping
+  //    - Circulating Liquid Coolant Convection Streamlines & Micro-Bubbles
+  // 2. Smoke & Gas:
+  //    - Volumetric Billowing Exhaust Vortex Clouds (Expansion, Swirl, Soot Dissipation)
+  //    - High-RPM & Overrun Exhaust Manifold Flame Tongues & Glowing Embers
+  //    - Crankcase Blow-by Oil Vapor Mist & Tumble Swirl
   const chamberParticles = [];
-  const exhaustParticles = [];
-  const injectorParticles = [];
+  const exhaustSmokePuffs = [];
+  const exhaustFlameSparks = [];
+  const fuelSprayDroplets = [];
+  const oilSplashDroplets = [];
+  const oilGalleryBeads = [];
+  const coolantParticles = [];
+  const crankcaseMistPuffs = [];
+
+  // Oil Sump Dynamic Wave Field (30 discrete fluid surface height points)
+  const oilWaveCount = 30;
+  const oilWaveHeights = new Float32Array(oilWaveCount);
+  const oilWaveVelocities = new Float32Array(oilWaveCount);
 
   container.innerHTML = `
     <div class="lab-container">
@@ -281,6 +306,7 @@ export function initEnginePistonLab(containerId) {
                   <option value="inline4">🏎️ Inline-4 Sport DOHC</option>
                   <option value="thumper">🏍️ Single-Cylinder Thumper</option>
                   <option value="v8">🏁 V8 Crossplane Muscle</option>
+                  <option value="v10">⚡ High-Rev V10 Supercar</option>
                 </select>
               </div>
             </div>
@@ -527,36 +553,89 @@ export function initEnginePistonLab(containerId) {
     engineCtx.fill();
     engineCtx.stroke();
 
-    // Coolant Jacket Passages (Blue circulating coolant fluid on both sides)
-    const coolantY = cylinderTopY + 20;
-    const coolantH = cylinderBottomY - cylinderTopY - 40;
-    const coolantTime = performance.now() * 0.002;
-    const coolantGrad = engineCtx.createLinearGradient(0, coolantY, 0, coolantY + coolantH);
-    coolantGrad.addColorStop(0, "rgba(14, 165, 233, 0.45)");
-    coolantGrad.addColorStop(0.5, "rgba(56, 189, 248, 0.75)");
-    coolantGrad.addColorStop(1, "rgba(14, 165, 233, 0.45)");
+    // 2b. High-Performance Liquid Coolant Passages (Active Convection Streamlines & Thermal Dissipation)
+    const coolantY = cylinderTopY + 16;
+    const coolantH = cylinderBottomY - cylinderTopY - 32;
+    const coolantTime = performance.now() * 0.0025;
+    const pumpSpeed = 0.8 + (currentRpm / 6000) * 3.2; // Mechanical water pump impeller rate
+    const thermalLoad = Math.min(1.0, Math.max(0, (state.tempK - 300) / 1200));
 
-    engineCtx.fillStyle = coolantGrad;
-    // Left passage
-    engineCtx.fillRect(centerX - cylinderWidth / 2 - 28, coolantY, 18, coolantH);
-    // Right passage
-    engineCtx.fillRect(centerX + cylinderWidth / 2 + 10, coolantY, 18, coolantH);
+    // Left & Right Coolant Water Jacket Channels
+    const jacketChannels = [
+      { x: centerX - cylinderWidth / 2 - 29, w: 20, dir: -1 }, // Left channel (flow upward near bore)
+      { x: centerX + cylinderWidth / 2 + 9, w: 20, dir: 1 }    // Right channel
+    ];
 
-    // Coolant flow indicators
-    engineCtx.fillStyle = "rgba(255, 255, 255, 0.6)";
-    for (let i = 0; i < 4; i++) {
-      const bubbleY1 = coolantY + ((coolantTime * 30 + i * 40) % coolantH);
-      const bubbleY2 = coolantY + coolantH - ((coolantTime * 30 + i * 40) % coolantH);
+    jacketChannels.forEach((jk) => {
+      engineCtx.save();
+      // Fluid base gradient: neon cyan (cool inlet) to radiant turquoise/emerald-gold (heated outlet)
+      const jkGrad = engineCtx.createLinearGradient(0, coolantY + coolantH, 0, coolantY);
+      jkGrad.addColorStop(0, "rgba(6, 182, 212, 0.65)");
+      jkGrad.addColorStop(0.55, `rgba(14, 165, 233, ${0.7 + 0.15 * thermalLoad})`);
+      jkGrad.addColorStop(1, `rgba(${Math.round(20 + 200 * thermalLoad)}, ${Math.round(220 - 40 * thermalLoad)}, ${Math.round(200 - 80 * thermalLoad)}, 0.85)`);
+
+      engineCtx.fillStyle = jkGrad;
       engineCtx.beginPath();
-      engineCtx.arc(centerX - cylinderWidth / 2 - 19, bubbleY1, 2.5, 0, Math.PI * 2);
+      engineCtx.roundRect(jk.x, coolantY, jk.w, coolantH, 4);
       engineCtx.fill();
+      engineCtx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+      engineCtx.lineWidth = 1.2;
+      engineCtx.stroke();
+
+      // Liquid Convection Streamlines (Smooth undulating fluid flow paths)
+      engineCtx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      engineCtx.lineWidth = 1.2;
       engineCtx.beginPath();
-      engineCtx.arc(centerX + cylinderWidth / 2 + 19, bubbleY2, 2.5, 0, Math.PI * 2);
+      const wavePhase = coolantTime * pumpSpeed * 4 * jk.dir;
+      const midX = jk.x + jk.w / 2;
+      for (let sy = 0; sy <= coolantH; sy += 8) {
+        const py = coolantY + sy;
+        const px = midX + Math.sin(sy * 0.08 + wavePhase) * 4;
+        if (sy === 0) engineCtx.moveTo(px, py);
+        else engineCtx.lineTo(px, py);
+      }
+      engineCtx.stroke();
+
+      // Fluid Flow Velocity Arrows (Spigots)
+      const arrowY = coolantY + ((coolantTime * 45 * pumpSpeed) % coolantH);
+      engineCtx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      engineCtx.beginPath();
+      engineCtx.moveTo(midX, arrowY - 4 * jk.dir);
+      engineCtx.lineTo(midX - 3.5, arrowY + 3 * jk.dir);
+      engineCtx.lineTo(midX + 3.5, arrowY + 3 * jk.dir);
+      engineCtx.closePath();
       engineCtx.fill();
+      engineCtx.restore();
+    });
+
+    // Circulating Coolant Micro-Bubbles (Spawn & Animate in Water Jacket)
+    if (coolantParticles.length < 18 && Math.random() < 0.35) {
+      const isLeft = Math.random() < 0.5;
+      const baseChannel = isLeft ? jacketChannels[0] : jacketChannels[1];
+      coolantParticles.push({
+        x: baseChannel.x + 3 + Math.random() * (baseChannel.w - 6),
+        y: isLeft ? (coolantY + coolantH - 2) : (coolantY + 2),
+        vy: isLeft ? (-Math.random() * 1.6 - 0.8) * pumpSpeed : (Math.random() * 1.6 + 0.8) * pumpSpeed,
+        radius: Math.random() * 1.8 + 1.0,
+        alpha: Math.random() * 0.5 + 0.4
+      });
     }
-    engineCtx.restore();
+    for (let i = coolantParticles.length - 1; i >= 0; i--) {
+      const cb = coolantParticles[i];
+      cb.y += cb.vy;
+      if (cb.y < coolantY || cb.y > coolantY + coolantH) {
+        coolantParticles.splice(i, 1);
+        continue;
+      }
+      engineCtx.save();
+      engineCtx.fillStyle = `rgba(255, 255, 255, ${cb.alpha})`;
+      engineCtx.beginPath();
+      engineCtx.arc(cb.x, cb.y, cb.radius, 0, Math.PI * 2);
+      engineCtx.fill();
+      engineCtx.restore();
+    }
 
-    // 3. Cast Iron Cylinder Sleeve with Honed Mirror Cross-Hatch Finish
+    // 3. Cast Iron Cylinder Sleeve with Honed Mirror Cross-Hatch & Wet Lubricating Oil Film
     engineCtx.save();
     const sleeveGrad = engineCtx.createLinearGradient(centerX - cylinderWidth / 2, 0, centerX + cylinderWidth / 2, 0);
     sleeveGrad.addColorStop(0, "#334155");
@@ -570,8 +649,8 @@ export function initEnginePistonLab(containerId) {
     engineCtx.fillStyle = sleeveGrad;
     engineCtx.fillRect(centerX - cylinderWidth / 2, cylinderTopY, cylinderWidth, cylinderBottomY - cylinderTopY);
 
-    // Cylinder Wall Honing Cross-Hatch Texture (45° microscopic abrasive lines)
-    engineCtx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+    // Cylinder Wall Honing Cross-Hatch Texture (45° microscopic abrasive diamond finish)
+    engineCtx.strokeStyle = "rgba(255, 255, 255, 0.045)";
     engineCtx.lineWidth = 1;
     for (let y = cylinderTopY; y < cylinderBottomY; y += 14) {
       engineCtx.beginPath();
@@ -584,6 +663,23 @@ export function initEnginePistonLab(containerId) {
       engineCtx.lineTo(centerX + cylinderWidth / 2 - 45, y + 20);
       engineCtx.stroke();
     }
+
+    // Dynamic Glistening Boundary Lubrication Oil Film along the Cylinder Sleeve
+    const sleeveLeft = centerX - cylinderWidth / 2;
+    const sleeveRight = centerX + cylinderWidth / 2;
+    const oilFilmGradLeft = engineCtx.createLinearGradient(sleeveLeft, 0, sleeveLeft + 18, 0);
+    oilFilmGradLeft.addColorStop(0, "rgba(245, 158, 11, 0.28)");
+    oilFilmGradLeft.addColorStop(0.5, "rgba(251, 191, 36, 0.16)");
+    oilFilmGradLeft.addColorStop(1, "rgba(245, 158, 11, 0)");
+    engineCtx.fillStyle = oilFilmGradLeft;
+    engineCtx.fillRect(sleeveLeft, cylinderTopY, 18, cylinderBottomY - cylinderTopY);
+
+    const oilFilmGradRight = engineCtx.createLinearGradient(sleeveRight, 0, sleeveRight - 18, 0);
+    oilFilmGradRight.addColorStop(0, "rgba(245, 158, 11, 0.28)");
+    oilFilmGradRight.addColorStop(0.5, "rgba(251, 191, 36, 0.16)");
+    oilFilmGradRight.addColorStop(1, "rgba(245, 158, 11, 0)");
+    engineCtx.fillStyle = oilFilmGradRight;
+    engineCtx.fillRect(sleeveRight - 18, cylinderTopY, 18, cylinderBottomY - cylinderTopY);
     engineCtx.restore();
 
     // 4. Piston Kinematics Positions
@@ -624,23 +720,24 @@ export function initEnginePistonLab(containerId) {
     engineCtx.fillStyle = gasFillGrad;
     engineCtx.fillRect(centerX - cylinderWidth / 2 + 2, cylinderTopY, cylinderWidth - 4, chamberHeight);
 
-    // Particle Agitation (Fuel droplets / Fire sparks / Exhaust soot)
-    if (chamberParticles.length < 45 && Math.random() < 0.6) {
+    // In-Cylinder Fluid Aerodynamics & Combustion Flame Front
+    if (chamberParticles.length < 50 && Math.random() < 0.7) {
+      const isCombustion = state.strokeId === 3;
       chamberParticles.push({
-        x: centerX + (Math.random() - 0.5) * (cylinderWidth - 24),
+        x: centerX + (Math.random() - 0.5) * (cylinderWidth - 20),
         y: cylinderTopY + Math.random() * chamberHeight,
-        vx: (Math.random() - 0.5) * 3,
-        vy: (Math.random() - 0.5) * 3,
-        radius: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * (isCombustion ? 5 : 2.5),
+        vy: (Math.random() - 0.5) * (isCombustion ? 5 : 2.5),
+        radius: Math.random() * (isCombustion ? 3.0 : 1.8) + 0.8,
         life: 1.0,
-        color: state.strokeId === 3 ? "#fef08a" : (state.strokeId === 1 ? "#38bdf8" : "#94a3b8")
+        color: isCombustion ? (Math.random() < 0.6 ? "#fef08a" : "#f97316") : (state.strokeId === 1 ? "#38bdf8" : "#94a3b8")
       });
     }
     for (let i = chamberParticles.length - 1; i >= 0; i--) {
       const p = chamberParticles[i];
       p.x += p.vx;
       p.y += p.vy;
-      p.life -= 0.04;
+      p.life -= 0.035;
       if (p.life <= 0 || p.y > pistonY || p.y < cylinderTopY) {
         chamberParticles.splice(i, 1);
         continue;
@@ -670,10 +767,11 @@ export function initEnginePistonLab(containerId) {
     engineCtx.lineWidth = 2;
     engineCtx.stroke();
 
-    // Intake Port Runner (Left: Blue charge entrance)
+    // Intake Port Runner (Left: Blue charge entrance with laminar flow lines)
     const intakeGrad = engineCtx.createLinearGradient(centerX - cylinderWidth / 2 - 45, cylinderTopY - 50, centerX - 30, cylinderTopY - 10);
-    intakeGrad.addColorStop(0, "rgba(56, 189, 248, 0.4)");
-    intakeGrad.addColorStop(1, "rgba(2, 132, 199, 0.15)");
+    intakeGrad.addColorStop(0, "rgba(56, 189, 248, 0.45)");
+    intakeGrad.addColorStop(0.7, "rgba(14, 165, 233, 0.25)");
+    intakeGrad.addColorStop(1, "rgba(2, 132, 199, 0.1)");
     engineCtx.fillStyle = intakeGrad;
     engineCtx.beginPath();
     engineCtx.moveTo(centerX - cylinderWidth / 2 - 45, cylinderTopY - 50);
@@ -685,39 +783,107 @@ export function initEnginePistonLab(containerId) {
     engineCtx.strokeStyle = "#475569";
     engineCtx.stroke();
 
-    // Fuel Injector mounted in Intake Runner
-    engineCtx.fillStyle = "#64748b";
-    engineCtx.fillRect(centerX - cylinderWidth / 2 - 25, cylinderTopY - 60, 12, 22);
-    engineCtx.fillStyle = "#e2e8f0"; // Injector nozzle tip
+    // High-Pressure Fuel Injector mounted in Intake Runner
+    const injBodyX = centerX - cylinderWidth / 2 - 25;
+    const injTipX = centerX - cylinderWidth / 2 - 19;
+    const injTipY = cylinderTopY - 32;
+
+    engineCtx.fillStyle = "#475569";
+    engineCtx.fillRect(injBodyX, cylinderTopY - 62, 13, 24);
+    // Solenoid Connector Clip
+    engineCtx.fillStyle = "#0284c7";
+    engineCtx.fillRect(injBodyX + 2, cylinderTopY - 67, 9, 6);
+    // Stainless Steel Injector Nozzle Tip
+    engineCtx.fillStyle = "#e2e8f0";
     engineCtx.beginPath();
-    engineCtx.moveTo(centerX - cylinderWidth / 2 - 23, cylinderTopY - 38);
-    engineCtx.lineTo(centerX - cylinderWidth / 2 - 15, cylinderTopY - 38);
-    engineCtx.lineTo(centerX - cylinderWidth / 2 - 19, cylinderTopY - 32);
+    engineCtx.moveTo(injTipX - 4, injTipY - 6);
+    engineCtx.lineTo(injTipX + 4, injTipY - 6);
+    engineCtx.lineTo(injTipX, injTipY);
     engineCtx.closePath();
     engineCtx.fill();
 
-    // Fuel Spray Cone during Intake Stroke
-    if (state.strokeId === 1 && state.intakeValveOpen > 0.1) {
+    // REAL LIQUIDS ANIMATION: High-Pressure Fuel Spray Atomization & Wall Wetting
+    const isInjecting = state.strokeId === 1 && state.intakeValveOpen > 0.08;
+    if (isInjecting) {
+      // 1. Conical Vapor Fog Fan (Dense aerosol cloud core)
       const sprayGrad = engineCtx.createRadialGradient(
-        centerX - cylinderWidth / 2 - 19, cylinderTopY - 32, 2,
-        centerX - 40, cylinderTopY - 10, 35
+        injTipX, injTipY, 2,
+        centerX - 38, cylinderTopY - 8, 48
       );
-      sprayGrad.addColorStop(0, "rgba(255, 255, 255, 0.85)");
-      sprayGrad.addColorStop(0.4, "rgba(56, 189, 248, 0.65)");
+      sprayGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+      sprayGrad.addColorStop(0.3, "rgba(125, 211, 252, 0.75)");
+      sprayGrad.addColorStop(0.7, "rgba(56, 189, 248, 0.35)");
       sprayGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
       engineCtx.fillStyle = sprayGrad;
       engineCtx.beginPath();
-      engineCtx.moveTo(centerX - cylinderWidth / 2 - 19, cylinderTopY - 32);
-      engineCtx.lineTo(centerX - 48, cylinderTopY - 8);
-      engineCtx.lineTo(centerX - 28, cylinderTopY - 12);
+      engineCtx.moveTo(injTipX, injTipY);
+      engineCtx.lineTo(centerX - 52, cylinderTopY - 5);
+      engineCtx.lineTo(centerX - 24, cylinderTopY - 14);
       engineCtx.closePath();
       engineCtx.fill();
+
+      // 2. Liquid Fuel Wall Wetting (Glistening fuel film along runner floor)
+      engineCtx.strokeStyle = "rgba(125, 211, 252, 0.7)";
+      engineCtx.lineWidth = 2.5;
+      engineCtx.beginPath();
+      engineCtx.moveTo(injTipX + 2, cylinderTopY - 22);
+      engineCtx.quadraticCurveTo(centerX - 48, cylinderTopY - 26, centerX - 26, cylinderTopY - 10);
+      engineCtx.stroke();
+
+      // 3. High-Velocity Liquid Micro-Droplets (Atomized Spray Cone)
+      const sprayAngle = 0.28; // ~16° downward angle toward valve
+      for (let s = 0; s < 5; s++) {
+        if (fuelSprayDroplets.length < 40) {
+          const spread = (Math.random() - 0.5) * 0.45;
+          const speed = 7.5 + Math.random() * 8.0;
+          fuelSprayDroplets.push({
+            x: injTipX,
+            y: injTipY,
+            vx: Math.cos(sprayAngle + spread) * speed,
+            vy: Math.sin(sprayAngle + spread) * speed,
+            radius: Math.random() * 1.5 + 0.8,
+            life: 1.0,
+            hasEnteredChamber: false
+          });
+        }
+      }
     }
 
-    // Exhaust Port Runner (Right: Red hot exhaust outlet)
+    // Animate & Render Liquid Fuel Spray Droplets
+    for (let i = fuelSprayDroplets.length - 1; i >= 0; i--) {
+      const fd = fuelSprayDroplets[i];
+      fd.x += fd.vx;
+      fd.y += fd.vy;
+      fd.vx *= 0.96; // Air resistance drag
+      fd.vy += 0.12; // Gravity + downward intake suction
+
+      // Check if droplet enters cylinder chamber past the open valve
+      if (fd.x > centerX - 42 && fd.y > cylinderTopY - 10) {
+        fd.hasEnteredChamber = true;
+        fd.vx *= 0.6; // Chamber tumble curl
+        fd.vy += 0.4;
+      }
+
+      fd.life -= 0.045; // Evaporates into fuel-air mixture
+      if (fd.life <= 0 || fd.y > pistonY || fd.x > centerX + cylinderWidth / 2) {
+        fuelSprayDroplets.splice(i, 1);
+        continue;
+      }
+
+      engineCtx.save();
+      engineCtx.fillStyle = `rgba(186, 230, 253, ${fd.life * 0.9})`;
+      engineCtx.beginPath();
+      engineCtx.arc(fd.x, fd.y, fd.radius, 0, Math.PI * 2);
+      engineCtx.fill();
+      engineCtx.restore();
+    }
+
+    // Exhaust Port Runner (Right: Red hot exhaust outlet with thermal radiation)
+    const exhaustHeat = (state.strokeId === 4 || state.strokeId === 3) ? 0.75 : 0.35;
     const exhaustGrad = engineCtx.createLinearGradient(centerX + 30, cylinderTopY - 10, centerX + cylinderWidth / 2 + 45, cylinderTopY - 50);
-    exhaustGrad.addColorStop(0, "rgba(239, 68, 68, 0.3)");
-    exhaustGrad.addColorStop(1, "rgba(185, 28, 28, 0.55)");
+    exhaustGrad.addColorStop(0, `rgba(239, 68, 68, ${exhaustHeat * 0.6})`);
+    exhaustGrad.addColorStop(0.6, `rgba(220, 38, 38, ${exhaustHeat * 0.85})`);
+    exhaustGrad.addColorStop(1, `rgba(153, 27, 27, ${exhaustHeat})`);
     engineCtx.fillStyle = exhaustGrad;
     engineCtx.beginPath();
     engineCtx.moveTo(centerX + cylinderWidth / 2 + 45, cylinderTopY - 50);
@@ -729,33 +895,103 @@ export function initEnginePistonLab(containerId) {
     engineCtx.strokeStyle = "#475569";
     engineCtx.stroke();
 
-    // Exhaust smoke plumes during exhaust stroke
-    if (state.strokeId === 4 && state.exhaustValveOpen > 0.1) {
-      if (exhaustParticles.length < 25 && Math.random() < 0.6) {
-        exhaustParticles.push({
-          x: centerX + 40 + Math.random() * 15,
-          y: cylinderTopY - 14,
-          vx: Math.random() * 2 + 2,
-          vy: -Math.random() * 2 - 1,
-          radius: Math.random() * 3 + 2,
-          life: 1.0
+    // REAL SMOKE ANIMATION: Volumetric Billowing Exhaust Vortex Clouds & Hot Embers
+    const isExhausting = state.strokeId === 4 && state.exhaustValveOpen > 0.08;
+    if (isExhausting) {
+      // Spawn Rolling Vortex Smoke Billows
+      if (exhaustSmokePuffs.length < 45 && Math.random() < 0.85) {
+        const valveLipX = centerX + 36 + Math.random() * 16;
+        const valveLipY = cylinderTopY - 14 + (state.exhaustValveOpen * 16);
+        const blowSpeed = 3.2 + (currentRpm / 6000) * 4.5;
+        exhaustSmokePuffs.push({
+          x: valveLipX,
+          y: valveLipY,
+          vx: (Math.random() * 2.2 + 2.8) * (blowSpeed / 4),
+          vy: (-Math.random() * 2.0 - 1.2) * (blowSpeed / 4),
+          radius: Math.random() * 3.5 + 4.0,
+          growthRate: 0.55 + Math.random() * 0.45,
+          angle: Math.random() * Math.PI * 2,
+          spin: (Math.random() - 0.5) * 0.09, // Vortex eddy spin
+          density: 1.0,
+          heat: Math.min(1.0, (state.tempK - 300) / 700) // Initial thermal incandescence
         });
       }
-      for (let i = exhaustParticles.length - 1; i >= 0; i--) {
-        const ep = exhaustParticles[i];
-        ep.x += ep.vx;
-        ep.y += ep.vy;
-        ep.radius += 0.15;
-        ep.life -= 0.05;
-        if (ep.life <= 0) {
-          exhaustParticles.splice(i, 1);
-          continue;
-        }
-        engineCtx.fillStyle = `rgba(148, 163, 184, ${ep.life * 0.5})`;
-        engineCtx.beginPath();
-        engineCtx.arc(ep.x, ep.y, ep.radius, 0, Math.PI * 2);
-        engineCtx.fill();
+
+      // Spawn Exhaust Flame Licks & Sparks during High RPM / Overrun
+      if ((currentRpm > 3800 || isRevving) && exhaustFlameSparks.length < 24 && Math.random() < 0.6) {
+        exhaustFlameSparks.push({
+          x: centerX + 40 + Math.random() * 12,
+          y: cylinderTopY - 14,
+          vx: Math.random() * 4.5 + 4.0,
+          vy: -Math.random() * 3.5 - 1.0,
+          radius: Math.random() * 2.2 + 1.2,
+          life: 1.0,
+          color: Math.random() < 0.75 ? "#f97316" : "#38bdf8" // Orange carbon spark or blue fuel lick
+        });
       }
+    }
+
+    // Animate & Render Rolling Vortex Smoke Clouds
+    for (let i = exhaustSmokePuffs.length - 1; i >= 0; i--) {
+      const sp = exhaustSmokePuffs[i];
+      sp.x += sp.vx;
+      sp.y += sp.vy;
+      sp.vx *= 0.97; // Drag in exhaust manifold runner
+      sp.vy -= 0.04; // Thermal buoyancy upward
+      sp.radius += sp.growthRate;
+      sp.angle += sp.spin;
+      sp.density -= 0.024;
+      sp.heat = Math.max(0, sp.heat - 0.04);
+
+      if (sp.density <= 0 || sp.radius > 45) {
+        exhaustSmokePuffs.splice(i, 1);
+        continue;
+      }
+
+      engineCtx.save();
+      engineCtx.translate(sp.x, sp.y);
+      engineCtx.rotate(sp.angle);
+
+      // Volumetric multi-stop smoke gradient: incandescent core -> charcoal soot -> translucent billow
+      const smokeGrad = engineCtx.createRadialGradient(0, 0, sp.radius * 0.15, 0, 0, sp.radius);
+      if (sp.heat > 0.25) {
+        // Hot glowing gas puff
+        smokeGrad.addColorStop(0, `rgba(251, 146, 60, ${sp.density * 0.85})`);
+        smokeGrad.addColorStop(0.4, `rgba(100, 116, 139, ${sp.density * 0.65})`);
+        smokeGrad.addColorStop(1, "rgba(71, 85, 105, 0)");
+      } else {
+        // Dense charcoal / grey billowing smoke
+        smokeGrad.addColorStop(0, `rgba(71, 85, 105, ${sp.density * 0.75})`);
+        smokeGrad.addColorStop(0.55, `rgba(148, 163, 184, ${sp.density * 0.45})`);
+        smokeGrad.addColorStop(1, "rgba(148, 163, 184, 0)");
+      }
+
+      engineCtx.fillStyle = smokeGrad;
+      engineCtx.beginPath();
+      engineCtx.arc(0, 0, sp.radius, 0, Math.PI * 2);
+      engineCtx.fill();
+      engineCtx.restore();
+    }
+
+    // Animate & Render Exhaust Flame Sparks & Embers
+    for (let i = exhaustFlameSparks.length - 1; i >= 0; i--) {
+      const fs = exhaustFlameSparks[i];
+      fs.x += fs.vx;
+      fs.y += fs.vy;
+      fs.life -= 0.055;
+      if (fs.life <= 0) {
+        exhaustFlameSparks.splice(i, 1);
+        continue;
+      }
+      engineCtx.save();
+      engineCtx.fillStyle = fs.color;
+      engineCtx.shadowColor = fs.color;
+      engineCtx.shadowBlur = 10;
+      engineCtx.globalAlpha = fs.life;
+      engineCtx.beginPath();
+      engineCtx.arc(fs.x, fs.y, fs.radius, 0, Math.PI * 2);
+      engineCtx.fill();
+      engineCtx.restore();
     }
     engineCtx.restore();
 
@@ -978,7 +1214,7 @@ export function initEnginePistonLab(containerId) {
     engineCtx.fill();
     engineCtx.restore();
 
-    // 10. Forged Steel H-Beam Connecting Rod & Crankshaft Kinematics
+    // 10. Forged Steel H-Beam Connecting Rod & Kinematics with Pressurized Internal Oil Galleries
     const crankRadiusPx = (CRANK_RADIUS_M / STROKE_M) * strokePixels; // ~50 px
     const crankAngleRad = (state.angleDeg * Math.PI) / 180;
     const crankPinX = centerX + crankRadiusPx * Math.sin(crankAngleRad);
@@ -1007,6 +1243,19 @@ export function initEnginePistonLab(containerId) {
     engineCtx.moveTo(wristPinX, wristPinY);
     engineCtx.lineTo(crankPinX, crankPinY);
     engineCtx.stroke();
+
+    // REAL LIQUIDS ANIMATION: Pressurized Internal Oil Gallery (Rifle-Drilled Channel)
+    // Golden lubricating oil flowing from big-end crank journal to small-end wrist pin
+    engineCtx.strokeStyle = "rgba(245, 158, 11, 0.75)";
+    engineCtx.lineWidth = 2.0;
+    engineCtx.setLineDash([4, 4]);
+    const oilPhase = (performance.now() * 0.025 * (currentRpm / 2000)) % 8;
+    engineCtx.lineDashOffset = -oilPhase;
+    engineCtx.beginPath();
+    engineCtx.moveTo(crankPinX, crankPinY);
+    engineCtx.lineTo(wristPinX, wristPinY);
+    engineCtx.stroke();
+    engineCtx.setLineDash([]);
     engineCtx.restore();
 
     // Big-End Crank Journal Cap & High-Strength Rod Bolts
@@ -1027,27 +1276,188 @@ export function initEnginePistonLab(containerId) {
     engineCtx.fill();
     engineCtx.restore();
 
-    // 11. Rotating Crankshaft Counterweight & Lower Crankcase Oil Sump
+    // Under-Piston Oil Squirter Jet (High-Performance Crown Cooling)
+    const squirterX = centerX - 38;
+    const squirterY = cylinderBottomY + 30;
     engineCtx.save();
-    // Crankcase Oil Sump Bath (Lower Reservoir)
-    const sumpY = crankCenterY + 55;
-    const oilGrad = engineCtx.createLinearGradient(0, sumpY, 0, sumpY + 45);
-    oilGrad.addColorStop(0, "rgba(234, 179, 8, 0.4)");
-    oilGrad.addColorStop(1, "rgba(161, 98, 7, 0.75)");
-    engineCtx.fillStyle = oilGrad;
-    engineCtx.fillRect(centerX - cylinderWidth / 2 - 35, sumpY, cylinderWidth + 70, 45);
-    engineCtx.strokeStyle = "rgba(234, 179, 8, 0.6)";
-    engineCtx.lineWidth = 1.5;
+    engineCtx.fillStyle = "#64748b";
+    engineCtx.fillRect(squirterX - 3, squirterY, 6, 12);
+    // Brass nozzle pointing up at piston underside
+    engineCtx.fillStyle = "#eab308";
     engineCtx.beginPath();
-    engineCtx.moveTo(centerX - cylinderWidth / 2 - 35, sumpY);
-    engineCtx.lineTo(centerX + cylinderWidth / 2 + 35, sumpY);
+    engineCtx.moveTo(squirterX - 2, squirterY);
+    engineCtx.lineTo(squirterX + 2, squirterY);
+    engineCtx.lineTo(squirterX, squirterY - 5);
+    engineCtx.closePath();
+    engineCtx.fill();
+
+    // Pressurized oil cooling stream spraying up toward piston crown
+    if (isEngineStarted && currentRpm > 200) {
+      const jetTargetY = Math.min(squirterY - 10, pistonY + 55);
+      const jetGrad = engineCtx.createLinearGradient(squirterX, squirterY - 5, squirterX, jetTargetY);
+      jetGrad.addColorStop(0, "rgba(245, 158, 11, 0.85)");
+      jetGrad.addColorStop(0.7, "rgba(251, 191, 36, 0.6)");
+      jetGrad.addColorStop(1, "rgba(245, 158, 11, 0.2)");
+      engineCtx.strokeStyle = jetGrad;
+      engineCtx.lineWidth = 2.2;
+      engineCtx.beginPath();
+      engineCtx.moveTo(squirterX, squirterY - 5);
+      engineCtx.lineTo(squirterX + Math.sin(performance.now() * 0.05) * 2, jetTargetY);
+      engineCtx.stroke();
+    }
+    engineCtx.restore();
+
+    // 11. Rotating Crankshaft Counterweight & Active Dynamic Oil Sump Bath
+    engineCtx.save();
+    const sumpY = crankCenterY + 55;
+    const sumpLeft = centerX - cylinderWidth / 2 - 35;
+    const sumpRight = centerX + cylinderWidth / 2 + 35;
+    const sumpWidth = sumpRight - sumpLeft;
+    const sumpH = 45;
+    const nowTime = performance.now() * 0.003;
+
+    // Counterweight Immersion Kinematics (Lobe enters oil at bottom TDC: crankAngle ~ 320° to 40°)
+    const normAngle = state.angleDeg % 360;
+    const isCounterweightDipping = normAngle > 310 || normAngle < 50;
+    const dipFraction = isCounterweightDipping ? (1 - Math.abs((normAngle > 180 ? normAngle - 360 : normAngle) / 50)) : 0;
+    const dipCenterX = centerX - Math.sin(crankAngleRad) * 45;
+
+    // REAL LIQUIDS ANIMATION: Multi-Harmonic Dynamic Oil Wave Surface
+    engineCtx.beginPath();
+    engineCtx.moveTo(sumpLeft, sumpY + sumpH);
+    engineCtx.lineTo(sumpLeft, sumpY);
+
+    const waveSegments = 28;
+    for (let j = 0; j <= waveSegments; j++) {
+      const frac = j / waveSegments;
+      const wx = sumpLeft + frac * sumpWidth;
+      // Ambient fluid ripples
+      let wy = sumpY + 6 + Math.sin(frac * 12 + nowTime * 4) * 1.8 + Math.cos(frac * 8 - nowTime * 3) * 1.2;
+      // Counterweight dip displacement bow wave
+      if (dipFraction > 0.05) {
+        const distFromDip = Math.abs(wx - dipCenterX);
+        const splashWave = Math.exp(- (distFromDip * distFromDip) / 350) * (dipFraction * 7.5);
+        wy += splashWave * Math.sin(nowTime * 15);
+      }
+      engineCtx.lineTo(wx, wy);
+    }
+    engineCtx.lineTo(sumpRight, sumpY);
+    engineCtx.lineTo(sumpRight, sumpY + sumpH);
+    engineCtx.closePath();
+
+    // Golden Viscous Oil Sump Gradient
+    const oilSumpGrad = engineCtx.createLinearGradient(0, sumpY, 0, sumpY + sumpH);
+    oilSumpGrad.addColorStop(0, "rgba(245, 158, 11, 0.55)");
+    oilSumpGrad.addColorStop(0.35, "rgba(217, 119, 6, 0.75)");
+    oilSumpGrad.addColorStop(1, "rgba(146, 64, 14, 0.92)");
+    engineCtx.fillStyle = oilSumpGrad;
+    engineCtx.fill();
+
+    // Liquid Oil Surface Meniscus Specular Highlight
+    engineCtx.strokeStyle = "rgba(253, 224, 71, 0.85)";
+    engineCtx.lineWidth = 2.0;
+    engineCtx.beginPath();
+    for (let j = 0; j <= waveSegments; j++) {
+      const frac = j / waveSegments;
+      const wx = sumpLeft + frac * sumpWidth;
+      let wy = sumpY + 6 + Math.sin(frac * 12 + nowTime * 4) * 1.8 + Math.cos(frac * 8 - nowTime * 3) * 1.2;
+      if (dipFraction > 0.05) {
+        const distFromDip = Math.abs(wx - dipCenterX);
+        wy += Math.exp(- (distFromDip * distFromDip) / 350) * (dipFraction * 7.5) * Math.sin(nowTime * 15);
+      }
+      if (j === 0) engineCtx.moveTo(wx, wy);
+      else engineCtx.lineTo(wx, wy);
+    }
     engineCtx.stroke();
 
-    // Rotating Counterweight
+    // Submerged Oil Pump Pickup Tube with Screen Strainer Bell
+    const pickupX = sumpLeft + 35;
+    engineCtx.fillStyle = "#475569";
+    engineCtx.fillRect(pickupX - 4, sumpY - 18, 8, 38);
+    // Wire mesh pickup bell
+    engineCtx.fillStyle = "#94a3b8";
+    engineCtx.beginPath();
+    engineCtx.moveTo(pickupX - 14, sumpY + 34);
+    engineCtx.lineTo(pickupX + 14, sumpY + 34);
+    engineCtx.lineTo(pickupX + 7, sumpY + 20);
+    engineCtx.lineTo(pickupX - 7, sumpY + 20);
+    engineCtx.closePath();
+    engineCtx.fill();
+    engineCtx.strokeStyle = "#334155";
+    engineCtx.lineWidth = 1;
+    engineCtx.stroke();
+
+    // REAL LIQUIDS ANIMATION: Crankshaft Splash Lubrication Droplets
+    if (dipFraction > 0.15 && oilSplashDroplets.length < 35 && Math.random() < 0.8) {
+      const flingSpeed = 4.0 + (currentRpm / 6000) * 8.0;
+      const flingAngle = -Math.PI * 0.5 + (Math.random() - 0.5) * 1.2;
+      oilSplashDroplets.push({
+        x: dipCenterX + (Math.random() - 0.5) * 16,
+        y: sumpY + 8,
+        vx: Math.cos(flingAngle) * flingSpeed,
+        vy: Math.sin(flingAngle) * flingSpeed,
+        radius: Math.random() * 1.8 + 1.0,
+        life: 1.0
+      });
+    }
+
+    // Animate & Render Splash Lubrication Droplets
+    for (let i = oilSplashDroplets.length - 1; i >= 0; i--) {
+      const od = oilSplashDroplets[i];
+      od.x += od.vx;
+      od.y += od.vy;
+      od.vy += 0.24; // Gravity downward
+      od.life -= 0.035;
+
+      if (od.life <= 0 || od.y > sumpY + sumpH) {
+        oilSplashDroplets.splice(i, 1);
+        continue;
+      }
+
+      engineCtx.save();
+      engineCtx.fillStyle = `rgba(251, 191, 36, ${od.life * 0.9})`;
+      engineCtx.shadowColor = "#f59e0b";
+      engineCtx.shadowBlur = 6;
+      engineCtx.beginPath();
+      engineCtx.arc(od.x, od.y, od.radius, 0, Math.PI * 2);
+      engineCtx.fill();
+      engineCtx.restore();
+    }
+
+    // Crankcase Blow-by Oil Vapor Mist (PCV Cavity Mist)
+    if (crankcaseMistPuffs.length < 20 && Math.random() < 0.25) {
+      crankcaseMistPuffs.push({
+        x: centerX + (Math.random() - 0.5) * (cylinderWidth - 30),
+        y: crankCenterY - 30 + (Math.random() - 0.5) * 40,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: -Math.random() * 0.8 - 0.2,
+        radius: Math.random() * 8 + 6,
+        density: 0.35
+      });
+    }
+    for (let i = crankcaseMistPuffs.length - 1; i >= 0; i--) {
+      const cm = crankcaseMistPuffs[i];
+      cm.x += cm.vx;
+      cm.y += cm.vy;
+      cm.radius += 0.15;
+      cm.density -= 0.008;
+      if (cm.density <= 0 || cm.y < cylinderBottomY) {
+        crankcaseMistPuffs.splice(i, 1);
+        continue;
+      }
+      engineCtx.save();
+      engineCtx.fillStyle = `rgba(203, 213, 225, ${cm.density * 0.4})`;
+      engineCtx.beginPath();
+      engineCtx.arc(cm.x, cm.y, cm.radius, 0, Math.PI * 2);
+      engineCtx.fill();
+      engineCtx.restore();
+    }
+
+    // Rotating Counterweight Assembly
     engineCtx.translate(centerX, crankCenterY);
     engineCtx.rotate(crankAngleRad);
 
-    // Counterweight Web (Heavy lobed counterbalance)
+    // Counterweight Web (Heavy lobed counterbalance with metallic bevel)
     engineCtx.fillStyle = "#334155";
     engineCtx.beginPath();
     engineCtx.arc(0, 0, 54, Math.PI * 0.12, Math.PI * 0.88, false);
@@ -1056,6 +1466,13 @@ export function initEnginePistonLab(containerId) {
     engineCtx.fill();
     engineCtx.strokeStyle = "#94a3b8";
     engineCtx.lineWidth = 2;
+    engineCtx.stroke();
+
+    // Oil Sheen on Rotating Counterweight
+    engineCtx.strokeStyle = "rgba(245, 158, 11, 0.4)";
+    engineCtx.lineWidth = 2.5;
+    engineCtx.beginPath();
+    engineCtx.arc(0, 0, 52, Math.PI * 0.16, Math.PI * 0.84, false);
     engineCtx.stroke();
 
     // Balance Drilling Chamfers (CNC lightened holes)
@@ -1334,20 +1751,20 @@ export function initEnginePistonLab(containerId) {
     pvCtx.restore();
   }
 
-  // Distortion Curve Generator for Tube-like Mechanical Rasp
+  // Advanced Asymmetric Tube Overdrive & Cylinder Pressure WaveShaper
   function makeDistortionCurve(amount) {
-    const k = typeof amount === "number" ? amount : 50;
+    const k = typeof amount === "number" ? amount : 55;
     const n = 2048;
     const curve = new Float32Array(n);
-    const deg = Math.PI / 180;
     for (let i = 0; i < n; ++i) {
       const x = (i * 2) / n - 1;
-      curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+      // Asymmetric saturation adding rich 2nd and 3rd order acoustic harmonics
+      curve[i] = Math.tanh(x * (1 + k * 0.045)) + 0.18 * Math.pow(Math.abs(x), 2) * Math.sign(x);
     }
     return curve;
   }
 
-  // Web Audio Synthesizer: Multi-Harmonic Acoustic Engine
+  // Web Audio Synthesizer: Multi-Harmonic Visceral Acoustic Engine
   function initAudioNodes() {
     if (audioCtx) return;
     try {
@@ -1358,43 +1775,60 @@ export function initEnginePistonLab(containerId) {
         audioCtx.resume().catch(() => {});
       }
 
-      // Master Gain & Limiter Node
+      // Master Punch Compressor & Brickwall Limiter
+      compressor = audioCtx.createDynamicsCompressor();
+      compressor.threshold.setValueAtTime(-14, audioCtx.currentTime);
+      compressor.knee.setValueAtTime(6, audioCtx.currentTime);
+      compressor.ratio.setValueAtTime(8, audioCtx.currentTime);
+      compressor.attack.setValueAtTime(0.003, audioCtx.currentTime);
+      compressor.release.setValueAtTime(0.075, audioCtx.currentTime);
+
       masterGain = audioCtx.createGain();
       masterGain.gain.setValueAtTime(audioMasterGainVal, audioCtx.currentTime);
-      masterGain.connect(audioCtx.destination);
 
-      // 1. Exhaust Resonance Lowpass Filter (tracks RPM and throttle)
+      masterGain.connect(compressor);
+      compressor.connect(audioCtx.destination);
+
+      // 1. Resonant Exhaust Header Acoustic Filter
       if (typeof audioCtx.createBiquadFilter === "function") {
         exhaustFilter = audioCtx.createBiquadFilter();
         exhaustFilter.type = "lowpass";
-        exhaustFilter.frequency.setValueAtTime(280, audioCtx.currentTime);
-        exhaustFilter.Q.setValueAtTime(2.8, audioCtx.currentTime);
+        exhaustFilter.frequency.setValueAtTime(320, audioCtx.currentTime);
+        exhaustFilter.Q.setValueAtTime(3.2, audioCtx.currentTime);
       }
 
       // 2. Non-Linear WaveShaper Overdrive (throatiness and cylinder rasp)
       if (typeof audioCtx.createWaveShaper === "function") {
         waveShaper = audioCtx.createWaveShaper();
-        waveShaper.curve = makeDistortionCurve(45);
+        waveShaper.curve = makeDistortionCurve(58);
         waveShaper.oversample = "2x";
       }
 
-      // Primary Cylinder Firing Oscillator (Sawtooth)
+      // Primary Cylinder Firing Oscillator (Sawtooth - Firing Frequency)
       oscFire = audioCtx.createOscillator();
       oscFire.type = "sawtooth";
-      oscFire.frequency.setValueAtTime(25, audioCtx.currentTime);
+      oscFire.frequency.setValueAtTime(30, audioCtx.currentTime);
 
-      // Crankshaft Rotational Harmonic Oscillator (Triangle for deep rumble)
+      // Crankshaft Rotational Harmonic Oscillator (Triangle - Deep Rotational Rumble)
       oscCrank = audioCtx.createOscillator();
       oscCrank.type = "triangle";
-      oscCrank.frequency.setValueAtTime(30, audioCtx.currentTime);
+      oscCrank.frequency.setValueAtTime(35, audioCtx.currentTime);
 
-      // Sub-bass Thump Oscillator (Square/Sine)
+      // Deep Sub-Bass Detonation Oscillator (Sine - Chest-Thumping Bass)
       oscSub = audioCtx.createOscillator();
       oscSub.type = "sine";
-      oscSub.frequency.setValueAtTime(15, audioCtx.currentTime);
+      oscSub.frequency.setValueAtTime(18, audioCtx.currentTime);
+
+      // High-Order Metallic Mechanical Rasp Oscillator (Sawtooth)
+      oscRasp = audioCtx.createOscillator();
+      oscRasp.type = "sawtooth";
+      oscRasp.frequency.setValueAtTime(90, audioCtx.currentTime);
 
       gainExhaust = audioCtx.createGain();
-      gainExhaust.gain.setValueAtTime(0.08, audioCtx.currentTime);
+      gainExhaust.gain.setValueAtTime(0.09, audioCtx.currentTime);
+
+      gainRasp = audioCtx.createGain();
+      gainRasp.gain.setValueAtTime(0.025, audioCtx.currentTime);
 
       // Connect oscillators through WaveShaper & Filter to Master
       let currentOut = gainExhaust;
@@ -1412,11 +1846,26 @@ export function initEnginePistonLab(containerId) {
       oscCrank.connect(gainExhaust);
       oscSub.connect(gainExhaust);
 
+      // Route high-order metallic rasp through dedicated bandpass to master
+      let raspFilter = null;
+      if (typeof audioCtx.createBiquadFilter === "function") {
+        raspFilter = audioCtx.createBiquadFilter();
+        raspFilter.type = "bandpass";
+        raspFilter.frequency.setValueAtTime(750, audioCtx.currentTime);
+        raspFilter.Q.setValueAtTime(3.0, audioCtx.currentTime);
+        oscRasp.connect(raspFilter);
+        raspFilter.connect(gainRasp);
+      } else {
+        oscRasp.connect(gainRasp);
+      }
+      gainRasp.connect(masterGain);
+
       oscFire.start();
       oscCrank.start();
       oscSub.start();
+      oscRasp.start();
 
-      // 3. Induction Manifold Roar (Filtered White Noise generator)
+      // 3. Induction Velocity Stack Roar (Filtered Noise generator)
       if (typeof audioCtx.createBuffer === "function" && typeof audioCtx.createBufferSource === "function") {
         const bufferSize = audioCtx.sampleRate * 2;
         const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -1432,12 +1881,12 @@ export function initEnginePistonLab(containerId) {
         if (typeof audioCtx.createBiquadFilter === "function") {
           noiseFilter = audioCtx.createBiquadFilter();
           noiseFilter.type = "bandpass";
-          noiseFilter.frequency.setValueAtTime(320, audioCtx.currentTime);
-          noiseFilter.Q.setValueAtTime(2.0, audioCtx.currentTime);
+          noiseFilter.frequency.setValueAtTime(360, audioCtx.currentTime);
+          noiseFilter.Q.setValueAtTime(3.4, audioCtx.currentTime);
         }
 
         gainInduction = audioCtx.createGain();
-        gainInduction.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gainInduction.gain.setValueAtTime(0.025, audioCtx.currentTime);
 
         if (noiseFilter) {
           noiseNode.connect(noiseFilter);
@@ -1452,10 +1901,10 @@ export function initEnginePistonLab(containerId) {
       // 4. Mechanical Valvetrain Ticking & Cam Lobe Chatter
       valvetrainOsc = audioCtx.createOscillator();
       valvetrainOsc.type = "square";
-      valvetrainOsc.frequency.setValueAtTime(120, audioCtx.currentTime);
+      valvetrainOsc.frequency.setValueAtTime(140, audioCtx.currentTime);
 
       valvetrainGain = audioCtx.createGain();
-      valvetrainGain.gain.setValueAtTime(0.008, audioCtx.currentTime);
+      valvetrainGain.gain.setValueAtTime(0.009, audioCtx.currentTime);
 
       valvetrainOsc.connect(valvetrainGain);
       valvetrainGain.connect(masterGain);
@@ -1466,7 +1915,7 @@ export function initEnginePistonLab(containerId) {
     }
   }
 
-  // Play per-cycle combustion explosive punch
+  // Play per-cycle explosive combustion thump & sub-bass detonation kick
   function playCombustionDetonation(rpmVal, throttleVal) {
     if (!audioEngineActive || !audioCtx || !isEngineStarted || isPaused) return;
     try {
@@ -1475,47 +1924,91 @@ export function initEnginePistonLab(containerId) {
       const punchGain = audioCtx.createGain();
       punchOsc.type = "sine";
 
-      // Pitch sweep from 140 Hz down to 35 Hz for low-end pressure thump
-      punchOsc.frequency.setValueAtTime(140 + (rpmVal / 6000) * 80, now);
+      // Chest-thumping pitch sweep from 160 Hz down to 32 Hz for deep pressure punch
+      punchOsc.frequency.setValueAtTime(160 + (rpmVal / 6000) * 90, now);
       if (punchOsc.frequency.exponentialRampToValueAtTime) {
-        punchOsc.frequency.exponentialRampToValueAtTime(35, now + 0.05);
+        punchOsc.frequency.exponentialRampToValueAtTime(32, now + 0.055);
       }
 
-      const punchVol = 0.06 + (throttleVal / 100) * 0.07;
+      // Punch volume scales dynamically with throttle and compression ratio
+      const punchVol = 0.08 + (throttleVal / 100) * 0.12 * (compRatio / 9.5);
       punchGain.gain.setValueAtTime(punchVol, now);
       if (punchGain.gain.exponentialRampToValueAtTime) {
-        punchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        punchGain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
       }
 
       punchOsc.connect(punchGain);
       punchGain.connect(masterGain || audioCtx.destination);
       punchOsc.start(now);
-      punchOsc.stop(now + 0.065);
+      punchOsc.stop(now + 0.07);
+
+      // High-Frequency Cylinder Ignition Snap Click
+      const snapOsc = audioCtx.createOscillator();
+      const snapGain = audioCtx.createGain();
+      snapOsc.type = "triangle";
+      snapOsc.frequency.setValueAtTime(280 + Math.random() * 80, now);
+      snapGain.gain.setValueAtTime(0.05 * (throttleVal / 100), now);
+      if (snapGain.gain.exponentialRampToValueAtTime) {
+        snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
+      }
+      snapOsc.connect(snapGain);
+      snapGain.connect(masterGain || audioCtx.destination);
+      snapOsc.start(now);
+      snapOsc.stop(now + 0.018);
     } catch (e) {}
   }
 
-  // Play overrun exhaust burble & pops when decelerating
+  // Play overrun exhaust burble & gunshot backfire pops when decelerating
   function triggerOverrunPop() {
     if (!audioEngineActive || !audioCtx || !isEngineStarted || isPaused) return;
     try {
       const now = audioCtx.currentTime;
+      // 1. Resonant Pipe Boom
       const popOsc = audioCtx.createOscillator();
       const popGain = audioCtx.createGain();
       popOsc.type = "triangle";
-      popOsc.frequency.setValueAtTime(70 + Math.random() * 90, now);
+      popOsc.frequency.setValueAtTime(80 + Math.random() * 110, now);
       if (popOsc.frequency.exponentialRampToValueAtTime) {
-        popOsc.frequency.exponentialRampToValueAtTime(25, now + 0.04);
+        popOsc.frequency.exponentialRampToValueAtTime(28, now + 0.045);
       }
 
-      popGain.gain.setValueAtTime(0.08 + Math.random() * 0.06, now);
+      const popVol = 0.12 + Math.random() * 0.10;
+      popGain.gain.setValueAtTime(popVol, now);
       if (popGain.gain.exponentialRampToValueAtTime) {
-        popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+        popGain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
       }
 
       popOsc.connect(popGain);
       popGain.connect(masterGain || audioCtx.destination);
       popOsc.start(now);
-      popOsc.stop(now + 0.05);
+      popOsc.stop(now + 0.055);
+
+      // 2. High-Frequency Gunshot Snap Transient
+      const crackOsc = audioCtx.createOscillator();
+      const crackGain = audioCtx.createGain();
+      crackOsc.type = "square";
+      crackOsc.frequency.setValueAtTime(420 + Math.random() * 260, now);
+      crackGain.gain.setValueAtTime(0.07, now);
+      if (crackGain.gain.exponentialRampToValueAtTime) {
+        crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.012);
+      }
+      crackOsc.connect(crackGain);
+      crackGain.connect(masterGain || audioCtx.destination);
+      crackOsc.start(now);
+      crackOsc.stop(now + 0.015);
+
+      // Spawn on-screen exhaust flame sparks with the backfire pop
+      if (exhaustFlameSparks.length < 20) {
+        exhaustFlameSparks.push({
+          x: centerX + 42 + Math.random() * 15,
+          y: cylinderTopY - 14,
+          vx: Math.random() * 5.0 + 5.0,
+          vy: -Math.random() * 4.0 - 1.5,
+          radius: Math.random() * 2.5 + 1.5,
+          life: 1.0,
+          color: Math.random() < 0.7 ? "#f97316" : "#38bdf8"
+        });
+      }
     } catch (e) {}
   }
 
@@ -1532,6 +2025,9 @@ export function initEnginePistonLab(containerId) {
       if (gainInduction && gainInduction.gain.setTargetAtTime) {
         gainInduction.gain.setTargetAtTime(0, audioCtx.currentTime, 0.04);
       }
+      if (gainRasp && gainRasp.gain.setTargetAtTime) {
+        gainRasp.gain.setTargetAtTime(0, audioCtx.currentTime, 0.04);
+      }
       return;
     }
 
@@ -1541,58 +2037,86 @@ export function initEnginePistonLab(containerId) {
 
     // Firing frequency based on engine sound preset
     let mult = 1.0;
-    if (soundProfileKey === "thumper") mult = 0.5; // Deep single-cylinder thuds
-    else if (soundProfileKey === "v8") mult = 2.0; // Dense crossplane pulses
+    let raspMult = 2.0;
+    if (soundProfileKey === "thumper") {
+      mult = 0.5; // Single-cylinder big-bore thumper
+      raspMult = 1.0;
+    } else if (soundProfileKey === "v8") {
+      mult = 2.0; // Crossplane V8 rumble
+      raspMult = 3.0;
+    } else if (soundProfileKey === "v10") {
+      mult = 2.5; // High-revving V10 supercar scream
+      raspMult = 5.0;
+    }
 
-    const fireFreq = Math.max(12, (currentRpm / 120) * 2.0 * mult);
-    const crankFreq = Math.max(16, (currentRpm / 60) * mult);
-    const subFreq = Math.max(8, fireFreq * 0.5);
+    // Rev Limiter Ignition-Cut Stutter Check
+    const limiterCut = isRevLimiterActive ? 0.0 : 1.0;
+
+    const fireFreq = Math.max(14, (currentRpm / 120) * 2.0 * mult);
+    const crankFreq = Math.max(18, (currentRpm / 60) * mult);
+    const subFreq = Math.max(10, fireFreq * 0.5);
+    const raspFreq = Math.max(25, (currentRpm / 60) * raspMult);
 
     // Smoothly update oscillator frequencies
     if (oscFire && oscFire.frequency.setTargetAtTime) {
-      oscFire.frequency.setTargetAtTime(fireFreq, now, 0.03);
+      oscFire.frequency.setTargetAtTime(fireFreq, now, 0.025);
     }
     if (oscCrank && oscCrank.frequency.setTargetAtTime) {
-      oscCrank.frequency.setTargetAtTime(crankFreq, now, 0.03);
+      oscCrank.frequency.setTargetAtTime(crankFreq, now, 0.025);
     }
     if (oscSub && oscSub.frequency.setTargetAtTime) {
-      oscSub.frequency.setTargetAtTime(subFreq, now, 0.04);
+      oscSub.frequency.setTargetAtTime(subFreq, now, 0.03);
+    }
+    if (oscRasp && oscRasp.frequency.setTargetAtTime) {
+      oscRasp.frequency.setTargetAtTime(raspFreq, now, 0.025);
     }
 
-    // Exhaust resonance filter opens with RPM and throttle roar
+    // Exhaust resonance filter opens dynamically with RPM and throttle roar
     if (exhaustFilter && exhaustFilter.frequency.setTargetAtTime) {
-      const baseCutoff = 180 + rpmFrac * 1400 + thrFrac * 800;
-      exhaustFilter.frequency.setTargetAtTime(baseCutoff, now, 0.03);
+      const v10Bonus = soundProfileKey === "v10" ? 600 : 0;
+      const baseCutoff = 220 + rpmFrac * 1650 + thrFrac * 950 + v10Bonus;
+      exhaustFilter.frequency.setTargetAtTime(baseCutoff, now, 0.025);
     }
 
     // Exhaust volume modulation (power stroke gives punchier growl)
     if (gainExhaust && gainExhaust.gain.setTargetAtTime) {
-      const strokeBonus = state.strokeId === 3 ? 0.035 : 0.0;
-      const targetGain = 0.06 + 0.08 * thrFrac + 0.05 * rpmFrac + strokeBonus;
-      gainExhaust.gain.setTargetAtTime(targetGain, now, 0.02);
+      const strokeBonus = state.strokeId === 3 ? 0.045 : 0.0;
+      const targetGain = (0.07 + 0.09 * thrFrac + 0.06 * rpmFrac + strokeBonus) * limiterCut;
+      gainExhaust.gain.setTargetAtTime(targetGain, now, 0.015);
     }
 
-    // Induction roar (air suction through intake runner)
+    // Mechanical valvetrain & metallic rasp gain
+    if (gainRasp && gainRasp.gain.setTargetAtTime) {
+      const raspGain = (0.015 + 0.045 * thrFrac * rpmFrac) * limiterCut;
+      gainRasp.gain.setTargetAtTime(raspGain, now, 0.02);
+    }
+
+    // Induction manifold roar (intake trumpet suction through throttle body)
     if (gainInduction && gainInduction.gain.setTargetAtTime) {
-      const inductionTarget = (0.01 + 0.07 * thrFrac) * (0.4 + 0.6 * rpmFrac);
-      gainInduction.gain.setTargetAtTime(inductionTarget, now, 0.03);
+      const inductionTarget = (0.015 + 0.09 * thrFrac) * (0.35 + 0.65 * rpmFrac) * limiterCut;
+      gainInduction.gain.setTargetAtTime(inductionTarget, now, 0.025);
     }
     if (noiseFilter && noiseFilter.frequency.setTargetAtTime) {
-      noiseFilter.frequency.setTargetAtTime(260 + thrFrac * 650, now, 0.03);
+      noiseFilter.frequency.setTargetAtTime(280 + thrFrac * 750 + rpmFrac * 350, now, 0.025);
     }
 
     // Valvetrain mechanical whir and cam tick
     if (valvetrainOsc && valvetrainOsc.frequency.setTargetAtTime) {
-      valvetrainOsc.frequency.setTargetAtTime(Math.max(60, currentRpm * 0.15), now, 0.04);
+      valvetrainOsc.frequency.setTargetAtTime(Math.max(70, currentRpm * 0.18), now, 0.03);
     }
 
-    // Trigger combustion pop on top of compression / ignition
-    if (state.strokeId === 3 && prevStrokeId !== 3) {
+    // Trigger explosive combustion pop on power stroke ignition
+    if (state.strokeId === 3 && prevStrokeId !== 3 && !isRevLimiterActive) {
       playCombustionDetonation(currentRpm, throttlePct);
     }
 
-    // Overrun pops when letting off throttle from high RPM
-    if (!isRevving && currentRpm > 3200 && Math.random() < 0.25) {
+    // Overrun crackle & pop bursts when letting off throttle from high RPM
+    if (!isRevving && currentRpm > 3000 && Math.random() < 0.35) {
+      triggerOverrunPop();
+    }
+
+    // Rev limiter violent backfire pop
+    if (isRevLimiterActive && Math.random() < 0.45) {
       triggerOverrunPop();
     }
 
@@ -1622,13 +2146,23 @@ export function initEnginePistonLab(containerId) {
     lastTimestamp = timestamp;
 
     // Smooth RPM & Flywheel Rotational Inertia
-    const targetRpm = isRevving ? 6600 : (isEngineStarted ? baseRpm : 0);
+    const targetRpm = isRevving ? 6650 : (isEngineStarted ? baseRpm : 0);
     const targetThrottle = isRevving ? 100 : (isEngineStarted ? baseThrottlePct : 0);
     
     // Inertia: Faster rev-up, realistic drag coast-down
-    const accelRate = isRevving ? 0.12 : 0.055;
+    const accelRate = isRevving ? 0.14 : 0.055;
     currentRpm += (targetRpm - currentRpm) * accelRate;
-    throttlePct += (targetThrottle - throttlePct) * (isRevving ? 0.25 : 0.12);
+    throttlePct += (targetThrottle - throttlePct) * (isRevving ? 0.28 : 0.12);
+
+    // Dynamic Rev-Limiter Hard Cut & Stutter (2-Step Racing Ignition Cut)
+    if (currentRpm >= 6450) {
+      isRevLimiterActive = Math.floor(timestamp / 36) % 2 === 0;
+      if (isRevLimiterActive) {
+        currentRpm -= 65; // Ignition bounce
+      }
+    } else {
+      isRevLimiterActive = false;
+    }
 
     if (isRunning && !isPaused && isEngineStarted && currentRpm > 80) {
       // 4-Stroke Cycle completes 720° in 2 crank revolutions
