@@ -44,7 +44,7 @@ export function initEnginePistonLab(containerId) {
   let selectedFuelKey = "regular";
   let soundProfileKey = "inline4"; // "inline4", "thumper", "v8"
   let isRunning = true;
-  let isPaused = false;
+  let isPaused = true;
   let isEngineStarted = true; // Ignition switch state
   let timeScale = 1.0; // Playback speed multiplier (0.2, 0.5, 1.0)
   let crankAngleDeg = 0.0; // 0° to 720° for 4-stroke cycle
@@ -130,8 +130,8 @@ export function initEnginePistonLab(containerId) {
           <button class="btn btn-secondary btn-sm" id="btn-piston-ignition" title="Turn Engine Ignition On / Off" style="padding: 5px 12px; font-size: 0.78rem; font-weight: 700; border-color: rgba(239, 68, 68, 0.4); color: #ef4444;">
             🔑 Key: ON
           </button>
-          <button class="btn btn-primary btn-sm" id="btn-piston-playpause" style="padding: 5px 14px; font-size: 0.78rem; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);">
-            ⏸ Pause Engine
+          <button class="btn btn-primary btn-sm" id="btn-piston-playpause" style="padding: 5px 14px; font-size: 0.78rem; background: linear-gradient(135deg, #10b981, #059669); border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+            ▶ Run Engine
           </button>
           <button class="btn btn-secondary btn-sm" id="btn-piston-step" title="Advance Crankshaft by +15°" style="padding: 5px 12px; font-size: 0.78rem;">
             ↷ Step +15°
@@ -2857,6 +2857,9 @@ export function initEnginePistonLab(containerId) {
     if (e.key === "e" || e.key === "E") {
       e.preventDefault();
       container.querySelector("#btn-piston-export")?.click();
+    } else if (e.key === "p" || e.key === "P") {
+      e.preventDefault();
+      container.querySelector("#btn-piston-playpause")?.click();
     } else if (e.key === " " || e.key === "r" || e.key === "R") {
       e.preventDefault();
       if (!isRevving) startRevving();

@@ -39,7 +39,7 @@ export function initManualGearboxLab(containerId) {
   let engineTorqueNm = 240; // Engine input torque (100 to 450 N*m)
   let roadGradePct = 0; // Incline grade (-10% to +20%)
   let isRunning = true;
-  let isPaused = false;
+  let isPaused = true;
   let animId = null;
   let lastTimestamp = performance.now();
   let gearGrindAlertTime = 0; // Timestamp of gear grind notification
@@ -78,6 +78,12 @@ export function initManualGearboxLab(containerId) {
               📸 4K Real Bench
             </button>
           </div>
+          <button class="btn btn-primary btn-sm" id="btn-gear-playpause" style="padding: 5px 14px; font-size: 0.78rem; background: linear-gradient(135deg, #10b981, #059669); border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);">
+            ▶ Run Gearbox
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-gear-step" title="Advance Gearbox Rotation by +15°" style="padding: 5px 12px; font-size: 0.78rem;">
+            ↷ Step +15°
+          </button>
           <button class="btn btn-primary btn-sm" id="btn-gear-clutch-toggle" style="padding: 5px 14px; font-size: 0.78rem; background: linear-gradient(135deg, #0284c7, #0369a1); border: none; font-weight: 700; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">
             🦶 Depress Clutch (Disengage)
           </button>
@@ -1653,6 +1659,42 @@ export function initManualGearboxLab(containerId) {
     }
   });
 
+  // Play / Pause Toggle Button
+  const btnPlayPause = container.querySelector("#btn-gear-playpause");
+  btnPlayPause?.addEventListener("click", () => {
+    isPaused = !isPaused;
+    btnPlayPause.innerText = isPaused ? "▶ Run Gearbox" : "⏸ Pause Gearbox";
+    btnPlayPause.style.background = isPaused ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #f59e0b, #d97706)";
+    btnPlayPause.style.boxShadow = isPaused ? "0 4px 12px rgba(16, 185, 129, 0.35)" : "0 4px 12px rgba(245, 158, 11, 0.35)";
+    SoundFX.playClick();
+  });
+
+  // Step +15° Rotation Angle Button
+  container.querySelector("#btn-gear-step")?.addEventListener("click", () => {
+    isPaused = true;
+    if (btnPlayPause) {
+      btnPlayPause.innerText = "▶ Run Gearbox";
+      btnPlayPause.style.background = "linear-gradient(135deg, #10b981, #059669)";
+      btnPlayPause.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.35)";
+    }
+    const stepRad = (15 * Math.PI) / 180;
+    const state = calculateTransmissionState();
+    inputShaftAngle = (inputShaftAngle + stepRad) % (Math.PI * 2);
+    counterShaftAngle = (counterShaftAngle - stepRad * (18 / 26)) % (Math.PI * 2);
+    if (currentGear !== "N" && Math.abs(state.spec.ratio) > 0.01) {
+      outputShaftAngle = (outputShaftAngle + stepRad / state.spec.ratio) % (Math.PI * 2);
+    }
+    const forwardRatios = { "1": 11 / 33, "2": 14 / 30, "3": 18 / 26, "4": 22 / 22, "5": 29 / 15 };
+    Object.keys(forwardRatios).forEach(gid => {
+      if (gid === currentGear && state.clutchEngagedFrac > 0.05) {
+        freeGearAngles[gid] = outputShaftAngle;
+      } else {
+        freeGearAngles[gid] = (freeGearAngles[gid] + stepRad * forwardRatios[gid]) % (Math.PI * 2);
+      }
+    });
+    SoundFX.playClick();
+  });
+
   // Clutch Quick Toggle Button
   const btnClutchToggle = container.querySelector("#btn-gear-clutch-toggle");
   btnClutchToggle?.addEventListener("click", () => {
@@ -1756,11 +1798,15 @@ export function initManualGearboxLab(containerId) {
     });
   });
 
-  // Standardized Hotkey: 'e' or 'E' triggers CSV export
+  // Standardized Hotkey: 'e' or 'E' triggers CSV export, 'p' or 'P' toggles Pause/Run
   const handleKeyDown = (e) => {
-    if ((e.key === "e" || e.key === "E") && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+    if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+    if (e.key === "e" || e.key === "E") {
       e.preventDefault();
       container.querySelector("#btn-gear-export")?.click();
+    } else if (e.key === "p" || e.key === "P") {
+      e.preventDefault();
+      container.querySelector("#btn-gear-playpause")?.click();
     }
   };
   window.addEventListener("keydown", handleKeyDown);
