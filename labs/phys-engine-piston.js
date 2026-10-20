@@ -48,9 +48,11 @@ export function initEnginePistonLab(containerId) {
   let isEngineStarted = true; // Ignition switch state
   let timeScale = 1.0; // Playback speed multiplier (0.2, 0.5, 1.0)
   let crankAngleDeg = 0.0; // 0° to 720° for 4-stroke cycle
+  let prevCrankAngleDeg = 0.0; // Previous frame angle for ignition crossing detection
   let animId = null;
   let lastTimestamp = performance.now();
   let sparkIntensity = 0.0; // Visual spark plug plasma flash (0.0 to 1.0)
+  let sparkTimer = 0; // Visual spark persistence timer in ms
   let prevStrokeId = 1;
   let overrunTimer = 0; // Deceleration exhaust pops
 
@@ -155,9 +157,16 @@ export function initEnginePistonLab(containerId) {
               <span id="piston-stroke-dot" style="width: 10px; height: 10px; border-radius: 50%; background: #38bdf8; display: inline-block;"></span>
               <span id="piston-stroke-name">1. INTAKE STROKE (0° - 180°)</span>
             </div>
-            <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.82rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
-              <span>Crank:</span>
-              <span id="piston-crank-angle-text" style="color: #38bdf8; font-weight: 700;">0.0°</span> / 720°
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div id="piston-ignition-pill" style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px); border: 1px solid rgba(245, 158, 11, 0.35); padding: 6px 12px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.80rem; color: #94a3b8; display: flex; align-items: center; gap: 6px; transition: border-color 0.08s, box-shadow 0.08s;">
+                <span style="font-size: 0.85rem;">⚡</span>
+                <span>Spark:</span>
+                <span id="piston-spark-timing-text" style="color: #f59e0b; font-weight: 700;">348.0° (12° BTDC)</span>
+              </div>
+              <div style="background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 8px; font-family: var(--font-mono); font-size: 0.82rem; color: #94a3b8; display: flex; align-items: center; gap: 8px;">
+                <span>Crank:</span>
+                <span id="piston-crank-angle-text" style="color: #38bdf8; font-weight: 700;">0.0°</span> / 720°
+              </div>
             </div>
           </div>
 
@@ -449,12 +458,11 @@ export function initEnginePistonLab(containerId) {
       pressureKpa = pPeakKpa * Math.pow(vClearanceM3 / vCurrentM3, GAMMA);
       tempK = tPeakK * Math.pow(vClearanceM3 / vCurrentM3, GAMMA - 1);
 
-      // Trigger spark at ~356° - 374°
-      if (angleDeg >= 356 && angleDeg <= 374) {
-        sparkIntensity = 1.0 - Math.abs(angleDeg - 360) / 14;
-      } else {
-        sparkIntensity = 0.0;
-      }
+      // Dynamic Ignition Advance Timing (BTDC = Before Top Dead Center)
+      // Dynamic spark timing curve based on engine RPM:
+      // Low idle (~600-1000 RPM) -> ~12° BTDC (348°)
+      // Mid range (~3000 RPM) -> ~24° BTDC (336°)
+      // High revs (~6000+ RPM) -> ~32° BTDC (328°)
     } else {
       // Stroke 4: Exhaust
       strokeId = 4;
@@ -465,6 +473,10 @@ export function initEnginePistonLab(containerId) {
       pressureKpa = P_ATM_KPA * 1.06;
       tempK = (T_ATM_K + 350) - 150 * ((angleDeg - 540) / 180);
     }
+
+    // Dynamic Ignition Advance Timing Calculation
+    const sparkAdvanceDeg = 12 + Math.min(1.0, Math.max(0, (currentRpm - 600) / 5800)) * 20;
+    const sparkFireAngleDeg = 360 - sparkAdvanceDeg;
 
     // Theoretical Otto Cycle Metrics
     const ottoEff = 1 - Math.pow(compRatio, 1 - GAMMA);
@@ -499,6 +511,8 @@ export function initEnginePistonLab(containerId) {
       vClearanceM3,
       intakeValveOpen,
       exhaustValveOpen,
+      sparkAdvanceDeg,
+      sparkFireAngleDeg,
       ottoEff,
       wNetJ,
       powerKw,
@@ -1104,55 +1118,412 @@ export function initEnginePistonLab(containerId) {
     engineCtx.fillRect(-2.5, -42, 5, 42); // Stem
     engineCtx.restore();
 
-    // 8. Spark Plug with High-Voltage Plasma Arc
+    // 8. Photorealistic High-Performance Iridium Spark Plug ("Spark Candle") & Plasma Discharge Arc
     engineCtx.save();
-    // Ceramic Insulator
-    engineCtx.fillStyle = "#f8fafc";
-    engineCtx.fillRect(centerX - 5.5, cylinderTopY - 65, 11, 46);
-    // Threaded steel hex body
-    engineCtx.strokeStyle = "#64748b";
-    engineCtx.lineWidth = 1.5;
-    engineCtx.strokeRect(centerX - 7.5, cylinderTopY - 28, 15, 18);
-    // Brass terminal nut
-    engineCtx.fillStyle = "#eab308";
-    engineCtx.fillRect(centerX - 4, cylinderTopY - 73, 8, 8);
 
-    // Nickel Electrodes
-    engineCtx.strokeStyle = "#f1f5f9";
-    engineCtx.lineWidth = 1.8;
+    // 8a. Top High-Voltage Brass Terminal Stud & Terminal Nut
+    const termX = centerX - 3.8;
+    const termW = 7.6;
+    const termGrad = engineCtx.createLinearGradient(centerX - 4, 0, centerX + 4, 0);
+    termGrad.addColorStop(0, "#78350f");
+    termGrad.addColorStop(0.2, "#d97706");
+    termGrad.addColorStop(0.48, "#fef08a");
+    termGrad.addColorStop(0.78, "#b45309");
+    termGrad.addColorStop(1, "#451a03");
+
+    // Threaded terminal stud top pin
+    engineCtx.fillStyle = "#94a3b8";
+    engineCtx.fillRect(centerX - 1.2, 19, 2.4, 4);
+
+    // Terminal Nut Body (brass/nickel alloy with chamfered edges)
+    engineCtx.fillStyle = termGrad;
     engineCtx.beginPath();
-    engineCtx.moveTo(centerX, cylinderTopY - 10);
-    engineCtx.lineTo(centerX, cylinderTopY + 3); // Center electrode
-    engineCtx.moveTo(centerX - 6, cylinderTopY - 2);
-    engineCtx.lineTo(centerX - 6, cylinderTopY + 5);
-    engineCtx.lineTo(centerX - 1.5, cylinderTopY + 5); // Ground electrode
+    engineCtx.roundRect(termX, 23, termW, 11, [2.5, 2.5, 1, 1]);
+    engineCtx.fill();
+    engineCtx.strokeStyle = "#451a03";
+    engineCtx.lineWidth = 0.8;
     engineCtx.stroke();
 
-    // High-Voltage Ignition Spark Flash
-    if (sparkIntensity > 0.05) {
-      engineCtx.shadowColor = "#38bdf8";
-      engineCtx.shadowBlur = 30 * sparkIntensity;
-      engineCtx.strokeStyle = "#ffffff";
-      engineCtx.lineWidth = 3;
+    // Boot retention groove (annular indent for high-voltage coil clip)
+    engineCtx.fillStyle = "rgba(69, 26, 3, 0.75)";
+    engineCtx.fillRect(termX + 0.5, 27.5, termW - 1, 1.8);
+    engineCtx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    engineCtx.fillRect(termX + 1.2, 24, 1.2, 8); // Cylindrical specular sheen
+
+    // 8b. High-Alumina Glazed Ceramic Porcelain Body (Corrugated "Candle" Insulator)
+    const ceramicW = 12.5;
+    const ceramicX = centerX - ceramicW / 2;
+    const ceramicY = 34;
+    const ceramicH = 35;
+
+    const ceramicGrad = engineCtx.createLinearGradient(ceramicX, 0, ceramicX + ceramicW, 0);
+    ceramicGrad.addColorStop(0, "#cbd5e1");
+    ceramicGrad.addColorStop(0.22, "#f8fafc");
+    ceramicGrad.addColorStop(0.46, "#ffffff");
+    ceramicGrad.addColorStop(0.76, "#e2e8f0");
+    ceramicGrad.addColorStop(1, "#94a3b8");
+
+    // Ceramic Main Barrel
+    engineCtx.fillStyle = ceramicGrad;
+    engineCtx.beginPath();
+    engineCtx.roundRect(ceramicX, ceramicY, ceramicW, ceramicH, [1, 1, 0, 0]);
+    engineCtx.fill();
+    engineCtx.strokeStyle = "#94a3b8";
+    engineCtx.lineWidth = 0.8;
+    engineCtx.stroke();
+
+    // 5 Distinct Anti-Flashover Corrugation Ribs (Annular Porcelain Ridges)
+    const ribYs = [37.5, 43, 48.5, 54, 59.5];
+    const ribW = 15.5;
+    const ribX = centerX - ribW / 2;
+    const ribH = 3.2;
+
+    const ribGrad = engineCtx.createLinearGradient(ribX, 0, ribX + ribW, 0);
+    ribGrad.addColorStop(0, "#94a3b8");
+    ribGrad.addColorStop(0.18, "#f8fafc");
+    ribGrad.addColorStop(0.45, "#ffffff");
+    ribGrad.addColorStop(0.80, "#cbd5e1");
+    ribGrad.addColorStop(1, "#64748b");
+
+    ribYs.forEach(ry => {
+      // Rib bulge
+      engineCtx.fillStyle = ribGrad;
       engineCtx.beginPath();
-      engineCtx.moveTo(centerX, cylinderTopY + 3);
-      // Zigzag plasma lightning
-      engineCtx.lineTo(centerX - 3, cylinderTopY + 4);
-      engineCtx.lineTo(centerX - 1.5, cylinderTopY + 4.5);
-      engineCtx.lineTo(centerX - 2.5, cylinderTopY + 5);
+      engineCtx.roundRect(ribX, ry, ribW, ribH, 1.6);
+      engineCtx.fill();
+
+      // Top specular ridge highlight
+      engineCtx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+      engineCtx.lineWidth = 0.7;
+      engineCtx.beginPath();
+      engineCtx.moveTo(ribX + 1.5, ry + 0.6);
+      engineCtx.lineTo(ribX + ribW - 1.5, ry + 0.6);
       engineCtx.stroke();
 
-      // Expanding explosion burst
-      const burstGrad = engineCtx.createRadialGradient(centerX, cylinderTopY + 4, 3, centerX, cylinderTopY + 4, 55 * sparkIntensity);
-      burstGrad.addColorStop(0, "rgba(255, 255, 255, 0.98)");
-      burstGrad.addColorStop(0.3, "rgba(253, 224, 71, 0.85)");
-      burstGrad.addColorStop(0.7, "rgba(239, 68, 68, 0.5)");
-      burstGrad.addColorStop(1, "rgba(239, 68, 68, 0)");
-      engineCtx.fillStyle = burstGrad;
+      // Underside shadow
+      engineCtx.strokeStyle = "rgba(71, 85, 105, 0.45)";
+      engineCtx.lineWidth = 0.7;
       engineCtx.beginPath();
-      engineCtx.arc(centerX, cylinderTopY + 4, 55 * sparkIntensity, 0, Math.PI * 2);
-      engineCtx.fill();
+      engineCtx.moveTo(ribX + 1.5, ry + ribH - 0.5);
+      engineCtx.lineTo(ribX + ribW - 1.5, ry + ribH - 0.5);
+      engineCtx.stroke();
+    });
+
+    // Manufacturer Blue Enamel Branding Rings (Authentic NGK-style cobalt blue stripes)
+    engineCtx.fillStyle = "#1d4ed8";
+    engineCtx.fillRect(ceramicX + 0.8, 45.5, ceramicW - 1.6, 1.2);
+    engineCtx.fillRect(ceramicX + 0.8, 51.0, ceramicW - 1.6, 1.2);
+
+    // Microscopic technical label: "IRIDIUM"
+    engineCtx.save();
+    engineCtx.fillStyle = "#1e3a8a";
+    engineCtx.font = "bold 4.5px sans-serif";
+    engineCtx.textAlign = "center";
+    engineCtx.fillText("IRIDIUM", centerX + 0.5, 66);
+    engineCtx.restore();
+
+    // Glazed Porcelain Specular Axis Reflection
+    engineCtx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    engineCtx.fillRect(centerX - 1.8, ceramicY + 1, 1.4, ceramicH - 2);
+
+    // 8c. Machined Steel Hexagonal Body (Socket Nut Shell)
+    const hexY = 69;
+    const hexH = 16;
+    const hexW = 18;
+    const hexLeft = centerX - hexW / 2;
+
+    // Hex Bevel Chamfer Ring
+    const hexBevelGrad = engineCtx.createLinearGradient(hexLeft, hexY, hexLeft + hexW, hexY);
+    hexBevelGrad.addColorStop(0, "#475569");
+    hexBevelGrad.addColorStop(0.5, "#cbd5e1");
+    hexBevelGrad.addColorStop(1, "#334155");
+    engineCtx.fillStyle = hexBevelGrad;
+    engineCtx.beginPath();
+    engineCtx.moveTo(hexLeft + 2, hexY);
+    engineCtx.lineTo(hexLeft + hexW - 2, hexY);
+    engineCtx.lineTo(hexLeft + hexW, hexY + 2.5);
+    engineCtx.lineTo(hexLeft, hexY + 2.5);
+    engineCtx.closePath();
+    engineCtx.fill();
+
+    // 3 Visible Facets of Hexagonal Wrench Socket Body
+    // Left facet: [hexLeft, centerX - 3.2]
+    const leftFacetGrad = engineCtx.createLinearGradient(hexLeft, 0, centerX - 3.2, 0);
+    leftFacetGrad.addColorStop(0, "#334155");
+    leftFacetGrad.addColorStop(0.5, "#64748b");
+    leftFacetGrad.addColorStop(1, "#475569");
+    engineCtx.fillStyle = leftFacetGrad;
+    engineCtx.fillRect(hexLeft, hexY + 2.5, (centerX - 3.2) - hexLeft, hexH - 2.5);
+
+    // Center facet (facing viewer, bright metallic zinc-nickel flash): [centerX - 3.2, centerX + 3.2]
+    const centerFacetGrad = engineCtx.createLinearGradient(centerX - 3.2, 0, centerX + 3.2, 0);
+    centerFacetGrad.addColorStop(0, "#64748b");
+    centerFacetGrad.addColorStop(0.35, "#f1f5f9");
+    centerFacetGrad.addColorStop(0.7, "#cbd5e1");
+    centerFacetGrad.addColorStop(1, "#94a3b8");
+    engineCtx.fillStyle = centerFacetGrad;
+    engineCtx.fillRect(centerX - 3.2, hexY + 2.5, 6.4, hexH - 2.5);
+
+    // Right facet: [centerX + 3.2, hexLeft + hexW]
+    const rightFacetGrad = engineCtx.createLinearGradient(centerX + 3.2, 0, hexLeft + hexW, 0);
+    rightFacetGrad.addColorStop(0, "#475569");
+    rightFacetGrad.addColorStop(0.6, "#334155");
+    rightFacetGrad.addColorStop(1, "#1e293b");
+    engineCtx.fillStyle = rightFacetGrad;
+    engineCtx.fillRect(centerX + 3.2, hexY + 2.5, (hexLeft + hexW) - (centerX + 3.2), hexH - 2.5);
+
+    // Facet Separation Edges (Sharp machined ridges)
+    engineCtx.strokeStyle = "rgba(255, 255, 255, 0.7)";
+    engineCtx.lineWidth = 0.8;
+    engineCtx.beginPath();
+    engineCtx.moveTo(centerX - 3.2, hexY + 2.5);
+    engineCtx.lineTo(centerX - 3.2, hexY + hexH);
+    engineCtx.stroke();
+
+    engineCtx.strokeStyle = "rgba(15, 23, 42, 0.85)";
+    engineCtx.beginPath();
+    engineCtx.moveTo(centerX + 3.2, hexY + 2.5);
+    engineCtx.lineTo(centerX + 3.2, hexY + hexH);
+    engineCtx.stroke();
+
+    // Hex Lower Knurled / Crimp Collar
+    engineCtx.fillStyle = "#475569";
+    engineCtx.fillRect(hexLeft - 0.5, hexY + hexH - 2.5, hexW + 1, 2.5);
+    engineCtx.strokeStyle = "#1e293b";
+    engineCtx.strokeRect(hexLeft - 0.5, hexY + hexH - 2.5, hexW + 1, 2.5);
+
+    // 8d. Solid Copper Crush Washer / Sealing Gasket
+    const gasketY = hexY + hexH;
+    const gasketW = 19.5;
+    const gasketH = 3.2;
+    const gasketLeft = centerX - gasketW / 2;
+    const copperGrad = engineCtx.createLinearGradient(gasketLeft, 0, gasketLeft + gasketW, 0);
+    copperGrad.addColorStop(0, "#7c2d12");
+    copperGrad.addColorStop(0.25, "#ea580c");
+    copperGrad.addColorStop(0.55, "#fed7aa"); // Copper specular metallic shine
+    copperGrad.addColorStop(0.85, "#c2410c");
+    copperGrad.addColorStop(1, "#431407");
+
+    engineCtx.fillStyle = copperGrad;
+    engineCtx.beginPath();
+    engineCtx.roundRect(gasketLeft, gasketY, gasketW, gasketH, 1.2);
+    engineCtx.fill();
+    engineCtx.strokeStyle = "#7c2d12";
+    engineCtx.lineWidth = 0.7;
+    engineCtx.stroke();
+
+    // 8e. M14 Threaded Steel Barrel
+    const barrelY = gasketY + gasketH;
+    const barrelW = 14.5;
+    const barrelH = 11;
+    const barrelLeft = centerX - barrelW / 2;
+
+    const barrelGrad = engineCtx.createLinearGradient(barrelLeft, 0, barrelLeft + barrelW, 0);
+    barrelGrad.addColorStop(0, "#1e293b");
+    barrelGrad.addColorStop(0.2, "#475569");
+    barrelGrad.addColorStop(0.5, "#94a3b8");
+    barrelGrad.addColorStop(0.85, "#334155");
+    barrelGrad.addColorStop(1, "#0f172a");
+
+    engineCtx.fillStyle = barrelGrad;
+    engineCtx.fillRect(barrelLeft, barrelY, barrelW, barrelH);
+
+    // Helical Screw Thread Serrations (5 M14x1.25 metric pitch threads)
+    for (let ty = barrelY + 1.2; ty < barrelY + barrelH - 1; ty += 2.2) {
+      engineCtx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+      engineCtx.lineWidth = 0.8;
+      engineCtx.beginPath();
+      engineCtx.moveTo(barrelLeft - 1.0, ty);
+      engineCtx.lineTo(barrelLeft + barrelW + 1.0, ty + 1.0);
+      engineCtx.stroke();
+
+      // Shadow underneath thread ridge
+      engineCtx.strokeStyle = "rgba(15, 23, 42, 0.7)";
+      engineCtx.beginPath();
+      engineCtx.moveTo(barrelLeft - 0.8, ty + 0.8);
+      engineCtx.lineTo(barrelLeft + barrelW + 0.8, ty + 1.8);
+      engineCtx.stroke();
     }
+
+    // 8f. Projected Ceramic Nose Insulator (Combustion Chamber Interior)
+    const noseY = barrelY + barrelH;
+    const noseH = 6.5;
+    const noseTopW = 9.0;
+    const noseBotW = 5.5;
+
+    const noseGrad = engineCtx.createLinearGradient(centerX - noseTopW / 2, 0, centerX + noseTopW / 2, 0);
+    noseGrad.addColorStop(0, "#cbd5e1");
+    noseGrad.addColorStop(0.35, "#f8fafc");
+    noseGrad.addColorStop(0.7, "#f1f5f9");
+    noseGrad.addColorStop(1, "#64748b");
+
+    engineCtx.fillStyle = noseGrad;
+    engineCtx.beginPath();
+    engineCtx.moveTo(centerX - noseTopW / 2, noseY);
+    engineCtx.lineTo(centerX + noseTopW / 2, noseY);
+    engineCtx.lineTo(centerX + noseBotW / 2, noseY + noseH);
+    engineCtx.lineTo(centerX - noseBotW / 2, noseY + noseH);
+    engineCtx.closePath();
+    engineCtx.fill();
+    engineCtx.strokeStyle = "#94a3b8";
+    engineCtx.lineWidth = 0.6;
+    engineCtx.stroke();
+
+    // 8g. Ultra-Fine Laser-Welded Iridium Center Electrode (0.6mm needle)
+    const needleTopY = noseY + noseH;
+    const needleBotY = needleTopY + 5.5;
+    const needleW = 1.8;
+
+    // Laser-weld collar ball
+    engineCtx.fillStyle = "#cbd5e1";
+    engineCtx.beginPath();
+    engineCtx.arc(centerX, needleTopY, 1.4, 0, Math.PI * 2);
+    engineCtx.fill();
+
+    // Iridium Needle Pin
+    const needleGrad = engineCtx.createLinearGradient(centerX - needleW / 2, 0, centerX + needleW / 2, 0);
+    needleGrad.addColorStop(0, "#94a3b8");
+    needleGrad.addColorStop(0.5, "#ffffff");
+    needleGrad.addColorStop(1, "#475569");
+    engineCtx.fillStyle = needleGrad;
+    engineCtx.fillRect(centerX - needleW / 2, needleTopY, needleW, 5.5);
+
+    // Sharp squared tip
+    engineCtx.fillStyle = "#ffffff";
+    engineCtx.fillRect(centerX - needleW / 2, needleBotY - 0.7, needleW, 0.7);
+
+    // 8h. Heavy-Duty Nickel J-Gap Ground Electrode Strap
+    const strapThick = 2.0;
+    const strapTopY = barrelY + barrelH;
+    const strapBendY = needleBotY + 3.8;
+    const strapEndX = centerX + 1.8;
+
+    engineCtx.save();
+    // Weld nugget at shell base
+    engineCtx.fillStyle = "#475569";
+    engineCtx.beginPath();
+    engineCtx.arc(centerX - 6.5, strapTopY, 1.8, 0, Math.PI * 2);
+    engineCtx.fill();
+
+    // Ground Strap Body
+    const strapGrad = engineCtx.createLinearGradient(centerX - 8, 0, centerX + 2, 0);
+    strapGrad.addColorStop(0, "#334155");
+    strapGrad.addColorStop(0.3, "#cbd5e1");
+    strapGrad.addColorStop(0.7, "#f1f5f9");
+    strapGrad.addColorStop(1, "#64748b");
+
+    engineCtx.strokeStyle = strapGrad;
+    engineCtx.lineWidth = strapThick;
+    engineCtx.lineCap = "square";
+    engineCtx.lineJoin = "round";
+    engineCtx.beginPath();
+    engineCtx.moveTo(centerX - 6.5, strapTopY);
+    engineCtx.lineTo(centerX - 6.5, strapBendY - 1.5);
+    engineCtx.arcTo(centerX - 6.5, strapBendY, centerX - 4.5, strapBendY, 2.5);
+    engineCtx.lineTo(strapEndX, strapBendY);
+    engineCtx.stroke();
+
+    // Beveled spark face opposite the center electrode
+    engineCtx.fillStyle = "#f8fafc";
+    engineCtx.fillRect(centerX - 2.0, strapBendY - strapThick / 2 - 0.2, 4.0, 0.8);
+    engineCtx.restore();
+
+    // 8i. HIGH-VOLTAGE PLASMA DISCHARGE ARC & CORONA EXPLOSION BURST
+    if (sparkIntensity > 0.02) {
+      const sparkGapCenterY = (needleBotY + (strapBendY - strapThick / 2)) / 2; // ~111.0
+      const jitterTime = performance.now() * 0.08;
+      const jitterX = (Math.sin(jitterTime * 2.8) + Math.cos(jitterTime * 4.3)) * 1.3 * sparkIntensity;
+
+      // 1. Dynamic Pent-Roof Chamber & Piston Crown Optical Illumination
+      const chamberIllumGrad = engineCtx.createRadialGradient(
+        centerX, sparkGapCenterY, 4,
+        centerX, sparkGapCenterY, 110 * sparkIntensity
+      );
+      chamberIllumGrad.addColorStop(0, `rgba(224, 242, 254, ${0.75 * sparkIntensity})`);
+      chamberIllumGrad.addColorStop(0.2, `rgba(56, 189, 248, ${0.45 * sparkIntensity})`);
+      chamberIllumGrad.addColorStop(0.55, `rgba(168, 85, 247, ${0.22 * sparkIntensity})`);
+      chamberIllumGrad.addColorStop(1, "rgba(245, 158, 11, 0)");
+
+      engineCtx.save();
+      engineCtx.fillStyle = chamberIllumGrad;
+      engineCtx.beginPath();
+      engineCtx.arc(centerX, sparkGapCenterY, 110 * sparkIntensity, 0, Math.PI * 2);
+      engineCtx.fill();
+      engineCtx.restore();
+
+      // 2. High-Voltage Ultraviolet Ionization Cloud
+      engineCtx.save();
+      const uvGlow = engineCtx.createRadialGradient(
+        centerX, sparkGapCenterY, 2,
+        centerX, sparkGapCenterY, 45 * sparkIntensity
+      );
+      uvGlow.addColorStop(0, `rgba(255, 255, 255, ${0.98 * sparkIntensity})`);
+      uvGlow.addColorStop(0.25, `rgba(103, 232, 249, ${0.90 * sparkIntensity})`);
+      uvGlow.addColorStop(0.60, `rgba(168, 85, 247, ${0.55 * sparkIntensity})`);
+      uvGlow.addColorStop(0.85, `rgba(239, 68, 68, ${0.25 * sparkIntensity})`);
+      uvGlow.addColorStop(1, "rgba(239, 68, 68, 0)");
+
+      engineCtx.fillStyle = uvGlow;
+      engineCtx.beginPath();
+      engineCtx.arc(centerX, sparkGapCenterY, 45 * sparkIntensity, 0, Math.PI * 2);
+      engineCtx.fill();
+      engineCtx.restore();
+
+      // 3. Multi-Branch Plasma Lightning Electric Arc
+      engineCtx.save();
+      engineCtx.shadowColor = "#38bdf8";
+      engineCtx.shadowBlur = 24 * sparkIntensity;
+
+      // Outer Cyan Ionized Channel
+      engineCtx.strokeStyle = "rgba(56, 189, 248, 0.85)";
+      engineCtx.lineWidth = 4.2 * sparkIntensity;
+      engineCtx.lineCap = "round";
+      engineCtx.beginPath();
+      engineCtx.moveTo(centerX, needleBotY);
+      engineCtx.lineTo(centerX + jitterX * 0.9, sparkGapCenterY - 0.5);
+      engineCtx.lineTo(centerX - jitterX * 0.7, sparkGapCenterY + 0.6);
+      engineCtx.lineTo(centerX, strapBendY - strapThick / 2);
+      engineCtx.stroke();
+
+      // Core Pure-White Superheated Arc
+      engineCtx.strokeStyle = "#ffffff";
+      engineCtx.lineWidth = 1.8 * sparkIntensity;
+      engineCtx.beginPath();
+      engineCtx.moveTo(centerX, needleBotY);
+      engineCtx.lineTo(centerX + jitterX * 0.9, sparkGapCenterY - 0.5);
+      engineCtx.lineTo(centerX - jitterX * 0.7, sparkGapCenterY + 0.6);
+      engineCtx.lineTo(centerX, strapBendY - strapThick / 2);
+      engineCtx.stroke();
+
+      // Micro-tendril fork
+      if (Math.random() < 0.65) {
+        engineCtx.strokeStyle = "rgba(192, 132, 252, 0.75)";
+        engineCtx.lineWidth = 1.0 * sparkIntensity;
+        engineCtx.beginPath();
+        engineCtx.moveTo(centerX + jitterX * 0.9, sparkGapCenterY - 0.5);
+        engineCtx.lineTo(centerX + jitterX * 2.2 + 1.0, sparkGapCenterY + 1.0);
+        engineCtx.stroke();
+      }
+      engineCtx.restore();
+
+      // 4. Anamorphic Optical Flare Streak (Camera Lens Streak across gap)
+      engineCtx.save();
+      const flareLen = 85 * sparkIntensity;
+      const flareGrad = engineCtx.createLinearGradient(
+        centerX - flareLen, sparkGapCenterY,
+        centerX + flareLen, sparkGapCenterY
+      );
+      flareGrad.addColorStop(0, "rgba(56, 189, 248, 0)");
+      flareGrad.addColorStop(0.35, `rgba(56, 189, 248, ${0.45 * sparkIntensity})`);
+      flareGrad.addColorStop(0.5, `rgba(255, 255, 255, ${0.95 * sparkIntensity})`);
+      flareGrad.addColorStop(0.65, `rgba(56, 189, 248, ${0.45 * sparkIntensity})`);
+      flareGrad.addColorStop(1, "rgba(56, 189, 248, 0)");
+
+      engineCtx.fillStyle = flareGrad;
+      engineCtx.fillRect(centerX - flareLen, sparkGapCenterY - 1.2, flareLen * 2, 2.4);
+      engineCtx.restore();
+    }
+
     engineCtx.restore();
 
     // 9. Photorealistic Machined Aluminum Piston Assembly
@@ -2164,20 +2535,60 @@ export function initEnginePistonLab(containerId) {
       isRevLimiterActive = false;
     }
 
+    let crossedSpark = false;
     if (isRunning && !isPaused && isEngineStarted && currentRpm > 80) {
       // 4-Stroke Cycle completes 720° in 2 crank revolutions
       // Degrees per second = (RPM / 60) * 360°
       const degPerSec = (currentRpm / 60) * 360 * timeScale;
-      crankAngleDeg = (crankAngleDeg + degPerSec * (dtMs / 1000)) % 720;
+      const deltaDeg = degPerSec * (dtMs / 1000);
+      prevCrankAngleDeg = crankAngleDeg;
+      const nextAngle = crankAngleDeg + deltaDeg;
+
+      // Dynamic spark firing angle from advance curve (12° to 32° BTDC, i.e. 348° to 328°)
+      const curAdvance = 12 + Math.min(1.0, Math.max(0, (currentRpm - 600) / 5800)) * 20;
+      const fireAngle = 360 - curAdvance;
+
+      // Cycle crossing detection: checks if fireAngle was traversed in this frame
+      if (Math.floor((nextAngle - fireAngle) / 720) > Math.floor((crankAngleDeg - fireAngle) / 720)) {
+        crossedSpark = true;
+      }
+
+      crankAngleDeg = nextAngle % 720;
+    }
+
+    if (crossedSpark && !isRevLimiterActive && isEngineStarted) {
+      sparkTimer = 110; // Visual persistence in milliseconds (ensures 100% visibility even at 6500 RPM)
+      playCombustionDetonation(currentRpm, throttlePct);
+    }
+
+    // Spark persistence decay
+    if (sparkTimer > 0) {
+      sparkTimer -= dtMs;
+      if (sparkTimer < 0) sparkTimer = 0;
     }
 
     const state = calculateEngineState(crankAngleDeg);
+
+    // Static spark proximity for manual step / pause / super slow-motion:
+    // Window: from fire angle to TDC (360°) plus slight expansion tail (368°)
+    let staticSpark = 0.0;
+    const fireDist = crankAngleDeg - state.sparkFireAngleDeg;
+    if (fireDist >= 0 && fireDist <= (368 - state.sparkFireAngleDeg)) {
+      staticSpark = Math.max(0, 1.0 - fireDist / (368 - state.sparkFireAngleDeg));
+    }
+
+    // Combined intensity (dynamic high-speed strobe + static position)
+    const dynamicSpark = Math.pow(sparkTimer / 110, 0.65);
+    sparkIntensity = isEngineStarted && !isRevLimiterActive ? Math.max(dynamicSpark, staticSpark) : 0.0;
 
     // Update DOM HUD & Telemetry
     const strokeBadge = container.querySelector("#piston-stroke-badge");
     const strokeDot = container.querySelector("#piston-stroke-dot");
     const strokeName = container.querySelector("#piston-stroke-name");
     const angleText = container.querySelector("#piston-crank-angle-text");
+    const sparkText = container.querySelector("#piston-spark-timing-text");
+    const ignitionPill = container.querySelector("#piston-ignition-pill");
+
     if (strokeBadge) strokeBadge.style.borderColor = state.strokeColor;
     if (strokeDot) strokeDot.style.background = state.strokeColor;
     if (strokeName) {
@@ -2185,6 +2596,22 @@ export function initEnginePistonLab(containerId) {
       strokeName.style.color = state.strokeColor;
     }
     if (angleText) angleText.innerText = `${state.angleDeg.toFixed(1)}°`;
+    if (sparkText) {
+      sparkText.innerText = `${state.sparkFireAngleDeg.toFixed(1)}° (${state.sparkAdvanceDeg.toFixed(1)}° BTDC)`;
+    }
+    if (ignitionPill) {
+      if (sparkIntensity > 0.12) {
+        ignitionPill.style.borderColor = "#38bdf8";
+        ignitionPill.style.boxShadow = "0 0 16px rgba(56, 189, 248, 0.85)";
+        ignitionPill.style.background = "rgba(14, 165, 233, 0.25)";
+        ignitionPill.style.color = "#38bdf8";
+      } else {
+        ignitionPill.style.borderColor = "rgba(245, 158, 11, 0.35)";
+        ignitionPill.style.boxShadow = "none";
+        ignitionPill.style.background = "rgba(15, 23, 42, 0.92)";
+        ignitionPill.style.color = "#94a3b8";
+      }
+    }
 
     container.querySelector("#hud-pressure").innerText = `${state.pressureKpa.toFixed(1)} kPa (${(state.pressureKpa / 100).toFixed(2)} bar)`;
     container.querySelector("#hud-temperature").innerText = `${(state.tempK - 273.15).toFixed(1)} °C (${((state.tempK - 273.15) * 1.8 + 32).toFixed(0)} °F)`;
@@ -2303,7 +2730,15 @@ export function initEnginePistonLab(containerId) {
       btnPlayPause.innerText = "▶ Run Engine";
       btnPlayPause.style.background = "linear-gradient(135deg, #10b981, #059669)";
     }
-    crankAngleDeg = (crankAngleDeg + 15) % 720;
+    const prevA = crankAngleDeg;
+    const nextA = (crankAngleDeg + 15) % 720;
+    const curAdvance = 12 + Math.min(1.0, Math.max(0, (currentRpm - 600) / 5800)) * 20;
+    const fireAngle = 360 - curAdvance;
+    if (isEngineStarted && !isRevLimiterActive && (Math.floor((nextA - fireAngle) / 720) > Math.floor((prevA - fireAngle) / 720) || (nextA >= fireAngle && prevA < fireAngle))) {
+      sparkTimer = 220; // Extra visible persistence when stepping manually through ignition
+      playCombustionDetonation(currentRpm, throttlePct);
+    }
+    crankAngleDeg = nextA;
     SoundFX.playClick();
   });
 
