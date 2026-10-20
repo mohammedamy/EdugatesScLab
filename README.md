@@ -42,7 +42,7 @@ Guarantees uninterrupted classroom delivery in school networks with intermittent
 - **Live Connection Monitor**: Real-time online/offline detection with latency ping measurement.
 - **Storage Quota Inspection**: Uses `navigator.storage.estimate()` to report active cache footprint (MB used, GB quota, percentage meter).
 - **Persistent Storage Locking**: Calls `navigator.storage.persist()` to protect laboratory simulations and question banks from automated browser disk eviction.
-- **One-Click Field Trip Precaching**: Pre-caches all 50 virtual lab engines, curriculum theory databases, and media assets into CacheStorage (`amscilab-pwa-v125`).
+- **One-Click Field Trip Precaching**: Pre-caches all 50 virtual lab engines, curriculum theory databases, and media assets into CacheStorage (`amscilab-pwa-v126`).
 - **Offline Health Check**: Verifies 16 essential subsystems (HTML shell, CSS, engines, data, labs) with visual status indicators.
 - **Quick Access**: Open via Pen Toolbar button (`#sb-tool-offline`) or universal keyboard shortcut **`O`**.
 
