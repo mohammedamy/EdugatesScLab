@@ -20,12 +20,14 @@ export function initManualGearboxLab(containerId) {
 
   // Transmission Gear Specifications (5-Speed Manual + Reverse)
   // Constant Mesh: Input Drive Gear (24T) drives Countershaft Main Gear (36T) -> Drive Pair Ratio = 1.50
+  // Transmission Gear Specifications (5-Speed Manual + Reverse)
+  // Constant Mesh: Input Drive Gear (18T) drives Countershaft Cluster (26T) -> Drive Pair Ratio = 1.444
   const GEAR_SPECS = {
-    "N": { name: "Neutral", ratio: 0.0, eff: 0.0, color: "#94a3b8", collar: null, desc: "All synchronizer collars centered. Free-wheeling output shaft decoupled." },
-    "1": { name: "1st Gear", ratio: 3.82, eff: 0.95, color: "#38bdf8", collar: "1-2", collarPos: -1, desc: "High torque multiplication for starting from rest & climbing steep inclines." },
-    "2": { name: "2nd Gear", ratio: 2.15, eff: 0.96, color: "#06b6d4", collar: "1-2", collarPos: 1, desc: "Moderate torque multiplication for city acceleration and low-speed navigation." },
-    "3": { name: "3rd Gear", ratio: 1.45, eff: 0.97, color: "#10b981", collar: "3-4", collarPos: -1, desc: "Mid-range passing gear balancing engine torque and road velocity." },
-    "4": { name: "4th Gear", ratio: 1.00, eff: 0.99, color: "#f59e0b", collar: "3-4", collarPos: 1, desc: "Direct Drive: Output shaft locked 1:1 with input shaft. Minimal friction." },
+    "N": { name: "Neutral", ratio: 0.0, eff: 0.0, color: "#94a3b8", collar: null, collarPos: 0, desc: "All synchronizer collars centered. Free-wheeling output shaft decoupled." },
+    "1": { name: "1st Gear", ratio: 3.82, eff: 0.95, color: "#38bdf8", collar: "1-2", collarPos: 1, desc: "High torque multiplication for starting from rest & climbing steep inclines." },
+    "2": { name: "2nd Gear", ratio: 2.15, eff: 0.96, color: "#06b6d4", collar: "1-2", collarPos: -1, desc: "Moderate torque multiplication for city acceleration and low-speed navigation." },
+    "3": { name: "3rd Gear", ratio: 1.45, eff: 0.97, color: "#10b981", collar: "3-4", collarPos: 1, desc: "Mid-range passing gear balancing engine torque and road velocity." },
+    "4": { name: "4th Gear", ratio: 1.00, eff: 0.99, color: "#f59e0b", collar: "3-4", collarPos: -1, desc: "Direct Drive: Output shaft locked 1:1 with input shaft. Minimal friction." },
     "5": { name: "5th Gear", ratio: 0.72, eff: 0.96, color: "#a855f7", collar: "5-R", collarPos: -1, desc: "Overdrive: Output shaft spins faster than engine for high-speed fuel economy." },
     "R": { name: "Reverse", ratio: -3.54, eff: 0.93, color: "#ef4444", collar: "5-R", collarPos: 1, desc: "Intermediate Reverse Idler gear inverts rotation direction vector." }
   };
@@ -42,13 +44,14 @@ export function initManualGearboxLab(containerId) {
   let lastTimestamp = performance.now();
   let gearGrindAlertTime = 0; // Timestamp of gear grind notification
 
-  // Continuous Shaft Rotation Angles (Radians)
+  // Continuous Shaft & Gear Rotation Angles (Radians)
   let inputShaftAngle = 0.0;
   let counterShaftAngle = 0.0;
   let outputShaftAngle = 0.0;
+  const freeGearAngles = { "1": 0.0, "2": 0.0, "3": 0.0, "4": 0.0, "5": 0.0, "R": 0.0, "Idler": 0.0 };
 
   // Visual Synchronizer Collar Displacements (-1 to +1)
-  let collar12Pos = -1.0; // Currently in 1st gear
+  let collar12Pos = 1.0; // Currently in 1st gear
   let collar34Pos = 0.0;
   let collar5RPos = 0.0;
 
@@ -252,7 +255,20 @@ export function initManualGearboxLab(containerId) {
                 MA = 3.63x
               </span>
             </div>
-            <canvas id="gear-chart-canvas" width="480" height="135" style="width: 100%; height: 120px; display: block; border-radius: 6px; background: #030712;"></canvas>
+            <canvas id="gear-chart-canvas" width="480" height="135" style="width: 100%; height: 110px; display: block; border-radius: 6px; background: #030712;"></canvas>
+          </div>
+
+          <!-- Involute Tooth Mesh & Pitch Contact Micro-Inspection Viewport -->
+          <div style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 6px;">
+                <span>🔬</span> Involute Tooth Mesh &amp; Contact Mechanics
+              </span>
+              <span id="lbl-mesh-detail" style="font-family: var(--font-mono); font-size: 0.72rem; color: #f59e0b; font-weight: 700;">
+                Line of Action (20° PA)
+              </span>
+            </div>
+            <canvas id="gear-mesh-zoom-canvas" width="480" height="135" style="width: 100%; height: 125px; display: block; border-radius: 6px; background: #030712;"></canvas>
           </div>
         </div>
       </div>
@@ -265,8 +281,10 @@ export function initManualGearboxLab(containerId) {
   // Canvas References
   const transCanvas = container.querySelector("#gear-transmission-canvas");
   const chartCanvas = container.querySelector("#gear-chart-canvas");
+  const meshZoomCanvas = container.querySelector("#gear-mesh-zoom-canvas");
   const transCtx = transCanvas?.getContext("2d");
   const chartCtx = chartCanvas?.getContext("2d");
+  const meshZoomCtx = meshZoomCanvas?.getContext("2d");
 
   function getDPR() {
     return typeof window.getLabDPR === "function" ? window.getLabDPR() : (typeof window.getOptimizedDPR === "function" ? window.getOptimizedDPR() : (window.devicePixelRatio || 1));
@@ -284,11 +302,21 @@ export function initManualGearboxLab(containerId) {
     }
 
     const wChart = chartCanvas.clientWidth || 480;
-    const hChart = chartCanvas.clientHeight || 120;
+    const hChart = chartCanvas.clientHeight || 110;
     chartCanvas.width = Math.round(wChart * dpr);
     chartCanvas.height = Math.round(hChart * dpr);
     if (chartCtx && chartCtx.setTransform) {
       chartCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    if (meshZoomCanvas && meshZoomCtx) {
+      const wMesh = meshZoomCanvas.clientWidth || 480;
+      const hMesh = meshZoomCanvas.clientHeight || 125;
+      meshZoomCanvas.width = Math.round(wMesh * dpr);
+      meshZoomCanvas.height = Math.round(hMesh * dpr);
+      if (meshZoomCtx.setTransform) {
+        meshZoomCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
     }
   }
   resizeCanvases();
@@ -345,7 +373,433 @@ export function initManualGearboxLab(containerId) {
     };
   }
 
-  // Draw 60 FPS Cutaway Transmission Canvas
+  // Draw Involute Spur/Helical Gear with 3D Axial Extrusion, Chamfers, and Web Cavities
+  function drawInvoluteGear(ctx, cx, cy, rPitch, teeth, angle, color, isEngaged, isUpper, options = {}) {
+    const m = (2 * rPitch) / teeth; // Module
+    const ha = 0.82 * m; // Addendum
+    const hd = 1.18 * m; // Dedendum
+    const rTip = rPitch + ha;
+    const rRoot = Math.max(8, rPitch - hd);
+    const rRim = rRoot - 3;
+    const rHub = Math.max(14, rPitch * 0.28);
+    const step = (Math.PI * 2) / teeth;
+    const halfThick = step * 0.25; // pitch line tooth half-thickness
+    const rootFillet = step * 0.16;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    // 1. 3D Extruded Gear Rim & Shadow (Axial Depth)
+    const depthX = -3.5;
+    const depthY = 4.5;
+    ctx.save();
+    ctx.translate(depthX, depthY);
+    ctx.fillStyle = "#090d16";
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < teeth; i++) {
+      const th = angle + i * step;
+      const a1 = th - step * 0.5 + rootFillet;
+      const a2 = th - halfThick * 1.25;
+      const a3 = th - halfThick;
+      const a4 = th - halfThick * 0.6;
+      const a5 = th + halfThick * 0.6;
+      const a6 = th + halfThick;
+      const a7 = th + halfThick * 1.25;
+      const a8 = th + step * 0.5 - rootFillet;
+
+      if (i === 0) ctx.moveTo(Math.cos(a1) * rRoot, Math.sin(a1) * rRoot);
+      else ctx.lineTo(Math.cos(a1) * rRoot, Math.sin(a1) * rRoot);
+
+      ctx.lineTo(Math.cos(a2) * (rRoot + (rPitch - rRoot) * 0.3), Math.sin(a2) * (rRoot + (rPitch - rRoot) * 0.3));
+      ctx.lineTo(Math.cos(a3) * rPitch, Math.sin(a3) * rPitch);
+      ctx.lineTo(Math.cos(a4) * rTip, Math.sin(a4) * rTip);
+      ctx.lineTo(Math.cos(a5) * rTip, Math.sin(a5) * rTip);
+      ctx.lineTo(Math.cos(a6) * rPitch, Math.sin(a6) * rPitch);
+      ctx.lineTo(Math.cos(a7) * (rRoot + (rPitch - rRoot) * 0.3), Math.sin(a7) * (rRoot + (rPitch - rRoot) * 0.3));
+      ctx.lineTo(Math.cos(a8) * rRoot, Math.sin(a8) * rRoot);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+
+    // 2. Front Face Involute Profile & Metallic Shading
+    ctx.beginPath();
+    for (let i = 0; i < teeth; i++) {
+      const th = angle + i * step;
+      const a1 = th - step * 0.5 + rootFillet;
+      const a2 = th - halfThick * 1.25;
+      const a3 = th - halfThick;
+      const a4 = th - halfThick * 0.6;
+      const a5 = th + halfThick * 0.6;
+      const a6 = th + halfThick;
+      const a7 = th + halfThick * 1.25;
+      const a8 = th + step * 0.5 - rootFillet;
+
+      if (i === 0) ctx.moveTo(Math.cos(a1) * rRoot, Math.sin(a1) * rRoot);
+      else ctx.lineTo(Math.cos(a1) * rRoot, Math.sin(a1) * rRoot);
+
+      ctx.lineTo(Math.cos(a2) * (rRoot + (rPitch - rRoot) * 0.3), Math.sin(a2) * (rRoot + (rPitch - rRoot) * 0.3));
+      ctx.lineTo(Math.cos(a3) * rPitch, Math.sin(a3) * rPitch);
+      ctx.lineTo(Math.cos(a4) * rTip, Math.sin(a4) * rTip);
+      ctx.lineTo(Math.cos(a5) * rTip, Math.sin(a5) * rTip);
+      ctx.lineTo(Math.cos(a6) * rPitch, Math.sin(a6) * rPitch);
+      ctx.lineTo(Math.cos(a7) * (rRoot + (rPitch - rRoot) * 0.3), Math.sin(a7) * (rRoot + (rPitch - rRoot) * 0.3));
+      ctx.lineTo(Math.cos(a8) * rRoot, Math.sin(a8) * rRoot);
+    }
+    ctx.closePath();
+
+    // Rich Metallic Radial Gradient with Hardened Steel Tint
+    const gearGrad = ctx.createRadialGradient(0, 0, rHub * 0.8, 0, 0, rTip);
+    gearGrad.addColorStop(0, "#1e293b");
+    gearGrad.addColorStop(0.35, "#334155");
+    gearGrad.addColorStop(0.7, color);
+    gearGrad.addColorStop(0.92, "#1e293b");
+    gearGrad.addColorStop(1.0, "#0f172a");
+
+    ctx.fillStyle = gearGrad;
+    ctx.fill();
+
+    // Perimeter Bevel Highlight
+    ctx.strokeStyle = isEngaged ? "#ffffff" : "rgba(255, 255, 255, 0.4)";
+    ctx.lineWidth = isEngaged ? 2 : 1;
+    ctx.stroke();
+
+    // 3. Helical Tooth Crest Facets (18° Helical Cut Lines across Gear Face)
+    ctx.save();
+    ctx.strokeStyle = isEngaged ? "rgba(255, 255, 255, 0.75)" : "rgba(255, 255, 255, 0.22)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < teeth; i++) {
+      const th = angle + i * step;
+      const xTip = Math.cos(th) * rTip;
+      const yTip = Math.sin(th) * rTip;
+      const xSlant = Math.cos(th - 0.08) * (rTip + 2) + depthX * 0.7;
+      const ySlant = Math.sin(th - 0.08) * (rTip + 2) + depthY * 0.7;
+      ctx.beginPath();
+      ctx.moveTo(xTip, yTip);
+      ctx.lineTo(xSlant, ySlant);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 4. Recessed Gear Web Pocket (Forged/Stamped Depression)
+    if (rRim > rHub + 10) {
+      const webGrad = ctx.createRadialGradient(0, 0, rHub, 0, 0, rRim);
+      webGrad.addColorStop(0, "#0f172a");
+      webGrad.addColorStop(0.2, "#1e293b");
+      webGrad.addColorStop(0.85, "#0b1120");
+      webGrad.addColorStop(1.0, "#030712");
+
+      ctx.fillStyle = webGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, rRim, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Inner rim drop shadow & metallic chamfer
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+
+    // 5. Machined Lightening Holes (Weight Reduction Cutaways)
+    if (rRim - rHub > 22) {
+      const numHoles = teeth >= 28 ? 5 : (teeth >= 18 ? 4 : 3);
+      const rHoleCenter = (rRim + rHub) * 0.5;
+      const rHole = (rRim - rHub) * 0.25;
+
+      for (let k = 0; k < numHoles; k++) {
+        const aHole = angle + k * ((Math.PI * 2) / numHoles);
+        const hx = Math.cos(aHole) * rHoleCenter;
+        const hy = Math.sin(aHole) * rHoleCenter;
+
+        // Interior void
+        ctx.fillStyle = "#030712";
+        ctx.beginPath();
+        ctx.arc(hx, hy, rHole, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Top inner shadow (3D cylindrical wall)
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(hx, hy, rHole - 0.5, Math.PI * 0.8, Math.PI * 1.8);
+        ctx.stroke();
+
+        // Bottom inner metallic bevel reflection
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.arc(hx, hy, rHole - 0.5, -Math.PI * 0.2, Math.PI * 0.8);
+        ctx.stroke();
+      }
+    }
+
+    // 6. Machined Raised Center Hub & Needle Bearing
+    const hubGrad = ctx.createRadialGradient(0, 0, 3, 0, 0, rHub);
+    hubGrad.addColorStop(0, "#cbd5e1");
+    hubGrad.addColorStop(0.5, "#475569");
+    hubGrad.addColorStop(0.9, "#1e293b");
+    hubGrad.addColorStop(1.0, "#0f172a");
+
+    ctx.fillStyle = hubGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, rHub, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Bronze Needle Roller Bearing Cage (visible inside bore)
+    const rBore = Math.max(7, rHub * 0.55);
+    ctx.fillStyle = "#b45309"; // Bronze
+    ctx.beginPath();
+    ctx.arc(0, 0, rBore, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Snap Ring / Circlip
+    ctx.strokeStyle = "#94a3b8";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(0, 0, rBore + 2, 0.4, Math.PI * 2 - 0.4);
+    ctx.stroke();
+
+    // Shaft Core
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath();
+    ctx.arc(0, 0, rBore - 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 7. Dog Teeth Ring (Clutch teeth on mainshaft speed gears)
+    if (options.hasDogRing) {
+      const rDog = rHub + 4;
+      const dogTeeth = 16;
+      const dogStep = (Math.PI * 2) / dogTeeth;
+      ctx.fillStyle = isEngaged ? "#38bdf8" : "#94a3b8";
+      for (let d = 0; d < dogTeeth; d++) {
+        const da = angle * 1.5 + d * dogStep;
+        const dx1 = Math.cos(da) * rDog;
+        const dy1 = Math.sin(da) * rDog;
+        const dx2 = Math.cos(da + dogStep * 0.4) * (rDog + 3.5);
+        const dy2 = Math.sin(da + dogStep * 0.4) * (rDog + 3.5);
+        const dx3 = Math.cos(da + dogStep * 0.8) * rDog;
+        const dy3 = Math.sin(da + dogStep * 0.8) * rDog;
+        ctx.beginPath();
+        ctx.moveTo(dx1, dy1);
+        ctx.lineTo(dx2, dy2);
+        ctx.lineTo(dx3, dy3);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+
+    // 8. Theoretical Pitch Circle (Subtle dashed precision guide)
+    ctx.save();
+    ctx.strokeStyle = isEngaged ? "rgba(56, 189, 248, 0.35)" : "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.arc(0, 0, rPitch, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.restore();
+  }
+
+  // Draw Tangential Contact Mesh Zone with Hertzian Stress & Force Vectors
+  function drawMeshContactZone(ctx, x, pitchY, pair, isEngaged, state) {
+    ctx.save();
+
+    // 1. Tangent Pitch Line Segment
+    ctx.strokeStyle = isEngaged ? "#38bdf8" : "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 2]);
+    ctx.beginPath();
+    ctx.moveTo(x - 24, pitchY);
+    ctx.lineTo(x + 24, pitchY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (isEngaged && state.clutchEngagedFrac > 0.05) {
+      // 2. Dynamic Hertzian Contact Stress Corona
+      const pulse = 1.0 + 0.25 * Math.sin(performance.now() * 0.015);
+      const coronaGrad = ctx.createRadialGradient(x, pitchY, 1, x, pitchY, 16 * pulse);
+      coronaGrad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+      coronaGrad.addColorStop(0.25, pair.color);
+      coronaGrad.addColorStop(0.65, "rgba(245, 158, 11, 0.45)");
+      coronaGrad.addColorStop(1, "rgba(245, 158, 11, 0)");
+
+      ctx.fillStyle = coronaGrad;
+      ctx.beginPath();
+      ctx.arc(x, pitchY, 16 * pulse, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 3. Line of Action (20° Involute Pressure Angle)
+      const pa = 20 * (Math.PI / 180);
+      const lineLen = 28;
+      const dx = Math.cos(pa) * lineLen;
+      const dy = Math.sin(pa) * lineLen;
+
+      ctx.strokeStyle = "#facc15"; // Gold pressure line
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x - dx, pitchY - dy);
+      ctx.lineTo(x + dx, pitchY + dy);
+      ctx.stroke();
+
+      // Normal Force Vector Arrow (Fn)
+      const arrowX = x + dx * 0.8;
+      const arrowY = pitchY + dy * 0.8;
+      ctx.fillStyle = "#facc15";
+      ctx.beginPath();
+      ctx.arc(arrowX, arrowY, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Force magnitude text
+      ctx.font = "bold 8px monospace";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "left";
+      const normalForceKn = ((state.outputTorqueNm / (pair.upperR * 0.001)) / Math.cos(pa) / 1000).toFixed(1);
+      ctx.fillText(`Fn: ${normalForceKn} kN`, x + dx + 4, pitchY + dy + 3);
+
+      // Micro-sparks radiating from contact flank
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 1.2;
+      for (let s = 0; s < 4; s++) {
+        const sa = (performance.now() * 0.02 + s * 1.57) % (Math.PI * 2);
+        const sr = 5 + (performance.now() * 0.05 + s * 3) % 9;
+        ctx.beginPath();
+        ctx.moveTo(x + Math.cos(sa) * 2, pitchY + Math.sin(sa) * 2);
+        ctx.lineTo(x + Math.cos(sa) * sr, pitchY + Math.sin(sa) * sr);
+        ctx.stroke();
+      }
+    } else {
+      // Idle pure-rolling contact marker
+      ctx.fillStyle = "rgba(16, 185, 129, 0.7)";
+      ctx.beginPath();
+      ctx.arc(x, pitchY, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  // Draw 3D Synchronizer Assembly: Hub, Brass Blocker Rings, Sliding Sleeve, & Fork
+  function draw3DSynchronizer(ctx, collarX, collarOffset, activeShift, label) {
+    const sleeveX = collarX + collarOffset * 18;
+    const mainShaftY = 185;
+
+    // 1. Fixed Hub on Mainshaft (Splined core)
+    const hubGrad = ctx.createLinearGradient(collarX - 7, 0, collarX + 7, 0);
+    hubGrad.addColorStop(0, "#1e293b");
+    hubGrad.addColorStop(0.5, "#475569");
+    hubGrad.addColorStop(1, "#0f172a");
+    ctx.fillStyle = hubGrad;
+    ctx.fillRect(collarX - 7, mainShaftY - 20, 14, 40);
+
+    // Hub longitudinal splines
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(collarX - 3, mainShaftY - 18);
+    ctx.lineTo(collarX - 3, mainShaftY + 18);
+    ctx.moveTo(collarX + 3, mainShaftY - 18);
+    ctx.lineTo(collarX + 3, mainShaftY + 18);
+    ctx.stroke();
+
+    // 2. Brass Blocker Rings (Conical Friction Rings with Machined Blocking Teeth)
+    const brassGrad = ctx.createLinearGradient(0, mainShaftY - 16, 0, mainShaftY + 16);
+    brassGrad.addColorStop(0, "#fde68a");
+    brassGrad.addColorStop(0.5, "#d97706");
+    brassGrad.addColorStop(1, "#78350f");
+
+    // Left Brass Blocker Ring
+    ctx.fillStyle = brassGrad;
+    ctx.fillRect(collarX - 16, mainShaftY - 16, 5, 32);
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(collarX - 16, mainShaftY - 16, 5, 32);
+
+    // Right Brass Blocker Ring
+    ctx.fillStyle = brassGrad;
+    ctx.fillRect(collarX + 11, mainShaftY - 16, 5, 32);
+    ctx.strokeRect(collarX + 11, mainShaftY - 16, 5, 32);
+
+    // 3. Sliding Selector Sleeve (Dog Collar)
+    const sleeveGrad = ctx.createLinearGradient(sleeveX - 9, 0, sleeveX + 9, 0);
+    if (activeShift) {
+      sleeveGrad.addColorStop(0, "#0284c7");
+      sleeveGrad.addColorStop(0.5, "#38bdf8");
+      sleeveGrad.addColorStop(1, "#0369a1");
+    } else {
+      sleeveGrad.addColorStop(0, "#334155");
+      sleeveGrad.addColorStop(0.5, "#64748b");
+      sleeveGrad.addColorStop(1, "#1e293b");
+    }
+
+    ctx.fillStyle = sleeveGrad;
+    ctx.strokeStyle = activeShift ? "#ffffff" : "#94a3b8";
+    ctx.lineWidth = activeShift ? 2 : 1;
+    ctx.beginPath();
+    ctx.roundRect(sleeveX - 9, mainShaftY - 26, 18, 52, 4);
+    ctx.fill();
+    ctx.stroke();
+
+    // External Shift Fork Circumferential Groove
+    ctx.fillStyle = "#0f172a";
+    ctx.fillRect(sleeveX - 3, mainShaftY - 26, 6, 52);
+
+    // Internal Dog Spline teeth visible at ends
+    ctx.fillStyle = "#f8fafc";
+    for (let sy = mainShaftY - 22; sy <= mainShaftY + 22; sy += 8) {
+      ctx.fillRect(sleeveX - 8, sy, 2, 4);
+      ctx.fillRect(sleeveX + 6, sy, 2, 4);
+    }
+
+    // Engagement Lock Sparkles when shifted
+    if (activeShift && Math.abs(collarOffset) > 0.7) {
+      ctx.save();
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "#38bdf8";
+      ctx.shadowBlur = 8;
+      const engX = collarOffset > 0 ? sleeveX + 9 : sleeveX - 9;
+      ctx.beginPath();
+      ctx.arc(engX, mainShaftY, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 4. Shift Selector Fork & Rail Linkage
+    ctx.strokeStyle = "#475569";
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(sleeveX, mainShaftY - 26);
+    ctx.lineTo(sleeveX, mainShaftY - 48);
+    ctx.stroke();
+
+    // Selector Rail Guide Bushing
+    ctx.fillStyle = "#94a3b8";
+    ctx.beginPath();
+    ctx.arc(sleeveX, mainShaftY - 48, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Horizontal Selector Rail Bar
+    ctx.strokeStyle = "rgba(100, 116, 139, 0.4)";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(collarX - 25, mainShaftY - 48);
+    ctx.lineTo(collarX + 25, mainShaftY - 48);
+    ctx.stroke();
+
+    // Collar Label
+    ctx.fillStyle = activeShift ? "#38bdf8" : "#64748b";
+    ctx.font = "bold 8px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(label, collarX, mainShaftY - 56);
+  }
+
+  // Draw 60 FPS Photorealistic Cutaway Transmission Canvas
   function drawTransmission(state) {
     if (!transCtx || !transCanvas) return;
     const w = transCanvas.clientWidth || 650;
@@ -353,14 +807,24 @@ export function initManualGearboxLab(containerId) {
 
     transCtx.clearRect(0, 0, w, h);
 
-    // Coordinate Anchors
-    const mainShaftY = 195; // Top shaft: Input shaft & Output Mainshaft (coaxial)
-    const counterShaftY = 375; // Bottom shaft: Layshaft / Countershaft
-    const shaftStartX = 110;
-    const shaftEndX = w - 40;
+    // Coordinate Anchors & Mathematical Center Distance
+    const mainShaftY = 185; // Upper coaxial shaft (Input & Output)
+    const counterShaftY = 345; // Lower layshaft / countershaft
+    const C = counterShaftY - mainShaftY; // Exactly 160 px center distance
+    const baseW = 650;
+    const scaleX = Math.max(0.85, (w - 70) / (baseW - 70));
 
-    // Background Grid
-    transCtx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+    const flywheelX = 42;
+    const clutchDiscX = 64 + (clutchDepressedPct / 100) * 14;
+    const frontBulkheadX = 94;
+    const shaftStartX = 100;
+    const shaftEndX = w - 30;
+
+    // Helper: Map station horizontal coordinates responsively
+    const getX = (baseX) => frontBulkheadX + (baseX - frontBulkheadX) * scaleX;
+
+    // 1. Blueprint Engineering Grid
+    transCtx.strokeStyle = "rgba(255, 255, 255, 0.035)";
     transCtx.lineWidth = 1;
     for (let x = 0; x < w; x += 30) {
       transCtx.beginPath();
@@ -375,279 +839,380 @@ export function initManualGearboxLab(containerId) {
       transCtx.stroke();
     }
 
-    // 1. Transmission Aluminum Bellhousing & Case
-    transCtx.fillStyle = "rgba(15, 23, 42, 0.85)";
-    transCtx.strokeStyle = "#334155";
+    // 2. Cutaway Aluminum Transaxle Bellhousing & Casing
+    transCtx.save();
+    // Heavy cast aluminum outer wall
+    const caseGrad = transCtx.createLinearGradient(0, 70, 0, 480);
+    caseGrad.addColorStop(0, "rgba(30, 41, 59, 0.95)");
+    caseGrad.addColorStop(0.5, "rgba(15, 23, 42, 0.98)");
+    caseGrad.addColorStop(1, "rgba(8, 14, 26, 0.98)");
+
+    transCtx.fillStyle = caseGrad;
+    transCtx.strokeStyle = "#475569";
     transCtx.lineWidth = 3;
     transCtx.beginPath();
-    transCtx.moveTo(30, 80);
-    transCtx.lineTo(120, 130);
-    transCtx.lineTo(w - 20, 130);
-    transCtx.lineTo(w - 20, 440);
-    transCtx.lineTo(120, 440);
-    transCtx.lineTo(30, 490);
+    transCtx.moveTo(25, 75);
+    transCtx.lineTo(105, 115);
+    transCtx.lineTo(w - 22, 115);
+    transCtx.lineTo(w - 22, 445);
+    transCtx.lineTo(105, 445);
+    transCtx.lineTo(25, 485);
     transCtx.closePath();
     transCtx.fill();
     transCtx.stroke();
 
-    // 2. Engine Flywheel & Clutch Assembly (Left side)
-    const flywheelX = 55;
-    // Spinning Flywheel
-    transCtx.fillStyle = "#334155";
-    transCtx.strokeStyle = "#64748b";
+    // Internal structural reinforcing ribs
+    transCtx.strokeStyle = "rgba(100, 116, 139, 0.25)";
     transCtx.lineWidth = 2;
-    transCtx.beginPath();
-    transCtx.roundRect(flywheelX - 12, mainShaftY - 80, 24, 160, 4);
-    transCtx.fill();
-    transCtx.stroke();
-    transCtx.fillStyle = "#94a3b8";
-    transCtx.font = "bold 9px monospace";
-    transCtx.textAlign = "center";
-    transCtx.fillText("FLYWHEEL", flywheelX, mainShaftY - 88);
-
-    // Clutch Friction Disc & Pressure Plate
-    // Disengagement gap increases when clutchDepressedPct > 0
-    const clutchGapPx = (clutchDepressedPct / 100) * 14;
-    const clutchDiscX = flywheelX + 22 + clutchGapPx;
-
-    transCtx.fillStyle = clutchDepressedPct < 15 ? "#10b981" : "#ef4444";
-    transCtx.beginPath();
-    transCtx.roundRect(clutchDiscX, mainShaftY - 65, 8, 130, 2);
-    transCtx.fill();
-    transCtx.strokeStyle = "#f8fafc";
-    transCtx.stroke();
-    transCtx.fillText("CLUTCH", clutchDiscX + 4, mainShaftY - 72);
-
-    // 3. Lower Layshaft / Countershaft (Solid cluster gear)
-    transCtx.strokeStyle = "#475569";
-    transCtx.lineWidth = 14;
-    transCtx.lineCap = "round";
-    transCtx.beginPath();
-    transCtx.moveTo(shaftStartX + 30, counterShaftY);
-    transCtx.lineTo(shaftEndX - 20, counterShaftY);
-    transCtx.stroke();
-
-    // Center steel highlight on countershaft
-    transCtx.strokeStyle = "#94a3b8";
-    transCtx.lineWidth = 3;
-    transCtx.beginPath();
-    transCtx.moveTo(shaftStartX + 30, counterShaftY);
-    transCtx.lineTo(shaftEndX - 20, counterShaftY);
-    transCtx.stroke();
-
-    // 4. Upper Input Shaft (Left section) & Output Mainshaft (Right section, coaxial)
-    // Input Shaft (from clutch into transmission)
-    transCtx.strokeStyle = "#38bdf8";
-    transCtx.lineWidth = 14;
-    transCtx.beginPath();
-    transCtx.moveTo(clutchDiscX + 8, mainShaftY);
-    transCtx.lineTo(shaftStartX + 75, mainShaftY);
-    transCtx.stroke();
-
-    // Coaxial Pilot Bearing separation gap
-    transCtx.fillStyle = "#facc15";
-    transCtx.beginPath();
-    transCtx.arc(shaftStartX + 78, mainShaftY, 6, 0, Math.PI * 2);
-    transCtx.fill();
-
-    // Output Mainshaft (Coaxial, carries free-wheeling gears)
-    transCtx.strokeStyle = "#cbd5e1";
-    transCtx.lineWidth = 14;
-    transCtx.beginPath();
-    transCtx.moveTo(shaftStartX + 82, mainShaftY);
-    transCtx.lineTo(shaftEndX, mainShaftY);
-    transCtx.stroke();
-
-    // Driveshaft Output Flange (Far Right)
-    transCtx.fillStyle = "#475569";
-    transCtx.fillRect(shaftEndX - 4, mainShaftY - 28, 12, 56);
-    transCtx.fillStyle = "#38bdf8";
-    transCtx.font = "bold 9px monospace";
-    transCtx.fillText("OUTPUT", shaftEndX + 2, mainShaftY - 34);
-
-    // Gear Set Layout Along Shaft X Positions:
-    // Pair 0: Constant Drive Pair (Input Drive -> Countershaft Driven)
-    // Pair 1: 4th Gear (Direct Drive at X = shaftStartX + 140)
-    // Pair 2: 3rd Gear (X = shaftStartX + 205)
-    // Pair 3: 2nd Gear (X = shaftStartX + 295)
-    // Pair 4: 1st Gear (X = shaftStartX + 360)
-    // Pair 5: 5th Gear (X = shaftStartX + 425)
-    // Pair 6: Reverse Gear with Idler (X = shaftStartX + 475)
-
-    const GEAR_POSITIONS = [
-      { id: "drive", x: shaftStartX + 60, upperR: 35, lowerR: 55, upperTeeth: 24, lowerTeeth: 36, color: "#64748b" },
-      { id: "4", x: shaftStartX + 145, upperR: 45, lowerR: 45, upperTeeth: 32, lowerTeeth: 32, color: "#f59e0b" },
-      { id: "3", x: shaftStartX + 215, upperR: 52, lowerR: 38, upperTeeth: 36, lowerTeeth: 28, color: "#10b981" },
-      { id: "2", x: shaftStartX + 295, upperR: 62, lowerR: 28, upperTeeth: 44, lowerTeeth: 20, color: "#06b6d4" },
-      { id: "1", x: shaftStartX + 365, upperR: 70, lowerR: 20, upperTeeth: 50, lowerTeeth: 14, color: "#38bdf8" },
-      { id: "5", x: shaftStartX + 430, upperR: 32, lowerR: 58, upperTeeth: 22, lowerTeeth: 42, color: "#a855f7" },
-      { id: "R", x: shaftStartX + 490, upperR: 60, lowerR: 24, upperTeeth: 42, lowerTeeth: 16, color: "#ef4444", isReverse: true }
-    ];
-
-    // Helper: Draw Involute Spur Gear with Teeth and Rotation Indicator
-    function drawGear(cx, cy, radius, teeth, rotAngle, color, isEngaged) {
-      transCtx.save();
-      transCtx.translate(cx, cy);
-      transCtx.rotate(rotAngle);
-
-      // Gear Body
-      const grad = transCtx.createRadialGradient(0, 0, 4, 0, 0, radius);
-      grad.addColorStop(0, "#1e293b");
-      grad.addColorStop(0.7, color);
-      grad.addColorStop(1, "#0f172a");
-
-      transCtx.fillStyle = grad;
-      transCtx.strokeStyle = isEngaged ? "#ffffff" : "rgba(255,255,255,0.4)";
-      transCtx.lineWidth = isEngaged ? 2.5 : 1;
+    [180, 310, 470].forEach(rx => {
+      const ribX = getX(rx);
       transCtx.beginPath();
-      transCtx.arc(0, 0, radius, 0, Math.PI * 2);
-      transCtx.fill();
+      transCtx.moveTo(ribX, 115);
+      transCtx.lineTo(ribX, 135);
+      transCtx.moveTo(ribX, 425);
+      transCtx.lineTo(ribX, 445);
       transCtx.stroke();
-
-      // Gear Teeth
-      transCtx.fillStyle = color;
-      const toothStep = (Math.PI * 2) / teeth;
-      for (let i = 0; i < teeth; i++) {
-        const a = i * toothStep;
-        const tx = Math.cos(a) * radius;
-        const ty = Math.sin(a) * radius;
-        transCtx.fillRect(tx - 2, ty - 3, 4, 6);
-      }
-
-      // Hub & Spokes
-      transCtx.fillStyle = "#0f172a";
-      transCtx.beginPath();
-      transCtx.arc(0, 0, 9, 0, Math.PI * 2);
-      transCtx.fill();
-      transCtx.strokeStyle = "#94a3b8";
-      transCtx.lineWidth = 1.5;
-      transCtx.stroke();
-
-      transCtx.restore();
-    }
-
-    // Draw All Gear Pairs
-    GEAR_POSITIONS.forEach(pair => {
-      const isCurrent = currentGear === pair.id;
-      // Countershaft gear rotation angle:
-      const counterRot = counterShaftAngle;
-      // Upper gear rotation angle (free-wheeling unless locked by synchronizer):
-      let upperRot = 0;
-      if (pair.id === "drive") {
-        upperRot = inputShaftAngle;
-      } else if (isCurrent) {
-        upperRot = outputShaftAngle;
-      } else {
-        // Free-spinning on output shaft
-        upperRot = -counterShaftAngle * (pair.lowerTeeth / pair.upperTeeth);
-      }
-
-      // Draw Lower Countershaft Gear
-      drawGear(pair.x, counterShaftY, pair.lowerR, pair.lowerTeeth, counterRot, pair.color, isCurrent);
-
-      // Draw Upper Mainshaft Gear
-      if (pair.isReverse) {
-        // Reverse Idler Gear between countershaft and output gear!
-        const idlerY = (mainShaftY + counterShaftY) / 2 + 10;
-        const idlerX = pair.x + 14;
-        const idlerR = 20;
-        const idlerRot = -counterShaftAngle * (pair.lowerTeeth / 18);
-        drawGear(idlerX, idlerY, idlerR, 18, idlerRot, "#f43f5e", isCurrent);
-
-        // Reverse Output Gear
-        drawGear(pair.x, mainShaftY, pair.upperR, pair.upperTeeth, upperRot, pair.color, isCurrent);
-
-        // Idler Bracket Support
-        transCtx.strokeStyle = "rgba(244, 63, 94, 0.4)";
-        transCtx.lineWidth = 2;
-        transCtx.beginPath();
-        transCtx.moveTo(pair.x, counterShaftY);
-        transCtx.lineTo(idlerX, idlerY);
-        transCtx.lineTo(pair.x, mainShaftY);
-        transCtx.stroke();
-      } else {
-        drawGear(pair.x, mainShaftY, pair.upperR, pair.upperTeeth, upperRot, pair.color, isCurrent);
-      }
-
-      // Label Gear
-      transCtx.fillStyle = isCurrent ? "#ffffff" : "#94a3b8";
-      transCtx.font = isCurrent ? "bold 11px sans-serif" : "9px sans-serif";
-      transCtx.textAlign = "center";
-      const lbl = pair.id === "drive" ? "Drive" : (pair.id === "R" ? "Rev" : `${pair.id}st`);
-      transCtx.fillText(lbl, pair.x, counterShaftY + pair.lowerR + 15);
     });
 
-    // 5. Sliding Synchronizer Sleeves & Dog Teeth (Collars 1-2, 3-4, 5-R)
-    // Helper to draw synchronizer hub and shifting sleeve
-    function drawSynchro(collarX, collarOffset, activeShift, label) {
-      const sleeveX = collarX + collarOffset * 18;
-      // Fixed Hub on Mainshaft
-      transCtx.fillStyle = "#334155";
-      transCtx.fillRect(collarX - 6, mainShaftY - 18, 12, 36);
-
-      // Brass Blocker Rings (Golden Cones)
-      transCtx.fillStyle = "#fbbf24";
-      transCtx.fillRect(collarX - 16, mainShaftY - 14, 4, 28);
-      transCtx.fillRect(collarX + 12, mainShaftY - 14, 4, 28);
-
-      // Sliding Dog Collar (Sleeve)
-      transCtx.fillStyle = activeShift ? "#38bdf8" : "#94a3b8";
-      transCtx.strokeStyle = "#ffffff";
-      transCtx.lineWidth = activeShift ? 2 : 1;
+    // Casing perimeter mounting bolts
+    transCtx.fillStyle = "#cbd5e1";
+    transCtx.strokeStyle = "#334155";
+    transCtx.lineWidth = 1;
+    [
+      [30, 85], [65, 100], [105, 115], [getX(220), 115], [getX(370), 115], [getX(520), 115], [w - 25, 118],
+      [w - 25, 442], [getX(520), 445], [getX(370), 445], [getX(220), 445], [105, 445], [65, 460], [30, 475]
+    ].forEach(([bx, by]) => {
       transCtx.beginPath();
-      transCtx.roundRect(sleeveX - 8, mainShaftY - 24, 16, 48, 3);
+      transCtx.arc(bx, by, 3.5, 0, Math.PI * 2);
       transCtx.fill();
       transCtx.stroke();
-
-      // Shift Fork Claw
-      transCtx.strokeStyle = "#64748b";
-      transCtx.lineWidth = 3;
-      transCtx.beginPath();
-      transCtx.moveTo(sleeveX, mainShaftY - 24);
-      transCtx.lineTo(sleeveX, mainShaftY - 45);
-      transCtx.stroke();
+      transCtx.fillStyle = "#1e293b";
+      transCtx.fillRect(bx - 1, by - 1, 2, 2);
       transCtx.fillStyle = "#cbd5e1";
-      transCtx.beginPath();
-      transCtx.arc(sleeveX, mainShaftY - 45, 4, 0, Math.PI * 2);
-      transCtx.fill();
+    });
+    transCtx.restore();
 
-      // Collar Label
-      transCtx.fillStyle = activeShift ? "#38bdf8" : "#64748b";
-      transCtx.font = "bold 8px monospace";
-      transCtx.textAlign = "center";
-      transCtx.fillText(label, collarX, mainShaftY - 52);
+    // 3. Transmission Fluid Oil Sump (75W-90 Synthetic Oil Bath)
+    const sumpTopY = 415;
+    const sumpBottomY = 445;
+    const oilGrad = transCtx.createLinearGradient(0, sumpTopY, 0, sumpBottomY);
+    oilGrad.addColorStop(0, "rgba(245, 158, 11, 0.15)");
+    oilGrad.addColorStop(0.5, "rgba(217, 119, 6, 0.35)");
+    oilGrad.addColorStop(1, "rgba(180, 83, 9, 0.6)");
+
+    transCtx.fillStyle = oilGrad;
+    transCtx.beginPath();
+    transCtx.moveTo(105, sumpTopY);
+    // Subtle fluid wave agitation
+    const tWave = performance.now() * 0.003;
+    for (let wx = 105; wx <= w - 22; wx += 25) {
+      const wy = sumpTopY + Math.sin(wx * 0.04 + tWave) * 2.5;
+      transCtx.lineTo(wx, wy);
+    }
+    transCtx.lineTo(w - 22, sumpBottomY);
+    transCtx.lineTo(105, sumpBottomY);
+    transCtx.closePath();
+    transCtx.fill();
+
+    // Fluid level sight glass marker
+    transCtx.fillStyle = "#f59e0b";
+    transCtx.font = "bold 8px monospace";
+    transCtx.textAlign = "right";
+    transCtx.fillText("75W-90 GL-4 FLUID LEVEL", w - 30, sumpTopY - 4);
+
+    // 4. Engine Flywheel & Clutch Assembly (3D Powertrain Coupling)
+    // Starter Ring Gear & Cast Flywheel Body
+    const flyGrad = transCtx.createLinearGradient(flywheelX - 12, 0, flywheelX + 12, 0);
+    flyGrad.addColorStop(0, "#1e293b");
+    flyGrad.addColorStop(0.3, "#475569");
+    flyGrad.addColorStop(0.6, "#94a3b8");
+    flyGrad.addColorStop(0.85, "#334155");
+    flyGrad.addColorStop(1, "#0f172a");
+
+    transCtx.fillStyle = flyGrad;
+    transCtx.strokeStyle = "#cbd5e1";
+    transCtx.lineWidth = 1.5;
+    transCtx.beginPath();
+    transCtx.roundRect(flywheelX - 14, mainShaftY - 95, 26, 190, 4);
+    transCtx.fill();
+    transCtx.stroke();
+
+    // Starter Motor Ring Gear Teeth on Flywheel Perimeter
+    transCtx.fillStyle = "#cbd5e1";
+    for (let fy = mainShaftY - 93; fy <= mainShaftY + 93; fy += 6) {
+      transCtx.fillRect(flywheelX - 17, fy, 4, 3);
     }
 
-    // Collar 3-4 (between 4th and 3rd gear)
-    drawSynchro(shaftStartX + 180, collar34Pos, currentGear === "3" || currentGear === "4", "SYNCHRO 3-4");
-    // Collar 1-2 (between 2nd and 1st gear)
-    drawSynchro(shaftStartX + 330, collar12Pos, currentGear === "1" || currentGear === "2", "SYNCHRO 1-2");
-    // Collar 5-R (between 5th and Reverse gear)
-    drawSynchro(shaftStartX + 460, collar5RPos, currentGear === "5" || currentGear === "R", "SYNCHRO 5-R");
+    // Crankshaft Hub Bolt Pattern
+    transCtx.fillStyle = "#0f172a";
+    transCtx.beginPath();
+    transCtx.arc(flywheelX, mainShaftY, 18, 0, Math.PI * 2);
+    transCtx.fill();
+    for (let cb = 0; cb < 6; cb++) {
+      const cba = cb * (Math.PI / 3);
+      transCtx.fillStyle = "#e2e8f0";
+      transCtx.beginPath();
+      transCtx.arc(flywheelX + Math.cos(cba) * 11, mainShaftY + Math.sin(cba) * 11, 2, 0, Math.PI * 2);
+      transCtx.fill();
+    }
 
-    // 6. Active Torque Flow Energy Conduit (Pulsing Glow Line)
+    transCtx.fillStyle = "#38bdf8";
+    transCtx.font = "bold 9px monospace";
+    transCtx.textAlign = "center";
+    transCtx.fillText("FLYWHEEL", flywheelX, mainShaftY - 102);
+
+    // Clutch Friction Disc & Torsional Damper Springs
+    const clutchCoupled = clutchDepressedPct < 15;
+    transCtx.fillStyle = clutchCoupled ? "#10b981" : "#ef4444";
+    transCtx.strokeStyle = "#ffffff";
+    transCtx.lineWidth = 1.5;
+    transCtx.beginPath();
+    transCtx.roundRect(clutchDiscX, mainShaftY - 75, 9, 150, 2);
+    transCtx.fill();
+    transCtx.stroke();
+
+    // Damper Coil Springs in Clutch Hub
+    transCtx.fillStyle = "#f59e0b";
+    transCtx.fillRect(clutchDiscX + 1, mainShaftY - 32, 7, 14);
+    transCtx.fillRect(clutchDiscX + 1, mainShaftY + 18, 7, 14);
+    transCtx.strokeStyle = "#000000";
+    transCtx.lineWidth = 1;
+    transCtx.strokeRect(clutchDiscX + 1, mainShaftY - 32, 7, 14);
+    transCtx.strokeRect(clutchDiscX + 1, mainShaftY + 18, 7, 14);
+
+    // Diaphragm Spring Pressure Plate Fingers
+    transCtx.strokeStyle = "#94a3b8";
+    transCtx.lineWidth = 2.5;
+    transCtx.beginPath();
+    transCtx.moveTo(clutchDiscX + 12, mainShaftY - 70);
+    transCtx.lineTo(clutchDiscX + 18, mainShaftY - 20);
+    transCtx.moveTo(clutchDiscX + 12, mainShaftY + 70);
+    transCtx.lineTo(clutchDiscX + 18, mainShaftY + 20);
+    transCtx.stroke();
+
+    transCtx.fillStyle = clutchCoupled ? "#10b981" : "#ef4444";
+    transCtx.fillText("CLUTCH", clutchDiscX + 4, mainShaftY - 82);
+
+    // 5. Hardened Alloy Steel Shafts & Bearings
+    // Lower Countershaft (Layshaft cluster)
+    const shaftGrad = transCtx.createLinearGradient(0, counterShaftY - 8, 0, counterShaftY + 8);
+    shaftGrad.addColorStop(0, "#1e293b");
+    shaftGrad.addColorStop(0.3, "#64748b");
+    shaftGrad.addColorStop(0.5, "#f8fafc");
+    shaftGrad.addColorStop(0.7, "#475569");
+    shaftGrad.addColorStop(1, "#0f172a");
+
+    transCtx.fillStyle = shaftGrad;
+    transCtx.strokeStyle = "#334155";
+    transCtx.lineWidth = 1;
+    transCtx.beginPath();
+    transCtx.roundRect(shaftStartX + 10, counterShaftY - 8, shaftEndX - shaftStartX - 25, 16, 3);
+    transCtx.fill();
+    transCtx.stroke();
+
+    // Countershaft Tapered Roller Bearings (Front & Rear Bulkheads)
+    [shaftStartX + 12, shaftEndX - 20].forEach(bx => {
+      transCtx.fillStyle = "#b45309"; // Bronze roller cage
+      transCtx.fillRect(bx - 6, counterShaftY - 14, 12, 28);
+      transCtx.fillStyle = "#cbd5e1"; // Chrome rollers
+      for (let ry = counterShaftY - 12; ry <= counterShaftY + 10; ry += 6) {
+        transCtx.fillRect(bx - 4, ry, 8, 4);
+      }
+    });
+
+    // Upper Input Shaft (From clutch to 4th gear)
+    const inputShaftGrad = transCtx.createLinearGradient(0, mainShaftY - 7, 0, mainShaftY + 7);
+    inputShaftGrad.addColorStop(0, "#0284c7");
+    inputShaftGrad.addColorStop(0.4, "#38bdf8");
+    inputShaftGrad.addColorStop(0.6, "#f0f9ff");
+    inputShaftGrad.addColorStop(1, "#0369a1");
+
+    transCtx.fillStyle = inputShaftGrad;
+    transCtx.beginPath();
+    transCtx.roundRect(clutchDiscX + 9, mainShaftY - 7, getX(165) - clutchDiscX - 9, 14, 2);
+    transCtx.fill();
+
+    // Input Shaft Longitudinal Splines
+    transCtx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    transCtx.lineWidth = 1;
+    transCtx.beginPath();
+    transCtx.moveTo(clutchDiscX + 12, mainShaftY - 3);
+    transCtx.lineTo(getX(130), mainShaftY - 3);
+    transCtx.moveTo(clutchDiscX + 12, mainShaftY + 3);
+    transCtx.lineTo(getX(130), mainShaftY + 3);
+    transCtx.stroke();
+
+    // Coaxial Pilot Bearing Journal Gap (Between Input and Output shafts)
+    const pilotX = getX(166);
+    transCtx.fillStyle = "#fbbf24";
+    transCtx.beginPath();
+    transCtx.arc(pilotX, mainShaftY, 6, 0, Math.PI * 2);
+    transCtx.fill();
+    transCtx.strokeStyle = "#78350f";
+    transCtx.stroke();
+
+    // Upper Output Mainshaft (Coaxial, carries synchronizers & free-wheeling gears)
+    const outShaftGrad = transCtx.createLinearGradient(0, mainShaftY - 8, 0, mainShaftY + 8);
+    outShaftGrad.addColorStop(0, "#1e293b");
+    outShaftGrad.addColorStop(0.3, "#94a3b8");
+    outShaftGrad.addColorStop(0.5, "#ffffff");
+    outShaftGrad.addColorStop(0.7, "#64748b");
+    outShaftGrad.addColorStop(1, "#0f172a");
+
+    transCtx.fillStyle = outShaftGrad;
+    transCtx.beginPath();
+    transCtx.roundRect(pilotX + 4, mainShaftY - 8, shaftEndX - pilotX, 16, 2);
+    transCtx.fill();
+
+    // Driveshaft Output Companion Flange (Right Edge)
+    transCtx.fillStyle = "#334155";
+    transCtx.strokeStyle = "#38bdf8";
+    transCtx.lineWidth = 2;
+    transCtx.beginPath();
+    transCtx.roundRect(shaftEndX - 6, mainShaftY - 30, 14, 60, 4);
+    transCtx.fill();
+    transCtx.stroke();
+
+    // Flange Universal Joint Bolt Holes
+    transCtx.fillStyle = "#0f172a";
+    transCtx.beginPath();
+    transCtx.arc(shaftEndX + 1, mainShaftY - 20, 3, 0, Math.PI * 2);
+    transCtx.arc(shaftEndX + 1, mainShaftY + 20, 3, 0, Math.PI * 2);
+    transCtx.fill();
+
+    transCtx.fillStyle = "#38bdf8";
+    transCtx.font = "bold 9px monospace";
+    transCtx.textAlign = "center";
+    transCtx.fillText("OUTPUT", shaftEndX + 1, mainShaftY - 36);
+
+    // 6. Complete Gear Set Layout with Exact Mathematical Tangency
+    // Pitch radii sum to exactly C = 160 px for every forward pair
+    const GEAR_LAYOUT = [
+      { id: "drive", name: "Drive", baseX: 138, upperR: 65.5, lowerR: 94.5, upperTeeth: 18, lowerTeeth: 26, color: "#64748b", hasDogRing: false },
+      { id: "4", name: "4th", baseX: 196, upperR: 80.0, lowerR: 80.0, upperTeeth: 22, lowerTeeth: 22, color: "#f59e0b", hasDogRing: true },
+      { id: "3", name: "3rd", baseX: 272, upperR: 94.5, lowerR: 65.5, upperTeeth: 26, lowerTeeth: 18, color: "#10b981", hasDogRing: true },
+      { id: "2", name: "2nd", baseX: 352, upperR: 109.1, lowerR: 50.9, upperTeeth: 30, lowerTeeth: 14, color: "#06b6d4", hasDogRing: true },
+      { id: "1", name: "1st", baseX: 428, upperR: 120.0, lowerR: 40.0, upperTeeth: 33, lowerTeeth: 11, color: "#38bdf8", hasDogRing: true },
+      { id: "5", name: "5th", baseX: 484, upperR: 54.5, lowerR: 105.5, upperTeeth: 15, lowerTeeth: 29, color: "#a855f7", hasDogRing: true },
+      { id: "R", name: "Rev", baseX: 558, upperR: 92.0, lowerR: 40.0, upperTeeth: 28, lowerTeeth: 12, color: "#ef4444", hasDogRing: true, isReverse: true, idlerR: 29.0, idlerTeeth: 16 }
+    ];
+
+    // Draw All Gear Pairs & Contact Meshes
+    GEAR_LAYOUT.forEach(pair => {
+      const isCurrent = currentGear === pair.id;
+      const gx = getX(pair.baseX);
+      const lowerRot = counterShaftAngle;
+
+      let upperRot = 0.0;
+      if (pair.id === "drive") {
+        upperRot = inputShaftAngle;
+      } else if (isCurrent && state.clutchEngagedFrac > 0.05) {
+        upperRot = outputShaftAngle;
+      } else {
+        upperRot = freeGearAngles[pair.id] || 0.0;
+      }
+
+      if (pair.isReverse) {
+        // Reverse Idler Gear Train (Countershaft -> Idler -> Output Mainshaft)
+        const idlerX = gx + 48.5 * scaleX;
+        const idlerY = 296;
+        const idlerRot = freeGearAngles["Idler"] || 0.0;
+
+        // Idler Heavy Forged Mounting Bracket
+        transCtx.strokeStyle = "rgba(239, 68, 68, 0.4)";
+        transCtx.lineWidth = 4;
+        transCtx.beginPath();
+        transCtx.moveTo(gx, counterShaftY);
+        transCtx.lineTo(idlerX, idlerY);
+        transCtx.lineTo(gx, mainShaftY);
+        transCtx.stroke();
+
+        // 1. Lower Countershaft Reverse Gear
+        drawInvoluteGear(transCtx, gx, counterShaftY, pair.lowerR, pair.lowerTeeth, lowerRot, pair.color, isCurrent, false);
+
+        // 2. Reverse Idler Gear
+        drawInvoluteGear(transCtx, idlerX, idlerY, pair.idlerR, pair.idlerTeeth, idlerRot, "#f43f5e", isCurrent, false);
+
+        // 3. Upper Mainshaft Reverse Gear
+        drawInvoluteGear(transCtx, gx, mainShaftY, pair.upperR, pair.upperTeeth, upperRot, pair.color, isCurrent, true, { hasDogRing: true });
+
+        // Reverse Mesh Contact Points
+        // Contact 1: Countershaft -> Idler
+        const c1x = (gx * pair.idlerR + idlerX * pair.lowerR) / (pair.lowerR + pair.idlerR);
+        const c1y = (counterShaftY * pair.idlerR + idlerY * pair.lowerR) / (pair.lowerR + pair.idlerR);
+        drawMeshContactZone(transCtx, c1x, c1y, pair, isCurrent, state);
+
+        // Contact 2: Idler -> Output Reverse Gear
+        const c2x = (gx * pair.idlerR + idlerX * pair.upperR) / (pair.upperR + pair.idlerR);
+        const c2y = (mainShaftY * pair.idlerR + idlerY * pair.upperR) / (pair.upperR + pair.idlerR);
+        drawMeshContactZone(transCtx, c2x, c2y, pair, isCurrent, state);
+
+        // Reverse Direction Inversion Indicator
+        if (isCurrent && state.clutchEngagedFrac > 0.05) {
+          transCtx.fillStyle = "#ef4444";
+          transCtx.font = "bold 9px monospace";
+          transCtx.textAlign = "center";
+          transCtx.fillText("⟲ REVERSE VECTOR", gx, mainShaftY - pair.upperR - 12);
+        }
+      } else {
+        // Forward Gears: Continuous Constant-Mesh Pairs
+        // 1. Lower Countershaft Driven Gear
+        drawInvoluteGear(transCtx, gx, counterShaftY, pair.lowerR, pair.lowerTeeth, lowerRot, pair.color, isCurrent, false);
+
+        // 2. Upper Mainshaft Gear
+        drawInvoluteGear(transCtx, gx, mainShaftY, pair.upperR, pair.upperTeeth, upperRot, pair.color, isCurrent, true, { hasDogRing: pair.hasDogRing });
+
+        // 3. Pitch Point Tangential Contact Mesh Zone (Zero Gap)
+        const pitchContactY = mainShaftY + pair.upperR;
+        drawMeshContactZone(transCtx, gx, pitchContactY, pair, isCurrent, state);
+      }
+
+      // Gear Telemetry Label
+      transCtx.fillStyle = isCurrent ? "#ffffff" : "#94a3b8";
+      transCtx.font = isCurrent ? "bold 11px monospace" : "9px monospace";
+      transCtx.textAlign = "center";
+      transCtx.fillText(`${pair.name} (${pair.lowerTeeth}T/${pair.upperTeeth}T)`, gx, counterShaftY + pair.lowerR + 15);
+    });
+
+    // 7. Sliding Synchronizers (Collars 3-4, 1-2, 5-R)
+    // Synchro 3-4 (between 4th and 3rd gear)
+    draw3DSynchronizer(transCtx, getX(234), collar34Pos, currentGear === "3" || currentGear === "4", "SYNCHRO 3-4");
+
+    // Synchro 1-2 (between 2nd and 1st gear)
+    draw3DSynchronizer(transCtx, getX(390), collar12Pos, currentGear === "1" || currentGear === "2", "SYNCHRO 1-2");
+
+    // Synchro 5-R (between 5th and Reverse gear)
+    draw3DSynchronizer(transCtx, getX(522), collar5RPos, currentGear === "5" || currentGear === "R", "SYNCHRO 5-R");
+
+    // 8. Active Torque Flow Energy Conduit
     if (currentGear !== "N" && state.clutchEngagedFrac > 0.05) {
       transCtx.save();
       transCtx.shadowColor = state.spec.color;
-      transCtx.shadowBlur = 15;
+      transCtx.shadowBlur = 16;
       transCtx.strokeStyle = state.spec.color;
-      transCtx.lineWidth = 3;
+      transCtx.lineWidth = 3.5;
       transCtx.beginPath();
-      // From Flywheel through Clutch
+      // Flywheel -> Clutch -> Input Shaft
       transCtx.moveTo(flywheelX, mainShaftY);
-      transCtx.lineTo(shaftStartX + 60, mainShaftY);
+      transCtx.lineTo(getX(138), mainShaftY);
 
       if (currentGear === "4") {
         // Direct Drive locks straight through to output
         transCtx.lineTo(shaftEndX, mainShaftY);
       } else {
-        // Drops to Countershaft
-        transCtx.lineTo(shaftStartX + 60, counterShaftY);
-        // Finds active gear position
-        const activePair = GEAR_POSITIONS.find(p => p.id === currentGear);
+        // Drops down through drive pair to countershaft
+        transCtx.lineTo(getX(138), counterShaftY);
+        const activePair = GEAR_LAYOUT.find(p => p.id === currentGear);
         if (activePair) {
-          transCtx.lineTo(activePair.x, counterShaftY);
-          transCtx.lineTo(activePair.x, mainShaftY);
+          const gx = getX(activePair.baseX);
+          transCtx.lineTo(gx, counterShaftY);
+          if (activePair.isReverse) {
+            // Torque routes through reverse idler
+            transCtx.lineTo(gx + 48.5 * scaleX, 296);
+            transCtx.lineTo(gx, mainShaftY);
+          } else {
+            transCtx.lineTo(gx, mainShaftY);
+          }
           transCtx.lineTo(shaftEndX, mainShaftY);
         }
       }
@@ -660,19 +1225,17 @@ export function initManualGearboxLab(containerId) {
   function drawMultiplierChart(state) {
     if (!chartCtx || !chartCanvas) return;
     const w = chartCanvas.clientWidth || 480;
-    const h = chartCanvas.clientHeight || 120;
+    const h = chartCanvas.clientHeight || 110;
 
     chartCtx.clearRect(0, 0, w, h);
 
     const padLeft = 70;
     const padRight = 30;
-    const padTop = 15;
-    const padBottom = 25;
+    const padTop = 12;
     const plotW = w - padLeft - padRight;
-    const barHeight = 22;
+    const barHeight = 20;
 
     // Bar 1: Torque Comparison (Input Torque vs Output Torque)
-    // Scale max torque = 1200 N*m
     const maxTorque = 1200;
     const inTorqueW = Math.min(plotW, (engineTorqueNm / maxTorque) * plotW);
     const outTorqueW = Math.min(plotW, (state.outputTorqueNm / maxTorque) * plotW);
@@ -680,43 +1243,220 @@ export function initManualGearboxLab(containerId) {
     chartCtx.font = "bold 9px monospace";
     chartCtx.fillStyle = "#94a3b8";
     chartCtx.textAlign = "right";
-    chartCtx.fillText("Torque", padLeft - 8, padTop + 14);
+    chartCtx.fillText("Torque", padLeft - 8, padTop + 13);
 
     // Input Torque Bar (Amber)
     chartCtx.fillStyle = "rgba(245, 158, 11, 0.4)";
     chartCtx.fillRect(padLeft, padTop, inTorqueW, barHeight / 2);
     chartCtx.fillStyle = "#f59e0b";
     chartCtx.textAlign = "left";
-    chartCtx.fillText(`In: ${engineTorqueNm} N·m`, padLeft + inTorqueW + 6, padTop + 9);
+    chartCtx.fillText(`In: ${engineTorqueNm} N·m`, padLeft + inTorqueW + 6, padTop + 8);
 
-    // Output Torque Bar (Cyan/Green)
+    // Output Torque Bar (Active Gear Color)
     chartCtx.fillStyle = state.spec.color;
     chartCtx.fillRect(padLeft, padTop + barHeight / 2 + 2, outTorqueW, barHeight / 2);
-    chartCtx.fillStyle = state.spec.color;
-    chartCtx.fillText(`Out: ${state.outputTorqueNm.toFixed(0)} N·m (${state.mechanicalAdvantage.toFixed(2)}x)`, padLeft + outTorqueW + 6, padTop + barHeight + 1);
+    chartCtx.fillText(`Out: ${state.outputTorqueNm.toFixed(0)} N·m (${state.mechanicalAdvantage.toFixed(2)}x)`, padLeft + outTorqueW + 6, padTop + barHeight);
 
     // Bar 2: Speed Comparison (Input RPM vs Output RPM)
-    const speedY = padTop + barHeight + 25;
+    const speedY = padTop + barHeight + 22;
     const maxRpm = 6000;
     const inRpmW = Math.min(plotW, (state.inputShaftRpm / maxRpm) * plotW);
     const outRpmW = Math.min(plotW, (Math.abs(state.outputShaftRpm) / maxRpm) * plotW);
 
     chartCtx.fillStyle = "#94a3b8";
     chartCtx.textAlign = "right";
-    chartCtx.fillText("Rot Speed", padLeft - 8, speedY + 14);
+    chartCtx.fillText("Rot Speed", padLeft - 8, speedY + 13);
 
     // Input Speed Bar
     chartCtx.fillStyle = "rgba(245, 158, 11, 0.4)";
     chartCtx.fillRect(padLeft, speedY, inRpmW, barHeight / 2);
     chartCtx.fillStyle = "#f59e0b";
     chartCtx.textAlign = "left";
-    chartCtx.fillText(`In: ${Math.round(state.inputShaftRpm)} RPM`, padLeft + inRpmW + 6, speedY + 9);
+    chartCtx.fillText(`In: ${Math.round(state.inputShaftRpm)} RPM`, padLeft + inRpmW + 6, speedY + 8);
 
     // Output Speed Bar
     chartCtx.fillStyle = "#38bdf8";
     chartCtx.fillRect(padLeft, speedY + barHeight / 2 + 2, outRpmW, barHeight / 2);
-    chartCtx.fillStyle = "#38bdf8";
-    chartCtx.fillText(`Out: ${Math.round(state.outputShaftRpm)} RPM`, padLeft + outRpmW + 6, speedY + barHeight + 1);
+    chartCtx.fillText(`Out: ${Math.round(state.outputShaftRpm)} RPM`, padLeft + outRpmW + 6, speedY + barHeight);
+  }
+
+  // Draw Live High-Magnification Involute Tooth Mesh Inspection Viewport
+  function drawMeshZoomView(state) {
+    if (!meshZoomCtx || !meshZoomCanvas) return;
+    const w = meshZoomCanvas.clientWidth || 480;
+    const h = meshZoomCanvas.clientHeight || 125;
+
+    meshZoomCtx.clearRect(0, 0, w, h);
+
+    // 1. Technical Blueprint Grid
+    meshZoomCtx.strokeStyle = "rgba(56, 189, 248, 0.06)";
+    meshZoomCtx.lineWidth = 1;
+    for (let x = 0; x < w; x += 20) {
+      meshZoomCtx.beginPath();
+      meshZoomCtx.moveTo(x, 0);
+      meshZoomCtx.lineTo(x, h);
+      meshZoomCtx.stroke();
+    }
+    for (let y = 0; y < h; y += 20) {
+      meshZoomCtx.beginPath();
+      meshZoomCtx.moveTo(0, y);
+      meshZoomCtx.lineTo(w, y);
+      meshZoomCtx.stroke();
+    }
+
+    // Determine active gear pair to inspect
+    const activePairId = currentGear === "N" ? "drive" : currentGear;
+    const GEAR_INFO = {
+      "drive": { name: "Drive Pair", drivenT: 26, driverT: 18, color: "#64748b", r: 65.5, ratio: 1.44 },
+      "1": { name: "1st Gear", drivenT: 33, driverT: 11, color: "#38bdf8", r: 120.0, ratio: 3.82 },
+      "2": { name: "2nd Gear", drivenT: 30, driverT: 14, color: "#06b6d4", r: 109.1, ratio: 2.15 },
+      "3": { name: "3rd Gear", drivenT: 26, driverT: 18, color: "#10b981", r: 94.5, ratio: 1.45 },
+      "4": { name: "4th Gear (Direct)", drivenT: 22, driverT: 22, color: "#f59e0b", r: 80.0, ratio: 1.00 },
+      "5": { name: "5th Gear", drivenT: 15, driverT: 29, color: "#a855f7", r: 54.5, ratio: 0.72 },
+      "R": { name: "Reverse Train", drivenT: 28, driverT: 12, color: "#ef4444", r: 92.0, ratio: -3.54 }
+    };
+    const pairInfo = GEAR_INFO[activePairId] || GEAR_INFO["1"];
+
+    // Optical comparator center: Pitch Point P
+    const zoomPitchX = 130;
+    const zoomPitchY = 62;
+    const paRad = 20 * (Math.PI / 180); // 20 deg pressure angle
+    const isTransmitting = currentGear !== "N" && state.clutchEngagedFrac > 0.05;
+
+    // Contact sweep along line of action
+    const tSweep = (performance.now() * 0.002 * (Math.max(200, state.inputShaftRpm) / 1000)) % 1.0;
+    const sweepOffset = (tSweep - 0.5) * 26; // -13 to +13 px
+    const contactX = zoomPitchX + Math.cos(paRad) * sweepOffset;
+    const contactY = zoomPitchY + Math.sin(paRad) * sweepOffset;
+
+    // 2. Draw Line of Action & Pitch Tangent
+    meshZoomCtx.save();
+
+    // 20° Involute Line of Action (Pressure Line)
+    meshZoomCtx.strokeStyle = "rgba(250, 204, 21, 0.45)";
+    meshZoomCtx.lineWidth = 1.5;
+    meshZoomCtx.setLineDash([4, 3]);
+    meshZoomCtx.beginPath();
+    meshZoomCtx.moveTo(zoomPitchX - Math.cos(paRad) * 60, zoomPitchY - Math.sin(paRad) * 60);
+    meshZoomCtx.lineTo(zoomPitchX + Math.cos(paRad) * 60, zoomPitchY + Math.sin(paRad) * 60);
+    meshZoomCtx.stroke();
+    meshZoomCtx.setLineDash([]);
+
+    // Tangent Pitch Line (Horizontal)
+    meshZoomCtx.strokeStyle = "rgba(56, 189, 248, 0.35)";
+    meshZoomCtx.lineWidth = 1;
+    meshZoomCtx.setLineDash([2, 2]);
+    meshZoomCtx.beginPath();
+    meshZoomCtx.moveTo(zoomPitchX - 65, zoomPitchY);
+    meshZoomCtx.lineTo(zoomPitchX + 65, zoomPitchY);
+    meshZoomCtx.stroke();
+    meshZoomCtx.setLineDash([]);
+
+    // 3. Lower Driver Tooth (Countershaft Gear Flank)
+    meshZoomCtx.fillStyle = "rgba(30, 41, 59, 0.9)";
+    meshZoomCtx.strokeStyle = pairInfo.color;
+    meshZoomCtx.lineWidth = 2.5;
+    meshZoomCtx.beginPath();
+    meshZoomCtx.moveTo(zoomPitchX - 42, zoomPitchY + 50);
+    meshZoomCtx.quadraticCurveTo(zoomPitchX - 22, zoomPitchY + 18, contactX - 1, contactY);
+    meshZoomCtx.lineTo(contactX + 11, contactY - 14); // Tooth tip crest
+    meshZoomCtx.lineTo(zoomPitchX + 32, contactY - 14);
+    meshZoomCtx.lineTo(zoomPitchX + 42, zoomPitchY + 50);
+    meshZoomCtx.closePath();
+    meshZoomCtx.fill();
+    meshZoomCtx.stroke();
+
+    // 4. Upper Driven Tooth (Mainshaft Gear Flank)
+    meshZoomCtx.fillStyle = "rgba(15, 23, 42, 0.92)";
+    meshZoomCtx.strokeStyle = isTransmitting ? "#ffffff" : "rgba(255, 255, 255, 0.7)";
+    meshZoomCtx.lineWidth = 2.5;
+    meshZoomCtx.beginPath();
+    meshZoomCtx.moveTo(zoomPitchX - 45, zoomPitchY - 50);
+    meshZoomCtx.lineTo(contactX - 12, zoomPitchY - 50);
+    meshZoomCtx.lineTo(contactX - 8, contactY + 13); // Tooth tip entering space
+    meshZoomCtx.quadraticCurveTo(zoomPitchX - 4, zoomPitchY - 7, contactX, contactY);
+    meshZoomCtx.lineTo(zoomPitchX + 28, zoomPitchY - 50);
+    meshZoomCtx.closePath();
+    meshZoomCtx.fill();
+    meshZoomCtx.stroke();
+
+    // 5. Contact Stress & Normal Force Vector
+    if (isTransmitting) {
+      const pulse = 1.0 + 0.3 * Math.sin(performance.now() * 0.02);
+      const contactGrad = meshZoomCtx.createRadialGradient(contactX, contactY, 1, contactX, contactY, 16 * pulse);
+      contactGrad.addColorStop(0, "#ffffff");
+      contactGrad.addColorStop(0.3, "#facc15");
+      contactGrad.addColorStop(0.7, pairInfo.color);
+      contactGrad.addColorStop(1, "rgba(245, 158, 11, 0)");
+
+      meshZoomCtx.fillStyle = contactGrad;
+      meshZoomCtx.beginPath();
+      meshZoomCtx.arc(contactX, contactY, 16 * pulse, 0, Math.PI * 2);
+      meshZoomCtx.fill();
+
+      // Normal Force Vector Arrow
+      const arrowLen = 30;
+      const fnX = contactX + Math.cos(paRad) * arrowLen;
+      const fnY = contactY + Math.sin(paRad) * arrowLen;
+      meshZoomCtx.strokeStyle = "#facc15";
+      meshZoomCtx.lineWidth = 2.5;
+      meshZoomCtx.beginPath();
+      meshZoomCtx.moveTo(contactX, contactY);
+      meshZoomCtx.lineTo(fnX, fnY);
+      meshZoomCtx.stroke();
+
+      meshZoomCtx.fillStyle = "#facc15";
+      meshZoomCtx.beginPath();
+      meshZoomCtx.arc(fnX, fnY, 3.5, 0, Math.PI * 2);
+      meshZoomCtx.fill();
+
+      meshZoomCtx.font = "bold 8px monospace";
+      meshZoomCtx.textAlign = "left";
+      meshZoomCtx.fillText("Fn (Vector)", fnX + 5, fnY + 3);
+    } else {
+      meshZoomCtx.fillStyle = "#10b981";
+      meshZoomCtx.beginPath();
+      meshZoomCtx.arc(contactX, contactY, 3.5, 0, Math.PI * 2);
+      meshZoomCtx.fill();
+    }
+
+    // Pitch Point P Crosshair
+    meshZoomCtx.strokeStyle = "#38bdf8";
+    meshZoomCtx.lineWidth = 1.5;
+    meshZoomCtx.beginPath();
+    meshZoomCtx.arc(zoomPitchX, zoomPitchY, 4, 0, Math.PI * 2);
+    meshZoomCtx.stroke();
+    meshZoomCtx.font = "bold 8px monospace";
+    meshZoomCtx.fillStyle = "#38bdf8";
+    meshZoomCtx.textAlign = "right";
+    meshZoomCtx.fillText("Pitch Point P", zoomPitchX - 8, zoomPitchY - 3);
+
+    meshZoomCtx.restore();
+
+    // 6. Engineering Kinematics Telemetry (Right Side)
+    const infoX = 230;
+    meshZoomCtx.font = "bold 10px monospace";
+    meshZoomCtx.fillStyle = "#ffffff";
+    meshZoomCtx.textAlign = "left";
+    meshZoomCtx.fillText(`ACTIVE MESH: ${pairInfo.name.toUpperCase()}`, infoX, 20);
+
+    meshZoomCtx.font = "9px monospace";
+    meshZoomCtx.fillStyle = "#94a3b8";
+    meshZoomCtx.fillText(`Tooth Count: Driven ${pairInfo.drivenT}T / Driver ${pairInfo.driverT}T`, infoX, 35);
+    meshZoomCtx.fillText(`Pressure Angle α = 20.0° (Pure Involute)`, infoX, 49);
+    meshZoomCtx.fillText(`Root Clearance c = 0.25·m | hw = 2.0·m`, infoX, 63);
+
+    const normalForce = isTransmitting
+      ? ((state.outputTorqueNm / (pairInfo.r * 0.001)) / Math.cos(paRad) / 1000).toFixed(2)
+      : "0.00";
+    const vPitch = (Math.abs(state.inputShaftRpm) * (2 * Math.PI / 60) * (pairInfo.r * 0.001) / Math.abs(pairInfo.ratio || 1)).toFixed(2);
+
+    meshZoomCtx.fillStyle = isTransmitting ? "#f59e0b" : "#10b981";
+    meshZoomCtx.fillText(`Normal Contact Force: ${normalForce} kN`, infoX, 80);
+    meshZoomCtx.fillStyle = "#38bdf8";
+    meshZoomCtx.fillText(`Pitch Line Velocity: ${vPitch} m/s`, infoX, 95);
+    meshZoomCtx.fillStyle = "#c084fc";
+    meshZoomCtx.fillText(isTransmitting ? "STATUS: TORQUE TRANSMITTING" : "STATUS: ROLLING (UNLOADED)", infoX, 110);
   }
 
   // Smooth Synchronizer Collar Transitions
@@ -745,18 +1485,48 @@ export function initManualGearboxLab(containerId) {
     const state = calculateTransmissionState();
 
     if (isRunning && !isPaused) {
-      // Rotate Input Shaft & Countershaft
+      // Rotate Input Shaft & Engine Coupling
       const inputRadPerSec = (state.inputShaftRpm * 2 * Math.PI) / 60;
       inputShaftAngle = (inputShaftAngle + inputRadPerSec * dt) % (Math.PI * 2);
 
-      // Countershaft driven by 24T/36T pair (ratio = 1.5)
-      const counterRadPerSec = -inputRadPerSec / 1.5;
+      // Countershaft driven by 18T/26T pair (ratio = 26/18)
+      const counterRadPerSec = -inputRadPerSec * (18 / 26);
       counterShaftAngle = (counterShaftAngle + counterRadPerSec * dt) % (Math.PI * 2);
 
       // Output Shaft rotates according to gear ratio:
       if (currentGear !== "N" && Math.abs(state.spec.ratio) > 0.01) {
         const outRadPerSec = (state.outputShaftRpm * 2 * Math.PI) / 60;
         outputShaftAngle = (outputShaftAngle + outRadPerSec * dt) % (Math.PI * 2);
+      }
+
+      // Update continuous free-wheeling gear rotation angles
+      // Forward gears: driven by countershaft at corresponding tooth ratio
+      const forwardRatios = {
+        "1": 11 / 33,
+        "2": 14 / 30,
+        "3": 18 / 26,
+        "4": 22 / 22,
+        "5": 29 / 15
+      };
+      Object.keys(forwardRatios).forEach(gid => {
+        if (gid === currentGear && state.clutchEngagedFrac > 0.05) {
+          freeGearAngles[gid] = outputShaftAngle;
+        } else {
+          const wGear = -counterRadPerSec * forwardRatios[gid];
+          freeGearAngles[gid] = (freeGearAngles[gid] + wGear * dt) % (Math.PI * 2);
+        }
+      });
+
+      // Reverse Idler & Reverse Gear:
+      // Countershaft (12T, CCW) -> Idler (16T, CW) -> Output Rev (28T, CCW)
+      const wIdler = -counterRadPerSec * (12 / 16);
+      freeGearAngles["Idler"] = (freeGearAngles["Idler"] + wIdler * dt) % (Math.PI * 2);
+
+      if (currentGear === "R" && state.clutchEngagedFrac > 0.05) {
+        freeGearAngles["R"] = outputShaftAngle;
+      } else {
+        const wRev = -wIdler * (16 / 28);
+        freeGearAngles["R"] = (freeGearAngles["R"] + wRev * dt) % (Math.PI * 2);
       }
     }
 
@@ -792,9 +1562,10 @@ export function initManualGearboxLab(containerId) {
     container.querySelector("#hud-gear-road-speed").innerText = `${Math.abs(state.roadSpeedKmh).toFixed(1)} km/h (${(Math.abs(state.roadSpeedKmh) * 0.621371).toFixed(1)} mph)`;
     container.querySelector("#lbl-gear-ma").innerText = `MA = ${state.mechanicalAdvantage.toFixed(2)}x`;
 
-    // Render Canvases
+    // Render All Canvases
     drawTransmission(state);
     drawMultiplierChart(state);
+    drawMeshZoomView(state);
 
     if (isRunning) {
       animId = requestAnimationFrame(tick);
