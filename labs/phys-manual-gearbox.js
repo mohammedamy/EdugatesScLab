@@ -121,6 +121,68 @@ export function initManualGearboxLab(containerId) {
   let cvtBeltAnimOffset = 0.0;
   let cvtPrimarySheaveClamping = 0.5; // 0 to 1 displacement
 
+  // -------------------------------------------------------------
+  // 4K Authentic Laboratory Test Bench Photographic Specifications
+  // -------------------------------------------------------------
+  const BENCH_PHOTOS = {
+    manual: {
+      name: "🕹️ 5-Speed Manual (MT)",
+      badge: "5-Speed Constant-Mesh Manual Transaxle Rig",
+      webp: "assets/labs/manual_gearbox_bench.webp",
+      jpg: "assets/labs/manual_gearbox_bench.jpg",
+      alt: "4K Cutaway Manual Transmission & Dynamometer Test Stand",
+      apparatus: "5-Speed Constant-Mesh Transaxle",
+      apparatusColor: "#38bdf8",
+      keyComponents: "Helical Gears, Reverse Idler, Needle Bearings",
+      componentsColor: "#f59e0b",
+      instrumentation: "Magtrol Load Cells & Brass Blocker Rings",
+      instrumentationColor: "#10b981",
+      description: "Sectioned 5-speed manual gearbox showcasing input layshaft, constant-mesh helical gear pairs, sliding synchronizer dog sleeves with brass blocker friction rings, and single dry diaphragm clutch."
+    },
+    dsg: {
+      name: "⚡ Dual-Clutch (DSG / DCT)",
+      badge: "HORIBA Dual-Clutch Mechatronic Dynamometer Rig",
+      webp: "assets/labs/dsg_gearbox_bench.webp",
+      jpg: "assets/labs/dsg_gearbox_bench.jpg",
+      alt: "4K HORIBA Dual-Clutch (DSG / DCT) Mechatronic Test Rig",
+      apparatus: "Concentric Twin-Shaft DSG Cutaway",
+      apparatusColor: "#ec4899",
+      keyComponents: "Solid Inner (1,3,5) & Hollow Outer (2,4,6) Shafts",
+      componentsColor: "#38bdf8",
+      instrumentation: "HBM Torque Transducer & K1/K2 Wet Clutch Packs",
+      instrumentationColor: "#10b981",
+      description: "Automotive engineering test rig displaying concentric dual input shafts, multi-plate wet clutch packs, electro-hydraulic mechatronic spool valve block, and dual-channel gear actuators for seamless 20ms shifts."
+    },
+    automatic: {
+      name: "⚙️ Planetary Automatic (AT)",
+      badge: "Compound Planetary Epicyclic Automatic Test Bench",
+      webp: "assets/labs/automatic_gearbox_bench.webp",
+      jpg: "assets/labs/automatic_gearbox_bench.jpg",
+      alt: "4K Compound Epicyclic Planetary Automatic Transmission Test Bench",
+      apparatus: "Hydraulic Epicyclic Automatic Test Stand",
+      apparatusColor: "#a855f7",
+      keyComponents: "Cutaway Fluid Torque Converter & TCC Lock-Up",
+      componentsColor: "#f59e0b",
+      instrumentation: "Labyrinth Valve Body & Bands B1/B2 Servos",
+      instrumentationColor: "#38bdf8",
+      description: "Sectioned automatic transmission revealing cutaway hydrodynamic fluid torque converter (impeller, turbine, stator with one-way sprag clutch), compound planetary epicyclic gearsets, and hydraulic labyrinth valve channels."
+    },
+    cvt: {
+      name: "♾️ Continuously Variable (CVT)",
+      badge: "Van Doorne Steel Push-Belt CVT Rig",
+      webp: "assets/labs/cvt_gearbox_bench.webp",
+      jpg: "assets/labs/cvt_gearbox_bench.jpg",
+      alt: "4K Van Doorne Steel Push-Belt Continuously Variable Transmission (CVT) Rig",
+      apparatus: "Dual Conical Variable Pulley Stepless Transaxle",
+      apparatusColor: "#10b981",
+      keyComponents: "Opposed 11° Conical Sheaves & Steel Push-Belt",
+      componentsColor: "#38bdf8",
+      instrumentation: "Axial Hydraulic Clamping Pistons & Digital Dyno",
+      instrumentationColor: "#f59e0b",
+      description: "Industrial test fixture displaying opposed 11° mirror-finish conical pulleys, high-strength Van Doorne segmented steel compression push-belt, hydraulic clamping pistons, and planetary forward/reverse synchronizer."
+    }
+  };
+
   // Assemble Master HTML Structure
   container.innerHTML = `
     <div class="lab-container">
@@ -215,25 +277,56 @@ export function initManualGearboxLab(containerId) {
             </div>
           </div>
 
-          <!-- 4K Real Laboratory Photograph Overlay -->
+          <!-- 4K Real Laboratory Photograph Overlay with Multi-Transmission Bench Switcher -->
           <div id="gear-photo-overlay" style="display: none; position: absolute; inset: 0; background: #000; z-index: 4;">
-            <picture>
-              <source srcset="assets/labs/manual_gearbox_bench.webp" type="image/webp">
-              <img src="assets/labs/manual_gearbox_bench.jpg" decoding="async" loading="lazy" alt="4K Automotive Transmission &amp; Dynamometer Test Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.95;">
+            <!-- Top Controls Header Bar in 4K Overlay -->
+            <div style="position: absolute; top: 14px; left: 14px; right: 14px; display: flex; justify-content: space-between; align-items: center; z-index: 5; flex-wrap: wrap; gap: 8px;">
+              <div id="photo-bench-title-badge" style="background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(10px); border: 1.5px solid #38bdf8; padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 0.8rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.7);">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 10px #38bdf8; display: inline-block;"></span>
+                <span id="photo-bench-title-text">📸 4K BENCH: 5-Speed Constant-Mesh Manual Transaxle</span>
+              </div>
+
+              <!-- 4-Transmission Bench Switcher Tabs -->
+              <div class="photo-bench-switcher" style="display: flex; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 3px; gap: 4px; box-shadow: 0 4px 15px rgba(0,0,0,0.7);">
+                <button class="btn btn-secondary photo-bench-tab active" data-bench="manual" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 700; border-radius: 6px; border: none; background: #38bdf8; color: #0f172a; cursor: pointer;">
+                  🕹️ Manual
+                </button>
+                <button class="btn btn-secondary photo-bench-tab" data-bench="dsg" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 600; border-radius: 6px; border: none; background: transparent; color: #94a3b8; cursor: pointer;">
+                  ⚡ DSG
+                </button>
+                <button class="btn btn-secondary photo-bench-tab" data-bench="automatic" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 600; border-radius: 6px; border: none; background: transparent; color: #94a3b8; cursor: pointer;">
+                  ⚙️ Auto (AT)
+                </button>
+                <button class="btn btn-secondary photo-bench-tab" data-bench="cvt" style="padding: 4px 10px; font-size: 0.72rem; font-weight: 600; border-radius: 6px; border: none; background: transparent; color: #94a3b8; cursor: pointer;">
+                  ♾️ CVT
+                </button>
+              </div>
+            </div>
+
+            <!-- Full-Screen 4K Photo Picture Element -->
+            <picture id="gear-photo-picture" style="display: block; width: 100%; height: 100%;">
+              <source id="gear-photo-source" srcset="assets/labs/manual_gearbox_bench.webp" type="image/webp">
+              <img id="gear-photo-img" src="assets/labs/manual_gearbox_bench.jpg" decoding="async" loading="lazy" alt="4K Automotive Transmission &amp; Dynamometer Test Bench" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.96; transition: opacity 0.2s ease;">
             </picture>
 
-            <div style="position: absolute; bottom: 20px; left: 20px; right: 20px; background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 12px 18px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
-              <div>
-                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Test Apparatus</div>
-                <div style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.88rem;">Cutaway Transaxle Test Bench</div>
+            <!-- Bottom Multi-Telemetry Technical HUD -->
+            <div style="position: absolute; bottom: 16px; left: 16px; right: 16px; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(16px); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 12px; padding: 12px 18px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.85); z-index: 5;">
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+                <div>
+                  <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Test Apparatus</div>
+                  <div id="photo-hud-apparatus" style="color: #38bdf8; font-weight: 700; font-family: var(--font-mono); font-size: 0.85rem;">5-Speed Constant-Mesh Transaxle</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Key Cutaway Components</div>
+                  <div id="photo-hud-components" style="color: #f59e0b; font-weight: 700; font-family: var(--font-mono); font-size: 0.85rem;">Helical Gears, Reverse Idler, Needle Bearings</div>
+                </div>
+                <div>
+                  <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Telemetry & Sensors</div>
+                  <div id="photo-hud-telemetry" style="color: #10b981; font-weight: 700; font-family: var(--font-mono); font-size: 0.85rem;">Magtrol Dual In-Line Load Cells</div>
+                </div>
               </div>
-              <div>
-                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Torque Telemetry</div>
-                <div style="color: #10b981; font-weight: 700; font-family: var(--font-mono); font-size: 0.88rem;">Magtrol Dual In-Line Load Cells</div>
-              </div>
-              <div>
-                <div style="font-size: 0.68rem; color: #94a3b8; text-transform: uppercase;">Coupling System</div>
-                <div style="color: #f59e0b; font-weight: 700; font-family: var(--font-mono); font-size: 0.88rem;">Multi-Mode Mechanical Interlock</div>
+              <div id="photo-hud-desc" style="font-size: 0.74rem; color: #cbd5e1; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px;">
+                Sectioned 5-speed manual gearbox showcasing input layshaft, constant-mesh helical gear pairs, sliding synchronizer dog sleeves with brass blocker friction rings, and single dry diaphragm clutch.
               </div>
             </div>
           </div>
@@ -1951,6 +2044,7 @@ export function initManualGearboxLab(containerId) {
 
       transmissionMode = btn.dataset.mode || "manual";
       renderModeInteractivePanel();
+      setBenchPhoto(transmissionMode);
       SoundFX.playClick();
     });
   });
@@ -2000,10 +2094,79 @@ export function initManualGearboxLab(containerId) {
     SoundFX.playClick();
   });
 
-  // 4K Photo Viewport Switcher
+  // 4K Photo Viewport Switcher & Multi-Bench Photo Manager
   const btnSim = container.querySelector("#view-mode-gear-sim");
   const btnPhoto = container.querySelector("#view-mode-gear-photo");
   const photoOverlay = container.querySelector("#gear-photo-overlay");
+
+  let activeBenchPhoto = "manual";
+
+  function setBenchPhoto(mode) {
+    if (!BENCH_PHOTOS[mode]) mode = "manual";
+    activeBenchPhoto = mode;
+    const bench = BENCH_PHOTOS[mode];
+
+    // Update active tab button in overlay
+    container.querySelectorAll(".photo-bench-tab").forEach(tab => {
+      const isActive = tab.dataset.bench === mode;
+      tab.classList.toggle("active", isActive);
+      tab.style.background = isActive ? "#38bdf8" : "transparent";
+      tab.style.color = isActive ? "#0f172a" : "#94a3b8";
+      tab.style.fontWeight = isActive ? "700" : "600";
+    });
+
+    // Update image and webp source
+    const photoSource = container.querySelector("#gear-photo-source");
+    const photoImg = container.querySelector("#gear-photo-img");
+    if (photoSource) photoSource.srcset = bench.webp;
+    if (photoImg) {
+      photoImg.style.opacity = "0.3";
+      setTimeout(() => {
+        photoImg.src = bench.jpg;
+        photoImg.alt = bench.alt;
+        photoImg.style.opacity = "0.96";
+      }, 40);
+    }
+
+    // Update titles and HUD
+    const titleText = container.querySelector("#photo-bench-title-text");
+    if (titleText) titleText.innerText = `📸 4K BENCH: ${bench.badge}`;
+
+    const hudApparatus = container.querySelector("#photo-hud-apparatus");
+    if (hudApparatus) {
+      hudApparatus.innerText = bench.apparatus;
+      hudApparatus.style.color = bench.apparatusColor;
+    }
+
+    const hudComponents = container.querySelector("#photo-hud-components");
+    if (hudComponents) {
+      hudComponents.innerText = bench.keyComponents;
+      hudComponents.style.color = bench.componentsColor;
+    }
+
+    const hudTelemetry = container.querySelector("#photo-hud-telemetry");
+    if (hudTelemetry) {
+      hudTelemetry.innerText = bench.instrumentation;
+      hudTelemetry.style.color = bench.instrumentationColor;
+    }
+
+    const hudDesc = container.querySelector("#photo-hud-desc");
+    if (hudDesc) {
+      hudDesc.innerText = bench.description;
+    }
+  }
+
+  // Handle bench tab switching inside 4K overlay
+  container.querySelectorAll(".photo-bench-tab").forEach(tab => {
+    tab.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const benchMode = tab.dataset.bench;
+      if (benchMode) {
+        setBenchPhoto(benchMode);
+        SoundFX.playClick();
+      }
+    });
+  });
 
   btnSim?.addEventListener("click", () => {
     btnSim.classList.add("active");
@@ -2023,7 +2186,10 @@ export function initManualGearboxLab(containerId) {
     btnPhoto.style.color = "#ffffff";
     btnSim?.classList.remove("active");
     if (btnSim) btnSim.style.background = "transparent";
-    if (photoOverlay) photoOverlay.style.display = "block";
+    if (photoOverlay) {
+      photoOverlay.style.display = "block";
+      setBenchPhoto(transmissionMode);
+    }
     SoundFX.playClick();
   });
 

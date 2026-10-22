@@ -3,7 +3,7 @@
 // Stale-While-Revalidate for external CDNs (KaTeX, Google Fonts)
 // Network-First with Cache Fallback for navigation requests
 
-const CACHE_NAME = "amscilab-pwa-v131";
+const CACHE_NAME = "amscilab-pwa-v132";
 
 const CORE_APP_SHELL = [
   "./",
@@ -239,6 +239,12 @@ const SECONDARY_ASSETS = [
   "./assets/labs/engine_piston_bench.jpg",
   "./assets/labs/manual_gearbox_bench.webp",
   "./assets/labs/manual_gearbox_bench.jpg",
+  "./assets/labs/dsg_gearbox_bench.webp",
+  "./assets/labs/dsg_gearbox_bench.jpg",
+  "./assets/labs/automatic_gearbox_bench.webp",
+  "./assets/labs/automatic_gearbox_bench.jpg",
+  "./assets/labs/cvt_gearbox_bench.webp",
+  "./assets/labs/cvt_gearbox_bench.jpg",
   "./assets/labs/circuits_bench.jpg",
   "./assets/labs/colligative_bench.jpg",
   "./assets/labs/conduction_bench.jpg",
